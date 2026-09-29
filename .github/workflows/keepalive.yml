@@ -24,11 +24,16 @@ jobs:
             echo "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY repository variables are not set; nothing to ping."
             exit 0
           fi
-          status=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/rest/v1/leaderboard_best?select=*&limit=1")
+          # New-style publishable keys (sb_publishable_...) are not JWTs and must
+          # only be sent as the apikey header; legacy anon keys also work as Bearer.
+          auth=()
+          case "$SUPABASE_ANON_KEY" in
+            sb_*) ;;
+            *) auth=(-H "Authorization: Bearer $SUPABASE_ANON_KEY") ;;
+          esac
+          status=$(curl -s -o response.txt -w "%{http_code}"             -H "apikey: $SUPABASE_ANON_KEY" "${auth[@]}"             "$SUPABASE_URL/rest/v1/leaderboard_best?select=*&limit=1")
           echo "Supabase responded with HTTP $status"
+          head -c 300 response.txt; echo
           if [ "$status" -ge 400 ]; then
             echo "::error::Supabase did not respond successfully (is the project paused?)"
             exit 1
