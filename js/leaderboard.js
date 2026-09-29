@@ -44,6 +44,9 @@ var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 var _env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
 if (_env.VITE_SUPABASE_URL) SUPABASE_URL = _env.VITE_SUPABASE_URL;
 if (_env.VITE_SUPABASE_ANON_KEY) SUPABASE_ANON_KEY = _env.VITE_SUPABASE_ANON_KEY;
+// Tolerate a trailing slash or an accidental /rest/v1 suffix.
+SUPABASE_URL = String(SUPABASE_URL).trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
+SUPABASE_ANON_KEY = String(SUPABASE_ANON_KEY).trim();
 
 // ===== INTERNAL STATE =====
 

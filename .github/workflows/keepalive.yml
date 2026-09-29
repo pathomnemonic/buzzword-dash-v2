@@ -24,6 +24,9 @@ jobs:
             echo "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY repository variables are not set; nothing to ping."
             exit 0
           fi
+          # Tolerate a trailing slash or an accidental /rest/v1 suffix in the URL.
+          SUPABASE_URL="${SUPABASE_URL%/}"
+          SUPABASE_URL="${SUPABASE_URL%/rest/v1}"
           # New-style publishable keys (sb_publishable_...) are not JWTs and must
           # only be sent as the apikey header; legacy anon keys also work as Bearer.
           auth=()
