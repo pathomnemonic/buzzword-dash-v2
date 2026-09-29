@@ -7,8 +7,8 @@
  * A fresh browser profile shows a full-screen onboarding overlay that
  * intercepts every click, so tests must dismiss it before interacting.
  */
-export async function openApp(page) {
-  await page.goto('/');
+export async function openApp(page, path = '/') {
+  await page.goto(path);
   const next = page.locator('#obNextBtn');
   for (let i = 0; i < 10; i++) {
     if (!(await next.isVisible().catch(() => false))) break;

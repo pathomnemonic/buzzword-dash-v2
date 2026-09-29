@@ -1501,13 +1501,18 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   startPreview() {
-    if (!this.characterPreview) {
-      this.characterPreview = new CharacterPreview();
-      this.characterPreview.init('characterPreviewContainer');
+    try {
+      if (!this.characterPreview) {
+        this.characterPreview = new CharacterPreview();
+        this.characterPreview.init('characterPreviewContainer');
+      }
+      this.characterPreview.clearPreview();
+      this.characterPreview.resize();
+      this.characterPreview.startAnimation();
+    } catch (e) {
+      // No WebGL: the Locker still works, just without the 3D preview.
+      this.characterPreview = null;
     }
-    this.characterPreview.clearPreview();
-    this.characterPreview.resize();
-    this.characterPreview.startAnimation();
   }
 
   /** Locker section: recolor hair, skin, coat, pants and shoes. */

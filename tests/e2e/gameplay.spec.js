@@ -87,3 +87,16 @@ test.describe('Settings and screens', () => {
     await expect(page.locator('#examContent')).toContainText(/Exam complete/);
   });
 });
+
+test.describe('Without WebGL', () => {
+  // ?webgl=off simulates a browser that cannot create a WebGL context.
+  test('the app still works and explains that the runner is unavailable', async ({ page }) => {
+    await openApp(page, '/?webgl=off');
+    await expect(page.locator('#webglNotice')).toContainText(/WebGL/);
+    await page.locator('.btn-play').click();
+    await expect(page.locator('body')).toContainText(/needs WebGL/);
+    await page.locator('#flashcardBtn').click();
+    await page.getByRole('button', { name: /Start Flashcard Session/ }).click();
+    await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);
+  });
+});

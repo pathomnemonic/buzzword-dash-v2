@@ -36,6 +36,7 @@ var leaderboardModule = null;
 
 // ===== Application state =====
 var homeCharacter = null;
+var webglOk = true;
 var multiplayerClient = null;
 var multiplayerLastStateSend = 0;
 var multiplayerMatchStarted = false;
@@ -167,6 +168,17 @@ function renderHowToPlay() {
 // =========================================================================
 //  HOME CHARACTER
 // =========================================================================
+function showWebGLNotice() {
+  var section = document.querySelector('.play-section');
+  if (!section) return;
+  var note = document.createElement('p');
+  note.id = 'webglNotice';
+  note.setAttribute('role', 'status');
+  note.style.cssText = 'font-size:12px;color:var(--accent-gold);text-align:center;margin:8px 0';
+  note.textContent = '3D graphics (WebGL) are not available in this browser, so the runner cannot start. Flashcards, the exam simulator, stats and everything else still work.';
+  section.appendChild(note);
+}
+
 function initHomeCharacter() {
   homeCharacter = new HomeCharacter();
   homeCharacter.init(game.renderer);
@@ -714,6 +726,7 @@ function attachChallengeResult(finalScore) {
 }
 
 function startMode(mode) {
+  if (!webglOk) { ui._showToast('The runner needs WebGL, which is not available here. Try Flashcards or the Exam Sim!'); return; }
   if (mode === 'tournament') { startTournament(); return; }
   if (mode === 'daily' && storage.get('dailyDone')) {
     alert('Daily round already completed today! Come back tomorrow.');
@@ -766,6 +779,7 @@ function startMode(mode) {
 }
 
 function launchRun(mode, orderedCardIds, modeConfig) {
+  if (!webglOk) { ui._showToast('The runner needs WebGL, which is not available here.'); return; }
   // Stop home scene, hide nav
   if (homeCharacter) homeCharacter.stopAnimation();
   showBottomNav(false);
@@ -898,11 +912,20 @@ function finalizeRun(gameRef) {
 function init() {
   storage.load();
   storage.checkDailyReset();
-  game.init();
+  // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
+  // or ?webgl=off for diagnostics) the rest of the app must still work.
+  try {
+    if (/[?&]webgl=off(&|$)/.test(window.location.search)) throw new Error('WebGL disabled by URL');
+    game.init();
+  } catch (e) {
+    webglOk = false;
+    reportError(e, { system: 'engine', operation: 'init', recoverable: true });
+  }
   ui.init();
 
   // Home character
-  initHomeCharacter();
+  if (webglOk) initHomeCharacter();
+  else showWebGLNotice();
 
   // Collapsibles
   setupCollapsibles();
@@ -1073,12 +1096,12 @@ function init() {
   };
 
   ui.onEquipChange = function () {
-    game.buildPlayer();
+    if (webglOk) game.buildPlayer();
     if (homeCharacter) homeCharacter.rebuildCharacter();
   };
 
   ui.onNightModeChange = function () {
-    game.updateNightMode();
+    if (webglOk) game.updateNightMode();
   };
 
   // ==========================
@@ -1249,7 +1272,7 @@ function init() {
   var lastFrameMs = 0;
   var lastMusicMs = 0;
   var GAME_SCENE_STATES = ['preparing', 'countdown', 'playing', 'paused', 'dying', 'continue_prompt', 'finishing'];
-  game.renderer.setAnimationLoop(function (nowMs) {
+  if (webglOk && game.renderer) game.renderer.setAnimationLoop(function (nowMs) {
     var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.1) : 0.016;
     lastFrameMs = nowMs;
     if (game._state === 'playing' && nowMs - lastMusicMs > 250) {
@@ -1269,7 +1292,7 @@ function init() {
 
   // A glTF avatar finished downloading: swap the stand-in for the real model.
   window.addEventListener('buzzword:model-ready', function () {
-    if (!game.running) game.buildPlayer();
+    if (webglOk && !game.running) game.buildPlayer();
     if (homeCharacter) homeCharacter.rebuildCharacter();
     if (ui.characterPreview) ui.characterPreview.rebuildCharacter();
   });
