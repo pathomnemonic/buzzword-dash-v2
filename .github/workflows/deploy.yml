@@ -38,6 +38,8 @@ jobs:
           # Optional: set these as repository variables/secrets to enable the leaderboard.
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          # Optional: your tip page (Ko-fi, Buy Me a Coffee, GitHub Sponsors, Stripe link)
+          VITE_TIP_URL: ${{ vars.VITE_TIP_URL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

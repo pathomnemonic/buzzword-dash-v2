@@ -29,6 +29,7 @@ import { CARDS } from './cards.js';
 import { customCards } from './customcards.js';
 import { HomeCharacter } from './game/homecharacter.js';
 import { reportError } from './errors.js';
+import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 
 // ===== Lazy-loaded module references =====
 var ankiImportModule = null;
@@ -646,6 +647,50 @@ function startNewChallenge() {
 }
 
 /** Post-run: compare to the sender and offer to share. */
+/**
+ * A rare, polite tip note after a good run (never during a run or exam).
+ * It appears at most once a week and can be turned off for good.
+ */
+function attachTipPrompt() {
+  var content = document.getElementById('postRunContent');
+  if (!content) return;
+  var total = game.correct + game.wrong;
+  var shouldShow = shouldShowTipPrompt({
+    tipUrl: getTipUrl(),
+    optedOut: !!storage.get('tipPromptOff'),
+    totalRuns: storage.data.history.recentRuns.length,
+    lastPromptAt: storage.get('lastTipPromptAt') || 0,
+    now: Date.now(),
+    correct: game.correct,
+    accuracy: total > 0 ? Math.round(game.correct / total * 100) : 0
+  });
+  if (!shouldShow) return;
+  storage.set('lastTipPromptAt', Date.now());
+
+  var box = document.createElement('div');
+  box.style.cssText = 'margin:14px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,215,0,0.4);text-align:center;background:rgba(255,215,0,0.06)';
+  var text = document.createElement('div');
+  text.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:8px';
+  text.textContent = 'Enjoying Buzzword Dash? It is free and always will be. If it is helping your studying, a small tip helps keep it going.';
+  box.appendChild(text);
+
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;justify-content:center';
+  function makeButton(label, cls, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-sm ' + cls;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    row.appendChild(b);
+  }
+  makeButton('\u2615 Leave a tip', 'btn-gold', function () { openTipPage(); box.remove(); });
+  makeButton('Not now', 'btn-outline', function () { box.remove(); });
+  makeButton('Don\u2019t ask again', 'btn-outline', function () { storage.set('tipPromptOff', true); box.remove(); });
+  box.appendChild(row);
+  content.appendChild(box);
+}
+
 var MODE_LABELS = {
   endless: 'Endless', study: 'Study', weakness: 'Weakness', daily: 'Daily Challenge',
   challenge: 'Challenge', tournament: 'Weekly Tournament', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
@@ -1001,6 +1046,7 @@ function init() {
     ui.showPostRun(game);
     audio.setMusicIntensity(0.5, 0);
     attachShareImage();
+    attachTipPrompt();
     if (game.mode === 'challenge') attachChallengeResult(game.score);
     if (game.mode === 'tournament') attachTournamentNote();
 

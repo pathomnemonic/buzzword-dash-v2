@@ -253,6 +253,16 @@ buzzword-dash/
 3. Go to **Settings → Pages → Source** and select the `main` branch
 4. Your game will be live at `https://pathomnemonic.github.io/buzzword-dash-v2/`
 
+## Tips (Optional)
+
+Buzzword Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:
+
+```
+VITE_TIP_URL=https://ko-fi.com/yourname
+```
+
+(In GitHub, add it as a repository variable named `VITE_TIP_URL`.) With no URL set, no tip UI is shown. When set, a "Support the developer" button appears in Settings, and a rare note appears after a good run: never during a run or exam, only after five or more runs, at most once a week, and players can turn it off for good. Only `https` links are accepted.
+
 ## Leaderboard, Friends and Invites Setup (Optional)
 
 The leaderboard, friend requests and match invites use [Supabase](https://supabase.com/) (free tier).

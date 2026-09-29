@@ -55,6 +55,8 @@ var DEFAULTS = {
     glowEffects: true,
     reminders: false,
     reminderHour: 19,
+    tipPromptOff: false,
+    lastTipPromptAt: 0,
     lastReminderDate: '',
     avatarColors: {},
     reducedMotion: false,

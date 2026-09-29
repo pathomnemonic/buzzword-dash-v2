@@ -43,6 +43,7 @@ import { SHOP_ITEMS, QUESTS, ACHIEVEMENTS, AVATARS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { buildStudyPlan } from './studyplan.js';
+import { getTipUrl, openTipPage } from './tips.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -1877,6 +1878,19 @@ class UI {
     tutBtn.addEventListener('click', function () { self.showTutorial(); });
     tutRow.appendChild(tutBtn);
     content.appendChild(tutRow);
+
+    // Optional tip link (only when a tip page is configured at build time)
+    if (getTipUrl()) {
+      var tipRow = createElement('div', { className: 'setting-row' });
+      var tipLabel = createElement('div');
+      tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
+      tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Buzzword Dash is free. Tips help keep it going.' }));
+      tipRow.appendChild(tipLabel);
+      var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
+      tipBtn.addEventListener('click', function () { openTipPage(); });
+      tipRow.appendChild(tipBtn);
+      content.appendChild(tipRow);
+    }
 
     // Export reports
     var reportRow = createElement('div', { className: 'setting-row' });
