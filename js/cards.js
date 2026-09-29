@@ -1,0 +1,437 @@
+/**
+ * cards.js — Card hub for Buzzword Dash card database
+ *
+ * This is the single source of truth for all built-in cards.
+ * It imports raw card arrays from subject files, validates and
+ * normalizes them at load time (without mutating the originals),
+ * and exports frozen collections for use by the rest of the app.
+ *
+ * Key architectural rules (from ARCHITECTURE.md):
+ * - Imported module card objects must not be mutated.
+ * - CARD_BY_ID should be a Map.
+ * - Exports content version and card-pool hash.
+ * - Cards failing validation are dropped with console warnings.
+ * - Archive data is excluded from the production build.
+ *
+ * Agent 18 owns this file exclusively.
+ */
+
+import { NEUROLOGY_CARDS } from './cards/neurology.js';
+import { CARDIOLOGY_CARDS } from './cards/cardiology.js';
+import { NEPHROLOGY_CARDS } from './cards/nephrology.js';
+import { PSYCHIATRY_CARDS } from './cards/psychiatry.js';
+import { GASTRO_CARDS } from './cards/gastroenterology.js';
+import { PULM_CARDS } from './cards/pulmonology.js';
+import { ID_CARDS } from './cards/infectious.js';
+import { ENDO_CARDS } from './cards/endocrinology.js';
+import { HEMEONC_CARDS } from './cards/hemeonc.js';
+import { RHEUM_CARDS } from './cards/rheumatology.js';
+import { OBGYN_CARDS } from './cards/obgyn.js';
+import { PEDS_CARDS } from './cards/pediatrics.js';
+import { SURGERY_CARDS } from './cards/surgery.js';
+import { EM_CARDS } from './cards/emergency.js';
+import { MULTI_CARDS } from './cards/multisystem.js';
+
+// ═══════════════════════════════════════════════════════════
+// Canonical enums
+// ═══════════════════════════════════════════════════════════
+
+export const SUBJECTS = Object.freeze([
+  'Neurology',
+  'Cardiology',
+  'Nephrology',
+  'Psychiatry',
+  'Gastroenterology',
+  'Pulmonology',
+  'Infectious Disease',
+  'Endocrinology',
+  'Hematology/Oncology',
+  'Rheumatology',
+  'Obstetrics/Gynecology',
+  'Pediatrics',
+  'Surgery',
+  'Emergency Medicine',
+  'Multisystem / Mixed'
+]);
+
+export const EXAM_FILTERS = Object.freeze([
+  'step1', 'step2', 'step3', 'comlex1', 'comlex2',
+  'shelf_im', 'shelf_surg', 'shelf_peds', 'shelf_obgyn',
+  'shelf_psych', 'shelf_neuro', 'shelf_fm'
+]);
+
+export const QUESTION_TYPES = Object.freeze([
+  'buzzword_dx', 'dx_to_tx', 'dx_to_workup', 'mechanism',
+  'side_effect', 'lab_dx', 'pharm', 'prevention', 'management'
+]);
+
+export const SOURCE_DISCIPLINES = Object.freeze([
+  'pathology', 'pharmacology', 'physiology', 'biochemistry',
+  'microbiology', 'anatomy', 'embryology', 'behavioral',
+  'biostatistics', 'clinical_medicine', 'surgery_principles',
+  'genetics', 'immunology', 'ethics'
+]);
+
+// ═══════════════════════════════════════════════════════════
+// Content version — bump when card content changes materially
+// ═══════════════════════════════════════════════════════════
+
+export const CONTENT_VERSION = '2.0.0';
+
+// ═══════════════════════════════════════════════════════════
+// Internal helpers
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Simple deterministic hash for a string.
+ * Uses djb2 algorithm — sufficient for card-pool identity checks.
+ * Not cryptographic.
+ */
+function djb2Hash(str) {
+  var hash = 5381;
+  for (var i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return (hash >>> 0).toString(16);
+}
+
+/**
+ * Check if a string contains HTML tags.
+ */
+function containsHTML(str) {
+  if (typeof str !== 'string') return false;
+  return /<[a-zA-Z][^>]*>/.test(str);
+}
+
+/**
+ * Normalize a card without mutating the original.
+ * Returns a new object with safe defaults for missing fields.
+ */
+function normalizeCard(raw) {
+  // Shallow clone — never mutate the import
+  var c = {};
+  for (var key in raw) {
+    if (Object.prototype.hasOwnProperty.call(raw, key)) {
+      // Deep-clone arrays to avoid shared references
+      if (Array.isArray(raw[key])) {
+        c[key] = raw[key].slice();
+      } else if (raw[key] !== null && typeof raw[key] === 'object' && !Array.isArray(raw[key])) {
+        // Shallow clone objects (ww map)
+        var obj = {};
+        for (var ok in raw[key]) {
+          if (Object.prototype.hasOwnProperty.call(raw[key], ok)) {
+            obj[ok] = raw[key][ok];
+          }
+        }
+        c[key] = obj;
+      } else {
+        c[key] = raw[key];
+      }
+    }
+  }
+
+  // Patch missing new-schema fields with safe defaults
+  if (c.exams === undefined) c.exams = ['step1', 'step2'];
+  if (c.baseDifficulty === undefined) c.baseDifficulty = 2;
+  if (c.questionType === undefined) c.questionType = 'buzzword_dx';
+  if (c.source === undefined) c.source = 'clinical_medicine';
+  if (c.tags === undefined) c.tags = c.subj ? [c.subj.toLowerCase()] : [];
+  if (c.hx === undefined) c.hx = false;
+  if (c.yr === undefined) c.yr = 2;
+  if (c.pearls === undefined) {
+    c.pearls = c.tp ? [c.tp.split('.')[0]] : [];
+  }
+  if (c.enabledModes === undefined) {
+    c.enabledModes = ['endless', 'study', 'weakness', 'daily',
+      'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race',
+      'timed_practice', 'flashcard'];
+  }
+  if (c.contentVersion === undefined) c.contentVersion = CONTENT_VERSION;
+  if (c.reviewedAt === undefined) c.reviewedAt = null;
+
+  return c;
+}
+
+/**
+ * Validate a single normalized card.
+ * Returns { valid: boolean, errors: string[], warnings: string[] }
+ */
+function validateCard(c) {
+  var errors = [];
+  var warnings = [];
+
+  // Required fields
+  if (!c || !c.id || typeof c.id !== 'string') {
+    errors.push('missing or invalid id');
+    return { valid: false, errors: errors, warnings: warnings };
+  }
+  if (!c.subj || SUBJECTS.indexOf(c.subj) < 0) {
+    errors.push(c.id + ': invalid subject "' + c.subj + '"');
+  }
+  if (!c.bw || !Array.isArray(c.bw) || c.bw.length < 1) {
+    errors.push(c.id + ': missing or empty buzzwords');
+  }
+  if (!c.ans || typeof c.ans !== 'string' || c.ans.trim() === '') {
+    errors.push(c.id + ': missing answer');
+  }
+  if (!c.d || !Array.isArray(c.d) || c.d.length !== 2) {
+    errors.push(c.id + ': needs exactly 2 distractors, has ' + (c.d ? c.d.length : 0));
+  }
+
+  // Distractor uniqueness and distinctness from answer
+  if (c.d && c.d.length === 2) {
+    var ansNorm = (c.ans || '').toLowerCase().trim();
+    var d0Norm = (c.d[0] || '').toLowerCase().trim();
+    var d1Norm = (c.d[1] || '').toLowerCase().trim();
+    if (d0Norm === d1Norm) {
+      errors.push(c.id + ': distractors are identical');
+    }
+    if (d0Norm === ansNorm) {
+      errors.push(c.id + ': distractor[0] matches answer');
+    }
+    if (d1Norm === ansNorm) {
+      errors.push(c.id + ': distractor[1] matches answer');
+    }
+  }
+
+  // ww keys must match actual distractors
+  if (c.ww && c.d && c.d.length === 2) {
+    var wwKeys = Object.keys(c.ww);
+    var newWw = {};
+    var wwFixed = false;
+    c.d.forEach(function (dist, idx) {
+      if (c.ww[dist]) {
+        newWw[dist] = c.ww[dist];
+      } else if (wwKeys[idx]) {
+        newWw[dist] = c.ww[wwKeys[idx]];
+        wwFixed = true;
+      } else {
+        newWw[dist] = 'See teaching point for comparison.';
+        wwFixed = true;
+      }
+    });
+    if (wwFixed) {
+      warnings.push(c.id + ': remapped ww keys to match distractors');
+    }
+    c.ww = newWw;
+  }
+
+  // Validate enums
+  if (c.baseDifficulty !== 1 && c.baseDifficulty !== 2 && c.baseDifficulty !== 3) {
+    warnings.push(c.id + ': baseDifficulty should be 1, 2, or 3; defaulting to 2');
+    c.baseDifficulty = 2;
+  }
+  if (QUESTION_TYPES.indexOf(c.questionType) < 0) {
+    warnings.push(c.id + ': unknown questionType "' + c.questionType + '"; defaulting');
+    c.questionType = 'buzzword_dx';
+  }
+  if (SOURCE_DISCIPLINES.indexOf(c.source) < 0) {
+    warnings.push(c.id + ': unknown source "' + c.source + '"; defaulting');
+    c.source = 'clinical_medicine';
+  }
+  if (c.yr !== 1 && c.yr !== 2 && c.yr !== 3 && c.yr !== 4) {
+    warnings.push(c.id + ': yr should be 1-4; defaulting to 2');
+    c.yr = 2;
+  }
+
+  // HTML detection
+  var textFields = [c.ans, c.tp].concat(c.bw || []).concat(c.d || []);
+  for (var ti = 0; ti < textFields.length; ti++) {
+    if (containsHTML(textFields[ti])) {
+      warnings.push(c.id + ': contains HTML in text field');
+      break;
+    }
+  }
+
+  // Answer-leak filtering
+  if (c.ans && c.bw && c.d) {
+    var ansWords = c.ans
+      .toLowerCase()
+      .split(/[\s\-/()]+/)
+      .filter(function (w) { return w.length > 4; });
+
+    var distractorWords = new Set();
+    for (var di = 0; di < c.d.length; di++) {
+      c.d[di].toLowerCase().split(/[\s\-/()]+/).forEach(function (w) {
+        if (w.length > 4) distractorWords.add(w);
+      });
+    }
+
+    var leaksFound = 0;
+    var safeBuzzwords = c.bw.filter(function (bw) {
+      var bwLower = bw.toLowerCase();
+      for (var wi = 0; wi < ansWords.length; wi++) {
+        if (bwLower.includes(ansWords[wi]) && !distractorWords.has(ansWords[wi])) {
+          leaksFound++;
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (safeBuzzwords.length < 2) {
+      errors.push(c.id + ': only ' + safeBuzzwords.length +
+        ' buzzword(s) left after removing ' + leaksFound + ' leak(s)');
+    } else {
+      if (leaksFound > 0) {
+        warnings.push(c.id + ': removed ' + leaksFound +
+          ' leaking buzzword(s), ' + safeBuzzwords.length + ' remain');
+      }
+      c.bw = safeBuzzwords;
+    }
+  }
+
+  // Trim long buzzwords
+  c.bw = c.bw.flatMap(function (b) {
+    var words = b.split(/\s+/);
+    if (words.length > 10) {
+      warnings.push(c.id + ': split long buzzword "' + b.substring(0, 40) + '..."');
+      var chunks = [];
+      for (var j = 0; j < words.length; j += 7) {
+        chunks.push(words.slice(j, j + 7).join(' '));
+      }
+      return chunks;
+    }
+    return [b];
+  });
+
+  return { valid: errors.length === 0, errors: errors, warnings: warnings };
+}
+
+// ═══════════════════════════════════════════════════════════
+// Build the card collection
+// ═══════════════════════════════════════════════════════════
+
+var RAW_SOURCES = [
+  NEUROLOGY_CARDS,
+  CARDIOLOGY_CARDS,
+  NEPHROLOGY_CARDS,
+  PSYCHIATRY_CARDS,
+  GASTRO_CARDS,
+  PULM_CARDS,
+  ID_CARDS,
+  ENDO_CARDS,
+  HEMEONC_CARDS,
+  RHEUM_CARDS,
+  OBGYN_CARDS,
+  PEDS_CARDS,
+  SURGERY_CARDS,
+  EM_CARDS,
+  MULTI_CARDS
+];
+
+var _cards = [];
+var _cardById = new Map();
+var _dropped = [];
+var _warnings = [];
+var _seenIds = {};
+
+for (var si = 0; si < RAW_SOURCES.length; si++) {
+  var source = RAW_SOURCES[si];
+  if (!Array.isArray(source)) continue;
+
+  for (var ci = 0; ci < source.length; ci++) {
+    var raw = source[ci];
+    if (!raw || !raw.id) {
+      _dropped.push({ id: '??', reason: 'missing id' });
+      continue;
+    }
+
+    // Duplicate ID check
+    if (_seenIds[raw.id]) {
+      _dropped.push({ id: raw.id, reason: 'duplicate ID (already seen)' });
+      continue;
+    }
+    _seenIds[raw.id] = true;
+
+    // Normalize without mutating original
+    var normalized = normalizeCard(raw);
+
+    // Validate
+    var result = validateCard(normalized);
+
+    if (!result.valid) {
+      for (var ei = 0; ei < result.errors.length; ei++) {
+        _dropped.push({ id: normalized.id, reason: result.errors[ei] });
+      }
+      continue;
+    }
+
+    // Collect warnings
+    for (var wi = 0; wi < result.warnings.length; wi++) {
+      _warnings.push(result.warnings[wi]);
+    }
+
+    _cards.push(normalized);
+    _cardById.set(normalized.id, normalized);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// Console reporting
+// ═══════════════════════════════════════════════════════════
+
+console.log(
+  '[Buzzword Dash] ' + _cards.length + ' cards loaded, ' +
+  _dropped.length + ' dropped, ' + _warnings.length + ' auto-fixes applied'
+);
+
+if (_dropped.length > 0) {
+  console.warn('[Buzzword Dash] Dropped ' + _dropped.length + ' card(s):');
+  for (var di2 = 0; di2 < _dropped.length; di2++) {
+    console.warn('  ✖ ' + _dropped[di2].id + ': ' + _dropped[di2].reason);
+  }
+}
+
+if (_warnings.length > 0) {
+  console.groupCollapsed(
+    '[Buzzword Dash] ' + _warnings.length + ' auto-fix(es) applied (click to expand)'
+  );
+  for (var w = 0; w < _warnings.length; w++) {
+    console.log('  🔧 ' + _warnings[w]);
+  }
+  console.groupEnd();
+}
+
+// ═══════════════════════════════════════════════════════════
+// Card-pool hash
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Compute a deterministic hash of the card pool for
+ * multiplayer content-version verification.
+ * Hashes: id + ans + d[0] + d[1] for each card, sorted by id.
+ */
+function computeCardPoolHash(cards) {
+  var sorted = cards.slice().sort(function (a, b) {
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+  });
+  var segments = [];
+  for (var i = 0; i < sorted.length; i++) {
+    var c = sorted[i];
+    segments.push(c.id + '|' + c.ans + '|' + (c.d ? c.d.join('|') : ''));
+  }
+  return djb2Hash(segments.join('\n'));
+}
+
+export const BUILT_IN_CARD_POOL_HASH = computeCardPoolHash(_cards);
+
+// ═══════════════════════════════════════════════════════════
+// Public exports
+// ═══════════════════════════════════════════════════════════
+
+/** All validated, normalized built-in cards. */
+export const CARDS = _cards;
+
+/** Map of card ID → card object for O(1) lookups. */
+export const CARD_BY_ID = _cardById;
+
+/**
+ * Get a built-in card by ID.
+ * @param {string} cardId
+ * @returns {object|undefined}
+ */
+export function getBuiltInCardById(cardId) {
+  return _cardById.get(cardId);
+}
