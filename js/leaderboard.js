@@ -54,6 +54,7 @@ var _loadPromise = null;
 var _subscriptions = [];
 var _disposed = false;
 var _authError = null;
+var _authListeners = [];
 
 // ===== MODE LABELS (for display — UI agent may override) =====
 
@@ -149,6 +150,33 @@ function getUserId() {
  * @param {string} mode
  * @returns {string}
  */
+var MIN_PASSWORD = 8;
+var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Where Supabase's email links (confirm, reset) send the player back to. */
+function getRedirectUrl() {
+  return window.location.origin + window.location.pathname;
+}
+
+/** @returns {string|null} a message for the first problem, or null */
+function validateCredentials(email, password, isSignUp) {
+  if (!EMAIL_PATTERN.test(String(email || '').trim())) return 'Enter a valid email address.';
+  if (!password) return 'Enter your password.';
+  if (isSignUp && String(password).length < MIN_PASSWORD) return 'Use at least ' + MIN_PASSWORD + ' characters for your password.';
+  return null;
+}
+
+/** Turn Supabase auth errors into plain language. */
+function friendlyAuthError(error) {
+  var msg = (error && error.message) || 'Something went wrong.';
+  if (/invalid login credentials/i.test(msg)) return 'Email or password is incorrect.';
+  if (/email not confirmed/i.test(msg)) return 'Confirm your email first: check your inbox for the link.';
+  if (/already (been )?registered|already exists/i.test(msg)) return 'That email already has an account. Try signing in instead.';
+  if (/rate limit|too many/i.test(msg)) return 'Too many attempts. Please wait a few minutes and try again.';
+  if (/password.*(weak|short|least)/i.test(msg)) return msg;
+  return msg;
+}
+
 function getModeLabel(mode) {
   return MODE_LABELS[mode] || mode || 'Unknown';
 }
@@ -178,6 +206,12 @@ var leaderboard = {
       var authSubscription = _client.auth.onAuthStateChange(function (event, session) {
         _session = session;
         _userId = session && session.user ? session.user.id : null;
+        // Deferred so listeners never run inside the Supabase auth lock.
+        setTimeout(function () {
+          _authListeners.slice().forEach(function (fn) {
+            try { fn(event, session); } catch (e) { console.warn('[Leaderboard] auth listener failed:', e.message); }
+          });
+        }, 0);
       });
 
       // Store for cleanup
@@ -247,6 +281,162 @@ var leaderboard = {
   },
 
   /**
+   * Create a real account. A guest keeps their identity (scores, friends and
+   * groups stay attached) by upgrading the existing anonymous user; a signed-out
+   * visitor gets a brand new account.
+   * @param {string} email
+   * @param {string} password - at least 8 characters
+   * @returns {Promise<{success: boolean, needsConfirm?: boolean, error: string|null}>}
+   */
+  signUp: function (email, password) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    var problem = validateCredentials(email, password, true);
+    if (problem) return Promise.resolve({ success: false, error: problem });
+    email = String(email).trim();
+    var user = _session && _session.user;
+    var request = user && user.is_anonymous
+      ? _client.auth.updateUser({ email: email, password: password }, { emailRedirectTo: getRedirectUrl() })
+      : _client.auth.signUp({ email: email, password: password, options: { emailRedirectTo: getRedirectUrl() } });
+    return request.then(function (res) {
+      if (res.error) return { success: false, error: friendlyAuthError(res.error) };
+      var data = res.data || {};
+      var created = data.user || null;
+      var pending = !!(created && (created.new_email || (!created.email_confirmed_at && !data.session)));
+      return { success: true, needsConfirm: pending, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Sign in to an existing account.
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  signIn: function (email, password) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    var problem = validateCredentials(email, password, false);
+    if (problem) return Promise.resolve({ success: false, error: problem });
+    return _client.auth.signInWithPassword({ email: String(email).trim(), password: password }).then(function (res) {
+      if (res.error || !res.data || !res.data.session) {
+        return { success: false, error: friendlyAuthError(res.error) };
+      }
+      _session = res.data.session;
+      _userId = res.data.session.user.id;
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Sign out, then continue as a fresh guest so the game keeps working.
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  signOut: function () {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    return _client.auth.signOut().then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      _session = null;
+      _userId = null;
+      return leaderboard.signInAnonymously();
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Email a password-reset link.
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  sendPasswordReset: function (email) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    email = String(email || '').trim();
+    if (!EMAIL_PATTERN.test(email)) return Promise.resolve({ success: false, error: 'Enter a valid email address.' });
+    return _client.auth.resetPasswordForEmail(email, { redirectTo: getRedirectUrl() }).then(function (res) {
+      if (res.error) return { success: false, error: friendlyAuthError(res.error) };
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Set a new password for the signed-in account (also used after a reset link).
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  updatePassword: function (password) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    if (String(password || '').length < MIN_PASSWORD) {
+      return Promise.resolve({ success: false, error: 'Use at least ' + MIN_PASSWORD + ' characters.' });
+    }
+    return _client.auth.updateUser({ password: password }).then(function (res) {
+      if (res.error) return { success: false, error: friendlyAuthError(res.error) };
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Listen for sign-in, sign-out, email confirmation and password-recovery
+   * events. @param {function(string, object|null)} fn @returns {function} unsubscribe
+   */
+  onAuthEvent: function (fn) {
+    _authListeners.push(fn);
+    return function () { _authListeners = _authListeners.filter(function (f) { return f !== fn; }); };
+  },
+
+  /**
+   * Read this account's cloud save.
+   * @returns {Promise<{success: boolean, save: ({data: object, runCount: number, updatedAt: string}|null), error: string|null}>}
+   */
+  pullSave: function () {
+    if (!_client || !_userId) return Promise.resolve({ success: false, save: null, error: 'Not signed in' });
+    return _client.from('player_saves').select('data, run_count, updated_at').maybeSingle().then(function (res) {
+      if (res.error) return { success: false, save: null, error: res.error.message };
+      var row = res.data;
+      return {
+        success: true,
+        save: row ? { data: row.data, runCount: row.run_count, updatedAt: row.updated_at } : null,
+        error: null
+      };
+    }).catch(function (e) {
+      return { success: false, save: null, error: e.message };
+    });
+  },
+
+  /**
+   * Save progress to the cloud. `base` is the updated_at this device last
+   * synced; if another device saved since, nothing is written and
+   * `conflict` is true.
+   * @returns {Promise<{success: boolean, conflict?: boolean, updatedAt?: string, error: string|null}>}
+   */
+  pushSave: function (data, runCount, base) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.rpc('push_save', { p_data: data, p_run_count: runCount || 0, p_base: base || null }).then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      if (!res.data) return { success: false, conflict: true, error: null };
+      return { success: true, updatedAt: res.data, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Overwrite the cloud save (the player chose "keep this device").
+   * @returns {Promise<{success: boolean, updatedAt?: string, error: string|null}>}
+   */
+  forceSave: function (data, runCount) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.rpc('force_save', { p_data: data, p_run_count: runCount || 0 }).then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return { success: true, updatedAt: res.data, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
    * Describe the current account for the UI.
    * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, error: string|null}}
    */
@@ -258,6 +448,7 @@ var leaderboard = {
       authenticated: !!_userId,
       anonymous: !!(user && user.is_anonymous),
       email: (user && user.email) || '',
+      pendingEmail: (user && user.new_email) || '',
       error: _authError
     };
   },

@@ -282,6 +282,17 @@ The leaderboard, friend requests and match invites use [Supabase](https://supaba
 
 Group boards and deck sharing use the same setup (`schema.sql` creates the tables and functions).
 
+### Accounts and cloud saves
+
+Players start as guests. From **Leaderboard -> Account** they can create a free account with an email and password (a guest keeps their scores, friends and groups when they upgrade), sign in on another device, and reset a forgotten password. Signed-in players get their progress saved to the cloud automatically (table `player_saves`, private to each account). If a device and the account both hold progress, the player is asked which to keep, and one device can never silently overwrite a newer save from another.
+
+Supabase setup for accounts:
+
+1. Re-run `database/schema.sql` and `database/policies.sql` (adds the `player_saves` table and save functions).
+2. **Authentication -> Providers -> Email**: enabled by default. Decide whether to require **Confirm email** (recommended).
+3. **Authentication -> URL Configuration**: set **Site URL** to your live game URL (for example `https://<user>.github.io/buzzword-dash-v2/`) and add it, plus `http://localhost:5173`, under **Redirect URLs**. Confirmation and reset links send players back here.
+4. Supabase's built-in email sender is limited to a few messages per hour. For real use, add your own SMTP provider under **Authentication -> SMTP Settings** (Resend, Postmark, SendGrid, Brevo and similar all work).
+
 In the app: set a display name on the Leaderboard screen, then use **Find** or **＋ Add** to send friend requests, **Requests** to accept them, and **Invite** on a friend (after hosting a multiplayer room) to send a match invite.
 
 ## Credits

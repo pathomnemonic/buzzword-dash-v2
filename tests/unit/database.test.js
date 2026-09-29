@@ -166,3 +166,40 @@ describe('tournament standing, activity feed and group goals', () => {
     expect(listed[0].weekly_goal).toBe(500);
   });
 });
+
+
+describe('cloud saves', () => {
+  it('keeps each save private and writable only through the save functions', async () => {
+    const ts = (await as(A, () => db.query(`SELECT push_save('{"runs":3}'::jsonb, 3, NULL) AS ts`))).rows[0].ts;
+    expect(ts).toBeTruthy();
+    expect((await as(A, () => db.query('SELECT data FROM player_saves'))).rows).toHaveLength(1);
+    expect((await as(B, () => db.query('SELECT data FROM player_saves'))).rows).toHaveLength(0);
+    expect(await rejects(B, `INSERT INTO player_saves (user_id, data) VALUES ($1, '{}')`, [A])).toBe(true);
+    expect(await rejects(A, `INSERT INTO player_saves (user_id, data) VALUES ($1, '{}')`, [A])).toBe(true);
+    expect((await as(B, () => db.query(`UPDATE player_saves SET data = '{"hax":1}'`))).affectedRows).toBe(0);
+  });
+
+  it('refuses to overwrite a newer save from another device', async () => {
+    const first = (await as(B, () => db.query(`SELECT push_save('{"v":1}'::jsonb, 1, NULL) AS ts`))).rows[0].ts;
+    // Device 1 saves again with the timestamp it last saw.
+    const second = (await as(B, () => db.query(`SELECT push_save('{"v":2}'::jsonb, 2, $1) AS ts`, [first]))).rows[0].ts;
+    expect(second).toBeTruthy();
+    // Device 2 still holds the first timestamp: rejected (NULL), data unchanged.
+    const stale = (await as(B, () => db.query(`SELECT push_save('{"v":99}'::jsonb, 9, $1) AS ts`, [first]))).rows[0].ts;
+    expect(stale).toBeNull();
+    // Saving with no base when a save exists is also refused.
+    expect((await as(B, () => db.query(`SELECT push_save('{"v":98}'::jsonb, 9, NULL) AS ts`))).rows[0].ts).toBeNull();
+    expect((await as(B, () => db.query('SELECT data FROM player_saves'))).rows[0].data).toEqual({ v: 2 });
+    // The player can choose to overwrite deliberately.
+    await as(B, () => db.query(`SELECT force_save('{"v":3}'::jsonb, 3)`));
+    expect((await as(B, () => db.query('SELECT data, run_count FROM player_saves'))).rows[0]).toEqual({ data: { v: 3 }, run_count: 3 });
+  });
+
+  it('requires a signed-in user', async () => {
+    await db.exec("SET app.uid = ''; SET ROLE authenticated;");
+    let failed = false;
+    try { await db.query(`SELECT push_save('{}'::jsonb, 0, NULL)`); } catch (e) { failed = true; }
+    await db.exec('RESET ROLE');
+    expect(failed).toBe(true);
+  });
+});

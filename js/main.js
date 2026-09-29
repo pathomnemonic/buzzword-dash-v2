@@ -995,6 +995,7 @@ function init() {
   import('./leaderboard.js').then(function (mod) {
     leaderboardModule = mod;
     mod.leaderboard.init().then(function () {
+      startCloudSync(mod.leaderboard);
       mountLeaderboard();
       mod.leaderboard.subscribeToInvites(function () { checkMatchInvites(); });
       checkMatchInvites();
@@ -1511,6 +1512,40 @@ if (typeof _origRenderSettings === 'function') {
 // =========================================================================
 //  LEADERBOARD MOUNT
 // =========================================================================
+var cloudSync = null;
+
+/**
+ * Account sign-in state and cloud saves. Guests are never synced; once the
+ * player has an email account their progress follows them across devices.
+ */
+function startCloudSync(lbService) {
+  Promise.all([import('./cloudsync.js'), import('./accountui.js')]).then(function (mods) {
+    cloudSync = new mods[0].CloudSync({
+      storage: storage,
+      leaderboard: lbService,
+      toast: function (msg) { ui._showToast(msg); },
+      askConflict: mods[1].askWhichSave,
+      onPulled: function () {
+        ui._showToast('Loaded your saved progress.');
+        setTimeout(function () { window.location.reload(); }, 600);
+      }
+    });
+    cloudSync.start();
+    mountLeaderboard();
+    lbService.onAuthEvent(function (event) {
+      if (event === 'PASSWORD_RECOVERY') {
+        mods[1].beginPasswordRecovery();
+        ui.show('screenLeaderboard');
+        import('./leaderboardui.js').then(function (m) { m.openAccountTab(); });
+      } else if (event === 'USER_UPDATED') {
+        ui._showToast('Account updated.');
+      }
+    });
+  }).catch(function (e) {
+    reportError(e, { system: 'cloudsync', operation: 'start', recoverable: true });
+  });
+}
+
 function mountLeaderboard() {
   if (!leaderboardModule) return;
   var lbContent = document.getElementById('leaderboardContent');
@@ -1520,6 +1555,7 @@ function mountLeaderboard() {
       leaderboard: leaderboardModule.leaderboard,
       storage: storage,
       toast: function (msg) { ui._showToast(msg); },
+      cloudSync: cloudSync,
       startChallenge: function () { startNewChallenge(); },
       getRoomCode: function () {
         return (multiplayerClient && multiplayerClient.isHost && multiplayerClient.roomCode) || '';

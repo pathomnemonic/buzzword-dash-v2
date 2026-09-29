@@ -8,6 +8,7 @@
  */
 
 import { createElement, clearElement } from './dom.js';
+import { renderAccountPanel } from './accountui.js';
 
 var BOARD_MODES = ['endless', 'tournament', 'daily', 'weakness', 'study', 'mp_highscore', 'mp_suddendeath', 'mp_race'];
 
@@ -602,24 +603,16 @@ function renderFind(body) {
 // ===== Account =====
 
 function renderAccount(body) {
-  var status = lb().getStatus();
-  body.appendChild(note(status.email
-    ? 'Signed in as ' + status.email + '. Your leaderboard identity is tied to this email.'
-    : 'You are playing as a guest. Your scores and friends are tied to this browser — link an email so you can keep them if you clear your browser data or switch devices.'));
+  renderAccountPanel(body, {
+    leaderboard: lb(),
+    cloudSync: _deps.cloudSync || null,
+    toast: _deps.toast,
+    rerender: render
+  });
+}
 
-  if (!status.email) {
-    var form = createElement('div');
-    form.style.cssText = 'display:flex;gap:6px;margin-top:8px';
-    var input = createElement('input', {
-      attributes: { type: 'email', placeholder: 'you@example.com', 'aria-label': 'Email address', autocomplete: 'email' }
-    });
-    input.style.cssText = 'flex:1;padding:8px 10px;border-radius:10px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
-    form.appendChild(input);
-    form.appendChild(btn('Link email', function () {
-      return lb().linkEmail(input.value).then(function (res) {
-        _deps.toast(res.success ? 'Check your inbox for a confirmation link.' : (res.error || 'Could not link email.'));
-      });
-    }, 'btn-primary'));
-    body.appendChild(form);
-  }
+/** Jump to the Account tab (e.g. after a password-reset link). */
+export function openAccountTab() {
+  _state.tab = 'account';
+  if (_root) render();
 }

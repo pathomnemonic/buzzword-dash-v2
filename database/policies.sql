@@ -258,3 +258,23 @@ GRANT EXECUTE ON FUNCTION season_standing(text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION report_study(text, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION set_group_goal(uuid, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION group_goal_status(uuid, text) TO authenticated;
+
+
+-- ==================== CLOUD SAVES ====================
+-- A save is private to its owner. Writes go through push_save()/force_save().
+
+ALTER TABLE player_saves ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "saves_select_own" ON player_saves;
+CREATE POLICY "saves_select_own"
+  ON player_saves FOR SELECT
+  USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "saves_delete_own" ON player_saves;
+CREATE POLICY "saves_delete_own"
+  ON player_saves FOR DELETE
+  USING (user_id = auth.uid());
+
+REVOKE INSERT, UPDATE ON player_saves FROM authenticated;
+GRANT EXECUTE ON FUNCTION push_save(jsonb, integer, timestamptz) TO authenticated;
+GRANT EXECUTE ON FUNCTION force_save(jsonb, integer) TO authenticated;

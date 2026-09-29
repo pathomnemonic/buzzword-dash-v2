@@ -1080,24 +1080,43 @@ function buildHumanoid(avatar, equipped) {
     var s = avatar.scale || 1.0;
 
     // ===== BODY =====
-    var bodyGroup = buildCapsuleBody(0.32 * s, 0.30 * s, 0.75 * s, avatar.bodyColor);
-    bodyGroup.position.set(0, 0.95 * s, 0);
+    var bodyGroup = buildCapsuleBody(0.27 * s, 0.27 * s, 0.30 * s, avatar.bodyColor);
+    bodyGroup.scale.set(1.12, 1, 0.82);
+    bodyGroup.position.set(0, 0.92 * s, 0);
     bodyGroup.castShadow = true;
     pg.add(bodyGroup);
 
+    // Hips: the lower torso reads as trousers so the outfit has two parts
+    var hips = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.265 * s, 0.245 * s, 0.2 * s, 14),
+        new THREE.MeshStandardMaterial({ color: avatar.pantsColor })
+    );
+    hips.scale.set(1.12, 1, 0.82);
+    hips.position.set(0, 0.6 * s, 0);
+    pg.add(hips);
+
+    // Neck
+    var neck = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.09 * s, 0.1 * s, 0.16 * s, 10),
+        new THREE.MeshStandardMaterial({ color: avatar.skinColor })
+    );
+    neck.position.set(0, 1.36 * s, 0);
+    pg.add(neck);
+
     // Collar
     var collar = new THREE.Mesh(
-        new THREE.TorusGeometry(0.25 * s, 0.05 * s, 6, 12),
+        new THREE.TorusGeometry(0.16 * s, 0.045 * s, 8, 16),
         new THREE.MeshStandardMaterial({ color: 0xeeeeff })
     );
-    collar.position.set(0, 1.30 * s, 0);
+    collar.position.set(0, 1.31 * s, 0);
+    collar.scale.set(1, 1, 1);
     collar.rotation.x = Math.PI / 2;
     pg.add(collar);
 
     // ===== HEAD =====
     var headRadius = 0.38 * s;
     var head = new THREE.Mesh(
-        new THREE.SphereGeometry(headRadius, 14, 14),
+        new THREE.SphereGeometry(headRadius, 24, 20),
         new THREE.MeshStandardMaterial({ color: avatar.skinColor })
     );
     head.position.set(0, 1.68 * s, 0);
@@ -1118,6 +1137,27 @@ function buildHumanoid(avatar, equipped) {
     );
     hairBack.position.set(0, 1.72 * s, 0.08 * s);
     pg.add(hairBack);
+
+    // Ears
+    for (var earSide = -1; earSide <= 1; earSide += 2) {
+        var ear = new THREE.Mesh(
+            new THREE.SphereGeometry(0.07 * s, 10, 8),
+            new THREE.MeshStandardMaterial({ color: avatar.skinColor })
+        );
+        ear.scale.set(0.55, 1, 0.8);
+        ear.position.set(earSide * headRadius * 0.98, 1.66 * s, 0.02 * s);
+        pg.add(ear);
+    }
+
+    // Fringe: a few overlapping tufts across the forehead
+    var fringeMat = new THREE.MeshStandardMaterial({ color: avatar.hairColor });
+    [[-0.17, 0.02, 0.5], [0, 0.05, 0], [0.17, 0.02, -0.5]].forEach(function (f) {
+        var tuft = new THREE.Mesh(new THREE.SphereGeometry(0.13 * s, 10, 8), fringeMat);
+        tuft.scale.set(1, 0.7, 0.9);
+        tuft.position.set(f[0] * s, (1.93 + f[1]) * s, -0.24 * s);
+        tuft.rotation.z = f[2] * 0.4;
+        pg.add(tuft);
+    });
 
     // ===== EYES =====
     var eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -1213,15 +1253,23 @@ function buildHumanoid(avatar, equipped) {
     shoeR.position.set(0, -0.28 * s, -0.03 * s);
     rightLegGroup.add(shoeR);
 
+    var soleMat = new THREE.MeshStandardMaterial({ color: 0xf4f4f8 });
+    [leftLegGroup, rightLegGroup].forEach(function (leg) {
+        var sole = new THREE.Mesh(new THREE.SphereGeometry(0.12 * s, 10, 6), soleMat);
+        sole.scale.set(1.02, 0.2, 1.42);
+        sole.position.set(0, -0.335 * s, -0.03 * s);
+        leg.add(sole);
+    });
+
     // ===== ARMS =====
     var armColor = avatar.bodyColor;
     var leftArmGroup = buildRoundedLimb(0.08 * s, 0.40 * s, armColor);
-    leftArmGroup.position.set(-0.38 * s, 0.95 * s, 0);
+    leftArmGroup.position.set(-0.37 * s, 1.04 * s, 0);
     leftArmGroup.name = 'leftArm';
     pg.add(leftArmGroup);
 
     var rightArmGroup = buildRoundedLimb(0.08 * s, 0.40 * s, armColor);
-    rightArmGroup.position.set(0.38 * s, 0.95 * s, 0);
+    rightArmGroup.position.set(0.37 * s, 1.04 * s, 0);
     rightArmGroup.name = 'rightArm';
     pg.add(rightArmGroup);
 

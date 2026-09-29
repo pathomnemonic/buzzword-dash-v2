@@ -142,6 +142,7 @@ export function buildTrack(trackRoot, skin, options) {
     wallScrollPanels: [],
     wallMarkers: [],
     skyboxElements: [],
+    scrollers: [],
     sharedResources: {},
     dispose: function () {
       // Safe disposal: only removes trackRoot's children
@@ -157,6 +158,7 @@ export function buildTrack(trackRoot, skin, options) {
       this.wallScrollPanels = [];
       this.wallMarkers = [];
       this.skyboxElements = [];
+      this.scrollers = [];
       this.lights = [];
     }
   };
@@ -170,10 +172,10 @@ export function buildTrack(trackRoot, skin, options) {
   trackRoot.add(groundGroup);
 
   // Walls
-  buildWalls(trackRoot, skin, qc);
+  buildWalls(trackRoot, skin, qc, trackRefs);
 
   // Arches
-  buildArches(trackRoot, skin, qc);
+  buildArches(trackRoot, skin, qc, trackRefs);
 
   // Wall glow strips
   for (var glowSide = -1; glowSide <= 1; glowSide += 2) {
@@ -234,23 +236,44 @@ function setupSkinLightingUnderRoot(skin, trackRoot) {
 
 // ===== WALL CONSTRUCTION =====
 
-function buildWalls(trackRoot, skin, qc) {
+/**
+ * Walls and arches repeat every `spacing` units, so they scroll by sliding a
+ * group forward and wrapping it by one period: seamless and allocation-free.
+ */
+function makeScroller(trackRoot, trackRefs, spacing) {
+  var group = new THREE.Group();
+  trackRoot.add(group);
+  trackRefs.scrollers.push({ group: group, spacing: spacing });
+  return group;
+}
+
+export function updateScrollers(scrollers, move) {
+  if (!scrollers) return;
+  for (var i = 0; i < scrollers.length; i++) {
+    var s = scrollers[i];
+    s.group.position.z = (s.group.position.z + move) % s.spacing;
+  }
+}
+
+function buildWalls(trackRoot, skin, qc, trackRefs) {
   var spacing = qc.wallSegmentSpacing || WALL_SEGMENT_SPACING;
+  var group = makeScroller(trackRoot, trackRefs, spacing);
   for (var side = -1; side <= 1; side += 2) {
-    for (var z = -160; z < 20; z += spacing) {
+    for (var z = -160 - spacing; z < 20; z += spacing) {
       var segment = buildWallSegment(skin, side, z, 3.5);
-      trackRoot.add(segment);
+      group.add(segment);
     }
   }
 }
 
 // ===== ARCH CONSTRUCTION =====
 
-function buildArches(trackRoot, skin, qc) {
+function buildArches(trackRoot, skin, qc, trackRefs) {
   var spacing = qc.archSpacing || ARCH_SPACING;
-  for (var z = -155; z < 15; z += spacing) {
+  var group = makeScroller(trackRoot, trackRefs, spacing);
+  for (var z = -155 - spacing; z < 15; z += spacing) {
     var arch = buildArch(skin, z);
-    trackRoot.add(arch);
+    group.add(arch);
 
     for (var legSide = -1; legSide <= 1; legSide += 2) {
       var leg = new THREE.Mesh(
@@ -258,7 +281,7 @@ function buildArches(trackRoot, skin, qc) {
         new THREE.MeshBasicMaterial({ color: skin.colors.archMain })
       );
       leg.position.set(legSide * 5.5, 2.5, z);
-      trackRoot.add(leg);
+      group.add(leg);
     }
   }
 }

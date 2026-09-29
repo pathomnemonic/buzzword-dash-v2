@@ -559,10 +559,10 @@ export class HomeCharacter {
             this.character.position.y = celebBounce;
 
             if (this.limbs.leftArm) {
-                this.limbs.leftArm.rotation.x = -2.0 * Math.abs(Math.sin(celebP * Math.PI * 4));
+                this.limbs.leftArm.rotation.x = 2.0 * Math.abs(Math.sin(celebP * Math.PI * 4));
             }
             if (this.limbs.rightArm) {
-                this.limbs.rightArm.rotation.x = -2.0 * Math.abs(Math.sin(celebP * Math.PI * 4 + 0.5));
+                this.limbs.rightArm.rotation.x = 2.0 * Math.abs(Math.sin(celebP * Math.PI * 4 + 0.5));
             }
 
             if (this._celebrationTimer <= 0) {
@@ -703,10 +703,10 @@ export class HomeCharacter {
 
         // ===== APPLY TO LIMBS (all absolute, never accumulative) =====
         if (this.limbs.leftArm) {
-            this.limbs.leftArm.rotation.x = baseArmSwingL + gestureArmL;
+            this.limbs.leftArm.rotation.x = baseArmSwingL - gestureArmL;
         }
         if (this.limbs.rightArm) {
-            this.limbs.rightArm.rotation.x = baseArmSwingR + gestureArmR;
+            this.limbs.rightArm.rotation.x = baseArmSwingR - gestureArmR;
         }
         if (this.limbs.leftLeg) {
             this.limbs.leftLeg.rotation.x = baseLegSwingL + gestureLegL;

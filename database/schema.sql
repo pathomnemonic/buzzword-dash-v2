@@ -452,6 +452,84 @@ END;
 $$;
 
 
+-- ==================== CLOUD SAVES ====================
+-- One private save per account, so progress follows the player across devices.
+-- Written only through push_save(), which refuses to overwrite a newer save
+-- from another device unless the caller passes that save's timestamp.
+
+CREATE TABLE IF NOT EXISTS player_saves (
+  user_id     uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  data        jsonb NOT NULL,
+  run_count   integer NOT NULL DEFAULT 0,
+  updated_at  timestamptz NOT NULL DEFAULT clock_timestamp()
+);
+
+CREATE OR REPLACE FUNCTION push_save(p_data jsonb, p_run_count integer, p_base timestamptz)
+RETURNS timestamptz
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  current_ts timestamptz;
+  new_ts timestamptz := clock_timestamp();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF pg_column_size(p_data) > 3000000 THEN
+    RAISE EXCEPTION 'Save is too large';
+  END IF;
+
+  SELECT updated_at INTO current_ts FROM player_saves WHERE user_id = uid FOR UPDATE;
+
+  IF FOUND THEN
+    -- Someone else (another device) saved since the caller last synced.
+    IF p_base IS NULL OR current_ts <> p_base THEN
+      RETURN NULL;
+    END IF;
+    UPDATE player_saves SET data = p_data, run_count = greatest(p_run_count, 0), updated_at = new_ts
+    WHERE user_id = uid;
+  ELSE
+    IF p_base IS NOT NULL THEN
+      -- The caller believed a save existed but it is gone; treat as a new save.
+      NULL;
+    END IF;
+    INSERT INTO player_saves (user_id, data, run_count, updated_at)
+    VALUES (uid, p_data, greatest(p_run_count, 0), new_ts);
+  END IF;
+
+  RETURN new_ts;
+END;
+$$;
+
+-- Force an overwrite (the player chose "keep this device").
+CREATE OR REPLACE FUNCTION force_save(p_data jsonb, p_run_count integer)
+RETURNS timestamptz
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  new_ts timestamptz := clock_timestamp();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF pg_column_size(p_data) > 3000000 THEN
+    RAISE EXCEPTION 'Save is too large';
+  END IF;
+  INSERT INTO player_saves (user_id, data, run_count, updated_at)
+  VALUES (uid, p_data, greatest(p_run_count, 0), new_ts)
+  ON CONFLICT (user_id) DO UPDATE
+    SET data = excluded.data, run_count = excluded.run_count, updated_at = excluded.updated_at;
+  RETURN new_ts;
+END;
+$$;
+
+
 -- ==================== REALTIME ====================
 -- Lets the app receive match invites instantly.
 

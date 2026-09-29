@@ -126,7 +126,11 @@ describe('UI code ↔ leaderboard service', () => {
     const { leaderboard } = await import('../../js/leaderboard.js');
     const screen = readFileSync('js/leaderboardui.js', 'utf8');
     const ui = readFileSync('js/ui.js', 'utf8');
+    const account = readFileSync('js/accountui.js', 'utf8');
+    const sync = readFileSync('js/cloudsync.js', 'utf8');
     const used = [
+      ...account.matchAll(/deps[.]leaderboard[.]([A-Za-z_]+)[(]/g),
+      ...sync.matchAll(/(?:lb|leaderboard)[.]([A-Za-z_]+)[(]/g),
       ...screen.matchAll(/lb[(][)][.]([A-Za-z_]+)[(]/g),
       ...ui.matchAll(/(?:^|[^A-Za-z_])lb[.]([A-Za-z_]+)[(]/g),
       ...ui.matchAll(/mod[.]leaderboard[.]([A-Za-z_]+)[(]/g)

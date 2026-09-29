@@ -1261,7 +1261,7 @@ class UI {
 
   showScorePopup(points) {
     if (prefersReducedMotion()) return;
-    var popup = createElement('div', { text: '+' + points });
+    var popup = createElement('div', { text: typeof points === 'number' ? '+' + points : String(points) });
     popup.style.cssText = 'position:fixed;top:35%;left:50%;transform:translateX(-50%);font-size:24px;font-weight:900;color:var(--accent-gold);text-shadow:0 0 10px rgba(255,215,64,0.5);pointer-events:none;z-index:6;transition:all 0.8s ease-out;opacity:1;';
     document.body.appendChild(popup);
     requestAnimationFrame(function () { popup.style.top = '20%'; popup.style.opacity = '0'; });
@@ -3248,7 +3248,29 @@ class UI {
   // POST-RUN (displays ALL answers — correct + wrong) [2]
   // ═══════════════════════════════════════════════════════
 
+  /** Append a collapsed-by-default section to `parent`; returns its body element. */
+  _collapsible(parent, title, open) {
+    var section = createElement('div', { className: 'collapsible-section' });
+    var toggle = createElement('button', { className: 'collapsible-toggle', attributes: { type: 'button', 'aria-expanded': open ? 'true' : 'false' } });
+    setText(toggle, title + ' ');
+    var arrow = createElement('span', { className: 'collapse-arrow' + (open ? ' open' : ''), text: '▸' });
+    toggle.appendChild(arrow);
+    section.appendChild(toggle);
+    var body = createElement('div');
+    body.style.display = open ? 'block' : 'none';
+    section.appendChild(body);
+    toggle.addEventListener('click', function () {
+      var isOpen = body.style.display !== 'none';
+      body.style.display = isOpen ? 'none' : 'block';
+      arrow.classList.toggle('open', !isOpen);
+      toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    });
+    parent.appendChild(section);
+    return body;
+  }
+
   showPostRun(game) {
+    var self = this;
     var total = game.correct + game.wrong;
     var acc = total > 0 ? Math.round(game.correct / total * 100) : 0;
     var missed = game.runCards.filter(function (r) { return !r.ok; });
@@ -3304,41 +3326,60 @@ class UI {
       content.appendChild(goldenNotice);
     }
 
-    // Stats grid
+    // Stats (one compact row)
     var statsRow = createElement('div', { className: 'post-stats' });
+    statsRow.style.gridTemplateColumns = 'repeat(5, 1fr)';
     [
       { val: acc + '%', label: 'Accuracy', color: 'var(--accent-green)' },
+      { val: game.correct, label: 'Correct', color: 'var(--accent-green)' },
+      { val: game.wrong, label: 'Wrong', color: 'var(--accent-red)' },
       { val: '🪙 ' + game.coins, label: 'Coins', color: 'var(--accent-gold)' },
       { val: '🔥 ' + game.bestStreak, label: 'Streak' }
-    ].forEach(function (s) {
+    ].forEach(function (st) {
       var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(s.val) });
-      if (s.color) valEl.style.color = s.color;
+      var valEl = createElement('div', { className: 'val', text: String(st.val) });
+      if (st.color) valEl.style.color = st.color;
       stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
+      stat.appendChild(createElement('div', { className: 'label', text: st.label }));
       statsRow.appendChild(stat);
     });
     content.appendChild(statsRow);
 
-    var statsRow2 = createElement('div', { className: 'post-stats' });
-    statsRow2.style.gridTemplateColumns = '1fr 1fr';
-    [
-      { val: game.correct, label: 'Correct', color: 'var(--accent-green)' },
-      { val: game.wrong, label: 'Wrong', color: 'var(--accent-red)' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(s.val) });
-      if (s.color) valEl.style.color = s.color;
-      stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      statsRow2.appendChild(stat);
-    });
-    content.appendChild(statsRow2);
+    // Action buttons
+    var actionRow = createElement('div');
+    actionRow.style.cssText = 'display:flex;gap:6px;margin:12px 0 0';
 
+    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
+    againBtn.style.flex = '1';
+    actionRow.appendChild(againBtn);
+
+    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
+    homeBtn.style.flex = '1';
+    homeBtn.addEventListener('click', function () { self.show('screenHome'); });
+    actionRow.appendChild(homeBtn);
+    content.appendChild(actionRow);
+
+    var secRow = createElement('div');
+    secRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px';
+    content.appendChild(secRow);
+
+    if (missed.length > 0) {
+      var weakBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎯 Weakness Mode', attributes: { id: 'weaknessBtn' } });
+            secRow.appendChild(weakBtn);
+
+      var qrBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📝 Quick Review' });
+            qrBtn.addEventListener('click', function () { self.showQuickReview(missed); });
+      secRow.appendChild(qrBtn);
+    }
+
+    var shareBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📤 Share Score' });
+        shareBtn.addEventListener('click', function () { self.shareScore(game); });
+    secRow.appendChild(shareBtn);
+
+    // Review sections (collapsed by default so the screen stays short)
     // Missed cards
     if (missed.length > 0) {
-      content.appendChild(createElement('h3', { text: '❌ Missed Cards (' + missed.length + ')' }));
-      content.lastChild.style.cssText = 'margin:14px 0 6px';
+      var missedBody = self._collapsible(content, '❌ Missed Cards (' + missed.length + ')', false);
 
       missed.forEach(function (r) {
         var c = r.card;
@@ -3393,7 +3434,7 @@ class UI {
         });
         card.appendChild(reportBtn);
 
-        content.appendChild(card);
+        missedBody.appendChild(card);
       });
     } else {
       content.appendChild(createElement('h3', { text: '🎉 Perfect Run!' }));
@@ -3449,36 +3490,6 @@ class UI {
         correctArrow.classList.toggle('open', !isOpen);
       });
     }
-
-    // Action buttons
-    var actionRow = createElement('div');
-    actionRow.style.cssText = 'display:flex;gap:6px;margin-top:14px';
-
-    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
-    againBtn.style.flex = '1';
-    actionRow.appendChild(againBtn);
-
-    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
-    homeBtn.style.flex = '1';
-    homeBtn.addEventListener('click', function () { self.show('screenHome'); });
-    actionRow.appendChild(homeBtn);
-    content.appendChild(actionRow);
-
-    if (missed.length > 0) {
-      var weakBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎯 Weakness Mode', attributes: { id: 'weaknessBtn' } });
-      weakBtn.style.marginTop = '6px';
-      content.appendChild(weakBtn);
-
-      var qrBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📝 Quick Review' });
-      qrBtn.style.marginTop = '6px';
-      qrBtn.addEventListener('click', function () { self.showQuickReview(missed); });
-      content.appendChild(qrBtn);
-    }
-
-    var shareBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📤 Share Score' });
-    shareBtn.style.marginTop = '6px';
-    shareBtn.addEventListener('click', function () { self.shareScore(game); });
-    content.appendChild(shareBtn);
 
     this.show('screenPostRun');
     this._animateNumbers(content);

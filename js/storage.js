@@ -530,6 +530,10 @@ class Storage {
     } catch (e) {
       console.warn('[Storage] Save failed:', e.message);
     }
+    // Lets cloud sync notice changes without storage knowing about it.
+    if (typeof this.onChange === 'function') {
+      try { this.onChange(); } catch (e) { /* a listener must never break saving */ }
+    }
   }
 
   /**
@@ -1721,6 +1725,28 @@ class Storage {
       exportedAt: new Date().toISOString(),
       data: this.data
     }, null, 2);
+  }
+
+  /**
+   * Replace local progress with a save that came from the player's cloud
+   * account. Does not trigger the change listener (this is not a new edit).
+   * @param {object} data - a save object (same shape as exportBackup().data)
+   * @returns {{ok: boolean, error?: string}}
+   */
+  applyRemoteData(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { ok: false, error: 'The cloud save is not valid.' };
+    }
+    if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
+      return { ok: false, error: 'The cloud save is from a newer version of the game. Refresh and try again.' };
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      return { ok: false, error: 'Could not write to local storage.' };
+    }
+    this.load();
+    return { ok: true };
   }
 
   /**

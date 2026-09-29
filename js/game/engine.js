@@ -31,7 +31,7 @@ import { getRandomSkin, SKINS } from './skins.js';
 import {
   buildTrack, spawnEnvProp,
   updateRunningLights, updateAtmosphericParticles,
-  updateScrollLines, updateWallScrollPanels,
+  updateScrollLines, updateScrollers, updateWallScrollPanels,
   updateWallMarkers, updateSkyboxElements,
   calculateTargetFOV, updateCameraFOV,
   calculateCameraLean, getStreakVisualIntensity
@@ -225,8 +225,8 @@ class Game {
     this.legPhase = 0;
 
     // Speed
-    this.speed = 3.75;
-    this.baseSpeed = 3.75;
+    this.speed = 1.875;
+    this.baseSpeed = 1.875;
     this.userSpeed = 1;
 
     // Scoring
@@ -453,7 +453,12 @@ class Game {
         if (this.onStreakMilestone) this.onStreakMilestone(event.payload.streak, event.payload.multiplier);
         break;
       case 'coin_collected':
-        if (this.onScorePopup) this.onScorePopup(event.payload.points);
+        if (this.onScorePopup) {
+          var pl = event.payload;
+          if (typeof pl.points === 'number') this.onScorePopup(pl.points);
+          else if (pl.type === 'heart') this.onScorePopup('❤️ +1');
+          else if (pl.type === 'coin') this.onScorePopup('🪙 +' + (pl.value || 1));
+        }
         break;
       case 'powerup_collected':
         if (this.onPowerupCollected) this.onPowerupCollected(event.payload.type);
@@ -735,8 +740,9 @@ class Game {
     this.playerY = 0; this.jumpVel = 0; this.legPhase = 0;
     this.elapsedTime = 0; this.cameraLeanX = 0; this.playerTilt = 0;
 
-    var mapped = 3.75 + (this.userSpeed - 1) * 3.75;
-    this.speed = this.mode === GAME_MODES.STUDY ? 3 : mapped;
+    // 1x is a calm 1.875 units/s; higher settings scale linearly from there.
+    var mapped = 1.875 * this.userSpeed;
+    this.speed = this.mode === GAME_MODES.STUDY ? 1.5 : mapped;
     this.baseSpeed = this.speed;
 
     this.score = 0; this.streak = 0; this.bestStreak = 0;
@@ -1098,7 +1104,7 @@ class Game {
     this.examMonster = buildMonster((storage.get('equipped') || {}).monster);
     this.monsterParts = getMonsterParts(this.examMonster);
     this.examMonster.position.set(0, 1.5, this.monsterZ);
-    this.examMonster.visible = false;
+    this.examMonster.visible = true;
     this.scene.add(this.examMonster);
   }
 
@@ -2145,6 +2151,7 @@ card = pickResult ? pickResult.card : null;
     if (this.trackRefs) {
       if (this.trackRefs.runningLights) updateRunningLights(this.trackRefs.runningLights, this.elapsedTime, currentSpeed * rushMult);
       if (this.trackRefs.particlePool) updateAtmosphericParticles(this.trackRefs.particlePool, this.trackRefs.particleStates, dt, move, this.elapsedTime);
+      if (this.trackRefs.scrollers) updateScrollers(this.trackRefs.scrollers, move);
       if (this.trackRefs.scrollLines) updateScrollLines(this.trackRefs.scrollLines, dt, move);
       if (this.trackRefs.wallScrollPanels) updateWallScrollPanels(this.trackRefs.wallScrollPanels, dt, move);
       if (this.trackRefs.wallMarkers) updateWallMarkers(this.trackRefs.wallMarkers, dt, move);
@@ -2190,7 +2197,12 @@ card = pickResult ? pickResult.card : null;
     this.monsterZ += (this.monsterTargetZ - this.monsterZ) * dt * 1.2;
     if (this.monsterZ < 3) this.monsterZ = 3;
 
-    var shouldBeVisible = this.monsterZ < 16;
+    // monsterZ is a "distance to catch" (3 = caught, 30 = far away). The camera
+    // sits at z=10 looking forward, so anything drawn at monsterZ > 10 would be
+    // behind it. The monster is therefore drawn in front of the camera and
+    // grows/approaches as the catch distance shrinks.
+    var near = Math.min(1, Math.max(0, (30 - this.monsterZ) / 27));
+    var shouldBeVisible = true;
     if (shouldBeVisible !== this.monsterVisible) {
       this.monsterVisible = shouldBeVisible;
       this.examMonster.visible = shouldBeVisible;
@@ -2199,13 +2211,13 @@ card = pickResult ? pickResult.card : null;
     // The monster looms above the player's line of sight so it never hides the
     // runner or the lanes, then swoops down when it makes the catch.
     var dying = this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT;
-    var targetY = dying ? 1.6 : 3.9;
+    var targetY = dying ? 1.6 : 3.4;
     this._monsterY = (this._monsterY === undefined ? targetY : this._monsterY);
     this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 4);
-    this.examMonster.position.set(0, this._monsterY, this.monsterZ);
+    this.examMonster.position.set(0, this._monsterY, dying ? Math.min(this.monsterZ, 5) : 3.5 - near);
 
     if (this.monsterVisible) {
-      var distFactor = Math.max(0.3, 1.0 - (this.monsterZ - 3) / 15);
+      var distFactor = dying ? 0.3 + 0.7 * near : 0.22 + 0.3 * near;
       // Keep every design out of the way; larger models are scaled down further.
       distFactor *= (this.examMonster.userData.displayScale || 1);
       if (!dying) distFactor = Math.min(distFactor, 0.6);
@@ -2222,7 +2234,7 @@ card = pickResult ? pickResult.card : null;
       }
 
       // Menace grows with proximity: hotter glow, faster ridge pulse.
-      var danger = 1 - Math.min(1, Math.max(0, (this.monsterZ - 3) / 13));
+      var danger = near;
       if (this.monsterParts && this.monsterParts.body && this.monsterParts.body.material.emissiveIntensity !== undefined) {
         this.monsterParts.body.material.emissiveIntensity = 0.3 + danger * 0.9;
       }

@@ -804,8 +804,10 @@ export class CharacterPreview {
         this.character.position.x = sway;
 
         // Apply to limbs (all absolute, never cumulative)
-        if (this.limbs.leftArm) this.limbs.leftArm.rotation.x = baseArmL + gArmL;
-        if (this.limbs.rightArm) this.limbs.rightArm.rotation.x = baseArmR + gArmR;
+        // Characters face -Z in local space, so a POSITIVE rotation.x swings a limb
+        // forward. Gestures here are authored as negative = raise, so flip on apply.
+        if (this.limbs.leftArm) this.limbs.leftArm.rotation.x = baseArmL - gArmL;
+        if (this.limbs.rightArm) this.limbs.rightArm.rotation.x = baseArmR - gArmR;
         if (this.limbs.leftLeg) this.limbs.leftLeg.rotation.x = baseLegL + gLegL;
         if (this.limbs.rightLeg) this.limbs.rightLeg.rotation.x = baseLegR + gLegR;
 

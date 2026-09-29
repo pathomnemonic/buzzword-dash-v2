@@ -950,10 +950,11 @@ select:focus-visible {
 .subject-section { margin: 14px 0; }
 .subject-section h3 { font-size: 14px; font-weight: 800; color: var(--text-secondary); margin-bottom: 8px; }
 .subject-controls { display: flex; gap: 6px; margin-bottom: 8px; }
-.subject-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px; }
+/* Filter chips wrap onto several rows: sideways scrolling is invisible with a mouse. */
+.subject-scroll { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 8px; }
 .subject-chip {
   flex-shrink: 0;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: var(--radius-lg);
   font-size: 11px;
   font-weight: 700;
