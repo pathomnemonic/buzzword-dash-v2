@@ -175,3 +175,23 @@ describe('Storage — reset', () => {
     expect(storage.hasAchievement('ach_first_run')).toBe(false);
   });
 });
+
+describe('Storage — backup and restore', () => {
+  it('round-trips progress through exportBackup/importBackup', () => {
+    storage.set('coins', 4321);
+    const backup = storage.exportBackup();
+    localStorage.clear();
+    storage.load();
+    expect(storage.get('coins')).toBe(100);
+    expect(storage.importBackup(backup).ok).toBe(true);
+    expect(storage.get('coins')).toBe(4321);
+  });
+
+  it('rejects invalid or foreign files without changing progress', () => {
+    storage.set('coins', 555);
+    expect(storage.importBackup('not json').ok).toBe(false);
+    expect(storage.importBackup('{"app":"other","data":{}}').ok).toBe(false);
+    expect(storage.importBackup('{"app":"buzzword-dash","data":{"schemaVersion":999}}').ok).toBe(false);
+    expect(storage.get('coins')).toBe(555);
+  });
+});

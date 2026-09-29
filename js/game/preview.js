@@ -34,6 +34,7 @@
 import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
+import { updateModelAnimation } from './charactermodel.js';
 
 // Gesture constants
 var GESTURE_NONE = 0;
@@ -369,7 +370,12 @@ export class CharacterPreview {
             var rotDiff = self.targetRotationY - self.rotationY;
             self.rotationY += rotDiff * 0.1;
 
-            self.updateIdleAnimation(dt);
+            if (self.character.userData.animator) {
+                updateModelAnimation(self.character, dt, 'idle');
+                self.character.rotation.y = self.rotationY;
+            } else {
+                self.updateIdleAnimation(dt);
+            }
 
             self.renderer.render(self.scene, self.camera);
         }

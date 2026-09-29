@@ -247,6 +247,8 @@ class MusicGenerator {
     this.currentStep = 0;
     this.nextStepTime = 0;
     this.tempoMultiplier = 1.0;
+    this.intensity = 0.5; // 0..1: how many layers play
+    this.danger = 0;      // 0..1: monster proximity (adds tension)
     this._getSettings = settingsGetter;
 
     // Output gain for crossfading
@@ -301,6 +303,20 @@ class MusicGenerator {
     // Do NOT stop and restart — preserve musical phase
   }
 
+  /**
+   * Adapt the music to the game: more layers as the streak builds, and a
+   * tense low drone plus a darker filter as the monster closes in.
+   * @param {number} intensity 0..1
+   * @param {number} danger 0..1
+   */
+  setIntensity(intensity, danger) {
+    this.intensity = Math.max(0, Math.min(1, intensity));
+    this.danger = Math.max(0, Math.min(1, danger || 0));
+    var base = this.config.filterFreq || 2000;
+    var target = base * (0.6 + 1.0 * this.intensity - 0.35 * this.danger);
+    this.melodyFilter.frequency.setTargetAtTime(Math.max(300, target), this.ctx.currentTime, 0.4);
+  }
+
   _startScheduler() {
     this._stopScheduler();
     var self = this;
@@ -337,7 +353,7 @@ class MusicGenerator {
     this._playDrums(step, vol, time);
 
     // Bass (every step)
-    if (step < cfg.bassPattern.length) {
+    if (this.intensity >= 0.15 && step < cfg.bassPattern.length) {
       var bassNote = cfg.bassPattern[step];
       if (bassNote >= 0) {
         var bassMidi = scaleNote(this.scale, cfg.key - 12, bassNote);
@@ -346,7 +362,7 @@ class MusicGenerator {
     }
 
     // Melody
-    if (step < cfg.melodyPattern.length) {
+    if (this.intensity >= 0.3 && step < cfg.melodyPattern.length) {
       var melNote = cfg.melodyPattern[step];
       if (melNote >= 0) {
         var melMidi = scaleNote(this.scale, cfg.key, melNote);
@@ -358,6 +374,16 @@ class MusicGenerator {
     if (step % 4 === 0) {
       var chordIdx = Math.floor(step / 4) % cfg.chordIntervals.length;
       this._playPad(cfg.chordIntervals[chordIdx], vol, time);
+    }
+
+    // High intensity: busier hi-hats on the off-beats
+    if (this.intensity >= 0.6 && step % 2 === 1) {
+      this._playHiHat(vol * 0.6, time);
+    }
+
+    // Danger: a low tritone drone under the bass
+    if (this.danger >= 0.45 && step % 4 === 2) {
+      this._playBass(midiToFreq(cfg.key - 12 + 6), vol * this.danger * 1.1, time);
     }
   }
 
@@ -952,7 +978,7 @@ class AudioEngine {
     o.frequency.exponentialRampToValueAtTime(30, t + 0.6);
     g.gain.setValueAtTime(vol * 0.2, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
-    var distortion = ctx.createWaveShaperNode();
+    var distortion = ctx.createWaveShaper();
     var curve = new Float32Array(256);
     for (var i = 0; i < 256; i++) {
       var x = (i / 128) - 1;
@@ -1174,6 +1200,11 @@ class AudioEngine {
 
   // ===== MUSIC (procedural, per-skin) =====
 
+  /** Adapt the running music to the game state (see MusicGenerator.setIntensity). */
+  setMusicIntensity(intensity, danger) {
+    if (this.musicGenerator) this.musicGenerator.setIntensity(intensity, danger);
+  }
+
   startMusic(skinId) {
     if (this.musicPlaying) return;
     if (!this.ctx) this.init();
@@ -1374,3 +1405,4 @@ class AudioEngine {
 }
 
 export var audio = new AudioEngine();
+export { MusicGenerator };

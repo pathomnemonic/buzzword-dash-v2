@@ -36,13 +36,17 @@ import {
   calculateTargetFOV, updateCameraFOV,
   calculateCameraLean, getStreakVisualIntensity
 } from './track.js';
-import { buildPlayer, getPlayerLimbs } from './player.js';
+import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
-import { getCardPool, pickCard, spawnGates, updateGateHighlights, flashGateResult, resolveStats } from './gates.js';
+import { getCardPool, pickCard, spawnGates, updateGateHighlights, flashGateResult } from './gates.js';
 import { spawnObstacle, spawnCoinBatch, spawnPowerup } from './obstacles.js';
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
-import { buildExamMonster, getMonsterParts } from './exammonster.js';
+import { getMonsterParts, disposeExamMonster } from './exammonster.js';
+import { buildMonster } from './monsters.js';
+import { updateModelAnimation } from './charactermodel.js';
+import { createPostFX } from './postfx.js';
+import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
 import { CONTINUE_COST } from './shopdata.js';
@@ -67,6 +71,8 @@ export var GAME_MODES = Object.freeze({
   STUDY: 'study',
   WEAKNESS: 'weakness',
   DAILY: 'daily',
+  CHALLENGE: 'challenge',
+  TOURNAMENT: 'tournament',
   VERSUS: 'versus',
   MP_HIGH_SCORE: 'mp_highscore',
   MP_SUDDEN_DEATH: 'mp_suddendeath',
@@ -79,6 +85,7 @@ export var RUN_END_REASONS = Object.freeze({
   MANUAL_END: 'manual_end',
   NO_MATCHING_CARDS: 'no_matching_cards',
   DAILY_COMPLETE: 'daily_complete',
+  CHALLENGE_COMPLETE: 'challenge_complete',
   TIMER_EXPIRED: 'timer_expired',
   SUDDEN_DEATH_ELIMINATION: 'sudden_death_elimination',
   RACE_FINISHED: 'race_finished',
@@ -253,7 +260,7 @@ class Game {
     this.gatesActive = false;
     this.answerLocked = false;
     this.committedLane = 1;
-    this.recentIds = [];
+    this.recentIds = []; this._retryQueue = []; this._retriedIds = {};
     this.runCards = [];
 
     // Seeded card order support
@@ -280,6 +287,12 @@ class Game {
     // Camera
     this.cameraBasePos = new THREE.Vector3(0, 4.5, 10);
     this.baseFOV = 70;
+    this._postfx = null;
+    this._fovKick = 0;
+    this._slowmo = 0;
+    this._flyInT = 0;
+    this._hazards = new HazardManager();
+    this.onHazard = null;
 
     // Animations
     this.celebrateTimer = 0;
@@ -366,6 +379,8 @@ class Game {
     this.onSkinSelected = null;
     this.onMapTransition = null;
     this.onPlayerFaceplant = null;
+    this.onMonsterWarning = null;
+    this.onMonsterCaught = null;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -412,7 +427,12 @@ class Game {
     }
 
     // Bridge: map to legacy callbacks for backward compat with existing main.js
-    this._bridgeLegacyCallback(event);
+    // A failing UI/audio callback must never break game logic.
+    try {
+      this._bridgeLegacyCallback(event);
+    } catch (e) {
+      console.error('[Engine] Callback error for ' + event.type + ':', e);
+    }
   }
 
   _bridgeLegacyCallback(event) {
@@ -451,7 +471,13 @@ class Game {
         if (this.onPlayerFaceplant) this.onPlayerFaceplant();
         break;
       case 'monster_warning':
-        // Handled by event sink
+        if (this.onMonsterWarning) this.onMonsterWarning();
+        break;
+      case 'monster_caught':
+        if (this.onMonsterCaught) this.onMonsterCaught();
+        break;
+      case 'hazard_started':
+        if (this.onHazard) this.onHazard(event.payload);
         break;
     }
     // Always emit HUD updates on many event types
@@ -520,6 +546,13 @@ class Game {
   update(deltaSeconds, nowMs) {
     if (deltaSeconds > 0.1) deltaSeconds = 0.016;
 
+    // Brief slow motion after a lightning-fast correct answer (solo only, so
+    // it can never desync a multiplayer match).
+    if (this._slowmo > 0) {
+      this._slowmo -= deltaSeconds;
+      deltaSeconds *= 0.35;
+    }
+
     var state = this._state;
 
     if (state === GAME_STATES.PLAYING) {
@@ -529,14 +562,46 @@ class Game {
     } else if (state === GAME_STATES.COUNTDOWN) {
       // Countdown is managed by UI; engine just keeps scene renderable
       this._updateVisuals(deltaSeconds);
+      this._updateFlyIn(deltaSeconds);
+      updateModelAnimation(this.playerGroup, deltaSeconds, 'idle');
     } else if (state === GAME_STATES.PAUSED) {
       // No simulation update during pause
     }
   }
 
+  /** Cinematic camera sweep over the track while the countdown runs. */
+  _updateFlyIn(dt) {
+    var duration = 2.4;
+    this._flyInT += dt;
+    var t = Math.min(this._flyInT / duration, 1);
+    var e = 1 - Math.pow(1 - t, 3); // ease-out
+    var base = this.cameraBasePos;
+    this.camera.position.set(
+      base.x + (1 - e) * 5 * Math.sin(this._flyInT * 0.8),
+      base.y + (1 - e) * 7,
+      base.z + (1 - e) * 14
+    );
+    this.camera.lookAt(0, 1, -20 + (1 - e) * 12);
+  }
+
+  _getPostFX() {
+    if (storage.get('glowEffects') === false || storage.get('reducedMotion')) return null;
+    if (!this._postfx) {
+      try {
+        this._postfx = createPostFX(this.renderer, this.scene, this.camera);
+      } catch (e) {
+        console.warn('[Engine] Post-processing unavailable:', e.message);
+        this._postfx = { degraded: true, render: function () {}, setSize: function () {}, dispose: function () {} };
+      }
+    }
+    return this._postfx.degraded ? null : this._postfx;
+  }
+
   render() {
     if (this.renderer && this.scene && this.camera) {
-      this.renderer.render(this.scene, this.camera);
+      var fx = this._getPostFX();
+      if (fx) fx.render();
+      else this.renderer.render(this.scene, this.camera);
     }
   }
 
@@ -548,6 +613,7 @@ class Game {
     if (this.renderer) {
       this.renderer.setSize(width, height);
       if (pixelRatio) this.renderer.setPixelRatio(Math.min(pixelRatio, 2));
+      if (this._postfx) this._postfx.setSize(width, height, Math.min(pixelRatio || 1, 2));
     }
   }
 
@@ -573,7 +639,9 @@ class Game {
     if (this._modeConfig.allowContinue === undefined) {
       this._modeConfig.allowContinue = (this.mode !== GAME_MODES.MP_SUDDEN_DEATH &&
                                          this.mode !== GAME_MODES.MP_HIGH_SCORE &&
-                                         this.mode !== GAME_MODES.MP_RACE);
+                                         this.mode !== GAME_MODES.MP_RACE &&
+                                         this.mode !== GAME_MODES.CHALLENGE &&
+                                         this.mode !== GAME_MODES.TOURNAMENT);
     }
     if (this._modeConfig.continueCost === undefined) {
       this._modeConfig.continueCost = CONTINUE_COST;
@@ -631,6 +699,7 @@ class Game {
 
   // Called by main.js after countdown UI starts
   beginCountdown() {
+    this._flyInT = 0;
     this._transition(GAME_STATES.COUNTDOWN);
     this._emit('countdown_started', {});
   }
@@ -687,7 +756,9 @@ class Game {
     this.envPropSpawnTimer = 0.5; this.speedLineTimer = 0;
     this.shakeTimer = 0;
 
-    this.runCards = []; this.recentIds = [];
+    this.runCards = []; this.recentIds = []; this._retryQueue = []; this._retriedIds = {};
+    this._hazards.reset();
+    this._setHazardClass(null);
     this.feedbackTimer = 0; this.teachTimer = 0;
     this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0 };
     this.autoPilotGatesLeft = 0;
@@ -703,7 +774,7 @@ class Game {
     this.encountersUntilTransition = 10;
     this.transitionActive = false; this.transitionTimer = 0;
 
-    this.monsterZ = 20; this.monsterTargetZ = 20;
+    this.monsterZ = 20; this.monsterTargetZ = 20; this._monsterY = undefined;
     this.monsterVisible = false; this.monsterWarningPlayed = false;
     this.heartSpawnCounter = 0;
     this.faceplanting = false; this.faceplantTimer = 0;
@@ -771,6 +842,7 @@ class Game {
     if (!this.gatesActive || this.answerLocked) return;
     if (this.rushStacks < this.maxRushStacks) {
       this.rushStacks++;
+      this._fovKick = Math.max(this._fovKick, 7);
       this.rushing = true;
       this.rushInvulnerable = true;
       this.rushesUsed++;
@@ -814,6 +886,11 @@ class Game {
       this.currentLane = 1;
       this.targetLane = 1;
 
+      // Back the monster off; it would otherwise still be on top of the player.
+      this.monsterTargetZ = 14;
+      this.monsterZ = Math.max(this.monsterZ, 12);
+      this.monsterWarningPlayed = false;
+
       if (this.limbs) {
         if (this.limbs.leftArm) this.limbs.leftArm.rotation.x = 0;
         if (this.limbs.rightArm) this.limbs.rightArm.rotation.x = 0;
@@ -847,6 +924,7 @@ class Game {
   _endRun(reason) {
     if (this._runEnded) return;
     this._runEnded = true;
+    this._setHazardClass(null);
 
     document.getElementById('pauseOverlay').classList.remove('active');
     document.getElementById('rushEl').classList.remove('show');
@@ -866,7 +944,7 @@ class Game {
     if (this.powerupFX) this.powerupFX.hideAll();
 
     if (this.examMonster) {
-      this.scene.remove(this.examMonster);
+      disposeExamMonster(this.scene, this.examMonster);
       this.examMonster = null;
       this.monsterParts = null;
     }
@@ -988,7 +1066,10 @@ class Game {
   // ═══════════════════════════════════════════════════════
 
   _rebuildPlayer() {
-    if (this.playerGroup) this.scene.remove(this.playerGroup);
+    if (this.playerGroup) {
+      this.scene.remove(this.playerGroup);
+      disposeCharacter(this.playerGroup);
+    }
     this.playerGroup = buildPlayer();
     this.limbs = getPlayerLimbs(this.playerGroup);
     this.scene.add(this.playerGroup);
@@ -1013,8 +1094,8 @@ class Game {
   }
 
   _createExamMonster() {
-    if (this.examMonster) this.scene.remove(this.examMonster);
-    this.examMonster = buildExamMonster();
+    if (this.examMonster) disposeExamMonster(this.scene, this.examMonster);
+    this.examMonster = buildMonster((storage.get('equipped') || {}).monster);
     this.monsterParts = getMonsterParts(this.examMonster);
     this.examMonster.position.set(0, 1.5, this.monsterZ);
     this.examMonster.visible = false;
@@ -1052,6 +1133,14 @@ class Game {
     protectedSet.add(self.playerShadow);
     protectedSet.add(self.playerGroup);
     if (self.examMonster) protectedSet.add(self.examMonster);
+
+    // Live gameplay objects must survive a map change: the scene is swept for
+    // old environment pieces, but obstacles/gates/coins/pickups/props still
+    // have collision or scoring state. Removing only their meshes leaves
+    // invisible obstacles that still cost a life.
+    [self.gateMeshes, self.obstacleMeshes, self.coinMeshes, self.envPropMeshes, self.speedLines].forEach(function (list) {
+      if (list) list.forEach(function (m) { if (m) protectedSet.add(m); });
+    });
 
     if (self.powerupFX && self.powerupFX.effects) {
       for (var key in self.powerupFX.effects) {
@@ -1165,6 +1254,11 @@ class Game {
   // ENCOUNTER SPAWNING
   // ═══════════════════════════════════════════════════════
 
+  _dueRetryIds() {
+    var done = this.encountersDone;
+    return this._retryQueue.filter(function (r) { return r.at <= done; }).map(function (r) { return r.id; });
+  }
+
   _spawnEncounter() {
     // Use seeded order if available (multiplayer)
     var card = null;
@@ -1206,8 +1300,13 @@ if (this.seededCardOrder && this._seededCardIndex < this.seededCardOrder.length)
         encounterIndex: this.encountersDone,
         orderedCardIds: null,
         selectionState: this._selectionState,
+        retryIds: this._dueRetryIds(),
         rng: Math.random
     });
+    if (pickResult && pickResult.wasRetry && pickResult.card) {
+      this._retryQueue = this._retryQueue.filter(function (r) { return r.id !== pickResult.card.id; });
+      this._retriedIds[pickResult.card.id] = true;
+    }
 }
 
 card = pickResult ? pickResult.card : null;
@@ -1218,6 +1317,15 @@ card = pickResult ? pickResult.card : null;
     }
 
     this.card = card;
+
+    // Signature map hazard (solo endless/weakness only: never in seeded or
+    // competitive modes, and never for players who prefer reduced motion).
+    if (!this.seededCardOrder && (this.mode === GAME_MODES.ENDLESS || this.mode === GAME_MODES.WEAKNESS) &&
+        !storage.get('reducedMotion') &&
+        !(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      var hazardStarted = this._hazards.maybeStart(this.currentSkin.name, this.encountersDone);
+      if (hazardStarted) this._emit('hazard_started', { type: hazardStarted, label: HAZARDS[hazardStarted].label });
+    }
     this._subjectsSeen.add(card.subj);
     this.recentIds.push(card.id);
     if (this.recentIds.length > 10) this.recentIds.shift();
@@ -1250,7 +1358,7 @@ card = pickResult ? pickResult.card : null;
     this.gateZ = -60;
     for (var g = 0; g < this.gateMeshes.length; g++) removeAndDispose(this.scene, this.gateMeshes[g]);
     var gateTheme = { glow: this.currentSkin.colors.gateGlow, gate: this.currentSkin.colors.gateBase };
-    this.gateMeshes = spawnGates(this.scene, this.gates, this.currentLane, gateTheme);
+    this.gateMeshes = spawnGates(this.scene, this.gates, this.currentLane, gateTheme, this.card && this.card.subj);
     this.gatesActive = true;
     this.answerLocked = false;
     this.rushing = false;
@@ -1303,9 +1411,12 @@ card = pickResult ? pickResult.card : null;
       }
     }
 
-    // Resolve stats (bridge to current gates.js)
-    resolveStats(card, ok);
     this.encountersDone++;
+
+    // Remediation: bring a missed card back a few encounters later (once).
+    if (!ok && !this.seededCardOrder && this.mode !== GAME_MODES.DAILY && !this._retriedIds[card.id]) {
+      this._retryQueue.push({ id: card.id, at: this.encountersDone + 3 });
+    }
 
     var pointsEarned = 0;
     var coinsEarned = 0;
@@ -1362,6 +1473,8 @@ card = pickResult ? pickResult.card : null;
 
     if (ok) {
       this.correct++;
+      this._fovKick = Math.max(this._fovKick, 3);
+      if (!this.seededCardOrder && (this.rushing || (decisionMs > 0 && decisionMs < 1500))) this._slowmo = 0.45;
       this.streak++;
       if (this.streak > this.bestStreak) this.bestStreak = this.streak;
 
@@ -1490,6 +1603,15 @@ card = pickResult ? pickResult.card : null;
       this.nextEncounterTimer = 0.05;
     }
 
+    // Challenge completion: a fixed number of seeded encounters
+    if ((this.mode === GAME_MODES.CHALLENGE || this.mode === GAME_MODES.TOURNAMENT) &&
+        this.encountersDone >= (this._modeConfig.challengeCount || 15)) {
+      this.waitingForNext = false;
+      var selfC = this;
+      setTimeout(function () { selfC._endRun(RUN_END_REASONS.CHALLENGE_COMPLETE); }, 600);
+      return;
+    }
+
     // Daily completion check
     if (this.mode === GAME_MODES.DAILY && this.encountersDone >= (this._modeConfig.dailyEncounterCount || 15)) {
       this.waitingForNext = false;
@@ -1541,8 +1663,10 @@ card = pickResult ? pickResult.card : null;
     var totalDuration = 1.8;
     var fp = totalDuration - this.faceplantTimer;
 
-    // Faceplant animation
-    if (fp < 0.3) {
+    // Animated models play their own death clip; procedural ones faceplant.
+    if (this.playerGroup.userData.animator) {
+      updateModelAnimation(this.playerGroup, dt, 'death');
+    } else if (fp < 0.3) {
       this.playerGroup.rotation.x = (fp / 0.3) * 0.8;
     } else if (fp < 0.6) {
       this.playerGroup.rotation.x = 0.8 + ((fp - 0.3) / 0.3) * 0.5;
@@ -1584,9 +1708,27 @@ card = pickResult ? pickResult.card : null;
   // MAIN UPDATE (PLAYING state)
   // ═══════════════════════════════════════════════════════
 
+  /** Show/hide the CSS treatment for the active map hazard. */
+  _setHazardClass(type) {
+    if (typeof document === 'undefined') return;
+    var cl = document.body.classList;
+    Object.keys(HAZARDS).forEach(function (k) { cl.remove('hazard-' + k); });
+    if (type) cl.add('hazard-' + type);
+    this._hazardClass = type;
+  }
+
+  _applyHazard(fx) {
+    if (fx.type && this._hazardClass !== fx.type) this._setHazardClass(fx.type);
+    if (fx.ended) this._setHazardClass(null);
+    if (fx.shake) this._triggerShake();
+    if (fx.fovKick) this._fovKick = Math.max(this._fovKick, fx.fovKick);
+  }
+
   _updatePlaying(dt) {
     this.elapsedTime += dt;
-    var currentSpeed = this.speed;
+    var hazardFx = this._hazards.update(dt);
+    if (hazardFx.type || hazardFx.ended) this._applyHazard(hazardFx);
+    var currentSpeed = this.speed * hazardFx.speedMult;
     var rushMult = 1.0 + this.rushStacks;
 
     // Rush propulsion
@@ -1678,6 +1820,12 @@ card = pickResult ? pickResult.card : null;
     this.wasJumping = this.jumping;
     this.playerGroup.position.y = this.playerY;
 
+    // Stretch upward while rising, ease back as the jump peaks (the landing
+    // squash below takes over on touchdown).
+    if (this.jumping && !this.sliding) {
+      this.playerGroup.scale.y = 1 + Math.max(0, Math.min(this.jumpVel, 12)) / 12 * 0.08;
+    }
+
     // Slide
     if (this.sliding) {
       this.slideTimer += dt;
@@ -1711,8 +1859,8 @@ card = pickResult ? pickResult.card : null;
       if (this.limbs && this.limbs.rightArm) {
         var celebProgress = this.celebrateTimer / 0.3;
         var pumpAngle = celebProgress > 0.5
-          ? -1.2 * ((1.0 - celebProgress) / 0.5)
-          : -1.2 * (celebProgress / 0.5);
+          ? 2.2 * ((1.0 - celebProgress) / 0.5)
+          : 2.2 * (celebProgress / 0.5);
         this.limbs.rightArm.rotation.x = pumpAngle;
       }
       if (this.celebrateTimer <= 0 && this.limbs && this.limbs.rightArm) {
@@ -1720,22 +1868,38 @@ card = pickResult ? pickResult.card : null;
       }
     }
 
-    // Running animation
-    if (!this.jumping && !this.sliding && this.limbs && this.celebrateTimer <= 0) {
-      this.legPhase += currentSpeed * rushMult * dt * 0.8;
-      var sw = Math.sin(this.legPhase) * 0.45;
-      if (this.limbs.leftLeg) {
-        this.limbs.leftLeg.rotation.x = sw;
-        this.limbs.rightLeg.rotation.x = -sw;
+    // Limb animation. Characters face -Z, so a positive rotation.x swings a
+    // hanging limb forward. Every pose is eased toward its target so limbs
+    // never freeze mid-swing or pop when jumping, sliding and running switch.
+    if (this.limbs && this.celebrateTimer <= 0) {
+      var lm = this.limbs;
+      var tLL = 0, tRL = 0, tLA = 0, tRA = 0;
+      if (this.jumping) {
+        // Tuck: arms forward-up, lead knee raised
+        tLL = 0.9; tRL = -0.25; tLA = 1.9; tRA = 1.9;
+      } else if (this.sliding) {
+        // Crouch: legs forward, arms out front for balance
+        tLL = 1.1; tRL = 1.0; tLA = 0.9; tRA = 0.9;
+      } else {
+        this.legPhase += currentSpeed * rushMult * dt * 0.8;
+        var sw = Math.sin(this.legPhase) * 0.45;
+        tLL = sw; tRL = -sw; tLA = -sw * 0.9; tRA = sw * 0.9;
+        this.playerGroup.position.y = this.playerY + Math.abs(Math.sin(this.legPhase)) * 0.06;
+        if (lm.cape) {
+          lm.cape.rotation.x = 0.15 + Math.sin(this.legPhase * 1.5) * 0.1;
+        }
       }
-      if (this.limbs.leftArm) {
-        this.limbs.leftArm.rotation.x = -sw * 0.9;
-        if (this.celebrateTimer <= 0) this.limbs.rightArm.rotation.x = sw * 0.9;
-      }
-      if (this.limbs.cape) {
-        this.limbs.cape.rotation.x = 0.15 + Math.sin(this.legPhase * 1.5) * 0.1;
-      }
-      this.playerGroup.position.y = this.playerY + Math.abs(Math.sin(this.legPhase)) * 0.06;
+      var ease = Math.min(1, dt * 22);
+      if (lm.leftLeg) lm.leftLeg.rotation.x += (tLL - lm.leftLeg.rotation.x) * ease;
+      if (lm.rightLeg) lm.rightLeg.rotation.x += (tRL - lm.rightLeg.rotation.x) * ease;
+      if (lm.leftArm) lm.leftArm.rotation.x += (tLA - lm.leftArm.rotation.x) * ease;
+      if (lm.rightArm) lm.rightArm.rotation.x += (tRA - lm.rightArm.rotation.x) * ease;
+    }
+
+    // Animated glTF avatars are driven by their own clips.
+    if (this.playerGroup.userData.animator) {
+      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
+      updateModelAnimation(this.playerGroup, dt, modelState);
     }
 
     // Shadow
@@ -1776,7 +1940,8 @@ card = pickResult ? pickResult.card : null;
     // FOV
     var streakVis = getStreakVisualIntensity(this.streak);
     var targetFOV = calculateTargetFOV(this.baseSpeed, currentSpeed * rushMult, this.baseFOV, this.baseFOV + 15 + streakVis.fovBoost, this.rushing);
-    updateCameraFOV(this.camera, targetFOV, dt, 2.0);
+    updateCameraFOV(this.camera, targetFOV + this._fovKick, dt, 2.0);
+    this._fovKick *= Math.max(0, 1 - dt * 5);
 
     // ─── Lane commitment (Section 8.3) ───
     if (this.gatesActive && !this.answerLocked && this.gateZ >= ANSWER_LOCK_Z) {
@@ -2031,11 +2196,39 @@ card = pickResult ? pickResult.card : null;
       this.examMonster.visible = shouldBeVisible;
     }
 
-    this.examMonster.position.set(0, 1.5, this.monsterZ);
+    // The monster looms above the player's line of sight so it never hides the
+    // runner or the lanes, then swoops down when it makes the catch.
+    var dying = this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT;
+    var targetY = dying ? 1.6 : 3.9;
+    this._monsterY = (this._monsterY === undefined ? targetY : this._monsterY);
+    this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 4);
+    this.examMonster.position.set(0, this._monsterY, this.monsterZ);
 
     if (this.monsterVisible) {
       var distFactor = Math.max(0.3, 1.0 - (this.monsterZ - 3) / 15);
+      // Keep every design out of the way; larger models are scaled down further.
+      distFactor *= (this.examMonster.userData.displayScale || 1);
+      if (!dying) distFactor = Math.min(distFactor, 0.6);
       this.examMonster.scale.set(distFactor, distFactor, distFactor);
+
+      // Back-side details: pulsing ring and breathing spine ridge
+      if (this.monsterParts && this.monsterParts.backRing) {
+        this.monsterParts.backRing.material.opacity = 0.55 + 0.4 * Math.sin(this.elapsedTime * 4);
+      }
+      if (this.monsterParts && this.monsterParts.ridge) {
+        for (var rgi = 0; rgi < this.monsterParts.ridge.length; rgi++) {
+          this.monsterParts.ridge[rgi].scale.y = 1 + 0.15 * Math.sin(this.elapsedTime * 3 + rgi * 0.6);
+        }
+      }
+
+      // Menace grows with proximity: hotter glow, faster ridge pulse.
+      var danger = 1 - Math.min(1, Math.max(0, (this.monsterZ - 3) / 13));
+      if (this.monsterParts && this.monsterParts.body && this.monsterParts.body.material.emissiveIntensity !== undefined) {
+        this.monsterParts.body.material.emissiveIntensity = 0.3 + danger * 0.9;
+      }
+      if (this.monsterParts && this.monsterParts.aura) {
+        this.monsterParts.aura.material.opacity = 0.15 + danger * 0.25;
+      }
     }
 
     if (this.monsterZ < 8 && !this.monsterWarningPlayed) {
@@ -2043,6 +2236,16 @@ card = pickResult ? pickResult.card : null;
       this._emit('monster_warning', {});
     }
     if (this.monsterZ >= 10) this.monsterWarningPlayed = false;
+
+    // Caught: the monster reaches the player. Study mode has no fail state, so
+    // it never ends a study session. Rushing makes the player untouchable.
+    if (this._state === GAME_STATES.PLAYING && this.mode !== GAME_MODES.STUDY &&
+        !this.rushInvulnerable && this.monsterZ <= 3.6) {
+      this.lives = 0;
+      this._emit('monster_caught', {});
+      this._triggerDeath();
+      return;
+    }
 
     // Animate monster parts
     if (this.monsterParts && this.monsterVisible) {

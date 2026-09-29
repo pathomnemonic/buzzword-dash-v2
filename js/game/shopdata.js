@@ -356,6 +356,24 @@ export var AVATARS = [
     icon: "🔪"
   },
   {
+    id: "avatar_robopro",
+    name: "Robo Resident",
+    desc: "A fully animated robot with real motion-captured moves",
+    price: 9000,
+    // Stand-in colors used until the 3D model has finished loading
+    bodyColor: 0xdddddd,
+    pantsColor: 0x88aacc,
+    shoeColor: 0x556677,
+    skinColor: 0xbbccdd,
+    hairColor: 0x556677,
+    scale: 1.0,
+    legSpeed: 1.0,
+    armSwing: 1.0,
+    isModel: true,
+    modelUrl: "models/RobotExpressive.glb",
+    icon: "🤖"
+  },
+  {
     id: "avatar_skeleton",
     name: "Skeleton",
     desc: "Study anatomy from the inside",
@@ -391,6 +409,13 @@ export var SHOP_ITEMS = [
   { id: "avatar_nurse", name: "Nurse", price: 2000, type: "skin", color: 0xffffff, icon: "👩‍⚕️", compatibility: COMPAT_ALL },
   { id: "avatar_surgeon", name: "Surgeon", price: 3500, type: "skin", color: 0x338855, icon: "🔪", compatibility: COMPAT_ALL },
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
+  { id: "avatar_robopro", name: "Robo Resident (animated 3D)", price: 9000, type: "skin", color: 0xdddddd, icon: "🤖", compatibility: COMPAT_HUMANOID_ONLY },
+
+  // --- Exam monsters ---
+  { id: "monster_classic", name: "Exam Monster", price: 0, type: "monster", color: 0x220044, icon: "👾", compatibility: COMPAT_ALL },
+  { id: "monster_wraith", name: "Pager Wraith", price: 3000, type: "monster", color: 0x33ccff, icon: "👻", compatibility: COMPAT_ALL },
+  { id: "monster_golem", name: "Textbook Golem", price: 5000, type: "monster", color: 0xffaa33, icon: "📚", compatibility: COMPAT_ALL },
+  { id: "monster_kraken", name: "Caffeine Kraken", price: 7000, type: "monster", color: 0xff7733, icon: "☕", compatibility: COMPAT_ALL },
 
   // --- Hats (humanoid only) ---
   { id: "hat_none", name: "No Hat", price: 0, type: "hat", color: null, compatibility: COMPAT_HUMANOID_ONLY },
@@ -409,6 +434,8 @@ export var SHOP_ITEMS = [
   { id: "hat_cowboy", name: "Cowboy Hat", price: 1500, type: "hat", color: 0x886644, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "hat_tiara", name: "Tiara", price: 4000, type: "hat", color: 0xffd700, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "hat_propeller", name: "Propeller Hat", price: 800, type: "hat", color: 0xff4488, compatibility: COMPAT_HUMANOID_ONLY },
+  { id: "hat_catears", name: "Cat Ears", price: 1200, type: "hat", color: 0xffaacc, compatibility: COMPAT_HUMANOID_ONLY },
+  { id: "hat_sunglasses", name: "Sunglasses", price: 700, type: "hat", color: 0x111111, compatibility: COMPAT_HUMANOID_ONLY },
 
   // --- Trails (all avatars) ---
   { id: "trail_none", name: "No Trail", price: 0, type: "trail", color: null, compatibility: COMPAT_ALL },
@@ -440,6 +467,8 @@ export var SHOP_ITEMS = [
   { id: "gear_backpack", name: "Backpack", price: 1500, type: "gear", color: 0x44aa44, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "gear_shield_item", name: "Shield", price: 2500, type: "gear", color: 0x4488ff, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "gear_katana", name: "Bone Saw", price: 3000, type: "gear", color: 0xcccccc, compatibility: COMPAT_HUMANOID_ONLY },
+  { id: "gear_pager", name: "Pager", price: 500, type: "gear", color: 0x333344, compatibility: COMPAT_HUMANOID_ONLY },
+  { id: "gear_ivbag", name: "IV Bag Backpack", price: 1800, type: "gear", color: 0x99ddff, compatibility: COMPAT_HUMANOID_ONLY },
 
   // --- Clothing (humanoid only) ---
   { id: "cloth_none", name: "No Clothing", price: 0, type: "clothing", color: null, compatibility: COMPAT_HUMANOID_ONLY },

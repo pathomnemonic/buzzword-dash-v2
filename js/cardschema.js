@@ -59,7 +59,7 @@ export var SOURCE_DISCIPLINES = Object.freeze([
 // All valid runner game modes
 var RUNNER_MODES = [
   'endless', 'study', 'weakness', 'daily', 'versus',
-  'mp_highscore', 'mp_suddendeath', 'mp_race', 'timed_practice'
+  'mp_highscore', 'mp_suddendeath', 'mp_race', 'timed_practice', 'challenge', 'tournament'
 ];
 
 // All valid modes including flashcard

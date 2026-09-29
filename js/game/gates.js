@@ -24,6 +24,7 @@ import * as THREE from 'three';
 import { CARDS, SUBJECTS } from '../cards.js';
 import { storage } from '../storage.js';
 import { customCards } from '../customcards.js';
+import { getSubjectStyle } from './subjectstyle.js';
 
 // ===== CONSTANTS =====
 
@@ -252,6 +253,7 @@ export function pickCard(options) {
   var orderedCardIds = options.orderedCardIds || null;
   var selectionState = options.selectionState || { recentQuestionTypes: [], recentSubjects: [] };
   var rng = options.rng || Math.random;
+  var retryIds = options.retryIds || [];
 
   if (!pool || pool.length === 0) {
     return {
@@ -305,8 +307,26 @@ export function pickCard(options) {
     }
   }
 
+  // ── Remediation: a card missed earlier in this run comes back ──
+  if (retryIds.length > 0 && mode !== 'daily') {
+    for (var qi = 0; qi < retryIds.length; qi++) {
+      for (var qp = 0; qp < effectivePool.length; qp++) {
+        if (effectivePool[qp].id === retryIds[qi]) {
+          return { card: patchCardDefaults(effectivePool[qp]), orderedIndex: null, error: null, wasRetry: true };
+        }
+      }
+    }
+  }
+
   // ── Adaptive weighted selection ──
   var now = Date.now();
+
+  // Answers shown recently (duplicate cards for the same diagnosis are
+  // legitimate extra practice, but shouldn't appear back to back).
+  var recentAnswers = {};
+  for (var ra = 0; ra < effectivePool.length; ra++) {
+    if (recentIds.indexOf(effectivePool[ra].id) >= 0) recentAnswers[effectivePool[ra].ans] = true;
+  }
 
   // Configurable card freshness weight
   var freshnessWeight = 5;
@@ -364,10 +384,19 @@ export function pickCard(options) {
     // ── Recent card penalty ──
     if (recentIds.indexOf(c.id) >= 0) {
       w *= 0.02;
+    } else if (recentAnswers[c.ans]) {
+      w *= 0.05;
     }
 
-    // ── Spaced repetition thresholds (largest first) ──
-    if (s.lastSeen > 0) {
+    // ── Spaced repetition schedule (due cards first, not-yet-due cards later) ──
+    if (typeof s.due === 'number' && s.seen > 0) {
+      if (now >= s.due) {
+        var overdueDays = Math.min(7, (now - s.due) / (24 * 60 * 60 * 1000));
+        w *= 2.5 * (1 + overdueDays * 0.3);
+      } else {
+        w *= 0.25;
+      }
+    } else if (s.lastSeen > 0) {
       var hoursSince = (now - s.lastSeen) / (1000 * 60 * 60);
       if (hoursSince < 0.5) w *= 0.3;
       else if (hoursSince < 2) w *= 0.6;
@@ -435,8 +464,27 @@ export function pickCard(options) {
 
 // ===== GATE SPAWNING =====
 
-export function spawnGates(scene, gates, currentLane, theme) {
+var _iconTextures = {};
+
+function getSubjectIconTexture(subject) {
+  var key = subject || '';
+  if (_iconTextures[key]) return _iconTextures[key];
+  var canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  var ctx = canvas.getContext('2d');
+  ctx.font = '96px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(getSubjectStyle(subject).icon, 64, 70);
+  var texture = new THREE.CanvasTexture(canvas);
+  _iconTextures[key] = texture;
+  return texture;
+}
+
+export function spawnGates(scene, gates, currentLane, theme, subject) {
   var meshes = [];
+  var accent = subject ? getSubjectStyle(subject).color : (theme.glow || 0x18ffff);
   for (var j = 0; j < 3; j++) {
     var group = new THREE.Group();
 
@@ -451,7 +499,7 @@ export function spawnGates(scene, gates, currentLane, theme) {
     group.add(frame);
 
     var glowMat = new THREE.MeshBasicMaterial({
-      color: theme.glow || 0x18ffff,
+      color: accent,
       transparent: true,
       opacity: 0.35
     });
@@ -468,13 +516,24 @@ export function spawnGates(scene, gates, currentLane, theme) {
       var pillar = new THREE.Mesh(
         new THREE.BoxGeometry(0.12, 3, 0.2),
         new THREE.MeshBasicMaterial({
-          color: theme.glow || 0x18ffff,
+          color: accent,
           transparent: true,
           opacity: 0.2
         })
       );
       pillar.position.set(sx * 1.45, 0, 0);
       group.add(pillar);
+    }
+
+    // Subject icon: a faint watermark so the topic reads at a glance and is
+    // not conveyed by color alone.
+    if (subject) {
+      var icon = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 1.5),
+        new THREE.MeshBasicMaterial({ map: getSubjectIconTexture(subject), transparent: true, opacity: 0.55, depthWrite: false })
+      );
+      icon.position.set(0, 0, 0.13);
+      group.add(icon);
     }
 
     group.position.set(LANE_X[j], 1.5, -60);
@@ -504,9 +563,9 @@ export function updateGateHighlights(gateMeshes, currentLane) {
 export function flashGateResult(gateMeshes, gates, currentLane) {
   for (var i = 0; i < gateMeshes.length; i++) {
     if (gates[i].correct) {
-      gateMeshes[i].children[0].material.color.setHex(0x00cc55);
+      gateMeshes[i].children[0].material.color.setHex(storage.get('colorblindMode') ? 0x0072b2 : 0x00cc55);
     } else if (i === currentLane) {
-      gateMeshes[i].children[0].material.color.setHex(0xcc0000);
+      gateMeshes[i].children[0].material.color.setHex(storage.get('colorblindMode') ? 0xe69f00 : 0xcc0000);
     }
   }
 }
@@ -516,19 +575,7 @@ export function flashGateResult(gateMeshes, gates, currentLane) {
 // during gameplay. The engine calls this; it does NOT directly persist
 // run-level totals (those go through storage.finalizeRun).
 
-export function resolveStats(card, wasCorrect) {
-  storage.updateCardStat(card.id, wasCorrect);
-  storage.updateSubjectStat(card.subj, wasCorrect);
-  // Note: totalCorrect, totalWrong, totalEncounters are updated by
-  // storage.finalizeRun() at end-of-run, NOT here. The current legacy
-  // code does it here; Agent 3 (storage.js) will migrate this to
-  // finalizeRun(). For backward compatibility during transition, we
-  // keep these calls but they should be removed once Agent 3's
-  // finalizeRun() is in place.
-  if (wasCorrect) {
-    storage.set('totalCorrect', storage.get('totalCorrect') + 1);
-  } else {
-    storage.set('totalWrong', storage.get('totalWrong') + 1);
-  }
-  storage.set('totalEncounters', storage.get('totalEncounters') + 1);
+export function resolveStats() {
+  // Deprecated no-op. Runner statistics (per-card, per-subject and totals) are
+  // persisted only by storage.finalizeRun(summary), which is idempotent by runId.
 }

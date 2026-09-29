@@ -5,16 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Buzzword Dash — A 3D endless-runner game for USMLE and COMLEX board prep. Recognize medical buzzwords, choose the correct diagnosis lane, and build your streak.">
   <title>Buzzword Dash — USMLE &amp; COMLEX Board Runner</title>
+  <meta name="theme-color" content="#0b1020">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 </head>
 <body>
 
@@ -174,6 +169,7 @@
           &nbsp;|&nbsp;
           <span aria-hidden="true">🏆</span> <span id="homeBest">0</span>
         </div>
+        <div class="study-goal" id="studyGoal" role="status"></div>
       </header>
 
       <!-- PRIMARY ACTION: Giant PLAY button -->
@@ -247,6 +243,11 @@
         <button class="btn btn-outline btn-sm" id="profileBtn" type="button">👤 Profile</button>
       </div>
       <div class="btn-row">
+        <button class="btn btn-outline btn-sm" id="examBtn" type="button">📝 Exam Sim</button>
+        <button class="btn btn-outline btn-sm" id="challengeBtn" type="button">🏁 Challenge</button>
+        <button class="btn btn-gold btn-sm" id="tournamentBtn" type="button">🏆 Weekly Tournament</button>
+      </div>
+      <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="leaderboardBtn" type="button">🏆 Leaderboard</button>
       </div>
 
@@ -315,8 +316,11 @@
       <p class="muted">Create your own flashcards to add to the game.</p>
       <button class="btn btn-green btn-block" id="addCardBtn" type="button">+ Create New Card</button>
       <div id="customCardList"></div>
+      <div id="savedDecks"></div>
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="exportCardsBtn" type="button">📤 Export</button>
+        <button class="btn btn-outline btn-sm" id="shareDeckBtn" type="button">🌐 Share Deck</button>
+        <button class="btn btn-outline btn-sm" id="importDeckBtn" type="button">🔑 Get Deck</button>
         <button class="btn btn-outline btn-sm" id="importCardsBtn" type="button">📥 Import</button>
       </div>
     </div>
@@ -396,6 +400,14 @@
     <div class="screen-scroll">
       <h2>🏆 Leaderboard</h2>
       <div id="leaderboardContent"></div>
+    </div>
+  </div>
+
+  <!-- ==================== EXAM SIMULATION ==================== -->
+  <div class="screen" id="screenExam" role="region" aria-label="Exam simulation">
+    <div class="screen-scroll">
+      <h2>📝 Exam Simulation</h2>
+      <div id="examContent"></div>
     </div>
   </div>
 

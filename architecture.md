@@ -1,8 +1,3 @@
-The repository confirms the architectural conflicts this contract is designed to resolve: duplicate flashcard controllers, positional game-start arguments, direct persistence inside the engine, two render loops sharing one renderer, mutable multiplayer card orders, unsafe HTML generation, and permissive leaderboard authorization [1].
-
-Below is the complete new `ARCHITECTURE.md` file. It freezes the shared contracts before production agents begin work.
-
-```md
 # Buzzword Dash Architecture Contract
 
 **Document version:** 1.0.0  
@@ -3818,4 +3813,3 @@ In particular:
 - `trackRoot` owns environment geometry.
 - No user or remote content is trusted.
 - No completed run is persisted more than once.
-```

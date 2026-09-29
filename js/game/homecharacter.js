@@ -23,6 +23,7 @@
 
 import * as THREE from 'three';
 import { buildPlayer, getPlayerLimbs } from './player.js';
+import { updateModelAnimation } from './charactermodel.js';
 import { PROP_BUILDERS } from './props.js';
 
 // ===== CONFIGURATION =====
@@ -533,6 +534,11 @@ export class HomeCharacter {
      */
     _updateCharacterAnimation(dt) {
         if (!this.character || !this.limbs) return;
+        if (this.character.userData.animator) {
+            this.character.rotation.y = Math.PI;
+            updateModelAnimation(this.character, dt, 'idle');
+            return;
+        }
         if (this.limbs.isVehicle) return;
 
         // Reduced motion: only minimal breathing

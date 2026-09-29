@@ -145,7 +145,7 @@ function normalizeCard(raw) {
   if (c.enabledModes === undefined) {
     c.enabledModes = ['endless', 'study', 'weakness', 'daily',
       'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race',
-      'timed_practice', 'flashcard'];
+      'timed_practice', 'challenge', 'tournament', 'flashcard'];
   }
   if (c.contentVersion === undefined) c.contentVersion = CONTENT_VERSION;
   if (c.reviewedAt === undefined) c.reviewedAt = null;
@@ -270,6 +270,22 @@ function validateCard(c) {
       return true;
     });
 
+    // Word-overlap is too aggressive for many valid cards (e.g. "Cervical
+    // shortening" for "Cervical Insufficiency"). Fall back to flagging only
+    // buzzwords that contain the full answer phrase before dropping the card.
+    if (safeBuzzwords.length < 2) {
+      var ansPhrase = c.ans.toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
+      var phraseSafe = c.bw.filter(function (bw) {
+        return !ansPhrase || !bw.toLowerCase().includes(ansPhrase);
+      });
+      if (phraseSafe.length >= 2) {
+        warnings.push(c.id + ': word-level leak filter too strict; kept ' +
+          phraseSafe.length + ' buzzword(s) that do not contain the full answer');
+        safeBuzzwords = phraseSafe;
+        leaksFound = c.bw.length - phraseSafe.length;
+      }
+    }
+
     if (safeBuzzwords.length < 2) {
       errors.push(c.id + ': only ' + safeBuzzwords.length +
         ' buzzword(s) left after removing ' + leaksFound + ' leak(s)');
@@ -384,7 +400,10 @@ if (_dropped.length > 0) {
   }
 }
 
-if (_warnings.length > 0) {
+var _isProdBuild = typeof import.meta !== 'undefined' && !!(import.meta.env && import.meta.env.PROD);
+
+// The per-card auto-fix list is only useful while developing.
+if (_warnings.length > 0 && !_isProdBuild) {
   console.groupCollapsed(
     '[Buzzword Dash] ' + _warnings.length + ' auto-fix(es) applied (click to expand)'
   );

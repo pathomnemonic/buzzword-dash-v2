@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     base,
     build: {
+      chunkSizeWarningLimit: 3000, // card data chunk is intentionally large
       outDir: 'dist',
       sourcemap: mode !== 'production',
       rollupOptions: {
@@ -15,7 +16,11 @@ export default defineConfig(({ mode }) => {
           // Stable chunk naming for cache busting
           chunkFileNames: 'assets/[name]-[hash].js',
           entryFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash][extname]'
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          manualChunks(id) {
+            if (id.includes('node_modules/three')) return 'three';
+            if (id.includes('/js/cards/') || id.includes('cardsarchive')) return 'cards';
+          }
         }
       }
     },

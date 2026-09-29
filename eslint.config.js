@@ -44,6 +44,16 @@ export default [
     }
   },
 
+  // Service worker
+  {
+    files: ['public/sw.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: { ...globals.serviceworker, ...globals.es2021 }
+    }
+  },
+
   // Test files
   {
     files: ['tests/**/*.{js,mjs}'],

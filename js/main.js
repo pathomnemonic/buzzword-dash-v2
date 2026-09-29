@@ -39,6 +39,10 @@ var homeCharacter = null;
 var multiplayerClient = null;
 var multiplayerLastStateSend = 0;
 var multiplayerMatchStarted = false;
+var multiplayerModeConfig = {};
+var multiplayerLocalResult = null;
+var multiplayerOpponentResult = null;
+var multiplayerResultShown = false;
 var runStartTime = 0;
 var currentRunId = null;
 var runFinalized = false;
@@ -208,29 +212,140 @@ function showMultiplayerMessage(message, color) {
 function scheduleVersusStart(config) {
   if (multiplayerMatchStarted) return;
   multiplayerMatchStarted = true;
+  multiplayerModeConfig = config.config || config.modeConfig || {};
+  multiplayerLocalResult = null;
+  multiplayerOpponentResult = null;
+  multiplayerResultShown = false;
   var overlay = document.getElementById('multiplayerOverlay');
   if (overlay) overlay.classList.remove('active');
   var delay = Math.max(0, (config.startAt || Date.now()) - Date.now());
   showMultiplayerMessage('Match starting!', 'var(--accent-green)');
   setTimeout(function () {
-    startMode(config.mode || 'versus');
+    startMode(config.mode || 'mp_highscore');
   }, delay);
+}
+
+function isMultiplayerMode(mode) {
+  return mode === 'versus' || mode === 'mp_highscore' ||
+    mode === 'mp_suddendeath' || mode === 'mp_race';
+}
+
+/**
+ * Decide the winner once both sides have reported.
+ * @returns {'win'|'loss'|'tie'}
+ */
+function decideMultiplayerResult(mode, local, remote) {
+  if (remote.forfeit) return 'win';
+  if (local.forfeit) return 'loss';
+  if (mode === 'mp_suddendeath') {
+    if (local.eliminated && !remote.eliminated) return 'loss';
+    if (remote.eliminated && !local.eliminated) return 'win';
+  }
+  if (mode === 'mp_race') {
+    var target = (multiplayerModeConfig && multiplayerModeConfig.targetCorrect) || 0;
+    var localDone = target > 0 && local.correct >= target;
+    var remoteDone = target > 0 && remote.correct >= target;
+    if (localDone && !remoteDone) return 'win';
+    if (remoteDone && !localDone) return 'loss';
+    if (localDone && remoteDone && local.raceTime !== remote.raceTime) {
+      return local.raceTime < remote.raceTime ? 'win' : 'loss';
+    }
+    if (local.correct !== remote.correct) return local.correct > remote.correct ? 'win' : 'loss';
+  }
+  if (local.score === remote.score) return 'tie';
+  return local.score > remote.score ? 'win' : 'loss';
+}
+
+function maybeShowMultiplayerResult() {
+  if (multiplayerResultShown || !multiplayerLocalResult || !multiplayerOpponentResult) return;
+  multiplayerResultShown = true;
+  var mode = multiplayerLocalResult.mode;
+  var outcome = decideMultiplayerResult(mode, multiplayerLocalResult, multiplayerOpponentResult);
+  var you = multiplayerLocalResult.score;
+  var them = multiplayerOpponentResult.score || 0;
+  var message;
+  if (multiplayerOpponentResult.forfeit) message = '🏆 Rival left the match — you win!';
+  else if (multiplayerLocalResult.forfeit) message = 'You forfeited the match.';
+  else if (outcome === 'win') message = '🏆 You won! ' + you + '–' + them;
+  else if (outcome === 'loss') message = 'Rival won ' + them + '–' + you;
+  else message = '🤝 Tie game: ' + you;
+  showMultiplayerMessage(message, 'var(--accent-gold)');
+  if (storage.recordMultiplayerGame) storage.recordMultiplayerGame(outcome === 'win');
+}
+
+function makeForfeitResult() {
+  return { forfeit: true, score: 0, correct: 0, eliminated: false, raceTime: Number.MAX_SAFE_INTEGER };
 }
 
 function configureMultiplayer(client, content) {
   multiplayerClient = client;
   multiplayerMatchStarted = false;
+  multiplayerModeConfig = {};
+  multiplayerLocalResult = null;
+  multiplayerOpponentResult = null;
+  multiplayerResultShown = false;
+
+  function statusEl(text, color, id) {
+    var el = document.createElement('div');
+    el.className = 'mp-status';
+    if (id) el.id = id;
+    if (color) el.style.color = color;
+    el.textContent = text;
+    return el;
+  }
+
+  function modeLabel(modes, id) {
+    for (var i = 0; i < modes.length; i++) if (modes[i].id === id) return modes[i].name;
+    return id;
+  }
 
   client.onConnected = function () {
-    content.innerHTML =
-      '<div class="mp-status" style="color:var(--accent-green)">\u2705 Opponent connected!</div>' +
-      '<button class="btn btn-green btn-block" id="mpReadyBtn" style="margin-top:10px">Ready</button>' +
-      '<div class="mp-status" id="mpReadyStatus" style="margin-top:8px">Waiting for both players...</div>';
-    var readyBtn = document.getElementById('mpReadyBtn');
+    content.textContent = '';
+    content.appendChild(statusEl('✅ Opponent connected!', 'var(--accent-green)'));
+
+    var modeSlot = document.createElement('div');
+    content.appendChild(modeSlot);
+
+    import('./multiplayer.js').then(function (mod) {
+      if (client.isHost) {
+        var select = document.createElement('select');
+        select.setAttribute('aria-label', 'Match mode');
+        select.style.cssText = 'width:100%;padding:10px;border-radius:12px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);margin:8px 0';
+        mod.MP_MODES.forEach(function (m) {
+          var opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = m.name + ' — ' + m.desc;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', function () { client.setMode(select.value); });
+        modeSlot.appendChild(select);
+        client.setMode(select.value);
+      } else {
+        modeSlot.appendChild(statusEl('Waiting for the host to choose a mode…', null, 'mpModeStatus'));
+      }
+    });
+
+    var readyBtn = document.createElement('button');
+    readyBtn.className = 'btn btn-green btn-block';
+    readyBtn.id = 'mpReadyBtn';
+    readyBtn.style.marginTop = '10px';
+    readyBtn.textContent = 'Ready';
     readyBtn.addEventListener('click', function () {
       client.sendReady(true);
       readyBtn.disabled = true;
-      readyBtn.textContent = '\u2713 READY';
+      readyBtn.textContent = '✓ READY';
+    });
+    content.appendChild(readyBtn);
+    var ready = statusEl('Waiting for both players...', null, 'mpReadyStatus');
+    ready.style.marginTop = '8px';
+    content.appendChild(ready);
+  };
+
+  client.onModeSelected = function (info) {
+    var el = document.getElementById('mpModeStatus');
+    if (!el) return;
+    import('./multiplayer.js').then(function (mod) {
+      el.textContent = 'Mode: ' + modeLabel(mod.MP_MODES, info.mode);
     });
   };
 
@@ -239,20 +354,33 @@ function configureMultiplayer(client, content) {
     if (!status) return;
     if (state.localReady && state.opponentReady) {
       if (client.isHost) {
-        status.innerHTML =
-          '<span style="color:var(--accent-green)">Both ready!</span>' +
-          '<button class="btn btn-primary btn-block" id="mpStartMatchBtn" style="margin-top:8px">Start Match</button>';
-        var startBtn = document.getElementById('mpStartMatchBtn');
+        status.textContent = '';
+        var ok = document.createElement('span');
+        ok.style.color = 'var(--accent-green)';
+        ok.textContent = 'Both ready!';
+        var startBtn = document.createElement('button');
+        startBtn.className = 'btn btn-primary btn-block';
+        startBtn.id = 'mpStartMatchBtn';
+        startBtn.style.marginTop = '8px';
+        startBtn.textContent = 'Start Match';
+        status.appendChild(ok);
+        status.appendChild(startBtn);
         startBtn.addEventListener('click', function () {
-          var cfg = client.sendStartMatch({
-            startAt: Date.now() + 1800,
-            seed: Math.floor(Math.random() * 2147483647),
-            subjects: storage.get('selectedSubjects')
+          startBtn.disabled = true;
+          import('./multiplayer.js').then(function (mod) {
+            var cfg = client.sendMatchConfig({
+              mode: client.getMode(),
+              startAt: Date.now() + 2500,
+              seed: Math.floor(Math.random() * 2147483646) + 1,
+              subjects: storage.get('selectedSubjects'),
+              cardPoolHash: mod.hashCardPool(CARDS)
+            });
+            client.sendMatchStart();
+            scheduleVersusStart({ startAt: cfg.startAt, mode: cfg.mode, config: cfg.modeConfig });
           });
-          scheduleVersusStart(cfg);
         });
       } else {
-        status.textContent = 'Both ready \u2014 waiting for host to start.';
+        status.textContent = 'Both ready — waiting for host to start.';
       }
     } else if (state.localReady) {
       status.textContent = 'You are ready. Waiting for opponent...';
@@ -261,7 +389,18 @@ function configureMultiplayer(client, content) {
     }
   };
 
-  client.onMatchStart = function (config) { scheduleVersusStart(config); };
+  client.onMatchStart = function (config) {
+    // Both peers must hold the same built-in card pool or the seeded order
+    // would desync; the host's hash comes with the match config.
+    import('./multiplayer.js').then(function (mod) {
+      if (config.cardPoolHash && config.cardPoolHash !== mod.hashCardPool(CARDS)) {
+        client.sendForfeit('Card pool mismatch');
+        showMultiplayerMessage('Card sets differ between players — refresh both browsers and retry.', 'var(--accent-red)');
+        return;
+      }
+      scheduleVersusStart(config);
+    });
+  };
   client.onOpponentUpdate = function (state) { updateOpponentHud(state); };
 
   client.onEncounterResult = function (result) {
@@ -270,53 +409,312 @@ function configureMultiplayer(client, content) {
     }
   };
 
-  client.onEndRun = function (result) {
-    var message;
-    if (!game.running) {
-      if (game.score > result.score) message = '\uD83C\uDFC6 You won! ' + game.score + '\u2013' + result.score;
-      else if (game.score < result.score) message = 'Rival won ' + result.score + '\u2013' + game.score;
-      else message = '\uD83E\uDD1D Tie game: ' + game.score;
-    } else {
-      message = 'Rival finished with ' + result.score + ' points';
+  client.onRunFinished = function (result) {
+    multiplayerOpponentResult = {
+      score: result.score || 0,
+      correct: result.correctCount || result.correct || 0,
+      eliminated: !!result.eliminated,
+      raceTime: result.raceTime || Number.MAX_SAFE_INTEGER
+    };
+    if (game.running) {
+      showMultiplayerMessage('Rival finished with ' + multiplayerOpponentResult.score + ' points', 'var(--accent-gold)');
     }
-    showMultiplayerMessage(message, 'var(--accent-gold)');
-    if (storage.recordMultiplayerGame) {
-      var won = !game.running && game.score > result.score;
-      storage.recordMultiplayerGame(won);
-    }
+    maybeShowMultiplayerResult();
   };
 
-  if (client.onEliminated !== undefined) {
-    client.onEliminated = function () {
-      showMultiplayerMessage('\uD83D\uDC80 Rival eliminated!', 'var(--accent-green)');
-    };
-  }
-  if (client.onRaceFinished !== undefined) {
-    client.onRaceFinished = function (data) {
-      showMultiplayerMessage('\uD83C\uDFC1 Rival finished! ' + data.correctCount + ' correct in ' + Math.round(data.totalTime / 1000) + 's', 'var(--accent-gold)');
-    };
-  }
+  client.onEliminated = function () {
+    showMultiplayerMessage('💀 Rival eliminated!', 'var(--accent-green)');
+  };
+
+  client.onRaceFinished = function (data) {
+    showMultiplayerMessage('🏁 Rival finished! ' + data.correctCount + ' correct in ' + Math.round(data.totalTime / 1000) + 's', 'var(--accent-gold)');
+  };
+
+  client.onForfeit = function () {
+    multiplayerOpponentResult = makeForfeitResult();
+    if (game.running) game.requestEnd('opponent_forfeit');
+    maybeShowMultiplayerResult();
+  };
 
   client.onDisconnected = function (reason) {
     hideOpponentHud();
+    if (multiplayerMatchStarted && !multiplayerOpponentResult) {
+      multiplayerOpponentResult = makeForfeitResult();
+      if (game.running) game.requestEnd('opponent_forfeit');
+      maybeShowMultiplayerResult();
+    } else {
+      showMultiplayerMessage(reason || 'Opponent disconnected.', 'var(--accent-red)');
+    }
     multiplayerMatchStarted = false;
-    showMultiplayerMessage(reason || 'Opponent disconnected.', 'var(--accent-red)');
   };
 
   client.onError = function (error) {
-    content.innerHTML = '';
-    var errorEl = document.createElement('div');
-    errorEl.className = 'mp-status';
-    errorEl.style.color = 'var(--accent-red)';
-    errorEl.textContent = '\u274C ' + error;
-    content.appendChild(errorEl);
+    content.textContent = '';
+    content.appendChild(statusEl('❌ ' + error, 'var(--accent-red)'));
   };
 }
 
 // =========================================================================
 //  MODE STARTER  —  Canonical game.start(options) [2] §6.2
 // =========================================================================
+/** Start this week's tournament: the same 20 seeded cards for everyone. */
+function startTournament() {
+  Promise.all([import('./challenge.js'), import('./multiplayer.js')]).then(function (mods) {
+    var challenge = mods[0];
+    var seed = challenge.tournamentSeed(challenge.isoWeekKey());
+    var plan = mods[1].buildEncounterPlan({ seed: seed, cards: CARDS, count: challenge.TOURNAMENT_SIZE });
+    launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false });
+  }).catch(function (e) {
+    reportError(e, { system: 'tournament', operation: 'start', recoverable: true });
+  });
+}
+
+/** Insert a highlighted box near the top of the post-run screen. */
+function addPostRunBox(builder) {
+  var content = document.getElementById('postRunContent');
+  if (!content) return;
+  var box = document.createElement('div');
+  box.style.cssText = 'margin:12px 0;padding:12px;border-radius:12px;border:2px solid var(--accent-gold);text-align:center';
+  builder(box);
+  content.insertBefore(box, content.children[1] || null);
+}
+
+/** After a tournament run: show rank, award the top-10% badge, tell friends. */
+function showTournamentStanding(summary) {
+  var lb = leaderboardModule.leaderboard;
+  var season = lb.getSeasonKey();
+  lb.getSeasonStanding('tournament', season).then(function (standing) {
+    if (!standing) return;
+    var pct = Math.max(1, Math.round(standing.rank / standing.total * 100));
+    var top10 = standing.total >= 10 && standing.rank <= Math.ceil(standing.total * 0.1);
+    var newlyEarned = top10 && storage.recordTournamentTop10(season);
+    addPostRunBox(function (box) {
+      var line = document.createElement('div');
+      line.style.cssText = 'font-size:14px;font-weight:800';
+      line.textContent = '\uD83C\uDFC6 Weekly tournament: #' + standing.rank + ' of ' + standing.total + ' (top ' + pct + '%)';
+      box.appendChild(line);
+      if (top10) {
+        var badge = document.createElement('div');
+        badge.style.cssText = 'margin-top:6px;color:var(--accent-gold);font-weight:800';
+        badge.textContent = newlyEarned ? '\uD83C\uDFC5 Top 10% badge earned!' : '\uD83C\uDFC5 Top 10% this week';
+        box.appendChild(badge);
+      }
+    });
+    throttledActivity('tournament', { name: storage.get('profileName'), score: summary.score, rank: standing.rank, total: standing.total });
+  });
+}
+
+/** Post at most one activity event per kind per hour. */
+function throttledActivity(kind, payload) {
+  if (!leaderboardModule) return;
+  var key = 'buzzword_activity_throttle';
+  var seen = {};
+  try { seen = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { seen = {}; }
+  if (Date.now() - (seen[kind] || 0) < 3600000) return;
+  seen[kind] = Date.now();
+  try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) { /* storage unavailable; posting is best-effort */ }
+  leaderboardModule.leaderboard.postActivity(kind, payload);
+}
+
+function postActivities(summary, result) {
+  var name = storage.get('profileName');
+  if (result && result.newBestScore && summary.score > 0) {
+    throttledActivity('new_best', { name: name, score: summary.score });
+  }
+  if (summary.bestStreak >= 10) {
+    throttledActivity('streak', { name: name, streak: summary.bestStreak });
+  }
+}
+
+var _lastStudySync = -1;
+
+/** Tell the server how many cards we studied this week (for group goals). */
+function syncWeeklyStudy() {
+  if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
+  var cards = storage.getWeeklyCards();
+  if (cards === _lastStudySync || cards === 0) return;
+  _lastStudySync = cards;
+  leaderboardModule.leaderboard.reportStudy(cards);
+}
+
+var activeChallenge = null;
+
+function challengeBase() {
+  return window.location.origin + window.location.pathname;
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return Promise.reject(new Error('Clipboard unavailable'));
+}
+
+/** Share a challenge link: native share sheet if present, else clipboard. */
+function shareChallenge(challenge) {
+  return import('./challenge.js').then(function (mod) {
+    return import('./multiplayer.js').then(function (mp) {
+      var url = mod.buildChallengeUrl(challengeBase(), {
+        seed: challenge.seed,
+        n: challenge.n,
+        from: storage.get('profileName') || 'A friend',
+        score: challenge.myScore || 0,
+        hash: mp.hashCardPool(CARDS)
+      });
+      var text = 'Beat my Buzzword Dash score of ' + (challenge.myScore || 0) + '!';
+      if (navigator.share) {
+        return navigator.share({ title: 'Buzzword Dash challenge', text: text, url: url }).catch(function () {});
+      }
+      return copyText(url).then(function () {
+        ui._showToast('Challenge link copied \u2014 send it to a friend!');
+      }, function () {
+        window.prompt('Copy this challenge link:', url);
+      });
+    });
+  });
+}
+
+/** Banner shown when the app is opened from a challenge link. */
+function showChallengeBanner(challenge) {
+  var banner = document.createElement('div');
+  banner.setAttribute('role', 'dialog');
+  banner.setAttribute('aria-label', 'Challenge received');
+  banner.style.cssText = 'position:fixed;top:12%;left:50%;transform:translateX(-50%);z-index:60;width:90%;max-width:340px;padding:16px;border-radius:16px;background:rgba(10,5,30,0.97);border:2px solid var(--accent-gold);color:#fff;text-align:center';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:16px;font-weight:800;margin-bottom:6px';
+  title.textContent = (challenge.from || 'A friend') + ' challenges you!';
+  var body = document.createElement('div');
+  body.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:12px';
+  body.textContent = challenge.n + ' questions, same order for both of you. Score to beat: ' + challenge.score.toLocaleString();
+  var accept = document.createElement('button');
+  accept.className = 'btn btn-green btn-block';
+  accept.textContent = 'Accept challenge';
+  var dismiss = document.createElement('button');
+  dismiss.className = 'btn btn-outline btn-block';
+  dismiss.style.marginTop = '6px';
+  dismiss.textContent = 'Not now';
+  banner.appendChild(title);
+  banner.appendChild(body);
+  banner.appendChild(accept);
+  banner.appendChild(dismiss);
+  document.body.appendChild(banner);
+  dismiss.addEventListener('click', function () { banner.remove(); });
+  accept.addEventListener('click', function () {
+    banner.remove();
+    activeChallenge = { seed: challenge.seed, n: challenge.n, from: challenge.from, score: challenge.score };
+    startMode('challenge');
+  });
+}
+
+/** Handle a #c= link on load. */
+function handleChallengeLink() {
+  import('./challenge.js').then(function (mod) {
+    var challenge = mod.parseChallengeHash(window.location.hash);
+    if (!challenge) return;
+    // Clear the hash so a refresh does not re-open the banner.
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return import('./multiplayer.js').then(function (mp) {
+      if (challenge.hash && challenge.hash !== mp.hashCardPool(CARDS)) {
+        ui._showToast('This challenge uses a different card set. Ask your friend to update the game.');
+        return;
+      }
+      showChallengeBanner(challenge);
+    });
+  }).catch(function (e) {
+    reportError(e, { system: 'challenge', operation: 'parseLink', recoverable: true });
+  });
+}
+
+/** Start a brand-new challenge run (you set the score to beat). */
+function startNewChallenge() {
+  import('./challenge.js').then(function (mod) {
+    activeChallenge = { seed: mod.newChallengeSeed(), n: mod.CHALLENGE_SIZE, from: null, score: null };
+    startMode('challenge');
+  });
+}
+
+/** Post-run: compare to the sender and offer to share. */
+var MODE_LABELS = {
+  endless: 'Endless', study: 'Study', weakness: 'Weakness', daily: 'Daily Challenge',
+  challenge: 'Challenge', tournament: 'Weekly Tournament', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
+};
+
+/** Post-run: render the result as an image to share or save. */
+function attachShareImage() {
+  var content = document.getElementById('postRunContent');
+  if (!content) return;
+  var shareBtn = document.createElement('button');
+  shareBtn.className = 'btn btn-outline btn-block';
+  shareBtn.style.marginTop = '10px';
+  shareBtn.textContent = '\uD83D\uDDBC Save share image';
+  var snapshot = {
+    name: storage.get('profileName') || '',
+    score: game.score,
+    correct: game.correct,
+    wrong: game.wrong,
+    bestStreak: game.bestStreak,
+    modeLabel: MODE_LABELS[game.mode] || 'Runner',
+    trackName: game.currentSkin ? game.currentSkin.name : '',
+    runCards: game.runCards ? game.runCards.slice() : []
+  };
+  shareBtn.addEventListener('click', function () {
+    shareBtn.disabled = true;
+    import('./sharecard.js').then(function (mod) {
+      snapshot.subjects = mod.topSubjects(snapshot.runCards);
+      return mod.renderShareCard(snapshot).then(mod.shareOrDownload);
+    }).then(function (how) {
+      ui._showToast(how === 'downloaded' ? 'Image saved to your downloads.' : 'Shared!');
+    }).catch(function (e) {
+      reportError(e, { system: 'sharecard', operation: 'render', recoverable: true });
+      ui._showToast('Could not create the image.');
+    }).then(function () { shareBtn.disabled = false; });
+  });
+  content.appendChild(shareBtn);
+}
+
+function attachTournamentNote() {
+  addPostRunBox(function (box) {
+    var head = document.createElement('div');
+    head.style.cssText = 'font-size:13px;font-weight:800';
+    head.textContent = '\uD83C\uDFC6 Weekly Tournament \u2014 same 20 cards for everyone';
+    box.appendChild(head);
+    var hint = document.createElement('div');
+    hint.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:4px';
+    var canPost = storage.get('profileVisible') && storage.get('profileName') && leaderboardModule && leaderboardModule.leaderboard.isAuthenticated();
+    hint.textContent = canPost ? 'Your best score this week counts. Standing loading\u2026'
+      : 'Set a display name on the Leaderboard screen to appear on the weekly board.';
+    box.appendChild(hint);
+  });
+}
+
+function attachChallengeResult(finalScore) {
+  var content = document.getElementById('postRunContent');
+  if (!content || !activeChallenge) return;
+  var box = document.createElement('div');
+  box.style.cssText = 'margin:12px 0;padding:12px;border-radius:12px;border:2px solid var(--accent-gold);text-align:center';
+  var headline = document.createElement('div');
+  headline.style.cssText = 'font-size:14px;font-weight:800';
+  if (activeChallenge.score !== null) {
+    var diff = finalScore - activeChallenge.score;
+    if (diff > 0) headline.textContent = 'You beat ' + (activeChallenge.from || 'your friend') + ' by ' + diff.toLocaleString() + '!';
+    else if (diff < 0) headline.textContent = (activeChallenge.from || 'Your friend') + ' wins by ' + (-diff).toLocaleString() + '. Try again?';
+    else headline.textContent = 'A perfect tie with ' + (activeChallenge.from || 'your friend') + '!';
+  } else {
+    headline.textContent = 'Challenge set: ' + finalScore.toLocaleString() + ' points';
+  }
+  box.appendChild(headline);
+  var share = document.createElement('button');
+  share.className = 'btn btn-gold btn-block';
+  share.style.marginTop = '8px';
+  share.textContent = '\uD83D\uDCE4 Share a challenge with your score';
+  var snapshot = { seed: activeChallenge.seed, n: activeChallenge.n, myScore: finalScore };
+  share.addEventListener('click', function () { shareChallenge(snapshot); });
+  box.appendChild(share);
+  content.insertBefore(box, content.children[1] || null);
+}
+
 function startMode(mode) {
+  if (mode === 'tournament') { startTournament(); return; }
   if (mode === 'daily' && storage.get('dailyDone')) {
     alert('Daily round already completed today! Come back tomorrow.');
     return;
@@ -339,13 +737,24 @@ function startMode(mode) {
   // Resolve the shared multiplayer card order BEFORE the run starts so the very
   // first encounter is already seeded (installing it after go() races the
   // first spawn and desyncs the two peers).
-  var mpSeed = (multiplayerClient && multiplayerClient.getSeed && multiplayerClient.getSeed()) || 0;
+  if (mode === 'challenge') {
+    if (!activeChallenge) { startNewChallenge(); return; }
+    var challengeSeed = activeChallenge.seed;
+    var challengeCount = activeChallenge.n;
+    import('./multiplayer.js').then(function (mod) {
+      var plan = mod.buildEncounterPlan({ seed: challengeSeed, cards: CARDS, count: challengeCount });
+      launchRun('challenge', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challengeCount, allowContinue: false });
+    });
+    return;
+  }
+
+  var mpSeed = (isMultiplayerMode(mode) && multiplayerMatchStarted && multiplayerClient && multiplayerClient.getSeed && multiplayerClient.getSeed()) || 0;
   if (mpSeed > 0) {
     import('./multiplayer.js').then(function (mod) {
       // Built-in pool only: both peers hold the same one (hash-verified at match
       // start), whereas per-user subject filters / custom cards would differ.
       var plan = mod.buildEncounterPlan({ seed: mpSeed, cards: CARDS, count: 100 });
-      launchRun(mode, plan.map(function (entry) { return entry.cardId; }));
+      launchRun(mode, plan.map(function (entry) { return entry.cardId; }), multiplayerModeConfig);
     }).catch(function (err) {
       reportError(err, { system: 'multiplayer', operation: 'seededCardOrder', recoverable: true });
       launchRun(mode, null);
@@ -356,7 +765,7 @@ function startMode(mode) {
   launchRun(mode, null);
 }
 
-function launchRun(mode, orderedCardIds) {
+function launchRun(mode, orderedCardIds, modeConfig) {
   // Stop home scene, hide nav
   if (homeCharacter) homeCharacter.stopAnimation();
   showBottomNav(false);
@@ -372,7 +781,8 @@ function launchRun(mode, orderedCardIds) {
     mode: mode,
     runId: currentRunId,
     userSpeed: storage.get('userSpeed') || 1,
-    orderedCardIds: orderedCardIds
+    orderedCardIds: orderedCardIds,
+    modeConfig: modeConfig ? Object.assign({}, modeConfig) : undefined
   });
   ui.hideAll();
   ui.showHud();
@@ -440,97 +850,44 @@ function finalizeRun(gameRef) {
   if (runFinalized) return;
   runFinalized = true;
 
-  var summary = buildRunSummary(gameRef);
+  // The engine's canonical summary is persisted by storage.finalizeRun only
+  // (idempotent by runId); nothing else writes run totals.
+  var summary = gameRef.getRunSummary() || buildRunSummary(gameRef);
+  var result = storage.finalizeRun(summary);
 
-  // --- Persist via storage ---
-  // Play time
-  if (summary.durationMs > 0 && storage.addPlayTime) {
-    storage.addPlayTime(Math.round(summary.durationMs / 1000));
+  if (result.applied && summary.wrong === 0 && summary.correct >= 20 && !storage.ownsItem('avatar_golden')) {
+    var owned = storage.get('ownedItems').slice();
+    owned.push('avatar_golden');
+    storage.set('ownedItems', owned);
   }
 
-  // Cards studied
-  if (storage.addCardsStudied && summary.encountersCompleted > 0) {
-    storage.addCardsStudied(summary.encountersCompleted);
-  }
-
-  // Coins
-  storage.addCoins(summary.coinsEarned);
-
-  // Best score / streak
-  if (summary.score > storage.get('bestScore')) {
-    storage.set('bestScore', summary.score);
-  }
-  if (summary.bestStreak > storage.get('bestStreak')) {
-    storage.set('bestStreak', summary.bestStreak);
-  }
-
-  // Totals
-  storage.set('totalCorrect', storage.get('totalCorrect') + summary.correct);
-  storage.set('totalWrong', storage.get('totalWrong') + summary.wrong);
-  storage.set('totalEncounters', storage.get('totalEncounters') + summary.encountersCompleted);
-
-  // Daily
-  if (summary.dailyCompleted) {
-    storage.set('dailyDone', true);
-    var today = new Date().toDateString();
-    var lastDaily = storage.get('lastDaily');
-    if (lastDaily) {
-      var yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (lastDaily === yesterday.toDateString()) {
-        storage.set('dailyStreak', storage.get('dailyStreak') + 1);
-      } else if (lastDaily !== today) {
-        storage.set('dailyStreak', 1);
-      }
-    } else {
-      storage.set('dailyStreak', 1);
-    }
-    storage.set('lastDaily', today);
-    storage.incrementQuest('q_daily');
-  }
-
-  // Quest progress
-  storage.incrementQuest('q_25enc', summary.encountersCompleted);
-
-  // Achievements
-  var runData = {
-    score: summary.score,
-    perfect: summary.wrong === 0 && summary.correct > 0,
-    speed: gameRef.userSpeed,
-    fastestAnswer: summary.fastestDecisionMs
-  };
-
-  // Golden doctor
-  if (summary.wrong === 0 && summary.correct >= 20) {
-    storage.unlockAchievement('ach_golden_doctor');
-    if (!storage.ownsItem('avatar_golden')) {
-      var owned = storage.get('ownedItems').slice();
-      owned.push('avatar_golden');
-      storage.set('ownedItems', owned);
-    }
-  }
-
-  var newAchievements = storage.checkAchievements(runData);
-
-  if (newAchievements.length > 0) {
-    ui.showAchievementNotification(newAchievements);
+  if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
+    ui.showAchievementNotification(result.newlyUnlockedAchievementIds);
   }
 
   // --- Leaderboard submission ---
-  if (leaderboardModule && storage.get('profileVisible') && storage.get('profileName')) {
-    var totalAnswered = summary.correct + summary.wrong;
-    var acc = totalAnswered > 0 ? Math.round(summary.correct / totalAnswered * 100) : 0;
-    leaderboardModule.leaderboard.submitScore({
+  var canPost = leaderboardModule && storage.get('profileVisible') && storage.get('profileName') &&
+    leaderboardModule.leaderboard.isAuthenticated();
+  if (canPost) postActivities(summary, result);
+  if (canPost && summary.encountersCompleted > 0 && summary.mode !== 'challenge') {
+    leaderboardModule.leaderboard.submitVerifiedScore({
+      runId: summary.runId,
       playerName: storage.get('profileName'),
       avatar: storage.get('profilePicture') || 'avatar_intern',
       score: summary.score,
-      accuracy: acc,
+      correct: summary.correct,
+      wrong: summary.wrong,
       bestStreak: summary.bestStreak,
-      speed: gameRef.userSpeed,
-      mode: gameRef.mode,
+      userSpeed: gameRef.userSpeed,
+      mode: summary.mode,
       badges: storage.get('selectedBadges') || []
-    }).catch(function (e) {
-      reportError(e, { system: 'leaderboard', operation: 'submitScore' });
+    }).then(function (res) {
+      if (!res.success) {
+        reportError(new Error(res.error), { system: 'leaderboard', operation: 'submitScore', recoverable: true });
+        return;
+      }
+      if (summary.mode === 'tournament') showTournamentStanding(summary);
+      syncWeeklyStudy();
     });
   }
 }
@@ -571,6 +928,8 @@ function init() {
     leaderboardModule = mod;
     mod.leaderboard.init().then(function () {
       mountLeaderboard();
+      mod.leaderboard.subscribeToInvites(function () { checkMatchInvites(); });
+      checkMatchInvites();
     }).catch(function (e) {
       reportError(e, { system: 'leaderboard', operation: 'init', recoverable: true });
     });
@@ -589,6 +948,7 @@ function init() {
 
   game.onEncounterResolve = function (card, wasCorrect) {
     ui.showFeedback(card, wasCorrect);
+    ui.flashScreen(wasCorrect);
     if (game.mode === 'study' && wasCorrect) {
       ui.showStudyTeaching(card);
     }
@@ -616,6 +976,10 @@ function init() {
     if (homeCharacter) homeCharacter.startAnimation();
 
     ui.showPostRun(game);
+    audio.setMusicIntensity(0.5, 0);
+    attachShareImage();
+    if (game.mode === 'challenge') attachChallengeResult(game.score);
+    if (game.mode === 'tournament') attachTournamentNote();
 
     // Wire post-run buttons
     var againBtn = document.getElementById('playAgainBtn');
@@ -683,8 +1047,8 @@ function init() {
 
   if (game.onMapTransition !== undefined) {
     game.onMapTransition = function (newSkinName) {
-      audio.crossfadeMusic(newSkinName, 3.0);
-      audio.play('mapTransition');
+      audio.changeMusicTheme(newSkinName, 3.0);
+      audio.play('map_transition');
       ui.showTrackName(newSkinName);
     };
   }
@@ -694,6 +1058,19 @@ function init() {
       audio.play('faceplant');
     };
   }
+
+  // Exam monster: warn when it closes in, and play the "consumed" sting when
+  // it catches the player (the engine ends the run with the faceplant).
+  game.onMonsterWarning = function () {
+    audio.play('monster_close');
+    showMultiplayerMessage('The exam monster is closing in!', 'var(--accent-red)');
+  };
+  game.onHazard = function (info) {
+    showMultiplayerMessage('\u26A0 ' + info.label, 'var(--accent-gold)');
+  };
+  game.onMonsterCaught = function () {
+    audio.play('monster_consume');
+  };
 
   ui.onEquipChange = function () {
     game.buildPlayer();
@@ -780,7 +1157,11 @@ function init() {
         var code = input.value.trim().toUpperCase();
         if (code.length !== 5) { alert('Enter a five-character room code.'); return; }
         configureMultiplayer(module.multiplayer, content);
-        content.innerHTML = '<div class="mp-status">Connecting to ' + code + '...</div>';
+        content.textContent = '';
+        var connecting = document.createElement('div');
+        connecting.className = 'mp-status';
+        connecting.textContent = 'Connecting to ' + code + '...';
+        content.appendChild(connecting);
         module.multiplayer.joinGame(code);
       });
     });
@@ -805,7 +1186,12 @@ function init() {
     audio.stopAmbient();
     showBottomNav(true);
     if (homeCharacter) homeCharacter.startAnimation();
-    game.endRun();
+    if (isMultiplayerActive() && multiplayerMatchStarted) {
+      multiplayerClient.sendForfeit('Player ended the run');
+      game.requestEnd('local_forfeit');
+    } else {
+      game.endRun();
+    }
   });
 
   // ==========================
@@ -845,51 +1231,119 @@ function init() {
   // ==========================
   storage.checkAchievements(null);
 
+  // Challenge links and the Challenge button
+  handleChallengeLink();
+  var tournamentBtn = document.getElementById('tournamentBtn');
+  if (tournamentBtn) tournamentBtn.addEventListener('click', startTournament);
+  var challengeBtn = document.getElementById('challengeBtn');
+  if (challengeBtn) challengeBtn.addEventListener('click', startNewChallenge);
+
   // ==========================
   //  MAIN RENDER LOOP  [2] §2.2 — the ONLY animation loop
   // ==========================
-  // The engine already calls renderer.setAnimationLoop in game.init().
-  // HomeCharacter must NOT call requestAnimationFrame independently.
-  // The Locker preview may retain its own renderer per §24.2.
-  //
-  // Since the current engine.js already owns setAnimationLoop and
-  // renders only when game.running, the home character uses its own
-  // RAF loop on a SEPARATE scene/camera (same renderer). This is
-  // permitted by the architecture because HomeCharacter renders into
-  // the same canvas but a different Three.js scene.
-  //
-  // When the game starts, homeCharacter.stopAnimation() is called,
-  // and when it ends, homeCharacter.startAnimation() resumes.
+  // main.js owns the single renderer.setAnimationLoop(). The engine and the
+  // home scene expose update()/render() and never schedule frames themselves.
+  // The game scene draws while a run exists (including pause and the continue
+  // prompt); otherwise the home character scene draws. The Locker preview
+  // keeps its own renderer per §24.2.
+  var lastFrameMs = 0;
+  var lastMusicMs = 0;
+  var GAME_SCENE_STATES = ['preparing', 'countdown', 'playing', 'paused', 'dying', 'continue_prompt', 'finishing'];
+  game.renderer.setAnimationLoop(function (nowMs) {
+    var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.1) : 0.016;
+    lastFrameMs = nowMs;
+    if (game._state === 'playing' && nowMs - lastMusicMs > 250) {
+      // Adaptive music: layers build with the streak, tension rises with the monster
+      lastMusicMs = nowMs;
+      var danger = 1 - Math.min(1, Math.max(0, (game.monsterZ - 3) / 13));
+      audio.setMusicIntensity(Math.min(1, 0.3 + game.streak / 14), danger);
+    }
+    if (GAME_SCENE_STATES.indexOf(game._state) >= 0) {
+      game.update(dt, nowMs);
+      game.render();
+    } else if (homeCharacter) {
+      homeCharacter.update(dt);
+      homeCharacter.render();
+    }
+  });
+
+  // A glTF avatar finished downloading: swap the stand-in for the real model.
+  window.addEventListener('buzzword:model-ready', function () {
+    if (!game.running) game.buildPlayer();
+    if (homeCharacter) homeCharacter.rebuildCharacter();
+    if (ui.characterPreview) ui.characterPreview.rebuildCharacter();
+  });
+
+  // Keep the server's weekly study total (group goals) up to date
+  setInterval(syncWeeklyStudy, 60000);
+  setTimeout(syncWeeklyStudy, 8000);
+
+  // Daily study reminder (fires while the app is open or installed)
+  setInterval(checkStudyReminder, 60000);
 
   // Start home character animation
   if (homeCharacter) homeCharacter.startAnimation();
 
   // ==========================
-  //  PERIODIC INVITE CHECKING
+  //  PERIODIC INVITE CHECKING (realtime covers most; this is the fallback)
   // ==========================
-  setInterval(function () {
-    if (leaderboardModule && leaderboardModule.leaderboard && !game.running) {
-      leaderboardModule.leaderboard.checkInvites().then(function (invites) {
-        if (invites && invites.length > 0) {
-          var invite = invites[0];
-          if (confirm('Match invite! Room code: ' + invite.room_code + '\n\nJoin now?')) {
-            var mpBtnEl = document.getElementById('multiplayerBtn');
-            if (mpBtnEl) mpBtnEl.click();
-            setTimeout(function () {
-              var joinInput = document.getElementById('mpJoinCode');
-              var joinBtn = document.getElementById('mpJoinBtn');
-              if (joinInput && joinBtn) {
-                joinInput.value = invite.room_code;
-                joinBtn.click();
-              }
-            }, 1500);
-          }
+  setInterval(checkMatchInvites, 15000);
+}
+
+function checkStudyReminder() {
+  if (!storage.get('reminders') || !('Notification' in window) || Notification.permission !== 'granted') return;
+  var today = storage.getTodayKey();
+  if (storage.get('lastReminderDate') === today) return;
+  if (new Date().getHours() < (storage.get('reminderHour') || 19)) return;
+  if (storage.getStudiedToday() >= (storage.get('dailyGoal') || 20)) return;
+  storage.set('lastReminderDate', today);
+  var remaining = (storage.get('dailyGoal') || 20) - storage.getStudiedToday();
+  var options = {
+    body: remaining + ' more card' + (remaining === 1 ? '' : 's') + ' to hit today\u2019s goal.',
+    icon: 'icon.svg',
+    tag: 'daily-reminder'
+  };
+  if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+    navigator.serviceWorker.ready.then(function (reg) { reg.showNotification('Buzzword Dash', options); })
+      .catch(function () { new Notification('Buzzword Dash', options); });
+  } else {
+    new Notification('Buzzword Dash', options);
+  }
+}
+
+var _invitePromptOpen = false;
+
+function checkMatchInvites() {
+  if (_invitePromptOpen || game.running) return;
+  if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
+  var lb = leaderboardModule.leaderboard;
+  lb.getInvites().then(function (invites) {
+    if (!invites || invites.length === 0 || _invitePromptOpen || game.running) return;
+    var invite = invites[0];
+    _invitePromptOpen = true;
+    var accept = confirm('Match invite! Room code: ' + invite.room_code + '\n\nJoin now?');
+    var done = accept ? lb.acceptInvite(invite.id) : lb.declineInvite(invite.id);
+    done.then(function () {
+      _invitePromptOpen = false;
+      if (!accept) return;
+      var mpBtnEl = document.getElementById('multiplayerBtn');
+      if (mpBtnEl) mpBtnEl.click();
+      var attempts = 0;
+      var timer = setInterval(function () {
+        var joinInput = document.getElementById('mpJoinCode');
+        var joinBtn = document.getElementById('mpJoinBtn');
+        if (joinInput && joinBtn) {
+          clearInterval(timer);
+          joinInput.value = invite.room_code;
+          joinBtn.click();
+        } else if (++attempts > 30) {
+          clearInterval(timer);
         }
-      }).catch(function () {
-        // Best-effort cleanup: invite check failed silently.
-      });
-    }
-  }, 5000);
+      }, 200);
+    });
+  }).catch(function () {
+    _invitePromptOpen = false;
+  });
 }
 
 // =========================================================================
@@ -926,14 +1380,39 @@ function sendMultiplayerGameState() {
 }
 
 function sendMultiplayerEndRun() {
-  if (!isMultiplayerActive()) return;
-  multiplayerClient.sendEndRun({
+  if (!isMultiplayerActive() && !multiplayerMatchStarted) return;
+  var summary = game._runSummary || {};
+  var eliminated = summary.endReason === 'sudden_death_elimination';
+  var forfeit = summary.endReason === 'local_forfeit';
+  var raceTime = summary.durationMs || (runStartTime ? Date.now() - runStartTime : 0);
+
+  multiplayerLocalResult = {
+    mode: game.mode,
     score: game.score,
     correct: game.correct,
-    wrong: game.wrong,
-    bestStreak: game.bestStreak,
-    coins: game.coins
-  });
+    eliminated: eliminated,
+    forfeit: forfeit,
+    raceTime: raceTime
+  };
+
+  if (multiplayerClient && multiplayerClient.isConnected()) {
+    if (game.mode === 'mp_race' && multiplayerModeConfig.targetCorrect &&
+        game.correct >= multiplayerModeConfig.targetCorrect) {
+      multiplayerClient.sendRaceFinished(game.correct, raceTime);
+    }
+    if (eliminated) multiplayerClient.sendEliminated('');
+    multiplayerClient.sendRunFinished({
+      score: game.score,
+      correct: game.correct,
+      wrong: game.wrong,
+      bestStreak: game.bestStreak,
+      coins: game.coins,
+      correctCount: game.correct,
+      eliminated: eliminated,
+      raceTime: raceTime
+    });
+  }
+  maybeShowMultiplayerResult();
 }
 
 // =========================================================================
@@ -943,8 +1422,11 @@ function mountAnkiImport() {
   if (!ankiImportModule || !ankiImportModule.ankiImport) return;
   var container = document.getElementById('ankiImportContainer');
   if (!container) return;
-  container.innerHTML = ankiImportModule.ankiImport.renderAnkiImportUI();
-  ankiImportModule.ankiImport.bindAnkiEvents(container, customCards, storage);
+  ankiImportModule.ankiImport.mount(container, {
+    customCards: customCards,
+    storage: storage,
+    reportError: reportError
+  });
 }
 
 // Remount after Settings renders
@@ -964,8 +1446,19 @@ function mountLeaderboard() {
   if (!leaderboardModule) return;
   var lbContent = document.getElementById('leaderboardContent');
   if (!lbContent) return;
-  lbContent.innerHTML = leaderboardModule.renderLeaderboardScreen();
-  leaderboardModule.bindLeaderboardEvents(lbContent, storage);
+  import('./leaderboardui.js').then(function (uiMod) {
+    uiMod.mountLeaderboardScreen(lbContent, {
+      leaderboard: leaderboardModule.leaderboard,
+      storage: storage,
+      toast: function (msg) { ui._showToast(msg); },
+      startChallenge: function () { startNewChallenge(); },
+      getRoomCode: function () {
+        return (multiplayerClient && multiplayerClient.isHost && multiplayerClient.roomCode) || '';
+      }
+    });
+  }).catch(function (e) {
+    reportError(e, { system: 'leaderboard', operation: 'mountUI', recoverable: true });
+  });
 }
 
 // =========================================================================
@@ -973,6 +1466,14 @@ function mountLeaderboard() {
 // =========================================================================
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', init);
+  // Offline support (production builds only)
+  if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (e) {
+        console.warn('[Buzzword Dash] Service worker registration failed:', e.message);
+      });
+    });
+  }
 } else {
   init();
 }

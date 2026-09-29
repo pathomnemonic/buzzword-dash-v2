@@ -290,8 +290,74 @@ export function buildExamMonster() {
         g.add(particle);
     }
 
+    // ===== BACK VIEW (this is the side the player's camera sees) =====
+    // The monster faces the runner, so the camera looks at its back. Give
+    // that side real character: glowing spine ridge, an "EXAM" brand and
+    // clawed arms reaching past the body toward the player.
+    var ridgeMat = new THREE.MeshBasicMaterial({ color: 0xaa33ff });
+    var ridge = [];
+    for (var ri = 0; ri < 7; ri++) {
+        var spike = new THREE.Mesh(new THREE.ConeGeometry(0.11 - ri * 0.006, 0.55 - Math.abs(ri - 3) * 0.05, 5), ridgeMat);
+        var ra = -0.9 + ri * 0.3;               // arc over the top-back
+        spike.position.set(0, Math.sin(ra + 0.9) * 0.75 + 0.55, 0.95 - Math.cos(ra + 0.9) * 0.55);
+        spike.rotation.x = 0.7 - ri * 0.18;
+        g.add(spike);
+        ridge.push(spike);
+    }
+
+    var labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 256;
+    labelCanvas.height = 96;
+    var lctx = labelCanvas.getContext('2d');
+    lctx.font = '900 72px Impact, "Arial Black", sans-serif';
+    lctx.textAlign = 'center';
+    lctx.textBaseline = 'middle';
+    lctx.lineWidth = 8;
+    lctx.strokeStyle = '#1a0033';
+    lctx.strokeText('EXAM', 128, 50);
+    lctx.fillStyle = '#ff3355';
+    lctx.fillText('EXAM', 128, 50);
+    var label = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.5, 0.56),
+        new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthWrite: false })
+    );
+    label.position.set(0, 0.05, 1.23);
+    g.add(label);
+
+    var backRing = new THREE.Mesh(
+        new THREE.TorusGeometry(0.95, 0.035, 6, 32),
+        new THREE.MeshBasicMaterial({ color: 0xff3366, transparent: true, opacity: 0.8 })
+    );
+    backRing.position.set(0, 0.05, 1.1);
+    g.add(backRing);
+
+    var clawMat = new THREE.MeshStandardMaterial({ color: 0x2a0a4e, emissive: 0x330066, emissiveIntensity: 0.4 });
+    var boneMat = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
+    for (var side = -1; side <= 1; side += 2) {
+        var arm = new THREE.Group();
+        var upper = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 1.3, 7), clawMat);
+        upper.rotation.x = Math.PI / 2 - 0.35;
+        upper.position.set(0, 0, -0.55);
+        arm.add(upper);
+        var fore = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.16, 1.1, 7), clawMat);
+        fore.rotation.x = Math.PI / 2 + 0.2;
+        fore.position.set(0, -0.28, -1.5);
+        arm.add(fore);
+        for (var fi = -1; fi <= 1; fi++) {
+            var claw = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.42, 5), boneMat);
+            claw.rotation.x = -Math.PI / 2;
+            claw.position.set(fi * 0.11, -0.3, -2.2);
+            arm.add(claw);
+        }
+        arm.position.set(side * 1.25, 0.1, 0);
+        arm.rotation.y = -side * 0.12;
+        g.add(arm);
+    }
+
     // Store references for animation
     g.userData.monsterParts = {
+        ridge: ridge,
+        backRing: backRing,
         eyes: eyes,
         tentacles: tentacles,
         mouth: mouth,
@@ -314,6 +380,8 @@ export function getMonsterParts(monsterGroup) {
         tentacles: [],
         mouth: null,
         questionMarks: [],
+        ridge: [],
+        backRing: null,
         body: null,
         aura: null
     };

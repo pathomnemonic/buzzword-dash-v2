@@ -1,1153 +1,463 @@
-/**
- * multiplayer.js — PeerJS transport, match protocol, and deterministic utilities
- * for Buzzword Dash multiplayer.
- *
- * Protocol version: 3
- * Owner: Agent 11
- *
- * Exports:
- *   MP_PROTOCOL_VERSION
- *   MP_MODES
- *   multiplayer
- *   createSeededRandom(seed)
- *   seededShuffle(items, rng)
- *   getSeededSkinId(seed, skins)
- *   buildEncounterPlan(options)
- *   hashCardPool(cards)
- *   validateMatchConfig(config)
- *   validateMultiplayerMessage(message)
- *
- * Key architectural rules (from ARCHITECTURE.md):
- *   - Uses protocol version 3.
- *   - Every message uses an envelope: { protocolVersion, type, matchId, senderId, sequence, sentAt, payload }.
- *   - Validates all inbound messages (version, matchId, sequence, payload, state transitions).
- *   - Implements clock synchronization via midpoint method.
- *   - Verifies content version and card-pool hash before match start.
- *   - Produces deterministic encounter plans from seeded RNG.
- *   - Implements result acknowledgment (result_proposal / result_ack).
- *   - Implements disconnect/forfeit behavior.
- *   - Removes window-global card access (window.__BUZZWORD_CARDS, window.__BUZZWORD_CUSTOM_CARDS).
- *   - Exposes required pure utilities.
- *   - Does not directly write to storage, manipulate UI, or play audio.
- *   - Card pools are passed as pure inputs, never read from window globals.
- *
- * PeerJS abstracts WebRTC into a simple API. After the initial signaling
- * handshake via the free PeerJS cloud server, all data flows directly
- * between browsers with DTLS encryption.
- */
-
-// ===== CONSTANTS =====
-
-var PEERJS_URL = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
-var PEER_PREFIX = 'buzzworddash3-';
-var peerLoadPromise = null;
-
-/** @type {3} */
-export var MP_PROTOCOL_VERSION = 3;
-
-// ===== MULTIPLAYER MODE DEFINITIONS =====
-
-export var MP_MODES = [
-  {
-    id: 'mp_highscore',
-    name: '⏱️ High Score',
-    desc: 'Most points when timer expires',
-    configs: ['timeLimitSeconds'],
-    defaults: { timeLimitSeconds: 120, targetCorrect: null, allowContinue: false }
-  },
-  {
-    id: 'mp_suddendeath',
-    name: '💀 Sudden Death',
-    desc: 'First wrong answer loses',
-    configs: [],
-    defaults: { timeLimitSeconds: null, targetCorrect: null, allowContinue: false }
-  },
-  {
-    id: 'mp_race',
-    name: '🏁 Race',
-    desc: 'First to X correct wins',
-    configs: ['targetCorrect'],
-    defaults: { timeLimitSeconds: null, targetCorrect: 20, allowContinue: false }
-  }
-];
-
-// ===== REQUIRED MESSAGE TYPES =====
-
-var VALID_MESSAGE_TYPES = [
-  'hello',
-  'hello_ack',
-  'clock_ping',
-  'clock_pong',
-  'mode_selected',
-  'ready',
-  'match_config',
-  'match_config_ack',
-  'match_start',
-  'game_state',
-  'encounter_result',
-  'player_eliminated',
-  'race_finished',
-  'run_finished',
-  'result_proposal',
-  'result_ack',
-  'disconnect_notice',
-  'forfeit',
-  'error'
-];
-
-// ===== DETERMINISTIC RNG =====
-
-/**
- * Creates a deterministic pseudo-random number generator (xorshift32).
- * Both players use the same seed to produce identical sequences.
- *
- * @param {number} seed - Integer seed. Zero is normalized to 1.
- * @returns {function(): number} Function returning next pseudo-random float in [0, 1).
- */
-export function createSeededRandom(seed) {
-  var state = seed | 0;
-  if (state === 0) state = 1;
-
-  return function () {
-    state ^= state << 13;
-    state ^= state >>> 17;
-    state ^= state << 5;
-    return (state >>> 0) / 4294967296;
-  };
-}
-
-/**
- * Deterministic Fisher-Yates shuffle using a seeded RNG.
- * Returns a NEW array; does not mutate the input.
- *
- * @param {Array} items - Array to shuffle. Not mutated.
- * @param {function(): number} rng - Seeded RNG from createSeededRandom.
- * @returns {Array} A new shuffled array.
- */
-export function seededShuffle(items, rng) {
-  var arr = items.slice();
-  for (var i = arr.length - 1; i > 0; i--) {
-    var j = Math.floor(rng() * (i + 1));
-    var temp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = temp;
-  }
-  return arr;
-}
-
-/**
- * Get a deterministic skin ID from a shared seed and available skins array.
- *
- * @param {number} seed - Shared seed.
- * @param {Array<{name: string}>} skins - Array of skin objects.
- * @returns {string} Skin name (or first skin name if array is empty).
- */
-export function getSeededSkinId(seed, skins) {
-  if (!skins || skins.length === 0) return '';
-  var rng = createSeededRandom(seed);
-  var index = Math.floor(rng() * skins.length);
-  return skins[index].name || skins[index].id || '';
-}
-
-// ===== ENCOUNTER PLAN BUILDER =====
-
-/**
- * Build a deterministic encounter plan from a seed and card pool.
- * Both peers call this with identical inputs to produce identical plans.
- *
- * @param {object} options
- * @param {number} options.seed - Shared RNG seed.
- * @param {object[]} options.cards - The validated card pool (array of card objects).
- * @param {number} options.count - Number of encounters to plan.
- * @param {function(): number} [options.rng] - Optional pre-created RNG.
- * @returns {object[]} Array of EncounterPlanEntry objects.
- */
-export function buildEncounterPlan(options) {
-  var seed = options.seed || 1;
-  var cards = options.cards || [];
-  var count = options.count || 50;
-  var rng = options.rng || createSeededRandom(seed);
-
-  if (cards.length === 0) return [];
-
-  var shuffled = seededShuffle(cards, rng);
-  var plan = [];
-
-  for (var i = 0; i < count; i++) {
-    var card = shuffled[i % shuffled.length];
-    var correctLane = Math.floor(rng() * 3);
-
-    // Determine distractor order deterministically
-    var d0First = rng() < 0.5 ? 0 : 1;
-    var distractorOrder = [d0First, d0First === 0 ? 1 : 0];
-
-    // Obstacle: ~40% chance, deterministic
-    var obstacle = null;
-    if (rng() < 0.4) {
-      var obsType = rng() < 0.5 ? 'jump' : 'slide';
-      var obsLane = Math.floor(rng() * 3);
-      obstacle = {
-        type: obsType,
-        lane: obsLane,
-        variantId: 'default',
-        spawnOffset: Math.floor(rng() * 20) + 5
-      };
-    }
-
-    // Coins: 0-3 coins
-    var coinCount = Math.floor(rng() * 4);
-    var coins = [];
-    for (var c = 0; c < coinCount; c++) {
-      coins.push({
-        lane: Math.floor(rng() * 3),
-        offset: Math.floor(rng() * 30) + 5,
-        height: 1 + Math.floor(rng() * 3)
-      });
-    }
-
-    // Powerup: ~15% chance
-    var powerup = null;
-    if (rng() < 0.15) {
-      var puTypes = ['shield', 'magnet', 'double', 'autoPilot', 'scoreFrenzy'];
-      powerup = {
-        type: puTypes[Math.floor(rng() * puTypes.length)],
-        lane: Math.floor(rng() * 3),
-        offset: Math.floor(rng() * 25) + 10
-      };
-    }
-
-    plan.push({
-      encounterIndex: i,
-      cardId: card.id,
-      correctLane: correctLane,
-      distractorOrder: distractorOrder,
-      obstacle: obstacle,
-      pickups: {
-        coins: coins,
-        powerup: powerup
-      }
-    });
-  }
-
-  return plan;
-}
-
-// ===== CARD-POOL HASH =====
-
-/**
- * Compute a deterministic hash of a card pool for content verification.
- * Both peers compute this independently and compare before match start.
- *
- * Uses a simple DJB2-like hash over sorted card IDs + answer fields.
- *
- * @param {object[]} cards - Array of card objects with at least { id, ans, d }.
- * @returns {string} Hex hash string.
- */
-export function hashCardPool(cards) {
-  if (!cards || cards.length === 0) return '0';
-
-  // Sort by ID for determinism
-  var sorted = cards.slice().sort(function (a, b) {
-    if (a.id < b.id) return -1;
-    if (a.id > b.id) return 1;
-    return 0;
-  });
-
-  var hash = 5381;
-  for (var i = 0; i < sorted.length; i++) {
-    var c = sorted[i];
-    var str = c.id + '|' + c.ans + '|' + (c.d ? c.d.join(',') : '');
-    for (var j = 0; j < str.length; j++) {
-      hash = ((hash << 5) + hash + str.charCodeAt(j)) | 0;
-    }
-  }
-
-  return (hash >>> 0).toString(16);
-}
-
-// ===== MATCH CONFIG VALIDATION =====
-
-/**
- * Validate a match configuration object.
- *
- * @param {object} config - Match config to validate.
- * @returns {{ valid: boolean, errors: string[] }}
- */
-export function validateMatchConfig(config) {
-  var errors = [];
-
-  if (!config) {
-    return { valid: false, errors: ['Config is null or undefined'] };
-  }
-
-  if (config.protocolVersion !== MP_PROTOCOL_VERSION) {
-    errors.push('Protocol version mismatch: expected ' + MP_PROTOCOL_VERSION + ', got ' + config.protocolVersion);
-  }
-
-  if (typeof config.matchId !== 'string' || config.matchId.length === 0) {
-    errors.push('matchId must be a non-empty string');
-  }
-
-  var validModes = ['mp_highscore', 'mp_suddendeath', 'mp_race'];
-  if (validModes.indexOf(config.mode) < 0) {
-    errors.push('Invalid mode: ' + config.mode);
-  }
-
-  if (typeof config.seed !== 'number' || config.seed === 0) {
-    errors.push('seed must be a non-zero number');
-  }
-
-  if (typeof config.startAt !== 'number') {
-    errors.push('startAt must be a number (timestamp)');
-  }
-
-  if (!Array.isArray(config.subjects)) {
-    errors.push('subjects must be an array');
-  }
-
-  if (typeof config.cardPoolHash !== 'string' || config.cardPoolHash.length === 0) {
-    errors.push('cardPoolHash must be a non-empty string');
-  }
-
-  if (typeof config.contentVersion !== 'string') {
-    errors.push('contentVersion must be a string');
-  }
-
-  return { valid: errors.length === 0, errors: errors };
-}
-
-// ===== MESSAGE VALIDATION =====
-
-/**
- * Validate a multiplayer protocol message envelope.
- *
- * @param {object} message - The message to validate.
- * @returns {{ valid: boolean, errors: string[] }}
- */
-export function validateMultiplayerMessage(message) {
-  var errors = [];
-
-  if (!message || typeof message !== 'object') {
-    return { valid: false, errors: ['Message is not an object'] };
-  }
-
-  if (message.protocolVersion !== MP_PROTOCOL_VERSION) {
-    errors.push('Unsupported protocol version: ' + message.protocolVersion);
-  }
-
-  if (typeof message.type !== 'string' || VALID_MESSAGE_TYPES.indexOf(message.type) < 0) {
-    errors.push('Invalid or missing message type: ' + message.type);
-  }
-
-  if (typeof message.senderId !== 'string' || message.senderId.length === 0) {
-    errors.push('senderId must be a non-empty string');
-  }
-
-  if (typeof message.sequence !== 'number') {
-    errors.push('sequence must be a number');
-  }
-
-  if (typeof message.sentAt !== 'number') {
-    errors.push('sentAt must be a number');
-  }
-
-  // matchId can be null for hello/hello_ack/error
-  var noMatchIdTypes = ['hello', 'hello_ack', 'error'];
-  if (noMatchIdTypes.indexOf(message.type) < 0) {
-    if (message.matchId !== null && message.matchId !== undefined && typeof message.matchId !== 'string') {
-      errors.push('matchId must be a string or null');
-    }
-  }
-
-  if (message.payload !== undefined && message.payload !== null && typeof message.payload !== 'object') {
-    errors.push('payload must be an object or null');
-  }
-
-  return { valid: errors.length === 0, errors: errors };
-}
-
-// ===== PEERJS LOADING =====
-
-function loadPeerJS() {
-  if (window.Peer) return Promise.resolve();
-  if (peerLoadPromise) return peerLoadPromise;
-
-  peerLoadPromise = new Promise(function (resolve, reject) {
-    var existing = document.querySelector('script[data-buzzword-peerjs]');
-    if (existing) {
-      if (existing.dataset.loaded === 'true') { resolve(); return; }
-      existing.addEventListener('load', function () { resolve(); });
-      existing.addEventListener('error', function () { reject(new Error('Failed to load PeerJS.')); });
-      return;
-    }
-
-    var script = document.createElement('script');
-    script.src = PEERJS_URL;
-    script.async = true;
-    script.dataset.buzzwordPeerjs = 'true';
-
-    script.onload = function () {
-      script.dataset.loaded = 'true';
-      if (window.Peer) resolve();
-      else reject(new Error('PeerJS loaded but Peer was unavailable.'));
-    };
-    script.onerror = function () { reject(new Error('Failed to load PeerJS.')); };
-    document.head.appendChild(script);
-  });
-
-  return peerLoadPromise;
-}
-
-// ===== ROOM CODE UTILITIES =====
-
-function generateRoomCode() {
-  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var code = '';
-  for (var i = 0; i < 5; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
-function normalizeRoomCode(code) {
-  return String(code || '').toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, '').slice(0, 5);
-}
-
-// ===== UNIQUE ID GENERATOR =====
-
-function generateId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-  return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-// ===== CLOCK SYNCHRONIZATION =====
-
-/**
- * Clock offset estimator using the midpoint method.
- * Collects multiple samples and selects the one with lowest RTT.
- */
-function ClockSync() {
-  this.samples = [];
-  this.offsetMs = 0;
-  this.maxSamples = 5;
-}
-
-ClockSync.prototype.addSample = function (localSend, hostTimestamp, localReceive) {
-  var roundTripMs = localReceive - localSend;
-  var midpoint = localSend + roundTripMs / 2;
-  var offset = hostTimestamp - midpoint;
-
-  this.samples.push({ rtt: roundTripMs, offset: offset });
-
-  // Keep only maxSamples
-  if (this.samples.length > this.maxSamples) {
-    this.samples.shift();
-  }
-
-  // Select sample with lowest RTT
-  var best = this.samples[0];
-  for (var i = 1; i < this.samples.length; i++) {
-    if (this.samples[i].rtt < best.rtt) {
-      best = this.samples[i];
-    }
-  }
-  this.offsetMs = best.offset;
-};
-
-ClockSync.prototype.toLocalTime = function (hostTimestamp) {
-  return hostTimestamp - this.offsetMs;
-};
-
-ClockSync.prototype.reset = function () {
-  this.samples = [];
-  this.offsetMs = 0;
-};
-
-// ===== MULTIPLAYER CLASS =====
-
-export class Multiplayer {
-  constructor() {
-    this.peer = null;
-    this.conn = null;
-
-    this.roomCode = '';
-    this.isHost = false;
-    this.connected = false;
-    this.senderId = generateId();
-
-    this.localReady = false;
-    this.opponentReady = false;
-
-    this.matchId = null;
-    this.matchConfig = null;
-    this.sharedSeed = 0;
-    this.selectedMode = 'mp_highscore';
-    this.modeConfig = {};
-
-    this._sequence = 0;
-    this._remoteSequence = -1;
-
-    this.clockSync = new ClockSync();
-    this.pingInterval = null;
-    this.latency = null;
-
-    this._matchResult = null;
-    this._resultAcked = false;
-
-    // Typed callbacks
-    this.onConnected = null;
-    this.onDisconnected = null;
-    this.onError = null;
-    this.onOpponentUpdate = null;
-    this.onReadyState = null;
-    this.onModeSelected = null;
-    this.onMatchConfig = null;
-    this.onMatchConfigAck = null;
-    this.onMatchStart = null;
-    this.onEncounterResult = null;
-    this.onEliminated = null;
-    this.onRaceFinished = null;
-    this.onRunFinished = null;
-    this.onResultProposal = null;
-    this.onResultAck = null;
-    this.onForfeit = null;
-    this.onMessage = null;
-  }
-
-  // ===== INITIALIZATION =====
-
-  async init() {
-    await loadPeerJS();
-  }
-
-  // ===== MESSAGE ENVELOPE =====
-
-  _createEnvelope(type, payload) {
-    this._sequence++;
-    return {
-      protocolVersion: MP_PROTOCOL_VERSION,
-      type: type,
-      matchId: this.matchId,
-      senderId: this.senderId,
-      sequence: this._sequence,
-      sentAt: Date.now(),
-      payload: payload || {}
-    };
-  }
-
-  // ===== SEND =====
-
-  send(type, payload) {
-    if (!this.conn || !this.conn.open) return false;
-    var envelope = this._createEnvelope(type, payload);
-    try {
-      this.conn.send(envelope);
-      return true;
-    } catch (e) {
-      console.warn('Multiplayer send failed:', e);
-      return false;
-    }
-  }
-
-  // ===== MODE SELECTION =====
-
-  setMode(modeId, config) {
-    this.selectedMode = modeId || 'mp_highscore';
-    this.modeConfig = config || {};
-
-    // Apply defaults
-    for (var i = 0; i < MP_MODES.length; i++) {
-      if (MP_MODES[i].id === this.selectedMode) {
-        var defaults = MP_MODES[i].defaults || {};
-        for (var key in defaults) {
-          if (this.modeConfig[key] === undefined) {
-            this.modeConfig[key] = defaults[key];
-          }
-        }
-        break;
-      }
-    }
-
-    this.send('mode_selected', {
-      mode: this.selectedMode,
-      config: this.modeConfig
-    });
-  }
-
-  // ===== READY =====
-
-  sendReady(ready) {
-    this.localReady = ready !== false;
-    this.send('ready', { ready: this.localReady });
-
-    if (this.onReadyState) {
-      this.onReadyState({
-        localReady: this.localReady,
-        opponentReady: this.opponentReady
-      });
-    }
-  }
-
-  // ===== MATCH CONFIG (host sends, joiner acks) =====
-
-  sendMatchConfig(config) {
-    if (!this.isHost) return false;
-
-    this.matchId = config.matchId || generateId();
-    this.sharedSeed = config.seed || Math.floor(Math.random() * 2147483647);
-    if (this.sharedSeed === 0) this.sharedSeed = 1;
-
-    var mode = config.mode || this.selectedMode || 'mp_highscore';
-
-    var finalModeConfig = {};
-    for (var mi = 0; mi < MP_MODES.length; mi++) {
-      if (MP_MODES[mi].id === mode) {
-        var defs = MP_MODES[mi].defaults || {};
-        for (var dk in defs) finalModeConfig[dk] = defs[dk];
-        break;
-      }
-    }
-    if (this.modeConfig) {
-      for (var mk in this.modeConfig) finalModeConfig[mk] = this.modeConfig[mk];
-    }
-    if (config.modeConfig) {
-      for (var ck in config.modeConfig) finalModeConfig[ck] = config.modeConfig[ck];
-    }
-
-    this.matchConfig = {
-      protocolVersion: MP_PROTOCOL_VERSION,
-      matchId: this.matchId,
-      mode: mode,
-      seed: this.sharedSeed,
-      startAt: config.startAt || Date.now() + 3000,
-      subjects: Array.isArray(config.subjects) ? config.subjects.slice() : [],
-      filters: config.filters || {
-        exams: [],
-        questionTypes: [],
-        sources: [],
-        years: [],
-        highYieldOnly: false,
-        includeCustomCards: false
-      },
-      cardPoolHash: config.cardPoolHash || '',
-      contentVersion: config.contentVersion || '',
-      skinId: config.skinId || '',
-      modeConfig: finalModeConfig
-    };
-
-    this.send('match_config', this.matchConfig);
-    return this.matchConfig;
-  }
-
-  sendMatchConfigAck(ack) {
-    this.send('match_config_ack', {
-      accepted: !!ack.accepted,
-      reason: ack.reason || null
-    });
-  }
-
-  // ===== MATCH START =====
-
-  sendMatchStart() {
-    if (!this.isHost || !this.matchConfig) return false;
-    this.send('match_start', this.matchConfig);
-    return this.matchConfig;
-  }
-
-  // ===== GAME STATE =====
-
-  sendGameState(state) {
-    return this.send('game_state', {
-      lane: Number(state.lane) || 0,
-      score: Number(state.score) || 0,
-      streak: Number(state.streak) || 0,
-      correct: Number(state.correct) || 0,
-      wrong: Number(state.wrong) || 0,
-      lives: Number(state.lives) || 0,
-      rushing: !!state.rushing,
-      rushStacks: Number(state.rushStacks) || 0,
-      running: !!state.running,
-      correctCount: Number(state.correctCount) || Number(state.correct) || 0,
-      timeRemaining: Number(state.timeRemaining) || 0,
-      eliminated: !!state.eliminated
-    });
-  }
-
-  // ===== ENCOUNTER RESULT =====
-
-  sendEncounterResult(correct, score, cardId) {
-    return this.send('encounter_result', {
-      correct: !!correct,
-      score: Number(score) || 0,
-      cardId: cardId || ''
-    });
-  }
-
-  // ===== ELIMINATION (Sudden Death) =====
-
-  sendEliminated(cardId) {
-    return this.send('player_eliminated', {
-      cardId: cardId || ''
-    });
-  }
-
-  // ===== RACE FINISHED =====
-
-  sendRaceFinished(correctCount, totalTime) {
-    return this.send('race_finished', {
-      correctCount: Number(correctCount) || 0,
-      totalTime: Number(totalTime) || 0
-    });
-  }
-
-  // ===== RUN FINISHED =====
-
-  sendRunFinished(finalState) {
-    finalState = finalState || {};
-    return this.send('run_finished', {
-      score: Number(finalState.score) || 0,
-      correct: Number(finalState.correct) || 0,
-      wrong: Number(finalState.wrong) || 0,
-      bestStreak: Number(finalState.bestStreak) || 0,
-      coins: Number(finalState.coins) || 0,
-      correctCount: Number(finalState.correctCount) || Number(finalState.correct) || 0,
-      eliminated: !!finalState.eliminated,
-      raceTime: Number(finalState.raceTime) || 0
-    });
-  }
-
-  // ===== RESULT PROPOSAL / ACK =====
-
-  sendResultProposal(result) {
-    this._matchResult = result;
-    return this.send('result_proposal', result);
-  }
-
-  sendResultAck(accepted) {
-    this._resultAcked = true;
-    return this.send('result_ack', { accepted: !!accepted });
-  }
-
-  // ===== FORFEIT =====
-
-  sendForfeit(reason) {
-    this.send('forfeit', { reason: reason || 'User forfeited' });
-  }
-
-  // ===== DISCONNECT NOTICE =====
-
-  sendDisconnectNotice(reason) {
-    this.send('disconnect_notice', { reason: reason || 'Disconnecting' });
-  }
-
-  // ===== CLOCK PING/PONG =====
-
-  _sendClockPing() {
-    this.send('clock_ping', {
-      localSend: Date.now()
-    });
-  }
-
-  // ===== HOST / JOIN =====
-
-  async hostGame(onReady) {
-    await this.init();
-    this.disconnect();
-
-    this.isHost = true;
-    this.roomCode = generateRoomCode();
-    this.localReady = false;
-    this.opponentReady = false;
-    this._sequence = 0;
-    this._remoteSequence = -1;
-    this.matchId = null;
-    this.clockSync.reset();
-
-    var self = this;
-
-    try {
-      this.peer = new window.Peer(PEER_PREFIX + this.roomCode);
-    } catch (error) {
-      this._emitError('Failed to create room: ' + error.message);
-      return;
-    }
-
-    this.peer.on('open', function () {
-      if (onReady) onReady(self.roomCode);
-    });
-
-    this.peer.on('connection', function (conn) {
-      if (self.conn && self.conn.open) { conn.close(); return; }
-      self.conn = conn;
-      self._setupConnection(conn);
-    });
-
-    this.peer.on('disconnected', function () {
-      self.connected = false;
-      self._stopPing();
-      if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
-    });
-
-    this.peer.on('close', function () {
-      self._handleDisconnected('Room closed.');
-    });
-
-    this.peer.on('error', function (error) {
-      self._emitError((error.type || 'Peer error') + ': ' + (error.message || 'Unknown error'));
-    });
-  }
-
-  async joinGame(roomCode, onReady) {
-    await this.init();
-    this.disconnect();
-
-    var normalized = normalizeRoomCode(roomCode);
-    if (normalized.length !== 5) {
-      this._emitError('Room code must contain five characters.');
-      return;
-    }
-
-    this.isHost = false;
-    this.roomCode = normalized;
-    this.localReady = false;
-    this.opponentReady = false;
-    this._sequence = 0;
-    this._remoteSequence = -1;
-    this.matchId = null;
-    this.clockSync.reset();
-
-    var self = this;
-
-    try {
-      this.peer = new window.Peer();
-    } catch (error) {
-      this._emitError('Failed to initialize multiplayer: ' + error.message);
-      return;
-    }
-
-    this.peer.on('open', function () {
-      try {
-        var conn = self.peer.connect(PEER_PREFIX + self.roomCode, {
-          reliable: true,
-          serialization: 'json'
-        });
-        self.conn = conn;
-        self._setupConnection(conn);
-        if (onReady) onReady();
-      } catch (error) {
-        self._emitError('Connection failed: ' + error.message);
-      }
-    });
-
-    this.peer.on('disconnected', function () {
-      self.connected = false;
-      self._stopPing();
-      if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
-    });
-
-    this.peer.on('close', function () {
-      self._handleDisconnected('Connection closed.');
-    });
-
-    this.peer.on('error', function (error) {
-      var message = error.message || error.type || 'Unknown error';
-      if (error.type === 'peer-unavailable') {
-        message = 'Room not found. Check the room code.';
-      }
-      self._emitError(message);
-    });
-  }
-
-  // ===== CONNECTION SETUP =====
-
-  _setupConnection(conn) {
-    var self = this;
-
-    conn.on('open', function () {
-      self.connected = true;
-      self.localReady = false;
-      self.opponentReady = false;
-      self._startPing();
-
-      self.send('hello', {});
-
-      if (self.onConnected) {
-        self.onConnected({
-          roomCode: self.roomCode,
-          isHost: self.isHost
-        });
-      }
-    });
-
-    conn.on('data', function (data) {
-      self._handleMessage(data);
-    });
-
-    conn.on('close', function () {
-      self._handleDisconnected('Opponent disconnected.');
-    });
-
-    conn.on('error', function (error) {
-      self._emitError('Connection error: ' + (error.message || 'Unknown error'));
-    });
-  }
-
-  // ===== MESSAGE HANDLING =====
-
-  _handleMessage(data) {
-    if (!data || typeof data !== 'object') return;
-
-    // Validate envelope
-    var validation = validateMultiplayerMessage(data);
-    if (!validation.valid) {
-      console.warn('Multiplayer: rejected invalid message', validation.errors, data);
-      return;
-    }
-
-    // Protocol version check
-    if (data.protocolVersion !== MP_PROTOCOL_VERSION) {
-      console.warn('Multiplayer: protocol version mismatch, ignoring message');
-      return;
-    }
-
-    // Match ID check (for messages that require it)
-    var noMatchIdTypes = ['hello', 'hello_ack', 'error', 'clock_ping', 'clock_pong'];
-    if (noMatchIdTypes.indexOf(data.type) < 0 && this.matchId !== null) {
-      if (data.matchId !== null && data.matchId !== this.matchId) {
-        console.warn('Multiplayer: matchId mismatch, ignoring message');
-        return;
-      }
-    }
-
-    // Sequence deduplication (reject stale/duplicate)
-    if (typeof data.sequence === 'number' && data.sequence <= this._remoteSequence) {
-      // Allow clock_pong to pass through (response to our ping)
-      if (data.type !== 'clock_pong' && data.type !== 'clock_ping') {
-        console.warn('Multiplayer: stale sequence ' + data.sequence + ', ignoring');
-        return;
-      }
-    }
-    if (typeof data.sequence === 'number' && data.sequence > this._remoteSequence) {
-      this._remoteSequence = data.sequence;
-    }
-
-    // Generic callback
-    if (this.onMessage) this.onMessage(data);
-
-    var payload = data.payload || {};
-
-    switch (data.type) {
-      case 'hello':
-        this.send('hello_ack', {});
-        break;
-
-      case 'hello_ack':
-        // Connection fully established
-        break;
-
-      case 'clock_ping':
-        this.send('clock_pong', {
-          localSend: payload.localSend,
-          hostTimestamp: Date.now()
-        });
-        break;
-
-      case 'clock_pong':
-        if (payload.localSend && payload.hostTimestamp) {
-          var localReceive = Date.now();
-          this.clockSync.addSample(payload.localSend, payload.hostTimestamp, localReceive);
-          this.latency = Math.max(0, localReceive - payload.localSend);
-        }
-        break;
-
-      case 'mode_selected':
-        this.selectedMode = payload.mode || 'mp_highscore';
-        this.modeConfig = payload.config || {};
-        if (this.onModeSelected) {
-          this.onModeSelected({ mode: this.selectedMode, config: this.modeConfig });
-        }
-        break;
-
-      case 'ready':
-        this.opponentReady = !!payload.ready;
-        if (this.onReadyState) {
-          this.onReadyState({
-            localReady: this.localReady,
-            opponentReady: this.opponentReady
-          });
-        }
-        break;
-
-      case 'match_config':
-        this.matchConfig = payload;
-        this.matchId = payload.matchId || null;
-        this.sharedSeed = payload.seed || 0;
-        if (this.onMatchConfig) this.onMatchConfig(payload);
-        break;
-
-      case 'match_config_ack':
-        if (this.onMatchConfigAck) this.onMatchConfigAck(payload);
-        break;
-
-      case 'match_start':
-        this.matchConfig = payload;
-        this.matchId = payload.matchId || this.matchId;
-        this.sharedSeed = payload.seed || 0;
-        if (this.onMatchStart) {
-          this.onMatchStart({
-            startAt: payload.startAt,
-            seed: payload.seed,
-            subjects: payload.subjects || [],
-            mode: payload.mode || 'mp_highscore',
-            config: payload.modeConfig || payload.config || {},
-            matchId: payload.matchId,
-            skinId: payload.skinId || '',
-            cardPoolHash: payload.cardPoolHash || '',
-            contentVersion: payload.contentVersion || ''
-          });
-        }
-        break;
-
-      case 'game_state':
-        if (this.onOpponentUpdate) this.onOpponentUpdate(payload);
-        break;
-
-      case 'encounter_result':
-        if (this.onEncounterResult) this.onEncounterResult(payload);
-        break;
-
-      case 'player_eliminated':
-        if (this.onEliminated) this.onEliminated(payload);
-        break;
-
-      case 'race_finished':
-        if (this.onRaceFinished) this.onRaceFinished(payload);
-        break;
-
-      case 'run_finished':
-        if (this.onRunFinished) this.onRunFinished(payload);
-        break;
-
-      case 'result_proposal':
-        if (this.onResultProposal) this.onResultProposal(payload);
-        break;
-
-      case 'result_ack':
-        this._resultAcked = true;
-        if (this.onResultAck) this.onResultAck(payload);
-        break;
-
-      case 'forfeit':
-        if (this.onForfeit) this.onForfeit(payload);
-        break;
-
-      case 'disconnect_notice':
-        this._handleDisconnected(payload.reason || 'Opponent sent disconnect notice.');
-        break;
-
-      case 'error':
-        this._emitError(payload.message || 'Remote error');
-        break;
-    }
-  }
-
-  // ===== QUERY METHODS =====
-
-  isConnected() {
-    return !!(this.connected && this.conn && this.conn.open);
-  }
-
-  getSeed() {
-    return this.sharedSeed;
-  }
-
-  getMode() {
-    return this.selectedMode || 'mp_highscore';
-  }
-
-  getModeConfig() {
-    return this.modeConfig || {};
-  }
-
-  getMatchId() {
-    return this.matchId;
-  }
-
-  getClockOffset() {
-    return this.clockSync.offsetMs;
-  }
-
-  hostStartToLocalTime(hostStartAt) {
-    return this.clockSync.toLocalTime(hostStartAt);
-  }
-
-  // ===== PING =====
-
-  _startPing() {
-    this._stopPing();
-    var self = this;
-    this.pingInterval = setInterval(function () {
-      if (!self.isConnected()) return;
-      self._sendClockPing();
-    }, 3000);
-  }
-
-  _stopPing() {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-  }
-
-  // ===== DISCONNECT =====
-
-  _handleDisconnected(reason) {
-    var wasConnected = this.connected;
-    this.connected = false;
-    this.localReady = false;
-    this.opponentReady = false;
-    this._stopPing();
-
-    if (wasConnected && this.onDisconnected) {
-      this.onDisconnected(reason || 'Disconnected.');
-    }
-  }
-
-  _emitError(message) {
-    console.warn('Multiplayer:', message);
-    if (this.onError) this.onError(message);
-  }
-
-  disconnect() {
-    this._stopPing();
-    this.connected = false;
-    this.localReady = false;
-    this.opponentReady = false;
-
-    if (this.conn) {
-      try { this.conn.close(); } catch (e) { /* cleanup */ }
-      this.conn = null;
-    }
-
-    if (this.peer) {
-      try { this.peer.destroy(); } catch (e) { /* cleanup */ }
-      this.peer = null;
-    }
-
-    this.roomCode = '';
-    this.isHost = false;
-    this.latency = null;
-    this.sharedSeed = 0;
-    this.matchId = null;
-    this.matchConfig = null;
-    this._sequence = 0;
-    this._remoteSequence = -1;
-    this._matchResult = null;
-    this._resultAcked = false;
-    this.clockSync.reset();
-  }
-}
-
-export var multiplayer = new Multiplayer();
+-- ================================================================
+-- Buzzword Dash — Supabase schema
+-- Version: 2.0.0
+--
+-- Run this file FIRST, then policies.sql, in the Supabase SQL editor.
+-- Both files are safe to re-run.
+--
+-- Also required in the Supabase dashboard:
+--   Authentication -> Providers -> enable "Allow anonymous sign-ins"
+--   (the game signs players in anonymously so scores and friends work
+--   without a password; players may optionally link an email later).
+-- ================================================================
+
+-- ==================== PLAYER PROFILES ====================
+
+CREATE TABLE IF NOT EXISTS player_profiles (
+  user_id      uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  player_name  text NOT NULL DEFAULT 'Anonymous' CHECK (char_length(player_name) BETWEEN 1 AND 30),
+  avatar       text NOT NULL DEFAULT 'avatar_intern' CHECK (char_length(avatar) <= 64),
+  badges       text[] NOT NULL DEFAULT '{}' CHECK (cardinality(badges) <= 6),
+  best_score   integer NOT NULL DEFAULT 0 CHECK (best_score >= 0),
+  best_streak  integer NOT NULL DEFAULT 0 CHECK (best_streak >= 0),
+  visible      boolean NOT NULL DEFAULT true,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS player_profiles_name_idx ON player_profiles (lower(player_name));
+
+
+-- ==================== SCORES ====================
+
+CREATE TABLE IF NOT EXISTS scores (
+  id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id      uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  player_name  text NOT NULL CHECK (char_length(player_name) BETWEEN 1 AND 30),
+  avatar       text NOT NULL DEFAULT 'avatar_intern' CHECK (char_length(avatar) <= 64),
+  score        integer NOT NULL CHECK (score >= 0),
+  accuracy     integer NOT NULL DEFAULT 0 CHECK (accuracy BETWEEN 0 AND 100),
+  best_streak  integer NOT NULL DEFAULT 0 CHECK (best_streak >= 0),
+  speed        numeric NOT NULL DEFAULT 1 CHECK (speed > 0 AND speed <= 10),
+  mode         text NOT NULL DEFAULT 'endless' CHECK (char_length(mode) <= 32),
+  badges       text[] NOT NULL DEFAULT '{}' CHECK (cardinality(badges) <= 6),
+  run_id       text NOT NULL UNIQUE CHECK (char_length(run_id) <= 64),
+  season       text NOT NULL DEFAULT 'default' CHECK (char_length(season) <= 32),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS scores_board_idx ON scores (mode, season, score DESC);
+CREATE INDEX IF NOT EXISTS scores_user_idx ON scores (user_id);
+
+
+-- ==================== FRIENDS ====================
+
+CREATE TABLE IF NOT EXISTS friends (
+  id            bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  requester_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  addressee_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status        text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  CHECK (requester_id <> addressee_id)
+);
+
+-- One relationship per pair, regardless of direction.
+CREATE UNIQUE INDEX IF NOT EXISTS friends_pair_idx
+  ON friends (LEAST(requester_id, addressee_id), GREATEST(requester_id, addressee_id));
+CREATE INDEX IF NOT EXISTS friends_addressee_idx ON friends (addressee_id, status);
+
+
+-- ==================== FRIEND BLOCKS ====================
+
+CREATE TABLE IF NOT EXISTS friend_blocks (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  blocker_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  blocked_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (blocker_id, blocked_id),
+  CHECK (blocker_id <> blocked_id)
+);
+
+
+-- ==================== MATCH INVITES ====================
+
+CREATE TABLE IF NOT EXISTS match_invites (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  from_user   uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  to_user     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  room_code   text NOT NULL CHECK (char_length(room_code) BETWEEN 1 AND 10),
+  match_id    text,
+  mode        text NOT NULL DEFAULT 'mp_highscore' CHECK (char_length(mode) <= 32),
+  status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'cancelled')),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz NOT NULL DEFAULT (now() + interval '10 minutes'),
+  CHECK (from_user <> to_user)
+);
+
+CREATE INDEX IF NOT EXISTS match_invites_to_idx ON match_invites (to_user, status, expires_at);
+
+
+-- Is there a block in either direction between two users? SECURITY DEFINER so
+-- policies can see blocks made by the *other* person (RLS hides them from the
+-- caller), without exposing who blocked whom.
+CREATE OR REPLACE FUNCTION has_block_between(a uuid, b uuid) RETURNS boolean
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM friend_blocks
+    WHERE (blocker_id = a AND blocked_id = b) OR (blocker_id = b AND blocked_id = a)
+  );
+$$;
+
+
+-- ==================== USER REPORTS ====================
+
+CREATE TABLE IF NOT EXISTS user_reports (
+  id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  reporter_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  reported_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  reason       text NOT NULL CHECK (char_length(reason) BETWEEN 1 AND 500),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+
+-- ==================== LEADERBOARD VIEW ====================
+-- One best entry per user / mode / season, hiding players who turned their
+-- profile visibility off. security_invoker makes the view obey RLS.
+
+CREATE OR REPLACE VIEW leaderboard_best
+WITH (security_invoker = true) AS
+SELECT DISTINCT ON (s.user_id, s.mode, s.season)
+  s.user_id, s.player_name, s.avatar, s.score, s.accuracy, s.best_streak,
+  s.speed, s.mode, s.badges, s.season, s.created_at
+FROM scores s
+JOIN player_profiles p ON p.user_id = s.user_id AND p.visible = true
+ORDER BY s.user_id, s.mode, s.season, s.score DESC, s.created_at ASC;
+
+
+-- All-time best per user / mode across every season.
+CREATE OR REPLACE VIEW leaderboard_alltime
+WITH (security_invoker = true) AS
+SELECT DISTINCT ON (s.user_id, s.mode)
+  s.user_id, s.player_name, s.avatar, s.score, s.accuracy, s.best_streak,
+  s.speed, s.mode, s.badges, s.season, s.created_at
+FROM scores s
+JOIN player_profiles p ON p.user_id = s.user_id AND p.visible = true
+ORDER BY s.user_id, s.mode, s.score DESC, s.created_at ASC;
+
+
+-- ==================== CARD REPORTS ====================
+-- Content feedback from players ("this card is wrong / ambiguous").
+
+CREATE TABLE IF NOT EXISTS card_reports (
+  id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  reporter_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  card_id      text NOT NULL CHECK (char_length(card_id) <= 64),
+  reason       text NOT NULL CHECK (char_length(reason) BETWEEN 1 AND 100),
+  details      text NOT NULL DEFAULT '' CHECK (char_length(details) <= 1000),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS card_reports_card_idx ON card_reports (card_id);
+
+
+-- ==================== PROFILE UPSERT ====================
+-- SECURITY DEFINER so bests can only ever go up (GREATEST). The caller can
+-- only touch their own row: p_user_id must equal auth.uid().
+
+CREATE OR REPLACE FUNCTION upsert_player_profile(
+  p_user_id     uuid,
+  p_player_name text,
+  p_avatar      text,
+  p_badges      text[],
+  p_best_score  integer,
+  p_best_streak integer,
+  p_visible     boolean
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL OR auth.uid() <> p_user_id THEN
+    RAISE EXCEPTION 'not allowed';
+  END IF;
+
+  INSERT INTO player_profiles AS pp
+    (user_id, player_name, avatar, badges, best_score, best_streak, visible)
+  VALUES (
+    p_user_id,
+    left(coalesce(nullif(trim(p_player_name), ''), 'Anonymous'), 30),
+    left(coalesce(p_avatar, 'avatar_intern'), 64),
+    coalesce(p_badges[1:6], '{}'),
+    greatest(coalesce(p_best_score, 0), 0),
+    greatest(coalesce(p_best_streak, 0), 0),
+    coalesce(p_visible, true)
+  )
+  ON CONFLICT (user_id) DO UPDATE SET
+    player_name = EXCLUDED.player_name,
+    avatar      = EXCLUDED.avatar,
+    badges      = EXCLUDED.badges,
+    best_score  = GREATEST(pp.best_score, EXCLUDED.best_score),
+    best_streak = GREATEST(pp.best_streak, EXCLUDED.best_streak),
+    visible     = EXCLUDED.visible,
+    updated_at  = now();
+END;
+$$;
+
+
+-- ==================== STUDY GROUPS ====================
+-- Private boards for a class or study group. Membership is by invite code.
+-- All writes go through the SECURITY DEFINER functions below.
+
+CREATE TABLE IF NOT EXISTS study_groups (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        text NOT NULL CHECK (char_length(name) BETWEEN 2 AND 40),
+  code        text NOT NULL UNIQUE CHECK (code ~ '^[A-Z0-9]{6}$'),
+  owner_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE study_groups ADD COLUMN IF NOT EXISTS weekly_goal integer
+  CHECK (weekly_goal IS NULL OR weekly_goal BETWEEN 50 AND 100000);
+
+CREATE TABLE IF NOT EXISTS group_members (
+  group_id   uuid NOT NULL REFERENCES study_groups(id) ON DELETE CASCADE,
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  joined_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (group_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS group_members_user_idx ON group_members (user_id);
+
+-- Avoids RLS recursion when a policy needs to ask "am I a member?".
+CREATE OR REPLACE FUNCTION is_group_member(gid uuid) RETURNS boolean
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM group_members WHERE group_id = gid AND user_id = auth.uid());
+$$;
+
+CREATE OR REPLACE FUNCTION create_group(p_name text) RETURNS study_groups
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  g study_groups;
+  attempts int := 0;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  IF (SELECT count(*) FROM study_groups WHERE owner_id = auth.uid()) >= 5 THEN
+    RAISE EXCEPTION 'You can own at most 5 groups';
+  END IF;
+  LOOP
+    BEGIN
+      INSERT INTO study_groups (name, code, owner_id)
+      VALUES (left(trim(p_name), 40), upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6)), auth.uid())
+      RETURNING * INTO g;
+      EXIT;
+    EXCEPTION WHEN unique_violation THEN
+      attempts := attempts + 1;
+      IF attempts > 5 THEN RAISE EXCEPTION 'could not allocate a code'; END IF;
+    END;
+  END LOOP;
+  INSERT INTO group_members (group_id, user_id) VALUES (g.id, auth.uid());
+  RETURN g;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION join_group(p_code text) RETURNS study_groups
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE g study_groups;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  SELECT * INTO g FROM study_groups WHERE code = upper(trim(p_code));
+  IF NOT FOUND THEN RAISE EXCEPTION 'No group with that code'; END IF;
+  IF (SELECT count(*) FROM group_members WHERE group_id = g.id) >= 100 THEN
+    RAISE EXCEPTION 'This group is full';
+  END IF;
+  INSERT INTO group_members (group_id, user_id) VALUES (g.id, auth.uid()) ON CONFLICT DO NOTHING;
+  RETURN g;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION leave_group(p_group_id uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM group_members WHERE group_id = p_group_id AND user_id = auth.uid();
+  -- An empty group is removed.
+  IF NOT EXISTS (SELECT 1 FROM group_members WHERE group_id = p_group_id) THEN
+    DELETE FROM study_groups WHERE id = p_group_id;
+  END IF;
+END;
+$$;
+
+-- (Return type gained weekly_goal, so re-creating requires a drop.)
+DROP FUNCTION IF EXISTS my_groups();
+CREATE OR REPLACE FUNCTION my_groups()
+RETURNS TABLE (id uuid, name text, code text, member_count bigint, is_owner boolean, weekly_goal integer)
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT g.id, g.name, g.code,
+         (SELECT count(*) FROM group_members m2 WHERE m2.group_id = g.id),
+         g.owner_id = auth.uid(), g.weekly_goal
+  FROM study_groups g
+  JOIN group_members m ON m.group_id = g.id AND m.user_id = auth.uid()
+  ORDER BY g.created_at;
+$$;
+
+-- Best scores among the group's members. p_period: 'week' (current ISO week) or 'all'.
+CREATE OR REPLACE FUNCTION group_leaderboard(p_group_id uuid, p_mode text, p_period text)
+RETURNS TABLE (user_id uuid, player_name text, avatar text, score integer, accuracy integer, best_streak integer)
+LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = public AS $$
+BEGIN
+  IF NOT is_group_member(p_group_id) THEN RAISE EXCEPTION 'not a member of this group'; END IF;
+  IF p_period = 'all' THEN
+    RETURN QUERY
+      SELECT lb.user_id, lb.player_name, lb.avatar, lb.score, lb.accuracy, lb.best_streak
+      FROM group_members gm JOIN leaderboard_alltime lb ON lb.user_id = gm.user_id
+      WHERE gm.group_id = p_group_id AND lb.mode = p_mode
+      ORDER BY lb.score DESC LIMIT 50;
+  ELSE
+    RETURN QUERY
+      SELECT lb.user_id, lb.player_name, lb.avatar, lb.score, lb.accuracy, lb.best_streak
+      FROM group_members gm JOIN leaderboard_best lb ON lb.user_id = gm.user_id
+      WHERE gm.group_id = p_group_id AND lb.mode = p_mode
+        AND lb.season = to_char(now() AT TIME ZONE 'utc', 'IYYY-"W"IW')
+      ORDER BY lb.score DESC LIMIT 50;
+  END IF;
+END;
+$$;
+
+
+-- ==================== SHARED DECKS ====================
+-- Custom card decks shared by code. Decks cannot be listed: the only way to
+-- read one is get_shared_deck() with its code.
+
+CREATE TABLE IF NOT EXISTS shared_decks (
+  code        text PRIMARY KEY CHECK (code ~ '^[A-Z0-9]{8}$'),
+  owner_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name        text NOT NULL CHECK (char_length(name) BETWEEN 1 AND 60),
+  card_count  integer NOT NULL CHECK (card_count BETWEEN 1 AND 200),
+  cards       jsonb NOT NULL CHECK (jsonb_typeof(cards) = 'array' AND pg_column_size(cards) < 400000),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION publish_deck(p_name text, p_cards jsonb) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  c text;
+  n integer;
+  attempts int := 0;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  IF jsonb_typeof(p_cards) <> 'array' THEN RAISE EXCEPTION 'cards must be an array'; END IF;
+  n := jsonb_array_length(p_cards);
+  IF n < 1 OR n > 200 THEN RAISE EXCEPTION 'A deck must have 1 to 200 cards'; END IF;
+  IF (SELECT count(*) FROM shared_decks WHERE owner_id = auth.uid()) >= 20 THEN
+    RAISE EXCEPTION 'You can share at most 20 decks';
+  END IF;
+  LOOP
+    BEGIN
+      c := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8));
+      INSERT INTO shared_decks (code, owner_id, name, card_count, cards)
+      VALUES (c, auth.uid(), left(trim(p_name), 60), n, p_cards);
+      RETURN c;
+    EXCEPTION WHEN unique_violation THEN
+      attempts := attempts + 1;
+      IF attempts > 5 THEN RAISE EXCEPTION 'could not allocate a code'; END IF;
+    END;
+  END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_shared_deck(p_code text)
+RETURNS TABLE (name text, card_count integer, cards jsonb)
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT d.name, d.card_count, d.cards FROM shared_decks d WHERE d.code = upper(trim(p_code));
+$$;
+
+
+-- ==================== SEASON STANDING (weekly tournament) ====================
+-- The caller's rank among everyone with a score for a mode + season.
+
+CREATE OR REPLACE FUNCTION season_standing(p_mode text, p_season text)
+RETURNS TABLE (rank bigint, total bigint)
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT
+    (SELECT count(*) + 1 FROM leaderboard_best b
+      WHERE b.mode = p_mode AND b.season = p_season
+        AND b.score > (SELECT m.score FROM leaderboard_best m
+                        WHERE m.user_id = auth.uid() AND m.mode = p_mode AND m.season = p_season)),
+    (SELECT count(*) FROM leaderboard_best b WHERE b.mode = p_mode AND b.season = p_season)
+  WHERE EXISTS (SELECT 1 FROM leaderboard_best m
+                 WHERE m.user_id = auth.uid() AND m.mode = p_mode AND m.season = p_season);
+$$;
+
+
+-- ==================== ACTIVITY FEED ====================
+-- Short "Sam hit a 20 streak" events, visible to the poster and their friends.
+
+CREATE TABLE IF NOT EXISTS activity_events (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  kind        text NOT NULL CHECK (kind IN ('new_best', 'streak', 'tournament', 'exam', 'group_join')),
+  payload     jsonb NOT NULL DEFAULT '{}' CHECK (pg_column_size(payload) < 1000),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS activity_events_user_idx ON activity_events (user_id, created_at DESC);
+
+
+-- ==================== GROUP WEEKLY GOALS ====================
+-- Members report cards studied per week; the group has one shared target.
+
+ALTER TABLE study_groups ADD COLUMN IF NOT EXISTS weekly_goal integer
+  CHECK (weekly_goal IS NULL OR weekly_goal BETWEEN 50 AND 100000);
+
+CREATE TABLE IF NOT EXISTS weekly_study (
+  user_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  season   text NOT NULL CHECK (char_length(season) <= 12),
+  cards    integer NOT NULL DEFAULT 0 CHECK (cards BETWEEN 0 AND 5000),
+  PRIMARY KEY (user_id, season)
+);
+
+CREATE OR REPLACE FUNCTION report_study(p_season text, p_cards integer) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  INSERT INTO weekly_study AS w (user_id, season, cards)
+  VALUES (auth.uid(), left(p_season, 12), least(greatest(coalesce(p_cards, 0), 0), 5000))
+  ON CONFLICT (user_id, season) DO UPDATE SET cards = greatest(w.cards, EXCLUDED.cards);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION set_group_goal(p_group_id uuid, p_goal integer) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  UPDATE study_groups SET weekly_goal = p_goal WHERE id = p_group_id AND owner_id = auth.uid();
+  IF NOT FOUND THEN RAISE EXCEPTION 'Only the group owner can set the goal'; END IF;
+END;
+$$;
+
+-- Progress toward the goal this week: one row per member.
+CREATE OR REPLACE FUNCTION group_goal_status(p_group_id uuid, p_season text)
+RETURNS TABLE (goal integer, user_id uuid, player_name text, cards integer)
+LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = public AS $$
+BEGIN
+  IF NOT is_group_member(p_group_id) THEN RAISE EXCEPTION 'not a member of this group'; END IF;
+  RETURN QUERY
+    SELECT g.weekly_goal, gm.user_id, coalesce(p.player_name, 'Member'), coalesce(w.cards, 0)
+    FROM study_groups g
+    JOIN group_members gm ON gm.group_id = g.id
+    LEFT JOIN player_profiles p ON p.user_id = gm.user_id AND p.visible = true
+    LEFT JOIN weekly_study w ON w.user_id = gm.user_id AND w.season = left(p_season, 12)
+    WHERE g.id = p_group_id
+    ORDER BY coalesce(w.cards, 0) DESC;
+END;
+$$;
+
+
+-- ==================== REALTIME ====================
+-- Lets the app receive match invites instantly.
+
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE match_invites;
+EXCEPTION WHEN duplicate_object OR undefined_object THEN
+  NULL;
+END $$;

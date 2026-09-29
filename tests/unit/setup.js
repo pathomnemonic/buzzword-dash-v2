@@ -56,7 +56,7 @@ globalThis.AudioContext = class MockAudioContext {
       disconnect() {}
     };
   }
-  createWaveShaperNode() {
+  createWaveShaper() {
     return {
       curve: null,
       connect() {},

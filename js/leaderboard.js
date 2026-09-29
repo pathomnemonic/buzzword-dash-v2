@@ -31,7 +31,6 @@
 
 // ===== CDN LOADING =====
 
-var SUPABASE_CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
 
 // ===== CONFIGURATION =====
 // Replace these with your Supabase project values.
@@ -39,6 +38,12 @@ var SUPABASE_CDN_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dis
 
 var SUPABASE_URL = 'YOUR_SUPABASE_URL';
 var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+// Build-time override: set VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (e.g. in
+// .env.local or your host's env vars) instead of editing this file.
+var _env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+if (_env.VITE_SUPABASE_URL) SUPABASE_URL = _env.VITE_SUPABASE_URL;
+if (_env.VITE_SUPABASE_ANON_KEY) SUPABASE_ANON_KEY = _env.VITE_SUPABASE_ANON_KEY;
 
 // ===== INTERNAL STATE =====
 
@@ -48,6 +53,7 @@ var _userId = null;
 var _loadPromise = null;
 var _subscriptions = [];
 var _disposed = false;
+var _authError = null;
 
 // ===== MODE LABELS (for display — UI agent may override) =====
 
@@ -60,10 +66,27 @@ var MODE_LABELS = {
   'mp_highscore': 'High Score',
   'mp_suddendeath': 'Sudden Death',
   'mp_race': 'Race',
-  'timed_practice': 'Timed Practice'
+  'timed_practice': 'Timed Practice',
+  'tournament': 'Weekly Tournament'
 };
 
 // ===== HELPERS =====
+
+/**
+ * Weekly season key (ISO week, UTC), e.g. "2026-W40". Scores are stored with
+ * this season so the weekly board resets every Monday; the all-time board
+ * reads across seasons.
+ * @param {Date} [date]
+ * @returns {string}
+ */
+function getSeasonKey(date) {
+  var d = new Date(Date.UTC((date || new Date()).getUTCFullYear(), (date || new Date()).getUTCMonth(), (date || new Date()).getUTCDate()));
+  var day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  var week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return d.getUTCFullYear() + '-W' + (week < 10 ? '0' : '') + week;
+}
 
 function isConfigured() {
   return (
@@ -83,48 +106,15 @@ function loadSupabaseLib() {
   if (window.supabase && window.supabase.createClient) {
     return Promise.resolve();
   }
-  if (_loadPromise) {
-    return _loadPromise;
+  if (!_loadPromise) {
+    // Bundled (code-split) instead of fetched from a CDN.
+    _loadPromise = import('@supabase/supabase-js').then(function (mod) {
+      window.supabase = { createClient: mod.createClient };
+    }).catch(function (e) {
+      _loadPromise = null;
+      throw e;
+    });
   }
-
-  _loadPromise = new Promise(function (resolve, reject) {
-    var existing = document.querySelector('script[data-buzzword-supabase]');
-    if (existing) {
-      if (existing.dataset.loaded === 'true') {
-        resolve();
-        return;
-      }
-      existing.addEventListener('load', function () {
-        existing.dataset.loaded = 'true';
-        resolve();
-      });
-      existing.addEventListener('error', function () {
-        reject(new Error('Failed to load Supabase from CDN'));
-      });
-      return;
-    }
-
-    var script = document.createElement('script');
-    script.src = SUPABASE_CDN_URL;
-    script.async = true;
-    script.dataset.buzzwordSupabase = 'true';
-
-    script.onload = function () {
-      script.dataset.loaded = 'true';
-      if (window.supabase && window.supabase.createClient) {
-        resolve();
-      } else {
-        reject(new Error('Supabase loaded but createClient unavailable'));
-      }
-    };
-
-    script.onerror = function () {
-      reject(new Error('Failed to load Supabase from CDN'));
-    };
-
-    document.head.appendChild(script);
-  });
-
   return _loadPromise;
 }
 
@@ -195,15 +185,105 @@ var leaderboard = {
         _subscriptions.push(authSubscription.data.subscription);
       }
 
-      // Check initial session
+      // Check initial session; players are signed in anonymously so that
+      // scores, friends and invites work without a password.
       return _client.auth.getSession().then(function (result) {
         if (result.data && result.data.session) {
           _session = result.data.session;
           _userId = result.data.session.user ? result.data.session.user.id : null;
+          return null;
         }
+        return leaderboard.signInAnonymously();
       });
     }).catch(function (e) {
       console.warn('[Leaderboard] Init failed:', e.message);
+    });
+  },
+
+  /**
+   * Sign in anonymously (requires "Allow anonymous sign-ins" in Supabase).
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  signInAnonymously: function () {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    return _client.auth.signInAnonymously().then(function (res) {
+      if (res.error || !res.data || !res.data.session) {
+        _authError = (res.error && res.error.message) || 'Sign-in failed';
+        console.warn('[Leaderboard] Anonymous sign-in failed:', _authError);
+        return { success: false, error: _authError };
+      }
+      _authError = null;
+      _session = res.data.session;
+      _userId = res.data.session.user.id;
+      return { success: true, error: null };
+    }).catch(function (e) {
+      _authError = e.message;
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Attach an email to the current (anonymous) account so progress on the
+   * leaderboard survives clearing the browser. Supabase emails a confirmation
+   * link. If already signed out, sends a magic sign-in link instead.
+   * @param {string} email
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  linkEmail: function (email) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    email = String(email || '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return Promise.resolve({ success: false, error: 'Enter a valid email address.' });
+    }
+    var request = _userId
+      ? _client.auth.updateUser({ email: email })
+      : _client.auth.signInWithOtp({ email: email });
+    return request.then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Describe the current account for the UI.
+   * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, error: string|null}}
+   */
+  getStatus: function () {
+    var user = _session && _session.user;
+    return {
+      configured: isConfigured(),
+      ready: !!_client,
+      authenticated: !!_userId,
+      anonymous: !!(user && user.is_anonymous),
+      email: (user && user.email) || '',
+      error: _authError
+    };
+  },
+
+  /**
+   * Create or refresh the current player's public profile so they can be
+   * found by search and receive friend requests before their first score.
+   * @param {object} profile - { playerName, avatar, badges, visible }
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  ensureProfile: function (profile) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not authenticated' });
+    profile = profile || {};
+    return _client.rpc('upsert_player_profile', {
+      p_user_id: _userId,
+      p_player_name: String(profile.playerName || 'Anonymous').slice(0, 30),
+      p_avatar: String(profile.avatar || 'avatar_intern'),
+      p_badges: Array.isArray(profile.badges) ? profile.badges.slice(0, 6) : [],
+      p_best_score: 0,
+      p_best_streak: 0,
+      p_visible: profile.visible !== false
+    }).then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
     });
   },
 
@@ -272,7 +352,7 @@ var leaderboard = {
       mode: String(summary.mode || 'endless'),
       badges: Array.isArray(summary.badges) ? summary.badges.slice(0, 6) : [],
       run_id: String(summary.runId),
-      season: 'default'
+      season: getSeasonKey()
     };
 
     // Insert score (idempotent by run_id unique constraint)
@@ -334,8 +414,10 @@ var leaderboard = {
     if (!_client) return Promise.resolve([]);
     options = options || {};
 
+    // period: 'week' (default, current season) or 'all' (all-time bests)
+    var allTime = options.period === 'all';
     var query = _client
-      .from('leaderboard_best')
+      .from(allTime ? 'leaderboard_alltime' : 'leaderboard_best')
       .select('*')
       .order('score', { ascending: false })
       .limit(options.limit || 50);
@@ -343,7 +425,9 @@ var leaderboard = {
     if (options.mode) {
       query = query.eq('mode', options.mode);
     }
-    if (options.season) {
+    if (!allTime) {
+      query = query.eq('season', options.season || getSeasonKey());
+    } else if (options.season) {
       query = query.eq('season', options.season);
     }
 
@@ -643,6 +727,147 @@ var leaderboard = {
         return { success: false, error: e.message };
       });
   },
+
+  /**
+   * Send a card-quality report to the server so it can be reviewed.
+   * @param {string} cardId
+   * @param {string} reason
+   * @param {string} [details]
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  reportCard: function (cardId, reason, details) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not authenticated' });
+    if (!cardId || !reason) return Promise.resolve({ success: false, error: 'Missing fields' });
+    return _client.from('card_reports').insert({
+      reporter_id: _userId,
+      card_id: String(cardId).slice(0, 64),
+      reason: String(reason).slice(0, 100),
+      details: String(details || '').slice(0, 1000)
+    }).then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  // ===== STUDY GROUPS =====
+
+  /** Wrap an RPC call into {success, data, error}. */
+  _rpc: function (name, args) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, data: null, error: 'Not signed in' });
+    return _client.rpc(name, args || {}).then(function (res) {
+      if (res.error) return { success: false, data: null, error: res.error.message };
+      return { success: true, data: res.data, error: null };
+    }).catch(function (e) {
+      return { success: false, data: null, error: e.message };
+    });
+  },
+
+  createGroup: function (name) {
+    return leaderboard._rpc('create_group', { p_name: String(name || '').slice(0, 40) });
+  },
+
+  joinGroup: function (code) {
+    return leaderboard._rpc('join_group', { p_code: String(code || '').slice(0, 12) });
+  },
+
+  leaveGroup: function (groupId) {
+    return leaderboard._rpc('leave_group', { p_group_id: groupId });
+  },
+
+  getMyGroups: function () {
+    return leaderboard._rpc('my_groups').then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+
+  getGroupScores: function (groupId, options) {
+    options = options || {};
+    return leaderboard._rpc('group_leaderboard', {
+      p_group_id: groupId,
+      p_mode: options.mode || 'endless',
+      p_period: options.period === 'all' ? 'all' : 'week'
+    }).then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+
+  // ===== SHARED DECKS =====
+
+  /**
+   * Publish custom cards and get a share code back.
+   * @param {string} name
+   * @param {object[]} cards
+   */
+  publishDeck: function (name, cards) {
+    return leaderboard._rpc('publish_deck', { p_name: String(name || 'My deck').slice(0, 60), p_cards: cards });
+  },
+
+  /** Fetch a shared deck by code. Resolves to {success, deck: {name, cards}}. */
+  fetchDeck: function (code) {
+    return leaderboard._rpc('get_shared_deck', { p_code: String(code || '').slice(0, 12) }).then(function (r) {
+      if (!r.success) return { success: false, error: r.error, deck: null };
+      var row = Array.isArray(r.data) ? r.data[0] : r.data;
+      if (!row) return { success: false, error: 'No deck with that code', deck: null };
+      return { success: true, error: null, deck: { name: row.name, cards: row.cards } };
+    });
+  },
+
+  // ===== TOURNAMENT STANDING =====
+
+  /** The player's rank among everyone who scored this season, or null. */
+  getSeasonStanding: function (mode, season) {
+    return leaderboard._rpc('season_standing', { p_mode: mode, p_season: season || getSeasonKey() }).then(function (r) {
+      var row = r.success && Array.isArray(r.data) ? r.data[0] : null;
+      return row ? { rank: Number(row.rank), total: Number(row.total) } : null;
+    });
+  },
+
+  // ===== ACTIVITY FEED =====
+
+  /**
+   * Post a short activity event (visible to friends).
+   * @param {'new_best'|'streak'|'tournament'|'exam'|'group_join'} kind
+   * @param {object} payload small JSON object (include the display name)
+   */
+  postActivity: function (kind, payload) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.from('activity_events').insert({ user_id: _userId, kind: kind, payload: payload || {} })
+      .then(function (res) {
+        return res.error ? { success: false, error: res.error.message } : { success: true, error: null };
+      }).catch(function (e) { return { success: false, error: e.message }; });
+  },
+
+  /** Recent events from the player and their friends (last 14 days). */
+  getFeed: function () {
+    if (!_client || !_userId) return Promise.resolve([]);
+    var since = new Date(Date.now() - 14 * 86400000).toISOString();
+    return _client.from('activity_events')
+      .select('id, user_id, kind, payload, created_at')
+      .gt('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(40)
+      .then(function (res) {
+        try { return requireSuccess(res, 'getFeed') || []; } catch (e) { return []; }
+      }).catch(function () { return []; });
+  },
+
+  // ===== GROUP WEEKLY GOALS =====
+
+  /** Report cards studied this week (server keeps the max). */
+  reportStudy: function (cards) {
+    return leaderboard._rpc('report_study', { p_season: getSeasonKey(), p_cards: Math.max(0, Math.floor(cards || 0)) });
+  },
+
+  setGroupGoal: function (groupId, goal) {
+    return leaderboard._rpc('set_group_goal', { p_group_id: groupId, p_goal: Math.floor(goal) });
+  },
+
+  /** One row per member: {goal, user_id, player_name, cards}. */
+  getGroupGoal: function (groupId) {
+    return leaderboard._rpc('group_goal_status', { p_group_id: groupId, p_season: getSeasonKey() })
+      .then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+
+  /** Current weekly season key. */
+  getSeasonKey: getSeasonKey,
 
   /**
    * Get all accepted friends with their profiles.

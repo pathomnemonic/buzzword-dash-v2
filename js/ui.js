@@ -39,9 +39,11 @@ import { SUBJECTS, CARDS, EXAM_FILTERS } from './cards.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { SHOP_ITEMS, QUESTS, ACHIEVEMENTS } from './game/shopdata.js';
+import { SHOP_ITEMS, QUESTS, ACHIEVEMENTS, AVATARS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
+import { buildStudyPlan } from './studyplan.js';
+import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
@@ -219,6 +221,7 @@ class UI {
     this.setupSpeedDial();
     this.bindNavigation();
     this.bindMusicToggle();
+    this.bindFlashcardKeys();
     this.bindSubjectControls();
     this.bindCustomCards();
     this.bindEasterEggs();
@@ -389,11 +392,13 @@ class UI {
     if (screenId === 'screenShop') { this.renderShop(); this.startPreview(); }
     if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenSettings') this.renderSettings();
-    if (screenId === 'screenMyCards') this.renderCustomCardList();
+    if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
     if (screenId === 'screenAchievements') this.renderAchievements();
     if (screenId === 'screenProfile') this.renderProfile();
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
+    if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
     if (screenId === 'screenFlashcard') this.renderFlashcardScreen();
+    if (screenId === 'screenExam') this.openExam();
 
     if (screenId !== 'screenShop' && this.characterPreview) {
       this.characterPreview.stopAnimation();
@@ -442,13 +447,50 @@ class UI {
     if (profileBtn) profileBtn.addEventListener('click', function () { self.show('screenProfile'); });
     var cardBrowserBtn = document.getElementById('cardBrowserBtn');
     if (cardBrowserBtn) cardBrowserBtn.addEventListener('click', function () { self.show('screenCardBrowser'); });
+    var flashcardBtn = document.getElementById('flashcardBtn');
+    if (flashcardBtn) flashcardBtn.addEventListener('click', function () { self.show('screenFlashcard'); });
+    var examBtn = document.getElementById('examBtn');
+    if (examBtn) examBtn.addEventListener('click', function () { self.show('screenExam'); });
+  }
+
+  /** Lazy-load and mount the exam simulator. */
+  openExam() {
+    var self = this;
+    var container = document.getElementById('examContent');
+    if (!container) return;
+    import('./exam.js').then(function (mod) {
+      mod.mountExam(container, {
+        goHome: function () { mod.unmountExam(); self.show('screenHome'); },
+        toast: function (m) { self._showToast(m); },
+        startFlashcards: function (ids) { mod.unmountExam(); self.startFlashcardSession(null, ids); }
+      });
+    }).catch(function () { self._showToast('Could not load the exam simulator.'); });
+  }
+
+  /** Keyboard study: Space/Enter reveals, right arrow or 1 = got it, left arrow or 2 = missed. */
+  bindFlashcardKeys() {
+    document.addEventListener('keydown', function (e) {
+      var screen = document.getElementById('screenFlashcard');
+      if (!screen || getComputedStyle(screen).display === 'none') return;
+      var tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      var id = null;
+      if (e.key === ' ' || e.key === 'Enter') id = document.getElementById('fcRevealBtn') ? 'fcRevealBtn' : null;
+      else if (e.key === 'ArrowRight' || e.key === '1') id = 'fcGotBtn';
+      else if (e.key === 'ArrowLeft' || e.key === '2') id = 'fcMissBtn';
+      var btn = id && document.getElementById(id);
+      if (btn) { e.preventDefault(); btn.click(); }
+    });
   }
 
   bindMusicToggle() {
     var btn = document.getElementById('musicToggleBtn');
     if (!btn) return;
     btn.addEventListener('click', function () {
-      var playing = audio.toggleMusic();
+      var playing = !storage.get('musicOn');
+      storage.set('musicOn', playing);
+      audio.updateSettings();
+      if (playing) audio.startMusic(); else audio.stopMusic();
       setText(btn, playing ? '🎵 Music: ON' : '🎵 Music: OFF');
     });
     if (storage.get('musicOn')) setText(btn, '🎵 Music: ON');
@@ -667,11 +709,56 @@ class UI {
   // HOME SCREEN
   // ═══════════════════════════════════════════════════════
 
+  renderStudyGoal() {
+    var self = this;
+    var el = document.getElementById('studyGoal');
+    if (!el) return;
+    clearElement(el);
+    var goal = storage.get('dailyGoal') || 20;
+    var done = storage.getStudiedToday();
+    var pct = Math.min(100, Math.round(done / goal * 100));
+    var label = '🎯 Today: ' + done + ' / ' + goal + ' cards' + (done >= goal ? ' ✅' : '');
+    el.appendChild(createElement('div', { text: label }));
+    var bar = createElement('div', {
+      className: 'study-goal-bar',
+      attributes: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(goal), 'aria-valuenow': String(Math.min(done, goal)), 'aria-label': 'Daily study goal' }
+    });
+    var fill = createElement('div', { className: 'study-goal-fill' });
+    fill.style.width = pct + '%';
+    bar.appendChild(fill);
+    el.appendChild(bar);
+    var due = storage.getDueCount();
+    if (due > 0) {
+      el.appendChild(createElement('div', { className: 'study-goal-due', text: '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review' }));
+    }
+
+    var streak = storage.getStreakStatus();
+    if (streak.streak > 0 || streak.shields > 0) {
+      var streakText = '🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  \u00B7  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : '');
+      el.appendChild(createElement('div', { className: 'study-goal-due', text: streakText }));
+    }
+
+    var week = storage.getWeeklyProgress();
+    var weekEl = createElement('div', { className: 'study-goal-due', text: '📆 This week: ' + week.daysMet + '/' + week.target + ' goal days' + (week.claimed ? ' \u2705' : '') });
+    el.appendChild(weekEl);
+    if (week.daysMet >= week.target && !week.claimed) {
+      var claim = createElement('button', { className: 'btn btn-gold btn-sm', text: '🎁 Claim ' + week.reward + ' coins', attributes: { type: 'button' } });
+      claim.style.marginTop = '4px';
+      claim.addEventListener('click', function () {
+        var res = storage.claimWeeklyGoal();
+        self._showToast(res.success ? '🪙 +' + res.reward + ' coins for hitting your weekly goal!' : res.error);
+        self.renderHome();
+      });
+      el.appendChild(claim);
+    }
+  }
+
   renderHome() {
     var homeCoins = document.getElementById('homeCoins');
     var homeBest = document.getElementById('homeBest');
     if (homeCoins) setText(homeCoins, storage.get('coins'));
     if (homeBest) setText(homeBest, storage.get('bestScore'));
+    this.renderStudyGoal();
     this.renderCalendar();
   }
 
@@ -1035,7 +1122,48 @@ class UI {
     document.getElementById('hud').classList.add('off');
   }
 
+  /** Full-screen colored pulse for right/wrong answers. */
+  flashScreen(correct) {
+    if (prefersReducedMotion()) return;
+    var el = document.getElementById('screenFlash');
+    if (!el) {
+      el = createElement('div', { attributes: { id: 'screenFlash', 'aria-hidden': 'true' } });
+      document.body.appendChild(el);
+    }
+    el.className = '';
+    void el.offsetWidth; // restart the animation
+    el.className = correct ? 'flash-good' : 'flash-bad';
+  }
+
+  /** Count numbers up from zero so results feel earned. */
+  _animateNumbers(root) {
+    if (prefersReducedMotion()) return;
+    var targets = root.querySelectorAll('.score-big, .post-stat .val');
+    targets.forEach(function (el) {
+      var m = /^(\d+)(%?)$/.exec(el.textContent.trim());
+      if (!m) return;
+      var end = parseInt(m[1], 10);
+      var suffix = m[2];
+      if (end <= 0) return;
+      var start = performance.now();
+      var duration = 900;
+      function tick(now) {
+        var t = Math.min((now - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(end * eased) + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      el.textContent = '0' + suffix;
+      requestAnimationFrame(tick);
+    });
+  }
+
   updateHud(game) {
+    var streakPill = document.getElementById('hudStreak') && document.getElementById('hudStreak').parentElement;
+    if (streakPill) {
+      streakPill.classList.toggle('hot', game.streak >= 5 && game.streak < 10);
+      streakPill.classList.toggle('blaze', game.streak >= 10);
+    }
     setText(document.getElementById('hudCoins'), game.coins);
     setText(document.getElementById('hudScore'), game.score);
     setText(document.getElementById('hudStreak'), game.streak);
@@ -1382,6 +1510,60 @@ class UI {
     this.characterPreview.startAnimation();
   }
 
+  /** Locker section: recolor hair, skin, coat, pants and shoes. */
+  _renderColorPickers() {
+    var self = this;
+    var wrap = createElement('div');
+    var heading = createElement('h3', { text: '🎨 Colors' });
+    heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
+    wrap.appendChild(heading);
+
+    var current = storage.get('avatarColors') || {};
+    var grid = createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center';
+    var fields = [['hair', 'Hair'], ['skin', 'Skin'], ['body', 'Coat'], ['pants', 'Pants'], ['shoe', 'Shoes']];
+
+    // Show the equipped avatar's real colors as the starting values.
+    var base = {};
+    AVATARS.forEach(function (a) {
+      if (a.id === (storage.get('equipped').skin || 'avatar_intern')) {
+        base = { hair: a.hairColor, skin: a.skinColor, body: a.bodyColor, pants: a.pantsColor, shoe: a.shoeColor };
+      }
+    });
+    var toHex = function (n) { return '#' + ('000000' + (n || 0).toString(16)).slice(-6); };
+
+    fields.forEach(function (f) {
+      var cell = createElement('label');
+      cell.style.cssText = 'font-size:10px;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;gap:2px';
+      var input = createElement('input', {
+        attributes: { type: 'color', value: current[f[0]] || toHex(base[f[0]]), 'aria-label': f[1] + ' color' }
+      });
+      input.style.cssText = 'width:100%;height:32px;border:none;border-radius:8px;background:none;padding:0';
+      input.addEventListener('change', function () {
+        var colors = Object.assign({}, storage.get('avatarColors') || {});
+        colors[f[0]] = input.value;
+        storage.set('avatarColors', colors);
+        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+        if (self.onEquipChange) self.onEquipChange();
+      });
+      cell.appendChild(input);
+      cell.appendChild(createElement('span', { text: f[1] }));
+      grid.appendChild(cell);
+    });
+    wrap.appendChild(grid);
+
+    var reset = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Reset colors' });
+    reset.style.marginTop = '6px';
+    reset.addEventListener('click', function () {
+      storage.set('avatarColors', {});
+      self.renderShop();
+      if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+      if (self.onEquipChange) self.onEquipChange();
+    });
+    wrap.appendChild(reset);
+    return wrap;
+  }
+
   renderShop() {
     var self = this;
     var shopCoinsEl = document.getElementById('shopCoins');
@@ -1428,7 +1610,7 @@ class UI {
         btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
 
         // Try-on button (not for trails)
-        if (type !== 'trail') {
+        if (type !== 'trail' && type !== 'monster') {
           var tryBtn = createElement('button', {
             className: 'btn btn-outline btn-sm',
             text: '👁',
@@ -1485,11 +1667,13 @@ class UI {
 
     var shopItems = document.getElementById('shopItems');
     clearElement(shopItems);
+    shopItems.appendChild(this._renderColorPickers());
     shopItems.appendChild(renderGroup('skin', '👕 Avatars'));
     shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
     shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
     shopItems.appendChild(renderGroup('trail', '✨ Trails'));
     shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
+    shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters'));
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1526,12 +1710,7 @@ class UI {
 
       // Quest claiming button (Section 14.6) [2]
       if (isComplete) {
-        var claimed = false;
-        if (storage.areQuestsComplete) {
-          // Check if this specific quest was already claimed today
-          // Simple claim tracking: we use a special key
-          claimed = storage.get('questClaimed_' + q.id + '_' + today);
-        }
+        var claimed = storage.isQuestClaimed(q.id, today);
 
         if (!claimed) {
           var claimBtn = createElement('button', {
@@ -1540,10 +1719,15 @@ class UI {
           });
           claimBtn.style.marginTop = '4px';
           claimBtn.addEventListener('click', function () {
-            storage.addCoins(q.reward);
-            storage.set('questClaimed_' + q.id + '_' + today, true);
-            audio.play('coin');
-            self._showToast('🪙 +' + q.reward + ' coins!');
+            var claim = storage.claimQuest(q.id, today);
+            if (claim.success) {
+              audio.play('coin');
+              self._showToast('🪙 +' + claim.reward + ' coins!');
+            } else if (claim.alreadyClaimed) {
+              self._showToast('Quest reward already claimed.');
+            } else {
+              self._showToast(claim.error || 'Could not claim reward.');
+            }
             self.renderQuests();
             self.renderHome();
           });
@@ -1605,6 +1789,11 @@ class UI {
     var settings = [
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
+      { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
+      { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
+      { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
+      { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
+      { key: 'reminderHour', label: '⏰ Reminder Hour (24h)', type: 'range', min: 0, max: 23, step: 1 },
       { key: 'ttsEnabled', label: '🗣 Text-to-Speech', type: 'toggle' },
       { key: 'masterVolume', label: '🔊 Master Volume', type: 'range', min: 0, max: 1, step: 0.1 },
       { key: 'sfxVolume', label: '🎵 SFX Volume', type: 'range', min: 0, max: 1, step: 0.1 },
@@ -1620,12 +1809,32 @@ class UI {
 
       if (s.type === 'toggle') {
         var toggle = createElement('div', {
-          className: 'toggle' + (storage.get(s.key) ? ' on' : '')
+          className: 'toggle' + (storage.get(s.key) ? ' on' : ''),
+          attributes: { role: 'switch', tabindex: '0', 'aria-label': s.label, 'aria-checked': storage.get(s.key) ? 'true' : 'false' }
+        });
+        toggle.addEventListener('keydown', function (e) {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.click(); }
         });
         toggle.addEventListener('click', function () {
           var newVal = !storage.get(s.key);
+          if (s.key === 'reminders' && newVal) {
+            // Notifications need explicit permission from the browser.
+            if (!('Notification' in window)) { self._showToast('Notifications are not supported here.'); return; }
+            Notification.requestPermission().then(function (perm) {
+              if (perm !== 'granted') {
+                self._showToast('Notifications were blocked. Enable them in your browser settings.');
+                return;
+              }
+              storage.set('reminders', true);
+              toggle.classList.add('on');
+              toggle.setAttribute('aria-checked', 'true');
+            });
+            return;
+          }
           storage.set(s.key, newVal);
           toggle.classList.toggle('on');
+          toggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
+          if (s.key === 'colorblindMode') self.applySettings();
           if (s.key === 'nightMode') {
             self.applySettings();
             if (self.onNightModeChange) self.onNightModeChange();
@@ -1645,8 +1854,9 @@ class UI {
         range.addEventListener('input', function () {
           var val = parseFloat(range.value);
           storage.set(s.key, val);
+          if (s.key === 'dailyGoal') self.renderStudyGoal();
           if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
-            audio.updateMusicVolume();
+            audio.updateSettings();
           }
         });
         row.appendChild(range);
@@ -1670,6 +1880,24 @@ class UI {
     reportBtn.addEventListener('click', function () { self.exportCardReports(); });
     reportRow.appendChild(reportBtn);
     content.appendChild(reportRow);
+
+    // Backup / restore progress
+    var backupRow = createElement('div', { className: 'setting-row' });
+    backupRow.appendChild(createElement('div', { text: '💾 Progress Backup' }));
+    var backupBtns = createElement('div');
+    var backupBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Save' });
+    backupBtn.addEventListener('click', function () { self.downloadBackup(); });
+    var restoreBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Restore' });
+    var restoreInput = createElement('input', {
+      attributes: { type: 'file', accept: 'application/json,.json', hidden: '', 'aria-label': 'Backup file' }
+    });
+    restoreBtn.addEventListener('click', function () { restoreInput.click(); });
+    restoreInput.addEventListener('change', function () { self.restoreBackup(restoreInput.files[0]); });
+    backupBtns.appendChild(backupBtn);
+    backupBtns.appendChild(restoreBtn);
+    backupBtns.appendChild(restoreInput);
+    backupRow.appendChild(backupBtns);
+    content.appendChild(backupRow);
 
     // Anki import container (mount point for settings extension)
     var ankiContainer = createElement('div', { attributes: { id: 'ankiImportContainer' } });
@@ -1724,13 +1952,106 @@ class UI {
     URL.revokeObjectURL(url);
   }
 
+  downloadBackup() {
+    var blob = new Blob([storage.exportBackup()], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = createElement('a', {
+      attributes: { href: url, download: 'buzzword-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json' }
+    });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this._showToast('Backup saved.');
+  }
+
+  restoreBackup(file) {
+    var self = this;
+    if (!file) return;
+    if (!confirm('Replace ALL current progress with this backup?')) return;
+    file.text().then(function (text) {
+      var result = storage.importBackup(text);
+      if (result.ok) {
+        window.location.reload();
+      } else {
+        self._showToast(result.error);
+      }
+    });
+  }
+
   applySettings() {
     document.body.classList.toggle('night-mode', storage.get('nightMode'));
+    document.body.classList.toggle('colorblind', !!storage.get('colorblindMode'));
   }
 
   // ═══════════════════════════════════════════════════════
   // STATS
   // ═══════════════════════════════════════════════════════
+
+  /** Weak-spot dashboard: today's plan, due forecast and question-type accuracy. */
+  _renderStudyPlan(container) {
+    var self = this;
+    var cards = CARDS.concat(customCards.getAll());
+    var plan = buildStudyPlan({
+      cardStats: storage.get('cardStats') || {},
+      cards: cards,
+      subjectStats: storage.get('subjectStats') || {},
+      goal: storage.get('dailyGoal') || 20,
+      studiedToday: storage.getStudiedToday()
+    });
+
+    var box = createElement('div');
+    box.style.cssText = 'background:var(--bg-card);border-radius:12px;padding:12px;margin-bottom:12px;border:var(--border-card)';
+    box.appendChild(createElement('h3', { text: '🗓 Today\u2019s Study Plan' }));
+    box.lastChild.style.cssText = 'font-size:14px;margin-bottom:6px';
+
+    if (plan.steps.length === 0) {
+      box.appendChild(createElement('p', { text: 'You are all caught up. Play a run or start a flashcard session to keep the streak going.' }));
+      box.lastChild.style.cssText = 'font-size:12px;color:var(--text-secondary)';
+    }
+    plan.steps.forEach(function (step, i) {
+      var row = createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;font-size:12px';
+      row.appendChild(createElement('span', { text: (i + 1) + '. ' + step.label }));
+      var go = createElement('button', { className: 'btn btn-primary btn-sm', text: 'Start', attributes: { type: 'button' } });
+      go.addEventListener('click', function () {
+        if (step.kind === 'due') self.startFlashcardSession(null, plan.dueIds.slice(0, 20));
+        else if (step.kind === 'weak') self.startFlashcardSession([step.subject]);
+        else self.startFlashcardSession();
+      });
+      row.appendChild(go);
+      box.appendChild(row);
+    });
+
+    // Due forecast (next 7 days)
+    var max = Math.max(1, plan.dueCount, Math.max.apply(null, plan.forecast));
+    box.appendChild(createElement('div', { text: 'Reviews due: now and the next 7 days' }));
+    box.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:10px';
+    var chart = createElement('div', { attributes: { role: 'img', 'aria-label': 'Due now ' + plan.dueCount + '; next seven days ' + plan.forecast.join(', ') } });
+    chart.style.cssText = 'display:flex;align-items:flex-end;gap:4px;height:56px;margin-top:4px';
+    [plan.dueCount].concat(plan.forecast).forEach(function (n, i) {
+      var col = createElement('div');
+      col.style.cssText = 'flex:1;text-align:center;font-size:9px;color:var(--text-muted)';
+      var bar = createElement('div');
+      bar.style.cssText = 'height:' + Math.max(2, Math.round(n / max * 40)) + 'px;background:' + (i === 0 ? 'var(--accent-gold)' : 'var(--accent-cyan)') + ';border-radius:3px 3px 0 0;margin-bottom:2px';
+      col.appendChild(bar);
+      col.appendChild(createElement('span', { text: (i === 0 ? 'Now ' : '+' + i + 'd ') + n }));
+      chart.appendChild(col);
+    });
+    box.appendChild(chart);
+
+    // Accuracy by question type (weakest first)
+    if (plan.typeAccuracy.length > 0) {
+      box.appendChild(createElement('div', { text: 'Accuracy by question type' }));
+      box.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:10px';
+      plan.typeAccuracy.slice(0, 4).forEach(function (t) {
+        var line = createElement('div', { text: t.type.replace(/_/g, ' ') + ': ' + t.accuracy + '% (' + t.seen + ' seen)' });
+        line.style.cssText = 'font-size:11px;margin-top:2px;color:' + (t.accuracy < 60 ? 'var(--accent-red)' : 'var(--text-secondary)');
+        box.appendChild(line);
+      });
+    }
+    container.appendChild(box);
+  }
 
   renderStats() {
     var tc = storage.get('totalCorrect');
@@ -1740,6 +2061,8 @@ class UI {
     var container = document.getElementById('statsContent');
     if (!container) return;
     clearElement(container);
+
+    this._renderStudyPlan(container);
 
     // Summary stats
     var summaryRow = createElement('div', { className: 'post-stats' });
@@ -1875,6 +2198,10 @@ class UI {
     if (exportBtn) exportBtn.addEventListener('click', function () { self.showExport(); });
     var importBtn = document.getElementById('importCardsBtn');
     if (importBtn) importBtn.addEventListener('click', function () { self.showImport(); });
+    var shareDeckBtn = document.getElementById('shareDeckBtn');
+    if (shareDeckBtn) shareDeckBtn.addEventListener('click', function () { self.shareDeck(); });
+    var importDeckBtn = document.getElementById('importDeckBtn');
+    if (importDeckBtn) importDeckBtn.addEventListener('click', function () { self.importDeckByCode(); });
     var select = document.getElementById('cardSubject');
     if (select) {
       clearElement(select);
@@ -1993,20 +2320,134 @@ class UI {
       whyWrong1: document.getElementById('cardWhy1').value.trim(),
       whyWrong2: document.getElementById('cardWhy2').value.trim()
     };
-    var errors = customCards.validate(cardData);
     var errEl = document.getElementById('cardErrors');
-    if (errors.length > 0) {
+    var editId = document.getElementById('cardEditId').value;
+    var result = editId ? customCards.update(editId, cardData) : customCards.add(cardData);
+    if (!result.success) {
       clearElement(errEl);
-      errors.forEach(function (e) {
-        errEl.appendChild(createElement('div', { text: e }));
+      (result.errors || []).forEach(function (e) {
+        errEl.appendChild(createElement('div', { text: e.message || String(e) }));
       });
       return;
     }
-    var editId = document.getElementById('cardEditId').value;
-    if (editId) { customCards.update(editId, cardData); }
-    else { customCards.add(cardData); storage.unlockAchievement('ach_custom_card'); }
+    if (!editId) storage.unlockAchievement('ach_custom_card');
+    if (result.warnings && result.warnings.length > 0) {
+      this._showToast('Saved with ' + result.warnings.length + ' warning(s): ' + (result.warnings[0].message || ''));
+    }
     this.show('screenMyCards');
     this.renderCustomCardList();
+  }
+
+  /** Run fn(leaderboardService) once online sharing is available. */
+  _withOnlineService(fn, fallback) {
+    var self = this;
+    var unavailable = function (msg) {
+      if (fallback && fallback()) return; // e.g. an offline copy was used instead
+      self._showToast(msg);
+    };
+    import('./leaderboard.js').then(function (mod) {
+      var lb = mod.leaderboard;
+      var ready = lb.isReady() ? Promise.resolve() : lb.init();
+      return ready.then(function () {
+        if (!lb.isAuthenticated()) {
+          unavailable('Online sharing needs the leaderboard connection (see README setup).');
+          return;
+        }
+        return fn(lb);
+      });
+    }).catch(function () { unavailable('Online sharing is unavailable right now.'); });
+  }
+
+  /** Publish the player's custom cards and show a share code. */
+  shareDeck() {
+    var self = this;
+    var cards = customCards.getAll();
+    if (cards.length === 0) { this._showToast('Create some custom cards first.'); return; }
+    var name = window.prompt('Deck name:', 'My deck');
+    if (!name || !name.trim()) return;
+    var payload;
+    try { payload = JSON.parse(customCards.exportJSON()); } catch (e) { this._showToast('Could not read your cards.'); return; }
+    this._withOnlineService(function (lb) {
+      return lb.publishDeck(name.trim(), payload.slice(0, 200)).then(function (res) {
+        if (!res.success) { self._showToast(res.error || 'Could not share the deck.'); return; }
+        var code = res.data;
+        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {});
+        window.alert('Deck shared! Give this code to friends:\n\n' + code + '\n\n(It was copied to your clipboard.)');
+      });
+    });
+  }
+
+  /** Import a deck by its share code. */
+  importDeckByCode() {
+    var self = this;
+    var code = window.prompt('Enter the deck code:');
+    if (!code || !code.trim()) return;
+    var key = code.trim().toUpperCase();
+    var cached = getDeck(key);
+
+    // Imported cards go through the same validation as any custom card.
+    var addDeck = function (deck, suffix) {
+      var result = customCards.importJSON(JSON.stringify(deck.cards));
+      self._showToast('Imported ' + result.importedCount + ' card(s) from "' + deck.name + '"' + (suffix || '') + (result.rejectedCount ? ' (' + result.rejectedCount + ' skipped)' : '') + '.');
+      self.renderCustomCardList();
+      self._renderSavedDecks();
+    };
+    var useCopy = function () {
+      if (!cached) return false;
+      addDeck(cached, ' (saved offline copy)');
+      return true;
+    };
+
+    if (!navigator.onLine) {
+      if (!useCopy()) this._showToast('You are offline and this deck is not saved on this device.');
+      return;
+    }
+    this._withOnlineService(function (lb) {
+      return lb.fetchDeck(key).then(function (res) {
+        if (!res.success) {
+          if (!useCopy()) self._showToast(res.error || 'Could not find that deck.');
+          return;
+        }
+        saveDeck(key, res.deck.name, res.deck.cards);
+        addDeck(res.deck, '');
+      });
+    }, useCopy);
+  }
+
+  /** Decks fetched by code are kept on this device for offline use. */
+  _renderSavedDecks() {
+    var self = this;
+    var box = document.getElementById('savedDecks');
+    if (!box) return;
+    clearElement(box);
+    var decks = listDecks();
+    if (decks.length === 0) return;
+    var heading = createElement('h3', { text: '📚 Saved decks (available offline)' });
+    heading.style.cssText = 'margin:14px 0 6px;font-size:13px;color:var(--text-secondary)';
+    box.appendChild(heading);
+    decks.forEach(function (d) {
+      var row = createElement('div', { className: 'setting-row' });
+      var label = createElement('div');
+      label.style.flex = '1';
+      label.appendChild(createElement('div', { text: d.name }));
+      label.firstChild.style.cssText = 'font-size:13px;font-weight:700';
+      label.appendChild(createElement('div', { text: d.count + ' cards \u00B7 code ' + d.code }));
+      label.lastChild.style.cssText = 'font-size:10px;color:var(--text-muted)';
+      row.appendChild(label);
+      var add = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Add to my cards', attributes: { type: 'button' } });
+      add.addEventListener('click', function () {
+        var deck = getDeck(d.code);
+        if (!deck) return;
+        var result = customCards.importJSON(JSON.stringify(deck.cards));
+        self._showToast('Added ' + result.importedCount + ' card(s).');
+        self.renderCustomCardList();
+      });
+      row.appendChild(add);
+      var del = createElement('button', { className: 'btn btn-outline btn-sm', text: '\u2715', attributes: { type: 'button', 'aria-label': 'Remove saved deck ' + d.name } });
+      del.addEventListener('click', function () { removeDeck(d.code); self._renderSavedDecks(); });
+      row.appendChild(del);
+      box.appendChild(row);
+    });
   }
 
   showExport() {
@@ -2039,8 +2480,13 @@ class UI {
       var result = customCards.importJSON(document.getElementById('importExportArea').value);
       var msg = document.getElementById('importExportMsg');
       clearElement(msg);
-      var span = createElement('span', { text: result.message });
-      span.style.color = result.success ? 'var(--accent-green)' : 'var(--accent-red)';
+      var text = 'Imported ' + result.importedCount + ' card(s)';
+      if (result.rejectedCount > 0) {
+        var firstErr = result.rejected[0] && result.rejected[0].errors && result.rejected[0].errors[0];
+        text += ', rejected ' + result.rejectedCount + (firstErr ? ' (' + firstErr.message + ')' : '');
+      }
+      var span = createElement('span', { text: text + '.' });
+      span.style.color = result.importedCount > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
       msg.appendChild(span);
     });
     this.show('screenImportExport');
@@ -2389,17 +2835,198 @@ class UI {
   // FLASHCARD SCREEN
   // ═══════════════════════════════════════════════════════
 
-  startFlashcardSession(subjects) {
+  startFlashcardSession(subjects, cardIds) {
     var subjs = subjects || storage.get('selectedSubjects');
     if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
-    var examFilters = storage.get('selectedExams') || [];
-    this.flashcardMode.start(subjs, examFilters, 20);
-    if (!this.flashcardMode.sessionActive) {
-      this._showToast('No cards available for the selected filters.');
+    var fm = this.flashcardMode;
+    // Abandon any leftover session so a new one can start.
+    if (fm.state === 'active' || fm.state === 'revealed') this._endFlashcardSession();
+    var result = fm.start({
+      subjects: subjs,
+      cardIds: cardIds || null,
+      cardCount: 20,
+      filters: {
+        exams: storage.get('selectedExams') || [],
+        questionTypes: storage.get('selectedQuestionTypes') || [],
+        sources: storage.get('selectedSources') || [],
+        years: storage.get('selectedYears') || []
+      }
+    });
+    if (!result.success) {
+      this._showToast((result.error && result.error.message) || 'No cards available for the selected filters.');
       return;
     }
     this.show('screenFlashcard');
     this.renderFlashcardScreen();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // HANDS-FREE AUDIO REVIEW
+  // Reads each clue aloud, pauses to let you think, then reads the answer and
+  // teaching point. For commutes and workouts; it does not record ratings.
+  // ═══════════════════════════════════════════════════════
+
+  startHandsFree() {
+    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+      this._showToast('Speech is not supported in this browser.');
+      return;
+    }
+    var subjs = storage.get('selectedSubjects');
+    if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
+    var fm = this.flashcardMode;
+    if (fm.state === 'active' || fm.state === 'revealed') this._endFlashcardSession();
+    var result = fm.start({
+      subjects: subjs,
+      cardCount: 20,
+      filters: {
+        exams: storage.get('selectedExams') || [],
+        questionTypes: storage.get('selectedQuestionTypes') || [],
+        sources: storage.get('selectedSources') || [],
+        years: storage.get('selectedYears') || []
+      }
+    });
+    if (!result.success) {
+      this._showToast((result.error && result.error.message) || 'No cards available for the selected filters.');
+      return;
+    }
+    var cards = fm.cards.slice();
+    fm.end('handsfree'); // only borrowed the card selection
+    this._hf = { active: true, finished: false, cancel: false, index: 0, phase: 'clue', cards: cards, heard: 0 };
+    this.show('screenFlashcard');
+    this._runHandsFree();
+  }
+
+  stopHandsFree() {
+    if (!this._hf) return;
+    this._hf.cancel = true;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (this._hf.wake) this._hf.wake();
+  }
+
+  _hfSpeak(text) {
+    return new Promise(function (resolve) {
+      var done = false;
+      var finish = function () { if (!done) { done = true; resolve(); } };
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95;
+      u.onend = finish;
+      u.onerror = finish;
+      setTimeout(finish, 25000); // some browsers never fire onend
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    });
+  }
+
+  _hfSleep(ms) {
+    var hf = this._hf;
+    return new Promise(function (resolve) {
+      var t = setTimeout(resolve, ms);
+      hf.wake = function () { clearTimeout(t); resolve(); };
+    });
+  }
+
+  _runHandsFree() {
+    var self = this;
+    var hf = this._hf;
+    var run = async function () {
+      for (var i = 0; i < hf.cards.length && !hf.cancel; i++) {
+        var card = hf.cards[i];
+        hf.index = i;
+        hf.phase = 'clue';
+        self.renderFlashcardScreen();
+        await self._hfSpeak('Clue. ' + (card.bw || []).join('. '));
+        if (hf.cancel) break;
+        await self._hfSleep(6000);
+        if (hf.cancel) break;
+        hf.phase = 'answer';
+        self.renderFlashcardScreen();
+        await self._hfSpeak('Answer. ' + card.ans + '. ' + (card.tp || ''));
+        hf.heard++;
+        if (hf.cancel) break;
+        await self._hfSleep(1500);
+      }
+      hf.active = false;
+      hf.finished = true;
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (hf.heard > 0) {
+        storage.addStudiedToday(hf.heard);
+        storage.save();
+      }
+      if (document.getElementById('screenFlashcard').classList.contains('active')) self.renderFlashcardScreen();
+    };
+    run();
+  }
+
+  _renderHandsFree(container) {
+    var self = this;
+    var hf = this._hf;
+    var wrap = createElement('div');
+    wrap.style.textAlign = 'center';
+    if (hf.finished) {
+      wrap.appendChild(this._flashcardText('h2', '🎧 Session finished'));
+      wrap.appendChild(this._flashcardText('p', 'You listened to ' + hf.heard + ' card' + (hf.heard === 1 ? '' : 's') + '. It counts toward your daily goal.', 'margin:10px 0;color:var(--text-secondary)'));
+      var again = createElement('button', { className: 'btn btn-green btn-block', text: '🎧 Another round', attributes: { type: 'button' } });
+      again.addEventListener('click', function () { self._hf = null; self.startHandsFree(); });
+      var home = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Home', attributes: { type: 'button' } });
+      home.style.marginTop = '6px';
+      home.addEventListener('click', function () { self._hf = null; self.show('screenHome'); });
+      wrap.appendChild(again);
+      wrap.appendChild(home);
+      container.appendChild(wrap);
+      return;
+    }
+
+    var card = hf.cards[hf.index];
+    wrap.appendChild(this._flashcardText('div', '🎧 Hands-free \u2014 card ' + (hf.index + 1) + ' of ' + hf.cards.length, 'font-size:11px;color:var(--text-muted);margin-bottom:8px'));
+    var box = createElement('div');
+    box.style.cssText = 'background:var(--bg-card-solid);border-radius:var(--radius-lg);padding:20px;border:var(--border-glow)';
+    box.appendChild(this._flashcardText('div', card.subj, 'font-size:10px;color:var(--text-muted);margin-bottom:8px'));
+    (card.bw || []).forEach(function (bw) {
+      box.appendChild(self._flashcardText('div', '\u2022 ' + bw, 'font-size:16px;font-weight:700;margin:4px 0'));
+    });
+    if (hf.phase === 'answer') {
+      box.appendChild(this._flashcardText('div', '\u2713 ' + card.ans, 'font-size:18px;font-weight:800;color:var(--accent-green);margin-top:12px'));
+      if (card.tp) box.appendChild(this._flashcardText('p', card.tp, 'font-size:12px;color:var(--text-secondary);margin-top:6px'));
+    } else {
+      box.appendChild(this._flashcardText('div', 'Think of the diagnosis\u2026', 'font-size:12px;color:var(--text-muted);margin-top:12px'));
+    }
+    wrap.appendChild(box);
+    var stop = createElement('button', { className: 'btn btn-red btn-block', text: '\u23F9 Stop', attributes: { type: 'button' } });
+    stop.style.marginTop = '10px';
+    stop.addEventListener('click', function () { self.stopHandsFree(); });
+    wrap.appendChild(stop);
+    container.appendChild(wrap);
+  }
+
+  _flashcardActive() {
+    var st = this.flashcardMode.state;
+    return st === 'active' || st === 'revealed' || st === 'completed';
+  }
+
+  /** Persist the finished (or partially finished) session exactly once. */
+  _persistFlashcardSummary(summary) {
+    if (!summary || summary.total === 0) return;
+    var result = storage.finalizeFlashcardSession(summary);
+    if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
+      this.showAchievementNotification(result.newlyUnlockedAchievementIds);
+    }
+  }
+
+  /** Leave the session: save what was answered, then reset. */
+  _endFlashcardSession() {
+    var fm = this.flashcardMode;
+    if (fm.state === 'completed') {
+      fm.end('closed');
+      return;
+    }
+    this._persistFlashcardSummary(fm.end('abandoned'));
+  }
+
+  _flashcardText(tag, text, css) {
+    var el = createElement(tag);
+    setText(el, text);
+    if (css) el.style.cssText = css;
+    return el;
   }
 
   renderFlashcardScreen() {
@@ -2409,36 +3036,48 @@ class UI {
     var self = this;
     var fm = this.flashcardMode;
 
-    if (!fm.sessionActive) {
+    if (this._hf && (this._hf.active || this._hf.finished)) {
+      this._renderHandsFree(container);
+      return;
+    }
+
+    if (!this._flashcardActive()) {
       var startBtn = createElement('button', { className: 'btn btn-green btn-block', text: '📖 Start Flashcard Session' });
       startBtn.style.marginTop = '12px';
       startBtn.addEventListener('click', function () { self.startFlashcardSession(); });
+      var handsFreeBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎧 Hands-free audio review', attributes: { type: 'button' } });
+      handsFreeBtn.style.marginTop = '6px';
+      handsFreeBtn.addEventListener('click', function () { self.startHandsFree(); });
       var backBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Back to Home' });
       backBtn.style.marginTop = '6px';
       backBtn.addEventListener('click', function () { self.show('screenHome'); });
       var wrap = createElement('div');
       wrap.style.cssText = 'text-align:center;padding:30px';
-      wrap.appendChild(createElement('p', { text: 'No active flashcard session.' }));
-      wrap.lastChild.style.color = 'var(--text-muted)';
+      wrap.appendChild(this._flashcardText('p', 'No active flashcard session.', 'color:var(--text-muted)'));
       wrap.appendChild(startBtn);
+      wrap.appendChild(handsFreeBtn);
       wrap.appendChild(backBtn);
       container.appendChild(wrap);
       return;
     }
 
     if (fm.isComplete()) {
+      if (fm.state !== 'completed') {
+        var done = fm.complete();
+        if (done.success) this._persistFlashcardSummary(done.summary);
+      }
       this._renderFlashcardSummary(container);
       return;
     }
 
     var progress = fm.getProgress();
-    var cardHTML = fm.showCard(); // returns HTML string - we need to handle this safely
+    var card = fm.getCurrentCard();
 
     // Progress bar
     var progressWrap = createElement('div');
     progressWrap.style.cssText = 'text-align:center;margin-bottom:10px';
-    progressWrap.appendChild(createElement('div', { text: 'Card ' + progress.current + ' of ' + progress.total }));
-    progressWrap.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted)';
+    var label = (fm.kind === 'missed_review' ? 'Missed review — ' : '') + 'Card ' + progress.current + ' of ' + progress.total;
+    progressWrap.appendChild(this._flashcardText('div', label, 'font-size:11px;color:var(--text-muted)'));
 
     var barOuter = createElement('div', { className: 'fc-progress-bar' });
     barOuter.style.margin = '6px 0';
@@ -2446,41 +3085,48 @@ class UI {
     barInner.style.width = Math.round((progress.current - 1) / progress.total * 100) + '%';
     barOuter.appendChild(barInner);
     progressWrap.appendChild(barOuter);
-
-    progressWrap.appendChild(createElement('div', { text: '✅ ' + progress.correctSoFar + ' | ❌ ' + progress.wrongSoFar }));
-    progressWrap.lastChild.style.cssText = 'font-size:10px;color:var(--text-muted)';
+    progressWrap.appendChild(this._flashcardText('div', '✅ ' + progress.correctSoFar + ' | ❌ ' + progress.wrongSoFar, 'font-size:10px;color:var(--text-muted)'));
     container.appendChild(progressWrap);
 
-    // Card display area
+    // Card display area (structured data, rendered as text only)
     var cardArea = createElement('div');
     cardArea.style.cssText = 'background:var(--bg-card-solid);border-radius:var(--radius-lg);padding:20px;text-align:center;border:var(--border-glow)';
-    // Note: flashcardMode.showCard() returns HTML - we insert it but this is source-controlled markup
-    cardArea.innerHTML = cardHTML;
+    cardArea.appendChild(this._flashcardText('div', card.subject, 'font-size:10px;color:var(--text-muted);margin-bottom:8px'));
+    card.buzzwords.forEach(function (bw) {
+      cardArea.appendChild(self._flashcardText('div', '• ' + bw, 'font-size:16px;font-weight:700;margin:4px 0'));
+    });
 
-    if (!fm.revealed) {
-      var revealBtn = createElement('button', { className: 'btn btn-primary btn-block', text: 'Show Answer' });
+    if (!card.revealed) {
+      var revealBtn = createElement('button', { className: 'btn btn-primary btn-block', text: 'Show Answer', attributes: { id: 'fcRevealBtn' } });
       revealBtn.style.marginTop = '16px';
       revealBtn.addEventListener('click', function () {
-        fm.revealAnswer();
+        self._flashcardAnswer = fm.reveal();
         self.renderFlashcardScreen();
       });
       cardArea.appendChild(revealBtn);
     } else {
+      var ans = this._flashcardAnswer || fm.reveal() || {};
       var answerArea = createElement('div');
       answerArea.style.marginTop = '12px';
-      answerArea.innerHTML = fm.revealAnswer(); // source-controlled HTML from FlashcardMode
+      answerArea.appendChild(this._flashcardText('div', '✓ ' + ans.answer, 'font-size:18px;font-weight:800;color:var(--accent-green);margin-bottom:6px'));
+      if (ans.teachingPoint) {
+        answerArea.appendChild(this._flashcardText('p', ans.teachingPoint, 'font-size:12px;color:var(--text-secondary);margin:6px 0'));
+      }
+      (ans.whyWrong || []).forEach(function (w) {
+        answerArea.appendChild(self._flashcardText('div', '✗ ' + w.distractor + ': ' + w.explanation, 'font-size:11px;color:var(--text-muted);margin:2px 0'));
+      });
       cardArea.appendChild(answerArea);
 
       var btnRow = createElement('div');
       btnRow.style.cssText = 'display:flex;gap:8px;margin-top:16px';
-      var gotItBtn = createElement('button', { className: 'btn btn-green', text: '✅ Got it' });
+      var gotItBtn = createElement('button', { className: 'btn btn-green', text: '✅ Got it (→)', attributes: { id: 'fcGotBtn' } });
       gotItBtn.style.flex = '1';
-      gotItBtn.addEventListener('click', function () { fm.markCorrect(); self.renderFlashcardScreen(); });
+      gotItBtn.addEventListener('click', function () { fm.rate('correct'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
       btnRow.appendChild(gotItBtn);
 
-      var missedBtn = createElement('button', { className: 'btn btn-red', text: '❌ Missed it' });
+      var missedBtn = createElement('button', { className: 'btn btn-red', text: '❌ Missed it (←)', attributes: { id: 'fcMissBtn' } });
       missedBtn.style.flex = '1';
-      missedBtn.addEventListener('click', function () { fm.markIncorrect(); self.renderFlashcardScreen(); });
+      missedBtn.addEventListener('click', function () { fm.rate('incorrect'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
       btnRow.appendChild(missedBtn);
       cardArea.appendChild(btnRow);
     }
@@ -2489,7 +3135,7 @@ class UI {
 
     var endBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '✕ End Session' });
     endBtn.style.marginTop = '10px';
-    endBtn.addEventListener('click', function () { fm.end(); self.show('screenHome'); });
+    endBtn.addEventListener('click', function () { self._endFlashcardSession(); self.show('screenHome'); });
     container.appendChild(endBtn);
   }
 
@@ -2560,7 +3206,8 @@ class UI {
       var reviewBtn = createElement('button', { className: 'btn btn-primary', text: '🔄 Review Missed' });
       reviewBtn.style.flex = '1';
       reviewBtn.addEventListener('click', function () {
-        fm.reviewMissed();
+        var res = fm.startMissedReview();
+        if (!res.success) self._showToast((res.error && res.error.message) || 'Could not start review.');
         self.renderFlashcardScreen();
       });
       actionRow.appendChild(reviewBtn);
@@ -2568,13 +3215,13 @@ class UI {
 
     var newBtn = createElement('button', { className: 'btn btn-green', text: '📖 New Session' });
     newBtn.style.flex = '1';
-    newBtn.addEventListener('click', function () { fm.end(); self.startFlashcardSession(); });
+    newBtn.addEventListener('click', function () { self._endFlashcardSession(); self.startFlashcardSession(); });
     actionRow.appendChild(newBtn);
     container.appendChild(actionRow);
 
     var homeBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Home' });
     homeBtn.style.marginTop = '6px';
-    homeBtn.addEventListener('click', function () { fm.end(); self.show('screenHome'); });
+    homeBtn.addEventListener('click', function () { self._endFlashcardSession(); self.show('screenHome'); });
     container.appendChild(homeBtn);
   }
 
@@ -2601,6 +3248,28 @@ class UI {
     metaP.style.cssText = 'color:var(--text-muted);font-size:12px';
     header.appendChild(metaP);
     content.appendChild(header);
+
+    // Weakest subject this run (needs a few encounters to be meaningful)
+    var bySubject = {};
+    game.runCards.forEach(function (r) {
+      var subj = r.card && r.card.subj;
+      if (!subj) return;
+      bySubject[subj] = bySubject[subj] || { n: 0, ok: 0 };
+      bySubject[subj].n++;
+      if (r.ok) bySubject[subj].ok++;
+    });
+    var weakest = null;
+    Object.keys(bySubject).forEach(function (subj) {
+      var st = bySubject[subj];
+      if (st.n < 2 || st.ok === st.n) return;
+      var a = st.ok / st.n;
+      if (!weakest || a < weakest.acc) weakest = { subj: subj, acc: a, n: st.n, ok: st.ok };
+    });
+    if (weakest) {
+      var weakEl = createElement('div', { text: '🎯 Focus area: ' + weakest.subj + ' (' + weakest.ok + '/' + weakest.n + ' correct)' });
+      weakEl.style.cssText = 'text-align:center;font-size:12px;font-weight:700;color:var(--accent-gold);margin:6px 0';
+      content.appendChild(weakEl);
+    }
 
     // Golden doctor notice
     if (game.wrong === 0 && game.correct >= 20 && storage.hasAchievement('ach_golden_doctor')) {
@@ -2696,6 +3365,10 @@ class UI {
             if (storage.addCardReport) {
               storage.addCardReport(c.id, reason, text);
             }
+            // Also send to the server when the leaderboard/account is available.
+            import('./leaderboard.js').then(function (mod) {
+              if (mod.leaderboard.isAuthenticated()) mod.leaderboard.reportCard(c.id, reason, text);
+            }).catch(function () { /* offline: the local report is still saved and exportable */ });
             alert('Card reported — thank you for helping improve the game!');
           }
         });
@@ -2789,6 +3462,7 @@ class UI {
     content.appendChild(shareBtn);
 
     this.show('screenPostRun');
+    this._animateNumbers(content);
 
     // Speed timer cleanup
     var timerEl = document.getElementById('hudSpeedTimer');

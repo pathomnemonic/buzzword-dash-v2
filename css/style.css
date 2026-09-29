@@ -1355,6 +1355,7 @@ select:focus-visible {
   backdrop-filter: blur(8px);
 }
 .opponent-hud b { color: var(--accent-pink); }
+.opponent-hud[hidden] { display: none; }
 
 /* ==================== CONFETTI ==================== */
 .confetti-piece {
@@ -2169,4 +2170,67 @@ select:focus-visible {
 .profile-name-input {
   background: rgba(30, 15, 70, 0.85);
   color: #ffffff;
+}
+
+
+/* ==================== STUDY GOAL ==================== */
+.study-goal { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.study-goal-bar { height: 6px; margin: 4px auto; max-width: 220px; border-radius: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.study-goal-fill { height: 100%; background: var(--accent-green); transition: width 0.4s ease; }
+.study-goal-due { font-size: 11px; color: var(--accent-gold); }
+
+/* ==================== COLORBLIND-SAFE PALETTE (Okabe-Ito) ==================== */
+body.colorblind {
+  --accent-green: #0072b2;
+  --accent-red: #e69f00;
+}
+.toggle:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+
+
+/* ==================== ANSWER FEEDBACK / STREAK FLAMES ==================== */
+#screenFlash {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0;
+}
+#screenFlash.flash-good {
+  background: radial-gradient(circle at center, transparent 45%, var(--accent-green) 140%);
+  animation: screenFlashPulse 0.45s ease-out;
+}
+#screenFlash.flash-bad {
+  background: radial-gradient(circle at center, transparent 35%, var(--accent-red) 140%);
+  animation: screenFlashPulse 0.6s ease-out;
+}
+@keyframes screenFlashPulse {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.hud-pill.hot { box-shadow: 0 0 10px rgba(255, 136, 0, 0.8); animation: flamePulse 0.9s ease-in-out infinite; }
+.hud-pill.blaze { box-shadow: 0 0 16px rgba(255, 60, 0, 0.95), 0 0 30px rgba(255, 200, 0, 0.5); animation: flamePulse 0.5s ease-in-out infinite; }
+@keyframes flamePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #screenFlash, .hud-pill.hot, .hud-pill.blaze { animation: none !important; }
+}
+
+
+/* ==================== MAP HAZARDS (solo runs; each stays under 3 Hz) ==================== */
+body.hazard-blackout #gameContainer canvas { animation: hzBlackout 0.7s ease-in-out infinite alternate; }
+body.hazard-fog #gameContainer canvas { filter: contrast(0.7) brightness(1.5) blur(1.5px); transition: filter 0.4s; }
+body.hazard-glitch #gameContainer canvas { animation: hzGlitch 0.7s steps(2, end) infinite; }
+body.hazard-flare #gameContainer canvas { animation: hzFlare 2.5s ease-out 1; }
+body.hazard-surge #gameContainer canvas { filter: saturate(1.7) contrast(1.1); }
+body.hazard-quake #gameContainer canvas { animation: hzQuake 0.25s linear infinite; }
+body.hazard-pulse #gameContainer canvas { animation: hzPulse 0.6s ease-out infinite; }
+@keyframes hzBlackout { from { filter: brightness(1); } to { filter: brightness(0.22); } }
+@keyframes hzGlitch { 0% { filter: hue-rotate(0deg) saturate(1.2); } 100% { filter: hue-rotate(140deg) saturate(1.6); } }
+@keyframes hzFlare { 0% { filter: brightness(2.6) saturate(0.6); } 100% { filter: brightness(1) saturate(1); } }
+@keyframes hzQuake { 0% { transform: translate(0, 0); } 25% { transform: translate(3px, -2px); } 50% { transform: translate(-3px, 2px); } 75% { transform: translate(2px, 3px); } 100% { transform: translate(0, 0); } }
+@keyframes hzPulse { 0% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  body[class*="hazard-"] #gameContainer canvas { animation: none !important; filter: none !important; }
 }

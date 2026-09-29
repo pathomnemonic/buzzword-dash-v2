@@ -50,6 +50,13 @@ var DEFAULTS = {
     musicOn: true,
     ttsEnabled: false,
     hapticsEnabled: true,
+    dailyGoal: 20,
+    colorblindMode: false,
+    glowEffects: true,
+    reminders: false,
+    reminderHour: 19,
+    lastReminderDate: '',
+    avatarColors: {},
     reducedMotion: false,
     quality: 'auto',
     nightMode: false,
@@ -73,13 +80,16 @@ var DEFAULTS = {
     continuesUsed: 0,
 
     dailyStreak: 0,
+    streakShields: 0,
+    tournamentTop10Weeks: [],
     lastCompletedDailyDate: null,
     lastLoginDate: null,
     loginStreak: 0,
 
     achievements: [],
-    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none'],
+    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'],
     equipped: {
+      monster: 'monster_classic',
       skin: 'avatar_intern',
       hat: 'hat_none',
       trail: 'trail_none',
@@ -129,7 +139,11 @@ var DEFAULTS = {
     completedRunIds: [],
     completedFlashcardSessionIds: [],
     recentRuns: [],
-    calendarData: {}
+    calendarData: {},
+    dailyCounts: {},
+    weeklyClaims: {},
+    examResults: [],
+    completedExamIds: []
   },
 
   // --- Idempotency ---
@@ -187,6 +201,22 @@ function localDateKey(date) {
 
 function todayKey() {
   return localDateKey(new Date());
+}
+
+/** Local date key for `offset` days from today (negative = past). */
+function dayKeyOffset(offset) {
+  var d = new Date();
+  d.setDate(d.getDate() + offset);
+  return localDateKey(d);
+}
+
+/** The seven local date keys (Monday..Sunday) of the week containing today. */
+function currentWeekKeys() {
+  var d = new Date();
+  var mondayOffset = -((d.getDay() + 6) % 7);
+  var keys = [];
+  for (var i = 0; i < 7; i++) keys.push(dayKeyOffset(mondayOffset + i));
+  return keys;
 }
 
 function yesterdayKey() {
@@ -256,7 +286,7 @@ function migrateFromV1(old) {
   if (Array.isArray(old.ownedItems)) {
     data.progression.ownedItems = old.ownedItems.slice();
     // Ensure defaults are present
-    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none'];
+    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
     for (var ri = 0; ri < requiredItems.length; ri++) {
       if (data.progression.ownedItems.indexOf(requiredItems[ri]) < 0) {
         data.progression.ownedItems.push(requiredItems[ri]);
@@ -508,7 +538,7 @@ class Storage {
     if (!d) return;
 
     // Ensure required owned items
-    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none'];
+    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
     for (var i = 0; i < requiredItems.length; i++) {
       if (d.progression.ownedItems.indexOf(requiredItems[i]) < 0) {
         d.progression.ownedItems.push(requiredItems[i]);
@@ -537,6 +567,10 @@ class Storage {
     if (typeof d.cards.subjectStats !== 'object' || d.cards.subjectStats === null) d.cards.subjectStats = {};
     if (typeof d.progression.questState !== 'object' || d.progression.questState === null) d.progression.questState = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
+    if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
+    if (typeof d.history.weeklyClaims !== 'object' || d.history.weeklyClaims === null) d.history.weeklyClaims = {};
+    if (!Array.isArray(d.history.examResults)) d.history.examResults = [];
+    if (!Array.isArray(d.history.completedExamIds)) d.history.completedExamIds = [];
   }
 
   // --- Generic getters/setters (backward compat layer) ---
@@ -583,6 +617,7 @@ class Storage {
       case 'profileVisible': return this.data.profile.visible;
       case 'selectedBadges': return this.data.profile.selectedBadges;
       case 'calendarData': return this.data.history.calendarData;
+      case 'examResults': return this.data.history.examResults;
       case 'questCompletionDates': return this._getQuestCompletionDates();
       case 'totalPlayTime': return Math.round(this.data.progression.totalPlayTimeMs / 1000);
       case 'totalCardsStudied': return this.data.progression.totalCardsStudied;
@@ -659,6 +694,126 @@ class Storage {
     this.save();
   }
 
+  // ===== EXAM SIMULATION =====
+
+  /**
+   * Persist a finished exam. Idempotent by examId.
+   * Updates per-card and per-subject stats (feeding spaced repetition) and
+   * keeps the last 20 results for the history line on the setup screen.
+   */
+  finalizeExamSession(summary) {
+    if (!this.data) this.load();
+    var h = this.data.history;
+    if (h.completedExamIds.indexOf(summary.examId) >= 0) return { applied: false, duplicate: true };
+
+    (summary.cardResults || []).forEach(function (r) {
+      if (!r.answered || !r.cardId) return;
+      this.updateCardStat(r.cardId, !!r.correct);
+      if (r.subject) this.updateSubjectStat(r.subject, !!r.correct);
+    }, this);
+
+    h.examResults.push({
+      examId: summary.examId,
+      date: summary.date,
+      total: summary.total,
+      correct: summary.correct,
+      accuracy: summary.accuracy,
+      durationSec: summary.durationSec,
+      bySubject: summary.bySubject
+    });
+    if (h.examResults.length > 20) h.examResults = h.examResults.slice(-20);
+    h.completedExamIds.push(summary.examId);
+    if (h.completedExamIds.length > 100) h.completedExamIds = h.completedExamIds.slice(-100);
+
+    this.addStudiedToday((summary.correct || 0) + (summary.wrong || 0));
+    this.save();
+    return { applied: true, duplicate: false };
+  }
+
+  // ===== STREAK STATUS & WEEKLY GOAL =====
+
+  /**
+   * Current daily-challenge streak as the player should see it: a streak that
+   * lapsed (no shield available) reads as 0.
+   */
+  getStreakStatus() {
+    var p = this.data.progression;
+    var last = p.lastCompletedDailyDate;
+    var streak = p.dailyStreak || 0;
+    var live = last === todayKey() || last === yesterdayKey() ||
+      (last === dayKeyOffset(-2) && (p.streakShields || 0) > 0);
+    return {
+      streak: live ? streak : 0,
+      shields: p.streakShields || 0,
+      playedToday: last === todayKey()
+    };
+  }
+
+  /** Days this week (Mon-Sun) on which the daily card goal was met. */
+  getWeeklyProgress() {
+    var goal = this.data.settings.dailyGoal || 20;
+    var counts = this.data.history.dailyCounts;
+    var keys = currentWeekKeys();
+    var days = keys.filter(function (k) { return (counts[k] || 0) >= goal; }).length;
+    return {
+      weekKey: keys[0],
+      daysMet: days,
+      target: 5,
+      reward: 250,
+      claimed: !!this.data.history.weeklyClaims[keys[0]]
+    };
+  }
+
+  /** Claim the weekly goal reward once per week. */
+  claimWeeklyGoal() {
+    var w = this.getWeeklyProgress();
+    if (w.claimed) return { success: false, error: 'Already claimed this week.' };
+    if (w.daysMet < w.target) return { success: false, error: 'Goal not met yet.' };
+    this.data.history.weeklyClaims[w.weekKey] = true;
+    this.data.progression.coins += w.reward;
+    this.data.progression.totalCoinsEarned += w.reward;
+    var keys = Object.keys(this.data.history.weeklyClaims).sort();
+    while (keys.length > 12) delete this.data.history.weeklyClaims[keys.shift()];
+    this.save();
+    return { success: true, reward: w.reward };
+  }
+
+  /** Cards studied so far this local week (Mon-Sun); used for group goals. */
+  getWeeklyCards() {
+    var counts = this.data.history.dailyCounts;
+    return currentWeekKeys().reduce(function (sum, k) { return sum + (counts[k] || 0); }, 0);
+  }
+
+  /** Record a top-10% weekly tournament finish once per week. @returns {boolean} true if newly earned */
+  recordTournamentTop10(weekKey) {
+    var list = this.data.progression.tournamentTop10Weeks;
+    if (!Array.isArray(list)) list = this.data.progression.tournamentTop10Weeks = [];
+    if (list.indexOf(weekKey) >= 0) return false;
+    list.push(weekKey);
+    this.save();
+    return true;
+  }
+
+  getTodayKey() {
+    return todayKey();
+  }
+
+  // ===== DAILY STUDY GOAL =====
+
+  addStudiedToday(count) {
+    if (!count) return;
+    var counts = this.data.history.dailyCounts;
+    var key = todayKey();
+    counts[key] = (counts[key] || 0) + count;
+    // Keep ~90 days
+    var keys = Object.keys(counts).sort();
+    while (keys.length > 90) delete counts[keys.shift()];
+  }
+
+  getStudiedToday() {
+    return this.data.history.dailyCounts[todayKey()] || 0;
+  }
+
   // ===== DAILY HELPERS =====
 
   _isDailyDone() {
@@ -723,8 +878,46 @@ class Storage {
     if (wasCorrect) s.correct++;
     else s.wrong++;
     s.lastSeen = Date.now();
+
+    // Spaced-repetition schedule (SM-2 style). Correct answers push the next
+    // review further out; a miss brings the card back within minutes.
+    var DAY = 24 * 60 * 60 * 1000;
+    var ease = typeof s.ease === 'number' ? s.ease : 2.5;
+    var reps = s.reps || 0;
+    var interval = s.interval || 0; // days
+    if (wasCorrect) {
+      reps++;
+      interval = reps === 1 ? 1 : reps === 2 ? 3 : Math.round(interval * ease);
+      ease = Math.min(3, ease + 0.05);
+      s.due = s.lastSeen + interval * DAY;
+    } else {
+      reps = 0;
+      interval = 0;
+      ease = Math.max(1.3, ease - 0.2);
+      s.due = s.lastSeen + 10 * 60 * 1000;
+    }
+    s.ease = ease;
+    s.reps = reps;
+    s.interval = interval;
+
     stats[cardId] = s;
     this.save();
+  }
+
+  /**
+   * Count cards that have been studied before and are due for review now.
+   * @param {string[]} [cardIds] - restrict to these ids (default: all tracked)
+   */
+  getDueCount(cardIds) {
+    var stats = this.data.cards.cardStats;
+    var now = Date.now();
+    var ids = cardIds || Object.keys(stats);
+    var due = 0;
+    for (var i = 0; i < ids.length; i++) {
+      var s = stats[ids[i]];
+      if (s && s.seen > 0 && typeof s.due === 'number' && s.due <= now) due++;
+    }
+    return due;
   }
 
   // ===== SUBJECT STATS =====
@@ -807,6 +1000,12 @@ class Storage {
     var todayState = this.data.progression.questState[today];
     if (!todayState || !todayState[questId]) return 0;
     return todayState[questId].progress || 0;
+  }
+
+  /** Whether a quest's reward was already claimed on the given day. */
+  isQuestClaimed(questId, dateKey) {
+    var day = this.data.progression.questState[dateKey || todayKey()];
+    return !!(day && day[questId] && day[questId].claimed);
   }
 
   /**
@@ -977,7 +1176,8 @@ class Storage {
     p.totalPlayTimeMs += summary.durationMs || 0;
 
     // Coins
-    var totalCoins = (summary.coinsEarned || 0) + (summary.coinsCollected || 0);
+    // coinsEarned is the run's full total; coinsCollected (pickups) is a subset of it.
+    var totalCoins = summary.coinsEarned || 0;
     p.coins += totalCoins;
     p.totalCoinsEarned += totalCoins;
 
@@ -1021,8 +1221,18 @@ class Storage {
       if (p.lastCompletedDailyDate !== today) {
         if (p.lastCompletedDailyDate === yesterday) {
           p.dailyStreak++;
-        } else if (p.lastCompletedDailyDate !== today) {
+        } else if (p.lastCompletedDailyDate === dayKeyOffset(-2) && (p.streakShields || 0) > 0 && p.dailyStreak > 0) {
+          // Missed exactly one day: a streak shield keeps the streak alive.
+          p.streakShields--;
+          p.dailyStreak++;
+          result.shieldUsed = true;
+        } else {
           p.dailyStreak = 1;
+        }
+        // Earn a shield for every 7-day streak (max 3 banked).
+        if (p.dailyStreak > 0 && p.dailyStreak % 7 === 0) {
+          p.streakShields = Math.min(3, (p.streakShields || 0) + 1);
+          result.shieldEarned = true;
         }
         p.lastCompletedDailyDate = today;
         result.dailyCompleted = true;
@@ -1055,6 +1265,7 @@ class Storage {
       var acc = total > 0 ? Math.round(summary.correct / total * 100) : 0;
       this.data.history.calendarData[calKey] = acc;
     }
+    this.addStudiedToday(summary.encountersCompleted || 0);
 
     // --- Quest progress from run events ---
     this._processRunQuestProgress(summary);
@@ -1179,7 +1390,7 @@ class Storage {
       for (var i = 0; i < summary.cardResults.length; i++) {
         var cr = summary.cardResults[i];
         if (cr.cardId) {
-          this.updateCardStat(cr.cardId, cr.correct);
+          this.updateCardStat(cr.cardId, cr.rating === 'correct');
         }
       }
     }
@@ -1189,6 +1400,8 @@ class Storage {
     if (this.data.history.completedFlashcardSessionIds.length > 200) {
       this.data.history.completedFlashcardSessionIds = this.data.history.completedFlashcardSessionIds.slice(-200);
     }
+
+    this.addStudiedToday(summary.total || 0);
 
     // Achievements
     var newAchievements = this._evaluateAchievements(null);
@@ -1494,12 +1707,47 @@ class Storage {
     return this.toggleArrayItem('selectedYears', year);
   }
 
-  // ===== ANKI API KEY — DELETED =====
-  // Per architecture contract, browser API keys must not be stored.
-  // These methods are stubs for backward compat.
+  // ===== BACKUP / RESTORE =====
 
-  getAnkiApiKey() { return ''; }
-  setAnkiApiKey(key) { /* intentionally deleted */ }
+  /**
+   * Serialize all saved progress for download.
+   * @returns {string} JSON text
+   */
+  exportBackup() {
+    return JSON.stringify({
+      app: 'buzzword-dash',
+      exportedAt: new Date().toISOString(),
+      data: this.data
+    }, null, 2);
+  }
+
+  /**
+   * Replace saved progress with a previously exported backup.
+   * @param {string} text - JSON from exportBackup()
+   * @returns {{ok: boolean, error?: string}}
+   */
+  importBackup(text) {
+    var parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      return { ok: false, error: 'File is not valid JSON.' };
+    }
+    var data = parsed && parsed.app === 'buzzword-dash' ? parsed.data : null;
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { ok: false, error: 'This is not a Buzzword Dash backup.' };
+    }
+    if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
+      return { ok: false, error: 'Backup is from an incompatible version.' };
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {
+      return { ok: false, error: 'Could not write to local storage.' };
+    }
+    this.load();
+    return { ok: true };
+  }
 
   // ===== RESET =====
 

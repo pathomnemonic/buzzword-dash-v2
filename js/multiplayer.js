@@ -38,7 +38,6 @@
 
 // ===== CONSTANTS =====
 
-var PEERJS_URL = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
 var PEER_PREFIX = 'buzzworddash3-';
 var peerLoadPromise = null;
 
@@ -370,31 +369,17 @@ export function validateMultiplayerMessage(message) {
 
 function loadPeerJS() {
   if (window.Peer) return Promise.resolve();
-  if (peerLoadPromise) return peerLoadPromise;
-
-  peerLoadPromise = new Promise(function (resolve, reject) {
-    var existing = document.querySelector('script[data-buzzword-peerjs]');
-    if (existing) {
-      if (existing.dataset.loaded === 'true') { resolve(); return; }
-      existing.addEventListener('load', function () { resolve(); });
-      existing.addEventListener('error', function () { reject(new Error('Failed to load PeerJS.')); });
-      return;
-    }
-
-    var script = document.createElement('script');
-    script.src = PEERJS_URL;
-    script.async = true;
-    script.dataset.buzzwordPeerjs = 'true';
-
-    script.onload = function () {
-      script.dataset.loaded = 'true';
-      if (window.Peer) resolve();
-      else reject(new Error('PeerJS loaded but Peer was unavailable.'));
-    };
-    script.onerror = function () { reject(new Error('Failed to load PeerJS.')); };
-    document.head.appendChild(script);
-  });
-
+  if (!peerLoadPromise) {
+    // Bundled (code-split) instead of fetched from a CDN, so it works offline
+    // and under strict cross-origin headers.
+    peerLoadPromise = import('peerjs').then(function (mod) {
+      window.Peer = mod.Peer || mod.default;
+      if (!window.Peer) throw new Error('PeerJS loaded but Peer was unavailable.');
+    }).catch(function (e) {
+      peerLoadPromise = null;
+      throw e;
+    });
+  }
   return peerLoadPromise;
 }
 

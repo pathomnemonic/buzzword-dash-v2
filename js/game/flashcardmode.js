@@ -78,6 +78,18 @@ function buildCardPool(options) {
     : [];
   var allCards = CARDS.concat(customs);
 
+  // Explicit card list (study plan, exam review): bypasses subject/filter
+  // selection but still respects disabled cards.
+  if (Array.isArray(options.cardIds) && options.cardIds.length > 0) {
+    var wanted = {};
+    options.cardIds.forEach(function (id) { wanted[id] = true; });
+    var disabledNow = storage.get('disabledCards') || [];
+    return {
+      cards: allCards.filter(function (c) { return wanted[c.id] && disabledNow.indexOf(c.id) < 0; }),
+      error: null
+    };
+  }
+
   // If subjects is empty, use all
   if (!subjects || subjects.length === 0) {
     subjects = SUBJECTS.slice();

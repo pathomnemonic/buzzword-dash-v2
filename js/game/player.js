@@ -21,6 +21,7 @@
 import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { SHOP_ITEMS, AVATARS } from './shopdata.js';
+import { loadCharacterModel, buildModelCharacter } from './charactermodel.js';
 
 // ===== HELPERS =====
 
@@ -50,10 +51,31 @@ export function disposeCharacter(obj) {
 export function getAvatarConfig() {
     var equipped = storage.get('equipped');
     var skinId = equipped.skin || 'avatar_intern';
+    var found = AVATARS[0];
     for (var i = 0; i < AVATARS.length; i++) {
-        if (AVATARS[i].id === skinId) return AVATARS[i];
+        if (AVATARS[i].id === skinId) { found = AVATARS[i]; break; }
     }
-    return AVATARS[0];
+    return applyColorOverrides(found);
+}
+
+var COLOR_KEYS = { hair: 'hairColor', skin: 'skinColor', body: 'bodyColor', pants: 'pantsColor', shoe: 'shoeColor' };
+
+/**
+ * Apply the player's custom colors (Locker -> Colors) to a humanoid avatar.
+ * Vehicles are left alone. Returns a copy; shop data is never mutated.
+ */
+function applyColorOverrides(avatar) {
+    if (avatar.isVehicle) return avatar;
+    var custom = storage.get('avatarColors');
+    if (!custom || typeof custom !== 'object') return avatar;
+    var out = Object.assign({}, avatar);
+    Object.keys(COLOR_KEYS).forEach(function (k) {
+        var hex = custom[k];
+        if (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)) {
+            out[COLOR_KEYS[k]] = parseInt(hex.slice(1), 16);
+        }
+    });
+    return out;
 }
 
 // ===== HELPER: rounded limb (cylinder with sphere caps) =====
@@ -82,6 +104,72 @@ function buildRoundedLimb(radius, length, color) {
     g.add(botCap);
 
     return g;
+}
+
+// ===== HELPER: move a limb's rotation origin to its joint =====
+// Limbs are built centered on their own geometry, so rotating them swings the
+// limb about its middle (thigh/upper arm) and looks wrong. Shift the contents
+// so the group's origin is the hip/shoulder, keeping the rest pose unchanged.
+function pivotLimbAtTop(group, length) {
+    var half = length / 2;
+    for (var i = 0; i < group.children.length; i++) {
+        group.children[i].position.y -= half;
+    }
+    group.position.y += half;
+}
+
+// ===== HELPER: toon shading + ink outline =====
+var _toonGradient = null;
+function getToonGradient() {
+    if (!_toonGradient) {
+        // Three-band ramp gives the flat, readable shading of a stylized game.
+        _toonGradient = new THREE.DataTexture(new Uint8Array([90, 170, 255]), 3, 1, THREE.RedFormat);
+        _toonGradient.minFilter = THREE.NearestFilter;
+        _toonGradient.magFilter = THREE.NearestFilter;
+        _toonGradient.needsUpdate = true;
+    }
+    return _toonGradient;
+}
+
+function stylizeCharacter(root) {
+    var gradient = getToonGradient();
+    var outlineMat = new THREE.MeshBasicMaterial({ color: 0x14102a, side: THREE.BackSide });
+    var toonCache = {};
+    var meshes = [];
+    root.traverse(function (o) { if (o.isMesh) meshes.push(o); });
+
+    meshes.forEach(function (m) {
+        var mat = m.material;
+        if (mat && mat.isMeshStandardMaterial) {
+            var toon = toonCache[mat.uuid];
+            if (!toon) {
+                toon = new THREE.MeshToonMaterial({
+                    color: mat.color,
+                    gradientMap: gradient,
+                    emissive: mat.emissive,
+                    emissiveIntensity: mat.emissiveIntensity,
+                    transparent: mat.transparent,
+                    opacity: mat.opacity,
+                    side: mat.side
+                });
+                toonCache[mat.uuid] = toon;
+            }
+            m.material = toon;
+            mat = toon;
+        }
+
+        // Outline solid volumes only (skip flat decals, glows and tiny details).
+        if (!mat || mat.transparent || mat.isMeshBasicMaterial) return;
+        var type = m.geometry && m.geometry.type;
+        if (type === 'PlaneGeometry' || type === 'CircleGeometry') return;
+        m.geometry.computeBoundingSphere();
+        if (!m.geometry.boundingSphere || m.geometry.boundingSphere.radius < 0.05) return;
+
+        var outline = new THREE.Mesh(m.geometry, outlineMat);
+        outline.scale.setScalar(1.09);
+        outline.userData.isOutline = true;
+        m.add(outline);
+    });
 }
 
 // ===== HELPER: build a capsule-shaped body =====
@@ -703,6 +791,33 @@ function applyGear(pg, gearItem, avatar) {
         );
         shield.position.set(-0.4 * s, 0.85 * s, -0.1 * s);
         pg.add(shield);
+    } else if (gearItem.id === 'gear_pager') {
+        var pager = new THREE.Mesh(
+            new THREE.BoxGeometry(0.1 * s, 0.14 * s, 0.04 * s),
+            new THREE.MeshStandardMaterial({ color: gearItem.color })
+        );
+        pager.position.set(0.22 * s, 0.70 * s, -0.27 * s);
+        pg.add(pager);
+        var pagerScreen = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.07 * s, 0.05 * s),
+            new THREE.MeshBasicMaterial({ color: 0x66ff88 })
+        );
+        pagerScreen.position.set(0.22 * s, 0.73 * s, -0.295 * s);
+        pagerScreen.rotation.y = Math.PI;
+        pg.add(pagerScreen);
+    } else if (gearItem.id === 'gear_ivbag') {
+        var bag = new THREE.Mesh(
+            new THREE.BoxGeometry(0.26 * s, 0.34 * s, 0.1 * s),
+            new THREE.MeshStandardMaterial({ color: gearItem.color, transparent: true, opacity: 0.85 })
+        );
+        bag.position.set(0, 0.95 * s, 0.26 * s);
+        pg.add(bag);
+        var fluid = new THREE.Mesh(
+            new THREE.BoxGeometry(0.2 * s, 0.22 * s, 0.11 * s),
+            new THREE.MeshBasicMaterial({ color: 0x66ccff })
+        );
+        fluid.position.set(0, 0.9 * s, 0.26 * s);
+        pg.add(fluid);
     } else if (gearItem.id === 'gear_katana') {
         var blade = new THREE.Mesh(
             new THREE.BoxGeometry(0.03 * s, 0.5 * s, 0.01 * s),
@@ -849,6 +964,39 @@ function applyHat(pg, hatItem, avatar) {
             blade2.position.y = 0.12 * s;
             hat.add(blade2);
         }
+    } else if (hatItem.id === 'hat_catears') {
+        hat = new THREE.Group();
+        for (var ce = -1; ce <= 1; ce += 2) {
+            var ear = new THREE.Mesh(
+                new THREE.ConeGeometry(0.11 * s, 0.24 * s, 4),
+                new THREE.MeshStandardMaterial({ color: hatItem.color })
+            );
+            ear.position.set(ce * 0.2 * s, -0.02 * s, 0);
+            ear.rotation.z = -ce * 0.25;
+            hat.add(ear);
+            var inner = new THREE.Mesh(
+                new THREE.ConeGeometry(0.06 * s, 0.14 * s, 4),
+                new THREE.MeshBasicMaterial({ color: 0xff7799 })
+            );
+            inner.position.set(ce * 0.2 * s, -0.04 * s, -0.04 * s);
+            inner.rotation.z = -ce * 0.25;
+            hat.add(inner);
+        }
+        hatY = 2.0 * s;
+    } else if (hatItem.id === 'hat_sunglasses') {
+        hat = new THREE.Group();
+        var lensMat = new THREE.MeshBasicMaterial({ color: hatItem.color });
+        for (var sg = -1; sg <= 1; sg += 2) {
+            var lens = new THREE.Mesh(new THREE.BoxGeometry(0.2 * s, 0.13 * s, 0.03 * s), lensMat);
+            lens.position.set(sg * 0.13 * s, 0, -0.03 * s);
+            hat.add(lens);
+        }
+        var bridge = new THREE.Mesh(new THREE.BoxGeometry(0.08 * s, 0.03 * s, 0.03 * s), lensMat);
+        bridge.position.set(0, 0.02 * s, -0.03 * s);
+        hat.add(bridge);
+        // Sit on the face at eye height rather than on top of the head.
+        hatY = 1.72 * s;
+        hat.userData.faceOffsetZ = -0.36 * s;
     } else {
         hat = new THREE.Mesh(
             new THREE.CylinderGeometry(0.30 * s, 0.32 * s, 0.12 * s, 8),
@@ -889,7 +1037,7 @@ function applyHat(pg, hatItem, avatar) {
         }
     }
     if (hat) {
-        hat.position.set(0, hatY, 0);
+        hat.position.set(0, hatY, hat.userData.faceOffsetZ || 0);
         pg.add(hat);
     }
 }
@@ -902,6 +1050,17 @@ export function buildPlayer() {
 
     if (avatar.isVehicle) {
         return buildVehicle(avatar);
+    }
+
+    if (avatar.isModel) {
+        // Real animated model. If it is still downloading, show the
+        // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
+        var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;
+        var model = buildModelCharacter(url, avatar.scale);
+        if (model) return model;
+        loadCharacterModel(url).catch(function (e) {
+            console.warn('[Player] Could not load character model:', e && e.message);
+        });
     }
 
     return buildHumanoid(avatar, equipped);
@@ -1076,6 +1235,12 @@ function buildHumanoid(avatar, equipped) {
     handR.position.set(0, -0.24 * s, 0);
     rightArmGroup.add(handR);
 
+    // Rotate limbs about the hip/shoulder rather than their centers
+    pivotLimbAtTop(leftLegGroup, 0.50 * s);
+    pivotLimbAtTop(rightLegGroup, 0.50 * s);
+    pivotLimbAtTop(leftArmGroup, 0.40 * s);
+    pivotLimbAtTop(rightArmGroup, 0.40 * s);
+
     // ===== AVATAR SPECIAL FEATURES =====
 
     // Cape (Superhero)
@@ -1169,6 +1334,8 @@ function buildHumanoid(avatar, equipped) {
     applyHat(pg, hatItem, avatar);
     applyGear(pg, gearItem, avatar);
 
+    stylizeCharacter(pg);
+
     return pg;
 }
 
@@ -1194,6 +1361,15 @@ export function getPlayerLimbs(playerGroup) {
             mouth: null,
             coatTail: null,
             isVehicle: true
+        };
+    }
+
+    if (playerGroup.userData && playerGroup.userData.isModel) {
+        // Animated by its own clips; no procedural limbs to drive.
+        return {
+            leftLeg: null, rightLeg: null, leftArm: null, rightArm: null,
+            cape: null, head: null, mouth: null, coatTail: null,
+            isVehicle: false, isModel: true
         };
     }
 
