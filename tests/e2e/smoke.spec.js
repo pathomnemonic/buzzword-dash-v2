@@ -2,6 +2,7 @@
 // Basic E2E smoke tests
 
 import { test, expect } from '@playwright/test';
+import { openApp } from './helpers.js';
 
 test.describe('Smoke tests', () => {
   test('home screen loads with title', async ({ page }) => {
@@ -10,28 +11,43 @@ test.describe('Smoke tests', () => {
   });
 
   test('play button is visible', async ({ page }) => {
-    await page.goto('/');
-    const playButton = page.locator('.btn-play');
-    await expect(playButton).toBeVisible();
+    await openApp(page);
+    await expect(page.locator('.btn-play')).toBeVisible();
   });
 
   test('bottom navigation is visible', async ({ page }) => {
+    await openApp(page);
+    await expect(page.locator('#bottomNav')).toBeVisible();
+  });
+
+  test('the first-run tutorial can be completed', async ({ page }) => {
     await page.goto('/');
-    const nav = page.locator('#bottomNav');
-    await expect(nav).toBeVisible();
+    await expect(page.locator('#onboardingOverlay')).toBeVisible();
+    await openApp(page);
+    await expect(page.locator('#onboardingOverlay')).toBeHidden();
   });
 
   test('navigating to Stats screen works', async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
     await page.locator('[data-screen="screenStats"]').click();
-    const statsScreen = page.locator('#screenStats');
-    await expect(statsScreen).toBeVisible();
+    await expect(page.locator('#screenStats')).toBeVisible();
   });
 
   test('navigating to Settings screen works', async ({ page }) => {
-    await page.goto('/');
+    await openApp(page);
     await page.locator('[data-screen="screenSettings"]').click();
-    const settingsScreen = page.locator('#screenSettings');
-    await expect(settingsScreen).toBeVisible();
+    await expect(page.locator('#screenSettings')).toBeVisible();
+  });
+
+  test('the Flashcards button opens the flashcard screen', async ({ page }) => {
+    await openApp(page);
+    await page.locator('#flashcardBtn').click();
+    await expect(page.locator('#screenFlashcard')).toBeVisible();
+  });
+
+  test('the Exam Sim button opens the exam setup', async ({ page }) => {
+    await openApp(page);
+    await page.locator('#examBtn').click();
+    await expect(page.locator('#examContent')).toContainText(/exam block/i);
   });
 });

@@ -3,34 +3,30 @@
 // loop, dead buttons) that unit tests cannot.
 
 import { test, expect } from '@playwright/test';
-
-async function skipOnboarding(page) {
-  await page.goto('/');
-  const next = page.locator('#obNextBtn');
-  for (let i = 0; i < 8; i++) {
-    if (!(await next.isVisible().catch(() => false))) break;
-    await next.click();
-  }
-}
+import { openApp, hasWebGL } from './helpers.js';
 
 test.describe('Gameplay', () => {
+  // The runner is 3D. Only Chromium has a reliable software WebGL in headless CI.
+  test.skip(({ browserName }) => browserName !== 'chromium', 'runner needs WebGL (verified in Chromium)');
+
   test('starting a run shows clues and three answer lanes', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
 
-    await skipOnboarding(page);
+    await openApp(page);
+    test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
     await page.locator('.btn-play').click();
 
-    const buzz = page.locator('#buzzText');
-    await expect(buzz).not.toHaveText('GET READY', { timeout: 15000 });
+    await expect(page.locator('#buzzText')).not.toHaveText('GET READY', { timeout: 20000 });
     await expect(page.locator('#answerRow > *')).toHaveCount(3);
     expect(errors).toEqual([]);
   });
 
   test('the 3D scene actually renders (canvas is not blank)', async ({ page }) => {
-    await skipOnboarding(page);
+    await openApp(page);
+    test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
     await page.locator('.btn-play').click();
-    await expect(page.locator('#buzzText')).not.toHaveText('GET READY', { timeout: 15000 });
+    await expect(page.locator('#buzzText')).not.toHaveText('GET READY', { timeout: 20000 });
 
     // Sample the WebGL canvas: a rendered track has many distinct colors.
     const distinct = await page.evaluate(async () => {
@@ -49,9 +45,11 @@ test.describe('Gameplay', () => {
     });
     expect(distinct).toBeGreaterThan(8);
   });
+});
 
+test.describe('Settings and screens', () => {
   test('settings toggles work from the keyboard', async ({ page }) => {
-    await skipOnboarding(page);
+    await openApp(page);
     await page.locator('[data-screen="screenSettings"]').click();
     const toggle = page.getByRole('switch', { name: /Colorblind/ });
     await toggle.focus();
@@ -62,8 +60,30 @@ test.describe('Gameplay', () => {
   });
 
   test('the leaderboard screen explains when it is not configured', async ({ page }) => {
-    await skipOnboarding(page);
+    await openApp(page);
     await page.locator('#leaderboardBtn').click();
     await expect(page.locator('#leaderboardContent')).toContainText(/not set up|Connecting|sign in/i);
+  });
+
+  test('a flashcard session can be started and answered', async ({ page }) => {
+    await openApp(page);
+    await page.locator('#flashcardBtn').click();
+    await page.getByRole('button', { name: /Start Flashcard Session/ }).click();
+    await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);
+    await page.getByRole('button', { name: 'Show Answer' }).click();
+    await page.getByRole('button', { name: /Got it/ }).click();
+    await expect(page.locator('#flashcardContent')).toContainText(/Card 2 of/);
+  });
+
+  test('an exam simulation can be completed', async ({ page }) => {
+    await openApp(page);
+    await page.locator('#examBtn').click();
+    await page.getByRole('radio', { name: '10' }).click();
+    await page.getByRole('radio', { name: 'Untimed' }).click();
+    await page.getByRole('button', { name: /Start exam/ }).click();
+    await expect(page.locator('#examContent')).toContainText(/Question 1 of 10/);
+    page.once('dialog', (d) => d.accept());
+    await page.getByRole('button', { name: /End exam now/ }).click();
+    await expect(page.locator('#examContent')).toContainText(/Exam complete/);
   });
 });
