@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { SHOP_ITEMS, AVATARS } from './shopdata.js';
 import { loadCharacterModel, buildModelCharacter } from './charactermodel.js';
-import { isLowQuality } from './quality.js';
+import { useCharacterModels } from './quality.js';
 
 // ===== HELPERS =====
 
@@ -30,13 +30,19 @@ import { isLowQuality } from './quality.js';
  * Dispose all geometry and materials within a group recursively.
  * @param {THREE.Object3D} obj
  */
+/** Models copied from a cache share their geometry and materials: never free those with one copy. */
+function isSharedMaterial(m) {
+  var x = Array.isArray(m) ? m[0] : m;
+  return !!(x && x.userData && x.userData.shared);
+}
+
 export function disposeCharacter(obj) {
     if (!obj) return;
     for (var i = obj.children.length - 1; i >= 0; i--) {
         disposeCharacter(obj.children[i]);
     }
-    if (obj.geometry) obj.geometry.dispose();
-    if (obj.material) {
+    if (obj.geometry && !(obj.geometry.userData && obj.geometry.userData.shared)) obj.geometry.dispose();
+    if (obj.material && !isSharedMaterial(obj.material)) {
         if (Array.isArray(obj.material)) {
             for (var m = 0; m < obj.material.length; m++) {
                 if (obj.material[m].map) obj.material[m].map.dispose();
@@ -1053,7 +1059,7 @@ export function buildPlayer() {
         return buildVehicle(avatar);
     }
 
-    if (avatar.isModel && !isLowQuality()) {
+    if (avatar.isModel && useCharacterModels()) {
         // Real animated model. If it is still downloading, show the
         // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
         var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;

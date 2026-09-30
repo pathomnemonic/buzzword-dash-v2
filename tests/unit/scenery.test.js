@@ -4,6 +4,10 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { SCENERY_FILES, PROP_KEYS, registerSceneryModel, buildScenery, buildHanging, buildSideScenery, getSideTheme, SIDE_THEMES, randomSceneryProp } from '../../js/game/scenery.js';
 import { getObstacleVariant } from '../../js/game/obstacles.js';
+import { storage } from '../../js/storage.js';
+
+// Scenery models are a high-tier feature; pin the tier so device size cannot change the result
+storage.set('quality', 'high');
 
 // Some models carry embedded textures. Node has no DOM image loading, so
 // give the loader just enough of a stand-in to finish parsing.

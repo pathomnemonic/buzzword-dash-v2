@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { markShared } from './materials.js';
 
 var TARGET_HEIGHT = 2.05; // matches the procedural humanoids
 var FADE = 0.2;
@@ -82,6 +83,7 @@ function store(url, gltf) {
   // Skinned meshes measure wrongly until their bones' world matrices are
   // current, so update first and use the precise (posed-vertex) bounds.
   gltf.scene.updateMatrixWorld(true);
+  markShared(gltf.scene);
   var box = new THREE.Box3().setFromObject(gltf.scene, true);
   _cache[url] = {
     scene: gltf.scene,
@@ -197,8 +199,10 @@ export function buildModelMonster(url, height) {
   root.traverse(function (o) {
     if (!o.isMesh || !o.material) return;
     o.material = Array.isArray(o.material)
-      ? o.material.map(function (m) { return m.clone(); })
-      : o.material.clone();
+      ? o.material.map(function (m) { var c = m.clone(); c.userData.shared = false; return c; })
+      : Object.assign(o.material.clone(), {});
+    // Each monster owns its materials (it fades them); geometry stays shared
+    (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { m.userData.shared = false; });
     o.frustumCulled = false; // skinned bounds are unreliable once animated/scaled
   });
   pg.userData.isModelMonster = true;

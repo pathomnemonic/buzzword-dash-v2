@@ -47,7 +47,7 @@ import { getTipUrl, openTipPage } from './tips.js';
 import { getControlText } from './controlhints.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
 import { SKINS } from './game/skins.js';
-import { isLowQuality } from './game/quality.js';
+import { getQuality } from './game/quality.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -1895,7 +1895,7 @@ class UI {
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
       { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
-      { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (3D models)'], ['low', 'Low (faster)']] },
+      { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
       { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
       { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
@@ -1959,7 +1959,7 @@ class UI {
           select.appendChild(o);
         });
         if (s.key === 'quality') {
-          var tierNote = createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + (isLowQuality() ? 'Low' : 'High') });
+          var tierNote = createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) });
           label.appendChild(tierNote);
         }
         select.addEventListener('change', function () {

@@ -46,6 +46,16 @@ export function roundedBox(w, h, d) {
   return new RoundedBoxGeometry(w, h, d, 2, Math.min(r, Math.min(w, h, d) / 2 - 0.0005));
 }
 
+/** Flag a cached model's geometry and materials as shared between its copies. */
+export function markShared(root) {
+  root.traverse(function (o) {
+    if (o.geometry) o.geometry.userData.shared = true;
+    if (o.material) {
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { m.userData.shared = true; });
+    }
+  });
+}
+
 var _dot = null;
 
 /** A soft round white gradient (transparent at the edge), for shadows and glows. */

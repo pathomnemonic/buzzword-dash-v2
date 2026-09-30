@@ -45,7 +45,7 @@ import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
-import { getQuality, isLowQuality } from './quality.js';
+import { getQuality, isLowQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery, buildSideScenery, animateSideScenery } from './scenery.js';
 import { getRunRules } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, getStartPose, getIntroCamera, pickDeathStyle, getDeathPose } from './cinematics.js';
@@ -112,13 +112,19 @@ function generateId() {
   return Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
 }
 
+/** Models copied from a cache share their geometry and materials: never free those with one copy. */
+function isSharedMaterial(m) {
+  var x = Array.isArray(m) ? m[0] : m;
+  return !!(x && x.userData && x.userData.shared);
+}
+
 function disposeObject(obj) {
   if (!obj) return;
   if (obj.children) {
     for (var i = obj.children.length - 1; i >= 0; i--) disposeObject(obj.children[i]);
   }
-  if (obj.geometry) obj.geometry.dispose();
-  if (obj.material) {
+  if (obj.geometry && !(obj.geometry.userData && obj.geometry.userData.shared)) obj.geometry.dispose();
+  if (obj.material && !isSharedMaterial(obj.material)) {
     if (Array.isArray(obj.material)) {
       for (var m = 0; m < obj.material.length; m++) {
         if (obj.material[m].map) obj.material[m].map.dispose();
@@ -524,8 +530,11 @@ class Game {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.setPixelRatio(isLowQuality() ? 1 : Math.min(devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = !isLowQuality();
+    this._baseRatio = maxPixelRatio(getQuality(), devicePixelRatio);
+    this._resScale = 1;
+    this._adaptive = createAdaptiveResolution();
+    this.renderer.setPixelRatio(this._baseRatio);
+    this.renderer.shadowMap.enabled = useSceneryModels();
     setupEnvironment(this.renderer, this.scene);
     preloadScenery().catch(function () { /* the built-in versions are used */ });
     container.appendChild(this.renderer.domElement);
@@ -630,7 +639,7 @@ class Game {
   }
 
   _getPostFX() {
-    if (storage.get('glowEffects') === false || storage.get('reducedMotion') || isLowQuality()) return null;
+    if (storage.get('glowEffects') === false || storage.get('reducedMotion') || !useSceneryModels()) return null;
     if (!this._postfx) {
       try {
         this._postfx = createPostFX(this.renderer, this.scene, this.camera);
@@ -639,21 +648,48 @@ class Game {
         this._postfx = { degraded: true, render: function () {}, setSize: function () {}, dispose: function () {} };
       }
     }
-    if (this._postfx.degraded && !this._perfHinted) {
-      // The frame rate could not keep up: let "Auto" graphics start on the fast tier next time.
-      // One slow session can be a busy tab; two in a row means the machine cannot keep up.
-      this._perfHinted = true;
-      if (storage.get('quality') === 'auto') {
-        var strikes = (storage.get('perfStrikes') || 0) + 1;
-        storage.set('perfStrikes', strikes);
-        if (strikes >= 2) storage.set('perfHint', 'low');
-      }
-    }
+    if (this._postfx.degraded) this._noteSlowSession();
     return this._postfx.degraded ? null : this._postfx;
+  }
+
+  /**
+   * The frame rate could not keep up. One slow session can be a busy tab; two
+   * in a row means "Auto" graphics should start a tier lower next time.
+   */
+  _noteSlowSession() {
+    if (this._perfHinted) return;
+    this._perfHinted = true;
+    if ((storage.get('quality') || 'auto') !== 'auto') return;
+    var strikes = (storage.get('perfStrikes') || 0) + 1;
+    storage.set('perfStrikes', strikes);
+    if (strikes >= 2) {
+      storage.set('perfHint', lowerTier(getQuality()));
+      storage.set('perfStrikes', 0);
+    }
+  }
+
+  /** Step the render resolution down when slow and back up when there is headroom. */
+  _adaptResolution() {
+    var now = performance.now();
+    if (this._lastFrameAt) {
+      var scale = stepAdaptiveResolution(this._adaptive, now - this._lastFrameAt, now);
+      if (scale !== null) this._setResolutionScale(scale);
+    }
+    this._lastFrameAt = now;
+  }
+
+  _setResolutionScale(scale) {
+    this._resScale = scale;
+    var ratio = this._baseRatio * scale;
+    this.renderer.setPixelRatio(ratio);
+    this.renderer.setSize(innerWidth, innerHeight);
+    if (this._postfx) this._postfx.setSize(innerWidth, innerHeight, ratio);
+    if (scale <= 0.6) this._noteSlowSession(); // even the lowest resolution is struggling
   }
 
   render() {
     if (this.renderer && this.scene && this.camera) {
+      this._adaptResolution();
       var fx = this._getPostFX();
       if (fx) fx.render();
       else this.renderer.render(this.scene, this.camera);
@@ -667,8 +703,8 @@ class Game {
     }
     if (this.renderer) {
       this.renderer.setSize(width, height);
-      if (pixelRatio) this.renderer.setPixelRatio(Math.min(pixelRatio, 2));
-      if (this._postfx) this._postfx.setSize(width, height, Math.min(pixelRatio || 1, 2));
+      if (pixelRatio) this.renderer.setPixelRatio(Math.min(pixelRatio, this._baseRatio) * this._resScale);
+      if (this._postfx) this._postfx.setSize(width, height, Math.min(pixelRatio || 1, this._baseRatio) * this._resScale);
     }
   }
 
@@ -761,6 +797,11 @@ class Game {
 
   // Called by main.js after countdown UI starts
   beginCountdown() {
+    // Compile the shaders for everything now on screen, off the main thread when supported
+    try {
+      if (this.renderer.compileAsync) this.renderer.compileAsync(this.scene, this.camera).catch(function () {});
+      else this.renderer.compile(this.scene, this.camera);
+    } catch (e) { /* warm-up is only an optimization */ }
     this._flyInT = 0;
     this._introImpactAt = -1;
     var reduced = !!storage.get('reducedMotion');
@@ -2320,7 +2361,7 @@ card = pickResult ? pickResult.card : null;
 
   /** Street lights and trees rising over the walls, added once the models are loaded. */
   _ensureSideScenery() {
-    if (isLowQuality() || !this.trackRefs) return;
+    if (!useSceneryModels() || !this.trackRefs) return;
     var skinName = this.currentSkin && this.currentSkin.name;
     if (this._sideGroup && this._sideGroup.parent === this.scene && this._sideSkin === skinName) return;
     var side = buildSideScenery(skinName);

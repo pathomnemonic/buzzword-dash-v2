@@ -1,39 +1,62 @@
 /**
- * quality.js — which graphics tier to use.
+ * quality.js — which graphics tier to use, and how to keep frame rate steady.
  *
- * "high" uses the animated 3D models, reflections, sky and rounded geometry.
- * "low" is the fast backup for weaker computers: the simple built-in
- * characters, monsters and obstacles, no downloads of model files, no
- * reflections or glow, and a lower render resolution.
+ * Three tiers:
+ *   high   — everything: 3D characters and monsters, 3D scenery and obstacles,
+ *            glow (bloom), shadows and full resolution.
+ *   medium — the animated 3D character and monster, sky, reflections and lit
+ *            materials, but simple built-in obstacles and scenery, no glow or
+ *            shadows, and a capped resolution. Good for laptops and phones.
+ *   low    — the simple built-in characters and obstacles, no model downloads,
+ *            no glow or shadows, and normal resolution. The fast backup.
  *
- * The player can choose (Settings -> Graphics). "Auto" picks low on devices
- * that report little memory, few cores or data-saver mode, and after a session
- * where the frame rate could not keep up.
+ * The player can choose (Settings -> Graphics). "Auto" picks a tier from the
+ * device: software rendering or very little memory/cores or data-saver ->
+ * low; a modest device (4 GB or fewer, 4 cores or fewer, or a touch-first
+ * phone/tablet) -> medium; otherwise high. It steps down a tier after
+ * repeated sessions where the frame rate could not keep up.
+ *
+ * Adaptive resolution lowers the render resolution in small steps while the
+ * game is running slowly and raises it again when there is headroom, which is
+ * the cheapest way to hold a steady frame rate on any device (and on phones,
+ * to save battery).
  */
 
 import { storage } from '../storage.js';
 
+var ORDER = ['low', 'medium', 'high'];
+
 /**
- * @param {string} setting - 'auto' | 'high' | 'low'
- * @param {{deviceMemory?: number, cores?: number, saveData?: boolean, perfHint?: string, software?: boolean}} [env]
- * @returns {'high'|'low'}
+ * @param {string} setting - 'auto' | 'high' | 'medium' | 'low'
+ * @param {{deviceMemory?: number, cores?: number, saveData?: boolean, perfHint?: string, software?: boolean, touchFirst?: boolean}} [env]
+ * @returns {'high'|'medium'|'low'}
  */
 export function resolveQuality(setting, env) {
-  if (setting === 'low' || setting === 'high') return setting;
+  if (ORDER.indexOf(setting) >= 0) return setting;
   env = env || {};
-  if (env.perfHint === 'low') return 'low';
-  if (env.software) return 'low'; // no graphics card: the heavy tier would crawl
-  if (env.deviceMemory && env.deviceMemory <= 2) return 'low';
-  if (env.cores && env.cores <= 2) return 'low';
-  if (env.saveData) return 'low';
-  return 'high';
+  var tier = 'high';
+  if (env.software) return 'low'; // no graphics card: nothing heavier would run
+  if ((env.deviceMemory && env.deviceMemory <= 2) || (env.cores && env.cores <= 2) || env.saveData) {
+    tier = 'low';
+  } else if ((env.deviceMemory && env.deviceMemory <= 4) || (env.cores && env.cores <= 4) || env.touchFirst) {
+    tier = 'medium';
+  }
+  // A performance hint can only lower the tier, never raise it
+  if (ORDER.indexOf(env.perfHint) >= 0 && ORDER.indexOf(env.perfHint) < ORDER.indexOf(tier)) tier = env.perfHint;
+  return tier;
+}
+
+/** The next tier down, or the same one if already lowest. */
+export function lowerTier(tier) {
+  var i = ORDER.indexOf(tier);
+  return ORDER[Math.max(0, i - 1)];
 }
 
 var _software = null;
 
 /**
  * True when the browser draws WebGL on the CPU (SwiftShader, llvmpipe and the
- * like), which is far too slow for the high tier. Checked once.
+ * like), which is far too slow for the higher tiers. Checked once.
  */
 export function isSoftwareRenderer() {
   if (_software !== null) return _software;
@@ -54,18 +77,82 @@ export function isSoftwareRenderer() {
   return _software;
 }
 
+function touchFirst() {
+  try {
+    return typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  } catch (e) {
+    return false;
+  }
+}
+
 /** The tier in effect right now. */
 export function getQuality() {
   var nav = typeof navigator !== 'undefined' ? navigator : {};
-  return resolveQuality(storage.get('quality'), {
+  var setting = storage.get('quality') || 'auto';
+  return resolveQuality(setting, {
     deviceMemory: nav.deviceMemory,
     cores: nav.hardwareConcurrency,
     saveData: !!(nav.connection && nav.connection.saveData),
-    software: storage.get('quality') === 'auto' || !storage.get('quality') ? isSoftwareRenderer() : false,
+    software: setting === 'auto' ? isSoftwareRenderer() : false,
+    touchFirst: touchFirst(),
     perfHint: storage.get('perfHint')
   });
 }
 
-export function isLowQuality() {
-  return getQuality() === 'low';
+export function isLowQuality() { return getQuality() === 'low'; }
+
+/** Animated 3D character and monster models (medium and up). */
+export function useCharacterModels() { return getQuality() !== 'low'; }
+
+/** 3D obstacle and scenery models, bloom and shadows (high only). */
+export function useSceneryModels() { return getQuality() === 'high'; }
+
+/** Highest render-resolution multiplier for the tier. */
+export function maxPixelRatio(tier, devicePixelRatio) {
+  var dpr = devicePixelRatio || 1;
+  if (tier === 'high') return Math.min(dpr, 2);
+  if (tier === 'medium') return Math.min(dpr, 1.5);
+  return 1;
+}
+
+// ===== ADAPTIVE RESOLUTION =====
+
+var LEVELS = [1, 0.85, 0.7, 0.6]; // fractions of the tier's maximum resolution
+var SLOW_MS = 24;                 // slower than ~41 fps: step down
+var FAST_MS = 13;                 // faster than ~77 fps: step back up
+var SAMPLE = 90;                  // frames per decision
+var COOLDOWN_MS = 4000;           // minimum time between changes (resizes are not free)
+
+export function createAdaptiveResolution() {
+  return { level: 0, frames: 0, total: 0, lastChange: 0 };
+}
+
+/**
+ * Feed one frame time; returns the new resolution scale when it should change,
+ * otherwise null. Ignores stalls (tab switches) so they do not cause a drop.
+ * @param {object} state from createAdaptiveResolution
+ * @param {number} frameMs
+ * @param {number} nowMs
+ * @returns {number|null} scale (1 = full) to apply, or null for no change
+ */
+export function stepAdaptiveResolution(state, frameMs, nowMs) {
+  if (frameMs > 250) return null;
+  state.frames++;
+  state.total += frameMs;
+  if (state.frames < SAMPLE) return null;
+  var avg = state.total / state.frames;
+  state.frames = 0;
+  state.total = 0;
+  if (nowMs - state.lastChange < COOLDOWN_MS) return null;
+  if (avg > SLOW_MS && state.level < LEVELS.length - 1) {
+    state.level++;
+    state.lastChange = nowMs;
+    return LEVELS[state.level];
+  }
+  if (avg < FAST_MS && state.level > 0) {
+    state.level--;
+    state.lastChange = nowMs;
+    return LEVELS[state.level];
+  }
+  return null;
 }

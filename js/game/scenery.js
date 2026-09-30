@@ -11,7 +11,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneModel } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { isLowQuality } from './quality.js';
+import { useSceneryModels } from './quality.js';
+import { markShared } from './materials.js';
 
 export var SCENERY_FILES = {
   // Obstacles
@@ -51,13 +52,14 @@ function baseUrl() {
 
 /** Load every scenery model once. Resolves when all have finished (failures are skipped). */
 export function preloadScenery() {
-  if (isLowQuality()) return Promise.resolve();
+  if (!useSceneryModels()) return Promise.resolve();
   if (_preload) return _preload;
   var loader = new GLTFLoader();
   _preload = Promise.all(Object.keys(SCENERY_FILES).map(function (key) {
     return new Promise(function (resolve) {
       loader.load(baseUrl() + 'models/' + SCENERY_FILES[key], function (gltf) {
         gltf.scene.updateMatrixWorld(true);
+        markShared(gltf.scene);
         _cache[key] = { scene: gltf.scene, box: new THREE.Box3().setFromObject(gltf.scene, true) };
         resolve();
       }, undefined, function () { resolve(); });
@@ -121,7 +123,7 @@ export function buildScenery(key, fit, alignLong) {
 
 /** A random floating prop, or null if none are ready (or on the low tier). */
 export function randomSceneryProp(rand, skinName) {
-  if (isLowQuality()) return null;
+  if (!useSceneryModels()) return null;
   // Props follow the map's theme when it has one, so nothing feels random
   var themed = skinName ? getSideTheme(skinName).map(function (t) { return t[0]; }) : PROP_KEYS;
   var ready = themed.filter(isSceneryReady);
@@ -189,7 +191,7 @@ export function getSideTheme(skinName) {
  * @returns {{group: THREE.Group, spacing: number}|null} null until the models are loaded
  */
 export function buildSideScenery(skinName) {
-  if (isLowQuality()) return null;
+  if (!useSceneryModels()) return null;
   var theme = getSideTheme(skinName);
   if (!theme.every(function (t) { return isSceneryReady(t[0]); })) return null;
   var group = new THREE.Group();

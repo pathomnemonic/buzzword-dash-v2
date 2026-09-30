@@ -20,6 +20,12 @@ import * as THREE from 'three';
  * Dispose all geometry and materials within a group recursively.
  * @param {THREE.Object3D} obj
  */
+/** Models copied from a cache share their geometry and materials: never free those with one copy. */
+function isSharedMaterial(m) {
+  var x = Array.isArray(m) ? m[0] : m;
+  return !!(x && x.userData && x.userData.shared);
+}
+
 function disposeGroup(obj) {
     if (!obj) return;
     if (obj.children) {
@@ -27,8 +33,8 @@ function disposeGroup(obj) {
             disposeGroup(obj.children[i]);
         }
     }
-    if (obj.geometry) obj.geometry.dispose();
-    if (obj.material) {
+    if (obj.geometry && !(obj.geometry.userData && obj.geometry.userData.shared)) obj.geometry.dispose();
+    if (obj.material && !isSharedMaterial(obj.material)) {
         if (Array.isArray(obj.material)) {
             for (var m = 0; m < obj.material.length; m++) {
                 if (obj.material[m].map) obj.material[m].map.dispose();
