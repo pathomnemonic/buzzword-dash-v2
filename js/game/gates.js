@@ -25,6 +25,7 @@ import { CARDS, SUBJECTS } from '../cards.js';
 import { storage } from '../storage.js';
 import { customCards } from '../customcards.js';
 import { getSubjectStyle } from './subjectstyle.js';
+import { roundedBox } from './materials.js';
 
 // ===== CONSTANTS =====
 
@@ -498,30 +499,23 @@ export function spawnGates(scene, gates, currentLane, theme, subject) {
     );
     group.add(frame);
 
-    var glowMat = new THREE.MeshBasicMaterial({
-      color: accent,
-      transparent: true,
-      opacity: 0.35
+    // Metal frame with a glowing accent (lit, so it reads as a real structure)
+    var frameMetal = new THREE.MeshStandardMaterial({
+      color: 0x9aa4b8, metalness: 0.85, roughness: 0.3,
+      emissive: accent, emissiveIntensity: 0.5, envMapIntensity: 1.3
     });
 
-    var topBar = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.1, 0.2), glowMat);
-    topBar.position.set(0, 1.55, 0);
+    var topBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3), frameMetal);
+    topBar.position.set(0, 1.56, 0);
     group.add(topBar);
 
-    var botBar = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.1, 0.2), glowMat);
-    botBar.position.set(0, -1.55, 0);
+    var botBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3), frameMetal);
+    botBar.position.set(0, -1.56, 0);
     group.add(botBar);
 
     for (var sx = -1; sx <= 1; sx += 2) {
-      var pillar = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, 3, 0.2),
-        new THREE.MeshBasicMaterial({
-          color: accent,
-          transparent: true,
-          opacity: 0.2
-        })
-      );
-      pillar.position.set(sx * 1.45, 0, 0);
+      var pillar = new THREE.Mesh(roundedBox(0.2, 3.2, 0.3), frameMetal);
+      pillar.position.set(sx * 1.5, 0, 0);
       group.add(pillar);
     }
 

@@ -24,6 +24,7 @@
 import * as THREE from 'three';
 import { buildPlayer, getPlayerLimbs } from './player.js';
 import { updateModelAnimation } from './charactermodel.js';
+import { setupEnvironment } from './materials.js';
 import { PROP_BUILDERS } from './props.js';
 
 // ===== CONFIGURATION =====
@@ -141,6 +142,7 @@ export class HomeCharacter {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x120828);
         this.scene.fog = new THREE.FogExp2(0x120828, 0.015);
+        if (this.renderer) setupEnvironment(this.renderer, this.scene);
 
         this.camera = new THREE.PerspectiveCamera(
             50,

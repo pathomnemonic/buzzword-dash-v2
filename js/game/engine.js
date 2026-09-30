@@ -44,6 +44,7 @@ import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
+import { setupEnvironment } from './materials.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -152,15 +153,15 @@ var ALLOWED_TRANSITIONS = {
 
 function buildHeartMesh() {
   var group = new THREE.Group();
-  var heartMat = new THREE.MeshBasicMaterial({ color: 0xff2255 });
+  var heartMat = new THREE.MeshStandardMaterial({ color: 0xff2255, emissive: 0xaa0022, emissiveIntensity: 0.55, roughness: 0.22, metalness: 0.1, envMapIntensity: 1.4 });
   var glowMat = new THREE.MeshBasicMaterial({ color: 0xff4477, transparent: true, opacity: 0.4 });
-  var leftLobe = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), heartMat);
+  var leftLobe = new THREE.Mesh(new THREE.SphereGeometry(0.18, 20, 16), heartMat);
   leftLobe.position.set(-0.12, 0.1, 0);
   group.add(leftLobe);
-  var rightLobe = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), heartMat);
+  var rightLobe = new THREE.Mesh(new THREE.SphereGeometry(0.18, 20, 16), heartMat);
   rightLobe.position.set(0.12, 0.1, 0);
   group.add(rightLobe);
-  var bottom = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.3, 8), heartMat);
+  var bottom = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.3, 20), heartMat);
   bottom.position.set(0, -0.12, 0);
   bottom.rotation.z = Math.PI;
   group.add(bottom);
@@ -513,6 +514,7 @@ class Game {
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
+    setupEnvironment(this.renderer, this.scene);
     container.appendChild(this.renderer.domElement);
 
     // Create trackRoot group

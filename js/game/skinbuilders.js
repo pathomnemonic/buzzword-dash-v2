@@ -21,6 +21,7 @@
  */
 
 import * as THREE from 'three';
+import { roundedBox } from './materials.js';
 
 // ===== WALL SEGMENT BUILDERS =====
 
@@ -59,7 +60,7 @@ export function buildWallSegment(skin, side, z, height) {
       }
       // Glow line running along tubes
       var glowLine = new THREE.Mesh(
-        new THREE.BoxGeometry(0.04, height, 0.04),
+        roundedBox(0.04, height, 0.04),
         new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.5 })
       );
       glowLine.position.set(x, height / 2, z);
@@ -69,21 +70,21 @@ export function buildWallSegment(skin, side, z, height) {
     case "artery_walls":
       // Layered vessel wall with inner lining
       var outerWall = new THREE.Mesh(
-        new THREE.BoxGeometry(0.35, height, 2),
+        roundedBox(0.35, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       outerWall.position.set(x, height / 2, z);
       g.add(outerWall);
       // Inner endothelial lining
       var lining = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, height * 0.85, 1.8),
+        roundedBox(0.12, height * 0.85, 1.8),
         new THREE.MeshBasicMaterial({ color: c.wallB, transparent: true, opacity: 0.5 })
       );
       lining.position.set(x - side * 0.15, height / 2, z);
       g.add(lining);
       // Pulsing glow strip
       var pulse = new THREE.Mesh(
-        new THREE.BoxGeometry(0.06, height * 0.7, 1.6),
+        roundedBox(0.06, height * 0.7, 1.6),
         new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.3 })
       );
       pulse.position.set(x - side * 0.2, height / 2, z);
@@ -125,7 +126,7 @@ export function buildWallSegment(skin, side, z, height) {
     case "membrane":
       // Phospholipid bilayer membrane wall
       var membranePanel = new THREE.Mesh(
-        new THREE.BoxGeometry(0.15, height, 2),
+        roundedBox(0.15, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA, transparent: true, opacity: 0.35 })
       );
       membranePanel.position.set(x, height / 2, z);
@@ -200,7 +201,7 @@ export function buildWallSegment(skin, side, z, height) {
       // Z-line striations
       for (var zl = 0; zl < 4; zl++) {
         var zline = new THREE.Mesh(
-          new THREE.BoxGeometry(0.6, 0.02, 0.02),
+          roundedBox(0.6, 0.02, 0.02),
           new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.3 })
         );
         zline.position.set(x, 0.5 + zl * 0.8, z);
@@ -211,21 +212,21 @@ export function buildWallSegment(skin, side, z, height) {
     case "hospital_panels":
       // Clean hospital wall panels with trim
       var panel = new THREE.Mesh(
-        new THREE.BoxGeometry(0.22, height, 2),
+        roundedBox(0.22, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       panel.position.set(x, height / 2, z);
       g.add(panel);
       // Accent stripe at eye level
       var accentStripe = new THREE.Mesh(
-        new THREE.BoxGeometry(0.24, 0.12, 2),
+        roundedBox(0.24, 0.12, 2),
         new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.5 })
       );
       accentStripe.position.set(x, height * 0.7, z);
       g.add(accentStripe);
       // Baseboard
       var baseboard = new THREE.Mesh(
-        new THREE.BoxGeometry(0.24, 0.15, 2),
+        roundedBox(0.24, 0.15, 2),
         new THREE.MeshBasicMaterial({ color: c.wallB })
       );
       baseboard.position.set(x, 0.075, z);
@@ -235,7 +236,7 @@ export function buildWallSegment(skin, side, z, height) {
     case "pill_shelves":
       // Pharmacy shelf-like wall with pill bottle shapes
       var shelfPanel = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, height, 2),
+        roundedBox(0.5, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       shelfPanel.position.set(x, height / 2, z);
@@ -243,7 +244,7 @@ export function buildWallSegment(skin, side, z, height) {
       // Shelf lines
       for (var sh = 0; sh < 3; sh++) {
         var shelf = new THREE.Mesh(
-          new THREE.BoxGeometry(0.55, 0.04, 2),
+          roundedBox(0.55, 0.04, 2),
           new THREE.MeshBasicMaterial({ color: c.wallB })
         );
         shelf.position.set(x, 0.8 + sh * 1.0, z);
@@ -263,14 +264,14 @@ export function buildWallSegment(skin, side, z, height) {
     case "sterile_panels":
       // Smooth OR-style walls with subtle glow
       var sterileWall = new THREE.Mesh(
-        new THREE.BoxGeometry(0.2, height, 2),
+        roundedBox(0.2, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       sterileWall.position.set(x, height / 2, z);
       g.add(sterileWall);
       // Vertical glow strip
       var vStrip = new THREE.Mesh(
-        new THREE.BoxGeometry(0.04, height, 0.04),
+        roundedBox(0.04, height, 0.04),
         new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.4 })
       );
       vStrip.position.set(x, height / 2, z);
@@ -280,7 +281,7 @@ export function buildWallSegment(skin, side, z, height) {
     case "test_tubes":
       // Test tube rack walls
       var rackBack = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, height, 2),
+        roundedBox(0.3, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       rackBack.position.set(x, height / 2, z);
@@ -300,7 +301,7 @@ export function buildWallSegment(skin, side, z, height) {
     case "skeletal_xray":
       // X-ray style transparent bone outlines
       var xrayPanel = new THREE.Mesh(
-        new THREE.BoxGeometry(0.15, height, 2),
+        roundedBox(0.15, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA, transparent: true, opacity: 0.2 })
       );
       xrayPanel.position.set(x, height / 2, z);
@@ -326,7 +327,7 @@ export function buildWallSegment(skin, side, z, height) {
     case "circuit_panels":
       // Circuit board style panels with trace lines
       var circuitBoard = new THREE.Mesh(
-        new THREE.BoxGeometry(0.25, height, 2),
+        roundedBox(0.25, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       circuitBoard.position.set(x, height / 2, z);
@@ -334,7 +335,7 @@ export function buildWallSegment(skin, side, z, height) {
       // Circuit traces (horizontal lines)
       for (var tr = 0; tr < 5; tr++) {
         var trace = new THREE.Mesh(
-          new THREE.BoxGeometry(0.26, 0.02, 1.8),
+          roundedBox(0.26, 0.02, 1.8),
           new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.6 })
         );
         trace.position.set(x, 0.4 + tr * 0.65, z);
@@ -354,7 +355,7 @@ export function buildWallSegment(skin, side, z, height) {
     default:
       // Fallback: simple colored wall
       var defaultWall = new THREE.Mesh(
-        new THREE.BoxGeometry(0.22, height, 2),
+        roundedBox(0.22, height, 2),
         new THREE.MeshBasicMaterial({ color: c.wallA })
       );
       defaultWall.position.set(x, height / 2, z);
@@ -502,7 +503,7 @@ export function buildArch(skin, z) {
       // Base pair indicators at ends
       for (var bp = -1; bp <= 1; bp += 2) {
         var base = new THREE.Mesh(
-          new THREE.BoxGeometry(0.15, 0.15, 0.15),
+          roundedBox(0.15, 0.15, 0.15),
           new THREE.MeshBasicMaterial({ color: bp === -1 ? c.wallA : c.wallB })
         );
         base.position.set(bp * 4.5, 4.8, z);
@@ -531,14 +532,14 @@ export function buildArch(skin, z) {
     case "fluorescent_bars":
       // Hospital fluorescent light bars
       var lightBar = new THREE.Mesh(
-        new THREE.BoxGeometry(10, 0.08, 0.3),
+        roundedBox(10, 0.08, 0.3),
         new THREE.MeshBasicMaterial({ color: c.archGlow })
       );
       lightBar.position.set(0, 5, z);
       g.add(lightBar);
       // Housing
       var housing = new THREE.Mesh(
-        new THREE.BoxGeometry(10.2, 0.12, 0.4),
+        roundedBox(10.2, 0.12, 0.4),
         new THREE.MeshBasicMaterial({ color: c.archMain })
       );
       housing.position.set(0, 5.06, z);
@@ -556,20 +557,20 @@ export function buildArch(skin, z) {
     case "rx_signs":
       // Pharmacy Rx sign arches
       var signBar = new THREE.Mesh(
-        new THREE.BoxGeometry(11, 0.1, 0.1),
+        roundedBox(11, 0.1, 0.1),
         new THREE.MeshBasicMaterial({ color: c.archMain })
       );
       signBar.position.set(0, 5, z);
       g.add(signBar);
       // Rx symbol (simplified as cross)
       var rxH = new THREE.Mesh(
-        new THREE.BoxGeometry(0.6, 0.12, 0.08),
+        roundedBox(0.6, 0.12, 0.08),
         new THREE.MeshBasicMaterial({ color: c.archGlow })
       );
       rxH.position.set(0, 5, z);
       g.add(rxH);
       var rxV = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, 0.6, 0.08),
+        roundedBox(0.12, 0.6, 0.08),
         new THREE.MeshBasicMaterial({ color: c.archGlow })
       );
       rxV.position.set(0, 5, z);
@@ -628,7 +629,7 @@ export function buildArch(skin, z) {
     case "scan_frames":
       // X-ray scan frame
       var frame = new THREE.Mesh(
-        new THREE.BoxGeometry(10, 0.08, 0.08),
+        roundedBox(10, 0.08, 0.08),
         new THREE.MeshBasicMaterial({ color: c.archMain })
       );
       frame.position.set(0, 5, z);
@@ -645,7 +646,7 @@ export function buildArch(skin, z) {
     case "tesla_arcs":
       // Electric arc overhead
       var arcBar = new THREE.Mesh(
-        new THREE.BoxGeometry(11, 0.08, 0.08),
+        roundedBox(11, 0.08, 0.08),
         new THREE.MeshBasicMaterial({ color: c.archMain })
       );
       arcBar.position.set(0, 5, z);
@@ -674,7 +675,7 @@ export function buildArch(skin, z) {
     default:
       // Fallback: simple beam with center light
       var defaultBeam = new THREE.Mesh(
-        new THREE.BoxGeometry(11, 0.1, 0.1),
+        roundedBox(11, 0.1, 0.1),
         new THREE.MeshBasicMaterial({ color: c.archGlow, transparent: true, opacity: 0.3 })
       );
       defaultBeam.position.set(0, 5, z);
@@ -710,7 +711,8 @@ export function buildGround(skin) {
   // Base ground plane (always present)
   var ground = new THREE.Mesh(
     new THREE.PlaneGeometry(14, 400),
-    new THREE.MeshBasicMaterial({ color: c.ground })
+    // Glossy so the lights and glow above it reflect in the floor
+    new THREE.MeshStandardMaterial({ color: c.ground, roughness: 0.32, metalness: 0.55, envMapIntensity: 0.55 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(0, 0, -190);
@@ -1040,7 +1042,7 @@ export function buildAtmosphericParticle(skin) {
       // DNA building blocks — small colored cubes
       var isA = Math.random() > 0.5;
       mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(0.06, 0.06, 0.06),
+        roundedBox(0.06, 0.06, 0.06),
         new THREE.MeshBasicMaterial({
           color: isA ? c.particle : c.particleB,
           transparent: true,
@@ -1101,7 +1103,7 @@ export function buildAtmosphericParticle(skin) {
     case "electric_arcs":
       // Tiny lightning bolt segments
       mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(0.015, 0.015, 0.12),
+        roundedBox(0.015, 0.015, 0.12),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.6 })
       );
       break;
@@ -1196,7 +1198,7 @@ export function buildWallGlowStrips(skin, side) {
 
   // Top glow strip
   var topGlow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.1, 400),
+    roundedBox(0.3, 0.1, 400),
     new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.35 })
   );
   topGlow.position.set(x, 3.55, -190);
@@ -1204,7 +1206,7 @@ export function buildWallGlowStrips(skin, side) {
 
   // Bottom glow strip
   var bottomGlow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.2, 0.06, 400),
+    roundedBox(0.2, 0.06, 400),
     new THREE.MeshBasicMaterial({ color: c.wallGlow, transparent: true, opacity: 0.2 })
   );
   bottomGlow.position.set(x, 0.03, -190);

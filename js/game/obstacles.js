@@ -22,6 +22,7 @@
  */
 
 import * as THREE from 'three';
+import { roundedBox, upgradeMaterials } from './materials.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -81,14 +82,14 @@ export function getVariantIds() {
 function buildGurney() {
   var g = new THREE.Group();
   var bed = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 0.12, 1.2),
+    roundedBox(2.2, 0.12, 1.2),
     new THREE.MeshStandardMaterial({ color: 0x44aa66 })
   );
   bed.position.set(0, 0.55, 0);
   bed.castShadow = true;
   g.add(bed);
   var matt = new THREE.Mesh(
-    new THREE.BoxGeometry(2.0, 0.1, 1.0),
+    roundedBox(2.0, 0.1, 1.0),
     new THREE.MeshBasicMaterial({ color: 0xeeeeff })
   );
   matt.position.set(0, 0.63, 0);
@@ -131,7 +132,7 @@ function buildWetFloorSign() {
   dot.position.set(0, 0.35, -0.25);
   g.add(dot);
   var line = new THREE.Mesh(
-    new THREE.BoxGeometry(0.04, 0.2, 0.04),
+    roundedBox(0.04, 0.2, 0.04),
     new THREE.MeshBasicMaterial({ color: 0x222222 })
   );
   line.position.set(0, 0.55, -0.25);
@@ -143,13 +144,13 @@ function buildWetFloorSign() {
 function buildWheelchair() {
   var g = new THREE.Group();
   var seat = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 0.08, 0.7),
+    roundedBox(0.8, 0.08, 0.7),
     new THREE.MeshStandardMaterial({ color: 0x333344 })
   );
   seat.position.set(0, 0.5, 0);
   g.add(seat);
   var back = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 0.7, 0.08),
+    roundedBox(0.8, 0.7, 0.08),
     new THREE.MeshStandardMaterial({ color: 0x333344 })
   );
   back.position.set(0, 0.85, 0.32);
@@ -173,26 +174,26 @@ function buildWheelchair() {
 function buildSpilledSupplies() {
   var g = new THREE.Group();
   var box1 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.6, 0.5, 0.4),
+    roundedBox(0.6, 0.5, 0.4),
     new THREE.MeshStandardMaterial({ color: 0xccbb88 })
   );
   box1.position.set(-0.3, 0.25, 0);
   box1.rotation.z = 0.3;
   g.add(box1);
   var box2 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.4, 0.35),
+    roundedBox(0.5, 0.4, 0.35),
     new THREE.MeshStandardMaterial({ color: 0xddccaa })
   );
   box2.position.set(0.4, 0.2, 0.2);
   g.add(box2);
   var cH = new THREE.Mesh(
-    new THREE.BoxGeometry(0.2, 0.05, 0.02),
+    roundedBox(0.2, 0.05, 0.02),
     new THREE.MeshBasicMaterial({ color: 0xff0000 })
   );
   cH.position.set(0.4, 0.35, 0.03);
   g.add(cH);
   var cV = new THREE.Mesh(
-    new THREE.BoxGeometry(0.05, 0.2, 0.02),
+    roundedBox(0.05, 0.2, 0.02),
     new THREE.MeshBasicMaterial({ color: 0xff0000 })
   );
   cV.position.set(0.4, 0.35, 0.03);
@@ -219,14 +220,14 @@ function buildSpilledSupplies() {
 function buildFallenStretcher() {
   var g = new THREE.Group();
   var frame = new THREE.Mesh(
-    new THREE.BoxGeometry(2.0, 0.1, 0.8),
+    roundedBox(2.0, 0.1, 0.8),
     new THREE.MeshStandardMaterial({ color: 0x888888 })
   );
   frame.position.set(0, 0.35, 0);
   frame.rotation.z = 0.4;
   g.add(frame);
   var canvas = new THREE.Mesh(
-    new THREE.BoxGeometry(1.8, 0.05, 0.65),
+    roundedBox(1.8, 0.05, 0.65),
     new THREE.MeshBasicMaterial({ color: 0xeeeeff })
   );
   canvas.position.set(0, 0.4, 0);
@@ -287,27 +288,27 @@ function buildORDoors() {
   var g = new THREE.Group();
   for (var sx = -1; sx <= 1; sx += 2) {
     var frame = new THREE.Mesh(
-      new THREE.BoxGeometry(0.1, 3.2, 0.1),
+      roundedBox(0.1, 3.2, 0.1),
       new THREE.MeshBasicMaterial({ color: 0x888899 })
     );
     frame.position.set(sx * 1.2, 1.6, 0);
     g.add(frame);
   }
   var top = new THREE.Mesh(
-    new THREE.BoxGeometry(2.5, 0.1, 0.1),
+    roundedBox(2.5, 0.1, 0.1),
     new THREE.MeshBasicMaterial({ color: 0x888899 })
   );
   top.position.set(0, 3.0, 0);
   g.add(top);
   for (var dx = -1; dx <= 1; dx += 2) {
     var door = new THREE.Mesh(
-      new THREE.BoxGeometry(1.1, 1.2, 0.08),
+      roundedBox(1.1, 1.2, 0.08),
       new THREE.MeshBasicMaterial({ color: 0x66aa88, transparent: true, opacity: 0.85 })
     );
     door.position.set(dx * 0.55, 2.6, 0);
     g.add(door);
     var win = new THREE.Mesh(
-      new THREE.BoxGeometry(0.4, 0.3, 0.02),
+      roundedBox(0.4, 0.3, 0.02),
       new THREE.MeshBasicMaterial({ color: 0xaaddcc, transparent: true, opacity: 0.5 })
     );
     win.position.set(dx * 0.55, 2.7, -0.05);
@@ -336,7 +337,7 @@ function buildMRITunnel() {
   bore.rotation.x = Math.PI / 2;
   g.add(bore);
   var panel = new THREE.Mesh(
-    new THREE.BoxGeometry(2.8, 2.8, 0.15),
+    roundedBox(2.8, 2.8, 0.15),
     new THREE.MeshStandardMaterial({ color: 0xccccdd })
   );
   panel.position.set(0, 1.5, 0.7);
@@ -348,7 +349,7 @@ function buildMRITunnel() {
   holeVisual.position.set(0, 1.5, 0.78);
   g.add(holeVisual);
   var bed = new THREE.Mesh(
-    new THREE.BoxGeometry(0.8, 0.1, 2.5),
+    roundedBox(0.8, 0.1, 2.5),
     new THREE.MeshBasicMaterial({ color: 0xeeeeff })
   );
   bed.position.set(0, 0.55, -0.5);
@@ -378,14 +379,14 @@ function buildCautionTape() {
     g.add(pole);
   }
   var tape = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 0.15, 0.02),
+    roundedBox(2.2, 0.15, 0.02),
     new THREE.MeshBasicMaterial({ color: 0xffcc00 })
   );
   tape.position.set(0, 2.2, 0);
   g.add(tape);
   for (var s = 0; s < 5; s++) {
     var stripe = new THREE.Mesh(
-      new THREE.BoxGeometry(0.15, 0.16, 0.025),
+      roundedBox(0.15, 0.16, 0.025),
       new THREE.MeshBasicMaterial({ color: 0x222222 })
     );
     stripe.position.set(-0.8 + s * 0.4, 2.2, 0);
@@ -393,7 +394,7 @@ function buildCautionTape() {
     g.add(stripe);
   }
   var tape2 = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 0.10, 0.02),
+    roundedBox(2.2, 0.10, 0.02),
     new THREE.MeshBasicMaterial({ color: 0xffcc00 })
   );
   tape2.position.set(0, 1.9, 0);
@@ -411,13 +412,13 @@ function buildXRayArm() {
   pole.position.set(-1.0, 1.5, 0);
   g.add(pole);
   var arm = new THREE.Mesh(
-    new THREE.BoxGeometry(2.5, 0.12, 0.12),
+    roundedBox(2.5, 0.12, 0.12),
     new THREE.MeshBasicMaterial({ color: 0x888899 })
   );
   arm.position.set(0.2, 2.5, 0);
   g.add(arm);
   var head = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.3, 0.4),
+    roundedBox(0.5, 0.3, 0.4),
     new THREE.MeshStandardMaterial({ color: 0xaaaacc })
   );
   head.position.set(0.8, 2.2, 0);
@@ -545,6 +546,7 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry) {
   }
 
   var obs = variant.builder();
+  upgradeMaterials(obs, { glowAbove: 0.92 });
   obs.position.set(LANE_X[lane], 0, spawnZ);
   obs.userData = {
     lane: lane,
@@ -588,18 +590,36 @@ export function isImpossibleLayout(entry1, entry2) {
 
 function makeCoinMesh(lane, z, y) {
   var group = new THREE.Group();
-  var coin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.28, 0.28, 0.08, 10),
-    new THREE.MeshBasicMaterial({ color: 0xffd740 })
-  );
+  var gold = new THREE.MeshStandardMaterial({
+    color: 0xffc83a, metalness: 0.95, roughness: 0.22,
+    emissive: 0x663300, emissiveIntensity: 0.4, envMapIntensity: 1.5
+  });
+  var shine = new THREE.MeshStandardMaterial({
+    color: 0xffe58a, metalness: 0.9, roughness: 0.18,
+    emissive: 0x996600, emissiveIntensity: 0.5, envMapIntensity: 1.6
+  });
+
+  // Minted disc: face turned toward +Z so it spins like a real coin
+  var coin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.07, 32), gold);
   coin.rotation.x = Math.PI / 2;
   group.add(coin);
-  var ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.35, 0.04, 6, 16),
+  var rim = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.032, 10, 32), shine);
+  group.add(rim);
+
+  // Embossed medical cross on both faces
+  [1, -1].forEach(function (side) {
+    var v = new THREE.Mesh(roundedBox(0.1, 0.34, 0.03), shine);
+    var h = new THREE.Mesh(roundedBox(0.34, 0.1, 0.03), shine);
+    v.position.z = h.position.z = side * 0.045;
+    group.add(v);
+    group.add(h);
+  });
+
+  var halo = new THREE.Mesh(
+    new THREE.TorusGeometry(0.37, 0.035, 8, 24),
     new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.3 })
   );
-  ring.rotation.x = Math.PI / 2;
-  group.add(ring);
+  group.add(halo);
   group.position.set(LANE_X[lane], y || 1.2, z);
   group.userData = { lane: lane, collected: false, type: 'coin' };
   return group;
@@ -749,8 +769,8 @@ export function spawnPowerup(scene, coinMeshes, planEntry) {
 
   // Inner core
   var inner = new THREE.Mesh(
-    new THREE.SphereGeometry(0.42, 12, 12),
-    new THREE.MeshBasicMaterial({ color: color })
+    new THREE.SphereGeometry(0.42, 24, 24),
+    new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.85, roughness: 0.12, metalness: 0.35, envMapIntensity: 1.6 })
   );
   group.add(inner);
 
@@ -758,25 +778,25 @@ export function spawnPowerup(scene, coinMeshes, planEntry) {
   var icon;
   switch (puDef.iconGeo) {
     case 'octahedron':
-      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
       break;
     case 'cone':
-      icon = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      icon = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
       break;
     case 'tetrahedron':
-      icon = new THREE.Mesh(new THREE.TetrahedronGeometry(0.27, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      icon = new THREE.Mesh(new THREE.TetrahedronGeometry(0.27, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
       break;
     case 'box':
       var crossGroup = new THREE.Group();
-      crossGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0xffffff })));
-      crossGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.38, 0.12), new THREE.MeshBasicMaterial({ color: 0xffffff })));
+      crossGroup.add(new THREE.Mesh(roundedBox(0.38, 0.12, 0.12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 })));
+      crossGroup.add(new THREE.Mesh(roundedBox(0.12, 0.38, 0.12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 })));
       icon = crossGroup;
       break;
     case 'dodecahedron':
-      icon = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      icon = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
       break;
     default:
-      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.27, 0), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.27, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
   }
   if (icon) {
     icon.position.set(0, 0.9, 0);

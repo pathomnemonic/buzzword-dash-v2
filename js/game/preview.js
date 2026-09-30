@@ -35,6 +35,7 @@ import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { updateModelAnimation } from './charactermodel.js';
+import { setupEnvironment } from './materials.js';
 
 // Gesture constants
 var GESTURE_NONE = 0;
@@ -116,6 +117,7 @@ export class CharacterPreview {
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.setClearColor(0x0a0e27, 1);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        setupEnvironment(this.renderer, this.scene);
         this.container.appendChild(this.renderer.domElement);
 
         this.resize();

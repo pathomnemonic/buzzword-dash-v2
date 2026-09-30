@@ -20,13 +20,14 @@
  */
 
 import * as THREE from 'three';
+import { roundedBox } from './materials.js';
 
 // ===== HELPER: create a colored box quickly =====
 function box(w, h, d, color, emissive) {
   var mat = emissive
     ? new THREE.MeshBasicMaterial({ color: color })
     : new THREE.MeshStandardMaterial({ color: color });
-  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  return new THREE.Mesh(roundedBox(w, h, d), mat);
 }
 
 function sphere(radius, color, basic) {
@@ -77,7 +78,7 @@ export function buildHospital() {
   var winMat = new THREE.MeshBasicMaterial({ color: 0x88ccff });
   for (var row = 0; row < 3; row++) {
     for (var col = 0; col < 4; col++) {
-      var win = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.35, 0.05), winMat);
+      var win = new THREE.Mesh(roundedBox(0.3, 0.35, 0.05), winMat);
       win.position.set(-0.9 + col * 0.6, 1.2 + row * 1.1, 1.28); g.add(win);
     }
   }

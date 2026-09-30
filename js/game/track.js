@@ -31,6 +31,7 @@ import {
   buildWallGlowStrips
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
+import { upgradeMaterials } from './materials.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -167,6 +168,10 @@ export function buildTrack(trackRoot, skin, options) {
   var lightRefs = setupSkinLightingUnderRoot(skin, trackRoot);
   trackRefs.lights = lightRefs;
 
+  // Sky and distance haze: depth instead of a black void
+  trackRoot.add(buildSkyDome(skin));
+  if (trackRoot.isScene) trackRoot.fog = new THREE.Fog(skin.colors.bg, 70, 240);
+
   // Ground
   var groundGroup = buildGround(skin);
   trackRoot.add(groundGroup);
@@ -206,6 +211,45 @@ export function buildTrack(trackRoot, skin, options) {
   }
 
   return trackRefs;
+}
+
+// ===== SKY DOME =====
+// A gradient sky with a horizon glow and stars, so the world reads as a place
+// rather than a void. Static: the scenery scrolls, the sky does not.
+
+function buildSkyDome(skin) {
+  var c = skin.colors;
+  var mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    uniforms: {
+      top: { value: new THREE.Color(c.sky || c.bg) },
+      horizon: { value: new THREE.Color(c.wallGlow || c.lane || 0x18ffff) },
+      base: { value: new THREE.Color(c.bg) }
+    },
+    vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: [
+      'varying vec3 vDir; uniform vec3 top; uniform vec3 horizon; uniform vec3 base;',
+      'float hash(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }',
+      'void main(){',
+      '  float h = vDir.y;',
+      '  vec3 col = mix(base, top, smoothstep(-0.05, 0.75, h));',
+      '  float glow = exp(-abs(h) * 7.0);',
+      '  col += horizon * glow * 0.32;',
+      '  vec3 cell = floor(vDir * 170.0);',
+      '  float s = hash(cell);',
+      '  float star = step(0.9965, s) * smoothstep(0.02, 0.35, h);',
+      '  col += vec3(star) * (0.5 + 0.5 * hash(cell + 7.0));',
+      '  gl_FragColor = vec4(col, 1.0);',
+      '}'
+    ].join('\n')
+  });
+  var dome = new THREE.Mesh(new THREE.SphereGeometry(260, 32, 16), mat);
+  dome.renderOrder = -10;
+  dome.frustumCulled = false;
+  dome.userData.isSkyDome = true;
+  return dome;
 }
 
 // ===== LIGHTING UNDER TRACKROOT =====
@@ -264,6 +308,8 @@ function buildWalls(trackRoot, skin, qc, trackRefs) {
       group.add(segment);
     }
   }
+  // Solid wall surfaces become lit; bright neon and see-through parts keep their glow
+  upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
 }
 
 // ===== ARCH CONSTRUCTION =====
@@ -284,6 +330,7 @@ function buildArches(trackRoot, skin, qc, trackRefs) {
       group.add(leg);
     }
   }
+  upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
 }
 
 // ===== SCROLLING GROUND LINES =====
@@ -711,6 +758,7 @@ export function spawnEnvProp(scene, envPropMeshes, selectedSubjects) {
   var builders = selectedSubjects ? getSpecialtyProps(selectedSubjects) : PROP_BUILDERS;
   var builder = builders[Math.floor(Math.random() * builders.length)];
   var prop = builder();
+  upgradeMaterials(prop, { glowAbove: 0.8 });
 
   var placement = Math.random();
   if (placement < 0.35) {
