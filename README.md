@@ -301,9 +301,13 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 - `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Twelve characters (Explorer, Ranger, Adventurer, Hooded Rogue, Night-Shift Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Medic, King) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
 
+- `public/models/obstacles/*.glb`, `public/models/props/*.glb` — small props (hospital bed, traffic cone, cardboard boxes, traffic barrier, trash can, street light, air conditioner) by [Quaternius](https://quaternius.com/), and a computer screen and hospital sign by [Kenney](https://kenney.nl/), and a telescope by CreativeTrio; all CC0 1.0, from [Poly Pizza](https://poly.pizza/).
+
 ## Graphics
 
-The world is lit with physically based materials, a soft studio reflection map and ACES tone mapping (`js/game/materials.js`). Tracks have a gradient sky with stars, distance haze and a glossy floor; walls, obstacles, gates, coins and power-ups use lit materials and rounded geometry so they match the animated characters.
+The world is lit with physically based materials, a soft studio reflection map and ACES tone mapping (`js/game/materials.js`). Tracks have a gradient sky with stars, distance haze and a glossy floor; walls, obstacles, gates, coins and power-ups use lit materials and rounded geometry so they match the animated characters. Most jump obstacles and half the floating scenery are real 3D models (`js/game/scenery.js`).
+
+**Graphics tiers:** Settings -> Graphics chooses Auto, High or Low. Low is the backup for weaker computers: it uses the simple built-in characters, monsters and obstacles, skips model downloads, bloom, shadows and the sky dome, and renders at 1x resolution. Auto picks Low on devices reporting little memory or few cores, in data-saver mode, or after a session whose frame rate could not keep up.
 
 ## Technology
 

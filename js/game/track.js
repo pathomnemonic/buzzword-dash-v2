@@ -32,6 +32,7 @@ import {
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
 import { upgradeMaterials } from './materials.js';
+import { randomSceneryProp } from './scenery.js';
 import { isLowQuality } from './quality.js';
 
 // ===== CONSTANTS =====
@@ -758,8 +759,12 @@ export function updateAtmosphericParticles(particlePool, particleStates, dt, mov
 export function spawnEnvProp(scene, envPropMeshes, selectedSubjects) {
   var builders = selectedSubjects ? getSpecialtyProps(selectedSubjects) : PROP_BUILDERS;
   var builder = builders[Math.floor(Math.random() * builders.length)];
-  var prop = builder();
-  upgradeMaterials(prop, { glowAbove: 0.8 });
+  // Real 3D scenery models for about half the props when available
+  var prop = Math.random() < 0.5 ? randomSceneryProp() : null;
+  if (!prop) {
+    prop = builder();
+    upgradeMaterials(prop, { glowAbove: 0.8 });
+  }
 
   var placement = Math.random();
   if (placement < 0.35) {

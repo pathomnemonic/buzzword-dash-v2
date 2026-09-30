@@ -44,8 +44,9 @@ import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
-import { setupEnvironment } from './materials.js';
+import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, isLowQuality } from './quality.js';
+import { preloadScenery } from './scenery.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -516,6 +517,7 @@ class Game {
     this.renderer.setPixelRatio(isLowQuality() ? 1 : Math.min(devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = !isLowQuality();
     setupEnvironment(this.renderer, this.scene);
+    preloadScenery().catch(function () { /* the built-in versions are used */ });
     container.appendChild(this.renderer.domElement);
 
     // Create trackRoot group
@@ -1100,8 +1102,9 @@ class Game {
       this.playerShadow.material.dispose();
     }
     this.playerShadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.5, 16),
-      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.2 })
+      new THREE.PlaneGeometry(1.5, 1.5),
+      // Soft blob shadow instead of a hard-edged disc
+      new THREE.MeshBasicMaterial({ color: 0x000000, map: softDotTexture(), transparent: true, opacity: 0.45, depthWrite: false })
     );
     this.playerShadow.rotation.x = -Math.PI / 2;
     this.playerShadow.position.set(0, 0.02, 0);
@@ -2149,6 +2152,7 @@ card = pickResult ? pickResult.card : null;
             var coinValue = this.powerups.scoreFrenzy > 0 ? 5 : 1;
             this.coins += coinValue;
             this.runCoinsCollected += coinValue;
+            this._spawnSparks(c.position, 0xffd54a);
             this._emit('coin_collected', { type: 'coin', value: coinValue, lane: c.userData.lane });
           }
           removeAndDispose(this.scene, c);
@@ -2181,8 +2185,47 @@ card = pickResult ? pickResult.card : null;
   // VISUAL-ONLY UPDATE (countdown, etc.)
   // ═══════════════════════════════════════════════════════
 
+  /** A short burst of glowing sparks at a pickup. */
+  _spawnSparks(position, color) {
+    if (isLowQuality() || storage.get('reducedMotion')) return;
+    var tex = softDotTexture();
+    if (!this._sparks) this._sparks = [];
+    for (var i = 0; i < 10; i++) {
+      var mat = new THREE.SpriteMaterial({ map: tex, color: color, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
+      var sprite = new THREE.Sprite(mat);
+      sprite.scale.setScalar(0.28);
+      sprite.position.copy(position);
+      var a = Math.random() * Math.PI * 2;
+      var sp = 1.6 + Math.random() * 1.8;
+      sprite.userData = { vx: Math.cos(a) * sp, vy: 1 + Math.random() * 2, vz: Math.sin(a) * sp * 0.5, life: 0.55 };
+      this.scene.add(sprite);
+      this._sparks.push(sprite);
+    }
+  }
+
+  _updateSparks(dt, move) {
+    if (!this._sparks || !this._sparks.length) return;
+    for (var i = this._sparks.length - 1; i >= 0; i--) {
+      var s = this._sparks[i];
+      var u = s.userData;
+      u.life -= dt;
+      if (u.life <= 0) {
+        this.scene.remove(s);
+        s.material.dispose();
+        this._sparks.splice(i, 1);
+        continue;
+      }
+      u.vy -= 6 * dt;
+      s.position.x += u.vx * dt;
+      s.position.y += u.vy * dt;
+      s.position.z += u.vz * dt + move;
+      s.material.opacity = Math.max(0, u.life / 0.55);
+    }
+  }
+
   _updateVisuals(dt, move, currentSpeed, rushMult) {
     if (!move) move = 0;
+    this._updateSparks(dt, move);
     if (!currentSpeed) currentSpeed = this.speed;
     if (!rushMult) rushMult = 1;
 

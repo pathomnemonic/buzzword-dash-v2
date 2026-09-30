@@ -46,6 +46,25 @@ export function roundedBox(w, h, d) {
   return new RoundedBoxGeometry(w, h, d, 2, Math.min(r, Math.min(w, h, d) / 2 - 0.0005));
 }
 
+var _dot = null;
+
+/** A soft round white gradient (transparent at the edge), for shadows and glows. */
+export function softDotTexture() {
+  if (_dot || typeof document === 'undefined') return _dot;
+  var canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 64;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  var g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0.55)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  _dot = new THREE.CanvasTexture(canvas);
+  return _dot;
+}
+
 var FLAT_GEOMETRIES = { PlaneGeometry: 1, CircleGeometry: 1, RingGeometry: 1, ShapeGeometry: 1 };
 
 /**

@@ -23,6 +23,7 @@
 
 import * as THREE from 'three';
 import { roundedBox, upgradeMaterials } from './materials.js';
+import { buildScenery } from './scenery.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -30,12 +31,12 @@ var LANE_X = [-3, 0, 3];
 // Each variant has an id, builder function, collision type, and bounding box.
 
 var JUMP_VARIANTS = [
-  { id: 'gurney',           builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 } },
-  { id: 'wet_floor_sign',   builder: buildWetFloorSign,     bounds: { width: 0.8, height: 1.0, depth: 0.8 } },
+  { id: 'gurney',           builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 }, model: 'bed' },
+  { id: 'wet_floor_sign',   builder: buildWetFloorSign,     bounds: { width: 0.8, height: 1.0, depth: 0.8 }, model: 'cone' },
   { id: 'wheelchair',       builder: buildWheelchair,       bounds: { width: 1.0, height: 1.0, depth: 0.8 } },
-  { id: 'spilled_supplies', builder: buildSpilledSupplies,  bounds: { width: 1.5, height: 0.5, depth: 0.8 } },
-  { id: 'fallen_stretcher', builder: buildFallenStretcher,  bounds: { width: 2.0, height: 0.5, depth: 0.8 } },
-  { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 } }
+  { id: 'spilled_supplies', builder: buildSpilledSupplies,  bounds: { width: 1.5, height: 0.5, depth: 0.8 }, model: 'boxes' },
+  { id: 'fallen_stretcher', builder: buildFallenStretcher,  bounds: { width: 2.0, height: 0.5, depth: 0.8 }, model: 'barrier' },
+  { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 }, model: 'bin' }
 ];
 
 var SLIDE_VARIANTS = [
@@ -545,8 +546,14 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry) {
     spawnZ = -50;
   }
 
-  var obs = variant.builder();
-  upgradeMaterials(obs, { glowAbove: 0.92 });
+  // Real 3D model when one is ready (high graphics tier); otherwise the built-in version.
+  var obs = variant.model ? buildScenery(variant.model, variant.bounds, true) : null;
+  if (obs) {
+    addJumpIndicator(obs);
+  } else {
+    obs = variant.builder();
+    upgradeMaterials(obs, { glowAbove: 0.92 });
+  }
   obs.position.set(LANE_X[lane], 0, spawnZ);
   obs.userData = {
     lane: lane,

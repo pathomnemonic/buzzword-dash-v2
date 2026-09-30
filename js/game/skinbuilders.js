@@ -1000,7 +1000,7 @@ export function buildAtmosphericParticle(skin) {
     case "sparks":
       // Neural electric sparks — small bright points
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.04, 4, 4),
+        new THREE.SphereGeometry(0.04, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.6 })
       );
       break;
@@ -1008,7 +1008,7 @@ export function buildAtmosphericParticle(skin) {
     case "blood_cells":
       // Flattened discs resembling red blood cells
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.12, 6, 6),
+        new THREE.SphereGeometry(0.12, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.4 })
       );
       mesh.scale.set(1, 0.35, 1);
@@ -1017,7 +1017,7 @@ export function buildAtmosphericParticle(skin) {
     case "calcium_dust":
       // Small irregular bone dust particles
       mesh = new THREE.Mesh(
-        new THREE.TetrahedronGeometry(0.05, 0),
+        new THREE.IcosahedronGeometry(0.05, 1),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.3 })
       );
       break;
@@ -1025,7 +1025,7 @@ export function buildAtmosphericParticle(skin) {
     case "vesicles":
       // Cellular vesicles — small transparent spheres
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.08, 6, 6),
+        new THREE.SphereGeometry(0.08, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.25 })
       );
       break;
@@ -1033,7 +1033,7 @@ export function buildAtmosphericParticle(skin) {
     case "dust_motes":
       // Tiny floating dust in hospital air
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.03, 4, 4),
+        new THREE.SphereGeometry(0.03, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.35 })
       );
       break;
@@ -1071,7 +1071,7 @@ export function buildAtmosphericParticle(skin) {
     case "sterile_sparkles":
       // Tiny bright sparkles in sterile OR air
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.025, 4, 4),
+        new THREE.SphereGeometry(0.025, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.7 })
       );
       break;
@@ -1095,7 +1095,7 @@ export function buildAtmosphericParticle(skin) {
     case "photons":
       // X-ray photon scatter — tiny bright dots
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.02, 4, 4),
+        new THREE.SphereGeometry(0.02, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle })
       );
       break;
@@ -1111,7 +1111,7 @@ export function buildAtmosphericParticle(skin) {
     default:
       // Generic floating mote
       mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.04, 4, 4),
+        new THREE.SphereGeometry(0.04, 12, 8),
         new THREE.MeshBasicMaterial({ color: c.particle, transparent: true, opacity: 0.3 })
       );
       break;

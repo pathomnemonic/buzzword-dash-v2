@@ -173,16 +173,20 @@ export class HomeCharacter {
         this.scene.add(rimLight);
 
         // ===== GROUND PLATFORM =====
-        var platformGeo = new THREE.CircleGeometry(2.0, 32);
-        var platformMat = new THREE.MeshBasicMaterial({
-            color: 0x1a0a40,
-            transparent: true,
-            opacity: 0.4
-        });
-        var platform = new THREE.Mesh(platformGeo, platformMat);
-        platform.rotation.x = -Math.PI / 2;
-        platform.position.y = -0.3;
-        this.scene.add(platform);
+        // A solid plinth with a polished top and a glowing edge
+        var plinth = new THREE.Mesh(
+            new THREE.CylinderGeometry(2.0, 2.15, 0.28, 48),
+            new THREE.MeshStandardMaterial({ color: 0x2a1a55, metalness: 0.75, roughness: 0.28, envMapIntensity: 1.2 })
+        );
+        plinth.position.y = -0.44;
+        this.scene.add(plinth);
+        var glowEdge = new THREE.Mesh(
+            new THREE.TorusGeometry(2.0, 0.035, 10, 64),
+            new THREE.MeshBasicMaterial({ color: 0x00eeff })
+        );
+        glowEdge.rotation.x = Math.PI / 2;
+        glowEdge.position.y = -0.3;
+        this.scene.add(glowEdge);
 
         var ringGeo = new THREE.RingGeometry(1.9, 2.1, 48);
         var ringMat = new THREE.MeshBasicMaterial({
