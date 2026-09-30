@@ -152,13 +152,13 @@ export class HomeCharacter {
         this.camera.lookAt(0, 1.2, 0);
 
         // ===== LIGHTING =====
-        var ambient = new THREE.AmbientLight(0x665588, 0.6);
+        var ambient = new THREE.AmbientLight(0x8877aa, 1.2);
         this.scene.add(ambient);
 
         var hemi = new THREE.HemisphereLight(0x8866cc, 0x112244, 0.5);
         this.scene.add(hemi);
 
-        var keyLight = new THREE.DirectionalLight(0xffeedd, 0.8);
+        var keyLight = new THREE.DirectionalLight(0xffeedd, 1.8);
         keyLight.position.set(5, 8, 10);
         this.scene.add(keyLight);
 

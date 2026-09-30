@@ -1342,6 +1342,7 @@ function init() {
     if (webglOk && !game.running) game.buildPlayer();
     if (homeCharacter) homeCharacter.rebuildCharacter();
     if (ui.characterPreview) ui.characterPreview.rebuildCharacter();
+    if (webglOk && game.refreshMonster) game.refreshMonster();
   });
 
   // Keep the server's weekly study total (group goals) up to date

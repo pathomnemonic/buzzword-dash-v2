@@ -1524,6 +1524,18 @@ class UI {
     heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
     wrap.appendChild(heading);
 
+    // The 3D characters ship with their own colors; only the classic blocky
+    // characters can be recolored.
+    var equippedSkin = storage.get('equipped').skin || 'avatar_intern';
+    var equippedAvatar = AVATARS.filter(function (a) { return a.id === equippedSkin; })[0];
+    if (equippedAvatar && equippedAvatar.isModel) {
+      wrap.appendChild(createElement('div', {
+        className: 'setting-sublabel',
+        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look.'
+      }));
+      return wrap;
+    }
+
     var current = storage.get('avatarColors') || {};
     var grid = createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center';

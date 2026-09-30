@@ -17,6 +17,8 @@
  * - Subject mastery: total >= 50 && correct/total >= 0.8
  */
 
+import { CHARACTER_MODELS, MONSTER_MODELS } from './modelcatalog.js';
+
 // ═══════════════════════════════════════════════════════════
 // CANONICAL ID REGISTRIES
 // ═══════════════════════════════════════════════════════════
@@ -482,6 +484,54 @@ export var SHOP_ITEMS = [
   { id: "cloth_cape_red", name: "Red Cape", price: 2000, type: "clothing", color: 0xdd2222, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "cloth_cape_rainbow", name: "Rainbow Cape", price: 5000, type: "clothing", color: 0xff44ff, compatibility: COMPAT_HUMANOID_ONLY }
 ];
+
+
+// ═══════════════════════════════════════════════════════════
+// ANIMATED 3D MODELS (see modelcatalog.js)
+// The Intern is now a real animated model. The original blocky Intern stays
+// available as "Classic Intern" because only it can wear hats, gear and outfits.
+// ═══════════════════════════════════════════════════════════
+
+(function registerModels() {
+  var intern = AVATARS[0];
+  AVATARS.push(Object.assign({}, intern, {
+    id: "avatar_classic",
+    name: "Classic Intern",
+    desc: "The original blocky intern. Works with every hat, gear and outfit"
+  }));
+  SHOP_ITEMS.push({ id: "avatar_classic", name: "Classic Intern", price: 0, type: "skin", color: 0x2288dd, icon: "🩺", compatibility: COMPAT_ALL });
+
+  CHARACTER_MODELS.forEach(function (m) {
+    if (m.id === "avatar_intern") {
+      intern.isModel = true;
+      intern.modelUrl = "models/" + m.file;
+      return;
+    }
+    AVATARS.push({
+      id: m.id,
+      name: m.name,
+      desc: m.desc,
+      price: m.price,
+      // Stand-in colors used until the 3D model has finished loading
+      bodyColor: m.color,
+      pantsColor: 0x334455,
+      shoeColor: 0x222233,
+      skinColor: 0xe0b090,
+      hairColor: 0x332211,
+      scale: 1.0,
+      legSpeed: 1.0,
+      armSwing: 1.0,
+      isModel: true,
+      modelUrl: "models/" + m.file,
+      icon: m.icon
+    });
+    SHOP_ITEMS.push({ id: m.id, name: m.name + " (animated 3D)", price: m.price, type: "skin", color: m.color, icon: m.icon, compatibility: COMPAT_HUMANOID_ONLY });
+  });
+
+  MONSTER_MODELS.forEach(function (m) {
+    SHOP_ITEMS.push({ id: m.id, name: m.name + " (animated 3D)", price: m.price, type: "monster", color: m.color, icon: m.icon, compatibility: COMPAT_ALL });
+  });
+})();
 
 // ═══════════════════════════════════════════════════════════
 // QUESTS

@@ -12,6 +12,8 @@
 
 import * as THREE from 'three';
 import { buildExamMonster, getMonsterParts } from './exammonster.js';
+import { getMonsterModel, modelUrl } from './modelcatalog.js';
+import { buildModelMonster, loadCharacterModel } from './charactermodel.js';
 
 var STYLES = {
   monster_classic: { name: 'Exam Monster', builder: 'classic' },
@@ -272,6 +274,22 @@ function buildKraken() {
  * @returns {THREE.Group}
  */
 export function buildMonster(id) {
+  var model = getMonsterModel(id);
+  if (model) {
+    // Real animated model. If it is still downloading, show the classic
+    // monster; "buzzword:model-ready" makes the engine swap it in.
+    var url = modelUrl(model.file);
+    var built = buildModelMonster(url, 5.5);
+    if (built) {
+      built.userData.monsterParts = emptyParts();
+      built.userData.displayScale = 1;
+      built.userData.flying = !!model.flying;
+      return built;
+    }
+    loadCharacterModel(url).catch(function (e) {
+      console.warn('[Monsters] Could not load monster model:', e && e.message);
+    });
+  }
   switch (id) {
     case 'monster_wraith': return buildWraith();
     case 'monster_golem': return buildGolem();

@@ -44,6 +44,7 @@ import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
+import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
 import { HazardManager, HAZARDS } from './hazards.js';
@@ -1099,6 +1100,14 @@ class Game {
     this.scene.add(this.playerShadow);
   }
 
+  /** A monster model finished downloading: swap the stand-in for it. */
+  refreshMonster() {
+    if (!this.examMonster || this.examMonster.userData.isModelMonster) return;
+    var before = this.examMonster;
+    this._createExamMonster();
+    if (this.examMonster === before) return;
+  }
+
   _createExamMonster() {
     if (this.examMonster) disposeExamMonster(this.scene, this.examMonster);
     this.examMonster = buildMonster((storage.get('equipped') || {}).monster);
@@ -1106,6 +1115,26 @@ class Game {
     this.examMonster.position.set(0, 1.5, this.monsterZ);
     this.examMonster.visible = true;
     this.scene.add(this.examMonster);
+
+    // Behavior state, and every material so the whole monster can fade together.
+    this._monsterBehavior = createMonsterBehavior();
+    var parts = this.monsterParts || {};
+    var selfFading = [];
+    if (parts.backRing) selfFading.push(parts.backRing.material);
+    if (parts.aura) selfFading.push(parts.aura.material);
+    (parts.eyes || []).forEach(function (eye) { if (eye.material) selfFading.push(eye.material); });
+    var seen = [];
+    this._monsterFade = [];
+    var fadeList = this._monsterFade;
+    this.examMonster.traverse(function (o) {
+      if (!o.material) return;
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) {
+        if (seen.indexOf(m) >= 0) return;
+        seen.push(m);
+        m.transparent = true;
+        fadeList.push({ m: m, base: m.opacity, animated: selfFading.indexOf(m) >= 0 });
+      });
+    });
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1468,6 +1497,7 @@ card = pickResult ? pickResult.card : null;
 
     // Monster behavior
     if (this.examMonster) {
+      if (this._monsterBehavior) monsterOnAnswer(this._monsterBehavior, ok);
       if (!ok) {
         this.monsterTargetZ -= 4;
       } else {
@@ -2202,22 +2232,43 @@ card = pickResult ? pickResult.card : null;
     // behind it. The monster is therefore drawn in front of the camera and
     // grows/approaches as the catch distance shrinks.
     var near = Math.min(1, Math.max(0, (30 - this.monsterZ) / 27));
-    var shouldBeVisible = true;
+    // Stalk the player across lanes, lunge, and fade as the streak returns.
+    var dying = this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT;
+    var pose = stepMonsterBehavior(this._monsterBehavior, {
+      playerX: this.playerGroup.position.x,
+      dist: this.monsterZ,
+      streak: this.streak,
+      dying: dying,
+      time: this.elapsedTime
+    }, dt);
+    var shouldBeVisible = dying || pose.opacity > 0.02;
     if (shouldBeVisible !== this.monsterVisible) {
       this.monsterVisible = shouldBeVisible;
       this.examMonster.visible = shouldBeVisible;
     }
+    if (pose.lunged && pose.opacity > 0.3) this._emit('monster_warning', {});
 
-    // The monster looms above the player's line of sight so it never hides the
-    // runner or the lanes, then swoops down when it makes the catch.
-    var dying = this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT;
-    var targetY = dying ? 1.6 : 3.4;
+    // It hovers above the player's line of sight so it never hides the runner,
+    // then swoops down when it makes the catch.
+    // 3D-model monsters that walk stalk along the ground behind the runner;
+    // flying ones (and the procedural monsters) hover above the line of sight.
+    var isModelMonster = !!this.examMonster.userData.isModelMonster;
+    var onGround = isModelMonster && !this.examMonster.userData.flying;
+    var targetY = onGround ? pose.hop * 0.6 : (dying ? 1.6 : pose.y);
     this._monsterY = (this._monsterY === undefined ? targetY : this._monsterY);
-    this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 4);
-    this.examMonster.position.set(0, this._monsterY, dying ? Math.min(this.monsterZ, 5) : 3.5 - near);
+    this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 6);
+    this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);
+    if (isModelMonster) {
+      // Face the camera and lean in; the clips do the rest of the acting.
+      this.examMonster.rotation.set(-pose.rotX * 0.5, pose.rotY * 0.4, pose.rotZ);
+      var wanted = dying || pose.lunging ? 'attack' : (onGround ? 'run' : 'idle');
+      updateModelAnimation(this.examMonster, dt, wanted);
+    } else {
+      this.examMonster.rotation.set(pose.rotX, pose.rotY, pose.rotZ);
+    }
 
     if (this.monsterVisible) {
-      var distFactor = dying ? 0.3 + 0.7 * near : 0.22 + 0.3 * near;
+      var distFactor = dying ? 0.3 + 0.7 * near : (0.22 + 0.3 * near) * pose.scale;
       // Keep every design out of the way; larger models are scaled down further.
       distFactor *= (this.examMonster.userData.displayScale || 1);
       if (!dying) distFactor = Math.min(distFactor, 0.6);
@@ -2285,6 +2336,16 @@ card = pickResult ? pickResult.card : null;
           qm.position.z = Math.sin(angle) * 1.5;
           qm.rotation.y += dt * 2;
         }
+      }
+    }
+
+    // Fade every part together. Parts that animate their own opacity were just
+    // set to an absolute value this frame, so scale from that; the rest scale
+    // from the opacity they were built with.
+    if (this.monsterVisible && this._monsterFade) {
+      for (var fi = 0; fi < this._monsterFade.length; fi++) {
+        var fe = this._monsterFade[fi];
+        fe.m.opacity = (fe.animated ? fe.m.opacity : fe.base) * pose.opacity;
       }
     }
   }

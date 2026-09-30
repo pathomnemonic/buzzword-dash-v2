@@ -544,10 +544,20 @@ class Storage {
     if (!d) return;
 
     // Ensure required owned items
-    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
+    var requiredItems = ['avatar_intern', 'avatar_classic', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
     for (var i = 0; i < requiredItems.length; i++) {
       if (d.progression.ownedItems.indexOf(requiredItems[i]) < 0) {
         d.progression.ownedItems.push(requiredItems[i]);
+      }
+    }
+
+    // The Intern became an animated 3D model, which cannot wear hats, gear or
+    // outfits. Players who had dressed the old Intern stay on the classic one.
+    if (!d.progression.modelIntroSeen) {
+      d.progression.modelIntroSeen = true;
+      var eq = d.progression.equipped;
+      if (eq.skin === 'avatar_intern' && ((eq.hat && eq.hat !== 'hat_none') || (eq.gear && eq.gear !== 'gear_none') || (eq.clothing && eq.clothing !== 'cloth_none'))) {
+        eq.skin = 'avatar_classic';
       }
     }
 
