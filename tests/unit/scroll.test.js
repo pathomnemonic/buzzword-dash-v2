@@ -9,7 +9,7 @@ describe('scrolling corridor', () => {
   it('moves walls and arches forward and wraps seamlessly', () => {
     const root = new THREE.Group();
     const refs = buildTrack(root, SKINS[0], { quality: 'low', reducedMotion: true });
-    expect(refs.scrollers.length).toBe(2); // walls + arches
+    expect(refs.scrollers.length).toBeGreaterThanOrEqual(2); // walls, arches, then the merged decorations
 
     const wall = refs.scrollers[0];
     const start = wall.group.position.z;

@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneModel } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { useSceneryModels } from './quality.js';
-import { markShared } from './materials.js';
+import { markShared, mergeStatic } from './materials.js';
 
 export var SCENERY_FILES = {
   // Obstacles
@@ -59,6 +59,7 @@ export function preloadScenery() {
     return new Promise(function (resolve) {
       loader.load(baseUrl() + 'models/' + SCENERY_FILES[key], function (gltf) {
         gltf.scene.updateMatrixWorld(true);
+        mergeStatic(gltf.scene);
         markShared(gltf.scene);
         _cache[key] = { scene: gltf.scene, box: new THREE.Box3().setFromObject(gltf.scene, true) };
         resolve();
@@ -73,6 +74,8 @@ export function registerSceneryModel(key, buffer) {
   return new Promise(function (resolve, reject) {
     new GLTFLoader().parse(buffer, '', function (gltf) {
       gltf.scene.updateMatrixWorld(true);
+      mergeStatic(gltf.scene);
+      markShared(gltf.scene);
       _cache[key] = { scene: gltf.scene, box: new THREE.Box3().setFromObject(gltf.scene, true) };
       resolve();
     }, reject);

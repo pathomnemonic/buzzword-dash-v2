@@ -31,7 +31,7 @@ import {
   buildWallGlowStrips
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
-import { upgradeMaterials } from './materials.js';
+import { upgradeMaterials, mergeStatic } from './materials.js';
 import { randomSceneryProp, placeFloatingProp } from './scenery.js';
 import { isLowQuality } from './quality.js';
 
@@ -116,6 +116,30 @@ function getQualityConfig(quality) {
   return QUALITY_CONFIGS.medium;
 }
 
+/**
+ * Turn a list of individually-scrolling decorations into one periodic group
+ * that scrolls like the walls do, then merge it. The pattern repeats every
+ * `period` units, so a copy shifted back by one period fills the far end as
+ * the group slides forward. Distance fade comes from scene fog instead of a
+ * per-mesh opacity update, which removes thousands of per-frame changes.
+ */
+function convertToPeriodic(items, period, trackRoot, trackRefs) {
+  if (!items.length) return;
+  var group = new THREE.Group();
+  items.slice().forEach(function (m) {
+    if (m.parent) m.parent.remove(m);
+    m.material.opacity = (m.userData.baseOpacity || m.material.opacity) * 0.85;
+    var copy = m.clone();
+    copy.position.z -= period;
+    group.add(m);
+    group.add(copy);
+  });
+  trackRoot.add(group);
+  trackRefs.scrollers.push({ group: group, spacing: period });
+  mergeStatic(group);
+  items.length = 0; // nothing left to update one by one
+}
+
 // ===== MAIN TRACK BUILDER =====
 
 /**
@@ -176,6 +200,7 @@ export function buildTrack(trackRoot, skin, options) {
 
   // Ground
   var groundGroup = buildGround(skin);
+  mergeStatic(groundGroup);
   trackRoot.add(groundGroup);
 
   // Walls
@@ -187,6 +212,7 @@ export function buildTrack(trackRoot, skin, options) {
   // Wall glow strips
   for (var glowSide = -1; glowSide <= 1; glowSide += 2) {
     var glowStrips = buildWallGlowStrips(skin, glowSide);
+    mergeStatic(glowStrips);
     trackRoot.add(glowStrips);
   }
 
@@ -206,6 +232,11 @@ export function buildTrack(trackRoot, skin, options) {
 
   // Wall markers
   buildWallMarkers(trackRoot, skin, trackRefs, qc);
+
+  // Merge the scrolling decorations (each pattern repeats: lines every 7.5, panels 7, markers 48)
+  convertToPeriodic(trackRefs.scrollLines, SCROLL_LINE_SPACING * 3, trackRoot, trackRefs);
+  convertToPeriodic(trackRefs.wallScrollPanels, WALL_PANEL_SPACING * 2, trackRoot, trackRefs);
+  convertToPeriodic(trackRefs.wallMarkers, WALL_MARKER_SPACING * 12, trackRoot, trackRefs);
 
   // Skybox elements (skip if reduced motion)
   if (!reducedMotion) {
@@ -312,6 +343,7 @@ function buildWalls(trackRoot, skin, qc, trackRefs) {
   }
   // Solid wall surfaces become lit; bright neon and see-through parts keep their glow
   upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
+  mergeStatic(group);
 }
 
 // ===== ARCH CONSTRUCTION =====
@@ -333,6 +365,7 @@ function buildArches(trackRoot, skin, qc, trackRefs) {
     }
   }
   upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
+  mergeStatic(group);
 }
 
 // ===== SCROLLING GROUND LINES =====

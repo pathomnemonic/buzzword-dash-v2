@@ -15,6 +15,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isLowQuality } from './quality.js';
 
 var _envCache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
@@ -54,6 +55,70 @@ export function markShared(root) {
       (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { m.userData.shared = true; });
     }
   });
+}
+
+// ===== DRAW-CALL REDUCTION =====
+
+function materialKey(m) {
+  return [
+    m.type, m.color && m.color.getHex(), m.opacity, m.transparent ? 1 : 0, m.side, m.roughness, m.metalness,
+    m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.map && m.map.uuid, m.depthWrite ? 1 : 0,
+    m.blending, m.fog === false ? 0 : 1
+  ].join('|');
+}
+
+/** Keep only position, normal and uv, all non-indexed alike, so geometries can be merged. */
+function mergeable(geometry, worldMatrix) {
+  var g = geometry.index ? geometry.toNonIndexed() : geometry.clone();
+  g.applyMatrix4(worldMatrix);
+  Object.keys(g.attributes).forEach(function (name) {
+    if (name !== 'position' && name !== 'normal' && name !== 'uv') g.deleteAttribute(name);
+  });
+  if (!g.attributes.normal) g.computeVertexNormals();
+  if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+  return g;
+}
+
+/**
+ * Merge every static mesh under `root` that shares a material into one mesh.
+ * Hundreds of small meshes become a handful of draw calls; the picture is the
+ * same. Skinned (animated) meshes, instanced meshes and meshes that cast
+ * shadows are left alone. Transforms are baked relative to `root`.
+ * @param {THREE.Object3D} root
+ * @returns {number} how many meshes were removed by merging
+ */
+export function mergeStatic(root) {
+  root.updateMatrixWorld(true);
+  var inverse = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  var buckets = {};
+  root.traverse(function (o) {
+    if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh || !o.geometry || Array.isArray(o.material)) return;
+    if (o.castShadow || o.userData.noMerge || !o.visible) return;
+    if (o.material.vertexColors || o.material.morphTargets || o.geometry.morphAttributes.position) return;
+    var key = materialKey(o.material);
+    var b = buckets[key] || (buckets[key] = { material: o.material, geoms: [], meshes: [] });
+    b.geoms.push(mergeable(o.geometry, new THREE.Matrix4().multiplyMatrices(inverse, o.matrixWorld)));
+    b.meshes.push(o);
+  });
+
+  var removed = 0;
+  Object.keys(buckets).forEach(function (key) {
+    var b = buckets[key];
+    if (b.meshes.length < 2) { b.geoms.forEach(function (g) { g.dispose(); }); return; }
+    var merged = mergeGeometries(b.geoms, false);
+    b.geoms.forEach(function (g) { g.dispose(); });
+    if (!merged) return;
+    var mesh = new THREE.Mesh(merged, b.material);
+    mesh.userData.merged = true;
+    mesh.renderOrder = b.meshes[0].renderOrder;
+    b.meshes.forEach(function (m) {
+      if (m.parent) m.parent.remove(m);
+      if (m.geometry && !(m.geometry.userData && m.geometry.userData.shared)) m.geometry.dispose();
+      removed++;
+    });
+    root.add(mesh);
+  });
+  return removed;
 }
 
 var _dot = null;

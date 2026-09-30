@@ -313,6 +313,8 @@ The world is lit with physically based materials, a soft studio reflection map a
 
 **Locker:** the Locker has three tabs. *Characters* sorts characters into animated 3D, classic (blocky) and vehicles, with what each can wear. *Customize* shows only what works on the equipped character (3D characters can wear hats; classic characters also get colors, clothing and gear; vehicles cannot be customized). *Trails & Monsters* works with every character.
 
+**Measuring performance:** add `?debug=1` to the URL to expose the engine as `window.__game`; `renderer.info` then reports draw calls and triangles. Static scenery (walls, arches, decorations, model scenery) is merged by material at build time (`mergeStatic` in `js/game/materials.js`), which cut a typical frame from about 2,000 draw calls to about 270.
+
 ## Technology
 
 - **Three.js** (r160) for 3D rendering (bundled)

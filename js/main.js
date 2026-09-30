@@ -958,6 +958,8 @@ function finalizeRun(gameRef) {
 //  MAIN INITIALIZATION
 // =========================================================================
 function init() {
+  // ?debug=1 exposes the engine on window.__game for measuring performance
+  if (/[?&]debug=1(&|$)/.test(window.location.search)) window.__game = game;
   storage.load();
   storage.checkDailyReset();
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
