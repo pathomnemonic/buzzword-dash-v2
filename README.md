@@ -1,4 +1,6 @@
-# Buzzword Dash ⚡
+# Dx Dash
+
+**Run the list.**
 
 A 3D endless-runner game for USMLE & COMLEX board prep. Recognize medical buzzwords, swipe into the correct diagnosis lane, dodge obstacles, collect coins, and build your streak.
 
@@ -255,7 +257,7 @@ buzzword-dash/
 
 ## Tips (Optional)
 
-Buzzword Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:
+Dx Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:
 
 ```
 VITE_TIP_URL=https://ko-fi.com/yourname

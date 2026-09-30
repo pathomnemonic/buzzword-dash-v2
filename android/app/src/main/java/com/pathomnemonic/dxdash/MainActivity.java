@@ -1,4 +1,4 @@
-package com.pathomnemonic.buzzworddash;
+package com.pathomnemonic.dxdash;
 
 import android.os.Bundle;
 import android.view.WindowManager;

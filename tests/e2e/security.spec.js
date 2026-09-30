@@ -33,7 +33,7 @@ test.describe('Accessibility — reduced motion', () => {
     const page = await context.newPage();
     await page.goto('/');
     // Verify the page loads successfully under reduced motion
-    await expect(page).toHaveTitle(/Buzzword Dash/);
+    await expect(page).toHaveTitle(/Dx Dash/);
     await context.close();
   });
 });

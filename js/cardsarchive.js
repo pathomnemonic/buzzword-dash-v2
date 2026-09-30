@@ -1,5 +1,5 @@
 /**
- * cards.js — Medical card database for Buzzword Dash
+ * cards.js — Medical card database for Dx Dash
  *
  * High-yield board-prep cards across all 15 subjects.
  * Each card: id, subj, bw (buzzwords), ans (correct answer),

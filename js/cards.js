@@ -1,5 +1,5 @@
 /**
- * cards.js — Card hub for Buzzword Dash card database
+ * cards.js — Card hub for Dx Dash card database
  *
  * This is the single source of truth for all built-in cards.
  * It imports raw card arrays from subject files, validates and
@@ -350,12 +350,12 @@ for (var si = 0; si < RAW_SOURCES.length; si++) {
 // ═══════════════════════════════════════════════════════════
 
 console.log(
-  '[Buzzword Dash] ' + _cards.length + ' cards loaded, ' +
+  '[Dx Dash] ' + _cards.length + ' cards loaded, ' +
   _dropped.length + ' dropped, ' + _warnings.length + ' auto-fixes applied'
 );
 
 if (_dropped.length > 0) {
-  console.warn('[Buzzword Dash] Dropped ' + _dropped.length + ' card(s):');
+  console.warn('[Dx Dash] Dropped ' + _dropped.length + ' card(s):');
   for (var di2 = 0; di2 < _dropped.length; di2++) {
     console.warn('  ✖ ' + _dropped[di2].id + ': ' + _dropped[di2].reason);
   }
@@ -366,7 +366,7 @@ var _isProdBuild = typeof import.meta !== 'undefined' && !!(import.meta.env && i
 // The per-card auto-fix list is only useful while developing.
 if (_warnings.length > 0 && !_isProdBuild) {
   console.groupCollapsed(
-    '[Buzzword Dash] ' + _warnings.length + ' auto-fix(es) applied (click to expand)'
+    '[Dx Dash] ' + _warnings.length + ' auto-fix(es) applied (click to expand)'
   );
   for (var w = 0; w < _warnings.length; w++) {
     console.log('  🔧 ' + _warnings[w]);

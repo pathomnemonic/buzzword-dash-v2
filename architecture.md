@@ -1,4 +1,4 @@
-# Buzzword Dash Architecture Contract
+# Dx Dash Architecture Contract
 
 **Document version:** 1.0.0  
 **Target application version:** 2.0.0  
@@ -10,7 +10,7 @@
 
 # 1. Purpose
 
-This document is the authoritative integration contract for the Buzzword Dash comprehensive update.
+This document is the authoritative integration contract for the Dx Dash comprehensive update.
 
 It exists to ensure that parallel implementation agents:
 

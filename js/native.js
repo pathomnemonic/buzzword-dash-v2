@@ -17,7 +17,7 @@ export function isNative() {
 }
 
 /** The custom URL scheme email links use to reopen the app (see AndroidManifest.xml). */
-export var APP_SCHEME = 'com.pathomnemonic.buzzworddash';
+export var APP_SCHEME = 'com.pathomnemonic.dxdash';
 
 /** Where Supabase email links (confirm, reset) should send the player back to. */
 export function getAuthRedirectUrl() {
@@ -27,7 +27,7 @@ export function getAuthRedirectUrl() {
 
 /**
  * Pull session tokens out of a deep link such as
- * com.pathomnemonic.buzzworddash://auth#access_token=...&refresh_token=...&type=recovery
+ * com.pathomnemonic.dxdash://auth#access_token=...&refresh_token=...&type=recovery
  * @param {string} url
  * @returns {{accessToken: string, refreshToken: string, type: string, code: string}|null}
  */

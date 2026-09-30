@@ -1,5 +1,5 @@
 -- ================================================================
--- Buzzword Dash — Supabase schema
+-- Dx Dash — Supabase schema
 -- Version: 2.0.0
 --
 -- Run this file FIRST, then policies.sql, in the Supabase SQL editor.

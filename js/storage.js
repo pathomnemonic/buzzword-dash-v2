@@ -1781,7 +1781,7 @@ class Storage {
     }
     var data = parsed && parsed.app === 'buzzword-dash' ? parsed.data : null;
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
-      return { ok: false, error: 'This is not a Buzzword Dash backup.' };
+      return { ok: false, error: 'This is not a Dx Dash backup.' };
     }
     if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
       return { ok: false, error: 'Backup is from an incompatible version.' };

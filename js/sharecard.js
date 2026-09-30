@@ -77,7 +77,7 @@ export function renderShareCard(data) {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffffff';
   ctx.font = '900 84px "Arial Black", Impact, sans-serif';
-  ctx.fillText('BUZZWORD DASH', W / 2, 150);
+  ctx.fillText('DX DASH', W / 2, 150);
   ctx.font = '600 34px "Segoe UI", sans-serif';
   ctx.fillStyle = '#b9a8ff';
   ctx.fillText('USMLE & COMLEX Board Runner', W / 2, 205);
@@ -154,9 +154,9 @@ export function renderShareCard(data) {
  * @returns {Promise<'shared'|'downloaded'>}
  */
 export function shareOrDownload(blob) {
-  var file = new File([blob], 'buzzword-dash-result.png', { type: 'image/png' });
+  var file = new File([blob], 'dx-dash-result.png', { type: 'image/png' });
   if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-    return navigator.share({ files: [file], title: 'Buzzword Dash result' }).then(function () { return 'shared'; }, function (e) {
+    return navigator.share({ files: [file], title: 'Dx Dash result' }).then(function () { return 'shared'; }, function (e) {
       if (e && e.name === 'AbortError') return 'shared';
       throw e;
     });
@@ -164,7 +164,7 @@ export function shareOrDownload(blob) {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'buzzword-dash-result.png';
+  a.download = 'dx-dash-result.png';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

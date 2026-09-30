@@ -1,4 +1,4 @@
-# Turning Buzzword Dash into a phone app
+# Turning Dx Dash into a phone app
 
 The game is wrapped with [Capacitor](https://capacitorjs.com/): the same web code runs inside a native shell, so the website and the apps stay in step. Android is fully set up in this repository. iOS is set up as a build recipe; because Apple only allows iOS builds on a Mac, that part is finished on a Mac (or a cloud Mac).
 
@@ -15,19 +15,19 @@ The game is wrapped with [Capacitor](https://capacitorjs.com/): the same web cod
 |---|---|---|
 | Create a **Google Play Developer** account | Publishing under your identity | $25 once |
 | Create an **Apple Developer Program** account and use a Mac | iOS builds and App Store upload | $99 per year |
-| Choose the final **app ID** | It is permanent once published. It is currently `com.pathomnemonic.buzzworddash` | free |
+| Choose the final **app ID** | It is permanent once published. It is currently `com.pathomnemonic.dxdash` | free |
 | Add the app's email-link address in Supabase | Lets confirmation and reset emails reopen the app | free |
 | Make **screenshots** and approve the store text | Store listing | free |
 | Create the **signing key** | Only you should hold it | free |
 
 ### 1. App ID
-Change it now if you want a different one (for example `com.yourname.buzzworddash`), before the first upload. Search for the current value and replace it everywhere: `capacitor.config.json`, `js/native.js` (`APP_SCHEME`), `android/app/build.gradle` (`namespace`, `applicationId`), `android/app/src/main/AndroidManifest.xml` (the `<data android:scheme>` line), the Java package folder under `android/app/src/main/java/`, and `MainActivity.java`'s `package` line. Then run `npm run app:build`.
+Change it now if you want a different one (for example `com.yourname.dxdash`), before the first upload. Search for the current value and replace it everywhere: `capacitor.config.json`, `js/native.js` (`APP_SCHEME`), `android/app/build.gradle` (`namespace`, `applicationId`), `android/app/src/main/AndroidManifest.xml` (the `<data android:scheme>` line), the Java package folder under `android/app/src/main/java/`, and `MainActivity.java`'s `package` line. Then run `npm run app:build`.
 
 ### 2. Supabase: email links that reopen the app
 In Supabase, go to **Authentication → URL Configuration → Redirect URLs** and add:
 
 ```
-com.pathomnemonic.buzzworddash://auth
+com.pathomnemonic.dxdash://auth
 ```
 
 (Keep your website URLs there too.) Without this, confirmation and password-reset emails opened from the app would not return to it.
@@ -36,7 +36,7 @@ com.pathomnemonic.buzzworddash://auth
 Generate a key once and keep it (and its passwords) somewhere safe. Losing it means you cannot update the app:
 
 ```bash
-keytool -genkey -v -keystore release.keystore -alias buzzworddash -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkey -v -keystore release.keystore -alias dxdash -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 Use **Play App Signing** (Google holds the final key; yours is an "upload key"), which lets you recover if it is lost. To let GitHub build the release bundle, add these repository **secrets**: `ANDROID_KEYSTORE_BASE64` (the keystore, run through `base64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.

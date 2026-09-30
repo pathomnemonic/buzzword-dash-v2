@@ -1,5 +1,5 @@
 /**
- * ui.js — Main UI Controller for Buzzword Dash
+ * ui.js — Main UI Controller for Dx Dash
  *
  * Agent 5 owns this file and js/dom.js [2].
  *
@@ -48,6 +48,7 @@ import { getControlText } from './controlhints.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
 import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
+import { streakCallout, runVerdict } from './flavor.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -171,7 +172,7 @@ class UI {
 
     this.tutorialPage = 0;
     this.tutorialPages = [
-      { icon: '⚡', title: 'Welcome!', text: 'Buzzword Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
+      { icon: '⚡', title: 'Welcome!', text: 'Dx Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
       { icon: '👆', title: 'Move Between Lanes', text: '' + getControlText().move + ' Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
       { icon: '⬆️', title: 'Jump Over Obstacles', text: getControlText().jump + ' over hospital beds, crates, cones and other obstacles on the ground.' },
       { icon: '⬇️', title: 'Slide Under Obstacles', text: getControlText().slide + ' under overhead obstacles like hanging lights and signs.' },
@@ -1382,7 +1383,8 @@ class UI {
 
   showStreakMilestone(streak, multiplier) {
     if (prefersReducedMotion()) return;
-    var popup = createElement('div', { text: '🔥 ' + streak + ' STREAK! ×' + multiplier });
+    var callout = streakCallout(streak);
+    var popup = createElement('div', { text: '🔥 ' + streak + ' STREAK! ×' + multiplier + (callout ? ' — ' + callout : '') });
     popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;color:var(--accent-cyan);text-shadow:0 0 12px rgba(24,255,255,0.5);pointer-events:none;z-index:6;transition:all 1s ease-out;opacity:1;';
     document.body.appendChild(popup);
     requestAnimationFrame(function () { popup.style.top = '25%'; popup.style.opacity = '0'; });
@@ -2085,7 +2087,7 @@ class UI {
     content.appendChild(aboutRow);
     var disclaimer = createElement('div', {
       className: 'setting-sublabel',
-      text: 'Buzzword Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
+      text: 'Dx Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
     });
     disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
     content.appendChild(disclaimer);
@@ -2103,7 +2105,7 @@ class UI {
       var tipRow = createElement('div', { className: 'setting-row' });
       var tipLabel = createElement('div');
       tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
-      tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Buzzword Dash is free. Tips help keep it going.' }));
+      tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
       tipRow.appendChild(tipLabel);
       var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
       tipBtn.addEventListener('click', function () { openTipPage(); });
@@ -2183,7 +2185,7 @@ class UI {
     var json = JSON.stringify(enriched, null, 2);
     var blob = new Blob([json], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
-    var a = createElement('a', { attributes: { href: url, download: 'buzzword-dash-card-reports.json' } });
+    var a = createElement('a', { attributes: { href: url, download: 'dx-dash-card-reports.json' } });
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2194,7 +2196,7 @@ class UI {
     var blob = new Blob([storage.exportBackup()], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = createElement('a', {
-      attributes: { href: url, download: 'buzzword-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json' }
+      attributes: { href: url, download: 'dx-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json' }
     });
     document.body.appendChild(a);
     a.click();
@@ -3503,6 +3505,9 @@ class UI {
     header.appendChild(createElement('h2', { text: '📋 Case Review' }));
     var scoreBig = createElement('div', { className: 'score-big', text: String(game.score) });
     header.appendChild(scoreBig);
+    var verdict = createElement('p', { className: 'post-verdict', text: runVerdict(game.correct, game.wrong) });
+    verdict.style.cssText = 'color:var(--accent-cyan);font-weight:800;font-size:14px;margin:2px 0';
+    header.appendChild(verdict);
     var skinInfo = game.currentSkin ? ' • Track: ' + game.currentSkin.name : '';
     var runSummary = game.getRunSummary ? game.getRunSummary() : null;
     var customNote = runSummary && runSummary.custom ? ' • Custom rules: ' + describeRules(runSummary.rules && Object.assign({ custom: true }, runSummary.rules)) + ' (not ranked)' : '';
@@ -3657,7 +3662,7 @@ class UI {
 
         missedBody.appendChild(card);
       });
-    } else {
+    } else if (total > 0) {
       content.appendChild(createElement('h3', { text: '🎉 Perfect Run!' }));
       content.lastChild.style.cssText = 'margin:14px 0 6px;color:var(--accent-green)';
     }
@@ -3901,10 +3906,10 @@ class UI {
     var total = game.correct + game.wrong;
     var acc = total > 0 ? Math.round(game.correct / total * 100) : 0;
     var skinName = game.currentSkin ? game.currentSkin.name : 'Unknown';
-    var text = '⚡ Buzzword Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + window.location.href;
+    var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + window.location.href;
 
     if (navigator.share) {
-      navigator.share({ title: 'Buzzword Dash Score', text: text }).catch(function () {
+      navigator.share({ title: 'Dx Dash Score', text: text }).catch(function () {
         _copyToClipboard(text);
       });
     } else {

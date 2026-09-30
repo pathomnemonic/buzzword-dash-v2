@@ -139,7 +139,7 @@ if (jsonOutput) {
   process.stdout.write(JSON.stringify(audit, null, 2) + '\n');
 } else {
   console.log('═══════════════════════════════════════════════');
-  console.log('  Buzzword Dash Content Audit Report');
+  console.log('  Dx Dash Content Audit Report');
   console.log('═══════════════════════════════════════════════');
   console.log('Content version:  ' + audit.contentVersion);
   console.log('Card pool hash:   ' + audit.cardPoolHash);

@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Buzzword Dash — A 3D endless-runner game for USMLE and COMLEX board prep. Recognize medical buzzwords, choose the correct diagnosis lane, and build your streak.">
-  <title>Buzzword Dash — USMLE &amp; COMLEX Board Runner</title>
+  <meta name="description" content="Dx Dash — A 3D endless-runner game for USMLE and COMLEX board prep. Recognize medical buzzwords, choose the correct diagnosis lane, and build your streak.">
+  <title>Dx Dash — Run the list. USMLE &amp; COMLEX Board Runner</title>
+  <meta property="og:title" content="Dx Dash — Run the list.">
+  <meta property="og:description" content="A 3D endless runner for USMLE and COMLEX board prep.">
+  <meta property="og:image" content="https://pathomnemonic.github.io/buzzword-dash-v2/og.png">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0b1020">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -24,8 +28,9 @@
 <body>
   <!-- Boot splash: shown instantly, removed once the app is ready (and after 8 s regardless) -->
   <div id="bootSplash" aria-hidden="true">
-    <svg viewBox="0 0 512 512" width="96" height="96"><path d="M290 48 130 288h110l-24 176 166-244H272z" fill="#22d3ee"/></svg>
-    <div class="boot-title">BUZZWORD DASH</div>
+    <svg viewBox="0 0 512 512" width="110" height="110" fill="none" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(0 -40)"><path d="M70 150H150a106 106 0 0 1 0 212H70Z" stroke="#e8f7ff" stroke-width="46"/><path d="M300 214 420 362M420 214 300 362" stroke="#22d3ee" stroke-width="46"/><path d="M40 440H190L218 392 250 486 282 420 304 440H472" stroke="#22d3ee" stroke-width="22"/></g></svg>
+    <div class="boot-title">DX DASH</div>
+    <div style="font:600 13px system-ui,sans-serif;color:#22d3ee;margin-top:-8px">Run the list.</div>
     <div class="boot-bar"><span></span></div>
   </div>
   <script>setTimeout(function () { var s = document.getElementById('bootSplash'); if (s) s.remove(); }, 8000);</script>
@@ -125,7 +130,7 @@
   <div id="onboardingOverlay" role="dialog" aria-label="Welcome tutorial" aria-modal="true">
     <div class="onboarding-card" id="onboardingCard">
       <span class="ob-icon" id="obIcon" aria-hidden="true">⚡</span>
-      <h2 id="obTitle">Welcome to Buzzword Dash!</h2>
+      <h2 id="obTitle">Welcome to Dx Dash!</h2>
       <p id="obText">Move into the correct diagnosis gate to score points!</p>
       <div class="onboarding-hand" id="obHand" aria-hidden="true">👆</div>
       <div class="tut-dots" id="obDots" role="tablist" aria-label="Tutorial progress"></div>
@@ -179,8 +184,9 @@
     <div class="screen-scroll">
 
       <header class="home-header">
-        <h1>⚡ Buzzword Dash</h1>
-        <p>USMLE &amp; COMLEX Board Runner</p>
+        <h1>Dx Dash</h1>
+        <p class="home-tagline">Run the list.</p>
+        <p class="home-sub">USMLE &amp; COMLEX Board Runner</p>
         <div class="home-coins" id="homeCoinsDisplay" aria-label="Your coins and best score">
           <span aria-hidden="true">🪙</span> <span id="homeCoins">100</span>
           &nbsp;|&nbsp;

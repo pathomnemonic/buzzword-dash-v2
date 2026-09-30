@@ -1,6 +1,6 @@
 /**
  * multiplayer.js — PeerJS transport, match protocol, and deterministic utilities
- * for Buzzword Dash multiplayer.
+ * for Dx Dash multiplayer.
  *
  * Protocol version: 3
  * Owner: Agent 11

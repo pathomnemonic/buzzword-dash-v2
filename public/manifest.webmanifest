@@ -1,7 +1,7 @@
 {
-  "name": "Buzzword Dash",
-  "short_name": "Buzzword Dash",
-  "description": "A 3D endless-runner game for USMLE & COMLEX board prep",
+  "name": "Dx Dash",
+  "short_name": "Dx Dash",
+  "description": "Run the list. A 3D endless runner for USMLE & COMLEX board prep",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

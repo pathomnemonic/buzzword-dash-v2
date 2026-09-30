@@ -1,5 +1,5 @@
 /**
- * dom.js — Safe DOM utilities for Buzzword Dash
+ * dom.js — Safe DOM utilities for Dx Dash
  *
  * This module provides the canonical safe DOM manipulation functions
  * required by the architecture contract (Section 16) [2].

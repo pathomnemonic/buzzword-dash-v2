@@ -1,5 +1,5 @@
 /* ==================================================================
-   BUZZWORD DASH — Complete CSS (Agent 17 Replacement)
+   DX DASH — Complete CSS (Agent 17 Replacement)
    Vibrant game aesthetic with glassmorphism over live 3D background
    Dark palette reserved for Night Mode only
 
@@ -2269,3 +2269,7 @@ body.hazard-pulse #gameContainer canvas { animation: hzPulse 0.6s ease-out infin
   .setting-row a, .legal-links a { display: inline-block; padding: 12px 6px; }
   #screenShop .btn-sm { min-width: 44px; min-height: 44px; }
 }
+
+/* Tagline */
+.home-header .home-tagline { color: var(--accent-cyan); font-size: 15px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; }
+.home-header .home-sub { opacity: .8; }

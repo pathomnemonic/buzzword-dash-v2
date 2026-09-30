@@ -1,6 +1,6 @@
 {
-  "appId": "com.pathomnemonic.buzzworddash",
-  "appName": "Buzzword Dash",
+  "appId": "com.pathomnemonic.dxdash",
+  "appName": "Dx Dash",
   "webDir": "dist",
   "backgroundColor": "#0b1020",
   "server": {

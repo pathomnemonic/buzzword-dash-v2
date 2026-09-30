@@ -32,6 +32,7 @@ import { reportError } from './errors.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { getControlText } from './controlhints.js';
 import { initNative, isNative } from './native.js';
+import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 
 // ===== Lazy-loaded module references =====
@@ -98,7 +99,7 @@ function showOnboarding() {
   if (!overlay) return;
 
   var pages = [
-    { icon: '\u26A1', title: 'Welcome to Buzzword Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
+    { icon: '\u26A1', title: 'Welcome to Dx Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
     { icon: '\uD83D\uDC46', title: getControlText().touch ? 'Swipe to Move' : 'Use the Keyboard', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!' : 'Arrow keys or A/D switch lanes, up/W jumps, down/S slides. Press Shift or Space to rush for bonus points!', hand: getControlText().touch ? '\uD83D\uDC48\uD83D\uDC49' : '\u2328\uFE0F' },
     { icon: '\uD83C\uDFC6', title: 'Build Your Streak!', text: 'Correct answers build your streak and multiplier. Collect coins, unlock avatars, and climb the leaderboard!', hand: '' }
   ];
@@ -577,9 +578,9 @@ function shareChallenge(challenge) {
         score: challenge.myScore || 0,
         hash: mp.hashCardPool(CARDS)
       });
-      var text = 'Beat my Buzzword Dash score of ' + (challenge.myScore || 0) + '!';
+      var text = 'Beat my Dx Dash score of ' + (challenge.myScore || 0) + '!';
       if (navigator.share) {
-        return navigator.share({ title: 'Buzzword Dash challenge', text: text, url: url }).catch(function () {});
+        return navigator.share({ title: 'Dx Dash challenge', text: text, url: url }).catch(function () {});
       }
       return copyText(url).then(function () {
         ui._showToast('Challenge link copied \u2014 send it to a friend!');
@@ -674,7 +675,7 @@ function attachTipPrompt() {
   box.style.cssText = 'margin:14px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,215,0,0.4);text-align:center;background:rgba(255,215,0,0.06)';
   var text = document.createElement('div');
   text.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:8px';
-  text.textContent = 'Enjoying Buzzword Dash? It is free and always will be. If it is helping your studying, a small tip helps keep it going.';
+  text.textContent = 'Enjoying Dx Dash? It is free and always will be. If it is helping your studying, a small tip helps keep it going.';
   box.appendChild(text);
 
   var row = document.createElement('div');
@@ -776,7 +777,7 @@ function attachChallengeResult(finalScore) {
 function startMode(mode) {
   // The questions load in the background after the first paint; wait for them if needed
   if (!areCardsReady()) {
-    ui._showToast('Loading questions…');
+    ui._showToast(loadingLine());
     loadCards().then(function () { startMode(mode); }).catch(function () {
       ui._showToast('Could not load the questions. Check your connection and try again.');
     });
@@ -1436,10 +1437,10 @@ function checkStudyReminder() {
     tag: 'daily-reminder'
   };
   if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-    navigator.serviceWorker.ready.then(function (reg) { reg.showNotification('Buzzword Dash', options); })
-      .catch(function () { new Notification('Buzzword Dash', options); });
+    navigator.serviceWorker.ready.then(function (reg) { reg.showNotification('Dx Dash', options); })
+      .catch(function () { new Notification('Dx Dash', options); });
   } else {
-    new Notification('Buzzword Dash', options);
+    new Notification('Dx Dash', options);
   }
 }
 
@@ -1663,7 +1664,7 @@ if (document.readyState === 'loading') {
   if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (e) {
-        console.warn('[Buzzword Dash] Service worker registration failed:', e.message);
+        console.warn('[Dx Dash] Service worker registration failed:', e.message);
       });
     });
   }
