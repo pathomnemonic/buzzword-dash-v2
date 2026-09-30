@@ -2069,6 +2069,27 @@ class UI {
 
     this._renderRuleSettings(content);
 
+    // About and legal (required for the app stores; useful on the web too)
+    var aboutHeading = createElement('h3', { text: 'ℹ️ About' });
+    aboutHeading.style.cssText = 'margin:16px 0 4px;font-size:14px;color:var(--text-secondary)';
+    content.appendChild(aboutHeading);
+    var aboutRow = createElement('div', { className: 'setting-row' });
+    var aboutLinks = createElement('div');
+    aboutLinks.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;font-size:13px';
+    [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html'], ['Report a problem', 'https://github.com/pathomnemonic/buzzword-dash-v2/issues']].forEach(function (l) {
+      var a = createElement('a', { text: l[0], attributes: { href: l[1], target: '_blank', rel: 'noopener noreferrer' } });
+      a.style.color = 'var(--accent-cyan)';
+      aboutLinks.appendChild(a);
+    });
+    aboutRow.appendChild(aboutLinks);
+    content.appendChild(aboutRow);
+    var disclaimer = createElement('div', {
+      className: 'setting-sublabel',
+      text: 'Buzzword Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
+    });
+    disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
+    content.appendChild(disclaimer);
+
     // Tutorial button
     var tutRow = createElement('div', { className: 'setting-row' });
     tutRow.appendChild(createElement('div', { text: '❓ How to Play' }));

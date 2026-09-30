@@ -1,0 +1,40 @@
+name: iOS app (check build)
+
+# Proves the iOS project builds from this code, without needing Apple signing.
+# It builds for the simulator only. Shipping to the App Store needs a Mac (or a
+# paid Apple Developer account plus signing secrets); see docs/APP.md.
+# Run it by hand: Actions tab -> "iOS app (check build)" -> Run workflow.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      VITE_BASE_PATH: /
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the web game
+        run: npx vite build
+
+      - name: Create the iOS project and sync
+        run: |
+          npm i --no-save @capacitor/ios
+          npx cap add ios
+          npx cap sync ios
+
+      - name: Build for the simulator (no signing)
+        working-directory: ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build

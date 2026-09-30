@@ -315,6 +315,10 @@ The world is lit with physically based materials, a soft studio reflection map a
 
 **Performance work:** add `?debug=1` to the URL to expose the engine as `window.__game`; `renderer.info` then reports draw calls and triangles. A typical frame went from about 2,000 draw calls and 195,000 triangles to about 240 and 45,000 through: merging static scenery by material (`mergeStatic` in `js/game/materials.js`); merged, periodic scrolling decorations (fog handles the distance fade); one glowing point cloud for the atmosphere; cheaper box rounding (108 triangles, finer only for coins and gates); shared model geometry; and half-resolution bloom. Downloads shrank too: the 2.6 MB question database loads in the background after the first screen (`js/cardhub.js`; `js/cards.js` stays the synchronous source for tools and tests), and the animated character and monster models are 4.1 MB instead of 11.6 MB (`node tools/optimize-models.mjs` drops unused animation clips and applies meshopt compression; loaders use `js/game/gltfloader.js`). Settings has a Battery saver (30 fps) toggle, and the home screen always renders at 30 fps.
 
+## Mobile app (Android and iOS)
+
+The game is wrapped with Capacitor, so the same code runs as a phone app. The Android project is in `android/` (build it with `npm run app:android`, or run the **Android app** workflow on GitHub for a downloadable APK). iOS is finished on a Mac; see **[docs/APP.md](docs/APP.md)** for the full guide, what only you can do (developer accounts, signing key, screenshots), the testing checklist and store steps, and [docs/STORE_LISTING.md](docs/STORE_LISTING.md) for draft store text and the privacy answers. Privacy Policy and Terms of Use pages are in `public/` and linked from Settings; players can delete their account in-app.
+
 ## Technology
 
 - **Three.js** (r160) for 3D rendering (bundled)

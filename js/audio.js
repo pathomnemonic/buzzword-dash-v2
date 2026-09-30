@@ -24,6 +24,7 @@
  */
 
 import { storage } from './storage.js';
+import { isNative, nativeHaptic } from './native.js';
 
 // ===== MUSICAL CONSTANTS =====
 
@@ -655,6 +656,7 @@ class AudioEngine {
   // ===== HAPTIC FEEDBACK =====
 
   _vibrate(pattern) {
+    if (isNative()) { if (this._settings.hapticsEnabled) nativeHaptic(pattern); return; }
     // Browsers ignore (and log an error for) haptics before the first tap
     if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     if (this._settings.hapticsEnabled && navigator.vibrate) {

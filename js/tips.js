@@ -11,6 +11,8 @@
  * turned off for good.
  */
 
+import { isNative } from './native.js';
+
 var MIN_RUNS = 5;
 var MIN_ACCURACY = 60;
 var MIN_CORRECT = 5;
@@ -27,8 +29,10 @@ export function isValidTipUrl(url) {
   }
 }
 
-/** @returns {string} the configured tip URL, or '' if none/invalid */
+/** @returns {string} the configured tip URL, or '' if none/invalid or inside the store apps */
 export function getTipUrl() {
+  // Apple and Google restrict external payment links inside apps: tips are web-only
+  if (isNative()) return '';
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
   var url = env.VITE_TIP_URL || '';
   return isValidTipUrl(url) ? url : '';

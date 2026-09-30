@@ -31,6 +31,7 @@ import { HomeCharacter } from './game/homecharacter.js';
 import { reportError } from './errors.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { getControlText } from './controlhints.js';
+import { initNative, isNative } from './native.js';
 import { isRankedRun } from './rules.js';
 
 // ===== Lazy-loaded module references =====
@@ -1015,6 +1016,7 @@ function init() {
   import('./leaderboard.js').then(function (mod) {
     leaderboardModule = mod;
     mod.leaderboard.init().then(function () {
+      if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);
       mountLeaderboard();
       mod.leaderboard.subscribeToInvites(function () { checkMatchInvites(); });
@@ -1297,6 +1299,13 @@ function init() {
     document.removeEventListener('click', startMusicOnce);
   }, { once: true });
 
+  // Inside the store apps: back button, pause when backgrounded, email deep links
+  initNative({
+    onBack: handleNativeBack,
+    onBackground: function () { if (game.running && !game.paused) game.togglePause(); },
+    onDeepLink: handleDeepLink
+  });
+
   // ==========================
   //  VISIBILITY PAUSE  [2] §19.2
   // ==========================
@@ -1551,6 +1560,31 @@ var cloudSync = null;
  * Account sign-in state and cloud saves. Guests are never synced; once the
  * player has an email account their progress follows them across devices.
  */
+var pendingDeepLink = null;
+
+/** An email link (confirm address, reset password) reopened the app: finish signing in. */
+function handleDeepLink(url) {
+  if (!leaderboardModule) { pendingDeepLink = url; return; }
+  leaderboardModule.leaderboard.handleAuthLink(url).then(function (res) {
+    if (res.success) ui._showToast(res.type === 'recovery' ? 'Choose a new password.' : 'Email confirmed. You are signed in.');
+    else if (res.error && res.error !== 'Not an account link') ui._showToast(res.error);
+  });
+}
+
+/** Android back button: close things in order, and only leave the app from the home screen. */
+function handleNativeBack() {
+  if (game.running || game.paused) {
+    game.togglePause();
+    return true;
+  }
+  var current = document.querySelector('.screen.active');
+  if (current && current.id !== 'screenHome') {
+    ui.show('screenHome');
+    return true;
+  }
+  return false;
+}
+
 function startCloudSync(lbService) {
   Promise.all([import('./cloudsync.js'), import('./accountui.js')]).then(function (mods) {
     cloudSync = new mods[0].CloudSync({
@@ -1605,7 +1639,8 @@ function mountLeaderboard() {
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', init);
   // Offline support (production builds only)
-  if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // (The store apps bundle their files, so they do not need the service worker.)
+  if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (e) {
         console.warn('[Buzzword Dash] Service worker registration failed:', e.message);

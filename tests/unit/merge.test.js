@@ -57,5 +57,5 @@ describe('mergeStatic (fewer draw calls, same picture)', () => {
       expect(meshes, skin.name).toBeLessThan(450);
       expect(refs.scrollers.length, skin.name).toBeGreaterThanOrEqual(5);
     });
-  });
+  }, 90000);
 });

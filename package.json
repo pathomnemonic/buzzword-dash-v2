@@ -16,9 +16,15 @@
     "validate:cards": "node tools/validate-cards.mjs",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "app:assets": "node tools/make-app-assets.mjs && capacitor-assets generate --android",
+    "app:build": "node tools/build-app.mjs",
+    "app:android": "node tools/build-app.mjs android"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
     "@electric-sql/pglite": "0.5.8",
     "@eslint/js": "9.28.0",
     "@gltf-transform/core": "^4.5.1",
@@ -36,6 +42,12 @@
     "vitest": "3.2.1"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@supabase/supabase-js": "2.45.4",
     "peerjs": "1.5.4",
     "three": "0.160.0"

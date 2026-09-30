@@ -36,6 +36,8 @@
 // Replace these with your Supabase project values.
 // These are safe to expose — RLS handles authorization.
 
+import { getAuthRedirectUrl, parseAuthLink } from './native.js';
+
 var SUPABASE_URL = 'YOUR_SUPABASE_URL';
 var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
@@ -158,7 +160,7 @@ var EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Where Supabase's email links (confirm, reset) send the player back to. */
 function getRedirectUrl() {
-  return window.location.origin + window.location.pathname;
+  return getAuthRedirectUrl();
 }
 
 /** @returns {string|null} a message for the first problem, or null */
@@ -375,6 +377,55 @@ var leaderboard = {
     return _client.auth.updateUser({ password: password }).then(function (res) {
       if (res.error) return { success: false, error: friendlyAuthError(res.error) };
       return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Finish an email link (confirm, reset) that reopened the app through its
+   * custom URL scheme, by turning its tokens into a session.
+   * @param {string} url
+   * @returns {Promise<{success: boolean, type: string, error: string|null}>}
+   */
+  handleAuthLink: function (url) {
+    var link = parseAuthLink(url);
+    if (!_client || !link) return Promise.resolve({ success: false, type: '', error: 'Not an account link' });
+    var request = link.code
+      ? _client.auth.exchangeCodeForSession(link.code)
+      : _client.auth.setSession({ access_token: link.accessToken, refresh_token: link.refreshToken });
+    return request.then(function (res) {
+      if (res.error || !res.data || !res.data.session) {
+        return { success: false, type: link.type, error: friendlyAuthError(res.error) };
+      }
+      _session = res.data.session;
+      _userId = res.data.session.user.id;
+      // Browsers get this event from Supabase itself; a deep link has to announce it
+      if (link.type === 'recovery') {
+        setTimeout(function () {
+          _authListeners.slice().forEach(function (fn) { try { fn('PASSWORD_RECOVERY', _session); } catch (e) { /* listener error */ } });
+        }, 0);
+      }
+      return { success: true, type: link.type, error: null };
+    }).catch(function (e) {
+      return { success: false, type: link.type, error: e.message };
+    });
+  },
+
+  /**
+   * Permanently delete this account and all its online data (scores, friends,
+   * groups, cloud save). The player continues as a fresh guest.
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  deleteAccount: function () {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.rpc('delete_my_account').then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return _client.auth.signOut().catch(function () { return null; }).then(function () {
+        _session = null;
+        _userId = null;
+        return leaderboard.signInAnonymously();
+      });
     }).catch(function (e) {
       return { success: false, error: e.message };
     });

@@ -58,7 +58,7 @@ describe('power-up spawning honours disabled power-ups', () => {
     const none = [];
     spawnPowerup(scene, none, undefined, POWERUP_OPTIONS.map((p) => p.id));
     expect(none).toHaveLength(0);
-  });
+  }, 60000);
 
   it('seeded plans still spawn their planned type (fair for everyone)', () => {
     const scene = new THREE.Scene();

@@ -1,0 +1,23 @@
+{
+  "appId": "com.pathomnemonic.buzzworddash",
+  "appName": "Buzzword Dash",
+  "webDir": "dist",
+  "backgroundColor": "#0b1020",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b1020",
+      "showSpinner": false
+    },
+    "Keyboard": {
+      "resize": "none"
+    }
+  }
+}

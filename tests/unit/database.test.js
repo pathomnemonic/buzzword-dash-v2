@@ -168,6 +168,36 @@ describe('tournament standing, activity feed and group goals', () => {
 });
 
 
+describe('account deletion', () => {
+  it('removes the caller and everything tied to them, and only them', async () => {
+    const D = '44444444-4444-4444-4444-444444444444';
+    const E = '55555555-5555-5555-5555-555555555555';
+    await db.exec(`INSERT INTO auth.users VALUES ('${D}'), ('${E}')`);
+    await as(D, () => db.query(`SELECT upsert_player_profile($1,'Doomed','a','{}',10,1,true)`, [D]));
+    await as(D, () => db.query(`SELECT push_save('{"x":1}'::jsonb, 1, NULL)`));
+    await as(D, () => db.query(`INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'Doomed',5,'del1')`, [D]));
+    await as(E, () => db.query(`SELECT upsert_player_profile($1,'Keeper','a','{}',10,1,true)`, [E]));
+
+    await as(D, () => db.query('SELECT delete_my_account()'));
+
+    const count = async (sql, p) => Number((await db.query(sql, p)).rows[0].n);
+    expect(await count('SELECT count(*) AS n FROM auth.users WHERE id = $1', [D])).toBe(0);
+    expect(await count('SELECT count(*) AS n FROM player_profiles WHERE user_id = $1', [D])).toBe(0);
+    expect(await count('SELECT count(*) AS n FROM player_saves WHERE user_id = $1', [D])).toBe(0);
+    expect(await count('SELECT count(*) AS n FROM scores WHERE user_id = $1', [D])).toBe(0);
+    // Someone else's data is untouched
+    expect(await count('SELECT count(*) AS n FROM player_profiles WHERE user_id = $1', [E])).toBe(1);
+  });
+
+  it('requires a signed-in user', async () => {
+    await db.exec("SET app.uid = ''; SET ROLE authenticated;");
+    let failed = false;
+    try { await db.query('SELECT delete_my_account()'); } catch (e) { failed = true; }
+    await db.exec('RESET ROLE');
+    expect(failed).toBe(true);
+  });
+});
+
 describe('cloud saves', () => {
   it('keeps each save private and writable only through the save functions', async () => {
     const ts = (await as(A, () => db.query(`SELECT push_save('{"runs":3}'::jsonb, 3, NULL) AS ts`))).rows[0].ts;

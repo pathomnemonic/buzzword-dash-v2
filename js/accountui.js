@@ -177,6 +177,26 @@ function renderGuest(body, deps, status) {
   if (_busyMessage) body.appendChild(note(_busyMessage, 'var(--accent-green)'));
 
   body.appendChild(note('Signing in on a new device loads your saved progress there. We only use your email for sign-in and password resets.'));
+  var guestData = createElement('div');
+  guestData.style.marginTop = '10px';
+  guestData.appendChild(deleteAccountButton(deps));
+  guestData.lastChild.textContent = 'Delete my online data';
+  guestData.lastChild.style.marginLeft = '0';
+  body.appendChild(guestData);
+}
+
+/** Permanent deletion, behind a clear confirmation (required by the app stores). */
+function deleteAccountButton(deps) {
+  var b = button('Delete my account', function () {
+    var ok = window.confirm('Delete your account and all online data (profile, scores, friends, groups and cloud save)? This cannot be undone. Progress saved on this device stays.');
+    if (!ok) return Promise.resolve();
+    return deps.leaderboard.deleteAccount().then(function (res) {
+      deps.toast(res.success ? 'Your account and online data were deleted.' : (res.error || 'Could not delete the account.'));
+      deps.rerender();
+    });
+  }, 'btn-outline');
+  b.style.cssText = 'color:var(--accent-red);border-color:var(--accent-red);margin-left:8px';
+  return b;
 }
 
 function renderSignedIn(body, deps, status) {
@@ -211,6 +231,7 @@ function renderSignedIn(body, deps, status) {
 
   var out = createElement('div');
   out.style.marginTop = '16px';
+  out.appendChild(deleteAccountButton(deps));
   out.appendChild(button('Sign out', function () {
     var flush = deps.cloudSync ? deps.cloudSync.sync() : Promise.resolve();
     return flush.then(function () { return deps.leaderboard.signOut(); }).then(function (res) {
