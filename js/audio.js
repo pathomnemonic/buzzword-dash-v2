@@ -764,6 +764,10 @@ class AudioEngine {
       case 'slide':
         this._playSlide(sfxVol);
         break;
+      case 'ui_tap':
+        this._sweep('sine', 880, 620, 0.06, sfxVol * 0.05, 3500);
+        this._vibrate(8);
+        break;
       case 'shield_break':
         this._playShieldBreak(sfxVol);
         this._vibrate([60, 30, 60]);

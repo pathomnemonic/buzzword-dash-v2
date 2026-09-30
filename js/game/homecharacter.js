@@ -284,7 +284,27 @@ export class HomeCharacter {
         if (this.camera) {
             this.camera.aspect = (width || window.innerWidth) / (height || window.innerHeight);
             this.camera.updateProjectionMatrix();
+            this.frameHero(width, height);
         }
+    }
+
+    /**
+     * Shift the picture so the character stands in the page's hero gap
+     * (#homeHero) instead of behind the menu. Does nothing when there is no gap.
+     */
+    frameHero(width, height) {
+        if (!this.camera || typeof document === 'undefined') return;
+        var w = width || window.innerWidth;
+        var h = height || window.innerHeight;
+        var hero = document.getElementById('homeHero');
+        if (!hero || !hero.offsetParent) {
+            this.camera.clearViewOffset();
+            return;
+        }
+        var rect = hero.getBoundingClientRect();
+        var wanted = (rect.top + rect.height / 2) / h;       // where the character should appear (0..1 down the screen)
+        var shift = Math.round((0.5 - wanted) * h);          // content moves up by this many pixels
+        this.camera.setViewOffset(w, h, 0, shift, w, h);
     }
 
     /**
@@ -301,6 +321,9 @@ export class HomeCharacter {
      */
     startAnimation() {
         this._active = true;
+        // Once the page has laid out, put the character in the hero gap
+        var self = this;
+        if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(function () { self.frameHero(); });
     }
 
     /**

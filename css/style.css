@@ -2236,3 +2236,28 @@ body.hazard-pulse #gameContainer canvas { animation: hzPulse 0.6s ease-out infin
 @media (prefers-reduced-motion: reduce) {
   body[class*="hazard-"] #gameContainer canvas { animation: none !important; filter: none !important; }
 }
+
+/* ===== Polish ===== */
+
+/* The home hero gap: the 3D character is drawn behind the page in this space */
+.home-hero { height: clamp(170px, 30vh, 320px); pointer-events: none; }
+
+/* Screens ease in instead of snapping */
+.screen.active { animation: screenIn 0.22s ease-out; }
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen.active { animation: none; }
+}
+
+/* Dropdowns in settings rows keep one neat size */
+.setting-row select { width: 150px; max-width: 45vw; flex-shrink: 0; }
+
+/* The home scene is the star: no blur over it, just a light tint for legibility */
+#screenHome .screen-scroll::before {
+  background: rgba(20, 10, 60, 0.16);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

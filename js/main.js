@@ -966,6 +966,14 @@ function finalizeRun(gameRef) {
 // =========================================================================
 //  MAIN INITIALIZATION
 // =========================================================================
+/** Remove the boot splash once the app is ready. */
+function hideBootSplash() {
+  var splash = document.getElementById('bootSplash');
+  if (!splash) return;
+  splash.classList.add('done');
+  setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
+}
+
 function init() {
   // Load the question database in the background; screens that show counts refresh when it arrives
   loadCards().then(function () {
@@ -1298,6 +1306,18 @@ function init() {
     }
     document.removeEventListener('click', startMusicOnce);
   }, { once: true });
+
+  // A soft tap sound and a light haptic on buttons and tabs (not the in-run answer gates)
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('button, .nav-item, .subject-chip, [role="tab"], [role="switch"]') : null;
+    if (!el || el.disabled) return;
+    audio.play('ui_tap');
+  }, true);
+
+  // Keep the home character framed in its gap when the window changes shape
+  window.addEventListener('resize', function () {
+    if (homeCharacter) homeCharacter.resize(window.innerWidth, window.innerHeight);
+  });
 
   // Inside the store apps: back button, pause when backgrounded, email deep links
   initNative({
@@ -1637,7 +1657,7 @@ function mountLeaderboard() {
 //  START
 // =========================================================================
 if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('DOMContentLoaded', function () { try { init(); } finally { hideBootSplash(); } });
   // Offline support (production builds only)
   // (The store apps bundle their files, so they do not need the service worker.)
   if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
@@ -1648,5 +1668,5 @@ if (document.readyState === 'loading') {
     });
   }
 } else {
-  init();
+  try { init(); } finally { hideBootSplash(); }
 }
