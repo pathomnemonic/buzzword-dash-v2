@@ -66,6 +66,7 @@ var DEFAULTS = {
     hazardsOff: false,
     monsterOff: false,
     preferredMap: '',
+    cameraView: 'default',
     perfStrikes: 0,
     nightMode: false,
 
@@ -557,12 +558,12 @@ class Storage {
       }
     }
 
-    // The Intern became an animated 3D model, which cannot wear hats, gear or
-    // outfits. Players who had dressed the old Intern stay on the classic one.
+    // The Intern became an animated 3D model. It can wear hats but not gear or
+    // outfits, so players who had dressed the old Intern in those stay on the classic one.
     if (!d.progression.modelIntroSeen) {
       d.progression.modelIntroSeen = true;
       var eq = d.progression.equipped;
-      if (eq.skin === 'avatar_intern' && ((eq.hat && eq.hat !== 'hat_none') || (eq.gear && eq.gear !== 'gear_none') || (eq.clothing && eq.clothing !== 'cloth_none'))) {
+      if (eq.skin === 'avatar_intern' && ((eq.gear && eq.gear !== 'gear_none') || (eq.clothing && eq.clothing !== 'cloth_none'))) {
         eq.skin = 'avatar_classic';
       }
     }

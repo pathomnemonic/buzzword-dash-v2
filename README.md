@@ -311,6 +311,8 @@ The world is lit with physically based materials, a soft studio reflection map a
 
 **Graphics tiers:** Settings -> Graphics chooses Auto, High, Medium or Low. *High* is everything (3D characters and monsters, 3D obstacles and scenery, glow, shadows). *Medium* keeps the animated 3D character and monster, the sky, reflections and lit materials, but uses simple built-in obstacles and scenery, no glow or shadows, and caps resolution at 1.5x. *Low* is the fast backup: the simple built-in characters and obstacles, no model downloads, and normal resolution. Auto picks Low for software rendering, very little memory or 2 or fewer cores or data-saver, Medium for modest devices (4 GB or fewer, 4 cores or fewer, or touch-first), otherwise High, and steps down a tier after repeated slow sessions. Adaptive resolution also trims the render resolution in small steps while the game runs slowly and restores it when there is headroom. Cached model geometry is shared between copies and never freed by one copy, shader compilation is warmed up during the countdown, and the service worker caches model files after first use.
 
+**Locker:** the Locker has three tabs. *Characters* sorts characters into animated 3D, classic (blocky) and vehicles, with what each can wear. *Customize* shows only what works on the equipped character (3D characters can wear hats; classic characters also get colors, clothing and gear; vehicles cannot be customized). *Trails & Monsters* works with every character.
+
 ## Technology
 
 - **Three.js** (r160) for 3D rendering (bundled)

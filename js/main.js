@@ -1114,6 +1114,9 @@ function init() {
   };
 
   // The map's name is not announced when a run starts; only map changes are.
+  // Sound effects requested by the engine (monster lunge, impacts, death styles)
+  game.onSfx = function (name) { audio.play(name); };
+
   game.onSkinSelected = function (skinName) {
     audio.startAmbient(skinName);
   };

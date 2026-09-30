@@ -37,6 +37,10 @@ describe('animated model catalog', () => {
       ['run', 'idle', 'death'].forEach((state) => {
         expect(findClipName(names, state), `${m.file} ${state}`).toBeTruthy();
       });
+      // Every state the game asks for (jump, slide, intro wave, celebration) still animates via a fallback
+      ['run', 'jump', 'slide', 'celebrate', 'death', 'idle', 'wave'].forEach((state) => {
+        expect(resolveClipName(names, state), `${m.file} ${state}`).toBeTruthy();
+      });
     });
   });
 

@@ -22,7 +22,7 @@
  */
 
 import * as THREE from 'three';
-import { roundedBox, upgradeMaterials } from './materials.js';
+import { roundedBox, upgradeMaterials, markShared } from './materials.js';
 import { buildScenery, buildHanging } from './scenery.js';
 
 var LANE_X = [-3, 0, 3];
@@ -609,7 +609,11 @@ export function isImpossibleLayout(entry1, entry2) {
 
 // ===== COINS WITH GLOW =====
 
-function makeCoinMesh(lane, z, y) {
+var _coinTemplate = null;
+
+/** Built once; every coin is a clone that shares its geometry and materials (far fewer GPU buffers). */
+function getCoinTemplate() {
+  if (_coinTemplate) return _coinTemplate;
   var group = new THREE.Group();
   var gold = new THREE.MeshStandardMaterial({
     color: 0xffc83a, metalness: 0.95, roughness: 0.22,
@@ -641,6 +645,13 @@ function makeCoinMesh(lane, z, y) {
     new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.3 })
   );
   group.add(halo);
+  markShared(group);
+  _coinTemplate = group;
+  return group;
+}
+
+function makeCoinMesh(lane, z, y) {
+  var group = getCoinTemplate().clone(true);
   group.position.set(LANE_X[lane], y || 1.2, z);
   group.userData = { lane: lane, collected: false, type: 'coin' };
   return group;

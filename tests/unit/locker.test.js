@@ -1,0 +1,78 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+
+// The Locker separates characters that can be customized from those that cannot.
+
+function loadPage() {
+  const html = readFileSync('index.html', 'utf8');
+  const body = html.slice(html.indexOf('<body'), html.indexOf('</body>'));
+  document.body.innerHTML = body.replace(/<script[\s\S]*?<\/script>/g, '');
+}
+
+const headings = () => [...document.querySelectorAll('#shopItems h3')].map((h) => h.textContent);
+const clickTab = (label) => [...document.querySelectorAll('#shopItems [role="tab"]')].find((b) => b.textContent.includes(label)).click();
+
+describe('Locker tabs', () => {
+  let ui;
+  let storage;
+  beforeEach(async () => {
+    localStorage.clear();
+    loadPage();
+    ({ ui } = await import('../../js/ui.js'));
+    ({ storage } = await import('../../js/storage.js'));
+    ui._lockerTab = 'characters';
+  });
+
+  it('sorts characters into animated 3D, classic and vehicles, with what each can wear', () => {
+    ui.renderShop();
+    expect(headings()).toEqual([
+      expect.stringContaining('Animated 3D characters'),
+      expect.stringContaining('Classic characters'),
+      expect.stringContaining('Vehicles')
+    ]);
+    const text = document.getElementById('shopItems').textContent;
+    expect(text).toMatch(/add a hat/i);
+    expect(text).toMatch(/cannot wear hats/i);
+    // The default Intern is animated 3D; the blocky one is listed under Classic
+    const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
+    expect(groups[0]).toContain('Intern');
+    expect(groups[1]).toContain('Classic Intern');
+  });
+
+  it('a 3D character can only customize headwear, and the screen says why', () => {
+    storage.data.progression.equipped.skin = 'avatar_intern'; // animated 3D
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    expect(headings().join('|')).toContain('Headwear');
+    expect(headings().join('|')).not.toContain('Clothing');
+    expect(headings().join('|')).not.toContain('Gear');
+    const text = document.getElementById('shopItems').textContent;
+    expect(text).toMatch(/Animated 3D character/);
+    expect(text).toMatch(/switch to a Classic character/i);
+    expect(document.querySelector('#shopItems').textContent).not.toMatch(/Hair\s*Skin\s*Coat/);
+  });
+
+  it('a classic character gets colors, clothing, headwear and gear', () => {
+    storage.data.progression.equipped.skin = 'avatar_classic';
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    const h = headings().join('|');
+    ['Colors', 'Clothing', 'Headwear', 'Gear'].forEach((name) => expect(h).toContain(name));
+  });
+
+  it('vehicles cannot be customized', () => {
+    storage.data.progression.equipped.skin = 'avatar_ambulance';
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    expect(headings().join('|')).not.toContain('Headwear');
+    expect(document.getElementById('shopItems').textContent).toMatch(/Vehicles cannot wear anything/);
+  });
+
+  it('trails and monsters have their own tab', () => {
+    ui.renderShop();
+    clickTab('Trails');
+    expect(headings().join('|')).toContain('Trails');
+    expect(headings().join('|')).toContain('Exam Monsters');
+    expect(headings().join('|')).not.toContain('Avatars');
+  });
+});

@@ -400,6 +400,7 @@ class Game {
     this.onMapTransition = null;
     this.onPlayerFaceplant = null;
     this.onMonsterWarning = null;
+    this.onSfx = null;
     this.onMonsterCaught = null;
   }
 
@@ -631,8 +632,16 @@ class Game {
     this.playerGroup.scale.set(1, 1, 1);
   }
 
+  /** Ask the UI layer to play a named sound effect. */
+  _sfx(name) {
+    if (this.onSfx) {
+      try { this.onSfx(name); } catch (e) { /* audio must never break the game */ }
+    }
+  }
+
   /** Puffs of dust or sparkles at the runner's feet. */
   _poseImpact(kind) {
+    this._sfx(kind === 'dust' ? 'impact_dust' : 'sparkle');
     var at = this.playerGroup.position.clone();
     at.y += 0.4;
     this._spawnSparks(at, kind === 'dust' ? 0xd8d0c0 : 0xffffff);
@@ -814,6 +823,12 @@ class Game {
   // Called by main.js when countdown finishes
   go() {
     if (!this._transition(GAME_STATES.PLAYING)) return;
+
+    // Camera distance is cosmetic (Settings -> Camera)
+    var view = storage.get('cameraView');
+    if (view === 'close') this.cameraBasePos.set(0, 3.7, 8);
+    else if (view === 'far') this.cameraBasePos.set(0, 5.4, 12);
+    else this.cameraBasePos.set(0, 4.5, 10);
 
     // Personal rule changes (single-player only) make this a custom run
     this._rules = getRunRules(this.mode, {
@@ -1510,10 +1525,15 @@ card = pickResult ? pickResult.card : null;
       }
     }
 
-    this.gateZ = -60;
+    // Gates start closer at slow speeds so a question never takes half a minute to arrive:
+    // about 16 s away at 1x, the original 60 units from 2x upward.
+    var slowFactor = Math.min(1, Math.max(0, (this.baseSpeed - 1.875) / 1.875));
+    this._gateSpawnZ = -(30 + 30 * slowFactor);
+    this.gateZ = this._gateSpawnZ;
     for (var g = 0; g < this.gateMeshes.length; g++) removeAndDispose(this.scene, this.gateMeshes[g]);
     var gateTheme = { glow: this.currentSkin.colors.gateGlow, gate: this.currentSkin.colors.gateBase };
     this.gateMeshes = spawnGates(this.scene, this.gates, this.currentLane, gateTheme, this.card && this.card.subj);
+    for (var gp = 0; gp < this.gateMeshes.length; gp++) this.gateMeshes[gp].position.z = this.gateZ;
     this.gatesActive = true;
     this.answerLocked = false;
     this.rushing = false;
@@ -1809,6 +1829,7 @@ card = pickResult ? pickResult.card : null;
     this._transition(GAME_STATES.DYING);
     this._deathStyle = storage.get('reducedMotion') ? 'faceplant' : pickDeathStyle(cause || 'other', this._lastDeathStyle);
     this._lastDeathStyle = this._deathStyle;
+    if (this._deathStyle !== 'faceplant') this._sfx('death_' + this._deathStyle);
     this._deathT = 0;
     this._deathImpactAt = -1;
 
@@ -2147,7 +2168,7 @@ card = pickResult ? pickResult.card : null;
       this.gateZ += move;
       for (var gi = 0; gi < this.gateMeshes.length; gi++) {
         this.gateMeshes[gi].position.z = this.gateZ;
-        var approachProgress = 1.0 - Math.max(0, -this.gateZ) / 60;
+        var approachProgress = 1.0 - Math.max(0, -this.gateZ) / Math.abs(this._gateSpawnZ || -60);
         var gateScale = 1.0 + approachProgress * 0.08;
         this.gateMeshes[gi].scale.set(gateScale, gateScale, gateScale);
         var frame = this.gateMeshes[gi].children[0];
@@ -2458,7 +2479,10 @@ card = pickResult ? pickResult.card : null;
       this.monsterVisible = shouldBeVisible;
       this.examMonster.visible = shouldBeVisible;
     }
-    if (pose.lunged && pose.opacity > 0.3) this._emit('monster_warning', {});
+    if (pose.lunged && pose.opacity > 0.3) {
+      this._emit('monster_warning', {});
+      this._sfx('monster_lunge');
+    }
 
     // It hovers above the player's line of sight so it never hides the runner,
     // then swoops down when it makes the catch.

@@ -1618,7 +1618,7 @@ class UI {
     if (equippedAvatar && equippedAvatar.isModel) {
       wrap.appendChild(createElement('div', {
         className: 'setting-sublabel',
-        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look.'
+        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look (hats work on all of them).'
       }));
       return wrap;
     }
@@ -1674,8 +1674,9 @@ class UI {
     var shopCoinsEl = document.getElementById('shopCoins');
     if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
 
-    var renderGroup = function (type, title) {
+    var renderGroup = function (type, title, filter, note) {
       var items = SHOP_ITEMS.filter(function (i) { return i.type === type; });
+      if (filter) items = items.filter(filter);
       if (type === 'skin') {
         items = items.filter(function (i) {
           if (i.id === 'avatar_golden' && !storage.hasAchievement('ach_golden_doctor')) return false;
@@ -1688,6 +1689,11 @@ class UI {
       var heading = createElement('h3', { text: title });
       heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
       container.appendChild(heading);
+      if (note) {
+        var noteEl = createElement('div', { className: 'setting-sublabel', text: note });
+        noteEl.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
+        container.appendChild(noteEl);
+      }
 
       items.forEach(function (item) {
         var owned = storage.ownsItem(item.id);
@@ -1770,15 +1776,81 @@ class UI {
       return container;
     };
 
+    // ----- Tabs: which characters you can pick, what you can customize, and extras -----
+    var avatarOf = function (id) { return AVATARS.filter(function (a) { return a.id === id; })[0] || null; };
+    var kindOf = function (id) {
+      var a = avatarOf(id);
+      if (!a) return 'classic';
+      if (a.isVehicle) return 'vehicle';
+      return a.isModel ? 'model' : 'classic';
+    };
+    var isKind = function (kind) {
+      return function (item) { return kindOf(item.id) === kind; };
+    };
+
+    var tab = this._lockerTab || 'characters';
     var shopItems = document.getElementById('shopItems');
     clearElement(shopItems);
-    shopItems.appendChild(this._renderColorPickers());
-    shopItems.appendChild(renderGroup('skin', '👕 Avatars'));
-    shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
-    shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
-    shopItems.appendChild(renderGroup('trail', '✨ Trails'));
-    shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
-    shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters'));
+
+    var tabBar = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
+    tabBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px';
+    [['characters', '🎭 Characters'], ['customize', '🎨 Customize'], ['extras', '✨ Trails & Monsters']].forEach(function (t) {
+      var b = createElement('button', {
+        className: 'btn btn-sm ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
+        text: t[1],
+        attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
+      });
+      b.addEventListener('click', function () { self._lockerTab = t[0]; self.renderShop(); });
+      tabBar.appendChild(b);
+    });
+    shopItems.appendChild(tabBar);
+
+    if (tab === 'characters') {
+      shopItems.appendChild(renderGroup('skin', '🎬 Animated 3D characters', isKind('model'),
+        'Real animated models. Each keeps its own look; you can add a hat. Colors, clothing and gear are for Classic characters.'));
+      shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
+        'Fully customizable: colors, clothing, headwear and gear all work on these.'));
+      shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
+        'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
+    } else if (tab === 'customize') {
+      var eqSkin = storage.get('equipped').skin || 'avatar_intern';
+      var eqAvatar = avatarOf(eqSkin);
+      var kind = kindOf(eqSkin);
+      var kindLabel = kind === 'model' ? 'Animated 3D character' : (kind === 'vehicle' ? 'Vehicle' : 'Classic character');
+
+      var card = createElement('div', { className: 'shop-item' });
+      card.style.cssText = 'display:block;margin:8px 0';
+      var cardTitle = createElement('div', { text: 'Equipped: ' + (eqAvatar ? eqAvatar.name : eqSkin) + ' · ' + kindLabel });
+      cardTitle.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
+      card.appendChild(cardTitle);
+      var cardText = createElement('div', {
+        className: 'setting-sublabel',
+        text: kind === 'model'
+          ? 'Animated 3D characters keep their own look. You can add a hat below. To change colors or wear clothing and gear, switch to a Classic character.'
+          : (kind === 'vehicle'
+            ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
+            : 'Everything below works on this character.')
+      });
+      cardText.style.lineHeight = '1.4';
+      card.appendChild(cardText);
+      if (kind !== 'classic') {
+        var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Choose a Classic character', attributes: { type: 'button' } });
+        goBtn.style.marginTop = '8px';
+        goBtn.addEventListener('click', function () { self._lockerTab = 'characters'; self.renderShop(); });
+        card.appendChild(goBtn);
+      }
+      shopItems.appendChild(card);
+
+      if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
+      if (kind !== 'vehicle') shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
+      if (kind === 'classic') {
+        shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
+        shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
+      }
+    } else {
+      shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every character.'));
+      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Animated 3D monsters are marked (animated 3D).'));
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1895,6 +1967,7 @@ class UI {
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
       { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
+      { key: 'cameraView', label: '🎥 Camera', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
       { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
       { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },

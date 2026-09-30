@@ -28,15 +28,17 @@ export function createPostFX(renderer, scene, camera) {
   var pixelRatio = renderer.getPixelRatio();
 
   // Multisampled target keeps edges smooth (the composer bypasses canvas MSAA).
+  var coarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   var target = new THREE.WebGLRenderTarget(size.x * pixelRatio, size.y * pixelRatio, {
     type: THREE.HalfFloatType,
-    samples: 4
+    samples: coarse ? 2 : 4 // phones and tablets: half the multisampling cost
   });
 
   var composer = new EffectComposer(renderer, target);
   composer.setPixelRatio(pixelRatio);
   composer.addPass(new RenderPass(scene, camera));
-  var bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.5, 0.55, 0.82);
+  // Bloom is a soft blur: computing it at half resolution looks the same and costs far less
+  var bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.5, 0.55, 0.82);
   composer.addPass(bloom);
 
   // Color grade: richer saturation and a soft vignette that frames the action
@@ -90,6 +92,7 @@ export function createPostFX(renderer, scene, camera) {
     setSize: function (width, height, ratio) {
       composer.setPixelRatio(ratio || renderer.getPixelRatio());
       composer.setSize(width, height);
+      bloom.setSize(width / 2, height / 2);
     },
 
     dispose: function () {

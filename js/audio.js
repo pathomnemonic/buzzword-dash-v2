@@ -655,6 +655,8 @@ class AudioEngine {
   // ===== HAPTIC FEEDBACK =====
 
   _vibrate(pattern) {
+    // Browsers ignore (and log an error for) haptics before the first tap
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     if (this._settings.hapticsEnabled && navigator.vibrate) {
       try { navigator.vibrate(pattern); } catch (e) { /* best-effort */ }
     }
@@ -764,6 +766,40 @@ class AudioEngine {
         this._playShieldBreak(sfxVol);
         this._vibrate([60, 30, 60]);
         break;
+      case 'monster_lunge':
+        this._sweep('sawtooth', 180, 60, 0.35, sfxVol * 0.12, 500);
+        this._noise(0.25, sfxVol * 0.05, 400);
+        this._vibrate(40);
+        break;
+      case 'impact_dust':
+        this._sweep('sine', 140, 45, 0.22, sfxVol * 0.2, 300);
+        this._noise(0.18, sfxVol * 0.07, 900);
+        break;
+      case 'sparkle':
+        this._sweep('triangle', 1200, 2400, 0.18, sfxVol * 0.08, 6000);
+        this._sweep('sine', 1800, 3200, 0.22, sfxVol * 0.05, 8000, 0.05);
+        break;
+      case 'death_tumble':
+      case 'death_flatten':
+        this._sweep('sine', 260, 70, 0.4, sfxVol * 0.16, 700);
+        break;
+      case 'death_launch':
+        this._sweep('square', 220, 900, 0.35, sfxVol * 0.08, 2500);
+        this._sweep('sine', 900, 120, 0.7, sfxVol * 0.1, 2500, 0.35);
+        this._vibrate([60, 40, 100]);
+        break;
+      case 'death_spin_out':
+        this._sweep('sawtooth', 700, 120, 1.0, sfxVol * 0.07, 1500);
+        break;
+      case 'death_collapse':
+      case 'death_dizzy':
+        this._sweep('triangle', 500, 200, 0.9, sfxVol * 0.1, 1200);
+        this._sweep('triangle', 420, 160, 0.8, sfxVol * 0.06, 1200, 0.25);
+        break;
+      case 'death_poof':
+        this._sweep('sine', 900, 200, 0.18, sfxVol * 0.14, 3000);
+        this._noise(0.25, sfxVol * 0.06, 2500, 0.05);
+        break;
       default:
         this._playGeneric(sfxVol);
         break;
@@ -771,6 +807,41 @@ class AudioEngine {
   }
 
   // ===== SFX IMPLEMENTATIONS =====
+
+  /** A single oscillator that slides from one pitch to another. */
+  _sweep(type, f0, f1, dur, vol, cutoff, delay) {
+    var ctx = this.ctx;
+    var t = ctx.currentTime + (delay || 0);
+    var g = ctx.createGain(); g.connect(this._sfxBus);
+    var o = ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    var node = o;
+    if (cutoff) {
+      var f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff;
+      o.connect(f); node = f;
+    }
+    node.connect(g);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+
+  /** A short burst of filtered noise (dust, puffs). */
+  _noise(dur, vol, cutoff, delay) {
+    var ctx = this.ctx;
+    var t = ctx.currentTime + (delay || 0);
+    var len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    var src = ctx.createBufferSource(); src.buffer = buf;
+    var f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff || 1500;
+    var g = ctx.createGain(); g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(this._sfxBus);
+    src.start(t);
+  }
 
   _playCorrectVariation(vol) {
     var ctx = this.ctx;
