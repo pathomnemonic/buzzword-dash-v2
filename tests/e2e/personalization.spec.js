@@ -22,8 +22,9 @@ test.describe('Personalization', () => {
     await openApp(page);
     await page.locator('[data-screen="screenShop"]').click();
     await expect(page.getByRole('tab', { name: /Characters/ })).toBeVisible();
-    await expect(page.getByText('Animated 3D characters')).toBeVisible();
-    await expect(page.getByText('Classic characters')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Animated 3D characters/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Classic characters/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Vehicles/ })).toBeVisible();
 
     await page.getByRole('tab', { name: /Customize/ }).click();
     await expect(page.getByText(/Equipped: .* · Animated 3D character/)).toBeVisible();
