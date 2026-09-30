@@ -747,7 +747,7 @@ var PU_TYPES = [
  * @param {THREE.Object3D[]} coinMeshes
  * @param {object} [planEntry] - Optional deterministic plan { type, lane, offset }
  */
-export function spawnPowerup(scene, coinMeshes, planEntry) {
+export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
   var puDef;
   var lane;
   var spawnZ;
@@ -765,8 +765,10 @@ export function spawnPowerup(scene, coinMeshes, planEntry) {
     }
     if (!puDef) puDef = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
   } else {
-    // Random
-    puDef = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
+    // Random, skipping any the player turned off (single-player rules)
+    var allowed = PU_TYPES.filter(function (t) { return !disabledTypes || disabledTypes.indexOf(t.type) < 0; });
+    if (allowed.length === 0) return;
+    puDef = allowed[Math.floor(Math.random() * allowed.length)];
     lane = Math.floor(Math.random() * 3);
     spawnZ = -55;
   }

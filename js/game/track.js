@@ -32,7 +32,7 @@ import {
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
 import { upgradeMaterials } from './materials.js';
-import { randomSceneryProp } from './scenery.js';
+import { randomSceneryProp, placeFloatingProp } from './scenery.js';
 import { isLowQuality } from './quality.js';
 
 // ===== CONSTANTS =====
@@ -756,32 +756,18 @@ export function updateAtmosphericParticles(particlePool, particleStates, dt, mov
 // NOTE: Props are NOT added to trackRoot — they are gameplay objects
 // managed by the engine (envPropMeshes array). This function adds to scene directly.
 
-export function spawnEnvProp(scene, envPropMeshes, selectedSubjects) {
+export function spawnEnvProp(scene, envPropMeshes, selectedSubjects, skinName) {
   var builders = selectedSubjects ? getSpecialtyProps(selectedSubjects) : PROP_BUILDERS;
   var builder = builders[Math.floor(Math.random() * builders.length)];
   // Real 3D models whenever they are available (high tier)
-  var prop = randomSceneryProp();
+  var prop = randomSceneryProp(null, skinName);
   if (!prop) {
     prop = builder();
     upgradeMaterials(prop, { glowAbove: 0.8 });
   }
 
-  var placement = Math.random();
-  if (placement < 0.35) {
-    prop.position.set(-7 - Math.random() * 4, Math.random() * 3, -80 - Math.random() * 20);
-  } else if (placement < 0.7) {
-    prop.position.set(7 + Math.random() * 4, Math.random() * 3, -80 - Math.random() * 20);
-  } else if (placement < 0.9) {
-    prop.position.set((Math.random() - 0.5) * 10, 4 + Math.random() * 4, -80 - Math.random() * 20);
-  } else {
-    prop.position.set((Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 2), 1 + Math.random() * 2, -90 - Math.random() * 10);
-  }
-
-  prop.rotation.y = Math.random() * Math.PI * 2;
-  prop.rotation.x = (Math.random() - 0.5) * 0.3;
-  var scale = 0.5 + Math.random() * 1.0;
-  prop.scale.set(scale, scale, scale);
-  prop.userData = { isEnvProp: true };
+  // Floating in space beside the track, in depth layers (parallax), spinning slowly
+  placeFloatingProp(prop);
   scene.add(prop);
   envPropMeshes.push(prop);
 }

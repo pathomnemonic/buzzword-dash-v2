@@ -206,6 +206,7 @@ function syncProfile() {
 // ===== Global =====
 
 function renderGlobal(body) {
+  body.appendChild(note('Only standard-rules runs appear here. Runs with power-ups, hazards or the monster turned off are for your own practice.'));
   var sel = createElement('select', { attributes: { 'aria-label': 'Game mode' } });
   sel.style.cssText = 'padding:8px;border-radius:10px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);margin-bottom:8px';
   BOARD_MODES.forEach(function (m) {

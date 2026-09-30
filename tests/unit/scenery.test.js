@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { SCENERY_FILES, PROP_KEYS, registerSceneryModel, buildScenery, buildHanging, buildSideScenery, randomSceneryProp } from '../../js/game/scenery.js';
+import { SCENERY_FILES, PROP_KEYS, registerSceneryModel, buildScenery, buildHanging, buildSideScenery, getSideTheme, SIDE_THEMES, randomSceneryProp } from '../../js/game/scenery.js';
 import { getObstacleVariant } from '../../js/game/obstacles.js';
 
 // Some models carry embedded textures. Node has no DOM image loading, so
@@ -82,8 +82,20 @@ describe('3D scenery models', () => {
     expect(getObstacleVariant('xray_arm').id).toBe('hanging_spotlight');
   });
 
-  it('builds street lights and trees along both sides that repeat seamlessly', () => {
-    const side = buildSideScenery();
+  it('themes the side scenery to each map', () => {
+    const names = ['Neural Highway', 'Vascular Rush', 'Skeletal Corridor', 'Cellular Matrix', 'Neon ER', 'DNA Helix Tunnel',
+      'Prescription Sunset', 'Cardiac Pulse', 'Surgical Theater', 'Candy Lab', 'X-Ray Vision', 'Defibrillator Shock'];
+    names.forEach((n) => expect(SIDE_THEMES[n], n).toBeTruthy());
+    expect(getSideTheme('Skeletal Corridor').map((t) => t[0])).toEqual(expect.arrayContaining(['bone', 'skull']));
+    expect(getSideTheme('Cardiac Pulse').map((t) => t[0])).toContain('heart');
+    // No random trees anywhere
+    Object.values(SIDE_THEMES).forEach((theme) => theme.forEach((t) => expect(t[0]).not.toBe('tree')));
+    // Every model a theme names exists
+    Object.values(SIDE_THEMES).flat().forEach((t) => expect(SCENERY_FILES[t[0]], t[0]).toBeTruthy());
+  });
+
+  it('builds themed objects along both sides that repeat seamlessly', () => {
+    const side = buildSideScenery('Skeletal Corridor');
     expect(side).toBeTruthy();
     expect(side.spacing).toBeGreaterThan(0);
     const xs = side.group.children.map((c) => Math.sign(c.position.x));

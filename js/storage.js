@@ -62,6 +62,10 @@ var DEFAULTS = {
     reducedMotion: false,
     quality: 'auto',
     perfHint: '',
+    disabledPowerups: [],
+    hazardsOff: false,
+    monsterOff: false,
+    preferredMap: '',
     perfStrikes: 0,
     nightMode: false,
 

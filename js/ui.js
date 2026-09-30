@@ -44,6 +44,9 @@ import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { buildStudyPlan } from './studyplan.js';
 import { getTipUrl, openTipPage } from './tips.js';
+import { getControlText } from './controlhints.js';
+import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
+import { SKINS } from './game/skins.js';
 import { isLowQuality } from './game/quality.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
@@ -169,10 +172,10 @@ class UI {
     this.tutorialPage = 0;
     this.tutorialPages = [
       { icon: '⚡', title: 'Welcome!', text: 'Buzzword Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
-      { icon: '👆', title: 'Move Between Lanes', text: 'Swipe left or right to switch lanes. Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
-      { icon: '⬆️', title: 'Jump Over Obstacles', text: 'Swipe up to jump over hospital beds, crates, cones and other obstacles on the ground.' },
-      { icon: '⬇️', title: 'Slide Under Obstacles', text: 'Swipe down to slide under overhead obstacles like hanging lights and signs.' },
-      { icon: '👆👆', title: 'Rush for Bonus Points', text: 'Know the answer? Double-tap (or press Shift) to rush! You\'re propelled through the gate in 0.5s and invulnerable to obstacles during rush!' },
+      { icon: '👆', title: 'Move Between Lanes', text: '' + getControlText().move + ' Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
+      { icon: '⬆️', title: 'Jump Over Obstacles', text: getControlText().jump + ' over hospital beds, crates, cones and other obstacles on the ground.' },
+      { icon: '⬇️', title: 'Slide Under Obstacles', text: getControlText().slide + ' under overhead obstacles like hanging lights and signs.' },
+      { icon: '👆👆', title: 'Rush for Bonus Points', text: 'Know the answer? ' + getControlText().rush + '! You\'re propelled through the gate in 0.5s and invulnerable to obstacles during rush!' },
       { icon: '🏎️', title: 'Speed = Points', text: 'Use the speed dial on the home screen to increase game speed. Faster speeds earn more points per correct answer.' },
       { icon: '🔥', title: 'Build Your Streak', text: 'Correct answers build your streak. Every 5 correct increases your score multiplier up to 8×!' },
       { icon: '❤️', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. When at 1 life, look for heart pickups on the track!' },
@@ -1082,8 +1085,8 @@ class UI {
     clearElement(container);
 
     var sections = [
-      { icon: '🎮', title: 'Controls', text: 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them. Use arrow keys or WASD on desktop.' },
-      { icon: '⚡', title: 'Rush Mode', text: 'Double-tap or press Shift to RUSH through gates! Rush makes you invulnerable to obstacles and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
+      { icon: '🎮', title: 'Controls', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them.' : 'Use the arrow keys or WASD: left/right to switch lanes, up to jump over obstacles, down to slide under them.' },
+      { icon: '⚡', title: 'Rush Mode', text: getControlText().rushVerb + ' to RUSH through gates! Rush makes you invulnerable to obstacles and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
       { icon: '❤️', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. When you\'re down to 1 life, look for heart pickups on the track!' },
       { icon: '🪙', title: 'Coins & Power-ups', text: 'Collect coins as you run. Power-ups include: Shield (🛡), Magnet (🧲), Double Score (2×), Auto-Pilot (🤖), and Score Frenzy (💎).' },
       { icon: '📊', title: 'Scoring', text: 'Correct answers build your streak. Every 5 correct increases your multiplier up to 8×. Rush through gates for bonus points!' },
@@ -1246,6 +1249,93 @@ class UI {
   // ═══════════════════════════════════════════════════════
   // TRACK NAME
   // ═══════════════════════════════════════════════════════
+
+  /** Settings: power-up, hazard and monster switches, and a favorite map. */
+  _renderRuleSettings(content) {
+    var self = this;
+    var heading = createElement('h3', { text: '🎛️ Your Rules (single-player)' });
+    heading.style.cssText = 'margin:16px 0 4px;font-size:14px;color:var(--text-secondary)';
+    content.appendChild(heading);
+    var note = createElement('div', {
+      className: 'setting-sublabel',
+      text: 'Turn things off for endless, study and weakness runs. To keep rankings fair, a run with any rule changed still counts for your own progress but is not posted to leaderboards. Daily, challenges, tournaments and multiplayer always use standard rules.'
+    });
+    note.style.cssText = 'margin-bottom:8px;line-height:1.4;font-size:11px';
+    content.appendChild(note);
+
+    function toggleRow(icon, label, desc, isOn, onChange) {
+      var row = createElement('div', { className: 'setting-row' });
+      var text = createElement('div');
+      text.appendChild(createElement('div', { text: icon + ' ' + label }));
+      text.appendChild(createElement('span', { className: 'setting-sublabel', text: desc }));
+      row.appendChild(text);
+      var sw = createElement('div', {
+        className: 'toggle' + (isOn ? ' on' : ''),
+        attributes: { role: 'switch', tabindex: '0', 'aria-label': label, 'aria-checked': isOn ? 'true' : 'false' }
+      });
+      function flip() {
+        var next = !sw.classList.contains('on');
+        sw.classList.toggle('on', next);
+        sw.setAttribute('aria-checked', next ? 'true' : 'false');
+        onChange(next);
+        refreshBadge();
+      }
+      sw.addEventListener('click', flip);
+      sw.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+      });
+      row.appendChild(sw);
+      content.appendChild(row);
+    }
+
+    var badge = createElement('div', { className: 'setting-sublabel' });
+    badge.style.cssText = 'margin:6px 0;font-weight:700';
+    function refreshBadge() {
+      var rules = getRunRules('endless', {
+        disabledPowerups: storage.get('disabledPowerups'),
+        hazardsOff: storage.get('hazardsOff'),
+        monsterOff: storage.get('monsterOff')
+      });
+      setText(badge, rules.custom ? '⚠ Custom rules on: ' + describeRules(rules) + '. Runs will not be ranked.' : '✓ Standard rules: runs are ranked.');
+      badge.style.color = rules.custom ? 'var(--accent-gold)' : 'var(--accent-green)';
+    }
+
+    POWERUP_OPTIONS.forEach(function (p) {
+      var disabled = storage.get('disabledPowerups') || [];
+      toggleRow(p.icon, p.label + ' power-up', p.desc, disabled.indexOf(p.id) < 0, function (on) {
+        var list = (storage.get('disabledPowerups') || []).filter(function (id) { return id !== p.id; });
+        if (!on) list.push(p.id);
+        storage.set('disabledPowerups', list);
+      });
+    });
+    toggleRow('🌀', 'Map hazards', 'Blackouts, tremors, fog and other map events', !storage.get('hazardsOff'), function (on) {
+      storage.set('hazardsOff', !on);
+    });
+    toggleRow('👾', 'Exam monster', 'The monster that chases you when you slip', !storage.get('monsterOff'), function (on) {
+      storage.set('monsterOff', !on);
+    });
+    content.appendChild(badge);
+    refreshBadge();
+
+    // Favorite map: purely cosmetic, so it never affects ranking
+    var mapRow = createElement('div', { className: 'setting-row' });
+    var mapLabel = createElement('div');
+    mapLabel.appendChild(createElement('div', { text: '🗺️ Favorite map' }));
+    mapLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Run on one map instead of rotating (cosmetic, still ranked)' }));
+    mapRow.appendChild(mapLabel);
+    var mapSelect = createElement('select', { attributes: { 'aria-label': 'Favorite map' } });
+    mapSelect.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);max-width:160px';
+    mapSelect.appendChild(createElement('option', { text: 'Rotate maps', attributes: { value: '' } }));
+    SKINS.forEach(function (sk) {
+      var o = createElement('option', { text: sk.name, attributes: { value: sk.name } });
+      if (storage.get('preferredMap') === sk.name) o.selected = true;
+      mapSelect.appendChild(o);
+    });
+    mapSelect.addEventListener('change', function () { storage.set('preferredMap', mapSelect.value); });
+    mapRow.appendChild(mapSelect);
+    content.appendChild(mapRow);
+    void self;
+  }
 
   showTrackName(text) {
     var overlay = document.getElementById('trackNameOverlay');
@@ -1427,11 +1517,7 @@ class UI {
     audio.play('countdown');
 
     if (tip) {
-      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-      setText(tip, isTouch
-        ? '💡 Know the answer? Double-tap to RUSH through! ⚡ Faster = more points'
-        : '💡 Know the answer? Press SHIFT or SPACE to RUSH! ⚡ Faster = more points'
-      );
+      setText(tip, '💡 Know the answer? ' + getControlText().rushVerb.toUpperCase() + ' to RUSH through! ⚡ Faster = more points');
       tip.style.opacity = '1';
     }
 
@@ -1906,6 +1992,8 @@ class UI {
 
       content.appendChild(row);
     });
+
+    this._renderRuleSettings(content);
 
     // Tutorial button
     var tutRow = createElement('div', { className: 'setting-row' });
@@ -3321,7 +3409,9 @@ class UI {
     var scoreBig = createElement('div', { className: 'score-big', text: String(game.score) });
     header.appendChild(scoreBig);
     var skinInfo = game.currentSkin ? ' • Track: ' + game.currentSkin.name : '';
-    var metaP = createElement('p', { text: 'Speed: ' + game.userSpeed + '×' + skinInfo + (game.continued ? ' (continued)' : '') });
+    var runSummary = game.getRunSummary ? game.getRunSummary() : null;
+    var customNote = runSummary && runSummary.custom ? ' • Custom rules: ' + describeRules(runSummary.rules && Object.assign({ custom: true }, runSummary.rules)) + ' (not ranked)' : '';
+    var metaP = createElement('p', { text: 'Speed: ' + game.userSpeed + '×' + skinInfo + (game.continued ? ' (continued)' : '') + customNote });
     metaP.style.cssText = 'color:var(--text-muted);font-size:12px';
     header.appendChild(metaP);
     content.appendChild(header);

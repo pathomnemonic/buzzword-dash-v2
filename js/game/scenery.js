@@ -120,9 +120,11 @@ export function buildScenery(key, fit, alignLong) {
 }
 
 /** A random floating prop, or null if none are ready (or on the low tier). */
-export function randomSceneryProp(rand) {
+export function randomSceneryProp(rand, skinName) {
   if (isLowQuality()) return null;
-  var ready = PROP_KEYS.filter(isSceneryReady);
+  // Props follow the map's theme when it has one, so nothing feels random
+  var themed = skinName ? getSideTheme(skinName).map(function (t) { return t[0]; }) : PROP_KEYS;
+  var ready = themed.filter(isSceneryReady);
   if (!ready.length) return null;
   var key = ready[Math.floor((rand || Math.random)() * ready.length)];
   return buildScenery(key, { height: 3.2, width: 3.2, depth: 3.2 });
@@ -155,25 +157,107 @@ export function buildHanging(key, hang) {
 var SIDE_PERIOD = 28;
 
 /**
- * Street lights and trees that rise above the walls on both sides, repeating
- * every SIDE_PERIOD units so they can scroll seamlessly like the walls do.
- * @returns {{group: THREE.Group, spacing: number}|null} null until models are loaded
+ * What lines each map. Giant medical objects rise over the walls on both
+ * sides, chosen to fit the map's subject. Each entry: [model key, height].
  */
-export function buildSideScenery() {
-  if (isLowQuality() || !isSceneryReady('streetlight') || !isSceneryReady('tree')) return null;
+export var SIDE_THEMES = {
+  'Neural Highway': [['monitor', 6], ['spotlight', 6.5]],
+  'Vascular Rush': [['heart', 5.5], ['potion', 6.5]],
+  'Skeletal Corridor': [['bone', 7], ['skull', 5.5]],
+  'Cellular Matrix': [['potion', 7], ['telescope', 6.5]],
+  'Neon ER': [['streetlight', 7.5], ['sign', 5.5], ['firstaid', 4.8]],
+  'DNA Helix Tunnel': [['telescope', 7], ['potion', 6.5]],
+  'Prescription Sunset': [['potion', 7], ['firstaid', 5]],
+  'Cardiac Pulse': [['heart', 6], ['monitor', 5.5]],
+  'Surgical Theater': [['spotlight', 7], ['monitor', 5.5], ['firstaid', 4.8]],
+  'Candy Lab': [['potion', 6.5], ['heart', 5]],
+  'X-Ray Vision': [['skull', 6], ['bone', 7]],
+  'Defibrillator Shock': [['monitor', 6], ['heart', 5.5], ['spotlight', 6.5]]
+};
+
+var DEFAULT_SIDE_THEME = [['sign', 5.5], ['firstaid', 4.8]];
+
+/** The scenery models a map uses (for tests and preloading decisions). */
+export function getSideTheme(skinName) {
+  return SIDE_THEMES[skinName] || DEFAULT_SIDE_THEME;
+}
+
+/**
+ * Giant themed objects rising above the walls on both sides, repeating every
+ * SIDE_PERIOD units so they scroll seamlessly like the walls do.
+ * @param {string} skinName the current map
+ * @returns {{group: THREE.Group, spacing: number}|null} null until the models are loaded
+ */
+export function buildSideScenery(skinName) {
+  if (isLowQuality()) return null;
+  var theme = getSideTheme(skinName);
+  if (!theme.every(function (t) { return isSceneryReady(t[0]); })) return null;
   var group = new THREE.Group();
   group.userData.isSideScenery = true;
+  var slots = 4; // positions per period, alternating sides and depth
+  var n = 0;
   for (var z = -SIDE_PERIOD * 8; z < SIDE_PERIOD; z += SIDE_PERIOD) {
-    [-1, 1].forEach(function (side, i) {
-      var lamp = buildScenery('streetlight', { height: 7.5 });
-      lamp.position.set(side * 6.9, 0, z + (i ? SIDE_PERIOD / 2 : 0));
-      // Arms reach over the track: face them inward
-      lamp.rotation.y = side > 0 ? Math.PI : 0;
-      group.add(lamp);
-      var tree = buildScenery('tree', { height: 6.5 });
-      tree.position.set(side * 8.6, 0, z + (i ? 0 : SIDE_PERIOD / 2));
-      group.add(tree);
-    });
+    for (var i = 0; i < slots; i++) {
+      var side = i % 2 === 0 ? -1 : 1;
+      var pick = theme[(i + Math.abs(Math.round(z / SIDE_PERIOD))) % theme.length];
+      var obj = buildScenery(pick[0], { height: pick[1], width: pick[1] * 0.9, depth: pick[1] * 0.9 });
+      // Objects drift in space beside the track: never over the lanes, never on the ground
+      var far = i > 1;
+      var baseY = 3.5 + ((n * 37) % 100) / 100 * 7 + (far ? 2 : 0);
+      obj.position.set(side * (10.5 + (far ? 4.5 : 0)), baseY, z + (i * SIDE_PERIOD) / slots);
+      obj.rotation.y = side > 0 ? Math.PI / 2 : -Math.PI / 2;
+      obj.userData.baseY = baseY;
+      obj.userData.phase = (n * 1.7) % 6.28;
+      obj.userData.spin = (n % 2 ? 1 : -1) * (0.12 + ((n * 13) % 10) / 100);
+      obj.userData.bob = 0.25 + ((n * 7) % 10) / 40;
+      group.add(obj);
+      n++;
+    }
   }
   return { group: group, spacing: SIDE_PERIOD };
+}
+
+/** Slow spin and gentle bobbing so the scenery reads as drifting in space. */
+export function animateSideScenery(group, time, dt) {
+  if (!group) return;
+  for (var i = 0; i < group.children.length; i++) {
+    var o = group.children[i];
+    var u = o.userData;
+    if (u.baseY === undefined) continue;
+    o.rotation.y += u.spin * dt;
+    o.position.y = u.baseY + Math.sin(time * 0.6 + u.phase) * u.bob;
+  }
+}
+
+/** Depth layers for floating props: how far out, how fast they pass, how big, how high. */
+var PROP_LAYERS = [
+  { xMin: 9.5, xMax: 14, yMin: 1.5, yMax: 8, speed: 0.95, scale: 1.0, spin: 0.35 },
+  { xMin: 15, xMax: 24, yMin: 3, yMax: 14, speed: 0.75, scale: 1.7, spin: 0.22 },
+  { xMin: 26, xMax: 42, yMin: 4, yMax: 22, speed: 0.55, scale: 2.8, spin: 0.14 }
+];
+
+/**
+ * Place a floating prop in a depth layer. Nearer layers pass faster and are
+ * smaller (parallax); nothing is placed over the lanes.
+ * @param {THREE.Object3D} prop
+ * @param {function(): number} [rand]
+ */
+export function placeFloatingProp(prop, rand) {
+  var r = rand || Math.random;
+  var roll = r();
+  var layer = roll < 0.5 ? PROP_LAYERS[0] : (roll < 0.85 ? PROP_LAYERS[1] : PROP_LAYERS[2]);
+  var side = r() < 0.5 ? -1 : 1;
+  var x = side * (layer.xMin + r() * (layer.xMax - layer.xMin));
+  var y = layer.yMin + r() * (layer.yMax - layer.yMin);
+  prop.position.set(x, y, -95 - r() * 25);
+  prop.scale.multiplyScalar(layer.scale * (0.8 + r() * 0.5));
+  prop.userData = {
+    isEnvProp: true,
+    speed: layer.speed,
+    spin: (r() < 0.5 ? -1 : 1) * layer.spin * (0.6 + r() * 0.8),
+    baseY: y,
+    phase: r() * 6.28,
+    bob: 0.2 + r() * 0.4
+  };
+  return prop;
 }

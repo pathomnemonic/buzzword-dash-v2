@@ -46,7 +46,9 @@ import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, isLowQuality } from './quality.js';
-import { preloadScenery, buildSideScenery } from './scenery.js';
+import { preloadScenery, buildSideScenery, animateSideScenery } from './scenery.js';
+import { getRunRules } from '../rules.js';
+import { START_STYLES, CAMERA_STYLES, getStartPose, getIntroCamera, pickDeathStyle, getDeathPose } from './cinematics.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -295,6 +297,14 @@ class Game {
     this._fovKick = 0;
     this._slowmo = 0;
     this._flyInT = 0;
+    this._introStyle = 'drop_in';
+    this._introCamStyle = 'sweep';
+    this._introAnim = 'idle';
+    this._introImpactAt = -1;
+    this._deathStyle = null;
+    this._lastDeathStyle = null;
+    this._deathT = 0;
+    this._deathImpactAt = -1;
     this._hazards = new HazardManager();
     this.onHazard = null;
 
@@ -574,7 +584,7 @@ class Game {
       // Countdown is managed by UI; engine just keeps scene renderable
       this._updateVisuals(deltaSeconds);
       this._updateFlyIn(deltaSeconds);
-      updateModelAnimation(this.playerGroup, deltaSeconds, 'idle');
+      updateModelAnimation(this.playerGroup, deltaSeconds, this._introAnim || 'idle');
     } else if (state === GAME_STATES.PAUSED) {
       // No simulation update during pause
     }
@@ -582,17 +592,41 @@ class Game {
 
   /** Cinematic camera sweep over the track while the countdown runs. */
   _updateFlyIn(dt) {
-    var duration = 2.4;
     this._flyInT += dt;
-    var t = Math.min(this._flyInT / duration, 1);
-    var e = 1 - Math.pow(1 - t, 3); // ease-out
-    var base = this.cameraBasePos;
-    this.camera.position.set(
-      base.x + (1 - e) * 5 * Math.sin(this._flyInT * 0.8),
-      base.y + (1 - e) * 7,
-      base.z + (1 - e) * 14
-    );
-    this.camera.lookAt(0, 1, -20 + (1 - e) * 12);
+    var cam = getIntroCamera(this._introCamStyle, this._flyInT, this.cameraBasePos);
+    this.camera.position.set(cam.position.x, cam.position.y, cam.position.z);
+    this.camera.lookAt(cam.lookAt.x, cam.lookAt.y, cam.lookAt.z);
+
+    // The runner has an entrance too: a varied start each run
+    var start = getStartPose(this._introStyle, this._flyInT);
+    this._applyPose(start.pose);
+    this._introAnim = start.anim;
+    if (start.impact && this._flyInT - this._introImpactAt > 0.25) {
+      this._introImpactAt = this._flyInT;
+      this._poseImpact(start.impact);
+    }
+  }
+
+  /** Apply a cinematic pose on top of the runner's start position. */
+  _applyPose(pose) {
+    var g = this.playerGroup;
+    g.position.set(LANE_X[this.currentLane] + pose.x, pose.y, pose.z);
+    g.rotation.set(pose.rotX, pose.rotY, pose.rotZ);
+    g.scale.set(pose.scale, pose.scale * pose.squash, pose.scale);
+  }
+
+  /** Back to the ordinary upright runner. */
+  _resetPose() {
+    this.playerGroup.position.set(LANE_X[this.currentLane], 0, 0);
+    this.playerGroup.rotation.set(0, 0, 0);
+    this.playerGroup.scale.set(1, 1, 1);
+  }
+
+  /** Puffs of dust or sparkles at the runner's feet. */
+  _poseImpact(kind) {
+    var at = this.playerGroup.position.clone();
+    at.y += 0.4;
+    this._spawnSparks(at, kind === 'dust' ? 0xd8d0c0 : 0xffffff);
   }
 
   _getPostFX() {
@@ -695,9 +729,16 @@ class Game {
     if (this.powerupFX) this.powerupFX.hideAll();
 
     this.currentSkin = getRandomSkin();
-    if (options.skinId) {
+    // A favorite map (Settings) stays for the whole run; it is only cosmetic
+    this._mapPinned = false;
+    var wantedMap = options.skinId || storage.get('preferredMap');
+    if (wantedMap) {
       for (var si = 0; si < SKINS.length; si++) {
-        if (SKINS[si].name === options.skinId) { this.currentSkin = SKINS[si]; break; }
+        if (SKINS[si].name === wantedMap) {
+          this.currentSkin = SKINS[si];
+          this._mapPinned = !options.skinId;
+          break;
+        }
       }
     }
 
@@ -721,6 +762,10 @@ class Game {
   // Called by main.js after countdown UI starts
   beginCountdown() {
     this._flyInT = 0;
+    this._introImpactAt = -1;
+    var reduced = !!storage.get('reducedMotion');
+    this._introStyle = reduced ? 'warp_in' : START_STYLES[Math.floor(Math.random() * START_STYLES.length)];
+    this._introCamStyle = reduced ? 'sweep' : CAMERA_STYLES[Math.floor(Math.random() * CAMERA_STYLES.length)];
     this._transition(GAME_STATES.COUNTDOWN);
     this._emit('countdown_started', {});
   }
@@ -729,6 +774,14 @@ class Game {
   go() {
     if (!this._transition(GAME_STATES.PLAYING)) return;
 
+    // Personal rule changes (single-player only) make this a custom run
+    this._rules = getRunRules(this.mode, {
+      disabledPowerups: storage.get('disabledPowerups'),
+      hazardsOff: storage.get('hazardsOff'),
+      monsterOff: storage.get('monsterOff')
+    });
+    this._resetPose();
+    this._introAnim = 'run';
     this._runStartedAt = performance.now();
     this._emit('run_started', { skinName: this.currentSkin.name });
 
@@ -901,6 +954,7 @@ class Game {
       this.faceplantTimer = 0;
       this.camera.position.copy(this.cameraBasePos);
       this.camera.lookAt(0, 1, -20);
+      this._deathStyle = null;
       this.playerGroup.rotation.set(0, 0, 0);
       this.playerGroup.scale.set(1, 1, 1);
       this.playerGroup.position.set(LANE_X[1], 0, 0);
@@ -1037,6 +1091,14 @@ class Game {
       obstaclesSlid: this.obstaclesSlid,
 
       dailyCompleted: dailyComplete,
+
+      // Custom rules keep a run off the leaderboards (see rules.js)
+      custom: !!(this._rules && this._rules.custom),
+      rules: this._rules ? {
+        disabledPowerups: this._rules.disabledPowerups.slice(),
+        hazardsOff: this._rules.hazardsOff,
+        monsterOff: this._rules.monsterOff
+      } : null,
 
       encounters: encounters,
 
@@ -1372,6 +1434,7 @@ card = pickResult ? pickResult.card : null;
     // Signature map hazard (solo endless/weakness only: never in seeded or
     // competitive modes, and never for players who prefer reduced motion).
     if (!this.seededCardOrder && (this.mode === GAME_MODES.ENDLESS || this.mode === GAME_MODES.WEAKNESS) &&
+        !(this._rules && this._rules.hazardsOff) &&
         !storage.get('reducedMotion') &&
         !(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
       var hazardStarted = this._hazards.maybeStart(this.currentSkin.name, this.encountersDone);
@@ -1498,7 +1561,9 @@ card = pickResult ? pickResult.card : null;
 
     // Map transition check
     this.encountersUntilTransition--;
-    if (this.encountersUntilTransition <= 0) {
+    if (this.encountersUntilTransition <= 0 && this._mapPinned) {
+      this.encountersUntilTransition = 10;
+    } else if (this.encountersUntilTransition <= 0) {
       this.encountersUntilTransition = 10;
       var newSkin = getRandomSkin();
       var attempts = 0;
@@ -1696,8 +1761,15 @@ card = pickResult ? pickResult.card : null;
   // DEATH / DYING STATE
   // ═══════════════════════════════════════════════════════
 
-  _triggerDeath() {
+  /**
+   * @param {string} [cause] 'ground' | 'overhead' | 'monster' | 'other' picks a fitting death
+   */
+  _triggerDeath(cause) {
     this._transition(GAME_STATES.DYING);
+    this._deathStyle = storage.get('reducedMotion') ? 'faceplant' : pickDeathStyle(cause || 'other', this._lastDeathStyle);
+    this._lastDeathStyle = this._deathStyle;
+    this._deathT = 0;
+    this._deathImpactAt = -1;
 
     if (this.examMonster && this.monsterZ < 20) {
       this.monsterTargetZ = 0;
@@ -1715,8 +1787,20 @@ card = pickResult ? pickResult.card : null;
     var totalDuration = 1.8;
     var fp = totalDuration - this.faceplantTimer;
 
-    // Animated models play their own death clip; procedural ones faceplant.
-    if (this.playerGroup.userData.animator) {
+    // Each death is different; "faceplant" keeps the classic behaviour.
+    this._deathT += dt;
+    var shake = 0;
+    if (this._deathStyle && this._deathStyle !== 'faceplant') {
+      var dp = getDeathPose(this._deathStyle, this._deathT);
+      this._applyPose(dp.pose);
+      shake = dp.camShake;
+      if (dp.impact && this._deathT - this._deathImpactAt > 0.2) {
+        this._deathImpactAt = this._deathT;
+        this._poseImpact(dp.impact);
+      }
+      if (this.playerGroup.userData.animator) updateModelAnimation(this.playerGroup, dt, dp.useClip ? 'death' : 'idle');
+    } else if (this.playerGroup.userData.animator) {
+      // Animated models play their own death clip; procedural ones faceplant.
       updateModelAnimation(this.playerGroup, dt, 'death');
     } else if (fp < 0.3) {
       this.playerGroup.rotation.x = (fp / 0.3) * 0.8;
@@ -1734,6 +1818,10 @@ card = pickResult ? pickResult.card : null;
     this.camera.position.x = this.cameraBasePos.x + Math.sin(camProgress * Math.PI) * 2;
     this.camera.position.y = this.cameraBasePos.y - camProgress * 2;
     this.camera.position.z = this.cameraBasePos.z - camProgress * 3;
+    if (shake > 0) {
+      this.camera.position.x += (Math.random() - 0.5) * shake;
+      this.camera.position.y += (Math.random() - 0.5) * shake * 0.6;
+    }
     this.camera.lookAt(this.playerGroup.position.x, 1, this.playerGroup.position.z);
 
     this._updateExamMonster(dt);
@@ -2051,20 +2139,22 @@ card = pickResult ? pickResult.card : null;
     // Power-up spawning
     this.powerupSpawnTimer -= dt;
     if (this.powerupSpawnTimer <= 0) {
-      spawnPowerup(this.scene, this.coinMeshes);
+      spawnPowerup(this.scene, this.coinMeshes, undefined, this._rules && this._rules.disabledPowerups);
       this.powerupSpawnTimer = 15 + Math.random() * 10;
     }
 
     // Environment props
     this.envPropSpawnTimer -= dt;
     if (this.envPropSpawnTimer <= 0) {
-      spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
+      spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'), this.currentSkin && this.currentSkin.name);
       this.envPropSpawnTimer = 1.5 + Math.random() * 2;
     }
     for (var ei = this.envPropMeshes.length - 1; ei >= 0; ei--) {
       var ep = this.envPropMeshes[ei];
-      ep.position.z += move * 0.7;
-      ep.rotation.y += dt * 0.3;
+      var epu = ep.userData;
+      ep.position.z += move * (epu.speed || 0.7);
+      ep.rotation.y += dt * (epu.spin || 0.3);
+      if (epu.baseY !== undefined) ep.position.y = epu.baseY + Math.sin(this.elapsedTime * 0.6 + epu.phase) * epu.bob;
       if (ep.position.z > 10) {
         removeAndDispose(this.scene, ep);
         this.envPropMeshes.splice(ei, 1);
@@ -2099,7 +2189,7 @@ card = pickResult ? pickResult.card : null;
               if (this.lives <= 0 && this.mode !== GAME_MODES.STUDY) {
                 var canCont = this._modeConfig.allowContinue && !this.continued && storage.get('coins') >= (this._modeConfig.continueCost || CONTINUE_COST);
                 if (canCont) {
-                  this._triggerDeath();
+                  this._triggerDeath(od.type === 'high' ? 'overhead' : 'ground');
                 } else {
                   this._endRun(RUN_END_REASONS.OUT_OF_LIVES);
                 }
@@ -2231,9 +2321,16 @@ card = pickResult ? pickResult.card : null;
   /** Street lights and trees rising over the walls, added once the models are loaded. */
   _ensureSideScenery() {
     if (isLowQuality() || !this.trackRefs) return;
-    if (this._sideGroup && this._sideGroup.parent === this.scene) return;
-    var side = buildSideScenery();
+    var skinName = this.currentSkin && this.currentSkin.name;
+    if (this._sideGroup && this._sideGroup.parent === this.scene && this._sideSkin === skinName) return;
+    var side = buildSideScenery(skinName);
     if (!side) return;
+    // A new map replaces the previous map's scenery
+    if (this._sideGroup) {
+      this.scene.remove(this._sideGroup);
+      this.trackRefs.scrollers = this.trackRefs.scrollers.filter(function (s) { return s.group !== this._sideGroup; }, this);
+    }
+    this._sideSkin = skinName;
     this._sideGroup = side.group;
     this.scene.add(side.group);
     this.trackRefs.scrollers.push({ group: side.group, spacing: side.spacing });
@@ -2242,6 +2339,7 @@ card = pickResult ? pickResult.card : null;
   _updateVisuals(dt, move, currentSpeed, rushMult) {
     if (!move) move = 0;
     this._ensureSideScenery();
+    animateSideScenery(this._sideGroup, this.elapsedTime, dt);
     this._updateSparks(dt, move);
     if (!currentSpeed) currentSpeed = this.speed;
     if (!rushMult) rushMult = 1;
@@ -2291,6 +2389,11 @@ card = pickResult ? pickResult.card : null;
 
   _updateExamMonster(dt) {
     if (!this.examMonster) return;
+    if (this._rules && this._rules.monsterOff) {
+      // The player turned the monster off (custom run): it never appears or catches
+      this.examMonster.visible = false;
+      return;
+    }
 
     this.monsterZ += (this.monsterTargetZ - this.monsterZ) * dt * 1.2;
     if (this.monsterZ < 3) this.monsterZ = 3;
@@ -2374,7 +2477,7 @@ card = pickResult ? pickResult.card : null;
         !this.rushInvulnerable && this.monsterZ <= 3.6) {
       this.lives = 0;
       this._emit('monster_caught', {});
-      this._triggerDeath();
+      this._triggerDeath('monster');
       return;
     }
 
@@ -2432,6 +2535,7 @@ card = pickResult ? pickResult.card : null;
   }
 
   _collectPowerup(type) {
+    if (this._rules && this._rules.disabledPowerups.indexOf(type) >= 0) return;
     switch (type) {
       case 'shield': this.powerups.shield = 999; break;
       case 'magnet': this.powerups.magnet = 10; break;

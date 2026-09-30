@@ -30,6 +30,8 @@ import { customCards } from './customcards.js';
 import { HomeCharacter } from './game/homecharacter.js';
 import { reportError } from './errors.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
+import { getControlText } from './controlhints.js';
+import { isRankedRun } from './rules.js';
 
 // ===== Lazy-loaded module references =====
 var ankiImportModule = null;
@@ -95,8 +97,8 @@ function showOnboarding() {
   if (!overlay) return;
 
   var pages = [
-    { icon: '\u26A1', title: 'Welcome to Buzzword Dash!', text: 'See medical buzzwords, then swipe into the correct diagnosis gate to score points!', hand: '\uD83D\uDC46' },
-    { icon: '\uD83D\uDC46', title: 'Swipe to Move', text: 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!', hand: '\uD83D\uDC48\uD83D\uDC49' },
+    { icon: '\u26A1', title: 'Welcome to Buzzword Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
+    { icon: '\uD83D\uDC46', title: getControlText().touch ? 'Swipe to Move' : 'Use the Keyboard', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!' : 'Arrow keys or A/D switch lanes, up/W jumps, down/S slides. Press Shift or Space to rush for bonus points!', hand: getControlText().touch ? '\uD83D\uDC48\uD83D\uDC49' : '\u2328\uFE0F' },
     { icon: '\uD83C\uDFC6', title: 'Build Your Streak!', text: 'Correct answers build your streak and multiplier. Collect coins, unlock avatars, and climb the leaderboard!', hand: '' }
   ];
   var currentPage = 0;
@@ -146,8 +148,8 @@ function renderHowToPlay() {
   if (!container) return;
 
   var sections = [
-    { icon: '\uD83C\uDFAE', title: 'Controls', text: 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them. Use arrow keys or WASD on desktop.' },
-    { icon: '\u26A1', title: 'Rush Mode', text: 'Double-tap or press Shift to RUSH through gates! Rush makes you invulnerable and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
+    { icon: '\uD83C\uDFAE', title: 'Controls', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them.' : 'Use the arrow keys or WASD: left/right to switch lanes, up to jump over obstacles, down to slide under them.' },
+    { icon: '\u26A1', title: 'Rush Mode', text: getControlText().rushVerb + ' to RUSH through gates! Rush makes you invulnerable and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
     { icon: '\u2764\uFE0F', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. Look for heart pickups on the track!' },
     { icon: '\uD83E\uDE99', title: 'Coins & Power-ups', text: 'Collect coins as you run. Power-ups include Shield, Magnet, Double Score, Auto-Pilot, and Score Frenzy.' },
     { icon: '\uD83D\uDCCA', title: 'Scoring', text: 'Correct answers build your streak. Every 5 correct increases your multiplier up to 8\u00D7. Rush through gates for bonus points!' },
@@ -925,8 +927,9 @@ function finalizeRun(gameRef) {
   }
 
   // --- Leaderboard submission ---
+  // Custom-rule runs (power-ups, hazards or monster turned off) are never ranked
   var canPost = leaderboardModule && storage.get('profileVisible') && storage.get('profileName') &&
-    leaderboardModule.leaderboard.isAuthenticated();
+    leaderboardModule.leaderboard.isAuthenticated() && isRankedRun(summary);
   if (canPost) postActivities(summary, result);
   if (canPost && summary.encountersCompleted > 0 && summary.mode !== 'challenge') {
     leaderboardModule.leaderboard.submitVerifiedScore({
