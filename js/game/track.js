@@ -32,6 +32,7 @@ import {
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
 import { upgradeMaterials } from './materials.js';
+import { isLowQuality } from './quality.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -169,7 +170,7 @@ export function buildTrack(trackRoot, skin, options) {
   trackRefs.lights = lightRefs;
 
   // Sky and distance haze: depth instead of a black void
-  trackRoot.add(buildSkyDome(skin));
+  if (!isLowQuality()) trackRoot.add(buildSkyDome(skin));
   if (trackRoot.isScene) trackRoot.fog = new THREE.Fog(skin.colors.bg, 70, 240);
 
   // Ground

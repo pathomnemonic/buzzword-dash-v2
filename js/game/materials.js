@@ -15,12 +15,14 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { isLowQuality } from './quality.js';
 
 var _envCache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
 
 /**
  * Give a scene a reflection environment and cinematic tone mapping.
- * The environment texture is built once per renderer.
+ * The environment texture is built once per renderer. Both tiers use it:
+ * it is cheap, and metals look black without something to reflect.
  * @param {THREE.WebGLRenderer} renderer
  * @param {THREE.Scene} scene
  */
@@ -39,6 +41,7 @@ export function setupEnvironment(renderer, scene) {
 
 /** A box with rounded edges. Radius scales with the thinnest side. */
 export function roundedBox(w, h, d) {
+  if (isLowQuality()) return new THREE.BoxGeometry(w, h, d);
   var r = Math.max(0.004, Math.min(w, h, d) * 0.22);
   return new RoundedBoxGeometry(w, h, d, 2, Math.min(r, Math.min(w, h, d) / 2 - 0.0005));
 }
@@ -54,6 +57,7 @@ var FLAT_GEOMETRIES = { PlaneGeometry: 1, CircleGeometry: 1, RingGeometry: 1, Sh
  * @param {number} [opts.envIntensity] reflection strength (default 0.9)
  */
 export function upgradeMaterials(root, opts) {
+  if (isLowQuality()) return;
   opts = opts || {};
   var glowAbove = opts.glowAbove === undefined ? 2 : opts.glowAbove;
   var envIntensity = opts.envIntensity === undefined ? 0.9 : opts.envIntensity;

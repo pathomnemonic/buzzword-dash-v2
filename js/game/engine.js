@@ -45,6 +45,7 @@ import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
 import { setupEnvironment } from './materials.js';
+import { getQuality, isLowQuality } from './quality.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -512,8 +513,8 @@ class Game {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.setPixelRatio(isLowQuality() ? 1 : Math.min(devicePixelRatio, 2));
+    this.renderer.shadowMap.enabled = !isLowQuality();
     setupEnvironment(this.renderer, this.scene);
     container.appendChild(this.renderer.domElement);
 
@@ -522,7 +523,7 @@ class Game {
     this.trackRoot.name = 'trackRoot';
     this.scene.add(this.trackRoot);
 
-    this.trackRefs = buildTrack(this.scene, this.currentSkin);
+    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
     this._rebuildPlayer();
     this._createPlayerShadow();
     this.trailSystem = new TrailSystem(this.scene);
@@ -593,7 +594,7 @@ class Game {
   }
 
   _getPostFX() {
-    if (storage.get('glowEffects') === false || storage.get('reducedMotion')) return null;
+    if (storage.get('glowEffects') === false || storage.get('reducedMotion') || isLowQuality()) return null;
     if (!this._postfx) {
       try {
         this._postfx = createPostFX(this.renderer, this.scene, this.camera);
@@ -601,6 +602,11 @@ class Game {
         console.warn('[Engine] Post-processing unavailable:', e.message);
         this._postfx = { degraded: true, render: function () {}, setSize: function () {}, dispose: function () {} };
       }
+    }
+    if (this._postfx.degraded && !this._perfHinted) {
+      // The frame rate could not keep up: let "Auto" graphics start on the fast tier next time.
+      this._perfHinted = true;
+      if (storage.get('quality') === 'auto') storage.set('perfHint', 'low');
     }
     return this._postfx.degraded ? null : this._postfx;
   }
@@ -688,7 +694,7 @@ class Game {
       }
     }
 
-    this.trackRefs = buildTrack(this.scene, this.currentSkin);
+    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
 
     this.camera.position.copy(this.cameraBasePos);
     this.camera.fov = this.baseFOV;
@@ -1275,7 +1281,7 @@ class Game {
       this.transitionNewSkin = null;
 
       this._cleanupTrack();
-      this.trackRefs = buildTrack(this.scene, this.currentSkin);
+      this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
 
       if (this.playerGroup && !this.scene.children.includes(this.playerGroup)) this.scene.add(this.playerGroup);
       if (this.playerShadow && !this.scene.children.includes(this.playerShadow)) this.scene.add(this.playerShadow);

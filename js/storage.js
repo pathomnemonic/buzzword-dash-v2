@@ -61,6 +61,7 @@ var DEFAULTS = {
     avatarColors: {},
     reducedMotion: false,
     quality: 'auto',
+    perfHint: '',
     nightMode: false,
 
     speedTimerEnabled: false,

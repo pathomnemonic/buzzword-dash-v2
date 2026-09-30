@@ -22,6 +22,7 @@ import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { SHOP_ITEMS, AVATARS } from './shopdata.js';
 import { loadCharacterModel, buildModelCharacter } from './charactermodel.js';
+import { isLowQuality } from './quality.js';
 
 // ===== HELPERS =====
 
@@ -1052,7 +1053,7 @@ export function buildPlayer() {
         return buildVehicle(avatar);
     }
 
-    if (avatar.isModel) {
+    if (avatar.isModel && !isLowQuality()) {
         // Real animated model. If it is still downloading, show the
         // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
         var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;

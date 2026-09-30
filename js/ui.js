@@ -1808,6 +1808,7 @@ class UI {
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
       { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
+      { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (3D models)'], ['low', 'Low (faster)']] },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
       { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
       { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
@@ -1862,6 +1863,23 @@ class UI {
           }
         });
         row.appendChild(toggle);
+      } else if (s.type === 'select') {
+        var select = createElement('select', { attributes: { 'aria-label': s.label } });
+        select.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
+        s.options.forEach(function (opt) {
+          var o = createElement('option', { text: opt[1], attributes: { value: opt[0] } });
+          if ((storage.get(s.key) || 'auto') === opt[0]) o.selected = true;
+          select.appendChild(o);
+        });
+        select.addEventListener('change', function () {
+          storage.set(s.key, select.value);
+          if (s.key === 'quality') {
+            storage.set('perfHint', '');
+            self._showToast('Graphics changed. Reloading…');
+            setTimeout(function () { window.location.reload(); }, 700);
+          }
+        });
+        row.appendChild(select);
       } else if (s.type === 'range') {
         var currentVal = storage.get(s.key);
         if (currentVal === undefined || currentVal === null) currentVal = s.min;

@@ -13,6 +13,7 @@
 import * as THREE from 'three';
 import { buildExamMonster, getMonsterParts } from './exammonster.js';
 import { getMonsterModel, modelUrl } from './modelcatalog.js';
+import { isLowQuality } from './quality.js';
 import { buildModelMonster, loadCharacterModel } from './charactermodel.js';
 
 var STYLES = {
@@ -275,7 +276,7 @@ function buildKraken() {
  */
 export function buildMonster(id) {
   var model = getMonsterModel(id);
-  if (model) {
+  if (model && !isLowQuality()) {
     // Real animated model. If it is still downloading, show the classic
     // monster; "buzzword:model-ready" makes the engine swap it in.
     var url = modelUrl(model.file);
