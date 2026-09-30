@@ -40,11 +40,17 @@ export function setupEnvironment(renderer, scene) {
   scene.environment = tex;
 }
 
-/** A box with rounded edges. Radius scales with the thinnest side. */
-export function roundedBox(w, h, d) {
-  if (isLowQuality()) return new THREE.BoxGeometry(w, h, d);
-  var r = Math.max(0.004, Math.min(w, h, d) * 0.22);
-  return new RoundedBoxGeometry(w, h, d, 2, Math.min(r, Math.min(w, h, d) / 2 - 0.0005));
+/**
+ * A box with rounded edges. Radius scales with the thinnest side.
+ * `segments` is the rounding detail: 1 (108 triangles) suits the thousands of
+ * wall pieces, 2 (300 triangles) is for hero pieces like coins and gates.
+ * Very thin pieces are plain boxes: rounding would not be visible.
+ */
+export function roundedBox(w, h, d, segments) {
+  var thin = Math.min(w, h, d);
+  if (isLowQuality() || thin < 0.06) return new THREE.BoxGeometry(w, h, d);
+  var r = Math.max(0.004, thin * 0.22);
+  return new RoundedBoxGeometry(w, h, d, segments || 1, Math.min(r, thin / 2 - 0.0005));
 }
 
 /** Flag a cached model's geometry and materials as shared between its copies. */

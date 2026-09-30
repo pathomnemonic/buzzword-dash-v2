@@ -21,7 +21,7 @@
  */
 
 import * as THREE from 'three';
-import { CARDS, SUBJECTS } from '../cards.js';
+import { CARDS, SUBJECTS } from '../cardhub.js';
 import { storage } from '../storage.js';
 import { customCards } from '../customcards.js';
 import { getSubjectStyle } from './subjectstyle.js';
@@ -505,16 +505,16 @@ export function spawnGates(scene, gates, currentLane, theme, subject) {
       emissive: accent, emissiveIntensity: 0.5, envMapIntensity: 1.3
     });
 
-    var topBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3), frameMetal);
+    var topBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3, 2), frameMetal);
     topBar.position.set(0, 1.56, 0);
     group.add(topBar);
 
-    var botBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3), frameMetal);
+    var botBar = new THREE.Mesh(roundedBox(3.0, 0.16, 0.3, 2), frameMetal);
     botBar.position.set(0, -1.56, 0);
     group.add(botBar);
 
     for (var sx = -1; sx <= 1; sx += 2) {
-      var pillar = new THREE.Mesh(roundedBox(0.2, 3.2, 0.3), frameMetal);
+      var pillar = new THREE.Mesh(roundedBox(0.2, 3.2, 0.3, 2), frameMetal);
       pillar.position.set(sx * 1.5, 0, 0);
       group.add(pillar);
     }

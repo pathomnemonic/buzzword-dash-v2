@@ -26,7 +26,7 @@
  *   - No direct storage writes; produces summaries for the composition layer
  */
 
-import { CARDS, SUBJECTS } from '../cards.js';
+import { CARDS, SUBJECTS } from '../cardhub.js';
 import { storage } from '../storage.js';
 import { customCards } from '../customcards.js';
 

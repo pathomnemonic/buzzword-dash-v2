@@ -1,6 +1,10 @@
 // tests/unit/setup.js
 // Global test setup for Vitest unit tests
 
+// The app loads its card database lazily; tests want it present from the start
+import { loadCards } from '../../js/cardhub.js';
+await loadCards();
+
 // Mock Web Audio API for audio.js tests
 globalThis.AudioContext = class MockAudioContext {
   constructor() {

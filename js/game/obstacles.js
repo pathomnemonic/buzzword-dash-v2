@@ -633,8 +633,8 @@ function getCoinTemplate() {
 
   // Embossed medical cross on both faces
   [1, -1].forEach(function (side) {
-    var v = new THREE.Mesh(roundedBox(0.1, 0.34, 0.03), shine);
-    var h = new THREE.Mesh(roundedBox(0.34, 0.1, 0.03), shine);
+    var v = new THREE.Mesh(roundedBox(0.1, 0.34, 0.03, 2), shine);
+    var h = new THREE.Mesh(roundedBox(0.34, 0.1, 0.03, 2), shine);
     v.position.z = h.position.z = side * 0.045;
     group.add(v);
     group.add(h);

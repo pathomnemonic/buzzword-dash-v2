@@ -35,7 +35,7 @@
  */
 
 import { setText, createElement, clearElement } from './dom.js';
-import { SUBJECTS, CARDS, EXAM_FILTERS } from './cards.js';
+import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
@@ -1967,6 +1967,7 @@ class UI {
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
       { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
+      { key: 'batterySaver', label: '🔋 Battery saver (30 fps)', type: 'toggle' },
       { key: 'cameraView', label: '🎥 Camera', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
       { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },

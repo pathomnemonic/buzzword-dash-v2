@@ -27,11 +27,10 @@ import {
   buildWallSegment,
   buildArch,
   buildGround,
-  buildAtmosphericParticle,
   buildWallGlowStrips
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
-import { upgradeMaterials, mergeStatic } from './materials.js';
+import { upgradeMaterials, mergeStatic, softDotTexture } from './materials.js';
 import { randomSceneryProp, placeFloatingProp } from './scenery.js';
 import { isLowQuality } from './quality.js';
 
@@ -739,50 +738,79 @@ export function updateRunningLights(runningLights, time, speed) {
 
 // ===== ATMOSPHERIC PARTICLE POOL =====
 
+/** Point size by particle style: bubbles and cells read larger, sparks small. */
+var PARTICLE_SIZE = {
+  sparks: 0.28, blood_cells: 0.5, calcium_dust: 0.3, vesicles: 0.45, dust_motes: 0.24, nucleotides: 0.38,
+  capsule_bits: 0.4, platelets: 0.42, sterile_sparkles: 0.3, bubbles: 0.55, photons: 0.26, electric_arcs: 0.3
+};
+
+/**
+ * The atmosphere is one soft, glowing point cloud (a single draw call) rather
+ * than dozens of tiny meshes. Each point drifts and bobs on its own.
+ */
 function createParticlePool(trackRoot, skin, trackRefs, qc) {
-  var count = qc.particlePoolSize;
+  var count = qc.particlePoolSize * 2;
+  var positions = new Float32Array(count * 3);
+  var colors = new Float32Array(count * 3);
+  var a = new THREE.Color(skin.colors.particle);
+  var b = new THREE.Color(skin.colors.particleB || skin.colors.particle);
+  var states = [];
   for (var i = 0; i < count; i++) {
-    var particle = buildAtmosphericParticle(skin);
-    var px = (Math.random() - 0.5) * 10;
     var py = 0.5 + Math.random() * 4;
-    var pz = -150 + Math.random() * 170;
-    particle.position.set(px, py, pz);
-    particle.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
-    trackRoot.add(particle);
-    trackRefs.particlePool.push(particle);
-    trackRefs.particleStates.push({
+    positions[i * 3] = (Math.random() - 0.5) * 10;
+    positions[i * 3 + 1] = py;
+    positions[i * 3 + 2] = -150 + Math.random() * 170;
+    var c = Math.random() < 0.5 ? a : b;
+    colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+    states.push({
       vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.1 + 0.05,
-      vz: 0,
-      rotSpeed: (Math.random() - 0.5) * 0.5,
       driftPhase: Math.random() * Math.PI * 2,
       baseY: py
     });
   }
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  var material = new THREE.PointsMaterial({
+    size: PARTICLE_SIZE[skin.particleType] || 0.35,
+    map: softDotTexture(),
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.75,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    sizeAttenuation: true
+  });
+  var points = new THREE.Points(geometry, material);
+  points.frustumCulled = false; // positions change every frame
+  trackRoot.add(points);
+  trackRefs.particlePool.push(points);
+  trackRefs.particleStates = states;
 }
 
 export function updateAtmosphericParticles(particlePool, particleStates, dt, move, time) {
   if (!particlePool || particlePool.length === 0) return;
+  var points = particlePool[0];
+  var attr = points.geometry.attributes.position;
+  var pos = attr.array;
 
-  for (var i = 0; i < particlePool.length; i++) {
-    var p = particlePool[i];
+  for (var i = 0; i < particleStates.length; i++) {
     var s = particleStates[i];
-    p.position.z += move * 0.5;
-    p.position.x += s.vx * dt;
-    p.position.y = s.baseY + Math.sin(time * 0.5 + s.driftPhase) * 0.3;
-    p.rotation.y += s.rotSpeed * dt;
-    p.rotation.x += s.rotSpeed * dt * 0.3;
-    if (p.position.z > 8) {
-      p.position.z = -150 - Math.random() * 30;
-      p.position.x = (Math.random() - 0.5) * 10;
+    var o = i * 3;
+    pos[o + 2] += move * 0.5;
+    pos[o] += s.vx * dt;
+    pos[o + 1] = s.baseY + Math.sin(time * 0.5 + s.driftPhase) * 0.3;
+    if (pos[o + 2] > 8) {
+      pos[o + 2] = -150 - Math.random() * 30;
+      pos[o] = (Math.random() - 0.5) * 10;
       s.baseY = 0.5 + Math.random() * 4;
-      p.position.y = s.baseY;
       s.vx = (Math.random() - 0.5) * 0.3;
       s.driftPhase = Math.random() * Math.PI * 2;
     }
-    if (p.position.x > 5) { p.position.x = 5; s.vx *= -1; }
-    if (p.position.x < -5) { p.position.x = -5; s.vx *= -1; }
+    if (pos[o] > 5) { pos[o] = 5; s.vx *= -1; }
+    if (pos[o] < -5) { pos[o] = -5; s.vx *= -1; }
   }
+  attr.needsUpdate = true;
 }
 
 // ===== FLYING ENVIRONMENT PROPS =====

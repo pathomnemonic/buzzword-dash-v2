@@ -25,7 +25,7 @@ import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
-import { CARDS } from './cards.js';
+import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { HomeCharacter } from './game/homecharacter.js';
 import { reportError } from './errors.js';
@@ -773,6 +773,14 @@ function attachChallengeResult(finalScore) {
 }
 
 function startMode(mode) {
+  // The questions load in the background after the first paint; wait for them if needed
+  if (!areCardsReady()) {
+    ui._showToast('Loading questions…');
+    loadCards().then(function () { startMode(mode); }).catch(function () {
+      ui._showToast('Could not load the questions. Check your connection and try again.');
+    });
+    return;
+  }
   if (!webglOk) { ui._showToast('The runner needs WebGL, which is not available here. Try Flashcards or the Exam Sim!'); return; }
   if (mode === 'tournament') { startTournament(); return; }
   if (mode === 'daily' && storage.get('dailyDone')) {
@@ -958,6 +966,13 @@ function finalizeRun(gameRef) {
 //  MAIN INITIALIZATION
 // =========================================================================
 function init() {
+  // Load the question database in the background; screens that show counts refresh when it arrives
+  loadCards().then(function () {
+    ui.renderHome();
+    ui.renderSubjects();
+  }).catch(function (e) {
+    reportError(e, { system: 'cards', operation: 'load', recoverable: true });
+  });
   // ?debug=1 exposes the engine on window.__game for measuring performance
   if (/[?&]debug=1(&|$)/.test(window.location.search)) window.__game = game;
   storage.load();
@@ -1327,7 +1342,16 @@ function init() {
   var lastFrameMs = 0;
   var lastMusicMs = 0;
   var GAME_SCENE_STATES = ['preparing', 'countdown', 'playing', 'paused', 'dying', 'continue_prompt', 'finishing'];
+  // Battery saver caps a run at 30 fps; the home screen (an idle character) always runs at
+  // 30 fps, which saves power and heat on phones without any visible difference.
+  var batterySaver = !!storage.get('batterySaver');
+  setInterval(function () { batterySaver = !!storage.get('batterySaver'); }, 1000);
+  var HOME_FRAME_MS = 1000 / 30 - 2;
+  var SAVER_FRAME_MS = 1000 / 30 - 2;
   if (webglOk && game.renderer) game.renderer.setAnimationLoop(function (nowMs) {
+    var inGame = GAME_SCENE_STATES.indexOf(game._state) >= 0;
+    var capMs = inGame ? (batterySaver ? SAVER_FRAME_MS : 0) : HOME_FRAME_MS;
+    if (capMs && lastFrameMs && nowMs - lastFrameMs < capMs) return;
     var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.1) : 0.016;
     lastFrameMs = nowMs;
     if (game._state === 'playing' && nowMs - lastMusicMs > 250) {

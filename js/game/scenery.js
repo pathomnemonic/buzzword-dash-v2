@@ -9,7 +9,7 @@
  */
 
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { createGLTFLoader } from './gltfloader.js';
 import { clone as cloneModel } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { useSceneryModels } from './quality.js';
 import { markShared, mergeStatic } from './materials.js';
@@ -54,7 +54,7 @@ function baseUrl() {
 export function preloadScenery() {
   if (!useSceneryModels()) return Promise.resolve();
   if (_preload) return _preload;
-  var loader = new GLTFLoader();
+  var loader = createGLTFLoader();
   _preload = Promise.all(Object.keys(SCENERY_FILES).map(function (key) {
     return new Promise(function (resolve) {
       loader.load(baseUrl() + 'models/' + SCENERY_FILES[key], function (gltf) {
@@ -72,7 +72,7 @@ export function preloadScenery() {
 /** Register a model from bytes already in memory (used by tests). */
 export function registerSceneryModel(key, buffer) {
   return new Promise(function (resolve, reject) {
-    new GLTFLoader().parse(buffer, '', function (gltf) {
+    createGLTFLoader().parse(buffer, '', function (gltf) {
       gltf.scene.updateMatrixWorld(true);
       mergeStatic(gltf.scene);
       markShared(gltf.scene);

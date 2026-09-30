@@ -2490,7 +2490,8 @@ card = pickResult ? pickResult.card : null;
     // flying ones (and the procedural monsters) hover above the line of sight.
     var isModelMonster = !!this.examMonster.userData.isModelMonster;
     var onGround = isModelMonster && !this.examMonster.userData.flying;
-    var targetY = onGround ? pose.hop * 0.6 : (dying ? 1.6 : pose.y);
+    // Flying 3D monsters hover a little lower so they are seen under the question banner
+    var targetY = onGround ? pose.hop * 0.6 : (dying ? 1.6 : pose.y - (isModelMonster ? 0.9 : 0));
     this._monsterY = (this._monsterY === undefined ? targetY : this._monsterY);
     this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 6);
     this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);

@@ -67,6 +67,7 @@ var DEFAULTS = {
     monsterOff: false,
     preferredMap: '',
     cameraView: 'default',
+    batterySaver: false,
     perfStrikes: 0,
     nightMode: false,
 
