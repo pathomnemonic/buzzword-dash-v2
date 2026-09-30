@@ -23,7 +23,7 @@
 
 import * as THREE from 'three';
 import { roundedBox, upgradeMaterials } from './materials.js';
-import { buildScenery } from './scenery.js';
+import { buildScenery, buildHanging } from './scenery.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -33,18 +33,27 @@ var LANE_X = [-3, 0, 3];
 var JUMP_VARIANTS = [
   { id: 'gurney',           builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 }, model: 'bed' },
   { id: 'wet_floor_sign',   builder: buildWetFloorSign,     bounds: { width: 0.8, height: 1.0, depth: 0.8 }, model: 'cone' },
-  { id: 'wheelchair',       builder: buildWheelchair,       bounds: { width: 1.0, height: 1.0, depth: 0.8 } },
+  { id: 'crate',            builder: buildWheelchair,       bounds: { width: 1.0, height: 1.0, depth: 0.8 }, model: 'crate' },
   { id: 'spilled_supplies', builder: buildSpilledSupplies,  bounds: { width: 1.5, height: 0.5, depth: 0.8 }, model: 'boxes' },
   { id: 'fallen_stretcher', builder: buildFallenStretcher,  bounds: { width: 2.0, height: 0.5, depth: 0.8 }, model: 'barrier' },
   { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 }, model: 'bin' }
 ];
 
 var SLIDE_VARIANTS = [
-  { id: 'or_doors',    builder: buildORDoors,    bounds: { width: 2.5, height: 3.2, depth: 0.1 } },
-  { id: 'mri_tunnel',  builder: buildMRITunnel,  bounds: { width: 2.8, height: 2.8, depth: 1.5 } },
-  { id: 'caution_tape', builder: buildCautionTape, bounds: { width: 2.2, height: 2.2, depth: 0.1 } },
-  { id: 'xray_arm',    builder: buildXRayArm,    bounds: { width: 2.5, height: 2.5, depth: 0.4 } }
+  { id: 'hanging_traffic_light', builder: buildORDoors,    bounds: { width: 2.5, height: 3.2, depth: 0.1 }, model: 'trafficlight', hang: { bottom: 1.25, fit: { width: 2.4, height: 1.9, depth: 1.2 } } },
+  { id: 'hanging_chandelier',    builder: buildMRITunnel,  bounds: { width: 2.8, height: 2.8, depth: 1.5 }, model: 'chandelier',   hang: { bottom: 1.2, fit: { width: 2.4, height: 1.7, depth: 2.4 } } },
+  { id: 'hanging_sign',          builder: buildCautionTape, bounds: { width: 2.2, height: 2.2, depth: 0.1 }, model: 'hangsign',    hang: { bottom: 1.25, fit: { width: 2.4, height: 1.5, depth: 0.6 } } },
+  { id: 'hanging_spotlight',     builder: buildXRayArm,    bounds: { width: 2.5, height: 2.5, depth: 0.4 }, model: 'spotlight',    hang: { bottom: 1.3, fit: { width: 2.3, height: 1.6, depth: 1.2 } } }
 ];
+
+// Older ids (in saved or shared challenge plans) map to their replacements.
+var VARIANT_ALIASES = {
+  wheelchair: 'crate',
+  or_doors: 'hanging_traffic_light',
+  mri_tunnel: 'hanging_chandelier',
+  caution_tape: 'hanging_sign',
+  xray_arm: 'hanging_spotlight'
+};
 
 // ===== VARIANT LOOKUP =====
 
@@ -56,6 +65,9 @@ var ALL_VARIANTS_BY_ID = {};
   for (var j = 0; j < SLIDE_VARIANTS.length; j++) {
     ALL_VARIANTS_BY_ID[SLIDE_VARIANTS[j].id] = SLIDE_VARIANTS[j];
   }
+  Object.keys(VARIANT_ALIASES).forEach(function (oldId) {
+    ALL_VARIANTS_BY_ID[oldId] = ALL_VARIANTS_BY_ID[VARIANT_ALIASES[oldId]];
+  });
 })();
 
 /**
@@ -547,10 +559,12 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry) {
   }
 
   // Real 3D model when one is ready (high graphics tier); otherwise the built-in version.
-  var obs = variant.model ? buildScenery(variant.model, variant.bounds, true) : null;
-  if (obs) {
-    addJumpIndicator(obs);
-  } else {
+  var obs = null;
+  if (variant.model) {
+    obs = variant.hang ? buildHanging(variant.model, variant.hang) : buildScenery(variant.model, variant.bounds, true);
+    if (obs) (isSlide ? addSlideIndicator : addJumpIndicator)(obs);
+  }
+  if (!obs) {
     obs = variant.builder();
     upgradeMaterials(obs, { glowAbove: 0.92 });
   }

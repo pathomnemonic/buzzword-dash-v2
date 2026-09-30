@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { SCENERY_FILES, PROP_KEYS, registerSceneryModel, buildScenery, randomSceneryProp } from '../../js/game/scenery.js';
+import { SCENERY_FILES, PROP_KEYS, registerSceneryModel, buildScenery, buildHanging, buildSideScenery, randomSceneryProp } from '../../js/game/scenery.js';
 import { getObstacleVariant } from '../../js/game/obstacles.js';
 
 // Some models carry embedded textures. Node has no DOM image loading, so
@@ -30,7 +30,7 @@ describe('3D scenery models', () => {
   });
 
   it('fits each obstacle model inside its collision box and sits it on the floor', () => {
-    const map = { gurney: 'bed', wet_floor_sign: 'cone', spilled_supplies: 'boxes', fallen_stretcher: 'barrier', medical_waste_bin: 'bin' };
+    const map = { gurney: 'bed', wet_floor_sign: 'cone', spilled_supplies: 'boxes', fallen_stretcher: 'barrier', medical_waste_bin: 'bin', crate: 'crate' };
     for (const [variantId, key] of Object.entries(map)) {
       const variant = getObstacleVariant(variantId);
       expect(variant.model, variantId).toBe(key);
@@ -56,5 +56,38 @@ describe('3D scenery models', () => {
       expect(Math.max(size.x, size.y, size.z), key).toBeGreaterThan(0.5);
     });
     expect(randomSceneryProp()).toBeTruthy();
+  });
+
+  it('hangs each overhead obstacle above a sliding runner and below a standing one', () => {
+    ['hanging_traffic_light', 'hanging_chandelier', 'hanging_sign', 'hanging_spotlight'].forEach((id) => {
+      const variant = getObstacleVariant(id);
+      expect(variant.hang, id).toBeTruthy();
+      const group = buildHanging(variant.model, variant.hang);
+      expect(group, id).toBeTruthy();
+      group.updateMatrixWorld(true);
+      // Measure the model only (first child); the cable rises above it
+      const box = new THREE.Box3().setFromObject(group.children[0]);
+      expect(box.min.y, id + ' clears a slide').toBeGreaterThanOrEqual(1.1);
+      expect(box.min.y, id + ' blocks a standing runner').toBeLessThanOrEqual(1.4);
+      const size = box.getSize(new THREE.Vector3());
+      expect(size.x, id + ' width').toBeLessThanOrEqual(variant.hang.fit.width + 0.02);
+    });
+  });
+
+  it('keeps old obstacle ids working (saved and shared challenge plans)', () => {
+    expect(getObstacleVariant('wheelchair').id).toBe('crate');
+    expect(getObstacleVariant('or_doors').id).toBe('hanging_traffic_light');
+    expect(getObstacleVariant('mri_tunnel').id).toBe('hanging_chandelier');
+    expect(getObstacleVariant('caution_tape').id).toBe('hanging_sign');
+    expect(getObstacleVariant('xray_arm').id).toBe('hanging_spotlight');
+  });
+
+  it('builds street lights and trees along both sides that repeat seamlessly', () => {
+    const side = buildSideScenery();
+    expect(side).toBeTruthy();
+    expect(side.spacing).toBeGreaterThan(0);
+    const xs = side.group.children.map((c) => Math.sign(c.position.x));
+    expect(xs).toContain(-1);
+    expect(xs).toContain(1);
   });
 });

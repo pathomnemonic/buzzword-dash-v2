@@ -303,9 +303,11 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 - `public/models/obstacles/*.glb`, `public/models/props/*.glb` — small props (hospital bed, traffic cone, cardboard boxes, traffic barrier, trash can, street light, air conditioner) by [Quaternius](https://quaternius.com/), and a computer screen and hospital sign by [Kenney](https://kenney.nl/), and a telescope by CreativeTrio; all CC0 1.0, from [Poly Pizza](https://poly.pizza/).
 
+- `public/models/obstacles/*.glb` (crate, traffic light, chandelier, spot light, sign) and `public/models/props/*.glb` (heart, first aid kit, potion bottle, skull, bone, tree) — by Quaternius (CC0 1.0) except the chandelier (CreativeTrio) and spot light (iPoly3D), all CC0 1.0 from [Poly Pizza](https://poly.pizza/); the tree is by Kenney.
+
 ## Graphics
 
-The world is lit with physically based materials, a soft studio reflection map and ACES tone mapping (`js/game/materials.js`). Tracks have a gradient sky with stars, distance haze and a glossy floor; walls, obstacles, gates, coins and power-ups use lit materials and rounded geometry so they match the animated characters. Most jump obstacles and half the floating scenery are real 3D models (`js/game/scenery.js`).
+The world is lit with physically based materials, a soft studio reflection map and ACES tone mapping (`js/game/materials.js`). Tracks have a gradient sky with stars, distance haze and a glossy floor; walls, obstacles, gates, coins and power-ups use lit materials and rounded geometry so they match the animated characters. Every obstacle, all floating scenery and the street lights and trees along the track are real 3D models (`js/game/scenery.js`).
 
 **Graphics tiers:** Settings -> Graphics chooses Auto, High or Low. Low is the backup for weaker computers: it uses the simple built-in characters, monsters and obstacles, skips model downloads, bloom, shadows and the sky dome, and renders at 1x resolution. Auto picks Low on devices reporting little memory or few cores, in data-saver mode, or after a session whose frame rate could not keep up.
 

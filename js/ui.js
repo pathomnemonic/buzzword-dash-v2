@@ -44,6 +44,7 @@ import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { buildStudyPlan } from './studyplan.js';
 import { getTipUrl, openTipPage } from './tips.js';
+import { isLowQuality } from './game/quality.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -169,8 +170,8 @@ class UI {
     this.tutorialPages = [
       { icon: '⚡', title: 'Welcome!', text: 'Buzzword Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
       { icon: '👆', title: 'Move Between Lanes', text: 'Swipe left or right to switch lanes. Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
-      { icon: '⬆️', title: 'Jump Over Obstacles', text: 'Swipe up to jump over gurneys, wheelchairs, and other obstacles on the ground.' },
-      { icon: '⬇️', title: 'Slide Under Obstacles', text: 'Swipe down to slide under overhead obstacles like MRI tunnels and OR doors.' },
+      { icon: '⬆️', title: 'Jump Over Obstacles', text: 'Swipe up to jump over hospital beds, crates, cones and other obstacles on the ground.' },
+      { icon: '⬇️', title: 'Slide Under Obstacles', text: 'Swipe down to slide under overhead obstacles like hanging lights and signs.' },
       { icon: '👆👆', title: 'Rush for Bonus Points', text: 'Know the answer? Double-tap (or press Shift) to rush! You\'re propelled through the gate in 0.5s and invulnerable to obstacles during rush!' },
       { icon: '🏎️', title: 'Speed = Points', text: 'Use the speed dial on the home screen to increase game speed. Faster speeds earn more points per correct answer.' },
       { icon: '🔥', title: 'Build Your Streak', text: 'Correct answers build your streak. Every 5 correct increases your score multiplier up to 8×!' },
@@ -1246,11 +1247,11 @@ class UI {
   // TRACK NAME
   // ═══════════════════════════════════════════════════════
 
-  showTrackName(skinName) {
+  showTrackName(text) {
     var overlay = document.getElementById('trackNameOverlay');
     if (!overlay) return;
     var nameEl = document.getElementById('trackNameText');
-    if (nameEl) setText(nameEl, skinName);
+    if (nameEl) setText(nameEl, text);
     overlay.classList.add('show');
     setTimeout(function () { overlay.classList.remove('show'); }, 2500);
   }
@@ -1871,10 +1872,15 @@ class UI {
           if ((storage.get(s.key) || 'auto') === opt[0]) o.selected = true;
           select.appendChild(o);
         });
+        if (s.key === 'quality') {
+          var tierNote = createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + (isLowQuality() ? 'Low' : 'High') });
+          label.appendChild(tierNote);
+        }
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
           if (s.key === 'quality') {
             storage.set('perfHint', '');
+            storage.set('perfStrikes', 0);
             self._showToast('Graphics changed. Reloading…');
             setTimeout(function () { window.location.reload(); }, 700);
           }

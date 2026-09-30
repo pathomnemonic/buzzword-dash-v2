@@ -62,6 +62,7 @@ var DEFAULTS = {
     reducedMotion: false,
     quality: 'auto',
     perfHint: '',
+    perfStrikes: 0,
     nightMode: false,
 
     speedTimerEnabled: false,

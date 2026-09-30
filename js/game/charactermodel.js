@@ -193,7 +193,7 @@ export function buildModelMonster(url, height) {
   var pg = buildModelCharacter(url, 1, height || 5.5);
   if (!pg) return null;
   var root = pg.children[0];
-  root.rotation.y = 0; // monsters face the camera
+  // Like the runner, monsters face -Z: they chase, so they look at the runner (their back is to the camera)
   root.traverse(function (o) {
     if (!o.isMesh || !o.material) return;
     o.material = Array.isArray(o.material)

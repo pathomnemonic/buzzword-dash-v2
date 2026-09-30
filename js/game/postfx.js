@@ -12,6 +12,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 var SLOW_FRAME_MS = 30;     // average frame time considered "too slow"
 var SAMPLE_FRAMES = 120;    // frames averaged before deciding
@@ -37,6 +38,23 @@ export function createPostFX(renderer, scene, camera) {
   composer.addPass(new RenderPass(scene, camera));
   var bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.5, 0.55, 0.82);
   composer.addPass(bloom);
+
+  // Color grade: richer saturation and a soft vignette that frames the action
+  composer.addPass(new ShaderPass({
+    uniforms: { tDiffuse: { value: null }, saturation: { value: 1.28 }, vignette: { value: 0.3 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: [
+      'uniform sampler2D tDiffuse; uniform float saturation; uniform float vignette; varying vec2 vUv;',
+      'void main(){',
+      '  vec4 c = texture2D(tDiffuse, vUv);',
+      '  float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));',
+      '  c.rgb = mix(vec3(l), c.rgb, saturation);',
+      '  vec2 d = vUv - 0.5;',
+      '  c.rgb *= 1.0 - vignette * smoothstep(0.35, 0.85, length(d) * 1.25);',
+      '  gl_FragColor = c;',
+      '}'
+    ].join('\n')
+  }));
   composer.addPass(new OutputPass());
 
   var frames = 0;

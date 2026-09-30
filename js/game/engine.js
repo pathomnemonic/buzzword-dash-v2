@@ -46,7 +46,7 @@ import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, isLowQuality } from './quality.js';
-import { preloadScenery } from './scenery.js';
+import { preloadScenery, buildSideScenery } from './scenery.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -607,8 +607,13 @@ class Game {
     }
     if (this._postfx.degraded && !this._perfHinted) {
       // The frame rate could not keep up: let "Auto" graphics start on the fast tier next time.
+      // One slow session can be a busy tab; two in a row means the machine cannot keep up.
       this._perfHinted = true;
-      if (storage.get('quality') === 'auto') storage.set('perfHint', 'low');
+      if (storage.get('quality') === 'auto') {
+        var strikes = (storage.get('perfStrikes') || 0) + 1;
+        storage.set('perfStrikes', strikes);
+        if (strikes >= 2) storage.set('perfHint', 'low');
+      }
     }
     return this._postfx.degraded ? null : this._postfx;
   }
@@ -2223,8 +2228,20 @@ card = pickResult ? pickResult.card : null;
     }
   }
 
+  /** Street lights and trees rising over the walls, added once the models are loaded. */
+  _ensureSideScenery() {
+    if (isLowQuality() || !this.trackRefs) return;
+    if (this._sideGroup && this._sideGroup.parent === this.scene) return;
+    var side = buildSideScenery();
+    if (!side) return;
+    this._sideGroup = side.group;
+    this.scene.add(side.group);
+    this.trackRefs.scrollers.push({ group: side.group, spacing: side.spacing });
+  }
+
   _updateVisuals(dt, move, currentSpeed, rushMult) {
     if (!move) move = 0;
+    this._ensureSideScenery();
     this._updateSparks(dt, move);
     if (!currentSpeed) currentSpeed = this.speed;
     if (!rushMult) rushMult = 1;
@@ -2310,8 +2327,8 @@ card = pickResult ? pickResult.card : null;
     this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 6);
     this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);
     if (isModelMonster) {
-      // Face the camera and lean in; the clips do the rest of the acting.
-      this.examMonster.rotation.set(-pose.rotX * 0.5, pose.rotY * 0.4, pose.rotZ);
+      // Lean toward the runner; the clips do the rest of the acting.
+      this.examMonster.rotation.set(pose.rotX * 0.6, pose.rotY * 0.4, pose.rotZ);
       var wanted = dying || pose.lunging ? 'attack' : (onGround ? 'run' : 'idle');
       updateModelAnimation(this.examMonster, dt, wanted);
     } else {

@@ -759,8 +759,8 @@ export function updateAtmosphericParticles(particlePool, particleStates, dt, mov
 export function spawnEnvProp(scene, envPropMeshes, selectedSubjects) {
   var builders = selectedSubjects ? getSpecialtyProps(selectedSubjects) : PROP_BUILDERS;
   var builder = builders[Math.floor(Math.random() * builders.length)];
-  // Real 3D scenery models for about half the props when available
-  var prop = Math.random() < 0.5 ? randomSceneryProp() : null;
+  // Real 3D models whenever they are available (high tier)
+  var prop = randomSceneryProp();
   if (!prop) {
     prop = builder();
     upgradeMaterials(prop, { glowAbove: 0.8 });

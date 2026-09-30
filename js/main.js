@@ -1110,8 +1110,8 @@ function init() {
     );
   };
 
+  // The map's name is not announced when a run starts; only map changes are.
   game.onSkinSelected = function (skinName) {
-    ui.showTrackName(skinName);
     audio.startAmbient(skinName);
   };
 
@@ -1119,7 +1119,7 @@ function init() {
     game.onMapTransition = function (newSkinName) {
       audio.changeMusicTheme(newSkinName, 3.0);
       audio.play('map_transition');
-      ui.showTrackName(newSkinName);
+      ui.showTrackName('Now entering ' + newSkinName);
     };
   }
 

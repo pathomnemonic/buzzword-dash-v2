@@ -20,16 +20,27 @@ export var SCENERY_FILES = {
   boxes: 'obstacles/boxes.glb',
   barrier: 'obstacles/barrier.glb',
   bin: 'obstacles/bin.glb',
+  crate: 'obstacles/crate.glb',
+  trafficlight: 'obstacles/trafficlight.glb',
+  chandelier: 'obstacles/chandelier.glb',
+  spotlight: 'obstacles/spotlight.glb',
+  hangsign: 'obstacles/sign.glb',
   // Floating scenery
   streetlight: 'props/streetlight.glb',
   monitor: 'props/monitor.glb',
   aircon: 'props/aircon.glb',
   sign: 'props/sign.glb',
-  telescope: 'props/telescope.glb'
+  telescope: 'props/telescope.glb',
+  heart: 'props/heart.glb',
+  firstaid: 'props/firstaid.glb',
+  potion: 'props/potion.glb',
+  skull: 'props/skull.glb',
+  bone: 'props/bone.glb',
+  tree: 'props/tree.glb'
 };
 
 /** Keys used as floating props beside the track. */
-export var PROP_KEYS = ['streetlight', 'monitor', 'aircon', 'sign', 'telescope'];
+export var PROP_KEYS = ['streetlight', 'monitor', 'aircon', 'sign', 'telescope', 'heart', 'firstaid', 'potion', 'skull', 'bone'];
 
 var _cache = {}; // key -> { scene, box: Box3 }
 var _preload = null;
@@ -115,4 +126,54 @@ export function randomSceneryProp(rand) {
   if (!ready.length) return null;
   var key = ready[Math.floor((rand || Math.random)() * ready.length)];
   return buildScenery(key, { height: 3.2, width: 3.2, depth: 3.2 });
+}
+
+/**
+ * An overhead obstacle: a model hung from a cable, its underside at
+ * `hang.bottom` (above a sliding runner, below a standing one's head).
+ * @param {string} key
+ * @param {{bottom: number, fit: object}} hang
+ * @returns {THREE.Group|null}
+ */
+export function buildHanging(key, hang) {
+  var model = buildScenery(key, hang.fit);
+  if (!model) return null;
+  model.position.y = hang.bottom;
+  var group = new THREE.Group();
+  group.add(model);
+  var top = hang.bottom + hang.fit.height;
+  var cable = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.03, 0.03, 8 - top, 6),
+    new THREE.MeshStandardMaterial({ color: 0x2a2f3a, metalness: 0.6, roughness: 0.5 })
+  );
+  cable.position.y = top + (8 - top) / 2;
+  group.add(cable);
+  group.userData.isSceneryModel = true;
+  return group;
+}
+
+var SIDE_PERIOD = 28;
+
+/**
+ * Street lights and trees that rise above the walls on both sides, repeating
+ * every SIDE_PERIOD units so they can scroll seamlessly like the walls do.
+ * @returns {{group: THREE.Group, spacing: number}|null} null until models are loaded
+ */
+export function buildSideScenery() {
+  if (isLowQuality() || !isSceneryReady('streetlight') || !isSceneryReady('tree')) return null;
+  var group = new THREE.Group();
+  group.userData.isSideScenery = true;
+  for (var z = -SIDE_PERIOD * 8; z < SIDE_PERIOD; z += SIDE_PERIOD) {
+    [-1, 1].forEach(function (side, i) {
+      var lamp = buildScenery('streetlight', { height: 7.5 });
+      lamp.position.set(side * 6.9, 0, z + (i ? SIDE_PERIOD / 2 : 0));
+      // Arms reach over the track: face them inward
+      lamp.rotation.y = side > 0 ? Math.PI : 0;
+      group.add(lamp);
+      var tree = buildScenery('tree', { height: 6.5 });
+      tree.position.set(side * 8.6, 0, z + (i ? 0 : SIDE_PERIOD / 2));
+      group.add(tree);
+    });
+  }
+  return { group: group, spacing: SIDE_PERIOD };
 }

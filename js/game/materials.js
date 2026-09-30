@@ -28,7 +28,7 @@ var _envCache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
  */
 export function setupEnvironment(renderer, scene) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.25;
   var tex = _envCache && _envCache.get(renderer);
   if (!tex) {
     var pmrem = new THREE.PMREMGenerator(renderer);

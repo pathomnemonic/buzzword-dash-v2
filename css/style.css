@@ -357,7 +357,8 @@ select:focus-visible {
 }
 #trackNameOverlay.show { opacity: 1; animation: trackNamePulse 2.5s ease-in-out; }
 #trackNameText {
-  font-size: 24px;
+  max-width: 88vw;
+  font-size: 20px;
   font-weight: 900;
   color: var(--accent-cyan);
   text-shadow: 0 0 20px rgba(0, 238, 255, 0.6), 0 0 40px rgba(0, 238, 255, 0.3);
