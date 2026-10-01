@@ -27,7 +27,7 @@ async function fresh(keepDaily) {
   page.on('dialog', (d) => d.accept().catch(() => {}));
   await page.goto(base + '/?debug=1');
   for (let i = 0; i < 10; i++) {
-    const n = page.locator('#obNextBtn');
+    const n = page.locator('#tutSkipBtn');
     if (!(await n.isVisible().catch(() => false))) break;
     await n.click();
   }
@@ -54,7 +54,7 @@ const SCREENS = {
   achievements: async (p) => { await p.locator('#achievementsBtn').click(); },
   'my cards': async (p) => { await p.locator('#myCardsBtn').click(); },
   multiplayer: async (p) => { await p.locator('#multiplayerBtn').click(); await p.waitForTimeout(800); },
-  tutorial: async (p) => { await p.locator('[data-screen="screenSettings"]').click(); await p.locator('[data-section="about"]').click(); await p.getByRole('button', { name: 'Open' }).first().click(); },
+  tutorial: async (p) => { await p.locator('[data-screen="screenSettings"]').click(); await p.locator('[data-section="about"]').click(); await p.locator('#settingsTutorialBtn').click(); },
   flashcards: async (p) => { await p.getByRole('button', { name: /Flashcards/ }).first().click(); },
   'card browser': async (p) => { await p.getByRole('button', { name: /Browse/ }).first().click(); },
   profile: async (p) => { await p.getByRole('button', { name: /Profile/ }).first().click(); },

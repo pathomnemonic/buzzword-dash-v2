@@ -29,8 +29,9 @@ import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
+import { isTutorialOpen, skipTutorial } from './tutorial.js';
+import { mountProfileCorner } from './profilecorner.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
-import { getControlText } from './controlhints.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
@@ -97,57 +98,6 @@ function setupCollapsibles() {
       var isOpen = subjectBody.style.display !== 'none';
       subjectBody.style.display = isOpen ? 'none' : 'block';
       if (subjectArrow) subjectArrow.classList.toggle('open', !isOpen);
-    });
-  }
-}
-
-// =========================================================================
-//  FIRST-RUN ONBOARDING
-// =========================================================================
-function showOnboarding() {
-  var overlay = document.getElementById('onboardingOverlay');
-  if (!overlay) return;
-
-  var pages = [
-    { icon: 'Dx', title: 'Welcome to Dx Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
-    { icon: '\uD83D\uDC46', title: getControlText().touch ? 'Swipe to Move' : 'Use the Keyboard', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!' : 'Arrow keys or A/D switch lanes, up/W jumps, down/S slides. Press Shift or Space to rush for bonus points!', hand: getControlText().touch ? '\uD83D\uDC48\uD83D\uDC49' : '\u2328\uFE0F' },
-    { icon: '\uD83C\uDFC6', title: 'Build Your Streak!', text: 'Correct answers build your streak and multiplier. Collect coins, unlock avatars, and climb the leaderboard!', hand: '' }
-  ];
-  var currentPage = 0;
-
-  function renderPage() {
-    var p = pages[currentPage];
-    var icon = document.getElementById('obIcon');
-    var title = document.getElementById('obTitle');
-    var text = document.getElementById('obText');
-    var hand = document.getElementById('obHand');
-    var dots = document.getElementById('obDots');
-    var btn = document.getElementById('obNextBtn');
-    if (icon) icon.textContent = p.icon;
-    if (title) title.textContent = p.title;
-    if (text) text.textContent = p.text;
-    if (hand) { hand.textContent = p.hand; hand.style.display = p.hand ? 'inline-block' : 'none'; }
-    if (dots) {
-      dots.innerHTML = pages.map(function (_, i) {
-        return '<div class="tut-dot ' + (i === currentPage ? 'active' : '') + '"></div>';
-      }).join('');
-    }
-    if (btn) btn.textContent = currentPage === pages.length - 1 ? 'Let\'s Go! \u2713' : 'Next \u2192';
-  }
-
-  overlay.classList.add('active');
-  renderPage();
-
-  var btn = document.getElementById('obNextBtn');
-  if (btn) {
-    btn.addEventListener('click', function () {
-      currentPage++;
-      if (currentPage >= pages.length) {
-        overlay.classList.remove('active');
-        storage.set('firstRunComplete', true);
-      } else {
-        renderPage();
-      }
     });
   }
 }
@@ -1055,9 +1005,18 @@ function init() {
   // Collapsibles
   setupCollapsibles();
 
-  // Onboarding
+  // Profile button (top right of Home): sign up, sign in, name and avatar
+  profileCorner = mountProfileCorner({
+    getLeaderboard: function () { return leaderboardModule ? leaderboardModule.leaderboard : null; },
+    getCloudSync: function () { return cloudSync; },
+    storage: storage,
+    toast: function (msg) { ui._showToast(msg); },
+    openProfileScreen: function () { ui.show('screenProfile'); }
+  });
+
+  // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
   if (!storage.get('firstRunComplete')) {
-    showOnboarding();
+    ui.showTutorial({ firstRun: true });
   }
 
   // --- Anki import (lazy) ---
@@ -1075,6 +1034,7 @@ function init() {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);
       mountLeaderboard();
+      if (profileCorner && profileCorner.onLeaderboardReady) profileCorner.onLeaderboardReady();
       mod.leaderboard.subscribeToInvites(function () { checkMatchInvites(); });
       checkMatchInvites();
     }).catch(function (e) {
@@ -1695,6 +1655,7 @@ if (typeof _origRenderSettings === 'function') {
 //  LEADERBOARD MOUNT
 // =========================================================================
 var cloudSync = null;
+var profileCorner = null;
 
 /**
  * Account sign-in state and cloud saves. Guests are never synced; once the
@@ -1717,7 +1678,8 @@ function handleNativeBack() {
   var result = document.getElementById('rankedResult');
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'tutorialOverlay'];
+  if (isTutorialOpen()) { skipTutorial(); return true; }
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

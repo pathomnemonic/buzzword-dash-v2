@@ -26,7 +26,7 @@ async function open(viewport, seed) {
   page.on('dialog', (d) => d.accept().catch(() => {}));
   await page.goto(base + '/?debug=1');
   for (let i = 0; i < 10; i++) {
-    const n = page.locator('#obNextBtn');
+    const n = page.locator('#tutSkipBtn');
     if (!(await n.isVisible().catch(() => false))) break;
     await n.click();
   }
@@ -61,31 +61,18 @@ const inView = (page, sel) => page.evaluate((s) => {
     check('Settings > ' + sec + ' goes back to the list', (await page.locator('.settings-card').count()) === 6);
   }
 
-  // Tutorial from Settings: Next walks through every page, then it closes; Close also works
+  // Tutorial from Settings: opens the interactive tutorial; Skip closes it
   await page.locator('.settings-card[data-section="about"]').click();
-  await page.getByRole('button', { name: 'Open' }).first().click();
+  await page.locator('#settingsTutorialBtn').click();
   check('Tutorial opens from Settings', await page.locator('#tutorialOverlay.active').count() === 1);
-  let pages = 0;
-  while (await page.locator('#tutorialOverlay.active').count() === 1 && pages < 20) {
-    await page.locator('#tutNextBtn').click();
-    pages++;
-    await page.waitForTimeout(100);
-  }
-  check('Tutorial Next button walks to the end and closes it', pages >= 5 && pages < 20, 'pages ' + pages);
-  await page.getByRole('button', { name: 'Open' }).first().click();
-  await page.locator('#tutCloseBtn').click();
-  check('Tutorial Close button closes it', await page.locator('#tutorialOverlay.active').count() === 0);
+  await page.locator('#tutSkipBtn').click();
+  check('Tutorial Skip button closes it', await page.locator('#tutorialOverlay.active').count() === 0);
 
-  // Home: one How to Play dropdown with everything in it
+  // Home: How to Play opens the same tutorial
   await page.locator('[data-screen="screenHome"]').click();
-  const hows = await page.locator('details.howto').count();
-  check('Home has a single How to Play dropdown', hows === 1, 'found ' + hows);
-  await page.locator('details.howto summary').click();
-  const items = await page.locator('details.howto .howto-item').count();
-  check('How to Play lists the instructions', items >= 8, 'items ' + items);
-  await page.getByRole('button', { name: /step by step/i }).click();
-  check('How to Play can open the step-by-step tutorial', await page.locator('#tutorialOverlay.active').count() === 1);
-  await page.locator('#tutCloseBtn').click();
+  await page.locator('#howToPlayBtn').click();
+  check('How to Play opens the interactive tutorial', await page.locator('#tutorialOverlay.active').count() === 1);
+  await page.locator('#tutSkipBtn').click();
   check('No script errors in Settings and the tutorial', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
@@ -217,7 +204,7 @@ const inView = (page, sel) => page.evaluate((s) => {
     localStorage.setItem(k, JSON.stringify(d));
   });
   await page.reload();
-  for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+  for (let i = 0; i < 10; i++) { const n = page.locator('#tutSkipBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
   await page.waitForTimeout(1500);
   await page.locator('[data-screen="screenStats"]').click();
   await page.waitForTimeout(600);

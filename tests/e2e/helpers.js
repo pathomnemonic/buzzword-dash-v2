@@ -9,12 +9,12 @@
  */
 export async function openApp(page, path = '/') {
   await page.goto(path);
-  const next = page.locator('#obNextBtn');
+  const next = page.locator('#tutSkipBtn');
   for (let i = 0; i < 10; i++) {
     if (!(await next.isVisible().catch(() => false))) break;
     await next.click();
   }
-  await page.locator('#onboardingOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDailyReward(page);
 }
 

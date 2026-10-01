@@ -249,9 +249,9 @@ export var settingsMethods = {
       var tutLabel = createElement('div');
       tutLabel.style.flex = '1';
       tutLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '❓ How to play' }));
-      tutLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'A quick walk-through of the controls and the rules. Also on the Home screen.' }));
+      tutLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Practice the controls step by step. The same tutorial as the How to Play button on Home.' }));
       tutRow.appendChild(tutLabel);
-      var tutBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Open', attributes: { type: 'button' } });
+      var tutBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Start', attributes: { type: 'button', id: 'settingsTutorialBtn' } });
       tutBtn.addEventListener('click', function () { self.showTutorial(); });
       tutRow.appendChild(tutBtn);
       content.appendChild(tutRow);

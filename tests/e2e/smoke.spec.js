@@ -32,23 +32,21 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('.settings-card')).toHaveCount(6);
   });
 
-  test('the tutorial can be clicked through and closed from Settings and Home', async ({ page }) => {
+  test('Settings and Home open the same tutorial, and it can be skipped', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenSettings"]').click();
     await page.locator('.settings-card[data-section="about"]').click();
-    await page.getByRole('button', { name: 'Open' }).first().click();
+    await page.locator('#settingsTutorialBtn').click();
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
-    for (let i = 0; i < 20 && (await page.locator('#tutorialOverlay.active').count()) === 1; i++) {
-      await page.locator('#tutNextBtn').click();
-    }
+    await expect(page.locator('#tutorialOverlay .tut-card')).toHaveAttribute('data-step', 'welcome');
+    await page.locator('#tutSkipBtn').click();
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
 
     await page.locator('[data-screen="screenHome"]').click();
-    await expect(page.locator('details.howto')).toHaveCount(1);
-    await page.locator('details.howto summary').click();
-    await page.getByRole('button', { name: /step by step/i }).click();
+    await page.locator('#howToPlayBtn').click();
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
-    await page.locator('#tutCloseBtn').click();
+    await expect(page.locator('#tutorialOverlay .tut-card')).toHaveAttribute('data-step', 'welcome');
+    await page.locator('#tutSkipBtn').click();
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
   });
 
@@ -73,11 +71,30 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('#bottomNav')).toBeVisible();
   });
 
-  test('the first-run tutorial can be completed', async ({ page }) => {
+  test('the first run opens the tutorial once; skipping ends the first run', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('#onboardingOverlay')).toBeVisible();
+    await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
+    await page.locator('#tutSkipBtn').click();
+    await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
+    await page.reload();
+    await page.waitForTimeout(800);
+    await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
+  });
+
+  test('the profile button is in the top right of Home and opens the account panel', async ({ page }) => {
     await openApp(page);
-    await expect(page.locator('#onboardingOverlay')).toBeHidden();
+    const btn = page.locator('#profileCornerBtn');
+    await expect(btn).toBeVisible();
+    const box = await btn.boundingBox();
+    const vp = page.viewportSize();
+    expect(box.x + box.width / 2).toBeGreaterThan(vp.width / 2);
+    expect(box.y).toBeLessThan(160);
+    await btn.click();
+    await expect(page.locator('#accountOverlay')).toHaveClass(/active/);
+    // With accounts configured there is an email field; without, the panel says accounts are not set up.
+    await expect(page.locator('#accountBody')).toContainText(/Create account|not set up|Loading|Signed in/);
+    await page.locator('#accountCloseBtn').click();
+    await expect(page.locator('#accountOverlay')).not.toHaveClass(/active/);
   });
 
   test('navigating to Stats screen works', async ({ page }) => {

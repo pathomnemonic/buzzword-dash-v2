@@ -41,12 +41,12 @@ async function open(seed = true) {
   page.on('pageerror', (e) => page.errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) page.errs.push(m.text().slice(0, 160)); });
   await page.goto(base + '/?debug=1');
-  for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+  for (let i = 0; i < 10; i++) { const n = page.locator('#tutSkipBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
   const dr = page.locator('#dailyReward button');
   await dr.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
   for (let i = 0; i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
   await page.reload();
-  for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+  for (let i = 0; i < 10; i++) { const n = page.locator('#tutSkipBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
   await page.waitForTimeout(1200);
   return { ctx, page };
 }

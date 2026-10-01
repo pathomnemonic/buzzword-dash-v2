@@ -105,6 +105,7 @@ function render() {
       ? 'Could not sign in to the leaderboard.' + (status.error ? ' (' + status.error + ')' : '')
       : 'Connecting to the leaderboard…';
     _root.appendChild(note(msg, status.ready ? 'var(--accent-red)' : null));
+    _root.appendChild(note('You can still create an account or sign in with the profile button at the top right of Home.'));
     _root.appendChild(btn('Retry', function () {
       return lb().init().then(function () { return lb().isAuthenticated() ? null : lb().signInAnonymously(); })
         .then(render);

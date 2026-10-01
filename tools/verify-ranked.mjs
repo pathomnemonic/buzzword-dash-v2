@@ -85,7 +85,7 @@ async function player(user) {
   await page.exposeFunction('__rpc', (name, args) => rpc(user, name, args));
   await page.goto(base + '/?debug=1');
   for (let i = 0; i < 10; i++) {
-    const next = page.locator('#obNextBtn');
+    const next = page.locator('#tutSkipBtn');
     if (!(await next.isVisible().catch(() => false))) break;
     await next.click();
   }

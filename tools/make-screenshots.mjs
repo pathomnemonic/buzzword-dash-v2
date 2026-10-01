@@ -29,11 +29,11 @@ const dismissDaily = async (pg) => {
 };
 const skip = async () => {
   for (let i = 0; i < 10; i++) {
-    const next = page.locator('#obNextBtn');
+    const next = page.locator('#tutSkipBtn');
     if (!(await next.isVisible().catch(() => false))) break;
     await next.click();
   }
-  await page.locator('#onboardingOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDaily(page);
 };
 await skip();
@@ -122,7 +122,7 @@ const multiplayerShot = async (name, caption, sub) => {
     pg.on('dialog', (d) => d.accept());
     await pg.goto(base + '/?debug=1');
     for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#obNextBtn');
+      const next = pg.locator('#tutSkipBtn');
       if (!(await next.isVisible().catch(() => false))) break;
       await next.click();
     }
@@ -130,7 +130,7 @@ const multiplayerShot = async (name, caption, sub) => {
     await dismissDaily(pg);
     await pg.reload();
     for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#obNextBtn');
+      const next = pg.locator('#tutSkipBtn');
       if (!(await next.isVisible().catch(() => false))) break;
       await next.click();
     }

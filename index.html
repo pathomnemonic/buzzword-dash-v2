@@ -129,26 +129,12 @@
     </div>
   </div>
 
-  <!-- ==================== ONBOARDING (first run only) ==================== -->
-  <div id="onboardingOverlay" role="dialog" aria-label="Welcome tutorial" aria-modal="true">
-    <div class="onboarding-card" id="onboardingCard">
-      <span class="ob-icon" id="obIcon" aria-hidden="true">⚡</span>
-      <h2 id="obTitle">Welcome to Dx Dash!</h2>
-      <p id="obText">Move into the correct diagnosis gate to score points!</p>
-      <div class="onboarding-hand" id="obHand" aria-hidden="true">👆</div>
-      <div class="tut-dots" id="obDots" role="tablist" aria-label="Tutorial progress"></div>
-      <button class="btn btn-primary" id="obNextBtn" type="button">Next →</button>
-    </div>
-  </div>
+  <!-- ==================== TUTORIAL (first run, Settings and Home share this one) ==================== -->
+  <div class="tutorial-overlay" id="tutorialOverlay" role="dialog" aria-label="How to play" aria-modal="true"></div>
 
-  <!-- ==================== TUTORIAL ==================== -->
-  <div class="tutorial-overlay" id="tutorialOverlay" role="dialog" aria-label="How to play" aria-modal="true">
-    <div class="tut-page" id="tutPage"></div>
-    <div class="tut-dots" id="tutDots" role="tablist" aria-label="Tutorial progress"></div>
-    <div class="tut-buttons">
-      <button class="btn btn-outline btn-sm" id="tutCloseBtn" type="button">✕ Close</button>
-      <button class="btn btn-primary" id="tutNextBtn" type="button">Next →</button>
-    </div>
+  <!-- ==================== PROFILE AND ACCOUNT ==================== -->
+  <div class="tutorial-overlay" id="accountOverlay" role="dialog" aria-label="Profile and account" aria-modal="true">
+    <div class="account-card" id="accountCard"></div>
   </div>
 
   <!-- ==================== QUICK REVIEW ==================== -->
@@ -187,6 +173,10 @@
     <div class="screen-scroll">
 
       <header class="home-header">
+        <button class="home-profile-btn" id="profileCornerBtn" type="button" aria-label="Profile and account">
+          <span class="hp-avatar" id="profileCornerAvatar" aria-hidden="true">👤</span>
+          <span class="hp-label" id="profileCornerLabel">Sign in</span>
+        </button>
         <h1>Dx Dash</h1>
         <p class="home-tagline">Run the list.</p>
         <p class="home-sub">USMLE &amp; COMLEX Board Runner</p>
@@ -281,8 +271,10 @@
         <button class="btn btn-outline btn-sm" id="leaderboardBtn" type="button">🏆 Leaderboard</button>
       </div>
 
-      <!-- How to Play Section -->
-      <div id="howToPlaySection"></div>
+      <!-- How to Play: opens the same interactive tutorial as Settings -> About -> How to play -->
+      <div id="howToPlaySection">
+        <button class="btn btn-outline btn-block" id="howToPlayBtn" type="button">📖 How to Play</button>
+      </div>
 
       <!-- Study Streak Calendar -->
       <div class="streak-calendar" id="streakCalendar">

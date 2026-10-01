@@ -1003,3 +1003,101 @@ body.in-game #bgDecor { display: none; }
 
 .scrub-swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--ink, #1b1030); cursor: pointer; padding: 0; }
 .scrub-swatch.on { outline: 3px solid var(--accent-gold, #fbbf24); outline-offset: 2px; }
+
+/* ---------- profile button (top right of Home) and the account panel ---------- */
+.home-header { position: relative; }
+.home-profile-btn {
+  position: absolute; top: 6px; right: 8px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 56px; padding: 4px 6px; background: none; border: 0; color: #fff; cursor: pointer; font: inherit;
+}
+.home-profile-btn .hp-avatar {
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-card-solid); border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+  font-size: 20px; font-weight: 900; line-height: 1;
+}
+.home-profile-btn.signed-in .hp-avatar { background: var(--accent-green); color: #062a14; }
+.home-profile-btn .hp-label {
+  font-size: 10px; font-weight: 800; letter-spacing: .3px; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-shadow: 0 2px 0 var(--ink);
+}
+.home-profile-btn:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; border-radius: 12px; }
+
+.account-card {
+  width: 100%; max-width: 420px; padding: 18px; border-radius: 20px; text-align: left;
+  background: var(--bg-card-solid); border: var(--border-card); box-shadow: var(--shadow-card);
+}
+.account-card h2 { margin: 0 0 10px; font-size: 20px; }
+.account-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.account-body { margin-bottom: 14px; }
+
+/* ---------- the interactive tutorial ---------- */
+.tut-card {
+  width: 100%; max-width: 400px; padding: 18px 16px 14px; border-radius: 20px; text-align: center;
+  background: var(--bg-card-solid); border: var(--border-card); box-shadow: var(--shadow-card);
+}
+.tut-card h2 { margin: 4px 0 6px; font-size: 22px; font-weight: 900; color: var(--accent-cyan); }
+.tut-count { font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--text-secondary); }
+.tut-text { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, .88); }
+.tut-card .tut-page .tut-icon { font-size: 46px; font-weight: 900; margin: 6px 0; }
+.tut-card .tut-page p { margin: 0 0 8px; }
+.tut-reference { list-style: none; margin: 10px 0 0; padding: 0; text-align: left; max-height: 38vh; overflow-y: auto; }
+.tut-reference li { font-size: 12px; line-height: 1.45; color: var(--text-secondary); margin: 6px 0; }
+.tut-reference strong { color: #fff; }
+.tut-card .tut-buttons { justify-content: center; flex-wrap: wrap; }
+
+.tut-arena {
+  position: relative; height: 190px; overflow: hidden; border-radius: 14px; outline: none;
+  background: rgba(10, 5, 30, .6); border: 3px solid var(--ink); touch-action: none; user-select: none; -webkit-user-select: none;
+  display: grid; grid-template-columns: repeat(3, 1fr); cursor: grab;
+}
+.tut-arena:focus-visible { box-shadow: 0 0 0 3px var(--accent-gold); }
+.tut-lane { border-left: 2px dashed rgba(255, 255, 255, .18); position: relative; }
+.tut-lane:first-child { border-left: 0; }
+.tut-lane-label {
+  position: absolute; left: 3px; right: 3px; top: 62px; padding: 5px 3px; border-radius: 8px; font-size: 11px; font-weight: 800; line-height: 1.15;
+  background: rgba(255, 255, 255, .12); color: #fff; word-break: break-word;
+}
+.tut-lane.correct { background: rgba(0, 255, 136, .22); }
+.tut-lane.wrong { background: rgba(255, 51, 85, .25); }
+.tut-clue {
+  position: absolute; top: 4px; left: 4px; right: 4px; padding: 5px 6px; border-radius: 8px; font-size: 11px; font-weight: 700; line-height: 1.25;
+  background: rgba(0, 0, 0, .55); color: #fff; pointer-events: none;
+}
+.tut-runner {
+  position: absolute; bottom: 8px; left: calc((var(--lane, 1) + .5) * 33.333%); font-size: 34px; line-height: 1;
+  transform: translateX(-50%); transform-origin: 50% 100%; transition: left .16s ease-out; pointer-events: none;
+}
+.tut-runner.jump { animation: tutJump .55s ease-out; }
+.tut-runner.slide { animation: tutSlide .55s ease-out; }
+.tut-runner.rush { animation: tutRush .55s ease-out; filter: drop-shadow(0 0 10px var(--accent-gold)); }
+.tut-obstacle {
+  position: absolute; left: 50%; font-size: 30px; transform: translateX(-50%); pointer-events: none;
+  animation: tutObstacleGround 1.7s linear infinite;
+}
+.tut-obstacle.overhead { animation-name: tutObstacleOverhead; top: 22px; bottom: auto; }
+.tut-prompt {
+  position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 17px; font-weight: 900; color: var(--accent-gold);
+  text-shadow: 0 2px 0 var(--ink); pointer-events: none; animation: tutPulse 1.2s ease-in-out infinite;
+}
+.tut-arena.answering .tut-prompt { display: none; }
+.tut-arena.done { border-color: var(--accent-green); }
+.tut-feedback { min-height: 20px; margin: 8px 0 0; font-size: 13px; font-weight: 800; }
+.tut-feedback.good { color: var(--accent-green); }
+.tut-feedback.bad { color: var(--accent-orange); }
+
+@keyframes tutJump { 0% { transform: translate(-50%, 0); } 45% { transform: translate(-50%, -64px); } 100% { transform: translate(-50%, 0); } }
+@keyframes tutSlide { 0% { transform: translateX(-50%) scaleY(1); } 40%, 70% { transform: translateX(-50%) scaleY(.45); } 100% { transform: translateX(-50%) scaleY(1); } }
+@keyframes tutRush { 0% { transform: translate(-50%, 0) scale(1); } 40% { transform: translate(-50%, -34px) scale(1.25); } 100% { transform: translate(-50%, 0) scale(1); } }
+@keyframes tutObstacleGround { from { top: -34px; } to { top: 150px; } }
+@keyframes tutObstacleOverhead { 0% { transform: translateX(-50%) translateY(-60px); } 100% { transform: translateX(-50%) translateY(0); } }
+@keyframes tutPulse { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tut-runner, .tut-runner.jump, .tut-runner.slide, .tut-runner.rush, .tut-obstacle, .tut-prompt { animation: none !important; transition: none !important; }
+  .tut-obstacle { top: 100px; }
+  .tut-runner.jump { transform: translate(-50%, -40px); }
+  .tut-runner.slide { transform: translateX(-50%) scaleY(.5); }
+  .tut-runner.rush { outline: 3px solid var(--accent-gold); border-radius: 8px; }
+}
+@media (max-height: 640px) { .tut-arena { height: 150px; } .tut-obstacle { font-size: 24px; } }

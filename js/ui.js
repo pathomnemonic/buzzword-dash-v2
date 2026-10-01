@@ -38,6 +38,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { SCRUB_COLORS } from './game/modelcatalog.js';
 import { storage } from './storage.js';
+import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
 import { SHOP_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
@@ -73,20 +74,6 @@ class UI {
     this.titleTapTimer = null;
     this.konamiSequence = [];
     this.konamiCode = [38, 38, 40, 40, 37, 39, 37, 39];
-
-    this.tutorialPage = 0;
-    this.tutorialPages = [
-      { icon: 'Dx', title: 'Welcome!', text: 'Dx Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
-      { icon: '👆', title: 'Move Between Lanes', text: '' + getControlText().move + ' Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
-      { icon: '⬆️', title: 'Jump Over Obstacles', text: getControlText().jump + ' over hospital beds, crates, cones and other obstacles on the ground.' },
-      { icon: '⬇️', title: 'Slide Under Obstacles', text: getControlText().slide + ' under overhead obstacles like hanging lights and signs.' },
-      { icon: '👆👆', title: 'Rush for Bonus Points', text: 'Know the answer? ' + getControlText().rush + '! You\'re propelled through the gate in 0.5s and invulnerable to obstacles during rush!' },
-      { icon: '🏎️', title: 'Speed = Points', text: 'Use the speed dial on the home screen to increase game speed. Faster speeds earn more points per correct answer.' },
-      { icon: '🔥', title: 'Build Your Streak', text: 'Correct answers build your streak. Every 5 correct increases your score multiplier up to 8×!' },
-      { icon: '❤️', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. When at 1 life, look for heart pickups on the track!' },
-      { icon: '🪙', title: 'Collect & Customize', text: 'Grab coins and glowing power-up orbs as you run! Visit the On-Call Locker to preview and equip avatars, hats, trails, clothing, and gear.' },
-      { icon: '🏆', title: 'Achievements', text: 'Earn badges by reaching milestones — perfect runs, high streaks, score targets, and more!' }
-    ];
 
     this.homeCharacter = null;
     this.speedDialTapCount = 0;
@@ -138,7 +125,6 @@ class UI {
     this.checkDailyLoginReward();
     this.createVignetteOverlay();
     this.renderCalendar();
-    this.renderHowToPlay();
     this.renderExamFilter();
     this.renderAdvancedFilters();
     this._bindGlobalEscapeKey();
@@ -356,16 +342,9 @@ class UI {
     document.querySelectorAll('.back-btn').forEach(function (btn) {
       btn.addEventListener('click', function () { self.show('screenHome'); });
     });
-    // The step-by-step tutorial (opened from Home and from Settings)
-    var tutNext = document.getElementById('tutNextBtn');
-    if (tutNext) tutNext.addEventListener('click', function () { self.tutorialNext(); });
-    var tutClose = document.getElementById('tutCloseBtn');
-    if (tutClose) {
-      tutClose.addEventListener('click', function () {
-        document.getElementById('tutorialOverlay').classList.remove('active');
-        releaseFocusTrap();
-      });
-    }
+    // The interactive tutorial: the same one from Home, Settings and the first run
+    var howToBtn = document.getElementById('howToPlayBtn');
+    if (howToBtn) howToBtn.addEventListener('click', function () { self.showTutorial(); });
     var settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', function () { self.show('screenSettings'); });
     var shopBtn = document.getElementById('shopBtn');
@@ -448,8 +427,7 @@ class UI {
         'quickReviewOverlay',
         'continueOverlay',
         'multiplayerOverlay',
-        'tutorialOverlay',
-        'onboardingOverlay'
+        'accountOverlay'
       ];
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
@@ -560,7 +538,7 @@ class UI {
     var self = this;
     // The coins are already in the wallet; the screen is the reveal. It waits for the tutorial to finish.
     function show() {
-      var tutorial = document.getElementById('onboardingOverlay');
+      var tutorial = document.getElementById('tutorialOverlay');
       if (tutorial && tutorial.classList.contains('active')) { setTimeout(show, 1000); return; }
       audio.play('coin');
       showDailyRewardModal({
@@ -996,37 +974,6 @@ class UI {
   // ═══════════════════════════════════════════════════════
   // HOW TO PLAY
   // ═══════════════════════════════════════════════════════
-
-  renderHowToPlay() {
-    var self = this;
-    var container = document.getElementById('howToPlaySection');
-    if (!container) return;
-    clearElement(container);
-
-    var details = createElement('details', { className: 'howto' });
-    details.appendChild(createElement('summary', { text: '📖 How to Play' }));
-    var body = createElement('div', { className: 'howto-body' });
-    this.tutorialPages.forEach(function (p, i) {
-      if (i === 0) return; // the welcome page is only for the walk-through
-      var item = createElement('div', { className: 'howto-item' });
-      item.appendChild(createElement('strong', { text: p.icon + ' ' + p.title + '. ' }));
-      item.appendChild(document.createTextNode(p.text));
-      body.appendChild(item);
-    });
-    var modes = createElement('div', { className: 'howto-item' });
-    modes.appendChild(createElement('strong', { text: '🎯 Game modes. ' }));
-    modes.appendChild(document.createTextNode('Endless: run until you are out of lives. Study: no lives lost, with a teaching point after each question. Weakness: practice the cards you miss. Daily: today\'s 15-card challenge. Versus: race a friend live, or play ranked.'));
-    body.appendChild(modes);
-    var cards = createElement('div', { className: 'howto-item' });
-    cards.appendChild(createElement('strong', { text: '📝 Your own cards. ' }));
-    cards.appendChild(document.createTextNode('Make cards in My Cards, import Anki decks, or study the same cards as flashcards or in the runner: it is your choice.'));
-    body.appendChild(cards);
-    var walk = createElement('button', { className: 'btn btn-outline btn-sm', text: '▶ Show me step by step', attributes: { type: 'button' } });
-    walk.addEventListener('click', function () { self.showTutorial(); });
-    body.appendChild(walk);
-    details.appendChild(body);
-    container.appendChild(details);
-  }
 
   // ═══════════════════════════════════════════════════════
   // HUD
@@ -2060,42 +2007,17 @@ class UI {
   // TUTORIAL
   // ═══════════════════════════════════════════════════════
 
-  showTutorial() {
-    this.tutorialPage = 0;
-    this.renderTutorialPage();
-    var overlay = document.getElementById('tutorialOverlay');
-    overlay.classList.add('active');
-    trapFocus(overlay);
-  }
-
-  renderTutorialPage() {
-    var p = this.tutorialPages[this.tutorialPage];
-    var self = this;
-    var tutPage = document.getElementById('tutPage');
-    clearElement(tutPage);
-
-    var iconEl = createElement('div', { className: 'tut-icon', text: p.icon });
-    tutPage.appendChild(iconEl);
-    tutPage.appendChild(createElement('h2', { text: p.title }));
-    tutPage.appendChild(createElement('p', { text: p.text }));
-
-    var dots = document.getElementById('tutDots');
-    clearElement(dots);
-    for (var i = 0; i < this.tutorialPages.length; i++) {
-      dots.appendChild(createElement('div', { className: 'tut-dot' + (i === self.tutorialPage ? ' active' : '') }));
-    }
-
-    setText(document.getElementById('tutNextBtn'), this.tutorialPage === this.tutorialPages.length - 1 ? 'Start Playing! ✓' : 'Next →');
-  }
-
-  tutorialNext() {
-    this.tutorialPage++;
-    if (this.tutorialPage >= this.tutorialPages.length) {
-      document.getElementById('tutorialOverlay').classList.remove('active');
-      releaseFocusTrap();
-    } else {
-      this.renderTutorialPage();
-    }
+  /**
+   * Open the interactive tutorial. On the first run, finishing or skipping it marks the first run done,
+   * so it never opens by itself again.
+   */
+  showTutorial(opts) {
+    var firstRun = !!(opts && opts.firstRun);
+    startTutorial({
+      onClose: function () {
+        if (firstRun) storage.set('firstRunComplete', true);
+      }
+    });
   }
 
   // ═══════════════════════════════════════════════════════
