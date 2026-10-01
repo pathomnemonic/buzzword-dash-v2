@@ -121,3 +121,22 @@ describe('Card selection — new cards are favored by default', () => {
     expect(fresh / picks).toBeGreaterThan(0.8);
   });
 });
+
+describe('seeded runs never deal the same card twice in a row', () => {
+  it('carries on after the card that was used, even when earlier ids are not in the pool', async () => {
+    const { nextSeededIndex } = await import('../../js/game/gates.js');
+    ({ pickCard } = await import('../../js/game/gates.js'));
+    const pool = poolFor('challenge').slice(0, 10);
+    // an order whose first three ids are not in the player's pool (for instance filtered out by their subjects)
+    const order = ['missing-1', 'missing-2', 'missing-3', ...pool.map((c) => c.id)];
+    let index = 0;
+    const dealt = [];
+    for (let i = 0; i < pool.length; i++) {
+      const res = pickCard({ pool, recentIds: [], mode: 'challenge', encounterIndex: index, orderedCardIds: order, rng: Math.random });
+      dealt.push(res.card.id);
+      index = nextSeededIndex(res, index);
+    }
+    expect(dealt).toEqual(pool.map((c) => c.id));
+    expect(new Set(dealt).size).toBe(dealt.length);
+  });
+});

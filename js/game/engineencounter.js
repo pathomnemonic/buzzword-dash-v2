@@ -7,7 +7,7 @@
 
 import { storage } from '../storage.js';
 import { getNextSkin } from './skins.js';
-import { getCardPool, pickCard, spawnGates, flashGateResult } from './gates.js';
+import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } from './gates.js';
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
 import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, removeAndDispose } from './enginedefs.js';
@@ -43,6 +43,14 @@ if (this._modeConfig && Array.isArray(this._modeConfig.planCardIds)) {
   poolResult = { cards: everything.cards.filter(function (c) { return planIds[c.id]; }), error: everything.error };
 }
 
+// A seeded run (daily, friend challenge, Gauntlet, versus) plays the same cards for everyone, so the player's own
+// subject and exam filters do not apply. With them, cards missing from the player's pool were skipped and the
+// same later card could then be dealt again and again.
+if (this.seededCardOrder && !(this._modeConfig && Array.isArray(this._modeConfig.planCardIds))) {
+  var everyCard = getCardPool({ subjects: [], filters: { exams: [], questionTypes: [], sources: [], years: [], highYieldOnly: false }, includeCustomCards: true, mode: this.mode });
+  if (!everyCard.error && everyCard.cards.length > 0) poolResult = everyCard;
+}
+
 if (poolResult.error || poolResult.cards.length === 0) {
     this._endRun(RUN_END_REASONS.NO_MATCHING_CARDS);
     return;
@@ -59,7 +67,8 @@ if (this.seededCardOrder && this._seededCardIndex < this.seededCardOrder.length)
         selectionState: this._selectionState,
         rng: Math.random
     });
-    this._seededCardIndex++;
+    // Carry on after the card that was dealt (it can be later than the index when an id was not found)
+    this._seededCardIndex = nextSeededIndex(pickResult, this._seededCardIndex);
 } else {
     pickResult = pickCard({
         pool: poolResult.cards,

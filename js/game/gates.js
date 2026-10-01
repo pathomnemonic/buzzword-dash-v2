@@ -233,6 +233,19 @@ export function createDailyOrder(options) {
 
 // ===== CARD SELECTION =====
 
+/**
+ * Where a seeded run carries on after a card was dealt: just past the card that was actually used. That can be
+ * later than the index asked for, when some ids in the order are not in the pool; stepping by one instead would
+ * deal the same card again.
+ * @param {{orderedIndex: number|null}|null} pickResult
+ * @param {number} current the index that was asked for
+ * @returns {number}
+ */
+export function nextSeededIndex(pickResult, current) {
+  var used = pickResult && typeof pickResult.orderedIndex === 'number' ? pickResult.orderedIndex : current;
+  return used + 1;
+}
+
 /** An answer without its parenthetical, so "Ascending Cholangitis (Reynolds Pentad)" matches "Ascending Cholangitis". */
 function answerKey(ans) {
   return String(ans || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
