@@ -982,3 +982,6 @@ body.in-game #bgDecor { display: none; }
 .pick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pick-chip { padding: 6px 12px; border-radius: 999px; border: 2px solid var(--ink, #1b1030); background: var(--bg-card-solid); color: inherit; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .pick-chip.on { background: var(--accent-gold, #fbbf24); color: #2a1c00; }
+
+/* in a column overlay, panels keep their height (the overlay scrolls instead of squashing them) */
+#pauseOverlay > *, #continueOverlay > *, #onboardingOverlay > *, .tutorial-overlay > *, #multiplayerOverlay > *, #quickReviewOverlay > * { flex-shrink: 0; }
