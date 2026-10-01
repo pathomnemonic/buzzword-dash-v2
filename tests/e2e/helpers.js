@@ -25,7 +25,7 @@ export async function openApp(page, path = '/') {
 export async function dismissDailyReward(page) {
   const overlay = page.locator('#dailyReward');
   try {
-    await overlay.waitFor({ state: 'visible', timeout: 3000 });
+    await overlay.waitFor({ state: 'visible', timeout: 8000 });
   } catch {
     return;
   }
