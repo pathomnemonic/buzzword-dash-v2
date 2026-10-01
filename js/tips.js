@@ -33,6 +33,7 @@ export function isValidTipUrl(url) {
 export function getTipUrl() {
   // Apple and Google restrict external payment links inside apps: tips are web-only
   if (isNative()) return '';
+  /** @type {Record<string, any>} */
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
   var url = env.VITE_TIP_URL || '';
   return isValidTipUrl(url) ? url : '';

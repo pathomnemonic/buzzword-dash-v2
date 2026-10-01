@@ -72,8 +72,8 @@ export function nativeHaptic(pattern) {
  * splash screen and email deep links. Does nothing in a browser.
  * @param {object} handlers
  * @param {function(): boolean} handlers.onBack return true if the press was handled
- * @param {function()} handlers.onBackground called when the app goes to the background
- * @param {function(string)} handlers.onDeepLink called with a URL that opened the app
+ * @param {function(): void} handlers.onBackground called when the app goes to the background
+ * @param {function(string): void} handlers.onDeepLink called with a URL that opened the app
  */
 export function initNative(handlers) {
   if (!isNative()) return Promise.resolve(false);

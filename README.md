@@ -255,6 +255,20 @@ buzzword-dash/
 3. Go to **Settings → Pages → Source** and select the `main` branch
 4. Your game will be live at `https://pathomnemonic.github.io/buzzword-dash-v2/`
 
+## Error reporting (Optional)
+
+Uncaught errors and unhandled promise rejections are logged to the console. To also collect them, set a build-time endpoint that accepts a JSON `POST`:
+
+```
+VITE_ERROR_ENDPOINT=https://example.com/dxdash-errors
+```
+
+(In GitHub, add it as a repository variable named `VITE_ERROR_ENDPOINT`.) With no URL set, nothing leaves the device. Each report holds only the error message, a trimmed stack, the area it came from and the build id, with no account, score or card data, and a page load sends at most 10 distinct reports.
+
+## Updates and offline cache
+
+The service worker's cache is named after the build (the commit in CI), so every deploy starts a fresh cache. When a new version finishes installing while the game is open, a notice offers a reload.
+
 ## Tips (Optional)
 
 Dx Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:

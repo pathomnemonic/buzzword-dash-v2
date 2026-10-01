@@ -27,7 +27,8 @@ import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
-import { reportError } from './errors.js';
+import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
+import { registerServiceWorker } from './swregister.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { getControlText } from './controlhints.js';
 import { initNative, isNative } from './native.js';
@@ -1043,6 +1044,7 @@ function init() {
     webglOk = false;
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
+  installGlobalErrorHandlers();
   installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;
@@ -1793,15 +1795,27 @@ function mountLeaderboard() {
 // =========================================================================
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', function () { try { init(); } finally { hideBootSplash(); } });
-  // Offline support (production builds only)
-  // (The store apps bundle their files, so they do not need the service worker.)
-  if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function (e) {
-        console.warn('[Dx Dash] Service worker registration failed:', e.message);
-      });
-    });
-  }
 } else {
   try { init(); } finally { hideBootSplash(); }
+}
+
+// Offline support (production builds only). The store apps bundle their files, so they do not
+// need the service worker. This runs whatever the readyState: module scripts execute after the
+// page is parsed, so registering inside the 'loading' branch would never happen.
+if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
+  var registerSW = function () {
+    registerServiceWorker(navigator.serviceWorker, function () {
+      showUserError('A new version of Dx Dash is ready.', {
+        title: 'Update available',
+        info: true,
+        actionLabel: 'Reload',
+        onAction: function () { window.location.reload(); },
+        durationMs: 15000
+      });
+    }).catch(function (e) {
+      console.warn('[Dx Dash] Service worker registration failed:', e.message);
+    });
+  };
+  if (document.readyState === 'complete') registerSW();
+  else window.addEventListener('load', registerSW);
 }

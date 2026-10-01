@@ -29,7 +29,8 @@ export default [
         ...globals.es2021,
         THREE: 'readonly',
         JSZip: 'readonly',
-        initSqlJs: 'readonly'
+        initSqlJs: 'readonly',
+        __APP_VERSION__: 'readonly'
       }
     },
     rules: {

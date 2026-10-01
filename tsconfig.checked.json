@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "checkJs": true },
+  "include": [
+    "js/globals.d.ts",
+    "js/errors.js",
+    "js/swregister.js",
+    "js/chunkrecovery.js",
+    "js/rules.js",
+    "js/progress.js",
+    "js/leagues.js",
+    "js/cohorts.js",
+    "js/ranked.js",
+    "js/cloudsync.js",
+    "js/studyplan.js",
+    "js/challenge.js",
+    "js/tips.js"
+  ]
+}

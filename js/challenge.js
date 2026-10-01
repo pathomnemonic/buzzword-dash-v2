@@ -97,7 +97,7 @@ export function isoWeekKey(date) {
   var day = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - day);
   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  var week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  var week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return d.getUTCFullYear() + '-W' + (week < 10 ? '0' : '') + week;
 }
 
