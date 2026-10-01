@@ -36,6 +36,7 @@ import { MULTI_CARDS } from './cards/multisystem.js';
 // Canonical enums
 // ═══════════════════════════════════════════════════════════
 
+import { clueLeaksAnswer, genericWords } from './cardleaks.js';
 import { SUBJECTS, EXAM_FILTERS, QUESTION_TYPES, SOURCE_DISCIPLINES, CONTENT_VERSION } from './cardmeta.js';
 export { SUBJECTS, EXAM_FILTERS, QUESTION_TYPES, SOURCE_DISCIPLINES, CONTENT_VERSION };
 
@@ -142,9 +143,11 @@ function validateCard(c) {
 
   // Distractor uniqueness and distinctness from answer
   if (c.d && c.d.length === 2) {
-    var ansNorm = (c.ans || '').toLowerCase().trim();
-    var d0Norm = (c.d[0] || '').toLowerCase().trim();
-    var d1Norm = (c.d[1] || '').toLowerCase().trim();
+    // Compared without parentheticals and punctuation, so "Gout (Acute)" and "Gout" count as the same
+    var plain = function (t) { return String(t || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); };
+    var ansNorm = plain(c.ans);
+    var d0Norm = plain(c.d[0]);
+    var d1Norm = plain(c.d[1]);
     if (d0Norm === d1Norm) {
       errors.push(c.id + ': distractors are identical');
     }
@@ -205,43 +208,25 @@ function validateCard(c) {
     }
   }
 
-  // Answer-leak filtering
+  // Answer-leak filtering: drop clues that contain the answer, or a word distinctive to it (whole words only;
+  // words common across the deck's answers name a category and are fine). See cardleaks.js.
   if (c.ans && c.bw && c.d) {
-    var ansWords = c.ans
-      .toLowerCase()
-      .split(/[\s\-/()]+/)
-      .filter(function (w) { return w.length > 4; });
-
-    var distractorWords = new Set();
-    for (var di = 0; di < c.d.length; di++) {
-      c.d[di].toLowerCase().split(/[\s\-/()]+/).forEach(function (w) {
-        if (w.length > 4) distractorWords.add(w);
-      });
-    }
-
     var leaksFound = 0;
     var safeBuzzwords = c.bw.filter(function (bw) {
-      var bwLower = bw.toLowerCase();
-      for (var wi = 0; wi < ansWords.length; wi++) {
-        if (bwLower.includes(ansWords[wi]) && !distractorWords.has(ansWords[wi])) {
-          leaksFound++;
-          return false;
-        }
-      }
+      if (clueLeaksAnswer(bw, c.ans, c.d, _genericWords)) { leaksFound++; return false; }
       return true;
     });
 
-    // Word-overlap is too aggressive for many valid cards (e.g. "Cervical
-    // shortening" for "Cervical Insufficiency"). Fall back to flagging only
-    // buzzwords that contain the full answer phrase before dropping the card.
+    // Some cards are topic cards whose clues naturally repeat the title. Rather than lose them, fall back to
+    // removing only clues that contain the whole answer phrase, and say so (these cards want better clues).
     if (safeBuzzwords.length < 2) {
       var ansPhrase = c.ans.toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
       var phraseSafe = c.bw.filter(function (bw) {
         return !ansPhrase || !bw.toLowerCase().includes(ansPhrase);
       });
       if (phraseSafe.length >= 2) {
-        warnings.push(c.id + ': word-level leak filter too strict; kept ' +
-          phraseSafe.length + ' buzzword(s) that do not contain the full answer');
+        warnings.push(c.id + ': weak clues: kept ' + phraseSafe.length +
+          ' buzzword(s) that share a word with the answer (only the whole answer was removed)');
         safeBuzzwords = phraseSafe;
         leaksFound = c.bw.length - phraseSafe.length;
       }
@@ -297,6 +282,11 @@ var RAW_SOURCES = [
   EM_CARDS,
   MULTI_CARDS
 ];
+
+// Words common across the deck's answers ("syndrome", "acute"...) name a category, so a clue may use them
+var _genericWords = genericWords(RAW_SOURCES.reduce(function (all, src) {
+  return all.concat(Array.isArray(src) ? src.map(function (r) { return r && r.ans || ''; }) : []);
+}, []));
 
 var _cards = [];
 var _cardById = new Map();
@@ -393,6 +383,16 @@ function computeCardPoolHash(cards) {
     segments.push(c.id + '|' + c.ans + '|' + (c.d ? c.d.join('|') : ''));
   }
   return djb2Hash(segments.join('\n'));
+}
+
+/** What the validator changed or flagged while loading (for the audit tool and tests). */
+export function getLoadReport() {
+  return {
+    loaded: _cards.length,
+    dropped: _dropped.slice(),
+    warnings: _warnings.slice(),
+    weakClueIds: _warnings.filter(function (w) { return w.indexOf(': weak clues') > 0; }).map(function (w) { return w.split(':')[0]; })
+  };
 }
 
 export const BUILT_IN_CARD_POOL_HASH = computeCardPoolHash(_cards);

@@ -118,6 +118,10 @@ The three question filters (subjects, exam and the advanced ones) sit on one pag
 
 Now and then the results screen offers one small card: share the game with a friend, rate it on the store, or make a free account to keep progress safe. The timing is deliberate (`js/prompts.js`): only after a good run or a new best score, never during a run or exam, not in the first runs, at most one ask every three days, each kind backing off (14, 28, 56 days) and stopping after three asks, and "Don't ask again" or doing the thing ends that kind for good. An ask only appears when it can work: no "rate" without a store link (set `VITE_REVIEW_URL`; the Android app falls back to its Play Store page), no "make an account" when signed in or when accounts are not set up. Sharing uses the system share sheet, or copies a link (`VITE_SHARE_URL` overrides the link).
 
+## Card quality
+
+Cards are checked when the app loads (`js/cards.js`, `js/cardschema.js`). The validator drops a card only if it is broken (bad subject, missing answer, not exactly two different distractors, fewer than two usable clues). It also removes any clue that gives the answer away (`js/cardleaks.js`): a clue leaks when it contains the whole answer or a word distinctive to the answer. Matching is by whole words, and words that are common across the deck's answers ("syndrome", "acute", "tumor") are treated as categories, not giveaways. `npm run audit:cards` prints what the validator did (add `--weak`, `--cut` or `--dups` for lists); cards whose clues all repeat their title are flagged "weak" and kept, and a test stops that list growing.
+
 ## Scoring
 
 - Correct answers build your streak.

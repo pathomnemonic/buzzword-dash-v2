@@ -233,6 +233,11 @@ export function createDailyOrder(options) {
 
 // ===== CARD SELECTION =====
 
+/** An answer without its parenthetical, so "Ascending Cholangitis (Reynolds Pentad)" matches "Ascending Cholangitis". */
+function answerKey(ans) {
+  return String(ans || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
+}
+
 /**
  * Canonical card-selection contract.
  *
@@ -326,7 +331,7 @@ export function pickCard(options) {
   // legitimate extra practice, but shouldn't appear back to back).
   var recentAnswers = {};
   for (var ra = 0; ra < effectivePool.length; ra++) {
-    if (recentIds.indexOf(effectivePool[ra].id) >= 0) recentAnswers[effectivePool[ra].ans] = true;
+    if (recentIds.indexOf(effectivePool[ra].id) >= 0) recentAnswers[answerKey(effectivePool[ra].ans)] = true;
   }
 
   // Configurable card freshness weight
@@ -385,7 +390,7 @@ export function pickCard(options) {
     // ── Recent card penalty ──
     if (recentIds.indexOf(c.id) >= 0) {
       w *= 0.02;
-    } else if (recentAnswers[c.ans]) {
+    } else if (recentAnswers[answerKey(c.ans)]) {
       w *= 0.05;
     }
 

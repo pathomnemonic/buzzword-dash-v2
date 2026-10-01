@@ -5,6 +5,7 @@
   "type": "module",
   "description": "A 3D endless-runner game for USMLE & COMLEX board prep",
   "scripts": {
+    "audit:cards": "node tools/audit-cards.mjs",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
