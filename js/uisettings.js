@@ -614,7 +614,7 @@ export var settingsMethods = {
         'Each one keeps its own look, and some have parts you can recolor.'));
       if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
-      shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
+      if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
         'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
     } else if (tab === 'customize') {
       var eqSkin = storage.get('equipped').skin || 'avatar_intern';

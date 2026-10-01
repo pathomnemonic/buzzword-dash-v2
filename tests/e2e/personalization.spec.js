@@ -19,13 +19,13 @@ test.describe('Personalization', () => {
     await expect(page.getByText('Standard rules: runs are ranked.')).toBeVisible();
   });
 
-  test('the Locker lists characters and vehicles, with the classic ones archived', async ({ page }) => {
+  test('the Locker lists the characters, with the classic ones and vehicles archived', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenShop"]').click();
     await expect(page.getByRole('tab', { name: /Characters/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /^🎬 Characters/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Classic characters/ })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: /Vehicles/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Vehicles/ })).toHaveCount(0);
 
     await page.getByRole('tab', { name: /Customize/ }).click();
     await expect(page.getByText(/Equipped: .* · Character/)).toBeVisible();

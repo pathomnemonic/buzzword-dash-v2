@@ -23,18 +23,15 @@ describe('Locker tabs', () => {
     ui._lockerTab = 'characters';
   });
 
-  it('lists characters and vehicles, and keeps the archived classic ones out of sight', () => {
+  it('lists the characters, and keeps the archived classic ones out of sight', () => {
     ui.renderShop();
-    expect(headings()).toEqual([
-      expect.stringContaining('Characters'),
-      expect.stringContaining('Vehicles')
-    ]);
+    expect(headings()).toEqual([expect.stringContaining('Characters')]);
     const text = document.getElementById('shopItems').textContent;
     expect(text).not.toMatch(/classic|blocky|3D/i);
-    expect(text).toMatch(/cannot wear hats/i);
+    expect(text).not.toMatch(/vehicle/i);
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
     expect(groups[0]).toContain('Intern');
-    ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic'].forEach((n) => expect(text).not.toContain(n));
+    ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic', 'Ambulance', 'Race Car', 'Hearse'].forEach((n) => expect(text).not.toContain(n));
   });
 
   it('the old monsters are archived too', () => {
