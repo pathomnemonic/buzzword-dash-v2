@@ -58,6 +58,7 @@ test.describe('Countdown', () => {
       return c.length > 3 ? c[3] : 1;
     });
     expect(alpha).toBeLessThanOrEqual(0.1);
+    await expect(page.locator('#countdownNum')).toBeVisible(); // the number is briefly hidden between 3, 2 and 1
     const box = await page.locator('#countdownNum').boundingBox();
     const vh = page.viewportSize().height;
     expect(box.y).toBeGreaterThan(vh * 0.5); // on the floor, below the runner's face
