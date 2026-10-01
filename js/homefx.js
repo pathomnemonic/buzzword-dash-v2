@@ -68,7 +68,16 @@ export function mountFlyers(layer, options) {
     // spread the starting points over a whole cycle so the screen is busy from the first second
     el.style.animationDelay = '-' + (rand() * 9).toFixed(1) + 's';
     // every time it finishes a pass, it comes back as something else, somewhere else
-    el.addEventListener('animationiteration', function (e) { apply(e.currentTarget, randomFlight(rand)); });
+    // The head-start delay only belongs to the first pass. Keeping it while the duration changes made the
+    // flyer's progress jump, so it shot across the screen; restart it cleanly from the center instead.
+    el.addEventListener('animationiteration', function (e) {
+      var node = e.currentTarget;
+      node.style.animationDelay = '0s';
+      node.style.animation = 'none';
+      void node.offsetWidth;
+      node.style.animation = '';
+      apply(node, randomFlight(rand));
+    });
     layer.appendChild(el);
   }
 
