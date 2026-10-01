@@ -9,7 +9,7 @@
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
 import fs from 'node:fs';
-import { BG, CYAN, WHITE } from './brand.mjs';
+import { BG, CYAN } from './brand.mjs';
 
 const base = process.argv[2] || 'http://localhost:4190';
 const outDir = 'assets/store/screenshots';
@@ -31,8 +31,8 @@ await skip();
 await page.waitForTimeout(2500);
 
 const frames = [];
-const snap = async (name, caption, sub) => {
-  const buf = await page.screenshot();
+const snap = async (name, caption, sub, from) => {
+  const buf = await (from || page).screenshot();
   frames.push({ name, caption, sub, buf });
   console.log('captured ' + name);
 };
@@ -40,7 +40,7 @@ const snap = async (name, caption, sub) => {
 // Put the save into a showcase state (owned items, a subject, a favorite map).
 // An init script applies it before the app starts, because the app saves its own
 // copy of the data when the page unloads.
-await page.addInitScript(() => {
+const applyShowcase = () => {
   try {
     const raw = sessionStorage.getItem('showcase');
     if (!raw) return;
@@ -58,7 +58,8 @@ await page.addInitScript(() => {
     d.settings.quality = 'high';
     localStorage.setItem(key, JSON.stringify(d));
   } catch { /* ignore */ }
-});
+};
+await page.addInitScript(applyShowcase);
 const setup = async (opts) => {
   await page.evaluate((o) => sessionStorage.setItem('showcase', JSON.stringify(o)), opts);
   await page.reload();
@@ -100,6 +101,61 @@ const run = async (opts, name, caption, sub, waitMs) => {
 };
 
 // The case review after a real stretch of play
+// Two real players in a live head-to-head match (needs internet for the PeerJS signaling server)
+const multiplayerShot = async (name, caption, sub) => {
+  const players = [];
+  const make = async (skin, monster) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+    await ctx.addInitScript((o) => sessionStorage.setItem('showcase', JSON.stringify(o)), { skin, monster, subjects: ['Infectious Disease'], map: 'Neon ER' });
+    await ctx.addInitScript(applyShowcase);
+    const pg = await ctx.newPage();
+    pg.on('dialog', (d) => d.accept());
+    await pg.goto(base + '/?debug=1');
+    for (let i = 0; i < 10; i++) {
+      const next = pg.locator('#obNextBtn');
+      if (!(await next.isVisible().catch(() => false))) break;
+      await next.click();
+    }
+    await pg.waitForTimeout(1500);
+    await pg.reload();
+    for (let i = 0; i < 10; i++) {
+      const next = pg.locator('#obNextBtn');
+      if (!(await next.isVisible().catch(() => false))) break;
+      await next.click();
+    }
+    await pg.waitForTimeout(1500);
+    players.push(pg);
+    return pg;
+  };
+  try {
+    const host = await make('avatar_m_ninja', 'monster_m_demon');
+    const guest = await make('avatar_m_robot', 'monster_m_yeti');
+    await host.locator('#multiplayerBtn').click();
+    await host.locator('#mpHostBtn').click();
+    await host.locator('.mp-room-code').waitFor({ timeout: 20000 });
+    const code = (await host.locator('.mp-room-code').innerText()).trim();
+    await guest.locator('#multiplayerBtn').click();
+    await guest.locator('#mpJoinCode').fill(code);
+    await guest.locator('#mpJoinBtn').click();
+    await host.locator('#mpReadyBtn').waitFor({ timeout: 30000 });
+    await host.locator('#mpReadyBtn').click();
+    await guest.locator('#mpReadyBtn').click();
+    await host.locator('#mpStartMatchBtn').click({ timeout: 20000 });
+    await host.waitForTimeout(14000);
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const text = await host.evaluate(() => ['buzzText', 'ansText0', 'ansText1', 'ansText2'].map((id) => (document.getElementById(id) || {}).textContent || '').join(' | '));
+      const page = await host.evaluate(() => document.body.innerText);
+      if (!ODD.test(text) && /\S/.test(text.replace(/\|/g, '')) && /Rival/.test(page) && !/closing in/i.test(page)) break;
+      await host.waitForTimeout(4000);
+    }
+    await snap(name, caption, sub, host);
+  } catch (e) {
+    console.log('multiplayer frame skipped: ' + e.message);
+  } finally {
+    for (const pg of players) await pg.context().close();
+  }
+};
+
 const results = async (opts, name, caption, sub) => {
   await setup(opts);
   await page.locator('.btn-play').click();
@@ -116,6 +172,7 @@ await run({ skin: 'avatar_m_ninja', monster: 'monster_m_demon', subjects: ['Infe
   'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
 await run({ skin: 'avatar_m_wizard', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
   'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
+await multiplayerShot('multiplayer', 'Challenge a friend. Live.', 'Head-to-head, no account needed');
 await results({ skin: 'avatar_m_robot', monster: 'monster_m_yeti', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
   'review', 'Learn from every miss', 'Quick explanations, then it comes back');
 
@@ -138,9 +195,15 @@ for (const f of frames) {
   const shotH = H - CAP - PAD - 40;
   const shot = await sharp(f.buf).resize(shotW, shotH, { fit: 'cover', position: 'top' })
     .composite([{ input: Buffer.from(`<svg width="${shotW}" height="${shotH}"><rect width="${shotW}" height="${shotH}" rx="56" fill="#fff"/></svg>`), blend: 'dest-in' }]).png().toBuffer();
+  const size = Math.min(86, Math.floor(960 / (f.caption.length * 0.62)));
+  const font = 'font-family="Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif" font-weight="900" text-anchor="middle"';
   const label = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${CAP}">
-    <text x="${W / 2}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="${Math.min(82, Math.floor(940 / (f.caption.length * 0.6)))}" font-weight="900" fill="${WHITE}" text-anchor="middle">${f.caption}</text>
-    <text x="${W / 2}" y="240" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
+    <g transform="translate(${W / 2} 152) skewX(-8)">
+      <text x="0" y="8" ${font} font-size="${size}" fill="#1b0a40" stroke="#1b0a40" stroke-width="16" stroke-linejoin="round">${f.caption}</text>
+      <text x="0" y="0" ${font} font-size="${size}" fill="#ffd23f" stroke="#1b0a40" stroke-width="10" stroke-linejoin="round">${f.caption}</text>
+      <text x="0" y="0" ${font} font-size="${size}" fill="#ffd23f">${f.caption}</text>
+    </g>
+    <text x="${W / 2}" y="240" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
   await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
     .composite([{ input: label, top: 0, left: 0 }, { input: shot, top: CAP, left: PAD }])
     .png().toFile(`${outDir}/${String(n++).padStart(2, '0')}-${f.name}.png`);

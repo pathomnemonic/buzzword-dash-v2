@@ -15,6 +15,12 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('.btn-play')).toBeVisible();
   });
 
+  test('unreleased features stay out of sight', async ({ page }) => {
+    await openApp(page);
+    await expect(page.locator('#cohortsBtn')).toBeHidden();
+    await expect(page.getByText('Cohort', { exact: false })).toHaveCount(0);
+  });
+
   test('bottom navigation is visible', async ({ page }) => {
     await openApp(page);
     await expect(page.locator('#bottomNav')).toBeVisible();

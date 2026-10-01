@@ -1,4 +1,4 @@
-/* global localStorage, window, document */
+/* global localStorage, window, document, getComputedStyle */
 // tools/verify-multiplayer.mjs — checks that two players can really connect.
 // Opens two separate browsers, hosts a room in one, joins it from the other, and
 // prints what each lobby shows. Needs internet (PeerJS public signaling server).
@@ -52,7 +52,7 @@ await host.waitForTimeout(12000);
 const hud = (p) => p.evaluate(() => ({
   running: !!(window.__game && window.__game.running),
   mode: window.__game && window.__game.mode,
-  opponentVisible: !document.getElementById('opponentHud').hidden,
+  opponentVisible: !document.getElementById('opponentHud').hidden, oppText: document.getElementById('opponentHud').innerText.split(String.fromCharCode(10)).join(' '), oppDisplay: getComputedStyle(document.getElementById('opponentHud')).display,
   me: document.getElementById('hudScore').textContent
 }));
 console.log('host in match:', JSON.stringify(await hud(host)));

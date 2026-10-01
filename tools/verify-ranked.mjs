@@ -96,6 +96,7 @@ async function play(label, trophies) {
     await p.locator('#mpRankedBtn').waitFor({ timeout: 15000 });
   }
   console.log(label + ': league card:', (await a.locator('#rkCard').innerText()).split('\n').join(' | '));
+  await a.screenshot({ path: process.env.TEMP + '/ranked-lobby-' + label + '.png' });
   await a.locator('#mpRankedBtn').click();
   await a.waitForTimeout(1500);
   await b.locator('#mpRankedBtn').click();
@@ -124,6 +125,7 @@ async function play(label, trophies) {
   console.log(label + ': Ada sees:', (await a.locator('#rankedResult').innerText()).split('\n').join(' | '));
   await b.waitForFunction(() => document.getElementById('rankedResult').innerText.includes('+'), null, { timeout: 30000 }).catch(() => null);
   console.log(label + ': Bo sees:', (await b.locator('#rankedResult').innerText()).split('\n').join(' | '));
+  await b.waitForTimeout(1500);
   await b.screenshot({ path: process.env.TEMP + '/ranked-result-' + label + '.png' });
   const rows = (await db.query('SELECT user_id, trophies, wins, losses FROM player_trophies ORDER BY user_id')).rows;
   console.log(label + ': database:', JSON.stringify(rows.map((r) => ({ name: names[r.user_id], trophies: r.trophies, wins: r.wins, losses: r.losses }))));

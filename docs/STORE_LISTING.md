@@ -14,18 +14,33 @@ Edit freely. Keep claims honest: the game is a study aid and does not guarantee 
 
 ## Full description
 
-Run the list. Study for your boards by playing. Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and asks you to run into the correct diagnosis, mechanism or next step.
+Run the list. Study for your boards by playing.
 
-- 3,000+ high-yield questions across 15 subjects, with quick explanations after every miss
-- Spaced repetition that brings back the cards you keep missing
-- Flashcards, a timed exam simulator, a daily goal and streaks, and a weekly study plan
-- Animated 3D characters and monsters to unlock, 12 themed tracks, and map events like blackouts and tremors
-- Optional leaderboards, friends, study groups and weekly tournaments
-- Live multiplayer and shareable challenges
-- Works offline; your progress stays on your device unless you choose to create an account
-- No ads. No tracking.
+Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and asks you to run into the correct diagnosis. Pick a lane, dodge the obstacles, keep your streak alive, and learn something every run.
+
+- **Challenge a friend, live.** Head-to-head multiplayer with a room code. No account needed.
+- **3,000+ board-style questions** across 15 subjects, with a quick explanation after every miss.
+- **Learn from your misses.** Spaced repetition brings back the cards you get wrong until they stick.
+- **Flashcards and a timed exam simulator** for when you want to slow down and test yourself.
+- **Daily goals, streaks and a weekly study plan** that keep you consistent.
+- **An exam monster that chases you** when your streak slips, and fades when you get back on track.
+- **Earn coins and unlock** animated characters, monsters, trails and themed tracks.
+- **Solo play needs no internet.** No ads. No tracking.
 
 Dx Dash is an educational game, not medical advice. Content may contain errors; verify important facts with authoritative sources.
+
+## What the listing may claim (and what it may not yet)
+
+Only list a feature once it has been checked end to end. As of the last check:
+
+**Checked, safe to list** (the list above): live multiplayer (two real browsers connected, played a match and saw each other's scores), the question bank size and subjects, the run, the case review after a run, flashcards and the exam simulator (automated browser tests), daily goals and the study plan (unit tests), the exam monster and characters (seen in play), solo play making no network requests other than to the app itself.
+
+**Built and tested, but not yet checked against the live online service, so do not list yet:**
+- Ranked matches, trophies and leagues (the database rules and the whole match flow were played end to end against a local copy of the database; run `database/schema.sql` and `policies.sql` on the live project, play one ranked match between two real accounts, then add "Ranked leagues" to the listing).
+- Leaderboards, friends, study groups, weekly tournaments and cloud save (database rules are tested; the account screens need a live Supabase project to check).
+- Cohorts and cohort wars (finished and hidden on purpose; see `docs/COHORTS.md`).
+
+Do not list map events (blackouts, tremors) until you have seen them in a real session on the device.
 
 ## Categories and rating
 

@@ -2273,3 +2273,6 @@ body.hazard-pulse #gameContainer canvas { animation: hzPulse 0.6s ease-out infin
 /* Tagline */
 .home-header .home-tagline { color: var(--accent-cyan); font-size: 15px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; }
 .home-header .home-sub { opacity: .8; }
+
+/* Buttons keep the hidden attribute even though .btn sets a display (inline styles still win) */
+button[hidden] { display: none; }

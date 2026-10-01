@@ -37,7 +37,7 @@ import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { leagueRules } from './leagues.js';
-import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers } from './rankedui.js';
+import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
 var ankiImportModule = null;
@@ -1243,6 +1243,24 @@ function init() {
       });
     }
   }
+
+  // The league chip on Home opens the multiplayer panel; it also celebrates ranked wins and promotions
+  var homeLeague = document.getElementById('homeLeague');
+  if (homeLeague) {
+    refreshHomeBadge(homeLeague);
+    setTimeout(function () { refreshHomeBadge(homeLeague); }, 4000);
+    homeLeague.addEventListener('click', function () {
+      var open = document.getElementById('multiplayerBtn');
+      if (open) open.click();
+    });
+  }
+  document.addEventListener('dx:ranked-updated', function (e) {
+    refreshHomeBadge(homeLeague);
+    if (e.detail && (e.detail.promoted || (e.detail.outcome === 'win' && e.detail.settled))) {
+      ui.showConfetti(true);
+      audio.play('achievement');
+    }
+  });
 
   // Multiplayer
   var mpBtn = document.getElementById('multiplayerBtn');

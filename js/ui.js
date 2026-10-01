@@ -589,7 +589,7 @@ class UI {
   _showToast(message) {
     audio.play('achievement');
     var popup = createElement('div', { text: message });
-    popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;color:var(--accent-gold);text-shadow:0 0 14px rgba(255,215,64,0.6);pointer-events:none;z-index:30;transition:all 1.2s ease-out;opacity:1;background:rgba(8,12,36,0.9);padding:14px 24px;border-radius:14px;border:2px solid var(--accent-gold);';
+    popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%) rotate(-1.5deg);font-size:18px;font-weight:900;color:#1b0a40;pointer-events:none;z-index:30;transition:all 1.2s ease-out;opacity:1;background:#fff6dc;padding:12px 22px;border-radius:16px;border:4px solid #1b0a40;box-shadow:0 5px 0 #1b0a40;text-align:center;max-width:86vw;';
     document.body.appendChild(popup);
     if (!prefersReducedMotion()) {
       requestAnimationFrame(function () {
@@ -3742,10 +3742,10 @@ class UI {
   // CONFETTI
   // ═══════════════════════════════════════════════════════
 
-  showConfetti() {
+  showConfetti(noBanner) {
     if (prefersReducedMotion()) return;
-    var colors = ['#ff3355', '#00ff88', '#ffcc00', '#44aaff', '#bb66ff', '#ff44aa'];
-    for (var i = 0; i < 40; i++) {
+    var colors = ['#ff4d6a', '#3dff9a', '#ffd23f', '#4db3ff', '#a566ff', '#ff5cad'];
+    for (var i = 0; i < 60; i++) {
       var piece = createElement('div', { className: 'confetti-piece' });
       piece.style.left = (10 + Math.random() * 80) + '%';
       piece.style.top = '-10px';
@@ -3755,6 +3755,7 @@ class UI {
       document.body.appendChild(piece);
       setTimeout(function (el) { if (el.parentNode) el.parentNode.removeChild(el); }, 2500, piece);
     }
+    if (noBanner) return;
     var banner = createElement('div', { className: 'new-best-banner', text: '🏆 NEW BEST!' });
     document.body.appendChild(banner);
     setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 2500);

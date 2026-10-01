@@ -34,6 +34,19 @@ function el(tag, className, text) {
   return e;
 }
 
+/** The league chip on the home screen. */
+export function refreshHomeBadge(btn) {
+  if (!btn) return;
+  if (!ranked.isAvailable()) { btn.hidden = true; return; }
+  function draw(t) {
+    var l = getLeague(t);
+    btn.textContent = l.icon + ' ' + l.name + ' · 🏆 ' + t;
+    btn.hidden = false;
+  }
+  draw(getCachedTrophies());
+  ranked.myStats().then(function (s) { if (s.ok) draw(s.trophies); });
+}
+
 // ---------- the league header ----------
 
 /** Fill `box` with the player's league card. */
@@ -287,6 +300,10 @@ function showResultCard(outcome, match, result) {
       card.appendChild(el('div', 'rk-result-sub', league.icon + ' ' + league.name + ' League'));
     }
   }
+
+  // Let the rest of the app celebrate and refresh its league chip
+  var promoted = result.ok && result.settled && leagueIndex(result.trophies) > leagueIndex(Math.max(0, result.trophies - result.delta));
+  document.dispatchEvent(new CustomEvent('dx:ranked-updated', { detail: { outcome: outcome, promoted: promoted, settled: !!(result.ok && result.settled) } }));
 
   var close = el('button', 'btn btn-primary btn-block', 'Continue');
   close.type = 'button';
