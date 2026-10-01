@@ -8,7 +8,7 @@
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
-import { SHOP_ITEMS, AVATARS } from './game/shopdata.js';
+import { LOCKER_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
 import { SKINS } from './game/skins.js';
@@ -407,7 +407,7 @@ export var settingsMethods = {
     if (equippedAvatar && equippedAvatar.isModel) {
       wrap.appendChild(createElement('div', {
         className: 'setting-sublabel',
-        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look.'
+        text: 'This character keeps its own look.'
       }));
       return wrap;
     }
@@ -464,7 +464,7 @@ export var settingsMethods = {
     if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
 
     var renderGroup = function (type, title, filter, note) {
-      var items = SHOP_ITEMS.filter(function (i) { return i.type === type; });
+      var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
       if (filter) items = items.filter(filter);
       if (type === 'skin') {
         items = items.filter(function (i) {
@@ -591,7 +591,7 @@ export var settingsMethods = {
     var fresh = this._lockerFresh || [];
     var tabOf = function (item) { return item.type === 'skin' ? 'characters' : (item.type === 'trail' || item.type === 'monster') ? 'extras' : 'customize'; };
     var freshTabs = {};
-    SHOP_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
+    LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
     [['characters', '🎭 Characters'], ['customize', '🎨 Customize'], ['extras', '✨ Trails & Monsters']].forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
@@ -610,9 +610,9 @@ export var settingsMethods = {
     }
 
     if (tab === 'characters') {
-      shopItems.appendChild(renderGroup('skin', '🎬 Animated 3D characters', isKind('model'),
-        'Real animated models. Each keeps its own look. Hats, colors, clothing and gear are for Classic characters.'));
-      shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
+      shopItems.appendChild(renderGroup('skin', '🎬 Characters', isKind('model'),
+        'Each one keeps its own look, and some have parts you can recolor.'));
+      if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
       shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
         'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
@@ -620,7 +620,7 @@ export var settingsMethods = {
       var eqSkin = storage.get('equipped').skin || 'avatar_intern';
       var eqAvatar = avatarOf(eqSkin);
       var kind = kindOf(eqSkin);
-      var kindLabel = kind === 'model' ? 'Animated 3D character' : (kind === 'vehicle' ? 'Vehicle' : 'Classic character');
+      var kindLabel = kind === 'model' ? 'Character' : (kind === 'vehicle' ? 'Vehicle' : 'Classic character');
 
       var card = createElement('div', { className: 'shop-item' });
       card.style.cssText = 'display:block;margin:8px 0';
@@ -630,14 +630,14 @@ export var settingsMethods = {
       var cardText = createElement('div', {
         className: 'setting-sublabel',
         text: kind === 'model'
-          ? (eqAvatar && eqAvatar.parts && eqAvatar.parts.length ? 'Recolor the parts of this character below. Hats, clothing and gear are for Classic characters.' : 'This character keeps its own look. To wear a hat, change colors or wear clothing and gear, switch to a Classic character.')
+          ? (eqAvatar && eqAvatar.parts && eqAvatar.parts.length ? 'Recolor the parts of this character below.' : 'This character keeps its own look.')
           : (kind === 'vehicle'
             ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
             : 'Everything below works on this character.')
       });
       cardText.style.lineHeight = '1.4';
       card.appendChild(cardText);
-      if (kind !== 'classic') {
+      if (kind !== 'classic' && !ARCHIVE_CLASSIC) {
         var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Choose a Classic character', attributes: { type: 'button' } });
         goBtn.style.marginTop = '8px';
         goBtn.addEventListener('click', function () { self._lockerTab = 'characters'; self.renderShop(); });

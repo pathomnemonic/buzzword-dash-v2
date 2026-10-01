@@ -521,6 +521,29 @@ export var SHOP_ITEMS = [
 })();
 
 // ═══════════════════════════════════════════════════════════
+// ARCHIVED ITEMS
+// The original blocky characters and the original monsters are archived: they stay in the code (and in
+// anything a player already owns), but the Locker does not show them and nobody is left wearing one.
+// Set ARCHIVE_CLASSIC to false to bring them back.
+// ═══════════════════════════════════════════════════════════
+
+export var ARCHIVE_CLASSIC = true;
+
+var ARCHIVED_IDS = {};
+(function markArchived() {
+  AVATARS.forEach(function (a) { if (!a.isModel && !a.isVehicle) ARCHIVED_IDS[a.id] = true; });
+  var modelMonsters = {};
+  MONSTER_MODELS.forEach(function (m) { modelMonsters[m.id] = true; });
+  SHOP_ITEMS.forEach(function (i) { if (i.type === "monster" && !modelMonsters[i.id]) ARCHIVED_IDS[i.id] = true; });
+})();
+
+/** True for an archived character or monster (kept in code, hidden from players). */
+export function isArchivedItem(id) { return ARCHIVE_CLASSIC && ARCHIVED_IDS[id] === true; }
+
+/** What the Locker may show: everything except archived items. */
+export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedItem(i.id); });
+
+// ═══════════════════════════════════════════════════════════
 // QUESTS
 // Each quest declares its event mapping so storage can
 // evaluate progress without the engine referencing quest IDs.

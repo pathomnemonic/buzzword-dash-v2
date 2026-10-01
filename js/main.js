@@ -44,7 +44,7 @@ import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
-import { SHOP_ITEMS, QUESTS } from './game/shopdata.js';
+import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
@@ -124,7 +124,7 @@ function showWebGLNotice() {
   note.id = 'webglNotice';
   note.setAttribute('role', 'status');
   note.style.cssText = 'font-size:12px;color:var(--accent-gold);text-align:center;margin:8px 0';
-  note.textContent = '3D graphics (WebGL) are not available in this browser, so the runner cannot start. Flashcards, the exam simulator, stats and everything else still work.';
+  note.textContent = 'Graphics (WebGL) are not available in this browser, so the runner cannot start. Flashcards, the exam simulator, stats and everything else still work.';
   section.appendChild(note);
 }
 
@@ -643,7 +643,7 @@ function attachRewardCard() {
  * It goes away once the Locker has been opened and left (see ui.show).
  */
 function updateLockerDot() {
-  var fresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
+  var fresh = newlyAffordable(LOCKER_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
   var nav = document.querySelector('.nav-item[data-screen="screenShop"]');
   if (!nav) return;
   var dot = nav.querySelector('.nav-dot');

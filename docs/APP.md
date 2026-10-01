@@ -61,7 +61,7 @@ Install the APK on a phone with USB debugging (`adb install -r android/app/build
 ## Testing checklist (do this on a real phone before submitting)
 
 1. Fresh install: the splash shows, then the game; onboarding shows touch wording ("Swipe", "Double-tap").
-2. Play a run: 3D character and monster, sound, haptics on answers, no stutter. Try Settings → Graphics → Auto/Medium/Low, and Battery saver.
+2. Play a run: character and monster, sound, haptics on answers, no stutter. Try Settings → Graphics → Auto/Medium/Low, and Battery saver.
 3. Back button: in a run it pauses; on other screens it goes Home; on Home it leaves the app.
 4. Switch away mid-run: the run pauses.
 5. Create an account, confirm the email from the phone's mail app (the link should reopen the game signed in), sign out, sign in, reset a password, then use **Delete my account**.
@@ -79,5 +79,5 @@ The game files are bundled inside each release, so a change reaches players when
 ## Known limits
 
 - iOS has not been built on a Mac here; the recipe and workflow are provided, and the Android app has been built.
-- The animated 3D models add about 5 MB to the app. Very old phones may run better on **Graphics → Low** (Auto chooses this automatically on weak devices).
+- The animated models add about 5 MB to the app. Very old phones may run better on **Graphics → Low** (Auto chooses this automatically on weak devices).
 - Tips are web-only by design.

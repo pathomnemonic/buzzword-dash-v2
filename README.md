@@ -2,7 +2,7 @@
 
 **Run the list.**
 
-A 3D endless-runner game for USMLE & COMLEX board prep. Recognize medical buzzwords, swipe into the correct diagnosis lane, dodge obstacles, collect coins, and build your streak.
+An endless-runner game for USMLE & COMLEX board prep. Recognize medical buzzwords, swipe into the correct diagnosis lane, dodge obstacles, collect coins, and build your streak.
 
 ## Play Online
 
@@ -195,8 +195,8 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
-- **Women in 3D** — Dr. Nova (a physician) and the Scout are full animated 3D characters. The medical characters (Dr. Dash, Dr. Nova, Paramedic Pat) can all be given any skin tone, and Dr. Dash and Dr. Nova any hair color, so one character covers many looks.
-- **Animated 3D characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
+- **Women in the roster** — Dr. Nova (a physician) and the Scout are full animated characters. The medical characters (Dr. Dash, Dr. Nova, Paramedic Pat) can all be given any skin tone, and Dr. Dash and Dr. Nova any hair color, so one character covers many looks.
+- **Animated characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
@@ -358,7 +358,7 @@ The world is lit with physically based materials, a soft studio reflection map a
 
 **Graphics tiers:** Settings -> Graphics chooses Auto, High, Medium or Low. *High* is everything (3D characters and monsters, 3D obstacles and scenery, glow, shadows). *Medium* keeps the animated 3D character and monster, the sky, reflections and lit materials, but uses simple built-in obstacles and scenery, no glow or shadows, and caps resolution at 1.5x. *Low* is the fast backup: the simple built-in characters and obstacles, no model downloads, and normal resolution. Auto picks Low for software rendering, very little memory or 2 or fewer cores or data-saver, Medium for modest devices (4 GB or fewer, 4 cores or fewer, or touch-first), otherwise High, and steps down a tier after repeated slow sessions. Adaptive resolution also trims the render resolution in small steps while the game runs slowly and restores it when there is headroom. Cached model geometry is shared between copies and never freed by one copy, shader compilation is warmed up during the countdown, and the service worker caches model files after first use.
 
-**Locker:** the Locker has three tabs. *Characters* sorts characters into animated 3D, classic (blocky) and vehicles, with what each can wear. *Customize* shows only what works on the equipped character (3D characters can wear hats; classic characters also get colors, clothing and gear; vehicles cannot be customized). *Trails & Monsters* works with every character.
+**Locker:** the Locker has three tabs. *Characters* lists the characters and the vehicles. *Customize* shows only what works on the equipped character (characters with recolorable parts get color pickers; vehicles cannot be customized). *Trails & Monsters* works with every character. The original blocky characters and the original monsters are archived: they stay in the code (`ARCHIVE_CLASSIC` in `js/game/shopdata.js`) but are hidden from the Locker, and anyone who was using one is moved to Dr. Dash or the Ghost.
 
 **Performance work:** add `?debug=1` to the URL to expose the engine as `window.__game`; `renderer.info` then reports draw calls and triangles. A typical frame went from about 2,000 draw calls and 195,000 triangles to about 240 and 45,000 through: merging static scenery by material (`mergeStatic` in `js/game/materials.js`); merged, periodic scrolling decorations (fog handles the distance fade); one glowing point cloud for the atmosphere; cheaper box rounding (108 triangles, finer only for coins and gates); shared model geometry; and half-resolution bloom. Downloads shrank too: the 2.6 MB question database loads in the background after the first screen (`js/cardhub.js`; `js/cards.js` stays the synchronous source for tools and tests), and the animated character and monster models are 4.1 MB instead of 11.6 MB (`node tools/optimize-models.mjs` drops unused animation clips and applies meshopt compression; loaders use `js/game/gltfloader.js`). Settings has a Battery saver (30 fps) toggle, and the home screen always renders at 30 fps.
 
@@ -368,7 +368,7 @@ The game is wrapped with Capacitor, so the same code runs as a phone app. The An
 
 ## Technology
 
-- **Three.js** (r160) for 3D rendering (bundled)
+- **Three.js** (r160) for rendering (bundled)
 - **Web Audio API** for procedural sound effects and music
 - **PeerJS** for multiplayer WebRTC connections (bundled, lazy-loaded)
 - **Supabase** for leaderboard persistence (bundled, lazy-loaded, optional)
@@ -381,7 +381,7 @@ The game is wrapped with Capacitor, so the same code runs as a phone app. The An
 - Safari 15+
 - Mobile Chrome and Safari on Android and iOS
 
-WebGL is required for the 3D renderer.
+WebGL is required for the game renderer.
 
 ## License
 

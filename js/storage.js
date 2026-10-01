@@ -20,7 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS } from './game/shopdata.js';
+import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, isArchivedItem } from './game/shopdata.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
@@ -673,6 +673,11 @@ class Storage {
         d.progression.equipped.monster = 'monster_m_ghost';
       }
     }
+
+    // The original blocky characters and monsters are archived: anyone still wearing one moves to the
+    // default (they keep owning it, so bringing the archive back restores it)
+    if (isArchivedItem(d.progression.equipped.skin)) d.progression.equipped.skin = 'avatar_intern';
+    if (isArchivedItem(d.progression.equipped.monster)) d.progression.equipped.monster = 'monster_m_ghost';
 
     // Ensure equipped slots exist
     if (!d.progression.equipped.skin) d.progression.equipped.skin = 'avatar_intern';

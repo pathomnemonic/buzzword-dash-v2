@@ -19,16 +19,16 @@ test.describe('Personalization', () => {
     await expect(page.getByText('Standard rules: runs are ranked.')).toBeVisible();
   });
 
-  test('the Locker separates 3D characters from customizable ones', async ({ page }) => {
+  test('the Locker lists characters and vehicles, with the classic ones archived', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenShop"]').click();
     await expect(page.getByRole('tab', { name: /Characters/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Animated 3D characters/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Classic characters/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^🎬 Characters/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Classic characters/ })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: /Vehicles/ })).toBeVisible();
 
     await page.getByRole('tab', { name: /Customize/ }).click();
-    await expect(page.getByText(/Equipped: .* · Animated 3D character/)).toBeVisible();
+    await expect(page.getByText(/Equipped: .* · Character/)).toBeVisible();
     await expect(page.getByText(/Dr\. Dash colors/)).toBeVisible();
     await expect(page.locator('.color-part')).toHaveCount(4);
     await page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]').click();

@@ -86,11 +86,12 @@ describe('starting monster and defaults', () => {
     localStorage.setItem('buzzword_dash_v1', JSON.stringify(raw));
     storage.load();
     expect(storage.get('equipped').monster).toBe('monster_m_ghost');
-    // choosing the old one again afterwards is respected
+    // the old monster is archived: nobody is left wearing it, but they still own it
     storage.data.progression.equipped.monster = 'monster_classic';
     storage.save && storage.save();
     storage.load();
-    expect(storage.get('equipped').monster).toBe('monster_classic');
+    expect(storage.get('equipped').monster).toBe('monster_m_ghost');
+    expect(storage.get('ownedItems')).toContain('monster_classic');
   });
 
   it('30 fps is on by default, once, and can be turned off', async () => {

@@ -23,23 +23,30 @@ describe('Locker tabs', () => {
     ui._lockerTab = 'characters';
   });
 
-  it('sorts characters into animated 3D, classic and vehicles, with what each can wear', () => {
+  it('lists characters and vehicles, and keeps the archived classic ones out of sight', () => {
     ui.renderShop();
     expect(headings()).toEqual([
-      expect.stringContaining('Animated 3D characters'),
-      expect.stringContaining('Classic characters'),
+      expect.stringContaining('Characters'),
       expect.stringContaining('Vehicles')
     ]);
     const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/Hats, colors, clothing and gear are for Classic/i);
+    expect(text).not.toMatch(/classic|blocky|3D/i);
     expect(text).toMatch(/cannot wear hats/i);
-    // The default Intern is animated 3D; the blocky one is listed under Classic
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
     expect(groups[0]).toContain('Intern');
-    expect(groups[1]).toContain('Classic Intern');
+    ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic'].forEach((n) => expect(text).not.toContain(n));
   });
 
-  it('a 3D character gets color pickers for its own parts, but no headwear', () => {
+  it('the old monsters are archived too', () => {
+    ui.renderShop();
+    clickTab('Trails');
+    const text = document.getElementById('shopItems').textContent;
+    ['Pager Wraith', 'Textbook Golem', 'Caffeine Kraken'].forEach((n) => expect(text).not.toContain(n));
+    expect(text).not.toMatch(/Exam Monster(?!s)/);
+    expect(text).toContain('Ghost of Boards Past');
+  });
+
+  it('a character gets color pickers for its own parts, but no headwear', () => {
     storage.data.progression.equipped.skin = 'avatar_intern'; // Dr. Dash
     ui._lockerTab = 'customize';
     ui.renderShop();
@@ -51,7 +58,7 @@ describe('Locker tabs', () => {
     expect(headings().join('|')).not.toContain('Clothing');
   });
 
-  it('another 3D character has nothing to customize, and the screen says why', () => {
+  it('another character has nothing to customize, and the screen says why', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
     ui._lockerTab = 'customize';
     ui.renderShop();
@@ -59,9 +66,8 @@ describe('Locker tabs', () => {
     expect(headings().join('|')).not.toContain('Clothing');
     expect(headings().join('|')).not.toContain('Gear');
     const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/Animated 3D character/);
-    expect(text).toMatch(/switch to a Classic character/i);
-    expect(text).toMatch(/wear a hat/i);
+    expect(text).toMatch(/This character keeps its own look/);
+    expect(text).not.toMatch(/classic|3D/i);
     expect(document.querySelector('#shopItems').textContent).not.toMatch(/Hair\s*Skin\s*Coat/);
   });
 

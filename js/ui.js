@@ -40,7 +40,7 @@ import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { SHOP_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
+import { LOCKER_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
@@ -312,7 +312,7 @@ class UI {
     if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenShop') {
       // What newly became affordable since the last visit wears a red dot until the player leaves
-      this._lockerFresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
+      this._lockerFresh = newlyAffordable(LOCKER_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
       this.renderShop();
       this.startPreview();
     }
