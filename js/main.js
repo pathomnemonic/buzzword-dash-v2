@@ -1484,6 +1484,7 @@ function init() {
   //  VISIBILITY PAUSE  [2] §19.2
   // ==========================
   document.addEventListener('visibilitychange', function () {
+    lastFrameMs = 0;
     if (document.visibilityState === 'hidden') {
       if (game.running && !game.paused) {
         game.togglePause();
@@ -1545,7 +1546,10 @@ function init() {
     if (!inGame) return;
     var capMs = batterySaver ? SAVER_FRAME_MS : 0;
     if (capMs && lastFrameMs && nowMs - lastFrameMs < capMs) return;
-    var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.1) : 0.016;
+    // After a long gap (tab was in the background, or the canvas was hidden) take one normal step instead of a
+    // big one, so scenery and particles never leap forward on the first frame back
+    var gap = lastFrameMs ? (nowMs - lastFrameMs) / 1000 : 0;
+    var dt = gap > 0 && gap <= 0.1 ? gap : 0.016;
     lastFrameMs = nowMs;
     if (game._state === 'playing' && nowMs - lastMusicMs > 250) {
       // Adaptive music: layers build with the streak, tension rises with the monster
