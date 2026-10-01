@@ -1401,18 +1401,3 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 }
 #countdownNum { font-size: 72px; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 5px 0 var(--ink); }
 #countdownTip { bottom: auto; top: calc(66vh + 92px); background: rgba(10, 5, 30, 0.55); border-width: 2px; }
-
-/* A character's line after each answer: a small bubble low on the screen, clear of the question and the lanes */
-#charBubble {
-  position: fixed; left: 50%; bottom: calc(var(--safe-bottom, 0px) + 12%); transform: translate(-50%, 12px) scale(.9);
-  max-width: min(86vw, 340px); padding: 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 1px;
-  background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 4px 0 var(--ink);
-  font-family: var(--font-display); text-align: center; pointer-events: none; z-index: 7; opacity: 0;
-  transition: opacity .15s, transform .15s;
-}
-#charBubble.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
-#charBubble.sad { background: #dfe7ff; }
-#charBubble.happy { background: #fff6c8; }
-.char-bubble-who { font-size: 11px; font-weight: 900; letter-spacing: .3px; opacity: .65; text-transform: uppercase; }
-.char-bubble-line { font-size: 17px; font-weight: 900; line-height: 1.15; }
-@media (prefers-reduced-motion: reduce) { #charBubble { transition: none; } }

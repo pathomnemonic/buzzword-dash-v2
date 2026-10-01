@@ -45,23 +45,36 @@ describe('character voices', () => {
   });
 });
 
-describe('the speech bubble', () => {
+describe('speaking a line', () => {
   beforeEach(() => { document.body.innerHTML = ''; });
 
-  it('shows who is talking and what they say, happy or sad', async () => {
+  it('picks a line and puts nothing on screen', async () => {
     const line = say('avatar_m_ninja', 'cheer', { speak: false, volume: 0 });
-    const bubble = document.getElementById('charBubble');
     expect(line).toBeTruthy();
-    expect(bubble.textContent).toContain('Ninja');
-    expect(bubble.textContent).toContain(line);
-    expect(bubble.className).toContain('happy');
+    expect(document.getElementById('charBubble')).toBeNull();
+    expect(document.body.textContent).not.toContain(line);
     await new Promise((r) => setTimeout(r, 750)); // past the gap that stops a flood of lines
-    const sulk = say('avatar_m_ninja', 'sad', { speak: false, volume: 0 });
-    expect(sulk).toBeTruthy();
-    expect(bubble.className).toContain('sad');
+    expect(say('avatar_m_ninja', 'sad', { speak: false, volume: 0 })).toBeTruthy();
   });
 
-  it('does not talk over itself when answers come very fast', () => {
+  it('speaks with the character\'s own pitch and speed, lower and slower when sad', async () => {
+    const spoken = [];
+    window.speechSynthesis = { cancel() {}, getVoices: () => [], speak: (u) => spoken.push(u) };
+    globalThis.SpeechSynthesisUtterance = function (text) { this.text = text; };
+    await new Promise((r) => setTimeout(r, 750));
+    say('avatar_m_orc', 'cheer', { speak: true, volume: 0.8 });
+    await new Promise((r) => setTimeout(r, 750));
+    say('avatar_m_orc', 'sad', { speak: true, volume: 0.8 });
+    expect(spoken).toHaveLength(2);
+    expect(spoken[0].pitch).toBeGreaterThan(spoken[1].pitch);
+    expect(spoken[0].rate).toBeGreaterThan(spoken[1].rate);
+    expect(spoken[0].volume).toBeCloseTo(0.8);
+    expect(VOICES.avatar_m_orc.cheer).toContain(spoken[0].text);
+    delete window.speechSynthesis;
+  });
+
+  it('does not talk over itself when answers come very fast', async () => {
+    await new Promise((r) => setTimeout(r, 750));
     say('avatar_m_king', 'cheer', { speak: false, volume: 0 });
     expect(say('avatar_m_king', 'cheer', { speak: false, volume: 0 })).toBeNull();
   });

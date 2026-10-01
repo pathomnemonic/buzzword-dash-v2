@@ -3,9 +3,8 @@
  * emotes in a mobile card battler.
  *
  * Each character has a voice (the device's speech engine at its own pitch, speed and, where the
- * device has one, a matching male or female voice) and its own short lines. A speech bubble shows the
- * line, so it still works with the sound off. The pure parts (the lines, picking one) are separate
- * from the browser parts (the bubble, the speech) so they can be tested.
+ * device has one, a matching male or female voice) and its own short lines. The lines are only spoken,
+ * never shown. The pure parts (the lines, picking one) are separate from the browser part (the speech).
  */
 
 /**
@@ -126,7 +125,6 @@ export function pickLine(avatarId, kind, options) {
 var MIN_GAP_MS = 700;
 var lastSpoken = { cheer: '', sad: '' };
 var lastAt = 0;
-var bubbleTimer = null;
 var voiceCache = null;
 
 /** Names that hint at a female or male voice on the common speech engines. */
@@ -150,31 +148,8 @@ export function chooseVoice(profile) {
   return null;
 }
 
-function showBubble(profile, text, kind) {
-  var bubble = document.getElementById('charBubble');
-  if (!bubble) {
-    bubble = document.createElement('div');
-    bubble.id = 'charBubble';
-    bubble.setAttribute('role', 'status');
-    bubble.setAttribute('aria-live', 'polite');
-    document.body.appendChild(bubble);
-  }
-  bubble.textContent = '';
-  var who = document.createElement('span');
-  who.className = 'char-bubble-who';
-  who.textContent = profile.icon + ' ' + profile.name;
-  var line = document.createElement('span');
-  line.className = 'char-bubble-line';
-  line.textContent = text;
-  bubble.appendChild(who);
-  bubble.appendChild(line);
-  bubble.className = 'show ' + (kind === 'sad' ? 'sad' : 'happy');
-  clearTimeout(bubbleTimer);
-  bubbleTimer = setTimeout(function () { bubble.className = ''; }, 1700);
-}
-
 /**
- * Say a line: a speech bubble, and the character's voice unless sound is off.
+ * Say a line out loud in the character's voice (nothing is shown on screen).
  * @param {string} avatarId the equipped character
  * @param {'cheer'|'sad'} kind
  * @param {{speak: boolean, volume: number}} options speak: use the device voice; volume: 0 to 1
@@ -189,7 +164,6 @@ export function say(avatarId, kind, options) {
   var key = kind === 'sad' ? 'sad' : 'cheer';
   var text = pickLine(avatarId, key, { last: lastSpoken[key] });
   lastSpoken[key] = text;
-  if (typeof document !== 'undefined') showBubble(profile, text, key);
   if (options.speak && options.volume > 0 && typeof window !== 'undefined' && window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
     var u = new SpeechSynthesisUtterance(text);
     var voice = chooseVoice(profile);

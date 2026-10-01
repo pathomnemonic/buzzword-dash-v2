@@ -1137,11 +1137,11 @@ function init() {
     if (wasCorrect) {
       audio.play('correct');
     }
-    // The runner reacts in their own voice (the bubble always; the voice unless questions are read aloud)
+    // The runner reacts out loud in their own voice
     if (storage.get('characterVoices') !== false && game.mode !== 'exam') {
       var equippedSkin = (storage.get('equipped') || {}).skin || 'avatar_intern';
       var voiceVol = (storage.get('masterVolume') ?? 0.7) * (storage.get('voiceVolume') ?? 0.7);
-      sayCharacterLine(equippedSkin, wasCorrect ? 'cheer' : 'sad', { speak: !storage.get('ttsEnabled'), volume: Math.min(1, voiceVol * 1.4) });
+      sayCharacterLine(equippedSkin, wasCorrect ? 'cheer' : 'sad', { speak: true, volume: Math.min(1, voiceVol * 1.4) });
     }
     // Route to multiplayer (once)
     sendMultiplayerEncounterResult(wasCorrect, card);
