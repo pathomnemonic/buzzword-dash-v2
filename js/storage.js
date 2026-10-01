@@ -50,6 +50,7 @@ var DEFAULTS = {
 
     musicOn: true,
     ttsEnabled: false,
+    characterVoices: true,     // the runner cheers when you score and sulks when you miss
     hapticsEnabled: true,
     dailyGoal: 20,
     colorblindMode: false,
@@ -658,6 +659,9 @@ class Storage {
       d.settings.fps30Seen = true;
       d.settings.batterySaver = true;
     }
+
+    // Character voices are on for everyone, including saves from before they existed
+    if (typeof d.settings.characterVoices !== 'boolean') d.settings.characterVoices = true;
 
     // Glow is now off by default (it is the costliest effect); switch everyone once
     if (!d.settings.glowDefaultSeen) {

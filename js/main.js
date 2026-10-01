@@ -45,6 +45,7 @@ import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
+import { say as sayCharacterLine } from './charactervoices.js';
 import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
@@ -1135,6 +1136,12 @@ function init() {
     // Route to audio (once)
     if (wasCorrect) {
       audio.play('correct');
+    }
+    // The runner reacts in their own voice (the bubble always; the voice unless questions are read aloud)
+    if (storage.get('characterVoices') !== false && game.mode !== 'exam') {
+      var equippedSkin = (storage.get('equipped') || {}).skin || 'avatar_intern';
+      var voiceVol = (storage.get('masterVolume') ?? 0.7) * (storage.get('voiceVolume') ?? 0.7);
+      sayCharacterLine(equippedSkin, wasCorrect ? 'cheer' : 'sad', { speak: !storage.get('ttsEnabled'), volume: Math.min(1, voiceVol * 1.4) });
     }
     // Route to multiplayer (once)
     sendMultiplayerEncounterResult(wasCorrect, card);
