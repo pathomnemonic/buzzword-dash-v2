@@ -238,6 +238,30 @@ export var profileMethods = {
     });
     container.appendChild(statsGrid);
 
+    // Visibility toggle
+    var visRow = createElement('div', { className: 'setting-row' });
+    visRow.style.marginTop = '14px';
+    visRow.appendChild(createElement('div', { text: '👁 Profile Visible' }));
+    visRow.firstChild.style.fontSize = '13px';
+    var visToggle = createElement('div', { className: 'toggle' + (profileVisible ? ' on' : '') });
+    visToggle.addEventListener('click', function () {
+      var newVal = !storage.get('profileVisible');
+      storage.set('profileVisible', newVal);
+      visToggle.classList.toggle('on');
+    });
+    visRow.appendChild(visToggle);
+    container.appendChild(visRow);
+
+    // Save button
+    var saveBtn = createElement('button', { className: 'btn btn-primary btn-block', text: '💾 Save Profile' });
+    saveBtn.style.margin = '10px 0 14px';
+    saveBtn.addEventListener('click', function () {
+      var name = nameInput.value.trim();
+      storage.set('profileName', name);
+      self._showToast('Profile saved!');
+    });
+    container.appendChild(saveBtn);
+
     // Badges: every badge, earned or not. Earned ones can be pinned to the profile (up to 6); the ones
     // earned since the profile was last open wear a red dot until the player leaves this screen.
     // Study streak calendar, just above the badges
@@ -304,30 +328,6 @@ export var profileMethods = {
     });
     badgeSection.appendChild(badgeList);
     container.appendChild(badgeSection);
-
-    // Visibility toggle
-    var visRow = createElement('div', { className: 'setting-row' });
-    visRow.style.marginTop = '14px';
-    visRow.appendChild(createElement('div', { text: '👁 Profile Visible' }));
-    visRow.firstChild.style.fontSize = '13px';
-    var visToggle = createElement('div', { className: 'toggle' + (profileVisible ? ' on' : '') });
-    visToggle.addEventListener('click', function () {
-      var newVal = !storage.get('profileVisible');
-      storage.set('profileVisible', newVal);
-      visToggle.classList.toggle('on');
-    });
-    visRow.appendChild(visToggle);
-    container.appendChild(visRow);
-
-    // Save button
-    var saveBtn = createElement('button', { className: 'btn btn-primary btn-block', text: '💾 Save Profile' });
-    saveBtn.style.marginTop = '10px';
-    saveBtn.addEventListener('click', function () {
-      var name = nameInput.value.trim();
-      storage.set('profileName', name);
-      self._showToast('Profile saved!');
-    });
-    container.appendChild(saveBtn);
 
     this.renderCalendar();
     document.dispatchEvent(new CustomEvent('dx:profile-opened')); // main.js fills the account section

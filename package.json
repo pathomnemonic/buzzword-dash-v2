@@ -49,7 +49,7 @@
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
-    "@supabase/supabase-js": "2.45.4",
+    "@supabase/supabase-js": "2.117.2",
     "jszip": "^3.10.1",
     "peerjs": "1.5.4",
     "sql.js": "^1.8.0",

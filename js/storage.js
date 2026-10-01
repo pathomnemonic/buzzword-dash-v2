@@ -156,7 +156,7 @@ var DEFAULTS = {
   profile: {
     name: '',
     picture: 'avatar_intern',
-    visible: false,
+    visible: true,
     selectedBadges: []
   },
 
