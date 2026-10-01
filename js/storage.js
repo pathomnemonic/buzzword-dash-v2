@@ -59,6 +59,7 @@ var DEFAULTS = {
     lastTipPromptAt: 0,
     lastReminderDate: '',
     avatarColors: {},
+    scrubColor: 0,
     reducedMotion: false,
     quality: 'auto',
     uiTheme: 'auto',

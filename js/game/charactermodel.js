@@ -109,17 +109,34 @@ class ModelAnimator {
   }
 }
 
+/** Repaint named materials on a clone. The first name gets the color, the others a slightly darker shade. */
+function applyTint(root, tint) {
+  var base = new THREE.Color(tint.color);
+  root.traverse(function (o) {
+    if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
+    var idx = tint.names.indexOf(o.material.name);
+    if (idx < 0) return;
+    var m = o.material.clone();
+    m.color.copy(base).multiplyScalar(idx === 0 ? 1 : 0.88);
+    m.userData.shared = false;
+    o.material = m;
+  });
+}
+
 /**
  * Build a character from a loaded model.
  * @param {string} url
  * @param {number} [scale] avatar scale multiplier
+ * @param {number} [height] world height
+ * @param {{names: string[], color: number}} [tint] repaint the materials with these names (e.g. scrubs)
  * @returns {THREE.Group|null} null if the model is not loaded yet
  */
-export function buildModelCharacter(url, scale, height) {
+export function buildModelCharacter(url, scale, height, tint) {
   var entry = _cache[url];
   if (!entry) return null;
 
   var root = cloneSkinned(entry.scene);
+  if (tint && tint.names && tint.names.length && tint.color) applyTint(root, tint);
   var k = ((height || TARGET_HEIGHT) * (scale || 1)) / entry.height;
   root.scale.setScalar(k);
   root.position.y = -entry.minY * k;

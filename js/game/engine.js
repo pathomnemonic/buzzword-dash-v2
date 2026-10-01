@@ -2258,8 +2258,9 @@ card = pickResult ? pickResult.card : null;
     // Coin spawning
     this.coinSpawnTimer -= dt;
     if (this.coinSpawnTimer <= 0) {
-      spawnCoinBatch(this.scene, this.coinMeshes);
-      this.coinSpawnTimer = 0.8 + Math.random() * 1.2;
+      // The next batch only starts once this one has passed, plus a breather, so lanes stay uncluttered
+      var batchLength = spawnCoinBatch(this.scene, this.coinMeshes);
+      this.coinSpawnTimer = batchLength / Math.max(this.speed, 0.5) + 1.0 + Math.random() * 1.5;
     }
 
     // Power-up spawning

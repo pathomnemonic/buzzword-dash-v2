@@ -41,7 +41,7 @@ var JUMP_VARIANTS = [
   { id: 'fallen_stretcher', builder: buildFallenStretcher,  bounds: { width: 2.0, height: 0.5, depth: 0.8 }, model: 'barrier' },
   { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 }, model: 'bin' },
   // A staff member pushing a gurney toward you: animated, jump over the gurney
-  { id: 'orderly_gurney',    builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 }, model: 'bed', staff: ['characters/orc.glb', 'characters/zombie.glb', 'characters/robot.glb'] }
+  { id: 'orderly_gurney',    builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 }, model: 'bed', staff: ['characters/nurse.glb', 'characters/paramedic.glb', 'characters/surgeon.glb'] }
 ];
 
 var SLIDE_VARIANTS = [
@@ -778,51 +778,76 @@ function makeCoinMesh(lane, z, y) {
 }
 
 // ===== COIN PATTERNS =====
+// Coins fill one or two lanes at a time (never all three), and each batch starts in a different lane
+// from the last, so collecting them means switching lanes.
 
-function spawnCoinLine(scene, coinMeshes, lane, startZ, count) {
-  for (var i = 0; i < count; i++) {
-    var c = makeCoinMesh(lane, startZ - i * 2.5);
-    scene.add(c);
-    coinMeshes.push(c);
-  }
+var _lastCoinLane = -1;
+
+function addCoin(scene, coinMeshes, lane, z, y) {
+  var c = makeCoinMesh(lane, z, y);
+  scene.add(c);
+  coinMeshes.push(c);
 }
 
-function spawnCoinArc(scene, coinMeshes, startZ) {
-  var centerLane = Math.floor(Math.random() * 3);
-  for (var i = 0; i < 6; i++) {
-    var lane = i < 2 ? Math.max(0, centerLane - 1) : i > 3 ? Math.min(2, centerLane + 1) : centerLane;
-    var yOff = Math.sin(i / 5 * Math.PI) * 1.5;
-    var c = makeCoinMesh(lane, startZ - i * 2, 1.2 + yOff);
-    scene.add(c);
-    coinMeshes.push(c);
-  }
+/** A lane that is not the one the previous batch used. */
+function nextCoinLane(not) {
+  var avoid = not === undefined ? _lastCoinLane : not;
+  var lanes = [0, 1, 2].filter(function (l) { return l !== avoid; });
+  return lanes[Math.floor(Math.random() * lanes.length)];
 }
 
+/** A lane next to `lane` (one step over). */
+function neighbourLane(lane) {
+  if (lane === 0) return 1;
+  if (lane === 2) return 1;
+  return Math.random() < 0.5 ? 0 : 2;
+}
+
+function spawnCoinLine(scene, coinMeshes, startZ) {
+  var lane = nextCoinLane();
+  var n = 5 + Math.floor(Math.random() * 3);
+  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, lane, startZ - i * 2.5);
+  _lastCoinLane = lane;
+  return n * 2.5;
+}
+
+/** A run of coins that moves over to the next lane halfway. */
+function spawnCoinSwitch(scene, coinMeshes, startZ) {
+  var a = nextCoinLane();
+  var b = neighbourLane(a);
+  for (var i = 0; i < 4; i++) addCoin(scene, coinMeshes, a, startZ - i * 2.2);
+  for (var j = 0; j < 4; j++) addCoin(scene, coinMeshes, b, startZ - (5 + j) * 2.2);
+  _lastCoinLane = b;
+  return 9 * 2.2;
+}
+
+/** Alternating coins between two neighbouring lanes. */
 function spawnCoinZigzag(scene, coinMeshes, startZ) {
-  for (var i = 0; i < 9; i++) {
-    var c = makeCoinMesh(i % 3, startZ - i * 2);
-    scene.add(c);
-    coinMeshes.push(c);
-  }
+  var a = nextCoinLane();
+  var b = neighbourLane(a);
+  for (var i = 0; i < 8; i++) addCoin(scene, coinMeshes, i % 2 ? b : a, startZ - i * 2.2);
+  _lastCoinLane = i % 2 ? a : b;
+  return 8 * 2.2;
 }
 
-function spawnCoinThreeLane(scene, coinMeshes, startZ) {
-  for (var l = 0; l < 3; l++) {
-    for (var i = 0; i < 4; i++) {
-      var c = makeCoinMesh(l, startZ - i * 2.5 - l * 1.2);
-      scene.add(c);
-      coinMeshes.push(c);
-    }
-  }
+/** An arc of coins in one lane: jump to collect them all. */
+function spawnCoinArc(scene, coinMeshes, startZ) {
+  var lane = nextCoinLane();
+  for (var i = 0; i < 6; i++) addCoin(scene, coinMeshes, lane, startZ - i * 2, 1.2 + Math.sin(i / 5 * Math.PI) * 1.5);
+  _lastCoinLane = lane;
+  return 6 * 2;
 }
 
-function spawnCoinDiamond(scene, coinMeshes, startZ) {
-  var pos = [[1, 0], [0, -2], [2, -2], [1, -4], [0, -6], [2, -6], [1, -8]];
-  for (var i = 0; i < pos.length; i++) {
-    var c = makeCoinMesh(pos[i][0], startZ + pos[i][1]);
-    scene.add(c);
-    coinMeshes.push(c);
+/** Pairs of coins side by side in two neighbouring lanes. */
+function spawnCoinPairs(scene, coinMeshes, startZ) {
+  var a = nextCoinLane();
+  var b = neighbourLane(a);
+  for (var i = 0; i < 4; i++) {
+    addCoin(scene, coinMeshes, a, startZ - i * 2.5);
+    addCoin(scene, coinMeshes, b, startZ - i * 2.5);
   }
+  _lastCoinLane = b;
+  return 4 * 2.5;
 }
 
 /**
@@ -831,16 +856,17 @@ function spawnCoinDiamond(scene, coinMeshes, startZ) {
  * @param {THREE.Scene} scene
  * @param {THREE.Object3D[]} coinMeshes
  * @param {number} [startZ]
+ * @returns {number} how long the batch is (world units), so the caller can leave a gap before the next one
  */
 export function spawnCoinBatch(scene, coinMeshes, startZ) {
   var z = startZ || (-40 - Math.random() * 20);
   var p = Math.floor(Math.random() * 5);
   switch (p) {
-    case 0: spawnCoinLine(scene, coinMeshes, Math.floor(Math.random() * 3), z, 6 + Math.floor(Math.random() * 4)); break;
-    case 1: spawnCoinArc(scene, coinMeshes, z); break;
-    case 2: spawnCoinZigzag(scene, coinMeshes, z); break;
-    case 3: spawnCoinThreeLane(scene, coinMeshes, z); break;
-    case 4: spawnCoinDiamond(scene, coinMeshes, z); break;
+    case 0: return spawnCoinLine(scene, coinMeshes, z);
+    case 1: return spawnCoinSwitch(scene, coinMeshes, z);
+    case 2: return spawnCoinZigzag(scene, coinMeshes, z);
+    case 3: return spawnCoinArc(scene, coinMeshes, z);
+    default: return spawnCoinPairs(scene, coinMeshes, z);
   }
 }
 

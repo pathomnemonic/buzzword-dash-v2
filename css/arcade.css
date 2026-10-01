@@ -1000,3 +1000,6 @@ body.in-game #bgDecor { display: none; }
 
 .credit-box { margin: 8px 0 14px; }
 .credit-box summary { cursor: pointer; font-weight: 900; font-size: 14px; }
+
+.scrub-swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--ink, #1b1030); cursor: pointer; padding: 0; }
+.scrub-swatch.on { outline: 3px solid var(--accent-gold, #fbbf24); outline-offset: 2px; }

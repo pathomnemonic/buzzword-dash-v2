@@ -39,8 +39,18 @@ describe('Locker tabs', () => {
     expect(groups[1]).toContain('Classic Intern');
   });
 
-  it('a 3D character can only customize headwear, and the screen says why', () => {
-    storage.data.progression.equipped.skin = 'avatar_intern'; // animated 3D
+  it('a medical character gets scrub colors and headwear', () => {
+    storage.data.progression.equipped.skin = 'avatar_intern'; // Dr. Dash
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    expect(document.getElementById('shopItems').textContent).toMatch(/Scrub color/);
+    expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(5);
+    expect(headings().join('|')).toContain('Headwear');
+    expect(headings().join('|')).not.toContain('Clothing');
+  });
+
+  it('another 3D character can only customize headwear, and the screen says why', () => {
+    storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
     ui._lockerTab = 'customize';
     ui.renderShop();
     expect(headings().join('|')).toContain('Headwear');

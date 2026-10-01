@@ -68,3 +68,31 @@ describe('coins drawn in bulk', () => {
     expect(coin.children.length).toBe(3); // disc, rim and crosses, glow
   });
 });
+
+describe('coin batches', () => {
+  it('use at most two lanes, and tell the caller how long they are', () => {
+    for (let n = 0; n < 300; n++) {
+      const scene = new THREE.Scene();
+      const coins = [];
+      const length = spawnCoinBatch(scene, coins, -40);
+      expect(length).toBeGreaterThan(5);
+      const lanes = new Set(coins.map((c) => c.userData.lane));
+      expect(lanes.size).toBeLessThanOrEqual(2);
+      expect(lanes.size).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('the next batch starts in a different lane than the last one ended', () => {
+    let changed = 0;
+    let last = -1;
+    for (let n = 0; n < 200; n++) {
+      const scene = new THREE.Scene();
+      const coins = [];
+      spawnCoinBatch(scene, coins, -40);
+      const first = coins[0].userData.lane;
+      if (last >= 0 && first !== last) changed++;
+      last = coins[coins.length - 1].userData.lane;
+    }
+    expect(changed).toBeGreaterThan(150);
+  });
+});

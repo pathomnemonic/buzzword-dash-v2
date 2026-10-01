@@ -36,6 +36,7 @@
 
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
+import { SCRUB_COLORS } from './game/modelcatalog.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
@@ -1683,6 +1684,36 @@ class UI {
     return wrap;
   }
 
+  /** Scrub color swatches for the medical characters. */
+  _renderScrubColors() {
+    var self = this;
+    var wrap = createElement('div', { className: 'shop-item' });
+    wrap.style.cssText = 'display:block;margin:8px 0';
+    wrap.appendChild(createElement('div', { text: '🥼 Scrub color' }));
+    wrap.lastChild.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
+    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Dress your doctor, nurse or surgeon in any scrub color.' }));
+    var row = createElement('div');
+    row.className = 'pick-chips';
+    var current = storage.get('scrubColor') || 0;
+    SCRUB_COLORS.forEach(function (c) {
+      var on = (current || 0) === c.hex;
+      var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': c.name + ' scrubs', 'aria-pressed': on ? 'true' : 'false', title: c.name } });
+      sw.style.background = c.hex ? '#' + ('000000' + c.hex.toString(16)).slice(-6) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
+      sw.addEventListener('click', function () {
+        storage.set('scrubColor', c.hex);
+        storage.save();
+        row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+        sw.classList.add('on');
+        sw.setAttribute('aria-pressed', 'true');
+        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+        if (self.onEquipChange) self.onEquipChange();
+      });
+      row.appendChild(sw);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
   renderShop() {
     var self = this;
     var shopCoinsEl = document.getElementById('shopCoins');
@@ -1855,7 +1886,7 @@ class UI {
       var cardText = createElement('div', {
         className: 'setting-sublabel',
         text: kind === 'model'
-          ? 'Animated 3D characters keep their own look. You can add a hat below. To change colors or wear clothing and gear, switch to a Classic character.'
+          ? (eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length ? 'Pick the color of your scrubs and add a hat below. Other clothing and gear are for Classic characters.' : 'Animated 3D characters keep their own look. You can add a hat below. To change colors or wear clothing and gear, switch to a Classic character.')
           : (kind === 'vehicle'
             ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
             : 'Everything below works on this character.')
@@ -1871,6 +1902,7 @@ class UI {
       shopItems.appendChild(card);
 
       if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
+      if (kind === 'model' && eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length) shopItems.appendChild(this._renderScrubColors());
       if (kind !== 'vehicle') shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
       if (kind === 'classic') {
         shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
@@ -2259,6 +2291,7 @@ class UI {
       [
         'Characters, monsters, props, the hospital bed and traffic cone: Quaternius (CC0). Screens and signs: Kenney (CC0). More props: CreativeTrio, iPoly3D (CC0).',
         'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
+        'Doctor, nurse, surgeon, resident and paramedic: Quaternius characters (CC0), repainted as medical staff.',
         'Robot character: Tomás Laulhé (CC0), with changes by Don McCurdy.'
       ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
       credits.appendChild(creditsBody);

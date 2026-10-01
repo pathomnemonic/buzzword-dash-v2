@@ -1063,7 +1063,8 @@ export function buildPlayer() {
         // Real animated model. If it is still downloading, show the
         // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
         var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;
-        var model = buildModelCharacter(url, avatar.scale);
+        var scrubColor = storage.get('scrubColor');
+        var model = buildModelCharacter(url, avatar.scale, undefined, avatar.scrub && scrubColor ? { names: avatar.scrub, color: scrubColor } : null);
         if (model) {
             // Hats work on the 3D characters too: they follow the head bone
             var modelHat = null;

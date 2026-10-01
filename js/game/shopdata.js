@@ -505,6 +505,10 @@ export var SHOP_ITEMS = [
     if (m.id === "avatar_intern") {
       intern.isModel = true;
       intern.modelUrl = "models/" + m.file;
+      intern.name = m.name;
+      intern.desc = m.desc;
+      intern.bodyColor = m.color;
+      intern.scrub = m.scrub;
       return;
     }
     AVATARS.push({
@@ -522,6 +526,7 @@ export var SHOP_ITEMS = [
       legSpeed: 1.0,
       armSwing: 1.0,
       isModel: true,
+      scrub: m.scrub,
       modelUrl: "models/" + m.file,
       icon: m.icon
     });
