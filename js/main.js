@@ -994,7 +994,7 @@ function refreshTheme() {
   refreshFlyers();
 }
 
-/** Surprise me: after every run (or after a while) the look changes to a different season, and a toast says so. */
+/** Surprise me: after every run (or after a while) the look changes to a different season, quietly: no popup or toast. */
 function maybeRerollTheme() {
   if ((storage.get('uiTheme') || 'surprise') !== 'surprise') return;
   if (!rerollDue(themeRoll.runs, themeRoll.at, Date.now())) return;
@@ -1002,8 +1002,6 @@ function maybeRerollTheme() {
   themeRoll.runs = 0;
   themeRoll.at = Date.now();
   refreshTheme();
-  var name = document.documentElement.getAttribute('data-theme-name');
-  if (name) ui._showToast('🎨 Fresh look: ' + name);
 }
 
 /** Fill the account section of the Profile tab, and add the invitation when signed out. */
