@@ -120,7 +120,7 @@ Now and then the results screen offers one small card: share the game with a fri
 
 ## Card quality
 
-Cards are checked when the app loads (`js/cards.js`, `js/cardschema.js`). The validator drops a card only if it is broken (bad subject, missing answer, not exactly two different distractors, fewer than two usable clues). It also removes any clue that gives the answer away (`js/cardleaks.js`): a clue leaks when it contains the whole answer or a word distinctive to the answer. Matching is by whole words, and words that are common across the deck's answers ("syndrome", "acute", "tumor") are treated as categories, not giveaways. `npm run audit:cards` prints what the validator did (add `--weak`, `--cut` or `--dups` for lists); cards whose clues all repeat their title are flagged "weak" and kept, and a test stops that list growing.
+Cards are checked when the app loads (`js/cards.js`, `js/cardschema.js`). The validator drops a card only if it is broken (bad subject, missing answer, not exactly two different distractors, fewer than two usable clues). It also removes any clue that gives the answer away (`js/cardleaks.js`): a clue leaks when it contains the whole answer or a word distinctive to the answer. Matching is by whole words, and words that are common across the deck's answers ("syndrome", "acute", "tumor") are treated as categories, not giveaways. `npm run audit:cards` prints what the validator did (add `--weak`, `--cut` or `--dups` for lists); cards whose clues all repeat their title are flagged "weak" and kept, and a test stops that list growing. Every one of the 3,010 cards has at least three clues, none is cut mid-sentence, and a card shows at most 260 characters of clues so it fits a phone screen (tests enforce all of this).
 
 ## Scoring
 
