@@ -1,12 +1,10 @@
-/* global localStorage, sessionStorage */
+/* global localStorage, sessionStorage, document */
 // tools/make-screenshots.mjs — captioned portrait store screenshots.
 //
 //   npm run build && npx vite preview --port 4190 &   (then)
 //   node tools/make-screenshots.mjs [http://localhost:4190]
 //
-// Writes assets/store/screenshots/NN-name.png (1080x1920). Uses software
-// WebGL, so the 3D frames look like the game at its lowest quality setting;
-// replace them with real-device captures before launch if you want the best look.
+// Writes assets/store/screenshots/NN-name.png (1080x1920).
 
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
@@ -18,7 +16,7 @@ const outDir = 'assets/store/screenshots';
 fs.mkdirSync(outDir, { recursive: true });
 for (const old of fs.readdirSync(outDir)) if (old.endsWith('.png')) fs.unlinkSync(outDir + '/' + old);
 
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 await page.goto(base + '/?debug=1');
 const skip = async () => {
@@ -57,7 +55,7 @@ await page.addInitScript(() => {
     p.equipped.monster = o.monster;
     d.settings.selectedSubjects = o.subjects;
     d.settings.preferredMap = o.map;
-    d.settings.quality = 'medium';
+    d.settings.quality = 'high';
     localStorage.setItem(key, JSON.stringify(d));
   } catch { /* ignore */ }
 });
@@ -69,29 +67,67 @@ const setup = async (opts) => {
   console.log('equipped', await page.evaluate(() => { const d = JSON.parse(localStorage.getItem('buzzword_dash_v1') || '{}'); return d.progression && d.progression.equipped.skin + ' ' + d.settings.quality; }));
 };
 
-const run = async (opts, name, caption, sub, waitMs) => {
-  await setup(opts);
-  await page.locator('.btn-play').click();
-  await page.waitForTimeout(waitMs);
-  await snap(name, caption, sub);
-  await page.evaluate("try { window.__game.endRun && window.__game.endRun(); } catch (err) {}");
+// Questions that read oddly out of context (management / "what to start" items) are skipped:
+// the shots should show a classic vignette-to-diagnosis question.
+const ODD = /toast|pregnan|perioperative|management|treatment|prevention|prophyla|therapy|start|continu|counsel|screening|dose/i;
+const gateText = () => page.evaluate(() => {
+  const ids = ['buzzText', 'ansText0', 'ansText1', 'ansText2'];
+  const t = ids.map((id) => (document.getElementById(id) || {}).textContent || '').join(' | ');
+  return /closing in|Get ready|GET READY/i.test(document.body.innerText) ? 'toast ' + t : t;
+});
+const endRun = async () => {
+  await page.evaluate('try { window.__game.endRun && window.__game.endRun(); } catch (err) {}');
   await page.waitForTimeout(1500);
 };
 
-await setup({ skin: 'avatar_intern', monster: 'monster_classic', subjects: [], map: '' });
-await snap('home', 'Run the list.', 'Board questions, at a sprint');
+// A run frame with a clean question on screen (retries with a new run when the question is odd)
+const run = async (opts, name, caption, sub, waitMs) => {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    await setup(opts);
+    await page.locator('.btn-play').click();
+    await page.waitForTimeout(waitMs);
+    const text = await gateText();
+    if (!ODD.test(text) && /\S/.test(text.replace(/\|/g, ''))) {
+      console.log('question: ' + text);
+      await snap(name, caption, sub);
+      await endRun();
+      return;
+    }
+    console.log('skipping question: ' + text);
+    await endRun();
+  }
+  throw new Error('no clean question found for ' + name);
+};
 
-await run({ skin: 'avatar_m_ninja', monster: 'monster_m_demon', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
-  'run-cardio', 'Dodge. Dash. Dx.', 'Pick the diagnosis lane at full speed', 10000);
+// The case review after a real stretch of play
+const results = async (opts, name, caption, sub) => {
+  await setup(opts);
+  await page.locator('.btn-play').click();
+  await page.waitForTimeout(50000);
+  await endRun();
+  await page.waitForTimeout(1500);
+  const toggle = page.locator('#postRunContent .collapsible-toggle').first();
+  if (await toggle.isVisible().catch(() => false)) await toggle.click();
+  await page.waitForTimeout(500);
+  await snap(name, caption, sub);
+};
+
+await run({ skin: 'avatar_m_ninja', monster: 'monster_m_demon', subjects: ['Infectious Disease'], map: 'Neon ER' },
+  'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
 await run({ skin: 'avatar_m_wizard', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
-  'run-neuro', 'Pick your hero', '12 animated 3D characters to unlock', 10000);
-await run({ skin: 'avatar_m_robot', monster: 'monster_m_yeti', subjects: ['Pulmonology'], map: 'Neon ER' },
-  'run-er', 'Outrun the exam monster', 'Six monsters, twelve themed tracks', 14000);
+  'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
+await results({ skin: 'avatar_m_robot', monster: 'monster_m_yeti', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
+  'review', 'Learn from every miss', 'Quick explanations, then it comes back');
 
 await setup({ skin: 'avatar_m_king', monster: 'monster_classic', subjects: [], map: '' });
+await page.locator('[data-screen="screenHome"]').click().catch(() => {});
+await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
+await page.waitForTimeout(1500);
+await snap('goals', 'Build a daily streak', 'Short goals that keep you consistent');
+
 await page.locator('[data-screen="screenShop"]').click();
 await page.waitForTimeout(3500);
-await snap('locker', 'Unlock 3D characters', 'Plus trails, vehicles and monsters');
+await snap('rewards', 'Earn rewards as you improve', 'Coins from correct answers unlock new looks');
 
 await browser.close();
 
@@ -103,7 +139,7 @@ for (const f of frames) {
   const shot = await sharp(f.buf).resize(shotW, shotH, { fit: 'cover', position: 'top' })
     .composite([{ input: Buffer.from(`<svg width="${shotW}" height="${shotH}"><rect width="${shotW}" height="${shotH}" rx="56" fill="#fff"/></svg>`), blend: 'dest-in' }]).png().toBuffer();
   const label = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${CAP}">
-    <text x="${W / 2}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="${f.caption.length > 18 ? 72 : 82}" font-weight="900" fill="${WHITE}" text-anchor="middle">${f.caption}</text>
+    <text x="${W / 2}" y="150" font-family="Arial, Helvetica, sans-serif" font-size="${Math.min(82, Math.floor(940 / (f.caption.length * 0.6)))}" font-weight="900" fill="${WHITE}" text-anchor="middle">${f.caption}</text>
     <text x="${W / 2}" y="240" font-family="Arial, Helvetica, sans-serif" font-size="44" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
   await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
     .composite([{ input: label, top: 0, left: 0 }, { input: shot, top: CAP, left: PAD }])
