@@ -7,6 +7,7 @@
  */
 
 import * as THREE from 'three';
+import { softDotTexture } from './materials.js';
 
 export var HALL_BAY = 4;
 export var HALL_PERIOD = 16;
@@ -20,6 +21,63 @@ function box(g, w, h, d, color, x, y, z, opts) {
   m.position.set(x, y, z);
   g.add(m);
   return m;
+}
+
+// ---------- painted surfaces: tiles with grout, and soft pools of light on the floor ----------
+var _tex = {};
+
+/** A tile pattern drawn on a canvas (null where canvases are unavailable, e.g. in unit tests). */
+function tileTexture(key, tiles, checker) {
+  if (_tex[key] !== undefined) return _tex[key];
+  var t = null;
+  if (typeof document !== 'undefined') {
+    var canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 128;
+    var ctx = canvas.getContext && canvas.getContext('2d');
+    if (ctx) {
+      var n = tiles;
+      var size = 128 / n;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 128, 128);
+      for (var i = 0; i < n; i++) {
+        for (var j = 0; j < n; j++) {
+          // each tile a touch lighter or darker, with a soft highlight along its top edge
+          var shade = checker ? ((i + j) % 2 ? 0.9 : 1) : 0.94 + ((i * 7 + j * 13) % 5) * 0.012;
+          ctx.fillStyle = 'rgba(' + Math.round(255 * shade) + ',' + Math.round(255 * shade) + ',' + Math.round(255 * shade) + ',1)';
+          ctx.fillRect(i * size + 1.5, j * size + 1.5, size - 3, size - 3);
+          ctx.fillStyle = 'rgba(255,255,255,0.35)';
+          ctx.fillRect(i * size + 2, j * size + 2, size - 4, 2);
+        }
+      }
+      ctx.strokeStyle = 'rgba(40,60,70,0.55)';
+      ctx.lineWidth = 3;
+      for (var k = 0; k <= n; k++) {
+        ctx.beginPath(); ctx.moveTo(k * size, 0); ctx.lineTo(k * size, 128); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, k * size); ctx.lineTo(128, k * size); ctx.stroke();
+      }
+      t = new THREE.CanvasTexture(canvas);
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.anisotropy = 4;
+      if (THREE.SRGBColorSpace) t.colorSpace = THREE.SRGBColorSpace;
+    }
+  }
+  _tex[key] = t;
+  return t;
+}
+
+/** Give a wall slab or floor panel a tiled surface. */
+function texture(mesh, tex, rx, ry) {
+  if (!tex) return mesh;
+  var ck = tex.uuid + '_' + rx + '_' + ry;
+  var t = _tex[ck];
+  if (!t) {
+    t = _tex[ck] = tex.clone();
+    t.needsUpdate = true;
+    t.repeat.set(rx, ry);
+  }
+  mesh.material.map = t;
+  mesh.material.needsUpdate = true;
+  return mesh;
 }
 
 function cylinder(g, r, h, color, x, y, z, rotZ, rotX) {
@@ -200,7 +258,9 @@ export function buildHallWallBay(skin, side, z) {
   var k = bayIndex(z);
 
   // wall, teal lower panel, handrail and crown
-  box(g, 0.3, HALL_HEIGHT, HALL_BAY, c.wallA, side * 5.65, HALL_HEIGHT / 2, z);
+  var slab = box(g, 0.3, HALL_HEIGHT, HALL_BAY, c.wallA, side * 5.65, HALL_HEIGHT / 2, z);
+  var wallTiles = { room_or: 4, room_lab: 3, hospital_hall: 2, room_bay: 2 }[skin.wallType];
+  texture(slab, tileTexture('wall' + skin.wallType, wallTiles || 2, false), skin.wallType === 'room_bay' ? 2 : 3, 4);
   box(g, 0.08, 1.15, HALL_BAY, c.wallB, xin(0.04), 0.575, z);
   box(g, 0.1, 0.08, HALL_BAY, 0xc4ced2, xin(0.13), 1.2, z);
   box(g, 0.1, 0.22, HALL_BAY, c.wallB, xin(0.05), HALL_HEIGHT - 0.2, z);
@@ -211,6 +271,20 @@ export function buildHallWallBay(skin, side, z) {
   if (side < 0) {
     // ceiling with two light panels per bay, built once (from the left side)
     box(g, 11.6, 0.3, HALL_BAY, c.archMain, 0, HALL_HEIGHT + 0.1, z);
+    // tiled floor panel for this bay (it scrolls with the walls, so the floor seems to rush past)
+    var floorTiles = new THREE.Mesh(new THREE.PlaneGeometry(12, HALL_BAY), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: skin.wallType === 'room_bay' ? 0.1 : 0.34, depthWrite: false }));
+    floorTiles.rotation.x = -Math.PI / 2;
+    floorTiles.position.set(0, 0.008, z);
+    texture(floorTiles, tileTexture('floor' + skin.groundType, 2, true), 6, 2);
+    g.add(floorTiles);
+    // soft pools of light under each ceiling panel
+    var dot = softDotTexture();
+    [-2.4, 2.4].forEach(function (px) {
+      var pool = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 5.2), new THREE.MeshBasicMaterial({ color: skin.wallType === 'room_bay' ? 0xfff0c0 : 0xffffff, map: dot, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending }));
+      pool.rotation.x = -Math.PI / 2;
+      pool.position.set(px, 0.02, z);
+      g.add(pool);
+    });
     box(g, 1.3, 0.06, 2.6, 0xffffff, -2.4, HALL_HEIGHT - 0.08, z);
     box(g, 1.3, 0.06, 2.6, 0xffffff, 2.4, HALL_HEIGHT - 0.08, z);
   }
