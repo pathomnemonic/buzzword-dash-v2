@@ -1045,6 +1045,15 @@ function init() {
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
+  // Dash: double-tap, an on-screen button, or off (Settings -> Look -> Dash control)
+  var dashBtn = document.getElementById('dashBtn');
+  function applyDashControl() { if (dashBtn) dashBtn.hidden = (storage.get('dashControl') || 'double') !== 'button'; }
+  if (dashBtn) {
+    dashBtn.addEventListener('pointerdown', function (e) { e.preventDefault(); game.addRushStack(); });
+    dashBtn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); game.addRushStack(); } });
+  }
+  applyDashControl();
+  document.addEventListener('dx:controls-changed', applyDashControl);
   // Profile tab: the account section, and an invitation for signed-out players to make an account
   document.addEventListener('dx:profile-opened', fillProfileAccount);
   initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile']);

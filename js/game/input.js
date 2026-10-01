@@ -107,6 +107,7 @@ var DOUBLE_TAP_INTERVAL = 350; // ms
  * @param {object} [options] - Configuration
  * @param {boolean|function} [options.enabled] - Whether input is active (can be a function)
  * @param {boolean} [options.reducedMotion] - If true, may adjust input sensitivity
+ * @param {boolean|function} [options.doubleTap] - Whether a double tap dashes (can be a function; default true)
  * @param {object} [options.keyBindings] - Custom key bindings override
  * @returns {function} Dispose function that removes all listeners
  */
@@ -151,9 +152,10 @@ export function setupInput(element, handlers, options) {
     pointerStartY = e.clientY;
     swiped = false;
 
-    // Double-tap detection for rush
+    // Double-tap detection for rush (a setting can turn it off or move it to an on-screen button)
     var now = performance.now();
-    if (now - lastTapTime < DOUBLE_TAP_INTERVAL) {
+    var doubleTapOn = typeof options.doubleTap === 'function' ? options.doubleTap() : options.doubleTap !== false;
+    if (doubleTapOn && now - lastTapTime < DOUBLE_TAP_INTERVAL) {
       if (handlers.rush) handlers.rush();
     }
     lastTapTime = now;

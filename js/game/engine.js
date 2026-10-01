@@ -441,7 +441,8 @@ class Game {
         rush: function() { self.addRushStack(); },
         pause: function() { self.togglePause(); }
     }, {
-        enabled: function() { return self._state === GAME_STATES.PLAYING; }
+        enabled: function() { return self._state === GAME_STATES.PLAYING; },
+        doubleTap: function() { return (storage.get('dashControl') || 'double') === 'double'; }
     });
 
     // Moving keys are ignored while paused, but Escape must be able to un-pause

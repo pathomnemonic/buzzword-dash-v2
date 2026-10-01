@@ -27,16 +27,22 @@ export function isTouchFirst(env) {
 }
 
 /** Sentences for each control, in the right style for this device. */
-export function getControlText(touchFirst) {
+export function getControlText(touchFirst, dashControl) {
   if (touchFirst === undefined) touchFirst = isTouchFirst();
   if (touchFirst) {
+    // The dash can be a double tap, an on-screen button, or off (Settings -> Look -> Dash control)
+    var dash = dashControl === 'button'
+      ? { rush: 'Tap the Dash button to rush', rushVerb: 'Tap the DASH button' }
+      : dashControl === 'off'
+        ? { rush: '', rushVerb: '' }
+        : { rush: 'Double-tap to rush', rushVerb: 'Double-tap' };
     return {
       touch: true,
       move: 'Swipe left or right to switch lanes.',
       jump: 'Swipe up to jump',
       slide: 'Swipe down to slide',
-      rush: 'Double-tap to rush',
-      rushVerb: 'Double-tap',
+      rush: dash.rush,
+      rushVerb: dash.rushVerb,
       intro: 'swipe into the correct diagnosis gate'
     };
   }

@@ -1340,7 +1340,8 @@ class UI {
     audio.play('countdown');
 
     if (tip) {
-      setText(tip, '💡 Know the answer? ' + getControlText().rushVerb.toUpperCase() + ' to RUSH through! ⚡ Faster = more points');
+      var rushVerb = getControlText(undefined, storage.get('dashControl')).rushVerb;
+      setText(tip, rushVerb ? '💡 Know the answer? ' + rushVerb.toUpperCase() + ' to RUSH through! ⚡ Faster = more points' : '💡 Read the clue, then run into the right gate');
       tip.style.opacity = '1';
     }
 

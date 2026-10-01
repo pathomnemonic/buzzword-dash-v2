@@ -72,11 +72,13 @@ Rush can be stacked up to 3 times while an encounter is active. Each stack incre
 | **Friend challenge** | Play 15 fresh cards, then send a link; friends play the same cards and compare. Any time, no sign-up. |
 | **Versus** | Multiplayer via peer-to-peer WebRTC. |
 
-Daily 15, the Weekly Gauntlet and Friend challenges are deliberately not on a leaderboard: many players finish a fixed set perfectly, so a board would just be a wall of ties. Leaderboards are for Endless, Weakness and Versus.
+Daily 15, the Weekly Gauntlet and Friend challenges are deliberately not on a leaderboard: many players finish a fixed set perfectly, so a board would just be a wall of ties. Leaderboards are for Endless, Weakness and Versus, and show each player's single best run per mode (the app only sends a run that beats your best, and the database keeps one row per player, mode and season; run `database/schema.sql` in Supabase to apply that rule).
 
 ### The Home screen
 
 Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), the big PLAY button with **Filters** (subjects, exam and advanced filters, plus game speed) on its left and **Quests** on its right, both popups, and a "How to play" link that opens the guided tutorial. Three ways to play sit below: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free) and **Challenge** (a popup explaining Study, Weakness, Daily 15, Weekly Gauntlet, Friend challenge and Exam Sim). The tab bar is Stats, Locker, **Home** (center), Cards and Profile (with your streak calendar and badges). Swipe left or right to move between tabs; a slim indicator along the top of the tab bar shows where you are.
+
+Dash: double-tap by default, or choose an on-screen Dash button (or turn it off) in Settings -> Look -> Dash control. The run looks fast (walls, floor, scenery and legs move about 2.2x faster) while the time to each gate is unchanged. During the 3-2-1 the scene stays visible, so you can see your runner's face and the monster behind them.
 
 Controls feel forgiving: jumps hang in the air for about a second and slides last nearly a second. Jumping cancels a slide, and sliding in the air drops you fast and slides on landing. Animated characters use their own roll or crouch animation to slide, never a faceplant.
 

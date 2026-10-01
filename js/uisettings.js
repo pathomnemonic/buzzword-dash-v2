@@ -63,6 +63,7 @@ export var settingsMethods = {
         { key: 'uiTheme', label: '🎨 Colors', desc: 'Surprise me keeps the fun purple arcade look but switches to a different season\'s colors after every run. Seasonal follows the date. Or pick a season by hand, or Classic for the original colors.', type: 'select', options: THEME_CHOICES },
         { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
         { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
+        { key: 'dashControl', label: '⚡ Dash control', desc: 'How you dash toward the answer gates. Double-tap the screen, use an on-screen Dash button (handy if double-taps trigger by accident), or turn dashing off. The keyboard Space and Shift keys always dash on a computer.', type: 'select', options: [['double', 'Double-tap the screen'], ['button', 'On-screen Dash button'], ['off', 'Off']] },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
         { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
         { key: 'glowEffects', label: '✨ Glow effects', desc: 'A soft glow around bright things. It looks great but makes the game noticeably more demanding: it can slow older laptops and drain a phone battery faster. Off by default.', type: 'toggle' },
@@ -138,6 +139,7 @@ export var settingsMethods = {
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
           if (s.key === 'uiTheme') document.dispatchEvent(new CustomEvent('dx:theme-changed'));
+          if (s.key === 'dashControl') document.dispatchEvent(new CustomEvent('dx:controls-changed'));
           if (s.key === 'quality') {
             storage.set('perfHint', '');
             storage.set('perfStrikes', 0);

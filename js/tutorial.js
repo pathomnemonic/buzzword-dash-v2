@@ -13,6 +13,7 @@
 import { createElement, clearElement } from './dom.js';
 import { setupInput } from './game/input.js';
 import { getControlText } from './controlhints.js';
+import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 
 var MIN_LANE = 0;
@@ -43,8 +44,8 @@ export var REFERENCE = [
  * The tutorial's steps, worded for this device (touch or keyboard).
  * @param {object} [controls] result of getControlText()
  */
-export function buildSteps(controls) {
-  var c = controls || getControlText();
+export function buildSteps(controls, dashControl) {
+  var c = controls || getControlText(undefined, dashControl);
   var t = c.touch;
   return [
     { id: 'welcome', kind: 'info', icon: 'Dx', title: 'Welcome to Dx Dash!',
@@ -62,8 +63,8 @@ export function buildSteps(controls) {
     { id: 'slide', kind: 'action', action: 'slide', obstacle: 'overhead', title: 'Slide',
       prompt: t ? '👇 Swipe down' : '⬇ Press ↓ or S',
       text: 'Slide under hanging lights and signs.' },
-    { id: 'rush', kind: 'action', action: 'rush', title: 'Rush',
-      prompt: t ? '👆👆 Double-tap' : 'Press Shift or Space',
+    { id: 'rush', kind: 'action', action: 'rush', title: 'Rush', dashButton: t && dashControl === 'button',
+      prompt: t ? (dashControl === 'button' ? '⚡ Tap the Dash button' : '👆👆 Double-tap') : 'Press Shift or Space',
       text: 'Sure of the answer? Rush through the gate for bonus points. Obstacles cannot hurt you while you rush.' },
     { id: 'answer', kind: 'answer', title: 'Pick the diagnosis',
       text: 'Read the clue, then ' + c.intro + '. Stay in a lane for a moment to lock it in.' },
@@ -94,7 +95,7 @@ export function startTutorial(opts) {
   var overlay = document.getElementById('tutorialOverlay');
   if (!overlay || _session) return;
 
-  var steps = buildSteps();
+  var steps = buildSteps(undefined, storage.get('dashControl')).filter(function (s) { return !(s.id === 'rush' && getControlText(undefined, storage.get('dashControl')).touch && storage.get('dashControl') === 'off'); });
   var index = 0;
   var lane = CENTER_LANE;
   var locked = false;
@@ -241,6 +242,11 @@ export function startTutorial(opts) {
     runner = createElement('div', { className: 'tut-runner', text: '🏃', attributes: { 'aria-hidden': 'true' } });
     runner.style.setProperty('--lane', String(lane));
     arena.appendChild(runner);
+    if (step.dashButton) {
+      var dashPractice = createElement('button', { className: 'tut-dash', text: '⚡ DASH', attributes: { type: 'button', id: 'tutDashBtn' } });
+      dashPractice.addEventListener('pointerdown', function (e) { e.stopPropagation(); act('rush'); });
+      arena.appendChild(dashPractice);
+    }
     if (step.prompt) {
       arena.appendChild(createElement('div', { className: 'tut-prompt', text: step.prompt, attributes: { role: 'status' } }));
     }
@@ -315,7 +321,7 @@ export function startTutorial(opts) {
     overlay.appendChild(card);
     // Keyboard focus goes to the track on practice steps so keys act on the track, never on a button.
     if (arena) {
-      disposeInput = setupInput(arena, inputHandlers, { enabled: function () { return !closed && !locked; } });
+      disposeInput = setupInput(arena, inputHandlers, { enabled: function () { return !closed && !locked; }, doubleTap: function () { return !(steps[index] && steps[index].dashButton); } });
       try { arena.focus({ preventScroll: true }); } catch (e) { /* best effort */ }
     }
     else if (primary) primary.focus();
