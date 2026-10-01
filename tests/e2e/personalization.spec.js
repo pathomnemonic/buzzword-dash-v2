@@ -29,6 +29,6 @@ test.describe('Personalization', () => {
 
     await page.getByRole('tab', { name: /Customize/ }).click();
     await expect(page.getByText(/Equipped: .* · Animated 3D character/)).toBeVisible();
-    await expect(page.getByText(/switch to a Classic character/i)).toBeVisible();
+    await expect(page.getByText(/Scrub color/)).toBeVisible();
   });
 });
