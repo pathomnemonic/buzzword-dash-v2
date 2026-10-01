@@ -563,6 +563,14 @@ class Game {
         enabled: function() { return self._state === GAME_STATES.PLAYING; }
     });
 
+    // Moving keys are ignored while paused, but Escape must be able to un-pause
+    // (The state is noted before the normal key handler runs, so one press never pauses and resumes.)
+    var pausedBeforeKey = false;
+    window.addEventListener('keydown', function () { pausedBeforeKey = self._state === GAME_STATES.PAUSED; }, true);
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && pausedBeforeKey) self.resume('user');
+    });
+
     // NOTE: No renderer.setAnimationLoop() here.
     // main.js owns the render loop and calls game.update() and game.render().
 

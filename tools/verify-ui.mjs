@@ -1,4 +1,4 @@
-/* global localStorage, window, document */
+/* global localStorage, window, document, innerWidth, innerHeight */
 // tools/verify-ui.mjs — plays through the parts of the UI that have broken before and checks each one.
 //
 //   npm run build && npx vite preview --port 4190 &   (then)
@@ -136,6 +136,69 @@ const inView = (page, sel) => page.evaluate((s) => {
   check('A run draws about 30 frames a second by default', frames > 20 && frames < 36, frames.toFixed(1) + ' fps');
   const fx = await page.evaluate(() => ({ degraded: window.__game._postfx ? !!window.__game._postfx.degraded : null, strikes: window.__storage.get('perfStrikes'), hint: window.__storage.get('perfHint') }));
   check('The 30 fps cap does not switch the glow off or lower the graphics tier', fx.degraded !== true && !fx.strikes && !fx.hint, JSON.stringify(fx));
+  await ctx.close();
+}
+
+// ---------- Keyboard controls and resizing during a run ----------
+{
+  const { ctx, page, errors } = await open({ width: 1100, height: 700 });
+  await page.locator('.btn-play').click();
+  await page.waitForTimeout(8000);
+  const lane0 = await page.evaluate(() => window.__game.targetLane);
+  await page.keyboard.press('ArrowLeft');
+  await page.waitForTimeout(150);
+  const laneL = await page.evaluate(() => window.__game.targetLane);
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(150);
+  const laneR = await page.evaluate(() => window.__game.targetLane);
+  check('Arrow keys change lanes', laneL === lane0 - 1 && laneR === Math.min(2, laneL + 2), lane0 + ' -> ' + laneL + ' -> ' + laneR);
+  await page.keyboard.press('ArrowUp');
+  await page.waitForTimeout(100);
+  check('Up arrow jumps', await page.evaluate(() => window.__game.jumping));
+  await page.waitForTimeout(900);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(100);
+  check('Down arrow ducks', await page.evaluate(() => window.__game.sliding));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  check('Escape pauses', (await page.evaluate('window.__game._state')) === 'paused' && await page.locator('#pauseOverlay.active').count() === 1);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  check('Escape again resumes', (await page.evaluate('window.__game._state')) === 'playing' && await page.locator('#pauseOverlay.active').count() === 0);
+  await page.setViewportSize({ width: 600, height: 900 });
+  await page.waitForTimeout(600);
+  const sized = await page.evaluate(() => { const c = document.querySelector('#gameContainer canvas'); return { cssW: c.clientWidth, cssH: c.clientHeight, w: innerWidth, h: innerHeight }; });
+  check('The 3D view follows the window size', Math.abs(sized.cssW - sized.w) <= 2 && Math.abs(sized.cssH - sized.h) <= 2, JSON.stringify(sized));
+  check('No script errors with the keyboard and resizing', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
+// ---------- Swipes and double-tap on the game view ----------
+{
+  const { ctx, page, errors } = await open({ width: 420, height: 800 });
+  await page.locator('.btn-play').click();
+  await page.waitForTimeout(8000);
+  const swipe = async (dx, dy) => {
+    await page.mouse.move(210, 500);
+    await page.mouse.down();
+    await page.mouse.move(210 + dx / 2, 500 + dy / 2, { steps: 3 });
+    await page.mouse.move(210 + dx, 500 + dy, { steps: 3 });
+    await page.mouse.up();
+    await page.waitForTimeout(150);
+  };
+  const before = await page.evaluate(() => window.__game.targetLane);
+  await swipe(-120, 0);
+  const afterLeft = await page.evaluate(() => window.__game.targetLane);
+  await swipe(120, 0);
+  const afterRight = await page.evaluate(() => window.__game.targetLane);
+  check('Swiping moves between lanes', afterLeft === Math.max(0, before - 1) && afterRight === Math.min(2, afterLeft + 1), before + ' -> ' + afterLeft + ' -> ' + afterRight);
+  await swipe(0, -120);
+  check('Swiping up jumps', await page.evaluate(() => window.__game.jumping));
+  await page.waitForTimeout(1000);
+  await swipe(0, 120);
+  check('Swiping down ducks', await page.evaluate(() => window.__game.sliding));
+  check('No script errors with swipes', errors.length === 0, errors.join(' | '));
   await ctx.close();
 }
 

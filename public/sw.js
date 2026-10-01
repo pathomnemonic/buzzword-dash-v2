@@ -1,5 +1,5 @@
 // Offline support: network-first for pages, cache-first for hashed assets.
-const CACHE = 'buzzword-dash-v1';
+const CACHE = 'dx-dash-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
