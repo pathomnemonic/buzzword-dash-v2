@@ -27,17 +27,24 @@ import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
-import { reportError } from './errors.js';
+import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
+import { registerServiceWorker } from './swregister.js';
+import { isTutorialOpen, skipTutorial } from './tutorial.js';
+import { mountProfileCorner } from './profilecorner.js';
+import { attachPromptCard } from './promptui.js';
+import { initTabSwipe } from './tabswipe.js';
+import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
+import { mountFlyers } from './homefx.js';
+import { updateAttentionDots } from './attentiondots.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
-import { getControlText } from './controlhints.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
-import { SHOP_ITEMS } from './game/shopdata.js';
+import { SHOP_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
-import { pickTheme, applyTheme } from './theme.js';
+import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
 import { installChunkRecovery } from './chunkrecovery.js';
@@ -60,6 +67,9 @@ var multiplayerResultShown = false;
 var runStartTime = 0;
 var currentRunId = null;
 var lastRunReward = null;
+var lastRunNewBest = false;
+var GAUNTLET_REWARD = 150;
+var GAUNTLET_LIVES = 2;
 var runFinalized = false;
 
 // =========================================================================
@@ -93,60 +103,11 @@ function setupCollapsibles() {
 
   if (subjectToggle && subjectBody) {
     subjectToggle.addEventListener('click', function () {
-      var isOpen = subjectBody.style.display !== 'none';
-      subjectBody.style.display = isOpen ? 'none' : 'block';
+      // The section starts closed (the `hidden` attribute); the first tap must open it
+      var isOpen = !subjectBody.hidden;
+      subjectBody.hidden = isOpen;
+      subjectToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
       if (subjectArrow) subjectArrow.classList.toggle('open', !isOpen);
-    });
-  }
-}
-
-// =========================================================================
-//  FIRST-RUN ONBOARDING
-// =========================================================================
-function showOnboarding() {
-  var overlay = document.getElementById('onboardingOverlay');
-  if (!overlay) return;
-
-  var pages = [
-    { icon: 'Dx', title: 'Welcome to Dx Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
-    { icon: '\uD83D\uDC46', title: getControlText().touch ? 'Swipe to Move' : 'Use the Keyboard', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!' : 'Arrow keys or A/D switch lanes, up/W jumps, down/S slides. Press Shift or Space to rush for bonus points!', hand: getControlText().touch ? '\uD83D\uDC48\uD83D\uDC49' : '\u2328\uFE0F' },
-    { icon: '\uD83C\uDFC6', title: 'Build Your Streak!', text: 'Correct answers build your streak and multiplier. Collect coins, unlock avatars, and climb the leaderboard!', hand: '' }
-  ];
-  var currentPage = 0;
-
-  function renderPage() {
-    var p = pages[currentPage];
-    var icon = document.getElementById('obIcon');
-    var title = document.getElementById('obTitle');
-    var text = document.getElementById('obText');
-    var hand = document.getElementById('obHand');
-    var dots = document.getElementById('obDots');
-    var btn = document.getElementById('obNextBtn');
-    if (icon) icon.textContent = p.icon;
-    if (title) title.textContent = p.title;
-    if (text) text.textContent = p.text;
-    if (hand) { hand.textContent = p.hand; hand.style.display = p.hand ? 'inline-block' : 'none'; }
-    if (dots) {
-      dots.innerHTML = pages.map(function (_, i) {
-        return '<div class="tut-dot ' + (i === currentPage ? 'active' : '') + '"></div>';
-      }).join('');
-    }
-    if (btn) btn.textContent = currentPage === pages.length - 1 ? 'Let\'s Go! \u2713' : 'Next \u2192';
-  }
-
-  overlay.classList.add('active');
-  renderPage();
-
-  var btn = document.getElementById('obNextBtn');
-  if (btn) {
-    btn.addEventListener('click', function () {
-      currentPage++;
-      if (currentPage >= pages.length) {
-        overlay.classList.remove('active');
-        storage.set('firstRunComplete', true);
-      } else {
-        renderPage();
-      }
     });
   }
 }
@@ -189,17 +150,8 @@ function hideOpponentHud() {
 }
 
 function showMultiplayerMessage(message, color) {
-  var popup = document.createElement('div');
-  popup.textContent = message;
-  popup.style.cssText =
-    'position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:40;' +
-    'padding:12px 20px;border-radius:14px;background:rgba(10,5,30,0.94);' +
-    'border:2px solid ' + (color || 'var(--accent-cyan)') + ';color:#fff;' +
-    'font-size:14px;font-weight:800;text-align:center;pointer-events:none;' +
-    'transition:opacity .4s ease;';
-  document.body.appendChild(popup);
-  setTimeout(function () { popup.style.opacity = '0'; }, 1800);
-  setTimeout(function () { popup.remove(); }, 2300);
+  // Same out-of-the-way chip as the map names and hazards (see ui.showNotice)
+  ui.showNotice(message, { color: color || 'var(--accent-cyan)', ms: 2200 });
 }
 
 function scheduleVersusStart(config) {
@@ -457,7 +409,7 @@ function startTournament() {
     var challenge = mods[0];
     var seed = challenge.tournamentSeed(challenge.isoWeekKey());
     var plan = mods[1].buildEncounterPlan({ seed: seed, cards: CARDS, count: challenge.TOURNAMENT_SIZE });
-    launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false });
+    launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false, lives: GAUNTLET_LIVES });
   }).catch(function (e) {
     reportError(e, { system: 'tournament', operation: 'start', recoverable: true });
   });
@@ -471,31 +423,6 @@ function addPostRunBox(builder) {
   box.style.cssText = 'margin:12px 0;padding:12px;border-radius:12px;border:2px solid var(--accent-gold);text-align:center';
   builder(box);
   content.insertBefore(box, content.children[1] || null);
-}
-
-/** After a tournament run: show rank, award the top-10% badge, tell friends. */
-function showTournamentStanding(summary) {
-  var lb = leaderboardModule.leaderboard;
-  var season = lb.getSeasonKey();
-  lb.getSeasonStanding('tournament', season).then(function (standing) {
-    if (!standing) return;
-    var pct = Math.max(1, Math.round(standing.rank / standing.total * 100));
-    var top10 = standing.total >= 10 && standing.rank <= Math.ceil(standing.total * 0.1);
-    var newlyEarned = top10 && storage.recordTournamentTop10(season);
-    addPostRunBox(function (box) {
-      var line = document.createElement('div');
-      line.style.cssText = 'font-size:14px;font-weight:800';
-      line.textContent = '\uD83C\uDFC6 Weekly tournament: #' + standing.rank + ' of ' + standing.total + ' (top ' + pct + '%)';
-      box.appendChild(line);
-      if (top10) {
-        var badge = document.createElement('div');
-        badge.style.cssText = 'margin-top:6px;color:var(--accent-gold);font-weight:800';
-        badge.textContent = newlyEarned ? '\uD83C\uDFC5 Top 10% badge earned!' : '\uD83C\uDFC5 Top 10% this week';
-        box.appendChild(badge);
-      }
-    });
-    throttledActivity('tournament', { name: storage.get('profileName'), score: summary.score, rank: standing.rank, total: standing.total });
-  });
 }
 
 /** Post at most one activity event per kind per hour. */
@@ -639,6 +566,19 @@ function attachTipPrompt() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
   var total = game.correct + game.wrong;
+  // Share / rate / account asks come first; only one ask per results screen, so the tip waits its turn
+  var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
+  var lbStatus = lb ? lb.getStatus() : null;
+  var asked = attachPromptCard({
+    container: content,
+    storage: storage,
+    run: { correct: game.correct, accuracy: total > 0 ? Math.round(game.correct / total * 100) : 0, newBest: lastRunNewBest },
+    signedIn: !!(lbStatus && lbStatus.email && !lbStatus.anonymous),
+    accountsAvailable: !!(lbStatus && lbStatus.configured),
+    openAccount: function () { if (profileCorner) profileCorner.open(); },
+    toast: function (m) { ui._showToast(m); }
+  });
+  if (asked) return;
   var shouldShow = shouldShowTipPrompt({
     tipUrl: getTipUrl(),
     optedOut: !!storage.get('tipPromptOff'),
@@ -677,7 +617,7 @@ function attachTipPrompt() {
 
 var MODE_LABELS = {
   endless: 'Endless', study: 'Study', weakness: 'Weakness', daily: 'Daily Challenge',
-  challenge: 'Challenge', tournament: 'Weekly Tournament', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
+  challenge: 'Challenge', tournament: 'Weekly Gauntlet', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
 };
 
 /** Post-run: render the result as an image to share or save. */
@@ -686,6 +626,7 @@ function attachRewardCard() {
   var content = document.getElementById('postRunContent');
   var reward = lastRunReward;
   lastRunReward = null;
+  lastRunNewBest = !!(reward && reward.newBest);
   if (!content || !reward) return;
   var card = buildRunRewardCard(reward.info, reward.score, reward.best, reward.newBest);
   if (card) content.insertBefore(card, content.children[1] || null);
@@ -746,17 +687,34 @@ function attachShareImage() {
   content.appendChild(shareBtn);
 }
 
-function attachTournamentNote() {
+/** Fixed-set modes are not ranked: lots of players finish them perfectly, so a board would only show ties. */
+function isUnrankedMode(mode) {
+  return mode === 'challenge' || mode === 'daily' || mode === 'tournament';
+}
+
+/** After a Weekly Gauntlet run: cleared (badge and coins, once a week) or how far you got. */
+function attachGauntletResult() {
+  var size = TOURNAMENT_SIZE;
+  var cleared = game.encountersDone >= size && game.lives > 0;
+  var week = isoWeekKey();
+  var firstClear = cleared && storage.recordTournamentTop10(week);
+  if (firstClear) {
+    storage.addCoins(GAUNTLET_REWARD);
+    ui.renderHome();
+  }
   addPostRunBox(function (box) {
     var head = document.createElement('div');
-    head.style.cssText = 'font-size:13px;font-weight:800';
-    head.textContent = '\uD83C\uDFC6 Weekly Tournament \u2014 same 20 cards for everyone';
-    box.appendChild(head);
+    head.style.cssText = 'font-size:14px;font-weight:800';
     var hint = document.createElement('div');
-    hint.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:4px';
-    var canPost = storage.get('profileVisible') && storage.get('profileName') && leaderboardModule && leaderboardModule.leaderboard.isAuthenticated();
-    hint.textContent = canPost ? 'Your best score this week counts. Standing loading\u2026'
-      : 'Set a display name on the Leaderboard screen to appear on the weekly board.';
+    hint.style.cssText = 'font-size:12px;margin-top:4px;color:var(--text-secondary)';
+    if (cleared) {
+      head.textContent = '\uD83D\uDEE1\uFE0F Weekly Gauntlet cleared!';
+      hint.textContent = firstClear ? '\uD83C\uDFC5 Badge earned and +' + GAUNTLET_REWARD + ' coins. A new Gauntlet starts next week.' : 'Already cleared this week. Nice run. A new Gauntlet starts next week.';
+    } else {
+      head.textContent = '\uD83D\uDEE1\uFE0F Weekly Gauntlet: ' + game.encountersDone + ' of ' + size + ' cards';
+      hint.textContent = 'The same ' + size + ' cards all week, and you can retry as often as you like. Clear them with your 2 lives.';
+    }
+    box.appendChild(head);
     box.appendChild(hint);
   });
 }
@@ -882,6 +840,7 @@ function launchRun(mode, orderedCardIds, modeConfig) {
     leagueRules: modeConfig && typeof modeConfig.leagueTrophies === 'number' ? leagueRules(modeConfig.leagueTrophies) : undefined
   });
   ui.hideAll();
+  ui.resetQuestionDisplay(); // nothing from the last run's final question may show
   ui.showHud();
 
   game.beginCountdown();
@@ -970,7 +929,7 @@ function finalizeRun(gameRef) {
   var canPost = leaderboardModule && storage.get('profileVisible') && storage.get('profileName') &&
     leaderboardModule.leaderboard.isAuthenticated() && isRankedRun(summary);
   if (canPost) postActivities(summary, result);
-  if (canPost && summary.encountersCompleted > 0 && summary.mode !== 'challenge') {
+  if (canPost && summary.encountersCompleted > 0 && !isUnrankedMode(summary.mode)) {
     leaderboardModule.leaderboard.submitVerifiedScore({
       runId: summary.runId,
       playerName: storage.get('profileName'),
@@ -987,7 +946,6 @@ function finalizeRun(gameRef) {
         reportError(new Error(res.error), { system: 'leaderboard', operation: 'submitScore', recoverable: true });
         return;
       }
-      if (summary.mode === 'tournament') showTournamentStanding(summary);
       syncWeeklyStudy();
     });
   }
@@ -1004,13 +962,40 @@ function hideBootSplash() {
   setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
 }
 
-/** Apply the current color theme (a whole palette, plus falling decor). */
+var flyersOn = null;
+
+/** The medical odds and ends flying out of the middle of the home backdrop (off for reduced motion). */
+function refreshFlyers() {
+  var layer = document.getElementById('bgFlyers');
+  if (!layer) return;
+  var reduced = !!storage.get('reducedMotion') || (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (flyersOn === !reduced) return; // already in the right state
+  flyersOn = !reduced;
+  mountFlyers(layer, { reducedMotion: reduced });
+}
+
+/** Apply the current color theme (a whole palette tinted by the season and time of day). */
+var themeRoll = { world: null, runs: 0, at: Date.now() };
 function refreshTheme() {
-  var theme = pickTheme(new Date(), storage.get('uiTheme') || 'auto');
+  if (!themeRoll.world) themeRoll.world = rollWorld(null);
+  var theme = pickTheme(new Date(), storage.get('uiTheme') || 'surprise', themeRoll.world);
   applyTheme(document.documentElement, theme);
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme.vars['--bg-fallback'] || '#0b1020');
   document.documentElement.setAttribute('data-theme-name', theme.name);
+  refreshFlyers();
+}
+
+/** Surprise me: every few runs (or after a while) the look changes to a different season, and a toast says so. */
+function maybeRerollTheme() {
+  if ((storage.get('uiTheme') || 'surprise') !== 'surprise') return;
+  if (!rerollDue(themeRoll.runs, themeRoll.at, Date.now())) return;
+  themeRoll.world = rollWorld(themeRoll.world);
+  themeRoll.runs = 0;
+  themeRoll.at = Date.now();
+  refreshTheme();
+  var name = document.documentElement.getAttribute('data-theme-name');
+  if (name) ui._showToast('🎨 Fresh look: ' + name);
 }
 
 function init() {
@@ -1034,6 +1019,8 @@ function init() {
   refreshTheme();
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
+  document.addEventListener('dx:home-shown', maybeRerollTheme);
+  initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenCards', 'screenProfile']);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
   try {
@@ -1043,6 +1030,7 @@ function init() {
     webglOk = false;
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
+  installGlobalErrorHandlers();
   installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;
@@ -1053,9 +1041,18 @@ function init() {
   // Collapsibles
   setupCollapsibles();
 
-  // Onboarding
+  // Profile button (top right of Home): sign up, sign in, name and avatar
+  profileCorner = mountProfileCorner({
+    getLeaderboard: function () { return leaderboardModule ? leaderboardModule.leaderboard : null; },
+    getCloudSync: function () { return cloudSync; },
+    storage: storage,
+    toast: function (msg) { ui._showToast(msg); },
+    openProfileScreen: function () { ui.show('screenProfile'); }
+  });
+
+  // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
   if (!storage.get('firstRunComplete')) {
-    showOnboarding();
+    ui.showTutorial({ firstRun: true });
   }
 
   // --- Anki import (lazy) ---
@@ -1073,6 +1070,7 @@ function init() {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);
       mountLeaderboard();
+      if (profileCorner && profileCorner.onLeaderboardReady) profileCorner.onLeaderboardReady();
       mod.leaderboard.subscribeToInvites(function () { checkMatchInvites(); });
       checkMatchInvites();
     }).catch(function (e) {
@@ -1106,6 +1104,7 @@ function init() {
   };
 
   game.onRunEnd = function () {
+    themeRoll.runs++;
     ui.hideHud();
     ui.hideAnswerChoices();
     audio.stopAmbient();
@@ -1126,7 +1125,7 @@ function init() {
     attachShareImage();
     attachTipPrompt();
     if (game.mode === 'challenge') attachChallengeResult(game.score);
-    if (game.mode === 'tournament') attachTournamentNote();
+    if (game.mode === 'tournament') attachGauntletResult();
 
     // Wire post-run buttons
     var againBtn = document.getElementById('playAgainBtn');
@@ -1245,7 +1244,7 @@ function init() {
   }
 
   // Secondary mode buttons
-  document.querySelectorAll('.mode-btn').forEach(function (btn) {
+  document.querySelectorAll('.mode-btn[data-mode], .sheet-entry[data-mode]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var mode = this.dataset.mode;
       if (mode) startMode(mode);
@@ -1294,6 +1293,9 @@ function init() {
   renderLevelChip(document.getElementById('homeLevel'));
   updateLockerDot();
   document.addEventListener('dx:coins-changed', updateLockerDot);
+  // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
+  updateAttentionDots(storage, QUESTS);
+  document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, QUESTS); });
   document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {
     refreshHomeBadge(homeLeague);
@@ -1693,6 +1695,7 @@ if (typeof _origRenderSettings === 'function') {
 //  LEADERBOARD MOUNT
 // =========================================================================
 var cloudSync = null;
+var profileCorner = null;
 
 /**
  * Account sign-in state and cloud saves. Guests are never synced; once the
@@ -1715,7 +1718,8 @@ function handleNativeBack() {
   var result = document.getElementById('rankedResult');
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'tutorialOverlay'];
+  if (isTutorialOpen()) { skipTutorial(); return true; }
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {
@@ -1793,15 +1797,27 @@ function mountLeaderboard() {
 // =========================================================================
 if (document.readyState === 'loading') {
   window.addEventListener('DOMContentLoaded', function () { try { init(); } finally { hideBootSplash(); } });
-  // Offline support (production builds only)
-  // (The store apps bundle their files, so they do not need the service worker.)
-  if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function (e) {
-        console.warn('[Dx Dash] Service worker registration failed:', e.message);
-      });
-    });
-  }
 } else {
   try { init(); } finally { hideBootSplash(); }
+}
+
+// Offline support (production builds only). The store apps bundle their files, so they do not
+// need the service worker. This runs whatever the readyState: module scripts execute after the
+// page is parsed, so registering inside the 'loading' branch would never happen.
+if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
+  var registerSW = function () {
+    registerServiceWorker(navigator.serviceWorker, function () {
+      showUserError('A new version of Dx Dash is ready.', {
+        title: 'Update available',
+        info: true,
+        actionLabel: 'Reload',
+        onAction: function () { window.location.reload(); },
+        durationMs: 15000
+      });
+    }).catch(function (e) {
+      console.warn('[Dx Dash] Service worker registration failed:', e.message);
+    });
+  };
+  if (document.readyState === 'complete') registerSW();
+  else window.addEventListener('load', registerSW);
 }

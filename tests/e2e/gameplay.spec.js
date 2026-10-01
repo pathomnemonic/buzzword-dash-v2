@@ -61,7 +61,7 @@ test.describe('Gameplay', () => {
 test.describe('Settings and screens', () => {
   test('settings toggles work from the keyboard', async ({ page }) => {
     await openApp(page);
-    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('#settingsBtn').click();
     await page.locator('.settings-card[data-section="look"]').click();
     const toggle = page.getByRole('switch', { name: /Colorblind/ });
     await toggle.focus();
@@ -79,6 +79,7 @@ test.describe('Settings and screens', () => {
 
   test('a flashcard session can be started and answered', async ({ page }) => {
     await openApp(page);
+    await page.locator('#homeFlashcardsBtn').click();
     await page.locator('#flashcardBtn').click();
     await page.getByRole('button', { name: /Flip cards/ }).click();
     await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);
@@ -89,6 +90,7 @@ test.describe('Settings and screens', () => {
 
   test('an exam simulation can be completed', async ({ page }) => {
     await openApp(page);
+    await page.locator('#homeChallengeBtn').click();
     await page.locator('#examBtn').click();
     await page.getByRole('radio', { name: '10' }).click();
     await page.getByRole('radio', { name: 'Untimed' }).click();
@@ -107,6 +109,7 @@ test.describe('Without WebGL', () => {
     await expect(page.locator('#webglNotice')).toContainText(/WebGL/);
     await page.locator('.btn-play').click();
     await expect(page.locator('body')).toContainText(/needs WebGL/);
+    await page.locator('#homeFlashcardsBtn').click();
     await page.locator('#flashcardBtn').click();
     await page.getByRole('button', { name: /Flip cards/ }).click();
     await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);

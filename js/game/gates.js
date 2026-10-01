@@ -330,7 +330,7 @@ export function pickCard(options) {
   }
 
   // Configurable card freshness weight
-  var freshnessWeight = 5;
+  var freshnessWeight = 8;
   try {
     var storedWeight = storage.get('cardFreshnessWeight');
     if (storedWeight && typeof storedWeight === 'number' && storedWeight > 0) {

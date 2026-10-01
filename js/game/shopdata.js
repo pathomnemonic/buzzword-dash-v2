@@ -337,6 +337,7 @@ export var AVATARS = [
     shoeColor: 0xffffff,
     skinColor: 0xffccaa,
     hairColor: 0x553322,
+    hairStyle: "ponytail",
     scale: 1.0,
     legSpeed: 1.0,
     armSwing: 1.0,
@@ -356,24 +357,6 @@ export var AVATARS = [
     legSpeed: 0.95,
     armSwing: 0.9,
     icon: "🔪"
-  },
-  {
-    id: "avatar_robopro",
-    name: "Robo Resident",
-    desc: "A fully animated robot with real motion-captured moves",
-    price: 9000,
-    // Stand-in colors used until the 3D model has finished loading
-    bodyColor: 0xdddddd,
-    pantsColor: 0x88aacc,
-    shoeColor: 0x556677,
-    skinColor: 0xbbccdd,
-    hairColor: 0x556677,
-    scale: 1.0,
-    legSpeed: 1.0,
-    armSwing: 1.0,
-    isModel: true,
-    modelUrl: "models/RobotExpressive.glb",
-    icon: "🤖"
   },
   {
     id: "avatar_skeleton",
@@ -411,7 +394,6 @@ export var SHOP_ITEMS = [
   { id: "avatar_nurse", name: "Nurse", price: 2000, type: "skin", color: 0xffffff, icon: "👩‍⚕️", compatibility: COMPAT_ALL },
   { id: "avatar_surgeon", name: "Surgeon", price: 3500, type: "skin", color: 0x338855, icon: "🔪", compatibility: COMPAT_ALL },
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
-  { id: "avatar_robopro", name: "Robo Resident (animated 3D)", price: 9000, type: "skin", color: 0xdddddd, icon: "🤖", compatibility: COMPAT_HUMANOID_ONLY },
 
   // --- Exam monsters ---
   { id: "monster_classic", name: "Exam Monster", price: 0, type: "monster", color: 0x220044, icon: "👾", compatibility: COMPAT_ALL },
@@ -508,7 +490,7 @@ export var SHOP_ITEMS = [
       intern.name = m.name;
       intern.desc = m.desc;
       intern.bodyColor = m.color;
-      intern.scrub = m.scrub;
+      intern.parts = m.parts || [];
       return;
     }
     AVATARS.push({
@@ -526,15 +508,15 @@ export var SHOP_ITEMS = [
       legSpeed: 1.0,
       armSwing: 1.0,
       isModel: true,
-      scrub: m.scrub,
+      parts: m.parts || [],
       modelUrl: "models/" + m.file,
       icon: m.icon
     });
-    SHOP_ITEMS.push({ id: m.id, name: m.name + " (animated 3D)", price: m.price, type: "skin", color: m.color, icon: m.icon, compatibility: COMPAT_HUMANOID_ONLY });
+    SHOP_ITEMS.push({ id: m.id, name: m.name, price: m.price, type: "skin", color: m.color, icon: m.icon, compatibility: COMPAT_HUMANOID_ONLY });
   });
 
   MONSTER_MODELS.forEach(function (m) {
-    SHOP_ITEMS.push({ id: m.id, name: m.name + " (animated 3D)", price: m.price, type: "monster", color: m.color, icon: m.icon, compatibility: COMPAT_ALL });
+    SHOP_ITEMS.push({ id: m.id, name: m.name, price: m.price, type: "monster", color: m.color, icon: m.icon, compatibility: COMPAT_ALL });
   });
 })();
 

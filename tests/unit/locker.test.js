@@ -31,7 +31,7 @@ describe('Locker tabs', () => {
       expect.stringContaining('Vehicles')
     ]);
     const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/add a hat/i);
+    expect(text).toMatch(/Hats, colors, clothing and gear are for Classic/i);
     expect(text).toMatch(/cannot wear hats/i);
     // The default Intern is animated 3D; the blocky one is listed under Classic
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
@@ -39,26 +39,29 @@ describe('Locker tabs', () => {
     expect(groups[1]).toContain('Classic Intern');
   });
 
-  it('a medical character gets scrub colors and headwear', () => {
+  it('a 3D character gets color pickers for its own parts, but no headwear', () => {
     storage.data.progression.equipped.skin = 'avatar_intern'; // Dr. Dash
     ui._lockerTab = 'customize';
     ui.renderShop();
-    expect(document.getElementById('shopItems').textContent).toMatch(/Scrub color/);
-    expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(5);
-    expect(headings().join('|')).toContain('Headwear');
+    expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
+    const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
+    expect(parts).toEqual(['top', 'pants', 'skin', 'hair']);
+    expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(8);
+    expect(headings().join('|')).not.toContain('Headwear');
     expect(headings().join('|')).not.toContain('Clothing');
   });
 
-  it('another 3D character can only customize headwear, and the screen says why', () => {
+  it('another 3D character has nothing to customize, and the screen says why', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
     ui._lockerTab = 'customize';
     ui.renderShop();
-    expect(headings().join('|')).toContain('Headwear');
+    expect(headings().join('|')).not.toContain('Headwear');
     expect(headings().join('|')).not.toContain('Clothing');
     expect(headings().join('|')).not.toContain('Gear');
     const text = document.getElementById('shopItems').textContent;
     expect(text).toMatch(/Animated 3D character/);
     expect(text).toMatch(/switch to a Classic character/i);
+    expect(text).toMatch(/wear a hat/i);
     expect(document.querySelector('#shopItems').textContent).not.toMatch(/Hair\s*Skin\s*Coat/);
   });
 

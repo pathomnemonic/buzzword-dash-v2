@@ -39,6 +39,13 @@ No other agent may edit that file.
 
 If an integration problem is found, it must be returned to the original file owner for correction.
 
+**Split files.** `js/game/engine.js` and `js/ui.js` have grown by splitting method groups into companion files. The public API did not change (`game`, `ui`, the enums and every method name are the same). Companion files belong to the owner of the file they came from:
+
+- Engine: `js/game/enginedefs.js` (enums, constants, helpers; `engine.js` re-exports the enums), `enginevisuals.js`, `engineexam.js`, `engineencounter.js`, `enginerunend.js`.
+- UI: `js/uihelpers.js` (focus trap, debounce, clipboard), `uipostrun.js`, `uisettings.js`, `uistudy.js`, `uibrowse.js`, `uiprofile.js`.
+
+Each companion exports an object of methods that is attached with `Object.assign(Class.prototype, ...)` at the end of the main file, so `this` is the same instance. Companions import only from `enginedefs.js` / `uihelpers.js` and other modules, never from `engine.js` or `ui.js`, to avoid import cycles.
+
 ---
 
 ## 2.2 One application render loop

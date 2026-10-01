@@ -89,3 +89,35 @@ describe('Card selection — Daily determinism', () => {
     expect(r1.orderedIndex).toBe(0);
   });
 });
+
+describe('Card selection — new cards are favored by default', () => {
+  it('defaults the new-card priority to 8, and moves players still on the old default of 5', () => {
+    expect(storage.get('cardFreshnessWeight')).toBe(8);
+    storage.data.settings.cardFreshnessWeight = 5;
+    storage.data.settings.freshnessDefaultSeen = false;
+    storage._ensureInvariants();
+    expect(storage.get('cardFreshnessWeight')).toBe(8);
+    // someone who chose their own number keeps it
+    storage.data.settings.cardFreshnessWeight = 3;
+    storage.data.settings.freshnessDefaultSeen = false;
+    storage._ensureInvariants();
+    expect(storage.get('cardFreshnessWeight')).toBe(3);
+  });
+
+  it('brings cards the player has never answered up far more often than ones they know', () => {
+    const pool = poolFor('endless').slice(0, 60);
+    // the player has answered (and mostly knows) half of them
+    pool.slice(0, 30).forEach((c) => {
+      const stat = storage.getCardStat(c.id);
+      Object.assign(storage.data.cards.cardStats[c.id] || (storage.data.cards.cardStats[c.id] = stat), { seen: 6, correct: 5, wrong: 1, lastSeen: Date.now() - 3600e3, due: Date.now() + 5 * 86400e3 });
+    });
+    const known = new Set(pool.slice(0, 30).map((c) => c.id));
+    let fresh = 0;
+    const picks = 600;
+    for (let i = 0; i < picks; i++) {
+      const r = pickCard({ pool, mode: 'endless', encounterIndex: 3, recentIds: [] });
+      if (!known.has(r.card.id)) fresh++;
+    }
+    expect(fresh / picks).toBeGreaterThan(0.8);
+  });
+});

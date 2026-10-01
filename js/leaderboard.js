@@ -43,6 +43,7 @@ var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 // Build-time override: set VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY (e.g. in
 // .env.local or your host's env vars) instead of editing this file.
+/** @type {Record<string, any>} */
 var _env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
 if (_env.VITE_SUPABASE_URL) SUPABASE_URL = _env.VITE_SUPABASE_URL;
 if (_env.VITE_SUPABASE_ANON_KEY) SUPABASE_ANON_KEY = _env.VITE_SUPABASE_ANON_KEY;
@@ -90,7 +91,7 @@ function getSeasonKey(date) {
   var day = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - day);
   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  var week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  var week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return d.getUTCFullYear() + '-W' + (week < 10 ? '0' : '') + week;
 }
 
@@ -492,7 +493,7 @@ var leaderboard = {
 
   /**
    * Describe the current account for the UI.
-   * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, error: string|null}}
+   * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, pendingEmail: string, error: string|null}}
    */
   getStatus: function () {
     var user = _session && _session.user;
@@ -653,6 +654,7 @@ var leaderboard = {
    * @param {string} [options.mode] - Filter by mode
    * @param {string} [options.season] - Filter by season
    * @param {number} [options.limit] - Max results (default 50)
+   * @param {string} [options.period] - 'week' (default) or 'all'
    * @returns {Promise<object[]>}
    */
   getTopScores: function (options) {

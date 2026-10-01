@@ -10,39 +10,142 @@
  * stalk along the ground behind them.
  */
 
+/**
+ * Colors a character can be dressed in. A palette is a list of swatches; "Original" (hex 0) is always
+ * offered first and keeps the model's own color. Each character has its own parts and its own palettes.
+ */
+function swatches(list) {
+  return [{ name: 'Original', hex: 0 }].concat(list.map(function (c) { return { name: c[0], hex: c[1] }; }));
+}
+
+var SCRUBS = swatches([['Teal', 0x1fa3b5], ['Ceil blue', 0x5bc4dc], ['Navy', 0x2b4a8c], ['Surgical green', 0x2e9e7c], ['Purple', 0x7a4fb5], ['Maroon', 0x9a2f45], ['Pink', 0xe86fa0], ['Black', 0x23262b]]);
+var PASTELS = swatches([['Rose', 0xf08aa8], ['Lilac', 0xb08ad8], ['Mint', 0x7fd6b4], ['Sky', 0x7fb8f0], ['Peach', 0xf4a77a], ['Butter', 0xf0d36a]]);
+var DARKS = swatches([['Black', 0x1d1f24], ['Charcoal', 0x3b4048], ['Navy', 0x233a6b], ['Forest', 0x2f5a3a], ['Wine', 0x6a2a3a], ['Brown', 0x6a4a2a]]);
+var EARTH = swatches([['Olive', 0x5c6b3a], ['Khaki', 0xb59a63], ['Rust', 0xa8502a], ['Sand', 0xd8c28a], ['Slate', 0x56667a], ['Moss', 0x3f6b3a]]);
+var BRIGHTS = swatches([['Red', 0xd93030], ['Orange', 0xf08a24], ['Yellow', 0xf2cf2a], ['Lime', 0x8ad03a], ['Blue', 0x2a7ad9], ['Violet', 0x8a4fd9]]);
+var HIVIS = swatches([['Hi-vis orange', 0xff6a1a], ['Hi-vis yellow', 0xe8f030], ['Red', 0xd93030], ['Lime', 0x8ad03a], ['Blue', 0x2a7ad9], ['White', 0xf2f2f2]]);
+var SAFETY = swatches([['Safety yellow', 0xf2cf2a], ['White', 0xf2f2f2], ['Red', 0xd93030], ['Blue', 0x2a7ad9], ['Orange', 0xf08a24], ['Black', 0x1d1f24]]);
+var ROYAL = swatches([['Royal red', 0xb02a3a], ['Royal blue', 0x2a4aa8], ['Emerald', 0x1f8a5a], ['Purple', 0x6a3aa8], ['Black', 0x1d1f24], ['Gold', 0xd4a83a]]);
+var METALS = swatches([['Chrome', 0xc8d0d8], ['Gold', 0xd4a83a], ['Copper', 0xb8683a], ['Cobalt', 0x2a5ad9], ['Mint', 0x5ad9b0], ['Pink', 0xe86fa0]]);
+var ALIEN = swatches([['Green', 0x4ad05a], ['Violet', 0x9a5ae0], ['Blue', 0x3a8ae0], ['Pink', 0xe86fa0], ['Orange', 0xf08a24], ['Grey', 0x9aa4b0]]);
+var ORC = swatches([['Moss', 0x5a7a3a], ['Swamp', 0x3a6b4a], ['Slate', 0x56667a], ['Ember', 0xa8502a], ['Violet', 0x6a4a8a], ['Bone', 0xc8c0a0]]);
+var ROBES = swatches([['Midnight', 0x24306a], ['Violet', 0x6a3aa8], ['Crimson', 0xa82a3a], ['Emerald', 0x1f7a5a], ['Teal', 0x1f8a9a], ['Ash', 0x7a808a]]);
+var NINJA = swatches([['Black', 0x15161a], ['Crimson', 0xa82a2a], ['Navy', 0x1f2f5a], ['Forest', 0x2a5a3a], ['Violet', 0x4a2a6a], ['Snow', 0xe8eef2]]);
+var SKIN_TONES = swatches([['Fair', 0xf3d2b6], ['Light', 0xe6b48c], ['Tan', 0xc98f62], ['Brown', 0xa8734d], ['Deep', 0x6f4630], ['Ebony', 0x4a2e20]]);
+var HAIR_COLORS = swatches([['Black', 0x15110f], ['Dark brown', 0x3b2418], ['Auburn', 0x7a3a22], ['Blonde', 0xe0c070], ['Ginger', 0xb4521f], ['Silver', 0xb8bcc4], ['Pink', 0xe86fa0], ['Blue', 0x3a7ae0]]);
+var SHOES = swatches([['White', 0xf2f2f2], ['Black', 0x1d1f24], ['Pink', 0xe86fa0], ['Sky', 0x7fb8f0], ['Red', 0xd93030]]);
+
+/**
+ * The animated 3D characters. `parts` are the pieces of a character a player can recolor (each part
+ * is one or more of the model's materials), with a palette that suits that piece. Characters whose
+ * model is a single painted texture (the Ranger, the Zombie, the Skeleton) have no parts.
+ * Names stay plain where the model is not a medical character.
+ */
 export var CHARACTER_MODELS = [
-  // The medical staff come first: they are the stars of the game
-  { id: 'avatar_intern', name: 'Dr. Dash', desc: 'White coat, teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5, scrub: ['LightBlue'] },
-  { id: 'avatar_m_resident', name: 'Resident Rey', desc: 'On call since Tuesday', file: 'characters/resident.glb', price: 400, icon: '😴', color: 0x2b4a8c, scrub: ['White', 'LightBlue'] },
-  { id: 'avatar_m_nurse', name: 'Nurse Nova', desc: 'Keeps the whole ward running', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc, scrub: ['White', 'Orange'] },
-  { id: 'avatar_m_paramedic', name: 'Paramedic Pat', desc: 'First on scene, fastest on foot', file: 'characters/paramedic.glb', price: 800, icon: '🚑', color: 0xd93030 },
-  { id: 'avatar_m_surgeon', name: 'Surgeon Sage', desc: 'Steady hands, quick feet', file: 'characters/surgeon.glb', price: 1000, icon: '🥽', color: 0x2e9e7c, scrub: ['White', 'LightBlue'] },
-  { id: 'avatar_m_intern', name: 'Eager Intern', desc: 'Eager and ready to learn', file: 'characters/explorer.glb', price: 300, icon: '🧭', color: 0x2288dd },
-  { id: 'avatar_m_explorer', name: 'Ranger', desc: 'One eye on the chart, one on the exit', file: 'characters/matt.glb', price: 800, icon: '🧭', color: 0xc9a06a },
-  { id: 'avatar_m_adventurer', name: 'Adventurer', desc: 'Runs toward the unknown', file: 'characters/adventurer.glb', price: 1200, icon: '🎒', color: 0x8a6a3a },
-  { id: 'avatar_m_rogue', name: 'Hooded Rogue', desc: 'Sneaks past every distractor', file: 'characters/hooded.glb', price: 1500, icon: '🗡️', color: 0x55506a },
-  { id: 'avatar_m_zombie', name: 'Night-Shift Zombie', desc: 'Has not slept since intern year', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
-  { id: 'avatar_m_ninja', name: 'Ninja Resident', desc: 'Silent, swift, board certified', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344 },
-  { id: 'avatar_m_skeleton', name: 'Bones', desc: 'Knows every anatomy landmark', file: 'characters/skeleton.glb', price: 2500, icon: '💀', color: 0xe8e4d0 },
-  { id: 'avatar_m_orc', name: 'Orc Orderly', desc: 'Lifts patients and spirits', file: 'characters/orc.glb', price: 2500, icon: '🪓', color: 0x5a7a3a },
-  { id: 'avatar_m_wizard', name: 'Archmage', desc: 'Casts differential diagnoses', file: 'characters/wizard.glb', price: 3000, icon: '🧙', color: 0x6a3aa8 },
-  { id: 'avatar_m_alien', name: 'Visiting Alien', desc: 'Here to observe human medicine', file: 'characters/alien.glb', price: 3500, icon: '👽', color: 0x7ad07a },
-  { id: 'avatar_m_robot', name: 'Mecha Medic', desc: 'Runs on caffeine and coolant', file: 'characters/robot.glb', price: 3500, icon: '🤖', color: 0xaab4c4 },
-  { id: 'avatar_m_king', name: 'Chief of Medicine', desc: 'The crown of the department', file: 'characters/king.glb', price: 5000, icon: '👑', color: 0xd4a83a }
+  { id: 'avatar_intern', name: 'Dr. Dash', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
+    parts: [
+      { key: 'top', label: 'Scrub top', materials: ['LightBrown'], palette: SCRUBS },
+      { key: 'pants', label: 'Scrub pants', materials: ['LightBlue'], palette: SCRUBS },
+      { key: 'skin', label: 'Skin', materials: ['Skin', 'Skin_Darker'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
+    ] },
+  { id: 'avatar_m_nurse', name: 'Dr. Nova', desc: 'Emergency medicine: calm in every code', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc,
+    parts: [
+      { key: 'top', label: 'Scrub top', materials: ['White'], palette: PASTELS },
+      { key: 'pants', label: 'Scrub pants', materials: ['Orange'], palette: PASTELS },
+      { key: 'shoes', label: 'Shoes', materials: ['Grey'], palette: SHOES },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair_Blond', 'Hair_Brown'], palette: HAIR_COLORS }
+    ] },
+  { id: 'avatar_m_paramedic', name: 'Paramedic Pat', desc: 'First on scene, fastest on foot', file: 'characters/paramedic.glb', price: 800, icon: '🚑', color: 0xd93030,
+    parts: [
+      { key: 'helmet', label: 'Helmet', materials: ['Worker_Yellow'], palette: SAFETY },
+      { key: 'vest', label: 'Vest', materials: ['Worker_Vest'], palette: HIVIS },
+      { key: 'pants', label: 'Pants', materials: ['Brown'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
+    ] },
+  { id: 'avatar_m_intern', name: 'Explorer', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 300, icon: '🧭', color: 0x2288dd,
+    parts: [
+      { key: 'shirt', label: 'Shirt', materials: ['Shirt'], palette: BRIGHTS },
+      { key: 'sleeves', label: 'Sleeves', materials: ['UnderShirt'], palette: EARTH },
+      { key: 'pants', label: 'Pants', materials: ['Pants'], palette: EARTH },
+      { key: 'boots', label: 'Boots', materials: ['Boots'], palette: DARKS }
+    ] },
+  { id: 'avatar_m_explorer', name: 'Ranger', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 800, icon: '🏹', color: 0xc9a06a },
+  { id: 'avatar_m_adventurer', name: 'Adventurer', desc: 'Runs toward the unknown', file: 'characters/adventurer.glb', price: 1200, icon: '🎒', color: 0x8a6a3a,
+    parts: [
+      { key: 'shirt', label: 'Shirt', materials: ['Green'], palette: BRIGHTS },
+      { key: 'pants', label: 'Pants', materials: ['Brown'], palette: EARTH },
+      { key: 'pack', label: 'Backpack', materials: ['LightGreen'], palette: HIVIS }
+    ] },
+  { id: 'avatar_m_rogue', name: 'Hooded Rogue', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 1500, icon: '🗡️', color: 0x55506a,
+    parts: [
+      { key: 'cloak', label: 'Hood & cloak', materials: ['DarkBrown'], palette: ROBES },
+      { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
+      { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
+    ] },
+  { id: 'avatar_m_scout', name: 'Scout', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 1800, icon: '🏹', color: 0x3fa98a },
+  { id: 'avatar_m_zombie', name: 'Zombie', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
+  { id: 'avatar_m_ninja', name: 'Ninja', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344,
+    parts: [
+      { key: 'outfit', label: 'Outfit', materials: ['Ninja_Main'], palette: NINJA },
+      { key: 'sash', label: 'Sash', materials: ['Belt'], palette: BRIGHTS }
+    ] },
+  { id: 'avatar_m_skeleton', name: 'Bones', desc: 'Rattles along with a spring in its step', file: 'characters/skeleton.glb', price: 2500, icon: '💀', color: 0xe8e4d0 },
+  { id: 'avatar_m_orc', name: 'Orc', desc: 'Big, green and unbothered', file: 'characters/orc.glb', price: 2500, icon: '🪓', color: 0x5a7a3a,
+    parts: [
+      { key: 'skin', label: 'Skin', materials: ['Orc_Main'], palette: ORC },
+      { key: 'belt', label: 'Belt', materials: ['Belt'], palette: EARTH },
+      { key: 'mohawk', label: 'Mohawk', materials: ['Orc_Hair'], palette: BRIGHTS }
+    ] },
+  { id: 'avatar_m_wizard', name: 'Archmage', desc: 'Conjures a spell or two', file: 'characters/wizard.glb', price: 3000, icon: '🧙', color: 0x6a3aa8,
+    parts: [
+      { key: 'robe', label: 'Robe & hat', materials: ['Wizard_Main'], palette: ROBES },
+      { key: 'trim', label: 'Trim', materials: ['Wizard_Secondary'], palette: METALS }
+    ] },
+  { id: 'avatar_m_alien', name: 'Alien', desc: 'Here to observe the humans', file: 'characters/alien.glb', price: 3500, icon: '👽', color: 0x7ad07a,
+    parts: [
+      { key: 'skin', label: 'Skin', materials: ['Main'], palette: ALIEN },
+      { key: 'stripe', label: 'Stripe', materials: ['Stripe'], palette: BRIGHTS }
+    ] },
+  { id: 'avatar_m_robot', name: 'Mecha Bot', desc: 'Runs on caffeine and coolant', file: 'characters/robot.glb', price: 3500, icon: '🤖', color: 0xaab4c4,
+    parts: [
+      { key: 'body', label: 'Body', materials: ['Main'], palette: METALS },
+      { key: 'trim', label: 'Trim', materials: ['Grey'], palette: BRIGHTS }
+    ] },
+  { id: 'avatar_m_king', name: 'King', desc: 'The crown suits them', file: 'characters/king.glb', price: 5000, icon: '👑', color: 0xd4a83a,
+    parts: [
+      { key: 'tunic', label: 'Tunic & boots', materials: ['Metal'], palette: ROYAL },
+      { key: 'trousers', label: 'Trousers', materials: ['DarkBrown'], palette: DARKS },
+      { key: 'sleeves', label: 'Sleeves', materials: ['Blue'], palette: ROYAL }
+    ] }
 ];
 
-/** Colors a player can dress their medical character's scrubs in (0 keeps the character's own). */
-export var SCRUB_COLORS = [
-  { name: 'Original', hex: 0 },
-  { name: 'Teal', hex: 0x1fa3b5 },
-  { name: 'Ceil blue', hex: 0x5bc4dc },
-  { name: 'Navy', hex: 0x2b4a8c },
-  { name: 'Surgical green', hex: 0x2e9e7c },
-  { name: 'Purple', hex: 0x7a4fb5 },
-  { name: 'Maroon', hex: 0x9a2f45 },
-  { name: 'Pink', hex: 0xe86fa0 },
-  { name: 'Black', hex: 0x23262b }
-];
+/**
+ * Characters that were retired because they were the same model as another one in a different color
+ * (Dr. Dash, Resident Rey and Surgeon Sage were one mesh) or the same kind of robot. Players who owned
+ * one are moved to the character it duplicated, and refunded.
+ */
+export var RETIRED_CHARACTERS = {
+  avatar_m_resident: { to: 'avatar_intern', price: 400 },
+  avatar_m_surgeon: { to: 'avatar_intern', price: 1000 },
+  avatar_robopro: { to: 'avatar_m_robot', price: 9000 },
+  // The six Classic women doctors were replaced by Dr. Nova (a full 3D character) with skin and hair choices
+  avatar_dr_maya: { to: 'avatar_m_nurse', price: 1500 },
+  avatar_dr_lin: { to: 'avatar_m_nurse', price: 2000 },
+  avatar_dr_amara: { to: 'avatar_m_nurse', price: 2500 },
+  avatar_dr_sofia: { to: 'avatar_m_nurse', price: 2800 },
+  avatar_dr_zuri: { to: 'avatar_m_nurse', price: 3000 },
+  avatar_dr_priya: { to: 'avatar_m_nurse', price: 3500 }
+};
+
+/** The recolorable parts of a character, or [] */
+export function getCharacterParts(id) {
+  for (var i = 0; i < CHARACTER_MODELS.length; i++) {
+    if (CHARACTER_MODELS[i].id === id) return CHARACTER_MODELS[i].parts || [];
+  }
+  return [];
+}
 
 export var MONSTER_MODELS = [
   { id: 'monster_m_ghost', name: 'Ghost of Boards Past', file: 'monsters/ghost.glb', price: 0, icon: '👻', color: 0x9aa8ff, flying: true },

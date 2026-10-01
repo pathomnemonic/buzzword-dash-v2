@@ -54,9 +54,9 @@ describe('navigation tabs', () => {
     const { ui } = await import('../../js/ui.js');
     const { storage } = await import('../../js/storage.js');
     storage.load();
-    ui.show('screenQuests');
+    ui.show('screenSettings');
     const current = [...document.querySelectorAll('.nav-item')].filter((n) => n.getAttribute('aria-current') === 'true');
-    expect(current).toHaveLength(0); // Quests is not a tab, so no tab is lit
+    expect(current).toHaveLength(0); // Settings is a button on Home, not a tab, so no tab is lit
     ui.show('screenStats');
     const lit = [...document.querySelectorAll('.nav-item')].filter((n) => n.getAttribute('aria-current') === 'true' || n.classList.contains('active'));
     expect(lit.map((n) => n.dataset.screen)).toEqual(['screenStats']);
@@ -175,6 +175,6 @@ describe('saved progress survives a reload', () => {
     delete raw.settings.uiTheme;
     localStorage.setItem('buzzword_dash_v1', JSON.stringify(raw));
     storage.load();
-    expect(storage.get('uiTheme')).toBe('auto');
+    expect(storage.get('uiTheme')).toBe('surprise');
   });
 });

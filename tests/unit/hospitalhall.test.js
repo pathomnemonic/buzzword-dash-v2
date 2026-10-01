@@ -61,3 +61,29 @@ describe('the other walled-in maps', () => {
     });
   });
 });
+
+describe('the room maps keep all three lanes clear', () => {
+  const rooms = ['Hospital Hallway', 'Operating Room', 'Research Lab', 'Ambulance Bay'].map((n) => SKINS.find((s) => s.name === n));
+  const LANE_EDGE = 4.3; // lanes are at -3, 0 and 3, each about 2.6 wide; scenery must stay outside this
+
+  rooms.forEach((room) => {
+    it(room.name + ': no wall scenery reaches into the lanes', async () => {
+      const THREE = await import('three');
+      [-1, 1].forEach((side) => {
+        for (let k = 0; k < 4; k++) {
+          const g = buildHallWallBay(room, side, -4 * k);
+          g.updateMatrixWorld(true);
+          g.children.forEach((child) => {
+            const box = new THREE.Box3().setFromObject(child);
+            if (box.isEmpty()) return;
+            if (box.min.x < 0 && box.max.x > 0) return;   // the ceiling spans the whole corridor
+            if (box.min.y > 2.6) return;                  // overhead fittings are above the runner
+            // distance of the scenery's nearest edge from the middle of the track
+            const nearest = side > 0 ? box.min.x : -box.max.x;
+            expect(nearest, room.name + ' side ' + side + ' bay ' + k).toBeGreaterThanOrEqual(LANE_EDGE - 0.001);
+          });
+        }
+      });
+    });
+  });
+});

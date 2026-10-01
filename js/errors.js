@@ -41,6 +41,63 @@ export function reportError(error, context = {}) {
   if (context.metadata) {
     console.error('  metadata:', context.metadata);
   }
+
+  sendRemote(msg, stack, context);
+}
+
+/* ---- optional remote error tracking ----
+ * Off unless VITE_ERROR_ENDPOINT is set at build time. Sends only the message, a trimmed stack, the
+ * system/operation tags and the app version; no account, score or card data. At most MAX_REMOTE
+ * distinct reports per page load, so a render loop cannot flood the endpoint. */
+var MAX_REMOTE = 10;
+var remoteSent = 0;
+var remoteSeen = {};
+
+function remoteEndpoint() {
+  try { return (import.meta.env && import.meta.env.VITE_ERROR_ENDPOINT) || ''; } catch (e) { return ''; }
+}
+
+/** Build the payload that would be sent, or null when it should be dropped. Exported for tests. */
+export function buildRemotePayload(msg, stack, context) {
+  context = context || {};
+  var key = (context.system || '') + '|' + (context.operation || '') + '|' + msg;
+  if (remoteSeen[key] || remoteSent >= MAX_REMOTE) return null;
+  remoteSeen[key] = true;
+  remoteSent++;
+  return {
+    message: String(msg).slice(0, 300),
+    stack: stack ? String(stack).slice(0, 1500) : undefined,
+    system: context.system,
+    operation: context.operation,
+    version: (typeof __APP_VERSION__ !== 'undefined') ? __APP_VERSION__ : undefined,
+    ts: Date.now()
+  };
+}
+
+/** Reset the per-page-load limits (tests). */
+export function resetRemoteLimits() { remoteSent = 0; remoteSeen = {}; }
+
+function sendRemote(msg, stack, context) {
+  var url = remoteEndpoint();
+  if (!url) return;
+  var payload = buildRemotePayload(msg, stack, context);
+  if (!payload) return;
+  try {
+    var body = JSON.stringify(payload);
+    if (typeof navigator !== 'undefined' && navigator.sendBeacon) navigator.sendBeacon(url, body);
+    else if (typeof fetch === 'function') fetch(url, { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
+  } catch (e) { /* reporting must never throw */ }
+}
+
+/** Route uncaught errors and unhandled rejections through reportError. */
+export function installGlobalErrorHandlers(win) {
+  win = win || window;
+  win.addEventListener('error', function (e) {
+    reportError(e.error || e.message || 'Uncaught error', { system: 'window', operation: 'error' });
+  });
+  win.addEventListener('unhandledrejection', function (e) {
+    reportError(e.reason || 'Unhandled rejection', { system: 'window', operation: 'unhandledrejection' });
+  });
 }
 
 /**
@@ -53,22 +110,24 @@ export function reportError(error, context = {}) {
  * @param {string} [options.actionLabel]
  * @param {function} [options.onAction]
  * @param {number} [options.durationMs]  - Auto-dismiss after this many ms (default 5000)
+ * @param {boolean} [options.info]       - Neutral styling for notices that are not failures
  */
 export function showUserError(message, options = {}) {
   var durationMs = options.durationMs != null ? options.durationMs : 5000;
 
+  var accent = options.info ? 'var(--accent, #00e5ff)' : 'var(--accent-red, #ff3355)';
   var overlay = document.createElement('div');
   overlay.style.cssText =
     'position:fixed;top:12%;left:50%;transform:translateX(-50%);' +
     'z-index:50;max-width:340px;width:90%;padding:18px 22px;' +
-    'background:rgba(10,5,30,0.95);border:2px solid var(--accent-red, #ff3355);' +
+    'background:rgba(10,5,30,0.95);border:2px solid ' + accent + ';' +
     'border-radius:16px;color:#fff;font-size:13px;font-weight:700;' +
     'text-align:center;pointer-events:auto;backdrop-filter:blur(8px);' +
     'box-shadow:0 4px 24px rgba(255,51,85,0.25);transition:opacity 0.4s ease;';
 
   var html = '';
   if (options.title) {
-    html += '<div style="font-size:16px;margin-bottom:6px;color:var(--accent-red,#ff3355)">' +
+    html += '<div style="font-size:16px;margin-bottom:6px;color:' + accent + '">' +
       escapeText(options.title) + '</div>';
   }
   html += '<div>' + escapeText(message) + '</div>';
@@ -80,7 +139,7 @@ export function showUserError(message, options = {}) {
     btn.textContent = options.actionLabel;
     btn.style.cssText =
       'margin-top:10px;padding:8px 16px;border:none;border-radius:10px;' +
-      'background:var(--accent-red,#ff3355);color:#fff;font-size:12px;' +
+      'background:' + accent + ';color:#fff;font-size:12px;' +
       'font-weight:800;cursor:pointer;';
     btn.addEventListener('click', function () {
       options.onAction();

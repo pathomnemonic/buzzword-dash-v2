@@ -21,7 +21,7 @@
 import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { SHOP_ITEMS, AVATARS } from './shopdata.js';
-import { loadCharacterModel, buildModelCharacter, attachHeadAccessory } from './charactermodel.js';
+import { loadCharacterModel, buildModelCharacter } from './charactermodel.js';
 import { useCharacterModels } from './quality.js';
 
 // ===== HELPERS =====
@@ -1049,7 +1049,69 @@ function applyHat(pg, hatItem, avatar) {
     }
 }
 
+// ===== HAIRSTYLES (Classic characters) =====
+
+/**
+ * Extra hair on top of the base cap: ponytail, bun, bob, long, braids or puffs. The character faces -Z,
+ * so the back of the head is +Z. Only drawn when the avatar names a `hairStyle`.
+ */
+export function addHairStyle(pg, avatar, headRadius, s) {
+    var style = avatar.hairStyle;
+    if (!style || style === 'short') return;
+    var mat = new THREE.MeshStandardMaterial({ color: avatar.hairColor });
+    function blob(r, x, y, z, sx, sy, sz) {
+        var m = new THREE.Mesh(new THREE.SphereGeometry(r * s, 12, 10), mat);
+        m.scale.set(sx, sy, sz);
+        m.position.set(x * s, y * s, z * s);
+        m.userData.hairStyle = style;
+        pg.add(m);
+        return m;
+    }
+    switch (style) {
+        case 'ponytail':
+            blob(0.16, 0, 1.95, 0.36, 1, 1, 1);        // the tie
+            blob(0.12, 0, 1.62, 0.5, 0.9, 2.8, 0.9);    // the tail
+            break;
+        case 'bun':
+            blob(0.21, 0, 2.14, 0.08, 1, 0.9, 1);
+            break;
+        case 'bob':
+            blob(0.44, 0, 1.64, 0.1, 1.08, 0.85, 1.0);  // back hair framing the face
+            blob(0.14, -0.33, 1.58, -0.12, 0.8, 1.7, 1);
+            blob(0.14, 0.33, 1.58, -0.12, 0.8, 1.7, 1);
+            break;
+        case 'long':
+            blob(0.4, 0, 1.42, 0.2, 1.0, 1.4, 0.7);
+            blob(0.12, -0.34, 1.45, -0.05, 0.8, 2.3, 0.9);
+            blob(0.12, 0.34, 1.45, -0.05, 0.8, 2.3, 0.9);
+            break;
+        case 'braids':
+            [-1, 1].forEach(function (side) {
+                blob(0.1, side * 0.3, 1.5, 0.12, 1, 3.4, 1);
+                blob(0.08, side * 0.3, 1.18, 0.12, 1, 1, 1);
+            });
+            break;
+        case 'puffs':
+            blob(0.24, -0.32, 2.02, 0.05, 1, 1, 1);
+            blob(0.24, 0.32, 2.02, 0.05, 1, 1, 1);
+            break;
+        default:
+            break;
+    }
+}
+
 // ===== MAIN BUILD FUNCTION =====
+
+/** The player's chosen colors for this character's parts, as tints for the model. */
+export function modelTints(avatar) {
+    var chosen = (storage.get('modelColors') || {})[avatar.id] || {};
+    var tints = [];
+    (avatar.parts || []).forEach(function (part) {
+        var hex = chosen[part.key];
+        if (hex) tints.push({ names: part.materials, color: hex });
+    });
+    return tints;
+}
 
 export function buildPlayer() {
     var avatar = getAvatarConfig();
@@ -1063,19 +1125,9 @@ export function buildPlayer() {
         // Real animated model. If it is still downloading, show the
         // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
         var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;
-        var scrubColor = storage.get('scrubColor');
-        var model = buildModelCharacter(url, avatar.scale, undefined, avatar.scrub && scrubColor ? { names: avatar.scrub, color: scrubColor } : null);
+        var model = buildModelCharacter(url, avatar.scale, undefined, modelTints(avatar));
         if (model) {
-            // Hats work on the 3D characters too: they follow the head bone
-            var modelHat = null;
-            for (var mh = 0; mh < SHOP_ITEMS.length; mh++) {
-                if (SHOP_ITEMS[mh].id === equipped.hat) modelHat = SHOP_ITEMS[mh];
-            }
-            if (modelHat && modelHat.color) {
-                var hatGroup = new THREE.Group();
-                applyHat(hatGroup, modelHat, avatar);
-                if (hatGroup.children.length) attachHeadAccessory(model, hatGroup);
-            }
+            // 3D characters keep their own look: no hats (they look wrong on the models)
             return model;
         }
         loadCharacterModel(url).catch(function (e) {
@@ -1157,6 +1209,8 @@ function buildHumanoid(avatar, equipped) {
     );
     hairBack.position.set(0, 1.72 * s, 0.08 * s);
     pg.add(hairBack);
+
+    addHairStyle(pg, avatar, headRadius, s);
 
     // Ears
     for (var earSide = -1; earSide <= 1; earSide += 2) {

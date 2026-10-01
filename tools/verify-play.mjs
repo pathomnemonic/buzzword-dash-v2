@@ -40,7 +40,7 @@ async function newPage(seedCoins) {
   page.on('dialog', (d) => d.accept().catch(() => {}));
   await page.goto(base + '/?debug=1');
   for (let i = 0; i < 10; i++) {
-    const n = page.locator('#obNextBtn');
+    const n = page.locator('#tutSkipBtn');
     if (!(await n.isVisible().catch(() => false))) break;
     await n.click();
   }
@@ -49,7 +49,7 @@ async function newPage(seedCoins) {
   for (let i = 0; i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
   await page.reload();
   for (let i = 0; i < 10; i++) {
-    const n = page.locator('#obNextBtn');
+    const n = page.locator('#tutSkipBtn');
     if (!(await n.isVisible().catch(() => false))) break;
     await n.click();
   }

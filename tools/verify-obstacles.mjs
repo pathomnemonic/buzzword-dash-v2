@@ -10,12 +10,12 @@ const page = await ctx.newPage();
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 await page.goto(base + '/?debug=1');
-for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+for (let i = 0; i < 10; i++) { const n = page.locator('#tutSkipBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
 const dr = page.locator('#dailyReward button');
 await dr.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 for (let i = 0; i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
 await page.reload();
-for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+for (let i = 0; i < 10; i++) { const n = page.locator('#tutSkipBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
 await page.waitForTimeout(1200);
 await page.locator('.btn-play').click();
 await page.waitForTimeout(7000);

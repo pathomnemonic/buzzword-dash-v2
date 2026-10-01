@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
-import { enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstancingActive, spawnCoinBatch } from '../../js/game/obstacles.js';
+import { enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstancingActive, spawnCoinBatch, coinInstanceMeshes, reattachCoinInstances } from '../../js/game/obstacles.js';
 
 // Coins are drawn in bulk by a few instanced meshes; the game still moves each coin as its own object.
 
@@ -94,5 +94,21 @@ describe('coin batches', () => {
       last = coins[coins.length - 1].userData.lane;
     }
     expect(changed).toBeGreaterThan(150);
+  });
+});
+
+describe('coins stay drawn when the scene is swept', () => {
+  it('lists the shared coin meshes, and puts them back if something removed them', () => {
+    const scene = new THREE.Scene();
+    disableCoinInstancing();
+    enableCoinInstancing(scene);
+    const meshes = coinInstanceMeshes();
+    expect(meshes.length).toBe(3);
+    meshes.forEach((m) => scene.remove(m));          // what a map change used to do to them
+    expect(scene.children.filter((c) => c.isInstancedMesh).length).toBe(0);
+    expect(reattachCoinInstances(scene)).toBe(3);
+    expect(scene.children.filter((c) => c.isInstancedMesh).length).toBe(3);
+    expect(reattachCoinInstances(scene)).toBe(0);    // nothing to fix the second time
+    disableCoinInstancing();
   });
 });

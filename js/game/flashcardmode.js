@@ -168,7 +168,7 @@ function buildCardPool(options) {
  */
 function selectCards(pool, count) {
   var now = Date.now();
-  var freshnessWeight = storage.get('cardFreshnessWeight') || 5;
+  var freshnessWeight = storage.get('cardFreshnessWeight') || 8;
 
   var weighted = pool.map(function (c) {
     var s = storage.getCardStat(c.id);

@@ -82,9 +82,9 @@ export function parseChallengeHash(hash) {
   return m ? decodeChallenge(m[1]) : null;
 }
 
-// ===== Weekly tournament =====
+// ===== Weekly Gauntlet (the mode id is still 'tournament') =====
 
-export var TOURNAMENT_SIZE = 20;
+export var TOURNAMENT_SIZE = 30;
 
 /**
  * ISO week key in UTC, e.g. "2026-W40". Matches the server's season key.
@@ -97,7 +97,7 @@ export function isoWeekKey(date) {
   var day = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - day);
   var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  var week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  var week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   return d.getUTCFullYear() + '-W' + (week < 10 ? '0' : '') + week;
 }
 

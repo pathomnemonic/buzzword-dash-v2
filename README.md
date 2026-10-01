@@ -67,16 +67,18 @@ Rush can be stacked up to 3 times while an encounter is active. Each stack incre
 | **Endless** | Play until you run out of lives. Speed increases over time. |
 | **Study** | Infinite lives. Teaching points shown after every answer. |
 | **Weakness** | Focuses on cards you have previously missed. |
-| **Daily** | A fixed 15-card challenge. One attempt per day. |
+| **Daily 15** | A quick habit: today's 15 cards, one try a day, the same for everyone. Keeps your login streak going. Not ranked. |
+| **Weekly Gauntlet** | A real test: 30 cards (the same all week) and only 2 lives. Clear it for a weekly badge and 150 bonus coins; retry as often as you like. Not ranked. |
+| **Friend challenge** | Play 15 fresh cards, then send a link; friends play the same cards and compare. Any time, no sign-up. |
 | **Versus** | Multiplayer via peer-to-peer WebRTC. |
 
-### Multiplayer Modes
+Daily 15, the Weekly Gauntlet and Friend challenges are deliberately not on a leaderboard: many players finish a fixed set perfectly, so a board would just be a wall of ties. Leaderboards are for Endless, Weakness and Versus.
 
-| Mode | Rule |
-|------|------|
-| **High Score** | Most points when the timer expires wins. |
-| **Sudden Death** | First wrong answer eliminates that player. |
-| **Race** | First to reach the target number of correct answers wins. |
+### The Home screen
+
+Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), the big PLAY button with **Filters** (subjects, exam and advanced filters, plus game speed) on its left and **Quests** on its right, both popups, and a "How to play" link that opens the guided tutorial. Three ways to play sit below: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free) and **Challenge** (a popup explaining Study, Weakness, Daily 15, Weekly Gauntlet, Friend challenge and Exam Sim). The tab bar is Stats, Locker, **Home** (center), Cards and Profile (with your streak calendar and badges). Swipe left or right to move between tabs; a slim indicator along the top of the tab bar shows where you are.
+
+Controls feel forgiving: jumps hang in the air for about a second and slides last nearly a second. Jumping cancels a slide, and sliding in the air drops you fast and slides on landing. Animated characters use their own roll or crouch animation to slide, never a faceplant.
 
 ## Power-ups
 
@@ -94,7 +96,25 @@ When you are down to 1 life, heart pickups may appear on the track. Collecting o
 
 ## The Exam Monster
 
-An exam monster chases you from behind. It gets closer when you answer incorrectly and falls back when you answer correctly. If it catches you, your run ends with a dramatic animation.
+An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only creeps into view when you answer incorrectly, and falls back (and fades away) when you answer correctly or build a streak. If it catches you, your run ends with a dramatic animation. Characters that are animated 3D models do not wear hats; hats are for the Classic characters.
+
+The monster follows the game mode. Study and timed practice have no way to lose, and sudden death ends on the first wrong answer, so there is no monster in those. Weakness practice gives you more room (a wrong answer moves it less, a right one pushes it back more). Every other mode uses the standard monster, and it depends only on your answers, so challenges, tournaments and versus stay comparable.
+
+## Maps
+
+A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry lab). The first map change goes outdoors (the open and body-interior worlds), and after that the next map is random. A favorite map picked in Settings stays for the whole run.
+
+## Look
+
+The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. By default ("Surprise me") the look switches to a different season's colors every few runs, or after about 20 minutes, with a small toast. Settings -> Colors can follow the date instead (Seasonal), pin a season, or switch to Classic.
+
+## Filters, badges and red dots
+
+The three question filters (subjects, exam and the advanced ones) sit on one page, opened from a single "Question filters" row on Home that shows what is active (for example "All subjects" or "Cardiology · 2 filters"). Badges live in the profile: every badge is listed there, earned ones can be pinned (up to 6). Red dots mark what is waiting for you: a badge you have not looked at yet (on the Profile buttons), a finished quest or the weekly goal whose coins are unclaimed (on Quests and the weekly goal), and new things you can afford in the Locker. A dot goes away once you have seen or claimed the thing.
+
+## Asking for shares, ratings and accounts
+
+Now and then the results screen offers one small card: share the game with a friend, rate it on the store, or make a free account to keep progress safe. The timing is deliberate (`js/prompts.js`): only after a good run or a new best score, never during a run or exam, not in the first runs, at most one ask every three days, each kind backing off (14, 28, 56 days) and stopping after three asks, and "Don't ask again" or doing the thing ends that kind for good. An ask only appears when it can work: no "rate" without a store link (set `VITE_REVIEW_URL`; the Android app falls back to its Play Store page), no "make an account" when signed in or when accounts are not set up. Sharing uses the system share sheet, or copies a link (`VITE_SHARE_URL` overrides the link).
 
 ## Scoring
 
@@ -169,7 +189,8 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
-- **Animated 3D avatar** — "Robo Resident" uses a real glTF model with authored run, jump and death animation clips (CC0 model by Tomás Laulhé, via the three.js examples)
+- **Women in 3D** — Dr. Nova (a physician) and the Scout are full animated 3D characters. The medical characters (Dr. Dash, Dr. Nova, Paramedic Pat) can all be given any skin tone, and Dr. Dash and Dr. Nova any hair color, so one character covers many looks.
+- **Animated 3D characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
@@ -255,6 +276,20 @@ buzzword-dash/
 3. Go to **Settings → Pages → Source** and select the `main` branch
 4. Your game will be live at `https://pathomnemonic.github.io/buzzword-dash-v2/`
 
+## Error reporting (Optional)
+
+Uncaught errors and unhandled promise rejections are logged to the console. To also collect them, set a build-time endpoint that accepts a JSON `POST`:
+
+```
+VITE_ERROR_ENDPOINT=https://example.com/dxdash-errors
+```
+
+(In GitHub, add it as a repository variable named `VITE_ERROR_ENDPOINT`.) With no URL set, nothing leaves the device. Each report holds only the error message, a trimmed stack, the area it came from and the build id, with no account, score or card data, and a page load sends at most 10 distinct reports.
+
+## Updates and offline cache
+
+The service worker's cache is named after the build (the commit in CI), so every deploy starts a fresh cache. When a new version finishes installing while the game is open, a notice offers a reload.
+
 ## Tips (Optional)
 
 Dx Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:
@@ -299,9 +334,9 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 ## Credits
 
-- `public/models/RobotExpressive.glb` — Robot Expressive by Tomás Laulhé (CC0 1.0), with modifications by Don McCurdy, from the [three.js examples](https://github.com/mrdoob/three.js/tree/r160/examples/models/gltf/RobotExpressive).
+- `public/models/characters/scout.glb` — the Rogue from the KayKit Adventurers Character Pack 1.0 by Kay Lousberg ([kaylousberg.com](https://www.kaylousberg.com/), CC0 1.0); the weapons were removed and the animation clips trimmed with `tools/import-character.mjs`.
 
-- `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Twelve characters (Explorer, Ranger, Adventurer, Hooded Rogue, Night-Shift Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Medic, King) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
+- `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Characters (Explorer, Ranger, Adventurer, Hooded Rogue, Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Bot, King, plus the Doctor, Nurse and Paramedic) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
 
 - `public/models/obstacles/*.glb`, `public/models/props/*.glb` — small props (hospital bed, traffic cone, cardboard boxes, traffic barrier, trash can, street light, air conditioner) by [Quaternius](https://quaternius.com/), and a computer screen and hospital sign by [Kenney](https://kenney.nl/), and a telescope by CreativeTrio; all CC0 1.0, from [Poly Pizza](https://poly.pizza/).
 

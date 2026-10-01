@@ -121,12 +121,34 @@ export function getStartPose(style, t) {
 export var CAMERA_STYLES = ['sweep', 'orbit', 'rise'];
 
 /**
+ * The look-back opening used when the exam monster is on: the camera starts in front of the runner,
+ * looking back so the monster is seen lurking behind them, then swings around over the runner's shoulder
+ * into the normal chase view, which leaves the monster behind the camera and out of sight. Not in the
+ * random pool above; the engine picks it.
+ */
+export var LOOKBACK_STYLE = 'lookback';
+/** Seconds the camera holds on the monster before it starts to swing around. */
+export var LOOKBACK_HOLD = 1.0;
+var LOOKBACK_END = 2.5;
+
+/**
  * Camera moves for the intro. Returns a position and the point to look at.
  * @param {string} style one of CAMERA_STYLES
  * @param {number} t seconds since the intro began
  * @param {{x:number,y:number,z:number}} base the normal chase-camera position
  */
 export function getIntroCamera(style, t, base) {
+  if (style === LOOKBACK_STYLE) {
+    // Swing from in front of the runner (angle PI) around the side to behind them (angle 0)
+    var k = easeInOut(clamp01((t - LOOKBACK_HOLD) / (LOOKBACK_END - LOOKBACK_HOLD)));
+    if (t >= LOOKBACK_END) return { position: { x: base.x, y: base.y, z: base.z }, lookAt: { x: 0, y: 1, z: -20 } };
+    var swing = Math.PI * (1 - k);
+    var r = 7 + (base.z - 7) * k;
+    return {
+      position: { x: Math.sin(swing) * r * 0.4, y: 3.2 + (base.y - 3.2) * k, z: Math.cos(swing) * r },
+      lookAt: { x: 0, y: 1.4 - 0.4 * k, z: 3 * (1 - k) + -20 * k }
+    };
+  }
   var u = clamp01(t / 2.4);
   var e = easeOut(u);
   var rest = 1 - e;

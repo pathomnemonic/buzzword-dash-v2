@@ -36,126 +36,26 @@
 
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
-import { SCRUB_COLORS } from './game/modelcatalog.js';
 import { storage } from './storage.js';
+import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { SHOP_ITEMS, QUESTS, ACHIEVEMENTS, AVATARS } from './game/shopdata.js';
+import { SHOP_ITEMS, ACHIEVEMENTS, QUESTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
-import { buildStudyPlan } from './studyplan.js';
-import { getTipUrl, openTipPage } from './tips.js';
 import { getControlText } from './controlhints.js';
-import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
-import { SKINS } from './game/skins.js';
-import { getQuality } from './game/quality.js';
-import { streakCallout, runVerdict } from './flavor.js';
+import { streakCallout } from './flavor.js';
 import { dailyReward } from './progress.js';
-import { THEME_CHOICES } from './theme.js';
 import { newlyAffordable, markSeen } from './lockerdots.js';
 import { showDailyRewardModal } from './rewardsui.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
-
-// ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
-
-/** Returns YYYY-MM-DD for local date */
-function localDateKey(date) {
-  var y = date.getFullYear();
-  var m = String(date.getMonth() + 1).padStart(2, '0');
-  var d = String(date.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + d;
-}
-
-/** Check if user prefers reduced motion */
-function prefersReducedMotion() {
-  if (typeof window.matchMedia === 'function') {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }
-  return storage.get('reducedMotion') || false;
-}
-
-/** Debounce utility */
-function debounce(fn, delay) {
-  var timer = null;
-  return function () {
-    var args = arguments;
-    var self = this;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(function () {
-      timer = null;
-      fn.apply(self, args);
-    }, delay);
-  };
-}
-
-// ═══════════════════════════════════════════════════════════
-// FOCUS TRAP for modals (Section 21.3) [2]
-// ═══════════════════════════════════════════════════════════
-
-var _activeFocusTrap = null;
-var _previousFocusElement = null;
-
-function trapFocus(container) {
-  _previousFocusElement = document.activeElement;
-
-  function getFocusable() {
-    var elements = container.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    var visible = [];
-    for (var i = 0; i < elements.length; i++) {
-      if (elements[i].offsetParent !== null && !elements[i].disabled) {
-        visible.push(elements[i]);
-      }
-    }
-    return visible;
-  }
-
-  function handleKeyDown(e) {
-    if (e.key === 'Tab') {
-      var focusable = getFocusable();
-      if (focusable.length === 0) return;
-      var first = focusable[0];
-      var last = focusable[focusable.length - 1];
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-  }
-
-  container.addEventListener('keydown', handleKeyDown);
-  _activeFocusTrap = { container: container, handler: handleKeyDown };
-
-  // Move focus into the container
-  var focusable = getFocusable();
-  if (focusable.length > 0) {
-    focusable[0].focus();
-  } else {
-    container.setAttribute('tabindex', '-1');
-    container.focus();
-  }
-}
-
-function releaseFocusTrap() {
-  if (_activeFocusTrap) {
-    _activeFocusTrap.container.removeEventListener('keydown', _activeFocusTrap.handler);
-    _activeFocusTrap = null;
-  }
-  if (_previousFocusElement && _previousFocusElement.focus) {
-    try { _previousFocusElement.focus(); } catch (e) { /* element may have been removed */ }
-  }
-  _previousFocusElement = null;
-}
+import { postRunMethods } from './uipostrun.js';
+import { settingsMethods } from './uisettings.js';
+import { studyMethods } from './uistudy.js';
+import { browseMethods } from './uibrowse.js';
+import { profileMethods } from './uiprofile.js';
+import { homeMethods } from './uihome.js';
+import { prefersReducedMotion, trapFocus, releaseFocusTrap, _copyToClipboard } from './uihelpers.js';
 
 // ═══════════════════════════════════════════════════════════
 // SETTINGS EXTENSIONS REGISTRY (Section 21.1) [2]
@@ -167,6 +67,12 @@ var _settingsExtensions = [];
 // UI CLASS
 // ═══════════════════════════════════════════════════════════
 
+/** The tab a screen belongs to (sub-pages keep their parent's tab lit; Settings and Ranks light none). */
+function NAV_PARENT(screenId) {
+  if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards') return 'screenCards';
+  return screenId;
+}
+
 class UI {
   constructor() {
     this.characterPreview = null;
@@ -174,20 +80,6 @@ class UI {
     this.titleTapTimer = null;
     this.konamiSequence = [];
     this.konamiCode = [38, 38, 40, 40, 37, 39, 37, 39];
-
-    this.tutorialPage = 0;
-    this.tutorialPages = [
-      { icon: 'Dx', title: 'Welcome!', text: 'Dx Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
-      { icon: '👆', title: 'Move Between Lanes', text: '' + getControlText().move + ' Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
-      { icon: '⬆️', title: 'Jump Over Obstacles', text: getControlText().jump + ' over hospital beds, crates, cones and other obstacles on the ground.' },
-      { icon: '⬇️', title: 'Slide Under Obstacles', text: getControlText().slide + ' under overhead obstacles like hanging lights and signs.' },
-      { icon: '👆👆', title: 'Rush for Bonus Points', text: 'Know the answer? ' + getControlText().rush + '! You\'re propelled through the gate in 0.5s and invulnerable to obstacles during rush!' },
-      { icon: '🏎️', title: 'Speed = Points', text: 'Use the speed dial on the home screen to increase game speed. Faster speeds earn more points per correct answer.' },
-      { icon: '🔥', title: 'Build Your Streak', text: 'Correct answers build your streak. Every 5 correct increases your score multiplier up to 8×!' },
-      { icon: '❤️', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. When at 1 life, look for heart pickups on the track!' },
-      { icon: '🪙', title: 'Collect & Customize', text: 'Grab coins and glowing power-up orbs as you run! Visit the On-Call Locker to preview and equip avatars, hats, trails, clothing, and gear.' },
-      { icon: '🏆', title: 'Achievements', text: 'Earn badges by reaching milestones — perfect runs, high streaks, score targets, and more!' }
-    ];
 
     this.homeCharacter = null;
     this.speedDialTapCount = 0;
@@ -228,9 +120,9 @@ class UI {
     this.renderStats();
     this.renderShop();
     this.renderQuests();
-    this.renderAchievements();
     this.setupSpeedDial();
     this.bindNavigation();
+    this.bindHomeSheets();
     this.bindMusicToggle();
     this.bindFlashcardKeys();
     this.bindSubjectControls();
@@ -239,9 +131,9 @@ class UI {
     this.checkDailyLoginReward();
     this.createVignetteOverlay();
     this.renderCalendar();
-    this.renderHowToPlay();
     this.renderExamFilter();
     this.renderAdvancedFilters();
+    this._renderFiltersSummary();
     this._bindGlobalEscapeKey();
   }
 
@@ -388,7 +280,7 @@ class UI {
     this.hideAll();
   }
 
-  show(screenId) {
+  show(screenId, slideFrom) {
     // Leaving the Locker: the items that wore a red dot have now been seen
     var shopEl = document.getElementById('screenShop');
     if (shopEl && shopEl.classList.contains('active') && screenId !== 'screenShop' && this._lockerFresh && this._lockerFresh.length) {
@@ -396,13 +288,22 @@ class UI {
       this._lockerFresh = [];
       document.dispatchEvent(new CustomEvent('dx:coins-changed'));
     }
+    // Leaving the profile: the badges that wore a red dot have now been seen
+    var profileEl = document.getElementById('screenProfile');
+    if (profileEl && profileEl.classList.contains('active') && screenId !== 'screenProfile') storage.markAchievementsSeen();
     document.querySelectorAll('.screen').forEach(function (s) {
       s.classList.remove('active');
     });
     var el = document.getElementById(screenId);
-    if (el) el.classList.add('active');
+    if (el) {
+      el.classList.remove('from-left', 'from-right');
+      if (slideFrom) el.classList.add(slideFrom); // swiped in from this side
+      el.classList.add('active');
+    }
+    document.body.setAttribute('data-screen', screenId); // the flying objects are a Home-only element
 
     if (screenId === 'screenHome') {
+      document.dispatchEvent(new CustomEvent('dx:home-shown'));
       this.renderHome();
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
@@ -413,11 +314,9 @@ class UI {
       this.renderShop();
       this.startPreview();
     }
-    if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
-    if (screenId === 'screenAchievements') this.renderAchievements();
-    if (screenId === 'screenProfile') this.renderProfile();
+    if (screenId === 'screenProfile') { this.renderProfile(); this.renderCalendar(); }
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
     if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
     if (screenId === 'screenFlashcard') this.renderFlashcardScreen();
@@ -430,8 +329,12 @@ class UI {
       this.homeCharacter.stopAnimation();
     }
 
-    document.querySelectorAll('.nav-item').forEach(function (n) {
-      var isCurrent = n.dataset.screen === screenId;
+    document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+
+    var indicator = document.querySelectorAll('#tabIndicator span');
+    document.querySelectorAll('.nav-item').forEach(function (n, idx) {
+      if (indicator[idx]) indicator[idx].classList.toggle('on', n.dataset.screen === NAV_PARENT(screenId));
+      var isCurrent = n.dataset.screen === NAV_PARENT(screenId);
       n.classList.toggle('active', isCurrent);
       // aria-current drives the highlight too, so it must follow the tab
       if (isCurrent) n.setAttribute('aria-current', 'true');
@@ -457,24 +360,13 @@ class UI {
     document.querySelectorAll('.back-btn').forEach(function (btn) {
       btn.addEventListener('click', function () { self.show('screenHome'); });
     });
-    // The step-by-step tutorial (opened from Home and from Settings)
-    var tutNext = document.getElementById('tutNextBtn');
-    if (tutNext) tutNext.addEventListener('click', function () { self.tutorialNext(); });
-    var tutClose = document.getElementById('tutCloseBtn');
-    if (tutClose) {
-      tutClose.addEventListener('click', function () {
-        document.getElementById('tutorialOverlay').classList.remove('active');
-        releaseFocusTrap();
-      });
-    }
+    // The interactive tutorial: the same one from Home, Settings and the first run
+    var howToBtn = document.getElementById('howToPlayBtn');
+    if (howToBtn) howToBtn.addEventListener('click', function () { self.showTutorial(); });
     var settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', function () { self.show('screenSettings'); });
     var shopBtn = document.getElementById('shopBtn');
     if (shopBtn) shopBtn.addEventListener('click', function () { self.show('screenShop'); });
-    var questBtn = document.getElementById('questBtn');
-    if (questBtn) questBtn.addEventListener('click', function () { self.show('screenQuests'); });
-    var achievementsBtn = document.getElementById('achievementsBtn');
-    if (achievementsBtn) achievementsBtn.addEventListener('click', function () { self.show('screenAchievements'); });
     var myCardsBtn = document.getElementById('myCardsBtn');
     if (myCardsBtn) myCardsBtn.addEventListener('click', function () {
       self.show('screenMyCards');
@@ -549,8 +441,8 @@ class UI {
         'quickReviewOverlay',
         'continueOverlay',
         'multiplayerOverlay',
-        'tutorialOverlay',
-        'onboardingOverlay'
+        'accountOverlay',
+        'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'
       ];
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
@@ -661,7 +553,7 @@ class UI {
     var self = this;
     // The coins are already in the wallet; the screen is the reveal. It waits for the tutorial to finish.
     function show() {
-      var tutorial = document.getElementById('onboardingOverlay');
+      var tutorial = document.getElementById('tutorialOverlay');
       if (tutorial && tutorial.classList.contains('active')) { setTimeout(show, 1000); return; }
       audio.play('coin');
       showDailyRewardModal({
@@ -733,57 +625,16 @@ class UI {
   // HOME SCREEN
   // ═══════════════════════════════════════════════════════
 
-  renderStudyGoal() {
-    var self = this;
-    var el = document.getElementById('studyGoal');
-    if (!el) return;
-    clearElement(el);
-    var goal = storage.get('dailyGoal') || 20;
-    var done = storage.getStudiedToday();
-    var pct = Math.min(100, Math.round(done / goal * 100));
-    var label = '🎯 Today: ' + done + ' / ' + goal + ' cards' + (done >= goal ? ' ✅' : '');
-    el.appendChild(createElement('div', { text: label }));
-    var bar = createElement('div', {
-      className: 'study-goal-bar',
-      attributes: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(goal), 'aria-valuenow': String(Math.min(done, goal)), 'aria-label': 'Daily study goal' }
-    });
-    var fill = createElement('div', { className: 'study-goal-fill' });
-    fill.style.width = pct + '%';
-    bar.appendChild(fill);
-    el.appendChild(bar);
-    var due = storage.getDueCount();
-    if (due > 0) {
-      el.appendChild(createElement('div', { className: 'study-goal-due', text: '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review' }));
-    }
-
-    var streak = storage.getStreakStatus();
-    if (streak.streak > 0 || streak.shields > 0) {
-      var streakText = '🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  \u00B7  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : '');
-      el.appendChild(createElement('div', { className: 'study-goal-due', text: streakText }));
-    }
-
-    var week = storage.getWeeklyProgress();
-    var weekEl = createElement('div', { className: 'study-goal-due', text: '📆 This week: ' + week.daysMet + '/' + week.target + ' goal days' + (week.claimed ? ' \u2705' : '') });
-    el.appendChild(weekEl);
-    if (week.daysMet >= week.target && !week.claimed) {
-      var claim = createElement('button', { className: 'btn btn-gold btn-sm', text: '🎁 Claim ' + week.reward + ' coins', attributes: { type: 'button' } });
-      claim.style.marginTop = '4px';
-      claim.addEventListener('click', function () {
-        var res = storage.claimWeeklyGoal();
-        self._showToast(res.success ? '🪙 +' + res.reward + ' coins for hitting your weekly goal!' : res.error);
-        self.renderHome();
-      });
-      el.appendChild(claim);
-    }
-  }
-
   renderHome() {
     var homeCoins = document.getElementById('homeCoins');
     var homeBest = document.getElementById('homeBest');
     if (homeCoins) setText(homeCoins, storage.get('coins'));
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
-    this.renderCalendar();
+    var qs = document.getElementById('questSummary');
+    if (qs) { var ready = storage.getClaimableQuestIds(QUESTS).length; setText(qs, ready > 0 ? ready + ' to claim' : 'Daily'); }
+    this._renderFiltersSummary();
+    document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1083,7 +934,22 @@ class UI {
     });
   }
 
+  /** The one-line summary on Home's "Question filters" row, e.g. "All subjects · USMLE · 2 filters". */
+  _renderFiltersSummary() {
+    var el = document.getElementById('filtersSummary');
+    if (!el) return;
+    var subjects = storage.get('selectedSubjects') || [];
+    var exams = storage.get('selectedExams') || [];
+    var advanced = (storage.get('selectedQuestionTypes') || []).length + (storage.get('selectedYears') || []).length + (storage.get('highYieldOnly') ? 1 : 0);
+    var parts = [];
+    parts.push(subjects.length === 0 || subjects.length >= SUBJECTS.length ? 'All subjects' : subjects.length === 1 ? subjects[0] : subjects.length + ' subjects');
+    if (exams.length) parts.push(exams.length === 1 ? String(exams[0]) : exams.length + ' exams');
+    if (advanced) parts.push(advanced + (advanced === 1 ? ' filter' : ' filters'));
+    setText(el, parts.join(' · '));
+  }
+
   _updateFilterCount() {
+    this._renderFiltersSummary();
     var selectedTypes = storage.get('selectedQuestionTypes') || [];
     var selectedYears = storage.get('selectedYears') || [];
     var highYieldOnly = storage.get('highYieldOnly') || false;
@@ -1098,43 +964,22 @@ class UI {
   // HOW TO PLAY
   // ═══════════════════════════════════════════════════════
 
-  renderHowToPlay() {
-    var self = this;
-    var container = document.getElementById('howToPlaySection');
-    if (!container) return;
-    clearElement(container);
-
-    var details = createElement('details', { className: 'howto' });
-    details.appendChild(createElement('summary', { text: '📖 How to Play' }));
-    var body = createElement('div', { className: 'howto-body' });
-    this.tutorialPages.forEach(function (p, i) {
-      if (i === 0) return; // the welcome page is only for the walk-through
-      var item = createElement('div', { className: 'howto-item' });
-      item.appendChild(createElement('strong', { text: p.icon + ' ' + p.title + '. ' }));
-      item.appendChild(document.createTextNode(p.text));
-      body.appendChild(item);
-    });
-    var modes = createElement('div', { className: 'howto-item' });
-    modes.appendChild(createElement('strong', { text: '🎯 Game modes. ' }));
-    modes.appendChild(document.createTextNode('Endless: run until you are out of lives. Study: no lives lost, with a teaching point after each question. Weakness: practice the cards you miss. Daily: today\'s 15-card challenge. Versus: race a friend live, or play ranked.'));
-    body.appendChild(modes);
-    var cards = createElement('div', { className: 'howto-item' });
-    cards.appendChild(createElement('strong', { text: '📝 Your own cards. ' }));
-    cards.appendChild(document.createTextNode('Make cards in My Cards, import Anki decks, or study the same cards as flashcards or in the runner: it is your choice.'));
-    body.appendChild(cards);
-    var walk = createElement('button', { className: 'btn btn-outline btn-sm', text: '▶ Show me step by step', attributes: { type: 'button' } });
-    walk.addEventListener('click', function () { self.showTutorial(); });
-    body.appendChild(walk);
-    details.appendChild(body);
-    container.appendChild(details);
-  }
-
   // ═══════════════════════════════════════════════════════
   // HUD
   // ═══════════════════════════════════════════════════════
 
   showHud() {
     document.getElementById('hud').classList.remove('off');
+  }
+
+  /** A new run starts blank: nothing from the last question (or its answer and teaching point) may linger. */
+  resetQuestionDisplay() {
+    setText(document.getElementById('buzzText'), 'GET READY');
+    this.hideAnswerChoices();
+    var fb = document.getElementById('feedbackEl');
+    if (fb) { setText(fb, ''); fb.className = ''; }
+    var tb = document.getElementById('teachEl');
+    if (tb) { setText(tb, ''); tb.classList.remove('show'); }
   }
 
   hideHud() {
@@ -1264,100 +1109,33 @@ class UI {
   // TRACK NAME
   // ═══════════════════════════════════════════════════════
 
-  /** Settings: power-up, hazard and monster switches, and a favorite map. */
-  _renderRuleSettings(content) {
-    var self = this;
-    var heading = createElement('h3', { text: '🎛️ Your Rules (single-player)' });
-    heading.style.cssText = 'margin:16px 0 4px;font-size:14px;color:var(--text-secondary)';
-    content.appendChild(heading);
-    var note = createElement('div', {
-      className: 'setting-sublabel',
-      text: 'Turn things off for endless, study and weakness runs. To keep rankings fair, a run with any rule changed still counts for your own progress but is not posted to leaderboards. Daily, challenges, tournaments and multiplayer always use standard rules.'
-    });
-    note.style.cssText = 'margin-bottom:8px;line-height:1.4;font-size:11px';
-    content.appendChild(note);
 
-    function toggleRow(icon, label, desc, isOn, onChange) {
-      var row = createElement('div', { className: 'setting-row' });
-      var text = createElement('div');
-      text.appendChild(createElement('div', { text: icon + ' ' + label }));
-      text.appendChild(createElement('span', { className: 'setting-sublabel', text: desc }));
-      row.appendChild(text);
-      var sw = createElement('div', {
-        className: 'toggle' + (isOn ? ' on' : ''),
-        attributes: { role: 'switch', tabindex: '0', 'aria-label': label, 'aria-checked': isOn ? 'true' : 'false' }
-      });
-      function flip() {
-        var next = !sw.classList.contains('on');
-        sw.classList.toggle('on', next);
-        sw.setAttribute('aria-checked', next ? 'true' : 'false');
-        onChange(next);
-        refreshBadge();
-      }
-      sw.addEventListener('click', flip);
-      sw.addEventListener('keydown', function (e) {
-        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
-      });
-      row.appendChild(sw);
-      content.appendChild(row);
+  /**
+   * A short message that stays out of the way: a small chip at the bottom of the screen, under the
+   * runner, never over the question, the answer lanes or the track. Used for map names, hazards,
+   * power-ups and match messages. At most three show at once; the oldest goes first.
+   * @param {string} text
+   * @param {{color?: string, ms?: number}} [options]
+   */
+  showNotice(text, options) {
+    options = options || {};
+    var dock = document.getElementById('noticeDock');
+    if (!dock) {
+      dock = createElement('div', { attributes: { id: 'noticeDock', role: 'status', 'aria-live': 'polite' } });
+      document.body.appendChild(dock);
     }
-
-    var badge = createElement('div', { className: 'setting-sublabel' });
-    badge.style.cssText = 'margin:6px 0;font-weight:700';
-    function refreshBadge() {
-      var rules = getRunRules('endless', {
-        disabledPowerups: storage.get('disabledPowerups'),
-        hazardsOff: storage.get('hazardsOff'),
-        monsterOff: storage.get('monsterOff')
-      });
-      setText(badge, rules.custom ? '⚠ Custom rules on: ' + describeRules(rules) + '. Runs will not be ranked.' : '✓ Standard rules: runs are ranked.');
-      badge.style.color = rules.custom ? 'var(--accent-gold)' : 'var(--accent-green)';
-    }
-
-    POWERUP_OPTIONS.forEach(function (p) {
-      var disabled = storage.get('disabledPowerups') || [];
-      toggleRow(p.icon, p.label + ' power-up', p.desc, disabled.indexOf(p.id) < 0, function (on) {
-        var list = (storage.get('disabledPowerups') || []).filter(function (id) { return id !== p.id; });
-        if (!on) list.push(p.id);
-        storage.set('disabledPowerups', list);
-      });
-    });
-    toggleRow('🌀', 'Map hazards', 'Blackouts, tremors, fog and other map events', !storage.get('hazardsOff'), function (on) {
-      storage.set('hazardsOff', !on);
-    });
-    toggleRow('👾', 'Exam monster', 'The monster that chases you when you slip', !storage.get('monsterOff'), function (on) {
-      storage.set('monsterOff', !on);
-    });
-    content.appendChild(badge);
-    refreshBadge();
-
-    // Favorite map: purely cosmetic, so it never affects ranking
-    var mapRow = createElement('div', { className: 'setting-row' });
-    var mapLabel = createElement('div');
-    mapLabel.appendChild(createElement('div', { text: '🗺️ Favorite map' }));
-    mapLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Run on one map instead of rotating (cosmetic, still ranked)' }));
-    mapRow.appendChild(mapLabel);
-    var mapSelect = createElement('select', { attributes: { 'aria-label': 'Favorite map' } });
-    mapSelect.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);max-width:160px';
-    mapSelect.appendChild(createElement('option', { text: 'Rotate maps', attributes: { value: '' } }));
-    SKINS.forEach(function (sk) {
-      var o = createElement('option', { text: sk.name, attributes: { value: sk.name } });
-      if (storage.get('preferredMap') === sk.name) o.selected = true;
-      mapSelect.appendChild(o);
-    });
-    mapSelect.addEventListener('change', function () { storage.set('preferredMap', mapSelect.value); });
-    mapRow.appendChild(mapSelect);
-    content.appendChild(mapRow);
-    void self;
+    while (dock.children.length >= 3) dock.removeChild(dock.firstChild);
+    var chip = createElement('div', { className: 'notice-chip', text: text });
+    if (options.color) chip.style.setProperty('--notice-color', options.color);
+    dock.appendChild(chip);
+    requestAnimationFrame(function () { chip.classList.add('show'); });
+    var ms = options.ms || 2200;
+    setTimeout(function () { chip.classList.remove('show'); }, ms);
+    setTimeout(function () { if (chip.parentNode) chip.parentNode.removeChild(chip); }, ms + 450);
   }
 
   showTrackName(text) {
-    var overlay = document.getElementById('trackNameOverlay');
-    if (!overlay) return;
-    var nameEl = document.getElementById('trackNameText');
-    if (nameEl) setText(nameEl, text);
-    overlay.classList.add('show');
-    setTimeout(function () { overlay.classList.remove('show'); }, 2500);
+    this.showNotice('🗺 ' + text, { color: 'var(--accent-cyan)', ms: 2500 });
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1395,13 +1173,8 @@ class UI {
   }
 
   showStreakMilestone(streak, multiplier) {
-    if (prefersReducedMotion()) return;
     var callout = streakCallout(streak);
-    var popup = createElement('div', { text: '🔥 ' + streak + ' STREAK! ×' + multiplier + (callout ? ' — ' + callout : '') });
-    popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;color:var(--accent-cyan);text-shadow:0 0 12px rgba(24,255,255,0.5);pointer-events:none;z-index:6;transition:all 1s ease-out;opacity:1;';
-    document.body.appendChild(popup);
-    requestAnimationFrame(function () { popup.style.top = '25%'; popup.style.opacity = '0'; });
-    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 1000);
+    this.showNotice('🔥 ' + streak + ' streak! ×' + multiplier + (callout ? ' — ' + callout : ''), { color: 'var(--accent-gold)', ms: 1800 });
   }
 
   showPowerupNotification(type) {
@@ -1412,11 +1185,7 @@ class UI {
       autoPilot: '🤖 Auto-Pilot!',
       scoreFrenzy: '💎 Score Frenzy!'
     };
-    var popup = createElement('div', { text: names[type] || type });
-    popup.style.cssText = 'position:fixed;top:45%;left:50%;transform:translateX(-50%);font-size:18px;font-weight:900;color:var(--accent-purple);text-shadow:0 0 10px rgba(179,136,255,0.5);pointer-events:none;z-index:6;transition:all 0.8s ease-out;opacity:1;';
-    document.body.appendChild(popup);
-    requestAnimationFrame(function () { popup.style.top = '30%'; popup.style.opacity = '0'; });
-    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 800);
+    this.showNotice(names[type] || type, { color: 'var(--accent-purple)', ms: 1600 });
   }
 
   showPowerupGlow(type) {
@@ -1441,6 +1210,7 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   showAchievementNotification(achievementIds) {
+    document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the new badges now wear a red dot
     var delay = 0;
     achievementIds.forEach(function (achId) {
       var ach = null;
@@ -1618,401 +1388,59 @@ class UI {
     }
   }
 
-  /** Locker section: recolor hair, skin, coat, pants and shoes. */
-  _renderColorPickers() {
-    var self = this;
-    var wrap = createElement('div');
-    var heading = createElement('h3', { text: '🎨 Colors' });
-    heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
-    wrap.appendChild(heading);
 
-    // The 3D characters ship with their own colors; only the classic blocky
-    // characters can be recolored.
-    var equippedSkin = storage.get('equipped').skin || 'avatar_intern';
-    var equippedAvatar = AVATARS.filter(function (a) { return a.id === equippedSkin; })[0];
-    if (equippedAvatar && equippedAvatar.isModel) {
-      wrap.appendChild(createElement('div', {
-        className: 'setting-sublabel',
-        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look (hats work on all of them).'
-      }));
-      return wrap;
-    }
-
-    var current = storage.get('avatarColors') || {};
-    var grid = createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center';
-    var fields = [['hair', 'Hair'], ['skin', 'Skin'], ['body', 'Coat'], ['pants', 'Pants'], ['shoe', 'Shoes']];
-
-    // Show the equipped avatar's real colors as the starting values.
-    var base = {};
-    AVATARS.forEach(function (a) {
-      if (a.id === (storage.get('equipped').skin || 'avatar_intern')) {
-        base = { hair: a.hairColor, skin: a.skinColor, body: a.bodyColor, pants: a.pantsColor, shoe: a.shoeColor };
-      }
-    });
-    var toHex = function (n) { return '#' + ('000000' + (n || 0).toString(16)).slice(-6); };
-
-    fields.forEach(function (f) {
-      var cell = createElement('label');
-      cell.style.cssText = 'font-size:10px;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;gap:2px';
-      var input = createElement('input', {
-        attributes: { type: 'color', value: current[f[0]] || toHex(base[f[0]]), 'aria-label': f[1] + ' color' }
-      });
-      input.style.cssText = 'width:100%;height:32px;border:none;border-radius:8px;background:none;padding:0';
-      input.addEventListener('change', function () {
-        var colors = Object.assign({}, storage.get('avatarColors') || {});
-        colors[f[0]] = input.value;
-        storage.set('avatarColors', colors);
-        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-        if (self.onEquipChange) self.onEquipChange();
-      });
-      cell.appendChild(input);
-      cell.appendChild(createElement('span', { text: f[1] }));
-      grid.appendChild(cell);
-    });
-    wrap.appendChild(grid);
-
-    var reset = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Reset colors' });
-    reset.style.marginTop = '6px';
-    reset.addEventListener('click', function () {
-      storage.set('avatarColors', {});
-      self.renderShop();
-      if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-      if (self.onEquipChange) self.onEquipChange();
-    });
-    wrap.appendChild(reset);
-    return wrap;
-  }
-
-  /** Scrub color swatches for the medical characters. */
-  _renderScrubColors() {
+  /**
+   * Color pickers for one animated 3D character. Every character has its own parts (a doctor's scrub
+   * top and pants, a robot's body and trim, ...) and its own palettes, saved per character.
+   * @param {object} avatar an entry from AVATARS with `parts`
+   */
+  _renderModelColors(avatar) {
     var self = this;
     var wrap = createElement('div', { className: 'shop-item' });
     wrap.style.cssText = 'display:block;margin:8px 0';
-    wrap.appendChild(createElement('div', { text: '🥼 Scrub color' }));
+    wrap.appendChild(createElement('div', { text: '🎨 ' + avatar.name + ' colors' }));
     wrap.lastChild.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
-    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Dress your doctor, nurse or surgeon in any scrub color.' }));
-    var row = createElement('div');
-    row.className = 'pick-chips';
-    var current = storage.get('scrubColor') || 0;
-    SCRUB_COLORS.forEach(function (c) {
-      var on = (current || 0) === c.hex;
-      var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': c.name + ' scrubs', 'aria-pressed': on ? 'true' : 'false', title: c.name } });
-      sw.style.background = c.hex ? '#' + ('000000' + c.hex.toString(16)).slice(-6) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
-      sw.addEventListener('click', function () {
-        storage.set('scrubColor', c.hex);
-        storage.save();
-        row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
-        sw.classList.add('on');
-        sw.setAttribute('aria-pressed', 'true');
-        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-        if (self.onEquipChange) self.onEquipChange();
+    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick a color for each part. "Original" keeps the look it came with.' }));
+
+    function hexOf(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
+
+    (avatar.parts || []).forEach(function (part) {
+      var group = createElement('div', { className: 'color-part', attributes: { 'data-part': part.key } });
+      group.style.marginTop = '8px';
+      group.appendChild(createElement('div', { text: part.label }));
+      group.lastChild.style.cssText = 'font-size:12px;font-weight:700;margin-bottom:3px';
+      var row = createElement('div', { className: 'pick-chips' });
+      var chosen = ((storage.get('modelColors') || {})[avatar.id] || {})[part.key] || 0;
+      part.palette.forEach(function (c) {
+        var on = chosen === c.hex;
+        var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': part.label + ': ' + c.name, 'aria-pressed': on ? 'true' : 'false', title: c.name } });
+        sw.style.background = c.hex ? hexOf(c.hex) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
+        sw.addEventListener('click', function () {
+          var all = Object.assign({}, storage.get('modelColors') || {});
+          var mine = Object.assign({}, all[avatar.id] || {});
+          if (c.hex) mine[part.key] = c.hex; else delete mine[part.key];
+          all[avatar.id] = mine;
+          storage.set('modelColors', all);
+          storage.save();
+          row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+          sw.classList.add('on');
+          sw.setAttribute('aria-pressed', 'true');
+          if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+          if (self.onEquipChange) self.onEquipChange();
+        });
+        row.appendChild(sw);
       });
-      row.appendChild(sw);
+      group.appendChild(row);
+      wrap.appendChild(group);
     });
-    wrap.appendChild(row);
     return wrap;
   }
 
-  renderShop() {
-    var self = this;
-    var shopCoinsEl = document.getElementById('shopCoins');
-    if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
-
-    var renderGroup = function (type, title, filter, note) {
-      var items = SHOP_ITEMS.filter(function (i) { return i.type === type; });
-      if (filter) items = items.filter(filter);
-      if (type === 'skin') {
-        items = items.filter(function (i) {
-          if (i.id === 'avatar_golden' && !storage.hasAchievement('ach_golden_doctor')) return false;
-          return true;
-        });
-      }
-      var equipped = storage.get('equipped');
-      var container = createElement('div');
-
-      var heading = createElement('h3', { text: title });
-      heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
-      container.appendChild(heading);
-      if (note) {
-        var noteEl = createElement('div', { className: 'setting-sublabel', text: note });
-        noteEl.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
-        container.appendChild(noteEl);
-      }
-
-      items.forEach(function (item) {
-        var owned = storage.ownsItem(item.id);
-        var isEquipped = equipped[type] === item.id;
-
-        var row = createElement('div', {
-          className: 'shop-item' + (isEquipped ? ' equipped' : '')
-        });
-
-        // Color swatch
-        var colorHex = item.color ? '#' + item.color.toString(16).padStart(6, '0') : '#333';
-        var swatch = createElement('div', { text: item.icon || '' });
-        swatch.style.cssText = 'width:36px;height:36px;border-radius:8px;background:' + colorHex + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px';
-        row.appendChild(swatch);
-
-        // Name
-        var nameWrap = createElement('div');
-        nameWrap.style.flex = '1';
-        nameWrap.appendChild(createElement('div', { text: item.name }));
-        nameWrap.firstChild.style.cssText = 'font-size:13px;font-weight:700';
-        if ((self._lockerFresh || []).indexOf(item.id) >= 0) {
-          var itemDot = createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } });
-          nameWrap.firstChild.appendChild(itemDot);
-        }
-        row.appendChild(nameWrap);
-
-        // Buttons
-        var btnWrap = createElement('div');
-        btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
-
-        // Try-on button (not for trails)
-        if (type !== 'trail' && type !== 'monster') {
-          var tryBtn = createElement('button', {
-            className: 'btn btn-outline btn-sm',
-            text: '👁',
-            dataset: { preview: item.id, prevslot: type }
-          });
-          tryBtn.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
-          tryBtn.addEventListener('click', function () {
-            if (self.characterPreview) {
-              self.characterPreview.previewItem(item.id, type);
-            }
-          });
-          btnWrap.appendChild(tryBtn);
-        }
-
-        if (isEquipped) {
-          var eqLabel = createElement('span', { text: 'EQUIPPED' });
-          eqLabel.style.cssText = 'color:var(--accent-cyan);font-size:11px;font-weight:700';
-          btnWrap.appendChild(eqLabel);
-        } else if (owned) {
-          var equipBtn = createElement('button', {
-            className: 'btn btn-outline btn-sm',
-            text: 'Equip'
-          });
-          equipBtn.addEventListener('click', function () {
-            storage.equipItem(item.id, type);
-            audio.play('equip');
-            self.renderShop();
-            if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-            if (self.onEquipChange) self.onEquipChange();
-          });
-          btnWrap.appendChild(equipBtn);
-        } else {
-          var buyBtn = createElement('button', {
-            className: 'btn btn-gold btn-sm',
-            text: '🪙 ' + item.price
-          });
-          buyBtn.addEventListener('click', function () {
-            if (storage.buyItem(item.id, item.price)) {
-              audio.play('buy');
-              self.renderShop();
-              if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-            } else {
-              self._showToast('Not enough coins!');
-            }
-          });
-          btnWrap.appendChild(buyBtn);
-        }
-
-        row.appendChild(btnWrap);
-        container.appendChild(row);
-      });
-
-      return container;
-    };
-
-    // ----- Tabs: which characters you can pick, what you can customize, and extras -----
-    var avatarOf = function (id) { return AVATARS.filter(function (a) { return a.id === id; })[0] || null; };
-    var kindOf = function (id) {
-      var a = avatarOf(id);
-      if (!a) return 'classic';
-      if (a.isVehicle) return 'vehicle';
-      return a.isModel ? 'model' : 'classic';
-    };
-    var isKind = function (kind) {
-      return function (item) { return kindOf(item.id) === kind; };
-    };
-
-    var tab = this._lockerTab || 'characters';
-    var shopItems = document.getElementById('shopItems');
-    clearElement(shopItems);
-
-    var tabBar = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
-    tabBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px';
-    var fresh = this._lockerFresh || [];
-    var tabOf = function (item) { return item.type === 'skin' ? 'characters' : (item.type === 'trail' || item.type === 'monster') ? 'extras' : 'customize'; };
-    var freshTabs = {};
-    SHOP_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['characters', '🎭 Characters'], ['customize', '🎨 Customize'], ['extras', '✨ Trails & Monsters']].forEach(function (t) {
-      var b = createElement('button', {
-        className: 'btn btn-sm ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
-        text: t[1],
-        attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
-      });
-      b.addEventListener('click', function () { self._lockerTab = t[0]; self.renderShop(); });
-      if (freshTabs[t[0]]) b.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'New items you can afford' } }));
-      tabBar.appendChild(b);
-    });
-    shopItems.appendChild(tabBar);
-
-    if (fresh.length) {
-      var why = createElement('div', { className: 'locker-why', text: 'You can now afford ' + (fresh.length === 1 ? 'a new item' : fresh.length + ' new items') + '! Look for the red dots.' });
-      shopItems.appendChild(why);
-    }
-
-    if (tab === 'characters') {
-      shopItems.appendChild(renderGroup('skin', '🎬 Animated 3D characters', isKind('model'),
-        'Real animated models. Each keeps its own look; you can add a hat. Colors, clothing and gear are for Classic characters.'));
-      shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
-        'Fully customizable: colors, clothing, headwear and gear all work on these.'));
-      shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
-        'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
-    } else if (tab === 'customize') {
-      var eqSkin = storage.get('equipped').skin || 'avatar_intern';
-      var eqAvatar = avatarOf(eqSkin);
-      var kind = kindOf(eqSkin);
-      var kindLabel = kind === 'model' ? 'Animated 3D character' : (kind === 'vehicle' ? 'Vehicle' : 'Classic character');
-
-      var card = createElement('div', { className: 'shop-item' });
-      card.style.cssText = 'display:block;margin:8px 0';
-      var cardTitle = createElement('div', { text: 'Equipped: ' + (eqAvatar ? eqAvatar.name : eqSkin) + ' · ' + kindLabel });
-      cardTitle.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
-      card.appendChild(cardTitle);
-      var cardText = createElement('div', {
-        className: 'setting-sublabel',
-        text: kind === 'model'
-          ? (eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length ? 'Pick the color of your scrubs and add a hat below. Other clothing and gear are for Classic characters.' : 'Animated 3D characters keep their own look. You can add a hat below. To change colors or wear clothing and gear, switch to a Classic character.')
-          : (kind === 'vehicle'
-            ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
-            : 'Everything below works on this character.')
-      });
-      cardText.style.lineHeight = '1.4';
-      card.appendChild(cardText);
-      if (kind !== 'classic') {
-        var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Choose a Classic character', attributes: { type: 'button' } });
-        goBtn.style.marginTop = '8px';
-        goBtn.addEventListener('click', function () { self._lockerTab = 'characters'; self.renderShop(); });
-        card.appendChild(goBtn);
-      }
-      shopItems.appendChild(card);
-
-      if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
-      if (kind === 'model' && eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length) shopItems.appendChild(this._renderScrubColors());
-      if (kind !== 'vehicle') shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
-      if (kind === 'classic') {
-        shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
-        shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
-      }
-    } else {
-      shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every character.'));
-      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Animated 3D monsters are marked (animated 3D).'));
-    }
-  }
 
   // ═══════════════════════════════════════════════════════
   // QUESTS (with claiming support per Section 14.6) [2]
   // ═══════════════════════════════════════════════════════
 
-  renderQuests() {
-    var container = document.getElementById('questList');
-    if (!container) return;
-    clearElement(container);
-    var self = this;
-    var today = localDateKey(new Date());
-    var allComplete = true;
-
-    QUESTS.forEach(function (q) {
-      var progress = Math.min(storage.getQuestProgress(q.id), q.target);
-      var pct = Math.round(progress / q.target * 100);
-      var isComplete = progress >= q.target;
-      if (!isComplete) allComplete = false;
-
-      var questEl = createElement('div', { className: 'quest-item' });
-
-      var titleEl = createElement('div', { className: 'quest-title', text: q.title + ': ' + q.desc });
-      questEl.appendChild(titleEl);
-
-      var barEl = createElement('div', { className: 'quest-bar' });
-      var fillEl = createElement('div', { className: 'quest-fill' });
-      fillEl.style.width = pct + '%';
-      barEl.appendChild(fillEl);
-      questEl.appendChild(barEl);
-
-      var rewardEl = createElement('div', { className: 'quest-reward', text: progress + '/' + q.target + ' — 🪙 ' + q.reward });
-      questEl.appendChild(rewardEl);
-
-      // Quest claiming button (Section 14.6) [2]
-      if (isComplete) {
-        var claimed = storage.isQuestClaimed(q.id, today);
-
-        if (!claimed) {
-          var claimBtn = createElement('button', {
-            className: 'btn btn-gold btn-sm',
-            text: '🎁 Claim ' + q.reward + ' coins'
-          });
-          claimBtn.style.marginTop = '4px';
-          claimBtn.addEventListener('click', function () {
-            var claim = storage.claimQuest(q.id, today);
-            if (claim.success) {
-              audio.play('coin');
-              self._showToast('🪙 +' + claim.reward + ' coins!');
-            } else if (claim.alreadyClaimed) {
-              self._showToast('Quest reward already claimed.');
-            } else {
-              self._showToast(claim.error || 'Could not claim reward.');
-            }
-            self.renderQuests();
-            self.renderHome();
-          });
-          questEl.appendChild(claimBtn);
-        } else {
-          var claimedLabel = createElement('div', { text: '✅ Claimed' });
-          claimedLabel.style.cssText = 'font-size:10px;color:var(--accent-green);margin-top:4px;font-weight:700';
-          questEl.appendChild(claimedLabel);
-        }
-      }
-
-      container.appendChild(questEl);
-    });
-
-    // Mark all quests complete for calendar
-    if (allComplete && storage.markQuestsComplete) {
-      storage.markQuestsComplete(today);
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // ACHIEVEMENTS
-  // ═══════════════════════════════════════════════════════
-
-  renderAchievements() {
-    var container = document.getElementById('achievementsList');
-    if (!container) return;
-    clearElement(container);
-    var unlocked = storage.get('achievements');
-
-    ACHIEVEMENTS.forEach(function (ach) {
-      var isUnlocked = unlocked.indexOf(ach.id) >= 0;
-      var item = createElement('div', {
-        className: 'achievement-item ' + (isUnlocked ? 'unlocked' : 'locked')
-      });
-
-      var iconEl = createElement('div', { className: 'achievement-icon', text: isUnlocked ? ach.icon : '🔒' });
-      item.appendChild(iconEl);
-
-      var info = createElement('div', { className: 'achievement-info' });
-      info.appendChild(createElement('div', { className: 'achievement-name', text: ach.name }));
-      info.appendChild(createElement('div', { className: 'achievement-desc', text: ach.desc }));
-      item.appendChild(info);
-
-      container.appendChild(item);
-    });
-  }
 
   // ═══════════════════════════════════════════════════════
   // SETTINGS (with extension mounting) [2]
@@ -2030,293 +1458,6 @@ class UI {
     ];
   }
 
-  renderSettings() {
-    var self = this;
-    var content = document.getElementById('settingsContent');
-    if (!content) return;
-    clearElement(content);
-
-    var sections = this._settingsSections();
-    var current = null;
-    for (var si = 0; si < sections.length; si++) if (sections[si].id === this._settingsSection) current = sections[si];
-
-    // ---- the list of sections ----
-    if (!current) {
-      var hub = createElement('div', { className: 'settings-hub' });
-      sections.forEach(function (sec) {
-        var card = createElement('button', { className: 'settings-card', attributes: { type: 'button', 'data-section': sec.id } });
-        card.appendChild(createElement('span', { className: 'settings-card-icon', text: sec.icon }));
-        var text = createElement('span', { className: 'settings-card-text' });
-        text.appendChild(createElement('span', { className: 'settings-card-title', text: sec.title }));
-        text.appendChild(createElement('span', { className: 'settings-card-desc', text: sec.desc }));
-        card.appendChild(text);
-        card.appendChild(createElement('span', { className: 'settings-card-arrow', text: '›' }));
-        card.addEventListener('click', function () { self._settingsSection = sec.id; self.renderSettings(); });
-        hub.appendChild(card);
-      });
-      content.appendChild(hub);
-      return;
-    }
-
-    // ---- one section ----
-    var backBtn = createElement('button', { className: 'btn btn-outline btn-sm settings-back', text: '← All settings', attributes: { type: 'button' } });
-    backBtn.addEventListener('click', function () { self._settingsSection = null; self.renderSettings(); });
-    content.appendChild(backBtn);
-    var title = createElement('h3', { className: 'settings-section-title', text: current.icon + ' ' + current.title });
-    content.appendChild(title);
-
-    // Every setting says what it does, in plain words
-    var ROWS = {
-      sound: [
-        { key: 'musicOn', label: '🎵 Music', desc: 'Background music while you run.', type: 'toggle' },
-        { key: 'masterVolume', label: '🔊 Master volume', desc: 'The overall loudness of everything.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
-        { key: 'sfxVolume', label: '💥 Sound effects', desc: 'Jumps, coins, answers, menus and rewards.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
-        { key: 'musicVolume', label: '🎶 Music volume', desc: 'How loud the background music is.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
-        { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
-      ],
-      look: [
-        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto repaints the whole game with the time of day and the season. Or pick a season, or Classic for the original look.', type: 'select', options: THEME_CHOICES },
-        { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
-        { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
-        { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
-        { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
-        { key: 'glowEffects', label: '✨ Glow effects', desc: 'A soft glow around bright things. It looks great but makes the game noticeably more demanding: it can slow older laptops and drain a phone battery faster. Off by default.', type: 'toggle' },
-        { key: 'batterySaver', label: '🎞 30 frames per second', desc: 'Keeps the game at a steady 30 fps: cooler, smoother and easier on the battery. Turn off for up to 60 fps on a fast device.', type: 'toggle' }
-      ],
-      study: [
-        { key: 'dailyGoal', label: '🎯 Daily goal', desc: 'How many cards you aim to study each day. Hitting it keeps your streak going.', type: 'range', min: 5, max: 100, step: 5, unit: ' cards' },
-        { key: 'reminders', label: '🔔 Daily reminder', desc: 'A notification at your reminder time, while the app is open or installed.', type: 'toggle' },
-        { key: 'reminderHour', label: '⏰ Reminder time', desc: 'The hour of the day for the reminder (0 is midnight, 13 is 1 pm).', type: 'range', min: 0, max: 23, step: 1, unit: ':00' },
-        { key: 'cardFreshnessWeight', label: '🆕 New-card priority', desc: 'How much more often you see cards you have never answered. 1 treats every card the same; 10 brings new cards up much more often than ones you already know.', type: 'range', min: 1, max: 10, step: 1 }
-      ]
-    };
-
-    function buildRow(s) {
-      var row = createElement('div', { className: 'setting-row', attributes: { 'data-setting': s.key } });
-      var label = createElement('div');
-      label.appendChild(createElement('div', { className: 'setting-label-text', text: s.label }));
-      label.appendChild(createElement('span', { className: 'setting-sublabel', text: s.desc }));
-      label.style.flex = '1';
-      row.appendChild(label);
-
-      if (s.type === 'toggle') {
-        var toggle = createElement('div', {
-          className: 'toggle' + (storage.get(s.key) ? ' on' : ''),
-          attributes: { role: 'switch', tabindex: '0', 'aria-label': s.label, 'aria-checked': storage.get(s.key) ? 'true' : 'false' }
-        });
-        toggle.addEventListener('keydown', function (e) {
-          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.click(); }
-        });
-        toggle.addEventListener('click', function () {
-          var newVal = !storage.get(s.key);
-          if (s.key === 'reminders' && newVal) {
-            // Notifications need explicit permission from the browser.
-            if (!('Notification' in window)) { self._showToast('Notifications are not supported here.'); return; }
-            Notification.requestPermission().then(function (perm) {
-              if (perm !== 'granted') {
-                self._showToast('Notifications were blocked. Enable them in your browser settings.');
-                return;
-              }
-              storage.set('reminders', true);
-              toggle.classList.add('on');
-              toggle.setAttribute('aria-checked', 'true');
-            });
-            return;
-          }
-          storage.set(s.key, newVal);
-          toggle.classList.toggle('on');
-          toggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
-          if (s.key === 'colorblindMode') self.applySettings();
-          if (s.key === 'nightMode') {
-            self.applySettings();
-            if (self.onNightModeChange) self.onNightModeChange();
-          }
-          if (s.key === 'musicOn') {
-            if (newVal) audio.startMusic(); else audio.stopMusic();
-          }
-        });
-        row.appendChild(toggle);
-      } else if (s.type === 'select') {
-        var select = createElement('select', { attributes: { 'aria-label': s.label } });
-        select.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
-        s.options.forEach(function (opt) {
-          var o = createElement('option', { text: opt[1], attributes: { value: opt[0] } });
-          if ((storage.get(s.key) || 'auto') === opt[0]) o.selected = true;
-          select.appendChild(o);
-        });
-        if (s.key === 'uiTheme') {
-          label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Right now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') }));
-        }
-        if (s.key === 'quality') {
-          label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) }));
-        }
-        select.addEventListener('change', function () {
-          storage.set(s.key, select.value);
-          if (s.key === 'uiTheme') document.dispatchEvent(new CustomEvent('dx:theme-changed'));
-          if (s.key === 'quality') {
-            storage.set('perfHint', '');
-            storage.set('perfStrikes', 0);
-            self._showToast('Graphics changed. Reloading…');
-            setTimeout(function () { window.location.reload(); }, 700);
-          }
-        });
-        row.appendChild(select);
-      } else if (s.type === 'range') {
-        var currentVal = storage.get(s.key);
-        if (currentVal === undefined || currentVal === null) currentVal = s.min;
-        var range = createElement('input', {
-          attributes: { type: 'range', min: String(s.min), max: String(s.max), step: String(s.step), value: String(currentVal), 'aria-label': s.label }
-        });
-        range.style.cssText = 'width:100px;accent-color:var(--accent-cyan)';
-        var valueEl = createElement('span', { className: 'setting-value' });
-        var showValue = function (v) {
-          setText(valueEl, s.pct ? Math.round(v * 100) + '%' : v + (s.unit || ''));
-        };
-        showValue(currentVal);
-        range.addEventListener('input', function () {
-          var val = parseFloat(range.value);
-          storage.set(s.key, val);
-          showValue(val);
-          if (s.key === 'dailyGoal') self.renderStudyGoal();
-          if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
-            audio.updateSettings();
-          }
-        });
-        var rangeWrap = createElement('div', { className: 'setting-range' });
-        rangeWrap.appendChild(range);
-        rangeWrap.appendChild(valueEl);
-        row.appendChild(rangeWrap);
-      }
-      return row;
-    }
-
-    if (ROWS[current.id]) {
-      ROWS[current.id].forEach(function (s) { content.appendChild(buildRow(s)); });
-    }
-
-    if (current.id === 'study') {
-      // Anki import container (mount point for the importer)
-      content.appendChild(createElement('div', { attributes: { id: 'ankiImportContainer' } }));
-    }
-
-    if (current.id === 'rules') {
-      this._renderRuleSettings(content);
-    }
-
-    if (current.id === 'data') {
-      var explain = function (text) {
-        var n = createElement('div', { className: 'setting-sublabel', text: text });
-        n.style.cssText = 'margin:6px 0 10px;line-height:1.4';
-        return n;
-      };
-      content.appendChild(explain('Your progress lives on this device. Save a backup file before switching devices, then restore it on the new one.'));
-
-      var backupRow = createElement('div', { className: 'setting-row' });
-      var backupLabel = createElement('div');
-      backupLabel.style.flex = '1';
-      backupLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '💾 Progress backup' }));
-      backupLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Save everything to a file, or load a file you saved before.' }));
-      backupRow.appendChild(backupLabel);
-      var backupBtns = createElement('div');
-      var backupBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Save', attributes: { type: 'button' } });
-      backupBtn.addEventListener('click', function () { self.downloadBackup(); });
-      var restoreBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Restore', attributes: { type: 'button' } });
-      var restoreInput = createElement('input', {
-        attributes: { type: 'file', accept: 'application/json,.json', hidden: '', 'aria-label': 'Backup file' }
-      });
-      restoreBtn.addEventListener('click', function () { restoreInput.click(); });
-      restoreInput.addEventListener('change', function () { self.restoreBackup(restoreInput.files[0]); });
-      backupBtns.appendChild(backupBtn);
-      backupBtns.appendChild(restoreBtn);
-      backupBtns.appendChild(restoreInput);
-      backupRow.appendChild(backupBtns);
-      content.appendChild(backupRow);
-
-      var reportRow = createElement('div', { className: 'setting-row' });
-      var reportLabel = createElement('div');
-      reportLabel.style.flex = '1';
-      reportLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '🚩 Card reports' }));
-      reportLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Save the list of cards you flagged as wrong or confusing, to send to the author.' }));
-      reportRow.appendChild(reportLabel);
-      var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Export', attributes: { type: 'button' } });
-      reportBtn.addEventListener('click', function () { self.exportCardReports(); });
-      reportRow.appendChild(reportBtn);
-      content.appendChild(reportRow);
-
-      var resetWrap = createElement('div');
-      resetWrap.style.marginTop = '20px';
-      resetWrap.appendChild(explain('Reset erases your coins, unlocks, stats and settings from this device. It cannot be undone, so save a backup first.'));
-      var resetBtn = createElement('button', { className: 'btn btn-red btn-block', text: '🗑 Reset all progress', attributes: { type: 'button' } });
-      resetBtn.addEventListener('click', function () {
-        if (confirm('Reset ALL progress? This cannot be undone.')) {
-          storage.reset();
-          window.location.reload();
-        }
-      });
-      resetWrap.appendChild(resetBtn);
-      content.appendChild(resetWrap);
-    }
-
-    if (current.id === 'about') {
-      var tutRow = createElement('div', { className: 'setting-row' });
-      var tutLabel = createElement('div');
-      tutLabel.style.flex = '1';
-      tutLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '❓ How to play' }));
-      tutLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'A quick walk-through of the controls and the rules. Also on the Home screen.' }));
-      tutRow.appendChild(tutLabel);
-      var tutBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Open', attributes: { type: 'button' } });
-      tutBtn.addEventListener('click', function () { self.showTutorial(); });
-      tutRow.appendChild(tutBtn);
-      content.appendChild(tutRow);
-
-      var aboutRow = createElement('div', { className: 'setting-row' });
-      var aboutLinks = createElement('div');
-      aboutLinks.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;font-size:13px';
-      [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html'], ['Report a problem', 'https://github.com/pathomnemonic/buzzword-dash-v2/issues']].forEach(function (l) {
-        var a = createElement('a', { text: l[0], attributes: { href: l[1], target: '_blank', rel: 'noopener noreferrer' } });
-        a.style.color = 'var(--accent-cyan)';
-        aboutLinks.appendChild(a);
-      });
-      aboutRow.appendChild(aboutLinks);
-      content.appendChild(aboutRow);
-      var disclaimer = createElement('div', {
-        className: 'setting-sublabel',
-        text: 'Dx Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
-      });
-      disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
-      content.appendChild(disclaimer);
-      var credits = createElement('details', { className: 'credit-box' });
-      credits.appendChild(createElement('summary', { text: '🎨 Credits' }));
-      var creditsBody = createElement('div', { className: 'howto-body' });
-      [
-        'Characters, monsters, props, the hospital bed and traffic cone: Quaternius (CC0). Screens and signs: Kenney (CC0). More props: CreativeTrio, iPoly3D (CC0).',
-        'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
-        'Doctor, nurse, surgeon, resident and paramedic: Quaternius characters (CC0), repainted as medical staff.',
-        'Robot character: Tomás Laulhé (CC0), with changes by Don McCurdy.'
-      ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
-      credits.appendChild(creditsBody);
-      content.appendChild(credits);
-
-      // Optional tip link (only when a tip page is configured at build time)
-      if (getTipUrl()) {
-        var tipRow = createElement('div', { className: 'setting-row' });
-        var tipLabel = createElement('div');
-        tipLabel.style.flex = '1';
-        tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
-        tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
-        tipRow.appendChild(tipLabel);
-        var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
-        tipBtn.addEventListener('click', function () { openTipPage(); });
-        tipRow.appendChild(tipBtn);
-        content.appendChild(tipRow);
-      }
-    }
-
-    this.applySettings();
-
-    // Mount settings extensions (Section 21.1) [2]
-    this.mountSettingsExtensions();
-  }
 
   exportCardReports() {
     var reports = storage.get('cardReports') || [];
@@ -2384,245 +1525,7 @@ class UI {
   // STATS
   // ═══════════════════════════════════════════════════════
 
-  /** Weak-spot dashboard: today's plan, due forecast and question-type accuracy. */
-  _renderStudyPlan(container) {
-    var self = this;
-    var cards = CARDS.concat(customCards.getAll());
-    var plan = buildStudyPlan({
-      cardStats: storage.get('cardStats') || {},
-      cards: cards,
-      subjectStats: storage.get('subjectStats') || {},
-      goal: storage.get('dailyGoal') || 20,
-      studiedToday: storage.getStudiedToday()
-    });
 
-    var box = createElement('div');
-    box.style.cssText = 'background:var(--bg-card);border-radius:12px;padding:12px;margin-bottom:12px;border:var(--border-card)';
-    box.appendChild(createElement('h3', { text: '🗓 Today\u2019s Study Plan' }));
-    box.lastChild.style.cssText = 'font-size:14px;margin-bottom:6px';
-
-    if (plan.steps.length === 0) {
-      box.appendChild(createElement('p', { text: 'You are all caught up. Play a run or start a flashcard session to keep the streak going.' }));
-      box.lastChild.style.cssText = 'font-size:12px;color:var(--text-secondary)';
-    }
-    // Which cards each step is about (used for the runner; flashcards pick their own)
-    var statsNow = storage.get('cardStats') || {};
-    var cardsFor = function (step) {
-      var ids;
-      if (step.kind === 'due') {
-        ids = plan.dueIds.slice(0, 20);
-      } else if (step.kind === 'weak') {
-        ids = cards.filter(function (c) { return c.subj === step.subject; }).map(function (c) {
-          var st = statsNow[c.id];
-          return { id: c.id, acc: st && st.seen ? st.correct / st.seen : 0.5 };
-        }).sort(function (x, y) { return x.acc - y.acc; }).slice(0, 20).map(function (x) { return x.id; });
-      } else {
-        // the rest of the daily goal: cards not seen yet first, then the ones seen longest ago
-        ids = cards.slice().sort(function (x, y) {
-          var sx = statsNow[x.id], sy = statsNow[y.id];
-          return (sx && sx.seen ? sx.last || 1 : 0) - (sy && sy.seen ? sy.last || 1 : 0);
-        }).slice(0, Math.min(25, step.count || 10)).map(function (c) { return c.id; });
-      }
-      return ids;
-    };
-    plan.steps.forEach(function (step, i) {
-      var row = createElement('div', { className: 'plan-step' });
-      row.appendChild(createElement('span', { className: 'plan-step-label', text: (i + 1) + '. ' + step.label }));
-      var buttons = createElement('span', { className: 'plan-step-buttons' });
-      // Both ways to do the same cards: the runner game, or flashcards. Either one counts.
-      var play = createElement('button', { className: 'btn btn-green btn-sm', text: '🏃 Run it', attributes: { type: 'button', title: 'Study these cards in the runner game' } });
-      play.addEventListener('click', function () {
-        var ids = cardsFor(step);
-        if (self.onStudyPlanRun && ids.length) self.onStudyPlanRun(ids);
-        else self._showToast('No cards to study for this step yet.');
-      });
-      var flash = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗂 Flashcards', attributes: { type: 'button', title: 'Study these cards as flashcards' } });
-      flash.addEventListener('click', function () {
-        if (step.kind === 'due') self.startFlashcardSession(null, plan.dueIds.slice(0, 20));
-        else if (step.kind === 'weak') self.startFlashcardSession([step.subject]);
-        else self.startFlashcardSession();
-      });
-      buttons.appendChild(play);
-      buttons.appendChild(flash);
-      row.appendChild(buttons);
-      box.appendChild(row);
-    });
-    if (plan.steps.length) {
-      box.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick whichever you like: the runner and the flashcards use the same cards, and both count toward your daily goal.' }));
-    }
-
-    // Due forecast (next 7 days)
-    var max = Math.max(1, plan.dueCount, Math.max.apply(null, plan.forecast));
-    box.appendChild(createElement('div', { text: 'Reviews due: now and the next 7 days' }));
-    box.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:10px';
-    var chart = createElement('div', { attributes: { role: 'img', 'aria-label': 'Due now ' + plan.dueCount + '; next seven days ' + plan.forecast.join(', ') } });
-    chart.style.cssText = 'display:flex;align-items:flex-end;gap:4px;height:56px;margin-top:4px';
-    [plan.dueCount].concat(plan.forecast).forEach(function (n, i) {
-      var col = createElement('div');
-      col.style.cssText = 'flex:1;text-align:center;font-size:9px;color:var(--text-muted)';
-      var bar = createElement('div');
-      bar.style.cssText = 'height:' + Math.max(2, Math.round(n / max * 40)) + 'px;background:' + (i === 0 ? 'var(--accent-gold)' : 'var(--accent-cyan)') + ';border-radius:3px 3px 0 0;margin-bottom:2px';
-      col.appendChild(bar);
-      col.appendChild(createElement('span', { text: (i === 0 ? 'Now ' : '+' + i + 'd ') + n }));
-      chart.appendChild(col);
-    });
-    box.appendChild(chart);
-
-    // Accuracy by question type (weakest first)
-    if (plan.typeAccuracy.length > 0) {
-      box.appendChild(createElement('div', { text: 'Accuracy by question type' }));
-      box.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:10px';
-      plan.typeAccuracy.slice(0, 4).forEach(function (t) {
-        var line = createElement('div', { text: t.type.replace(/_/g, ' ') + ': ' + t.accuracy + '% (' + t.seen + ' seen)' });
-        line.style.cssText = 'font-size:11px;margin-top:2px;color:' + (t.accuracy < 60 ? 'var(--accent-red)' : 'var(--text-secondary)');
-        box.appendChild(line);
-      });
-    }
-    container.appendChild(box);
-  }
-
-  renderStats() {
-    var tc = storage.get('totalCorrect');
-    var tw = storage.get('totalWrong');
-    var te = storage.get('totalEncounters');
-    var acc = (tc + tw) > 0 ? Math.round(tc / (tc + tw) * 100) : 0;
-    var container = document.getElementById('statsContent');
-    if (!container) return;
-    clearElement(container);
-
-    this._renderStudyPlan(container);
-
-    // Summary stats
-    var summaryRow = createElement('div', { className: 'post-stats' });
-    [
-      { val: te, label: 'Cards' },
-      { val: tc, label: 'Correct', color: 'var(--accent-green)' },
-      { val: tw, label: 'Wrong', color: 'var(--accent-red)' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(s.val) });
-      if (s.color) valEl.style.color = s.color;
-      stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      summaryRow.appendChild(stat);
-    });
-    container.appendChild(summaryRow);
-
-    var row2 = createElement('div', { className: 'post-stats' });
-    row2.style.gridTemplateColumns = '1fr 1fr';
-    [
-      { val: acc + '%', label: 'Accuracy' },
-      { val: String(storage.get('bestScore')), label: 'Best Score' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      stat.appendChild(createElement('div', { className: 'val', text: s.val }));
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      row2.appendChild(stat);
-    });
-    container.appendChild(row2);
-
-    // By Subject
-    var subHeading = createElement('h3', { text: '📊 By Subject' });
-    subHeading.style.cssText = 'margin:14px 0 6px;font-size:14px';
-    container.appendChild(subHeading);
-
-    var subjectBox = createElement('div');
-    subjectBox.style.cssText = 'background:var(--bg-card);border-radius:10px;padding:10px';
-    var hasSubjectData = false;
-
-    SUBJECTS.forEach(function (s) {
-      var ss = storage.getSubjectStat(s);
-      var total = ss.correct + ss.wrong;
-      if (total === 0) return;
-      hasSubjectData = true;
-      var a = Math.round(ss.correct / total * 100);
-      var color = a >= 70 ? 'var(--accent-green)' : 'var(--accent-red)';
-      var mastered = total >= 50 && a >= 80;
-
-      var row = createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
-
-      var nameEl = createElement('span', { text: s + (mastered ? ' ⭐' : '') });
-      nameEl.style.fontSize = '12px';
-      row.appendChild(nameEl);
-
-      var accEl = createElement('span', { text: a + '% (' + total + ')' });
-      accEl.style.cssText = 'font-size:12px;font-weight:700;color:' + color;
-      row.appendChild(accEl);
-
-      subjectBox.appendChild(row);
-    });
-
-    if (!hasSubjectData) {
-      subjectBox.appendChild(createElement('p', { text: 'No data yet.' }));
-      subjectBox.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted)';
-    }
-    container.appendChild(subjectBox);
-
-    // Weakest Concepts
-    var weakHeading = createElement('h3', { text: '🎯 Weakest Concepts' });
-    weakHeading.style.cssText = 'margin:14px 0 6px;font-size:14px';
-    container.appendChild(weakHeading);
-
-    var allCards = CARDS.concat(customCards.getAll());
-    var weakCards = allCards.map(function (c) {
-      var s = storage.getCardStat(c.id);
-      if (s.seen < 2) return null;
-      return { card: c, accuracy: s.correct / s.seen, seen: s.seen };
-    }).filter(function (x) { return x !== null; }).sort(function (a, b) { return a.accuracy - b.accuracy; }).slice(0, 5);
-
-    var weakBox = createElement('div');
-    weakBox.style.cssText = 'background:var(--bg-card);border-radius:10px;padding:10px';
-
-    if (weakCards.length > 0) {
-      weakCards.forEach(function (w) {
-        var row = createElement('div', { className: 'weak-concept-item' });
-
-        var info = createElement('span');
-        var accSpan = createElement('span', { text: Math.round(w.accuracy * 100) + '%' });
-        accSpan.style.cssText = 'color:var(--accent-red);font-weight:700';
-        info.appendChild(accSpan);
-
-        // Use setText for the answer (untrusted custom card content)
-        var ansText = document.createTextNode(' — ');
-        info.appendChild(ansText);
-        var ansSpan = createElement('span');
-        setText(ansSpan, w.card.ans);
-        info.appendChild(ansSpan);
-
-        var subjSpan = createElement('span');
-        setText(subjSpan, ' (' + w.card.subj + ')');
-        subjSpan.style.color = 'var(--text-muted)';
-        info.appendChild(subjSpan);
-
-        info.style.fontSize = '11px';
-        row.appendChild(info);
-
-        var arrow = createElement('span', { className: 'review-arrow', text: '→' });
-        row.appendChild(arrow);
-
-        // Tapping a weak concept opens a quick review of it (then the next weakest ones)
-        row.setAttribute('role', 'button');
-        row.setAttribute('tabindex', '0');
-        row.setAttribute('aria-label', 'Review ' + w.card.ans);
-        row.style.cursor = 'pointer';
-        var openReview = function () {
-          var ordered = [w].concat(weakCards.filter(function (x) { return x !== w; }));
-          self.showQuickReview(ordered.map(function (x) { return { card: x.card }; }));
-        };
-        row.addEventListener('click', openReview);
-        row.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(); }
-        });
-
-        weakBox.appendChild(row);
-      });
-    } else {
-      weakBox.appendChild(createElement('p', { text: 'Play more to see weak areas.' }));
-      weakBox.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted)';
-    }
-    container.appendChild(weakBox);
-  }
 
   // ═══════════════════════════════════════════════════════
   // CUSTOM CARDS
@@ -2653,71 +1556,6 @@ class UI {
     }
   }
 
-  renderCustomCardList() {
-    var cards = customCards.getAll();
-    var container = document.getElementById('customCardList');
-    if (!container) return;
-    clearElement(container);
-    var self = this;
-
-    if (cards.length === 0) {
-      var empty = createElement('div', { text: 'No custom cards yet. Tap "Create New Card" to add your own!' });
-      empty.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted);font-size:13px';
-      container.appendChild(empty);
-      return;
-    }
-
-    var countLabel = createElement('p', { text: cards.length + ' custom card' + (cards.length === 1 ? '' : 's') });
-    countLabel.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:8px';
-    container.appendChild(countLabel);
-
-    cards.forEach(function (card) {
-      var cardEl = createElement('div', { className: 'review-card' });
-      cardEl.style.borderLeftColor = 'var(--accent-blue)';
-
-      // Buzzwords (safe text)
-      var h4 = createElement('h4');
-      setText(h4, card.bw.join(' • '));
-      cardEl.appendChild(h4);
-
-      // Tags
-      var tagRow = createElement('div');
-      var ansTag = createElement('span', { className: 'tag tag-correct' });
-      setText(ansTag, card.ans);
-      tagRow.appendChild(ansTag);
-      var subjTag = createElement('span', { className: 'tag tag-subject' });
-      setText(subjTag, card.subj);
-      tagRow.appendChild(subjTag);
-      cardEl.appendChild(tagRow);
-
-      // Teaching point (safe text)
-      var tp = createElement('p');
-      setText(tp, card.tp);
-      tp.style.marginTop = '4px';
-      cardEl.appendChild(tp);
-
-      // Action buttons (event delegation instead of global callbacks)
-      var btnRow = createElement('div');
-      btnRow.style.cssText = 'display:flex;gap:6px;margin-top:6px';
-
-      var editBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '✏️ Edit' });
-      editBtn.addEventListener('click', function () { self.openCardEditor(card.id); });
-      btnRow.appendChild(editBtn);
-
-      var deleteBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑️ Delete' });
-      deleteBtn.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
-      deleteBtn.addEventListener('click', function () {
-        if (confirm('Delete this card? This cannot be undone.')) {
-          customCards.remove(card.id);
-          self.renderCustomCardList();
-        }
-      });
-      btnRow.appendChild(deleteBtn);
-
-      cardEl.appendChild(btnRow);
-      container.appendChild(cardEl);
-    });
-  }
 
   openCardEditor(cardId) {
     var isEdit = !!cardId;
@@ -2938,369 +1776,17 @@ class UI {
   // CARD BROWSER (with pagination per Section 21.2) [2]
   // ═══════════════════════════════════════════════════════
 
-  renderCardBrowser() {
-    var container = document.getElementById('cardBrowserContent');
-    if (!container) return;
-    var self = this;
-    // Preserve existing search input if mounted
-    var existingSearch = container.querySelector('#cbSearch');
-    if (!existingSearch) {
-      clearElement(container);
-      // Build controls (only once, kept mounted during typing)
-      var searchInput = createElement('input', {
-        className: 'card-browser-search',
-        attributes: { type: 'text', placeholder: '🔍 Search buzzwords, answers, teaching points...', id: 'cbSearch' }
-      });
-      searchInput.value = this.cardBrowserSearch || '';
-      var debouncedSearch = debounce(function () {
-        self.cardBrowserSearch = searchInput.value;
-        self.cardBrowserPage = 0;
-        self._renderCardBrowserResults();
-      }, 300);
-      searchInput.addEventListener('input', debouncedSearch);
-      container.appendChild(searchInput);
 
-      // Filter row
-      var filterRow = createElement('div', { className: 'card-browser-filters' });
-
-      var subjectSelect = createElement('select', {
-        attributes: { id: 'cbSubjectFilter' }
-      });
-      subjectSelect.style.cssText = 'padding:6px;border-radius:8px;background:rgba(30,15,70,0.6);color:#fff;border:1px solid rgba(187,102,255,0.15);font-size:11px';
-      subjectSelect.appendChild(createElement('option', { text: 'All Subjects', attributes: { value: '' } }));
-      SUBJECTS.forEach(function (s) {
-        var opt = createElement('option', { text: s, attributes: { value: s } });
-        if (self.cardBrowserSubject === s) opt.selected = true;
-        subjectSelect.appendChild(opt);
-      });
-      subjectSelect.addEventListener('change', function () {
-        self.cardBrowserSubject = subjectSelect.value;
-        self.cardBrowserPage = 0;
-        self._renderCardBrowserResults();
-      });
-      filterRow.appendChild(subjectSelect);
-
-      var statusSelect = createElement('select', {
-        attributes: { id: 'cbStatusFilter' }
-      });
-      statusSelect.style.cssText = 'padding:6px;border-radius:8px;background:rgba(30,15,70,0.6);color:#fff;border:1px solid rgba(187,102,255,0.15);font-size:11px';
-      ['all', 'seen', 'unseen', 'disabled'].forEach(function (val) {
-        var labels = { all: 'All Cards', seen: 'Seen', unseen: 'Unseen', disabled: 'Disabled' };
-        var opt = createElement('option', { text: labels[val], attributes: { value: val } });
-        if (self.cardBrowserFilter === val) opt.selected = true;
-        statusSelect.appendChild(opt);
-      });
-      statusSelect.addEventListener('change', function () {
-        self.cardBrowserFilter = statusSelect.value;
-        self.cardBrowserPage = 0;
-        self._renderCardBrowserResults();
-      });
-      filterRow.appendChild(statusSelect);
-
-      container.appendChild(filterRow);
-
-      // Results container
-      container.appendChild(createElement('div', { attributes: { id: 'cbResults' } }));
-    }
-
-    this._renderCardBrowserResults();
-  }
-
-  _renderCardBrowserResults() {
-    var resultsContainer = document.getElementById('cbResults');
-    if (!resultsContainer) return;
-    clearElement(resultsContainer);
-
-    var self = this;
-    var allCards = CARDS.concat(customCards.getAll());
-    var disabledCards = storage.get('disabledCards') || [];
-
-    // Apply filters
-    var filtered = allCards;
-    if (this.cardBrowserSubject) {
-      filtered = filtered.filter(function (c) { return c.subj === self.cardBrowserSubject; });
-    }
-    if (this.cardBrowserSearch) {
-      var q = this.cardBrowserSearch.toLowerCase();
-      filtered = filtered.filter(function (c) {
-        var text = (c.bw.join(' ') + ' ' + c.ans + ' ' + c.tp).toLowerCase();
-        return text.indexOf(q) >= 0;
-      });
-    }
-    if (this.cardBrowserFilter === 'seen') {
-      filtered = filtered.filter(function (c) { return storage.getCardStat(c.id).seen > 0; });
-    } else if (this.cardBrowserFilter === 'unseen') {
-      filtered = filtered.filter(function (c) { return storage.getCardStat(c.id).seen === 0; });
-    } else if (this.cardBrowserFilter === 'disabled') {
-      filtered = filtered.filter(function (c) { return disabledCards.indexOf(c.id) >= 0; });
-    }
-
-    // Pagination
-    var pageSize = this.cardBrowserPageSize;
-    var totalPages = Math.ceil(filtered.length / pageSize);
-    var page = Math.min(this.cardBrowserPage, totalPages - 1);
-    if (page < 0) page = 0;
-    var start = page * pageSize;
-    var displayCards = filtered.slice(start, start + pageSize);
-
-    // Count
-    var countEl = createElement('div', {
-      className: 'card-browser-stats',
-      text: 'Showing ' + (start + 1) + '-' + Math.min(start + pageSize, filtered.length) + ' of ' + filtered.length + ' cards'
-    });
-    resultsContainer.appendChild(countEl);
-
-    // Cards list
-    var list = createElement('div', { className: 'card-browser-list' });
-
-    displayCards.forEach(function (c) {
-      var stat = storage.getCardStat(c.id);
-      var isDisabled = disabledCards.indexOf(c.id) >= 0;
-      var accuracy = stat.seen > 0 ? Math.round(stat.correct / stat.seen * 100) : -1;
-
-      var item = createElement('div', {
-        className: 'card-browser-item' + (isDisabled ? ' disabled-card' : '') + (stat.wrong > 2 ? ' missed-card' : '')
-      });
-
-      // Buzzwords (safe)
-      var bwEl = createElement('div', { className: 'cb-buzzwords' });
-      setText(bwEl, c.bw.join(' • '));
-      item.appendChild(bwEl);
-
-      // Answer (safe)
-      var ansEl = createElement('div', { className: 'cb-answer' });
-      setText(ansEl, c.ans);
-      item.appendChild(ansEl);
-
-      // Meta row
-      var meta = createElement('div', { className: 'cb-meta' });
-      var subjTag = createElement('span', { className: 'tag tag-subject' });
-      setText(subjTag, c.subj);
-      meta.appendChild(subjTag);
-
-      if (accuracy >= 0) {
-        var accTag = createElement('span', {
-          className: 'tag ' + (accuracy >= 70 ? 'tag-correct' : 'tag-wrong'),
-          text: accuracy + '% (' + stat.seen + ')'
-        });
-        meta.appendChild(accTag);
-      } else {
-        meta.appendChild(createElement('span', { className: 'tag', text: 'Not seen' }));
-      }
-
-      // Toggle button
-      var toggleBtn = createElement('div', {
-        className: 'card-browser-toggle' + (isDisabled ? '' : ' enabled'),
-        text: isDisabled ? '🚫 Disabled' : '✅ Enabled'
-      });
-      toggleBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (storage.isCardDisabled) {
-          storage.toggleCardDisabled(c.id);
-        } else {
-          var disabled = storage.get('disabledCards') || [];
-          var idx = disabled.indexOf(c.id);
-          if (idx >= 0) disabled.splice(idx, 1);
-          else disabled.push(c.id);
-          storage.set('disabledCards', disabled);
-        }
-        self._renderCardBrowserResults();
-      });
-      meta.appendChild(toggleBtn);
-
-      item.appendChild(meta);
-      list.appendChild(item);
-    });
-
-    resultsContainer.appendChild(list);
-
-    // Pagination controls
-    if (totalPages > 1) {
-      var pagRow = createElement('div');
-      pagRow.style.cssText = 'display:flex;justify-content:center;gap:8px;margin-top:10px';
-
-      if (page > 0) {
-        var prevBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '← Prev' });
-        prevBtn.addEventListener('click', function () { self.cardBrowserPage--; self._renderCardBrowserResults(); });
-        pagRow.appendChild(prevBtn);
-      }
-
-      pagRow.appendChild(createElement('span', { text: 'Page ' + (page + 1) + ' of ' + totalPages }));
-      pagRow.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted);display:flex;align-items:center';
-
-      if (page < totalPages - 1) {
-        var nextBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Next →' });
-        nextBtn.addEventListener('click', function () { self.cardBrowserPage++; self._renderCardBrowserResults(); });
-        pagRow.appendChild(nextBtn);
-      }
-
-      resultsContainer.appendChild(pagRow);
-    }
-  }
 
   // ═══════════════════════════════════════════════════════
   // PROFILE (with complete profile picture selector) [2]
   // ═══════════════════════════════════════════════════════
 
-  renderProfile() {
-    var container = document.getElementById('profileContent');
-    if (!container) return;
-    clearElement(container);
-    var self = this;
-
-    var profileName = storage.get('profileName') || '';
-    var profilePicture = storage.get('profilePicture') || 'avatar_intern';
-    var profileVisible = storage.get('profileVisible') || false;
-    var selectedBadges = storage.get('selectedBadges') || [];
-    var achievements = storage.get('achievements') || [];
-    var totalCards = storage.get('totalCardsStudied') || 0;
-    var totalCorrect = storage.get('totalCorrect') || 0;
-    var totalWrong = storage.get('totalWrong') || 0;
-    var bestScore = storage.get('bestScore') || 0;
-    var bestStreak = storage.get('bestStreak') || 0;
-    var totalPlayTime = storage.get('totalPlayTime') || 0;
-    var dailyStreak = storage.get('dailyStreak') || 0;
-    var totalAcc = (totalCorrect + totalWrong) > 0 ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
-    var playTimeMin = Math.round(totalPlayTime / 60);
-
-    // Avatar display
-    var avatarSection = createElement('div', { className: 'profile-header' });
-    var avatarEl = createElement('div', { className: 'profile-avatar', text: '👤' });
-    avatarSection.appendChild(avatarEl);
-
-    // Profile picture selector
-    var picSelector = createElement('div', { className: 'profile-picture-selector' });
-    var ownedSkins = storage.get('ownedItems').filter(function (id) {
-      return id.indexOf('avatar_') === 0;
-    });
-    ownedSkins.forEach(function (skinId) {
-      var opt = createElement('div', {
-        className: 'profile-pic-option' + (profilePicture === skinId ? ' active' : ''),
-        text: skinId === 'avatar_intern' ? '🩺' : skinId === 'avatar_attending' ? '👨‍⚕️' : skinId === 'avatar_superhero' ? '🦸' : skinId === 'avatar_robot' ? '🤖' : skinId === 'avatar_wizard' ? '🧙' : skinId === 'avatar_zombie' ? '🧟' : skinId === 'avatar_golden' ? '🏆' : skinId === 'avatar_ambulance' ? '🚑' : skinId === 'avatar_racecar' ? '🏎️' : skinId === 'avatar_hearse' ? '⚰️' : skinId === 'avatar_nurse' ? '👩‍⚕️' : skinId === 'avatar_surgeon' ? '🔪' : skinId === 'avatar_skeleton' ? '💀' : '👤'
-      });
-      opt.addEventListener('click', function () {
-        storage.set('profilePicture', skinId);
-        self.renderProfile();
-      });
-      picSelector.appendChild(opt);
-    });
-    avatarSection.appendChild(picSelector);
-
-    // Name input
-    var nameInput = createElement('input', {
-      className: 'profile-name-input',
-      attributes: { type: 'text', placeholder: 'Enter display name', value: profileName, maxlength: '30' }
-    });
-    avatarSection.appendChild(nameInput);
-    container.appendChild(avatarSection);
-
-    // Stats grid
-    var statsGrid = createElement('div', { className: 'profile-stats-grid' });
-    [
-      { val: totalCards, label: 'Cards Studied' },
-      { val: totalAcc + '%', label: 'Accuracy' },
-      { val: bestScore, label: 'Best Score' },
-      { val: '🔥 ' + bestStreak, label: 'Best Streak' },
-      { val: playTimeMin + 'm', label: 'Play Time' },
-      { val: '📅 ' + dailyStreak, label: 'Daily Streak' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'profile-stat' });
-      stat.appendChild(createElement('div', { className: 'val', text: String(s.val) }));
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      statsGrid.appendChild(stat);
-    });
-    container.appendChild(statsGrid);
-
-    // Badge selector
-    if (achievements.length > 0) {
-      var badgeSection = createElement('div', { className: 'profile-badges' });
-      badgeSection.appendChild(createElement('h4', { text: 'Selected Badges (tap to toggle, max 6)' }));
-      var badgeGrid = createElement('div', { className: 'profile-badge-grid' });
-
-      ACHIEVEMENTS.forEach(function (ach) {
-        if (achievements.indexOf(ach.id) < 0) return;
-        var isSelected = selectedBadges.indexOf(ach.id) >= 0;
-        var chip = createElement('div', {
-          className: 'subject-chip' + (isSelected ? ' selected' : ''),
-          text: ach.icon + ' ' + ach.name,
-          dataset: { badge: ach.id }
-        });
-        chip.style.cursor = 'pointer';
-        chip.addEventListener('click', function () {
-          var badges = storage.get('selectedBadges') || [];
-          var idx = badges.indexOf(ach.id);
-          if (idx >= 0) {
-            badges.splice(idx, 1);
-          } else {
-            if (badges.length >= 6) {
-              self._showToast('Maximum 6 badges. Remove one first.');
-              return;
-            }
-            badges.push(ach.id);
-          }
-          storage.set('selectedBadges', badges);
-          chip.classList.toggle('selected');
-        });
-        badgeGrid.appendChild(chip);
-      });
-
-      badgeSection.appendChild(badgeGrid);
-      container.appendChild(badgeSection);
-    }
-
-    // Visibility toggle
-    var visRow = createElement('div', { className: 'setting-row' });
-    visRow.style.marginTop = '14px';
-    visRow.appendChild(createElement('div', { text: '👁 Profile Visible' }));
-    visRow.firstChild.style.fontSize = '13px';
-    var visToggle = createElement('div', { className: 'toggle' + (profileVisible ? ' on' : '') });
-    visToggle.addEventListener('click', function () {
-      var newVal = !storage.get('profileVisible');
-      storage.set('profileVisible', newVal);
-      visToggle.classList.toggle('on');
-    });
-    visRow.appendChild(visToggle);
-    container.appendChild(visRow);
-
-    // Save button
-    var saveBtn = createElement('button', { className: 'btn btn-primary btn-block', text: '💾 Save Profile' });
-    saveBtn.style.marginTop = '10px';
-    saveBtn.addEventListener('click', function () {
-      var name = nameInput.value.trim();
-      storage.set('profileName', name);
-      self._showToast('Profile saved!');
-    });
-    container.appendChild(saveBtn);
-  }
 
   // ═══════════════════════════════════════════════════════
   // FLASHCARD SCREEN
   // ═══════════════════════════════════════════════════════
 
-  startFlashcardSession(subjects, cardIds, count) {
-    var subjs = subjects || storage.get('selectedSubjects');
-    if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
-    var fm = this.flashcardMode;
-    // Abandon any leftover session so a new one can start.
-    if (fm.state === 'active' || fm.state === 'revealed') this._endFlashcardSession();
-    var result = fm.start({
-      subjects: subjs,
-      cardIds: cardIds || null,
-      cardCount: count || 20,
-      filters: {
-        exams: storage.get('selectedExams') || [],
-        questionTypes: storage.get('selectedQuestionTypes') || [],
-        sources: storage.get('selectedSources') || [],
-        years: storage.get('selectedYears') || []
-      }
-    });
-    if (!result.success) {
-      this._showToast((result.error && result.error.message) || 'No cards available for the selected filters.');
-      return;
-    }
-    this.show('screenFlashcard');
-    this.renderFlashcardScreen();
-  }
 
   // ═══════════════════════════════════════════════════════
   // HANDS-FREE AUDIO REVIEW
@@ -3308,44 +1794,7 @@ class UI {
   // teaching point. For commutes and workouts; it does not record ratings.
   // ═══════════════════════════════════════════════════════
 
-  startHandsFree(subjects, cardIds, count) {
-    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
-      this._showToast('Speech is not supported in this browser.');
-      return;
-    }
-    var subjs = subjects || storage.get('selectedSubjects');
-    if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
-    var fm = this.flashcardMode;
-    if (fm.state === 'active' || fm.state === 'revealed') this._endFlashcardSession();
-    this._hfLast = { subjects: subjects || null, cardIds: cardIds || null, count: count || 20 };
-    var result = fm.start({
-      subjects: subjs,
-      cardIds: cardIds || null,
-      cardCount: count || 20,
-      filters: {
-        exams: storage.get('selectedExams') || [],
-        questionTypes: storage.get('selectedQuestionTypes') || [],
-        sources: storage.get('selectedSources') || [],
-        years: storage.get('selectedYears') || []
-      }
-    });
-    if (!result.success) {
-      this._showToast((result.error && result.error.message) || 'No cards available for the selected filters.');
-      return;
-    }
-    var cards = fm.cards.slice();
-    fm.end('handsfree'); // only borrowed the card selection
-    this._hf = { active: true, finished: false, cancel: false, index: 0, phase: 'clue', cards: cards, heard: 0, last: this._hfLast };
-    this.show('screenFlashcard');
-    this._runHandsFree();
-  }
 
-  stopHandsFree() {
-    if (!this._hf) return;
-    this._hf.cancel = true;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    if (this._hf.wake) this._hf.wake();
-  }
 
   _hfSpeak(text) {
     return new Promise(function (resolve) {
@@ -3496,294 +1945,8 @@ class UI {
     return { due: due, missed: missed, fresh: fresh, mine: mine };
   }
 
-  /** "What do you want to study?" for flashcards and hands-free audio: pick the cards, then the way. */
-  _renderStudyPicker(container) {
-    var self = this;
-    var pools = this._pickerPools();
-    var pick = this._fcPick || (this._fcPick = { source: 'mine', subjects: [], count: 20 });
-    var wrap = createElement('div');
-    wrap.className = 'study-picker';
 
-    wrap.appendChild(this._flashcardText('h3', 'What do you want to study?', 'font-size:16px;margin:6px 0 4px'));
-    wrap.appendChild(this._flashcardText('p', 'Choose the cards, then how to study them: flip cards yourself, or listen hands-free.', 'font-size:12px;color:var(--text-secondary);margin-bottom:10px'));
 
-    var sources = [
-      ['mine', '🎯 My subjects', pools.mine.length + ' subject' + (pools.mine.length === 1 ? '' : 's') + ' chosen in Home. A random mix.'],
-      ['due', '⏰ Due for review', pools.due.length + ' card' + (pools.due.length === 1 ? '' : 's') + ' ready to see again (most overdue first).'],
-      ['missed', '🩹 Cards I miss', pools.missed.length + ' card' + (pools.missed.length === 1 ? '' : 's') + ' you get wrong the most.'],
-      ['fresh', '🆕 New cards', pools.fresh.length + ' card' + (pools.fresh.length === 1 ? '' : 's') + ' you have not seen yet.'],
-      ['subjects', '📚 Pick subjects', 'Choose exactly which subjects to study.']
-    ];
-    var list = createElement('div');
-    list.className = 'pick-list';
-    var detail = createElement('div');
-    var renderDetail = function () {
-      clearElement(detail);
-      if (pick.source !== 'subjects') return;
-      var chips = createElement('div');
-      chips.className = 'pick-chips';
-      SUBJECTS.forEach(function (s) {
-        var on = pick.subjects.indexOf(s) >= 0;
-        var chip = createElement('button', { className: 'pick-chip' + (on ? ' on' : ''), text: s, attributes: { type: 'button', 'aria-pressed': on ? 'true' : 'false' } });
-        chip.addEventListener('click', function () {
-          var i = pick.subjects.indexOf(s);
-          if (i >= 0) pick.subjects.splice(i, 1); else pick.subjects.push(s);
-          chip.classList.toggle('on', i < 0);
-          chip.setAttribute('aria-pressed', i < 0 ? 'true' : 'false');
-        });
-        chips.appendChild(chip);
-      });
-      detail.appendChild(chips);
-    };
-    sources.forEach(function (src) {
-      var btn = createElement('button', { className: 'pick-source' + (pick.source === src[0] ? ' on' : ''), attributes: { type: 'button', 'aria-pressed': pick.source === src[0] ? 'true' : 'false' } });
-      btn.appendChild(self._flashcardText('strong', src[1]));
-      btn.appendChild(self._flashcardText('span', src[2]));
-      btn.addEventListener('click', function () {
-        pick.source = src[0];
-        list.querySelectorAll('.pick-source').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
-        btn.classList.add('on');
-        btn.setAttribute('aria-pressed', 'true');
-        renderDetail();
-      });
-      list.appendChild(btn);
-    });
-    wrap.appendChild(list);
-    renderDetail();
-    wrap.appendChild(detail);
-
-    wrap.appendChild(this._flashcardText('div', 'How many cards?', 'font-size:12px;font-weight:700;margin:12px 0 4px'));
-    var counts = createElement('div');
-    counts.className = 'pick-chips';
-    [10, 20, 40, 80].forEach(function (n) {
-      var chip = createElement('button', { className: 'pick-chip' + (pick.count === n ? ' on' : ''), text: String(n), attributes: { type: 'button', 'aria-pressed': pick.count === n ? 'true' : 'false' } });
-      chip.addEventListener('click', function () {
-        pick.count = n;
-        counts.querySelectorAll('.pick-chip').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
-        chip.classList.add('on');
-        chip.setAttribute('aria-pressed', 'true');
-      });
-      counts.appendChild(chip);
-    });
-    wrap.appendChild(counts);
-
-    // Resolve the choice into subjects / explicit card ids, or explain what is missing
-    var resolve = function () {
-      var p = self._pickerPools();
-      if (pick.source === 'due') return p.due.length ? { ids: p.due.slice(0, pick.count) } : { error: 'Nothing is due yet. Play a few runs or flashcards first, and cards will come back here.' };
-      if (pick.source === 'missed') return p.missed.length ? { ids: p.missed.slice(0, pick.count) } : { error: 'No missed cards yet. Cards you get wrong will show up here.' };
-      if (pick.source === 'fresh') return p.fresh.length ? { ids: p.fresh.sort(function () { return Math.random() - 0.5; }).slice(0, pick.count) } : { error: 'You have seen every card in your subjects.' };
-      if (pick.source === 'subjects') return pick.subjects.length ? { subjects: pick.subjects.slice() } : { error: 'Pick at least one subject above.' };
-      return { subjects: null };
-    };
-
-    var go = createElement('div');
-    go.style.cssText = 'display:flex;gap:8px;margin-top:14px';
-    var flip = createElement('button', { className: 'btn btn-green', text: '📖 Flip cards', attributes: { type: 'button' } });
-    flip.style.flex = '1';
-    flip.addEventListener('click', function () {
-      var r = resolve();
-      if (r.error) { self._showToast(r.error); return; }
-      self.startFlashcardSession(r.subjects, r.ids || null, pick.count);
-    });
-    var listen = createElement('button', { className: 'btn btn-outline', text: '🎧 Listen hands-free', attributes: { type: 'button' } });
-    listen.style.flex = '1';
-    listen.addEventListener('click', function () {
-      var r = resolve();
-      if (r.error) { self._showToast(r.error); return; }
-      self.startHandsFree(r.subjects, r.ids || null, pick.count);
-    });
-    go.appendChild(flip);
-    go.appendChild(listen);
-    wrap.appendChild(go);
-
-    var back = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Back to Home', attributes: { type: 'button' } });
-    back.style.marginTop = '8px';
-    back.addEventListener('click', function () { self.show('screenHome'); });
-    wrap.appendChild(back);
-    container.appendChild(wrap);
-  }
-
-  renderFlashcardScreen() {
-    var container = document.getElementById('flashcardContent');
-    if (!container) return;
-    clearElement(container);
-    var self = this;
-    var fm = this.flashcardMode;
-
-    if (this._hf && (this._hf.active || this._hf.finished)) {
-      this._renderHandsFree(container);
-      return;
-    }
-
-    if (!this._flashcardActive()) {
-      this._renderStudyPicker(container);
-      return;
-    }
-
-    if (fm.isComplete()) {
-      if (fm.state !== 'completed') {
-        var done = fm.complete();
-        if (done.success) this._persistFlashcardSummary(done.summary);
-      }
-      this._renderFlashcardSummary(container);
-      return;
-    }
-
-    var progress = fm.getProgress();
-    var card = fm.getCurrentCard();
-
-    // Progress bar
-    var progressWrap = createElement('div');
-    progressWrap.style.cssText = 'text-align:center;margin-bottom:10px';
-    var label = (fm.kind === 'missed_review' ? 'Missed review — ' : '') + 'Card ' + progress.current + ' of ' + progress.total;
-    progressWrap.appendChild(this._flashcardText('div', label, 'font-size:11px;color:var(--text-muted)'));
-
-    var barOuter = createElement('div', { className: 'fc-progress-bar' });
-    barOuter.style.margin = '6px 0';
-    var barInner = createElement('div', { className: 'fc-progress-fill' });
-    barInner.style.width = Math.round((progress.current - 1) / progress.total * 100) + '%';
-    barOuter.appendChild(barInner);
-    progressWrap.appendChild(barOuter);
-    progressWrap.appendChild(this._flashcardText('div', '✅ ' + progress.correctSoFar + ' | ❌ ' + progress.wrongSoFar, 'font-size:10px;color:var(--text-muted)'));
-    container.appendChild(progressWrap);
-
-    // Card display area (structured data, rendered as text only)
-    var cardArea = createElement('div');
-    cardArea.style.cssText = 'background:var(--bg-card-solid);border-radius:var(--radius-lg);padding:20px;text-align:center;border:var(--border-glow)';
-    cardArea.appendChild(this._flashcardText('div', card.subject, 'font-size:10px;color:var(--text-muted);margin-bottom:8px'));
-    card.buzzwords.forEach(function (bw) {
-      cardArea.appendChild(self._flashcardText('div', '• ' + bw, 'font-size:16px;font-weight:700;margin:4px 0'));
-    });
-
-    if (!card.revealed) {
-      var revealBtn = createElement('button', { className: 'btn btn-primary btn-block', text: 'Show Answer', attributes: { id: 'fcRevealBtn' } });
-      revealBtn.style.marginTop = '16px';
-      revealBtn.addEventListener('click', function () {
-        self._flashcardAnswer = fm.reveal();
-        self.renderFlashcardScreen();
-      });
-      cardArea.appendChild(revealBtn);
-    } else {
-      var ans = this._flashcardAnswer || fm.reveal() || {};
-      var answerArea = createElement('div');
-      answerArea.style.marginTop = '12px';
-      answerArea.appendChild(this._flashcardText('div', '✓ ' + ans.answer, 'font-size:18px;font-weight:800;color:var(--accent-green);margin-bottom:6px'));
-      if (ans.teachingPoint) {
-        answerArea.appendChild(this._flashcardText('p', ans.teachingPoint, 'font-size:12px;color:var(--text-secondary);margin:6px 0'));
-      }
-      (ans.whyWrong || []).forEach(function (w) {
-        answerArea.appendChild(self._flashcardText('div', '✗ ' + w.distractor + ': ' + w.explanation, 'font-size:11px;color:var(--text-muted);margin:2px 0'));
-      });
-      cardArea.appendChild(answerArea);
-
-      var btnRow = createElement('div');
-      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:16px';
-      var gotItBtn = createElement('button', { className: 'btn btn-green', text: '✅ Got it (→)', attributes: { id: 'fcGotBtn' } });
-      gotItBtn.style.flex = '1';
-      gotItBtn.addEventListener('click', function () { fm.rate('correct'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
-      btnRow.appendChild(gotItBtn);
-
-      var missedBtn = createElement('button', { className: 'btn btn-red', text: '❌ Missed it (←)', attributes: { id: 'fcMissBtn' } });
-      missedBtn.style.flex = '1';
-      missedBtn.addEventListener('click', function () { fm.rate('incorrect'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
-      btnRow.appendChild(missedBtn);
-      cardArea.appendChild(btnRow);
-    }
-
-    container.appendChild(cardArea);
-
-    var endBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '✕ End Session' });
-    endBtn.style.marginTop = '10px';
-    endBtn.addEventListener('click', function () { self._endFlashcardSession(); self.show('screenHome'); });
-    container.appendChild(endBtn);
-  }
-
-  _renderFlashcardSummary(container) {
-    var self = this;
-    var fm = this.flashcardMode;
-    var summary = fm.getSummary();
-    var missed = fm.getMissedCards();
-
-    var header = createElement('div');
-    header.style.cssText = 'text-align:center;padding:16px 0';
-    header.appendChild(createElement('h2', { text: '📋 Session Complete' }));
-
-    var statsRow = createElement('div', { className: 'post-stats' });
-    statsRow.style.margin = '10px 0';
-    [
-      { val: summary.correct, label: 'Correct', color: 'var(--accent-green)' },
-      { val: summary.wrong, label: 'Missed', color: 'var(--accent-red)' },
-      { val: summary.accuracy + '%', label: 'Accuracy' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(s.val) });
-      if (s.color) valEl.style.color = s.color;
-      stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      statsRow.appendChild(stat);
-    });
-    header.appendChild(statsRow);
-    container.appendChild(header);
-
-    // Missed cards
-    if (missed.length > 0) {
-      container.appendChild(createElement('h3', { text: '❌ Missed Cards' }));
-      container.lastChild.style.cssText = 'margin:10px 0 6px';
-
-      missed.forEach(function (r) {
-        var card = createElement('div', { className: 'review-card' });
-        var h4 = createElement('h4');
-        setText(h4, '❌ ' + r.card.bw.join(' • '));
-        card.appendChild(h4);
-
-        var tagRow = createElement('div');
-        var ansTag = createElement('span', { className: 'tag tag-correct' });
-        setText(ansTag, '✓ ' + r.card.ans);
-        tagRow.appendChild(ansTag);
-        var subjTag = createElement('span', { className: 'tag tag-subject' });
-        setText(subjTag, r.card.subj);
-        tagRow.appendChild(subjTag);
-        card.appendChild(tagRow);
-
-        var tp = createElement('p');
-        setText(tp, r.card.tp);
-        tp.style.cssText = 'margin-top:4px;font-size:11px;color:var(--text-secondary)';
-        card.appendChild(tp);
-
-        container.appendChild(card);
-      });
-    } else {
-      container.appendChild(createElement('h3', { text: '🎉 Perfect Session!' }));
-      container.lastChild.style.cssText = 'margin:10px 0 6px;color:var(--accent-green)';
-    }
-
-    // Action buttons
-    var actionRow = createElement('div');
-    actionRow.style.cssText = 'display:flex;gap:6px;margin-top:14px';
-
-    if (missed.length > 0) {
-      var reviewBtn = createElement('button', { className: 'btn btn-primary', text: '🔄 Review Missed' });
-      reviewBtn.style.flex = '1';
-      reviewBtn.addEventListener('click', function () {
-        var res = fm.startMissedReview();
-        if (!res.success) self._showToast((res.error && res.error.message) || 'Could not start review.');
-        self.renderFlashcardScreen();
-      });
-      actionRow.appendChild(reviewBtn);
-    }
-
-    var newBtn = createElement('button', { className: 'btn btn-green', text: '📖 New Session' });
-    newBtn.style.flex = '1';
-    newBtn.addEventListener('click', function () { self._endFlashcardSession(); self.startFlashcardSession(); });
-    actionRow.appendChild(newBtn);
-    container.appendChild(actionRow);
-
-    var homeBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Home' });
-    homeBtn.style.marginTop = '6px';
-    homeBtn.addEventListener('click', function () { self._endFlashcardSession(); self.show('screenHome'); });
-    container.appendChild(homeBtn);
-  }
 
   // ═══════════════════════════════════════════════════════
   // POST-RUN (displays ALL answers — correct + wrong) [2]
@@ -3810,253 +1973,6 @@ class UI {
     return body;
   }
 
-  showPostRun(game) {
-    var self = this;
-    var total = game.correct + game.wrong;
-    var acc = total > 0 ? Math.round(game.correct / total * 100) : 0;
-    var missed = game.runCards.filter(function (r) { return !r.ok; });
-    var correctAll = game.runCards.filter(function (r) { return r.ok; });
-
-    var content = document.getElementById('postRunContent');
-    clearElement(content);
-
-    // Header
-    var header = createElement('div', { className: 'post-header' });
-    header.appendChild(createElement('h2', { text: '📋 Case Review' }));
-    var scoreBig = createElement('div', { className: 'score-big', text: String(game.score) });
-    header.appendChild(scoreBig);
-    var verdict = createElement('p', { className: 'post-verdict', text: runVerdict(game.correct, game.wrong) });
-    verdict.style.cssText = 'color:var(--accent-cyan);font-weight:800;font-size:14px;margin:2px 0';
-    header.appendChild(verdict);
-    var skinInfo = game.currentSkin ? ' • Track: ' + game.currentSkin.name : '';
-    var runSummary = game.getRunSummary ? game.getRunSummary() : null;
-    var customNote = runSummary && runSummary.custom ? ' • Custom rules: ' + describeRules(runSummary.rules && Object.assign({ custom: true }, runSummary.rules)) + ' (not ranked)' : '';
-    var metaP = createElement('p', { text: 'Speed: ' + game.userSpeed + '×' + skinInfo + (game.continued ? ' (continued)' : '') + customNote });
-    metaP.style.cssText = 'color:var(--text-muted);font-size:12px';
-    header.appendChild(metaP);
-    content.appendChild(header);
-
-    // Weakest subject this run (needs a few encounters to be meaningful)
-    var bySubject = {};
-    game.runCards.forEach(function (r) {
-      var subj = r.card && r.card.subj;
-      if (!subj) return;
-      bySubject[subj] = bySubject[subj] || { n: 0, ok: 0 };
-      bySubject[subj].n++;
-      if (r.ok) bySubject[subj].ok++;
-    });
-    var weakest = null;
-    Object.keys(bySubject).forEach(function (subj) {
-      var st = bySubject[subj];
-      if (st.n < 2 || st.ok === st.n) return;
-      var a = st.ok / st.n;
-      if (!weakest || a < weakest.acc) weakest = { subj: subj, acc: a, n: st.n, ok: st.ok };
-    });
-    if (weakest) {
-      var weakEl = createElement('div', { text: '🎯 Focus area: ' + weakest.subj + ' (' + weakest.ok + '/' + weakest.n + ' correct)' });
-      weakEl.style.cssText = 'text-align:center;font-size:12px;font-weight:700;color:var(--accent-gold);margin:6px 0';
-      content.appendChild(weakEl);
-    }
-
-    // Golden doctor notice
-    if (game.wrong === 0 && game.correct >= 20 && storage.hasAchievement('ach_golden_doctor')) {
-      var goldenNotice = createElement('div');
-      goldenNotice.style.cssText = 'text-align:center;padding:12px;margin:10px 0;background:linear-gradient(135deg,rgba(255,215,0,0.15),rgba(255,170,0,0.1));border:2px solid var(--accent-gold);border-radius:12px';
-      goldenNotice.appendChild(createElement('div', { text: '🏆' }));
-      goldenNotice.firstChild.style.fontSize = '24px';
-      var goldenText = createElement('div', { text: 'Golden Doctor Unlocked!' });
-      goldenText.style.cssText = 'font-size:14px;font-weight:800;color:var(--accent-gold)';
-      goldenNotice.appendChild(goldenText);
-      goldenNotice.appendChild(createElement('div', { text: 'Perfect run with 20+ correct! Check the Locker.' }));
-      goldenNotice.lastChild.style.cssText = 'font-size:11px;color:var(--text-secondary)';
-      content.appendChild(goldenNotice);
-    }
-
-    // Stats (one compact row)
-    var statsRow = createElement('div', { className: 'post-stats' });
-    statsRow.style.gridTemplateColumns = 'repeat(5, 1fr)';
-    [
-      { val: acc + '%', label: 'Accuracy', color: 'var(--accent-green)' },
-      { val: game.correct, label: 'Correct', color: 'var(--accent-green)' },
-      { val: game.wrong, label: 'Wrong', color: 'var(--accent-red)' },
-      { val: '🪙 ' + game.coins, label: 'Coins', color: 'var(--accent-gold)' },
-      { val: '🔥 ' + game.bestStreak, label: 'Streak' }
-    ].forEach(function (st) {
-      var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(st.val) });
-      if (st.color) valEl.style.color = st.color;
-      stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: st.label }));
-      statsRow.appendChild(stat);
-    });
-    content.appendChild(statsRow);
-
-    // Action buttons
-    var actionRow = createElement('div');
-    actionRow.style.cssText = 'display:flex;gap:6px;margin:12px 0 0';
-
-    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
-    againBtn.style.flex = '1';
-    actionRow.appendChild(againBtn);
-
-    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
-    homeBtn.style.flex = '1';
-    homeBtn.addEventListener('click', function () { self.show('screenHome'); });
-    actionRow.appendChild(homeBtn);
-    content.appendChild(actionRow);
-
-    var secRow = createElement('div');
-    secRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px';
-    content.appendChild(secRow);
-
-    if (missed.length > 0) {
-      var weakBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎯 Weakness Mode', attributes: { id: 'weaknessBtn' } });
-            secRow.appendChild(weakBtn);
-
-      var qrBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📝 Quick Review' });
-            qrBtn.addEventListener('click', function () { self.showQuickReview(missed); });
-      secRow.appendChild(qrBtn);
-    }
-
-    var shareBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📤 Share Score' });
-        shareBtn.addEventListener('click', function () { self.shareScore(game); });
-    secRow.appendChild(shareBtn);
-
-    // Review sections (collapsed by default so the screen stays short)
-    // Missed cards
-    if (missed.length > 0) {
-      var missedBody = self._collapsible(content, '❌ Missed Cards (' + missed.length + ')', false);
-
-      missed.forEach(function (r) {
-        var c = r.card;
-        var card = createElement('div', { className: 'review-card' });
-
-        var h4 = createElement('h4');
-        setText(h4, '❌ ' + c.bw.join(' • '));
-        card.appendChild(h4);
-
-        var tagRow = createElement('div');
-        var wrongTag = createElement('span', { className: 'tag tag-wrong' });
-        setText(wrongTag, 'You: ' + r.choice);
-        tagRow.appendChild(wrongTag);
-        var correctTag = createElement('span', { className: 'tag tag-correct' });
-        setText(correctTag, '✓ ' + c.ans);
-        tagRow.appendChild(correctTag);
-        var subjTag = createElement('span', { className: 'tag tag-subject' });
-        setText(subjTag, c.subj);
-        tagRow.appendChild(subjTag);
-        card.appendChild(tagRow);
-
-        var tpEl = createElement('p');
-        setText(tpEl, '📖 Rule: ' + c.tp);
-        tpEl.style.marginTop = '5px';
-        card.appendChild(tpEl);
-
-        // Why wrong (safe text)
-        var whyWrong = (c.ww && c.ww[r.choice]) || '';
-        if (whyWrong) {
-          var wwEl = createElement('p');
-          setText(wwEl, 'Why "' + r.choice + '" is wrong: ' + whyWrong);
-          wwEl.style.marginTop = '4px';
-          card.appendChild(wwEl);
-        }
-
-        // Report button (replaces global window.UI_reportCard)
-        var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '📋 Report Card Issue' });
-        reportBtn.style.marginTop = '6px';
-        reportBtn.addEventListener('click', function () {
-          var reason = prompt('Why are you reporting this card?\n\nOptions:\n- incorrect info\n- ambiguous\n- poor distractor\n- outdated\n- other');
-          if (reason) {
-            var text = prompt('Additional details (optional):') || '';
-            if (storage.addCardReport) {
-              storage.addCardReport(c.id, reason, text);
-            }
-            // Also send to the server when the leaderboard/account is available.
-            import('./leaderboard.js').then(function (mod) {
-              if (mod.leaderboard.isAuthenticated()) mod.leaderboard.reportCard(c.id, reason, text);
-            }).catch(function () { /* offline: the local report is still saved and exportable */ });
-            alert('Card reported — thank you for helping improve the game!');
-          }
-        });
-        card.appendChild(reportBtn);
-
-        missedBody.appendChild(card);
-      });
-    } else if (total > 0) {
-      content.appendChild(createElement('h3', { text: '🎉 Perfect Run!' }));
-      content.lastChild.style.cssText = 'margin:14px 0 6px;color:var(--accent-green)';
-    }
-
-    // Correct answers (collapsible, showing ALL) [2]
-    if (correctAll.length > 0) {
-      var correctSection = createElement('div', { className: 'collapsible-section' });
-      correctSection.style.margin = '14px 0 6px';
-
-      var correctToggle = createElement('button', { className: 'collapsible-toggle' });
-      setText(correctToggle, '✅ Correct Answers (' + correctAll.length + ') ');
-      var correctArrow = createElement('span', { className: 'collapse-arrow', text: '▸' });
-      correctToggle.appendChild(correctArrow);
-      correctSection.appendChild(correctToggle);
-
-      var correctBody = createElement('div');
-      correctBody.style.display = 'none';
-
-      correctAll.forEach(function (r) {
-        var c = r.card;
-        var card = createElement('div', { className: 'review-card' });
-        card.style.borderLeftColor = 'var(--accent-green)';
-
-        var h4 = createElement('h4');
-        setText(h4, '✓ ' + c.bw.join(' • '));
-        card.appendChild(h4);
-
-        var tagRow = createElement('div');
-        var ansTag = createElement('span', { className: 'tag tag-correct' });
-        setText(ansTag, c.ans);
-        tagRow.appendChild(ansTag);
-        var subjTag = createElement('span', { className: 'tag tag-subject' });
-        setText(subjTag, c.subj);
-        tagRow.appendChild(subjTag);
-        card.appendChild(tagRow);
-
-        var tp = createElement('p');
-        setText(tp, c.tp);
-        tp.style.cssText = 'margin-top:4px;font-size:10px;color:var(--text-muted)';
-        card.appendChild(tp);
-
-        correctBody.appendChild(card);
-      });
-
-      correctSection.appendChild(correctBody);
-      content.appendChild(correctSection);
-
-      correctToggle.addEventListener('click', function () {
-        var isOpen = correctBody.style.display !== 'none';
-        correctBody.style.display = isOpen ? 'none' : 'block';
-        correctArrow.classList.toggle('open', !isOpen);
-      });
-    }
-
-    this.show('screenPostRun');
-    this._animateNumbers(content);
-
-    // Speed timer cleanup
-    var timerEl = document.getElementById('hudSpeedTimer');
-    if (timerEl) timerEl.style.display = 'none';
-
-    // Confetti on new best
-    if (game.isNewBest) this.showConfetti();
-
-    // Calendar update
-    if (total > 0) {
-      var calData = storage.get('calendarData') || {};
-      var todayKey = localDateKey(new Date());
-      calData[todayKey] = Math.round(game.correct / total * 100);
-      storage.set('calendarData', calData);
-    }
-
-    this.updateRushVignette(0);
-  }
 
   // ═══════════════════════════════════════════════════════
   // CONFETTI
@@ -4085,139 +2001,28 @@ class UI {
   // QUICK REVIEW
   // ═══════════════════════════════════════════════════════
 
-  showQuickReview(missedCards) {
-    if (!missedCards || missedCards.length === 0) return;
-    var overlay = document.getElementById('quickReviewOverlay');
-    if (!overlay) return;
-    var idx = 0;
-    var cards = missedCards;
-
-    function showCard() {
-      setText(document.getElementById('qrCounter'), (idx + 1) + ' / ' + cards.length);
-      setText(document.getElementById('qrBuzzwords'), cards[idx].card.bw.join(' • '));
-      setText(document.getElementById('qrAnswer'), '✓ ' + cards[idx].card.ans);
-      setText(document.getElementById('qrTeaching'), cards[idx].card.tp);
-      var qrDivider = document.getElementById('qrDivider');
-      if (qrDivider) qrDivider.style.display = 'none';
-      var qrReveal = document.getElementById('qrRevealBtn');
-      if (qrReveal) qrReveal.style.display = 'inline-flex';
-      var qrNext = document.getElementById('qrNextBtn');
-      if (qrNext) qrNext.style.display = 'none';
-    }
-
-    overlay.classList.add('active');
-    trapFocus(overlay);
-    showCard();
-
-    var revealBtn = document.getElementById('qrRevealBtn');
-    var nextBtn = document.getElementById('qrNextBtn');
-    var closeBtn = document.getElementById('qrCloseBtn');
-
-    if (revealBtn) {
-      revealBtn.onclick = function () {
-        var qrDivider = document.getElementById('qrDivider');
-        if (qrDivider) qrDivider.style.display = 'block';
-        revealBtn.style.display = 'none';
-        if (nextBtn) nextBtn.style.display = 'inline-flex';
-      };
-    }
-    if (nextBtn) {
-      nextBtn.onclick = function () {
-        idx++;
-        if (idx >= cards.length) { overlay.classList.remove('active'); releaseFocusTrap(); }
-        else { showCard(); }
-      };
-    }
-    if (closeBtn) {
-      closeBtn.onclick = function () { overlay.classList.remove('active'); releaseFocusTrap(); };
-    }
-  }
 
   // ═══════════════════════════════════════════════════════
   // TUTORIAL
   // ═══════════════════════════════════════════════════════
 
-  showTutorial() {
-    this.tutorialPage = 0;
-    this.renderTutorialPage();
-    var overlay = document.getElementById('tutorialOverlay');
-    overlay.classList.add('active');
-    trapFocus(overlay);
-  }
-
-  renderTutorialPage() {
-    var p = this.tutorialPages[this.tutorialPage];
-    var self = this;
-    var tutPage = document.getElementById('tutPage');
-    clearElement(tutPage);
-
-    var iconEl = createElement('div', { className: 'tut-icon', text: p.icon });
-    tutPage.appendChild(iconEl);
-    tutPage.appendChild(createElement('h2', { text: p.title }));
-    tutPage.appendChild(createElement('p', { text: p.text }));
-
-    var dots = document.getElementById('tutDots');
-    clearElement(dots);
-    for (var i = 0; i < this.tutorialPages.length; i++) {
-      dots.appendChild(createElement('div', { className: 'tut-dot' + (i === self.tutorialPage ? ' active' : '') }));
-    }
-
-    setText(document.getElementById('tutNextBtn'), this.tutorialPage === this.tutorialPages.length - 1 ? 'Start Playing! ✓' : 'Next →');
-  }
-
-  tutorialNext() {
-    this.tutorialPage++;
-    if (this.tutorialPage >= this.tutorialPages.length) {
-      document.getElementById('tutorialOverlay').classList.remove('active');
-      releaseFocusTrap();
-    } else {
-      this.renderTutorialPage();
-    }
+  /**
+   * Open the interactive tutorial. On the first run, finishing or skipping it marks the first run done,
+   * so it never opens by itself again.
+   */
+  showTutorial(opts) {
+    var firstRun = !!(opts && opts.firstRun);
+    startTutorial({
+      onClose: function () {
+        if (firstRun) storage.set('firstRunComplete', true);
+      }
+    });
   }
 
   // ═══════════════════════════════════════════════════════
   // CALENDAR
   // ═══════════════════════════════════════════════════════
 
-  renderCalendar() {
-    var grid = document.getElementById('calendarGrid');
-    if (!grid) return;
-    clearElement(grid);
-    var calData = storage.get('calendarData') || {};
-    var questDates = storage.get('questCompletionDates') || {};
-    var today = new Date();
-    var startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - 27);
-
-    // Alignment placeholders
-    var startDayOfWeek = startDate.getDay();
-    for (var p = 0; p < startDayOfWeek; p++) {
-      var placeholder = createElement('div', { className: 'calendar-day' });
-      placeholder.style.cssText = 'opacity:0;pointer-events:none';
-      grid.appendChild(placeholder);
-    }
-
-    for (var i = 0; i < 28; i++) {
-      var d = new Date(startDate);
-      d.setDate(d.getDate() + i);
-      var key = localDateKey(d);
-      var day = createElement('div', { className: 'calendar-day' });
-
-      if (Object.prototype.hasOwnProperty.call(calData, key)) {
-        if (calData[key] >= 70) day.classList.add('played-great');
-        else if (calData[key] >= 40) day.classList.add('played-ok');
-        else day.classList.add('played-bad');
-      }
-
-      if (questDates[key]) {
-        setText(day, '⭐');
-        day.style.cssText = 'font-size:8px;display:flex;align-items:center;justify-content:center';
-      }
-
-      if (localDateKey(d) === localDateKey(today)) day.classList.add('today');
-      grid.appendChild(day);
-    }
-  }
 
   // ═══════════════════════════════════════════════════════
   // SHARE
@@ -4240,34 +2045,7 @@ class UI {
 
 } // end class UI
 
-// ═══════════════════════════════════════════════════════
-// CLIPBOARD HELPER
-// ═══════════════════════════════════════════════════════
-
-function _copyToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () {
-      alert('Score copied to clipboard! Paste it anywhere to share.');
-    }).catch(function () { _fallbackCopy(text); });
-  } else {
-    _fallbackCopy(text);
-  }
-}
-
-function _fallbackCopy(text) {
-  var textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.left = '-9999px';
-  document.body.appendChild(textarea);
-  textarea.select();
-  try {
-    document.execCommand('copy');
-    alert('Score copied to clipboard!');
-  } catch (e) {
-    alert('Could not copy. Your score:\n\n' + text);
-  }
-  document.body.removeChild(textarea);
-}
+// Screens split into their own files; attached here so `this` is still the UI controller.
+Object.assign(UI.prototype, postRunMethods, settingsMethods, studyMethods, browseMethods, profileMethods, homeMethods);
 
 export var ui = new UI();

@@ -1,5 +1,6 @@
 // Offline support: network-first for pages, cache-first for hashed assets.
-const CACHE = 'dx-dash-v3';
+// __BUILD_ID__ is replaced with the commit (or build time) by vite.config.js at build time.
+const CACHE = 'dx-dash-__BUILD_ID__';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -15,8 +16,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  const cacheable = url.origin === self.location.origin || url.hostname === 'unpkg.com';
-  if (!cacheable) return;
+  if (url.origin !== self.location.origin) return;
 
   const store = (res) => {
     if (res && (res.ok || res.type === 'opaque')) {

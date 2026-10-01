@@ -29,11 +29,11 @@ const dismissDaily = async (pg) => {
 };
 const skip = async () => {
   for (let i = 0; i < 10; i++) {
-    const next = page.locator('#obNextBtn');
+    const next = page.locator('#tutSkipBtn');
     if (!(await next.isVisible().catch(() => false))) break;
     await next.click();
   }
-  await page.locator('#onboardingOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDaily(page);
 };
 await skip();
@@ -58,7 +58,7 @@ const applyShowcase = () => {
     const d = JSON.parse(localStorage.getItem(key) || 'null');
     if (!d) return;
     const p = d.progression;
-    ['avatar_m_nurse', 'avatar_m_surgeon', 'avatar_m_paramedic', 'avatar_m_resident', 'avatar_m_ninja', 'avatar_m_wizard', 'avatar_m_robot', 'avatar_m_king', 'avatar_m_explorer', 'avatar_m_alien',
+    ['avatar_m_nurse', 'avatar_m_paramedic', 'avatar_m_ninja', 'avatar_m_wizard', 'avatar_m_robot', 'avatar_m_king', 'avatar_m_explorer', 'avatar_m_alien',
       'monster_m_demon', 'monster_m_ghost', 'monster_m_yeti', 'monster_m_dragon'].forEach((id) => { if (p.ownedItems.indexOf(id) < 0) p.ownedItems.push(id); });
     p.equipped.skin = o.skin;
     p.equipped.monster = o.monster;
@@ -122,7 +122,7 @@ const multiplayerShot = async (name, caption, sub) => {
     pg.on('dialog', (d) => d.accept());
     await pg.goto(base + '/?debug=1');
     for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#obNextBtn');
+      const next = pg.locator('#tutSkipBtn');
       if (!(await next.isVisible().catch(() => false))) break;
       await next.click();
     }
@@ -130,7 +130,7 @@ const multiplayerShot = async (name, caption, sub) => {
     await dismissDaily(pg);
     await pg.reload();
     for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#obNextBtn');
+      const next = pg.locator('#tutSkipBtn');
       if (!(await next.isVisible().catch(() => false))) break;
       await next.click();
     }
@@ -182,13 +182,13 @@ const results = async (opts, name, caption, sub) => {
 
 await run({ skin: 'avatar_m_nurse', monster: 'monster_m_demon', subjects: ['Infectious Disease'], map: 'Hospital Hallway' },
   'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
-await run({ skin: 'avatar_m_surgeon', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
+await run({ skin: 'avatar_intern', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
   'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
 await multiplayerShot('multiplayer', 'Challenge a friend. Live.', 'Head-to-head, no account needed');
 await results({ skin: 'avatar_intern', monster: 'monster_m_yeti', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
   'review', 'Learn from every miss', 'Quick explanations, then it comes back');
 
-await setup({ skin: 'avatar_m_resident', monster: 'monster_classic', subjects: [], map: '' });
+await setup({ skin: 'avatar_m_paramedic', monster: 'monster_classic', subjects: [], map: '' });
 await page.locator('[data-screen="screenHome"]').click().catch(() => {});
 await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
 await page.waitForTimeout(1500);

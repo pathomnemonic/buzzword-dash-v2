@@ -80,10 +80,10 @@ export class CloudSync {
    * @param {object} deps
    * @param {object} deps.storage
    * @param {object} deps.leaderboard
-   * @param {function(string)} deps.toast
+   * @param {function(string): void} deps.toast
    * @param {function(object, object): Promise<'cloud'|'local'|null>} deps.askConflict
    *   receives (localSummary, cloudSummary)
-   * @param {function()} deps.onPulled - called after cloud data replaced local data
+   * @param {function(): void} deps.onPulled - called after cloud data replaced local data
    */
   constructor(deps) {
     this.deps = deps;

@@ -267,10 +267,6 @@ select:focus-visible {
     transition: none;
   }
 
-  #trackNameOverlay {
-    transition: none;
-  }
-
   .confetti-piece {
     animation: none;
     display: none;
@@ -344,40 +340,6 @@ select:focus-visible {
   pointer-events: none;
 }
 
-/* ==================== TRACK NAME OVERLAY ==================== */
-#trackNameOverlay {
-  position: fixed;
-  top: 35%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 7;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
-#trackNameOverlay.show { opacity: 1; animation: trackNamePulse 2.5s ease-in-out; }
-#trackNameText {
-  max-width: 88vw;
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--accent-cyan);
-  text-shadow: 0 0 20px rgba(0, 238, 255, 0.6), 0 0 40px rgba(0, 238, 255, 0.3);
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 4px;
-  background: var(--bg-overlay);
-  backdrop-filter: blur(12px);
-  padding: 14px 32px;
-  border-radius: var(--radius-md);
-  border: var(--border-glow);
-}
-@keyframes trackNamePulse {
-  0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
-  15% { opacity: 1; transform: translateX(-50%) scale(1.05); }
-  25% { transform: translateX(-50%) scale(1.0); }
-  75% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(-50%) scale(0.95); }
-}
 
 /* ==================== HUD ==================== */
 #hud {
@@ -501,7 +463,8 @@ select:focus-visible {
 /* Revenge card banner */
 #revengeCardBanner {
   position: fixed;
-  top: 12%;
+  top: auto;
+  bottom: calc(var(--safe-bottom) + 66px); /* low on the screen, clear of the question and the track */
   left: 50%;
   transform: translateX(-50%);
   z-index: 7;
@@ -2000,7 +1963,6 @@ select:focus-visible {
   #buzzText { font-size: 18px; }
   .answer-choice { font-size: 13px; padding: 10px 6px; }
   #characterPreviewContainer { height: 260px; }
-  #trackNameText { font-size: 28px; letter-spacing: 5px; }
   .mode-btn { max-width: 110px; padding: 14px 8px; }
   .home-header h1 { font-size: 38px; }
   .btn-play { width: 160px; height: 160px; }

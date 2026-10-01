@@ -734,6 +734,24 @@ export function disableCoinInstancing() {
   _instancing = null;
 }
 
+/** The shared meshes that draw every coin (so scene sweeps can leave them alone). */
+export function coinInstanceMeshes() {
+  return _instancing ? _instancing.meshes.slice() : [];
+}
+
+/**
+ * Put the coin meshes back in the scene if anything took them out. A map change or a new run sweeps the
+ * scene for old scenery; if these were swept, every coin would stay collectable but stop being drawn.
+ */
+export function reattachCoinInstances(scene) {
+  if (!_instancing) return 0;
+  var fixed = 0;
+  _instancing.meshes.forEach(function (m) {
+    if (m.parent !== scene) { scene.add(m); fixed++; }
+  });
+  return fixed;
+}
+
 /** Whether coins are currently drawn in bulk. */
 export function coinInstancingActive() {
   return !!_instancing;

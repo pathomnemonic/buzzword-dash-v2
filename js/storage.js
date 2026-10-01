@@ -21,6 +21,7 @@
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS } from './game/shopdata.js';
+import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
 var STORAGE_KEY = 'buzzword_dash_v1';
@@ -56,13 +57,17 @@ var DEFAULTS = {
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
+    promptState: {},      // when the share / rate / account asks were last shown (see prompts.js)
+    runsFinished: 0,
+    firstRunAt: 0,
     lastTipPromptAt: 0,
     lastReminderDate: '',
     avatarColors: {},
-    scrubColor: 0,
+    modelColors: {},   // per 3D character: { avatarId: { partKey: hex } }
     reducedMotion: false,
     quality: 'auto',
-    uiTheme: 'auto',
+    uiTheme: 'surprise',
+    themeSurpriseSeen: false,
     lockerSeen: [],
     fps30Seen: false,
     glowDefaultSeen: false,
@@ -77,7 +82,10 @@ var DEFAULTS = {
     nightMode: false,
 
     speedTimerEnabled: false,
-    cardFreshnessWeight: 5
+    cardFreshnessWeight: 8,   // new cards come up much more often than ones already answered
+    freshnessDefaultSeen: false,
+    achievementsSeen: [],        // badges the player has already been shown (a red dot marks the rest)
+    achievementsSeenInit: false,
   },
 
   // --- Progression ---
@@ -583,6 +591,58 @@ class Storage {
       }
     }
 
+    // Duplicate characters were retired (same model in another color). Owners move to the one it
+    // duplicated and are refunded: the full price if they already had it, otherwise the difference.
+    Object.keys(RETIRED_CHARACTERS).forEach(function (oldId) {
+      var info = RETIRED_CHARACTERS[oldId];
+      var owned = d.progression.ownedItems;
+      var at = owned.indexOf(oldId);
+      var wasEquipped = d.progression.equipped.skin === oldId;
+      if (at >= 0) {
+        owned.splice(at, 1);
+        var target = CHARACTER_MODELS.filter(function (m) { return m.id === info.to; })[0];
+        var targetPrice = target ? target.price : 0;
+        var refund = info.price;
+        if (owned.indexOf(info.to) < 0) {
+          owned.push(info.to);
+          refund = Math.max(0, info.price - targetPrice);
+        }
+        d.progression.coins = (d.progression.coins || 0) + refund;
+      }
+      if (wasEquipped) d.progression.equipped.skin = info.to;
+    });
+
+    // Scrub color used to be one setting for every medical character; it is now per character and per part
+    if (d.settings.scrubColor !== undefined) {
+      var oldScrub = d.settings.scrubColor;
+      delete d.settings.scrubColor;
+      if (oldScrub) {
+        d.settings.modelColors = d.settings.modelColors || {};
+        d.settings.modelColors.avatar_intern = Object.assign({ pants: oldScrub }, d.settings.modelColors.avatar_intern);
+      }
+    }
+    if (!d.settings.modelColors || typeof d.settings.modelColors !== 'object') d.settings.modelColors = {};
+
+    // Badges the player already had when red dots were introduced count as seen; only new ones get a dot
+    if (!d.settings.achievementsSeenInit) {
+      d.settings.achievementsSeenInit = true;
+      d.settings.achievementsSeen = (d.progression.achievements || []).slice();
+    }
+    if (!Array.isArray(d.settings.achievementsSeen)) d.settings.achievementsSeen = [];
+
+    // New cards are now favored by default (8, was 5). Players still on the old default move over once;
+    // anyone who picked their own number keeps it.
+    if (!d.settings.freshnessDefaultSeen) {
+      d.settings.freshnessDefaultSeen = true;
+      if (d.settings.cardFreshnessWeight === 5) d.settings.cardFreshnessWeight = 8;
+    }
+
+    // The colors now change by themselves now and then ("Surprise me"); players left on the old Auto move over once
+    if (!d.settings.themeSurpriseSeen) {
+      d.settings.themeSurpriseSeen = true;
+      if (d.settings.uiTheme === 'auto') d.settings.uiTheme = 'surprise';
+    }
+
     // 30 fps became the default; switch everyone over once (it can still be turned off)
     if (!d.settings.fps30Seen) {
       d.settings.fps30Seen = true;
@@ -1050,6 +1110,30 @@ class Storage {
     return true;
   }
 
+  /** Badges earned that the player has not been shown in their profile yet. */
+  getNewAchievementIds() {
+    var seen = this.data.settings.achievementsSeen || [];
+    return this.data.progression.achievements.filter(function (id) { return seen.indexOf(id) < 0; });
+  }
+
+  /** The player has looked at their badges: clear the red dots. */
+  markAchievementsSeen() {
+    var fresh = this.getNewAchievementIds();
+    if (!fresh.length) return false;
+    this.data.settings.achievementsSeen = (this.data.settings.achievementsSeen || []).concat(fresh);
+    this.save();
+    return true;
+  }
+
+  /** Today's quests that are finished but whose coins have not been claimed. */
+  getClaimableQuestIds(questList) {
+    var self = this;
+    var today = todayKey();
+    return (questList || []).filter(function (q) {
+      return self.getQuestProgress(q.id) >= q.target && !self.isQuestClaimed(q.id, today);
+    }).map(function (q) { return q.id; });
+  }
+
   getAchievementCount() {
     return this.data.progression.achievements.length;
   }
@@ -1333,6 +1417,10 @@ class Storage {
 
     // --- Achievements ---
     result.newlyUnlockedAchievementIds = this._evaluateAchievements(summary);
+
+    // --- Lifetime run count (the recent-runs list is capped) ---
+    this.data.settings.runsFinished = (this.data.settings.runsFinished || 0) + 1;
+    if (!this.data.settings.firstRunAt) this.data.settings.firstRunAt = Date.now();
 
     // --- Store recent run ---
     this.data.history.recentRuns.push({

@@ -54,6 +54,7 @@ export function buildStudyPlan(input) {
   }).sort(function (a, b) { return a.accuracy - b.accuracy; });
 
   // ---- weakest subject (needs a minimum of data) ----
+  /** @type {{subject: string, accuracy: number, total: number} | null} */
   var weakest = null;
   Object.keys(input.subjectStats || {}).forEach(function (subj) {
     var s = input.subjectStats[subj];
@@ -65,6 +66,7 @@ export function buildStudyPlan(input) {
 
   // ---- today's plan ----
   var remaining = Math.max(0, (input.goal || 20) - (input.studiedToday || 0));
+  /** @type {Array<{kind: string, label: string, count?: number, subject?: string}>} */
   var steps = [];
   if (dueIds.length > 0) steps.push({ kind: 'due', count: Math.min(dueIds.length, 20), label: 'Review ' + Math.min(dueIds.length, 20) + ' due card' + (Math.min(dueIds.length, 20) === 1 ? '' : 's') });
   if (weakest) steps.push({ kind: 'weak', subject: weakest.subject, label: 'Drill ' + weakest.subject + ' (' + Math.round(weakest.accuracy * 100) + '% correct)' });

@@ -11,8 +11,35 @@
  *  - leans toward the player and looms lower/larger as it closes in
  *  - lunges: on every wrong answer, and now and then when it is near
  *  - recoils when the player answers correctly
- *  - fades from view as the player rebuilds a streak or pulls away
+ *  - stays out of sight while the player is doing well, creeps into view as mistakes pile up,
+ *    and fades from view again as the player rebuilds a streak or pulls away
  */
+
+/**
+ * How the exam monster is used in each game mode (by mode id). `enabled: false` means the monster never
+ * appears (and the run does not open with the look-back shot). `miss` / `hit` are how far a wrong or
+ * right answer moves it, in "distance to catch" units.
+ *
+ *  - Study and timed practice have no way to lose, so a monster would only be scenery: off.
+ *  - Sudden death ends on the first wrong answer, so the monster could never matter: off.
+ *  - Weakness is practice on the cards you miss: the monster is there but gives you more room.
+ *  - Everything else is a scored run, and challenges, tournaments and versus compare players, so they all
+ *    use the standard settings (it depends only on your answers, so it is the same for everyone).
+ */
+export var MONSTER_POLICY = {
+  study: { enabled: false },
+  timed_practice: { enabled: false },
+  mp_suddendeath: { enabled: false },
+  weakness: { enabled: true, miss: 3, hit: 2 }
+};
+var STANDARD_POLICY = { enabled: true, miss: 4, hit: 1.5 };
+
+/** @returns {{enabled: boolean, miss: number, hit: number}} */
+export function monsterPolicy(mode) {
+  var p = MONSTER_POLICY[mode];
+  if (!p) return STANDARD_POLICY;
+  return p.enabled ? p : { enabled: false, miss: 0, hit: 0 };
+}
 
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
@@ -20,7 +47,7 @@ export function createMonsterBehavior(rand) {
   var r = rand || Math.random;
   return {
     x: 0,
-    fade: 0.6,
+    fade: 0, // hidden at the start of a run; it only creeps into view when the player slips
     lunge: 0,
     recoil: 0,
     cooldown: 3 + r() * 2,
@@ -35,9 +62,9 @@ export function monsterOnAnswer(state, correct) {
   else state.lunge = 1;
 }
 
-/** Target visibility: strong when close and the streak is low, gone when far or on a streak. */
+/** Target visibility: gone beyond 22 (the start of a run), fully there by 14, and gone again on a streak. */
 export function monsterVisibility(dist, streak) {
-  var byDistance = clamp((28 - dist) / 8, 0, 1);
+  var byDistance = clamp((22 - dist) / 8, 0, 1);
   var byStreak = clamp(1 - streak * 0.09, 0, 1);
   return byDistance * byStreak;
 }
