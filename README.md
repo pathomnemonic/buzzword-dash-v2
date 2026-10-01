@@ -98,7 +98,7 @@ When you are down to 1 life, heart pickups may appear on the track. Collecting o
 
 ## The Exam Monster
 
-An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only creeps into view when you answer incorrectly, and falls back (and fades away) when you answer correctly or build a streak. If it catches you, your run ends with a dramatic animation. Characters that are animated 3D models do not wear hats; hats are for the Classic characters.
+An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only shows up when you slip (a wrong answer or a lost life): then it drifts in from behind the camera as if catching up, and once you have answered one or two correctly it drifts away again. It never fades; it always moves. If it catches you, your run ends with a dramatic animation. 
 
 The monster follows the game mode. Study and timed practice have no way to lose, and sudden death ends on the first wrong answer, so there is no monster in those. Weakness practice gives you more room (a wrong answer moves it less, a right one pushes it back more). Every other mode uses the standard monster, and it depends only on your answers, so challenges, the Gauntlet and versus stay comparable.
 
@@ -180,7 +180,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Text-to-speech** — optional TTS reads buzzwords aloud
 - **Study streak calendar** — tracks daily study activity
 - **Continue system** — spend coins to continue after losing all lives
-- **Speed dial** — adjust game speed from 1× to 10× for more points
+- **Speed dial** — adjust game speed from 1× to 10× for more points. The run speeds up as you go: by default +0.5 every 20 questions, and Settings → Gameplay lets you turn that off or choose your own (a custom rule makes the run unranked, like the other rule changes). The road, scenery, gates, obstacles and coins all move at the same look-speed as the floor and the runner's legs, and start proportionally farther away, so the time to reach a gate depends only on the speed, not on how fast it looks. Obstacles are checked as they reach the runner, and a jump or slide that is under way (about a second each) clears them.
 - **Spaced repetition** — each card is scheduled (SM-2 style); due cards surface first and the home screen shows how many are due
 - **Missed-card remediation** — a card you miss comes back a few encounters later in the same run
 - **Daily study goal** — configurable cards-per-day target with a progress bar, plus a "focus area" (weakest subject) after each run
