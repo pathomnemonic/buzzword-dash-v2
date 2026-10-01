@@ -32,6 +32,8 @@ import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner } from './profilecorner.js';
 import { attachPromptCard } from './promptui.js';
+import { initTabSwipe } from './tabswipe.js';
+import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
 import { mountFlyers } from './homefx.js';
 import { updateAttentionDots } from './attentiondots.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
@@ -66,6 +68,8 @@ var runStartTime = 0;
 var currentRunId = null;
 var lastRunReward = null;
 var lastRunNewBest = false;
+var GAUNTLET_REWARD = 150;
+var GAUNTLET_LIVES = 2;
 var runFinalized = false;
 
 // =========================================================================
@@ -405,7 +409,7 @@ function startTournament() {
     var challenge = mods[0];
     var seed = challenge.tournamentSeed(challenge.isoWeekKey());
     var plan = mods[1].buildEncounterPlan({ seed: seed, cards: CARDS, count: challenge.TOURNAMENT_SIZE });
-    launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false });
+    launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false, lives: GAUNTLET_LIVES });
   }).catch(function (e) {
     reportError(e, { system: 'tournament', operation: 'start', recoverable: true });
   });
@@ -419,31 +423,6 @@ function addPostRunBox(builder) {
   box.style.cssText = 'margin:12px 0;padding:12px;border-radius:12px;border:2px solid var(--accent-gold);text-align:center';
   builder(box);
   content.insertBefore(box, content.children[1] || null);
-}
-
-/** After a tournament run: show rank, award the top-10% badge, tell friends. */
-function showTournamentStanding(summary) {
-  var lb = leaderboardModule.leaderboard;
-  var season = lb.getSeasonKey();
-  lb.getSeasonStanding('tournament', season).then(function (standing) {
-    if (!standing) return;
-    var pct = Math.max(1, Math.round(standing.rank / standing.total * 100));
-    var top10 = standing.total >= 10 && standing.rank <= Math.ceil(standing.total * 0.1);
-    var newlyEarned = top10 && storage.recordTournamentTop10(season);
-    addPostRunBox(function (box) {
-      var line = document.createElement('div');
-      line.style.cssText = 'font-size:14px;font-weight:800';
-      line.textContent = '\uD83C\uDFC6 Weekly tournament: #' + standing.rank + ' of ' + standing.total + ' (top ' + pct + '%)';
-      box.appendChild(line);
-      if (top10) {
-        var badge = document.createElement('div');
-        badge.style.cssText = 'margin-top:6px;color:var(--accent-gold);font-weight:800';
-        badge.textContent = newlyEarned ? '\uD83C\uDFC5 Top 10% badge earned!' : '\uD83C\uDFC5 Top 10% this week';
-        box.appendChild(badge);
-      }
-    });
-    throttledActivity('tournament', { name: storage.get('profileName'), score: summary.score, rank: standing.rank, total: standing.total });
-  });
 }
 
 /** Post at most one activity event per kind per hour. */
@@ -638,7 +617,7 @@ function attachTipPrompt() {
 
 var MODE_LABELS = {
   endless: 'Endless', study: 'Study', weakness: 'Weakness', daily: 'Daily Challenge',
-  challenge: 'Challenge', tournament: 'Weekly Tournament', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
+  challenge: 'Challenge', tournament: 'Weekly Gauntlet', mp_highscore: 'Versus', mp_suddendeath: 'Sudden Death', mp_race: 'Race'
 };
 
 /** Post-run: render the result as an image to share or save. */
@@ -708,17 +687,34 @@ function attachShareImage() {
   content.appendChild(shareBtn);
 }
 
-function attachTournamentNote() {
+/** Fixed-set modes are not ranked: lots of players finish them perfectly, so a board would only show ties. */
+function isUnrankedMode(mode) {
+  return mode === 'challenge' || mode === 'daily' || mode === 'tournament';
+}
+
+/** After a Weekly Gauntlet run: cleared (badge and coins, once a week) or how far you got. */
+function attachGauntletResult() {
+  var size = TOURNAMENT_SIZE;
+  var cleared = game.encountersDone >= size && game.lives > 0;
+  var week = isoWeekKey();
+  var firstClear = cleared && storage.recordTournamentTop10(week);
+  if (firstClear) {
+    storage.addCoins(GAUNTLET_REWARD);
+    ui.renderHome();
+  }
   addPostRunBox(function (box) {
     var head = document.createElement('div');
-    head.style.cssText = 'font-size:13px;font-weight:800';
-    head.textContent = '\uD83C\uDFC6 Weekly Tournament \u2014 same 20 cards for everyone';
-    box.appendChild(head);
+    head.style.cssText = 'font-size:14px;font-weight:800';
     var hint = document.createElement('div');
-    hint.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:4px';
-    var canPost = storage.get('profileVisible') && storage.get('profileName') && leaderboardModule && leaderboardModule.leaderboard.isAuthenticated();
-    hint.textContent = canPost ? 'Your best score this week counts. Standing loading\u2026'
-      : 'Set a display name on the Leaderboard screen to appear on the weekly board.';
+    hint.style.cssText = 'font-size:12px;margin-top:4px;color:var(--text-secondary)';
+    if (cleared) {
+      head.textContent = '\uD83D\uDEE1\uFE0F Weekly Gauntlet cleared!';
+      hint.textContent = firstClear ? '\uD83C\uDFC5 Badge earned and +' + GAUNTLET_REWARD + ' coins. A new Gauntlet starts next week.' : 'Already cleared this week. Nice run. A new Gauntlet starts next week.';
+    } else {
+      head.textContent = '\uD83D\uDEE1\uFE0F Weekly Gauntlet: ' + game.encountersDone + ' of ' + size + ' cards';
+      hint.textContent = 'The same ' + size + ' cards all week, and you can retry as often as you like. Clear them with your 2 lives.';
+    }
+    box.appendChild(head);
     box.appendChild(hint);
   });
 }
@@ -933,7 +929,7 @@ function finalizeRun(gameRef) {
   var canPost = leaderboardModule && storage.get('profileVisible') && storage.get('profileName') &&
     leaderboardModule.leaderboard.isAuthenticated() && isRankedRun(summary);
   if (canPost) postActivities(summary, result);
-  if (canPost && summary.encountersCompleted > 0 && summary.mode !== 'challenge') {
+  if (canPost && summary.encountersCompleted > 0 && !isUnrankedMode(summary.mode)) {
     leaderboardModule.leaderboard.submitVerifiedScore({
       runId: summary.runId,
       playerName: storage.get('profileName'),
@@ -950,7 +946,6 @@ function finalizeRun(gameRef) {
         reportError(new Error(res.error), { system: 'leaderboard', operation: 'submitScore', recoverable: true });
         return;
       }
-      if (summary.mode === 'tournament') showTournamentStanding(summary);
       syncWeeklyStudy();
     });
   }
@@ -1025,6 +1020,7 @@ function init() {
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
+  initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenCards', 'screenProfile']);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
   try {
@@ -1129,7 +1125,7 @@ function init() {
     attachShareImage();
     attachTipPrompt();
     if (game.mode === 'challenge') attachChallengeResult(game.score);
-    if (game.mode === 'tournament') attachTournamentNote();
+    if (game.mode === 'tournament') attachGauntletResult();
 
     // Wire post-run buttons
     var againBtn = document.getElementById('playAgainBtn');
@@ -1723,7 +1719,7 @@ function handleNativeBack() {
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
   if (isTutorialOpen()) { skipTutorial(); return true; }
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'speedSheet', 'todaySheet'];
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

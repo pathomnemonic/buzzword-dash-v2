@@ -50,7 +50,7 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
   });
 
-  test('the three question filters sit on one page behind a single row on Home', async ({ page }) => {
+  test('the three question filters sit in one popup behind a single button on Home', async ({ page }) => {
     await openApp(page);
     // Home shows one row, not the filters themselves
     await expect(page.locator('#screenHome #filtersBtn')).toBeVisible();
@@ -59,19 +59,18 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('#filtersSummary')).toHaveText(/All subjects/);
 
     await page.locator('#filtersBtn').click();
-    await expect(page.locator('#screenFilters')).toHaveClass(/active/);
-    await expect(page.locator('.nav-item[aria-current="true"]')).toHaveAttribute('data-screen', 'screenHome');
+    await expect(page.locator('#filtersSheet')).toBeVisible();
     // all three filters are on the page
-    await expect(page.locator('#screenFilters #subjectToggle')).toBeVisible();
-    await expect(page.locator('#screenFilters #examFilterToggle')).toBeVisible();
-    await expect(page.locator('#screenFilters #advancedFilterContainer')).toBeVisible();
+    await expect(page.locator('#filtersSheet #subjectToggle')).toBeVisible();
+    await expect(page.locator('#filtersSheet #examFilterToggle')).toBeVisible();
+    await expect(page.locator('#filtersSheet #advancedFilterContainer')).toBeVisible();
 
     // picking one subject changes the summary on Home
     await page.locator('#subjectToggle').click();
     await page.locator('#deselectAllSubjects').click();
     await page.locator('#subjectScroll .subject-chip').first().click();
-    await page.locator('#screenFilters .back-btn').click();
-    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+    await page.locator('#filtersSheet .sheet-close').click();
+    await expect(page.locator('#filtersSheet')).toBeHidden();
     await expect(page.locator('#filtersSummary')).not.toHaveText(/All subjects/);
   });
 
@@ -170,6 +169,7 @@ test.describe('Smoke tests', () => {
 
   test('the Exam Sim button opens the exam setup', async ({ page }) => {
     await openApp(page);
+    await page.locator('#homeChallengeBtn').click();
     await page.locator('#examBtn').click();
     await expect(page.locator('#examContent')).toContainText(/exam block/i);
   });

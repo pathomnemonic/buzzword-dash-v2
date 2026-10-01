@@ -90,6 +90,7 @@ test.describe('Settings and screens', () => {
 
   test('an exam simulation can be completed', async ({ page }) => {
     await openApp(page);
+    await page.locator('#homeChallengeBtn').click();
     await page.locator('#examBtn').click();
     await page.getByRole('radio', { name: '10' }).click();
     await page.getByRole('radio', { name: 'Untimed' }).click();

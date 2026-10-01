@@ -22,7 +22,7 @@ test.describe('Home layout', () => {
       expect(overflow).toBeLessThanOrEqual(1);
       // every main control is on screen and clear of the tab bar
       const navTop = await page.locator('#bottomNav').evaluate((el) => el.getBoundingClientRect().top);
-      for (const sel of ['#settingsBtn', '#leaderboardBtn', '#profileCornerBtn', '.btn-play', '#filtersBtn', '#speedBtn', '#multiplayerBtn', '#homeFlashcardsBtn', '#homeChallengeBtn', '#examBtn']) {
+      for (const sel of ['#settingsBtn', '#leaderboardBtn', '#profileCornerBtn', '.btn-play', '#filtersBtn', '#questBtn', '#howToPlayBtn', '#multiplayerBtn', '#homeFlashcardsBtn', '#homeChallengeBtn']) {
         const box = await page.locator(sel).boundingBox();
         expect(box, sel).not.toBeNull();
         expect(box.y, sel).toBeGreaterThanOrEqual(0);
@@ -34,7 +34,7 @@ test.describe('Home layout', () => {
   test('Home is the middle tab, and Settings and Ranks are buttons, not tabs', async ({ page }) => {
     await openApp(page);
     const tabs = await page.locator('#bottomNav .nav-item').evaluateAll((els) => els.map((e) => e.dataset.screen));
-    expect(tabs).toEqual(['screenStats', 'screenQuests', 'screenHome', 'screenShop', 'screenCards']);
+    expect(tabs).toEqual(['screenStats', 'screenShop', 'screenHome', 'screenCards', 'screenProfile']);
     await page.locator('#settingsBtn').click();
     await expect(page.locator('#screenSettings')).toBeVisible();
     await page.locator('#bottomNav [data-screen="screenHome"]').click();
@@ -47,7 +47,7 @@ test.describe('Home layout', () => {
     await page.locator('#homeChallengeBtn').click();
     const sheet = page.locator('#challengeSheet');
     await expect(sheet).toBeVisible();
-    for (const name of ['Study', 'Weakness', 'Daily 15', 'Friend challenge', 'Weekly tournament']) {
+    for (const name of ['Study', 'Weakness', 'Daily 15', 'Weekly Gauntlet', 'Friend challenge', 'Exam Sim']) {
       await expect(sheet.getByText(name, { exact: true })).toBeVisible();
     }
     await page.keyboard.press('Escape');
@@ -63,19 +63,44 @@ test.describe('Home layout', () => {
     await expect(page.locator('.pick-source.on')).toContainText('New cards');
   });
 
-  test('Speed and Today open as popups, Cards is a hub, the calendar is on Stats', async ({ page }) => {
+  test('Filters (with speed), Quests and Today are popups; Cards is a hub; the calendar is under Profile', async ({ page }) => {
     await openApp(page);
-    await page.locator('#speedBtn').click();
-    await expect(page.locator('#speedSheet')).toBeVisible();
-    await page.locator('#speedSheet .sheet-close').click();
+    await page.locator('#filtersBtn').click();
+    await expect(page.locator('#filtersSheet')).toBeVisible();
+    await expect(page.locator('#speedDial')).toBeVisible();
+    await page.locator('#filtersSheet .sheet-close').click();
+    await page.locator('#questBtn').click();
+    await expect(page.locator('#questsSheet')).toBeVisible();
+    await page.locator('#questsSheet .sheet-close').click();
     await page.locator('#studyGoal').click();
     await expect(page.locator('#todaySheet')).toBeVisible();
     await page.locator('#todaySheet .sheet-close').click();
     await page.locator('#bottomNav [data-screen="screenCards"]').click();
     await expect(page.locator('#cardBrowserBtn')).toBeVisible();
     await expect(page.locator('#myCardsBtn')).toBeVisible();
-    await page.locator('#bottomNav [data-screen="screenStats"]').click();
+    await page.locator('#bottomNav [data-screen="screenProfile"]').click();
     await expect(page.locator('#calendarGrid')).toBeVisible();
+  });
+
+  test('swiping sideways moves between tabs and the indicator follows', async ({ page }) => {
+    await openApp(page);
+    const swipe = async (dx) => page.evaluate((d) => {
+      const fire = (type, x) => {
+        const t = new Touch({ identifier: 1, target: document.body, clientX: x, clientY: 300 });
+        document.dispatchEvent(new TouchEvent(type, { touches: type === 'touchend' ? [] : [t], changedTouches: [t], bubbles: true }));
+      };
+      fire('touchstart', 200); fire('touchend', 200 + d);
+    }, dx);
+    await swipe(-120); // left: next tab
+    await expect(page.locator('#screenCards')).toHaveClass(/active/);
+    await expect(page.locator('#tabIndicator span.on')).toHaveCount(1);
+    await swipe(-120);
+    await expect(page.locator('#screenProfile')).toHaveClass(/active/);
+    await swipe(-120); // the last tab: nothing further
+    await expect(page.locator('#screenProfile')).toHaveClass(/active/);
+    await swipe(120);
+    await swipe(120);
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
   });
 
   test('How to play opens the guided tutorial', async ({ page }) => {

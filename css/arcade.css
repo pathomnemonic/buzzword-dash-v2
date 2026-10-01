@@ -1224,7 +1224,6 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .play-sub { font-size: 12px; font-weight: 800; color: var(--text-secondary); text-shadow: 0 2px 0 var(--ink); }
 .link-btn { background: none; border: 0; padding: 6px 4px; color: var(--accent-cyan); font: inherit; font-weight: 900; cursor: pointer; text-decoration: underline; }
 
-.setup-row { display: flex; gap: 8px; }
 .setup-btn {
   flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 12px; min-height: 48px;
   background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); color: #fff; font: inherit; cursor: pointer; text-align: left; position: relative;
@@ -1305,3 +1304,37 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 }
 .prompt-text { font-size: 13px; line-height: 1.4; margin-bottom: 8px; color: var(--text-secondary); }
 .prompt-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+/* ---------- Home: Filters and Quests flank PLAY; three ways to play ---------- */
+.play-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.play-row .play-section { flex: none; }
+.side-btn {
+  flex: 1 1 0; min-width: 0; max-width: 112px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  padding: 8px 6px; min-height: 84px; cursor: pointer; font: inherit; color: #fff; position: relative;
+  background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 4px 0 var(--ink);
+}
+.side-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.side-btn:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+.side-icon { font-size: 24px; line-height: 1; }
+.side-label { font-weight: 900; font-size: 13px; }
+.side-btn .filters-summary { max-width: 100%; font-size: 10px; }
+.side-btn.has-dot > .nav-dot { top: -6px; right: -4px; z-index: 3; }
+.home-layout .mode-row { grid-template-columns: repeat(3, 1fr); }
+.home-layout .mode-btn-label { font-size: 11px; }
+.play-sub { text-align: center; margin-top: -2px; }
+.sheet-card.sheet-tall { max-height: 100%; }
+.sheet-tall .speed-dial { margin: 8px 0 12px; }
+
+/* ---------- swipe between tabs: a slim indicator along the top of the tab bar ---------- */
+.bottom-nav { position: fixed; }
+.tab-indicator { position: absolute; top: -4px; left: 0; right: 0; height: 4px; display: flex; gap: 3px; padding: 0 6px; pointer-events: none; }
+.tab-indicator span { flex: 1; border-radius: 3px; background: rgba(255, 255, 255, .18); transition: background .2s, transform .2s; }
+.tab-indicator span.on { background: var(--accent-gold); transform: scaleY(1.4); }
+@keyframes tabInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes tabInLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.screen.active.from-right { animation: tabInRight .22s ease-out; }
+.screen.active.from-left { animation: tabInLeft .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { .screen.active.from-right, .screen.active.from-left { animation: none; } }
+.home-layout .mode-row { width: 100%; max-width: none; padding: 0; }
+.home-layout .mode-btn { width: 100%; max-width: none; }
+.home-layout .mode-btn-label { letter-spacing: 0; white-space: nowrap; }

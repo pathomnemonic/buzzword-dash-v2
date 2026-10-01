@@ -196,28 +196,28 @@
         <button class="study-goal" id="studyGoal" type="button" aria-haspopup="dialog" aria-controls="todaySheet"></button>
       </div>
 
-      <!-- PRIMARY ACTION -->
-      <div class="play-section">
-        <button class="btn-play" data-mode="endless" type="button" aria-label="Play an endless run">
-          <span class="play-icon" aria-hidden="true">▶</span>
-          <span class="play-label">PLAY</span>
-        </button>
-        <div class="play-sub">Endless run · <button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button></div>
-      </div>
-
-      <!-- Set up the run: which questions, how fast -->
-      <div class="setup-row" role="group" aria-label="Set up your run">
-        <button class="setup-btn" id="filtersBtn" type="button" aria-controls="screenFilters">
-          <span class="setup-title">🎛 Question filters</span>
+      <!-- PRIMARY ACTION, with the two things you set before a run on either side -->
+      <div class="play-row">
+        <button class="side-btn" id="filtersBtn" type="button" aria-haspopup="dialog" aria-controls="filtersSheet">
+          <span class="side-icon" aria-hidden="true">🎛</span>
+          <span class="side-label">Filters</span>
           <span class="filters-summary" id="filtersSummary">All subjects</span>
         </button>
-        <button class="setup-btn setup-speed" id="speedBtn" type="button" aria-haspopup="dialog" aria-controls="speedSheet">
-          <span class="setup-title">🏎 Speed</span>
-          <span class="filters-summary" id="speedBtnValue">1×</span>
+        <div class="play-section">
+          <button class="btn-play" data-mode="endless" type="button" aria-label="Play">
+            <span class="play-icon" aria-hidden="true">▶</span>
+            <span class="play-label">PLAY</span>
+          </button>
+        </div>
+        <button class="side-btn" id="questBtn" type="button" aria-haspopup="dialog" aria-controls="questsSheet">
+          <span class="side-icon" aria-hidden="true">📋</span>
+          <span class="side-label">Quests</span>
+          <span class="filters-summary" id="questSummary">Daily</span>
         </button>
       </div>
+      <div class="play-sub"><button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button></div>
 
-      <!-- Four ways to play, each with its own popup or screen -->
+      <!-- Three ways to play, each with its own popup or screen -->
       <div class="mode-row" role="group" aria-label="Ways to play">
         <button class="mode-btn" id="multiplayerBtn" type="button">
           <span class="mode-btn-icon" aria-hidden="true">🎮</span>
@@ -231,10 +231,6 @@
           <span class="mode-btn-icon" aria-hidden="true">🏁</span>
           <span class="mode-btn-label">Challenge</span>
         </button>
-        <button class="mode-btn" id="examBtn" type="button">
-          <span class="mode-btn-icon" aria-hidden="true">📝</span>
-          <span class="mode-btn-label">Exam Sim</span>
-        </button>
       </div>
 
     </div>
@@ -246,7 +242,7 @@
   <div class="tutorial-overlay sheet-overlay" id="challengeSheet" role="dialog" aria-label="Challenge modes" aria-modal="true">
     <div class="sheet-card">
       <h2>🏁 Challenge</h2>
-      <p class="sheet-intro">Pick how you want to play. The big PLAY button is the endless run.</p>
+      <p class="sheet-intro">Pick how you want to play. PLAY on Home is a regular run.</p>
       <div class="sheet-list">
         <button class="sheet-entry" data-mode="study" type="button">
           <span class="se-icon" aria-hidden="true">📖</span>
@@ -258,15 +254,19 @@
         </button>
         <button class="sheet-entry" data-mode="daily" type="button">
           <span class="se-icon" aria-hidden="true">📅</span>
-          <span class="se-body"><strong>Daily 15</strong><span>Today's 15 cards, the same for everyone. One try a day.</span><em>Everyone · resets daily · keeps your streak going</em></span>
+          <span class="se-body"><strong>Daily 15</strong><span>A quick habit: today's 15 cards, one try a day. Keeps your login streak alive.</span><em>Everyone gets the same 15 · resets daily · no leaderboard</em></span>
+        </button>
+        <button class="sheet-entry" id="tournamentBtn" type="button">
+          <span class="se-icon" aria-hidden="true">🛡️</span>
+          <span class="se-body"><strong>Weekly Gauntlet</strong><span>A real test: 30 cards and only 2 lives. Clear it for a weekly badge and bonus coins. Retry all week.</span><em>Same 30 all week · 2 lives · clear it, don't rank it</em></span>
         </button>
         <button class="sheet-entry" id="challengeBtn" type="button">
           <span class="se-icon" aria-hidden="true">🤝</span>
-          <span class="se-body"><strong>Friend challenge</strong><span>Play 15 fresh cards, then send a link. Friends play the same cards and compare.</span><em>You and friends · any time · no sign-up needed</em></span>
+          <span class="se-body"><strong>Friend challenge</strong><span>Play 15 fresh cards, then send a link. Friends play the same cards and compare scores.</span><em>You and friends · any time · no sign-up needed</em></span>
         </button>
-        <button class="sheet-entry" id="tournamentBtn" type="button">
-          <span class="se-icon" aria-hidden="true">🏆</span>
-          <span class="se-body"><strong>Weekly tournament</strong><span>20 cards, the same for every player this week. Your best score is ranked.</span><em>Everyone · resets weekly · top 10% earns a badge</em></span>
+        <button class="sheet-entry" id="examBtn" type="button">
+          <span class="se-icon" aria-hidden="true">📝</span>
+          <span class="se-body"><strong>Exam Sim</strong><span>A timed block of questions, like the real exam. No runner, no hints.</span><em>Solo · timed · full review at the end</em></span>
         </button>
         <button class="sheet-entry" id="cohortsBtn" type="button" hidden>
           <span class="se-icon" aria-hidden="true">🛡️</span>
@@ -304,20 +304,6 @@
     </div>
   </div>
 
-  <!-- Speed: moved off the Home screen -->
-  <div class="tutorial-overlay sheet-overlay" id="speedSheet" role="dialog" aria-label="Game speed" aria-modal="true">
-    <div class="sheet-card">
-      <h2>🏎 Speed</h2>
-      <p class="sheet-intro">Faster runs score more points per correct answer.</p>
-      <div class="speed-dial">
-        <label for="speedDial">Speed</label>
-        <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
-        <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
-      </div>
-      <button class="btn btn-primary btn-block sheet-close" type="button">Done</button>
-    </div>
-  </div>
-
   <!-- Today: goal, streak, reviews and the weekly reward -->
   <div class="tutorial-overlay sheet-overlay" id="todaySheet" role="dialog" aria-label="Today" aria-modal="true">
     <div class="sheet-card">
@@ -346,11 +332,16 @@
   </div>
 
   <!-- ==================== QUESTION FILTERS (subjects, exam, advanced) ==================== -->
-  <div class="screen" id="screenFilters" role="region" aria-label="Question filters">
-    <div class="screen-scroll">
-      <button class="btn btn-outline btn-sm back-btn" type="button">← Home</button>
-      <h2>🎛 Question filters</h2>
+  <div class="tutorial-overlay sheet-overlay" id="filtersSheet" role="dialog" aria-label="Question filters and speed" aria-modal="true">
+    <div class="sheet-card sheet-tall">
+      <h2>🎛 Filters &amp; speed</h2>
       <p class="muted" id="filtersIntro">Choose which questions you get. Your choices are saved.</p>
+
+      <div class="speed-dial">
+        <label for="speedDial">🏎 Speed</label>
+        <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
+        <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
+      </div>
 
       <!-- Subjects -->
       <div class="collapsible-section">
@@ -371,7 +362,7 @@
       <div id="examFilterContainer"></div>
       <!-- Advanced Filters -->
       <div id="advancedFilterContainer"></div>
-
+      <button class="btn btn-primary btn-block sheet-close" type="button">Done</button>
     </div>
   </div>
 
@@ -379,14 +370,6 @@
   <div class="screen" id="screenStats" role="region" aria-label="Performance statistics">
     <div class="screen-scroll">
       <h2>📊 Performance</h2>
-      <!-- Study Streak Calendar -->
-      <div class="streak-calendar" id="streakCalendar">
-        <h4>📅 Study Streak</h4>
-        <div class="calendar-day-labels" aria-hidden="true">
-          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-        </div>
-        <div class="calendar-grid" id="calendarGrid" role="img" aria-label="Study streak calendar"></div>
-      </div>
       <div id="statsContent"></div>
     </div>
   </div>
@@ -403,10 +386,11 @@
   </div>
 
   <!-- ==================== QUESTS ==================== -->
-  <div class="screen" id="screenQuests" role="region" aria-label="Daily Quests">
-    <div class="screen-scroll">
+  <div class="tutorial-overlay sheet-overlay" id="questsSheet" role="dialog" aria-label="Daily quests" aria-modal="true">
+    <div class="sheet-card sheet-tall">
       <h2>📋 Daily Quests</h2>
       <div id="questList"></div>
+      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
     </div>
   </div>
 
@@ -496,6 +480,15 @@
   <div class="screen" id="screenProfile" role="region" aria-label="Profile">
     <div class="screen-scroll">
       <h2>👤 Profile</h2>
+      <!-- Study Streak Calendar -->
+      <div class="streak-calendar" id="streakCalendar">
+        <h4>📅 Study Streak</h4>
+        <div class="calendar-day-labels" aria-hidden="true">
+          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" role="img" aria-label="Study streak calendar"></div>
+      </div>
+
       <div id="profileContent"></div>
     </div>
   </div>
@@ -537,20 +530,21 @@
        PERSISTENT BOTTOM NAV
   ==================================================================== -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
+    <div class="tab-indicator" id="tabIndicator" aria-hidden="true"><span></span><span></span><span class="on"></span><span></span><span></span></div>
     <button class="nav-item" data-screen="screenStats" type="button">
       <span class="nav-icon" aria-hidden="true">📊</span>Stats
-    </button>
-    <button class="nav-item" data-screen="screenQuests" type="button">
-      <span class="nav-icon" aria-hidden="true">📋</span>Quests
-    </button>
-    <button class="nav-item nav-home active" data-screen="screenHome" type="button" aria-current="true">
-      <span class="nav-icon" aria-hidden="true">🏠</span>Home
     </button>
     <button class="nav-item" data-screen="screenShop" type="button">
       <span class="nav-icon" aria-hidden="true">🧥</span>Locker
     </button>
+    <button class="nav-item nav-home active" data-screen="screenHome" type="button" aria-current="true">
+      <span class="nav-icon" aria-hidden="true">🏠</span>Home
+    </button>
     <button class="nav-item" data-screen="screenCards" type="button">
       <span class="nav-icon" aria-hidden="true">📚</span>Cards
+    </button>
+    <button class="nav-item" data-screen="screenProfile" type="button">
+      <span class="nav-icon" aria-hidden="true">👤</span>Profile
     </button>
   </nav>
 

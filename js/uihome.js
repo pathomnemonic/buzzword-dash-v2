@@ -9,7 +9,7 @@ import { createElement, clearElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 
-var SHEETS = ['challengeSheet', 'flashcardsSheet', 'speedSheet', 'todaySheet'];
+export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'];
 
 export var homeMethods = {
 
@@ -20,8 +20,13 @@ export var homeMethods = {
     if (challengeBtn) challengeBtn.addEventListener('click', function () { self.openSheet('challengeSheet'); });
     var flashcardsBtn = document.getElementById('homeFlashcardsBtn');
     if (flashcardsBtn) flashcardsBtn.addEventListener('click', function () { self.openSheet('flashcardsSheet'); });
-    var speedBtn = document.getElementById('speedBtn');
-    if (speedBtn) speedBtn.addEventListener('click', function () { self.openSheet('speedSheet'); });
+    var filtersBtn = document.getElementById('filtersBtn');
+    if (filtersBtn) filtersBtn.addEventListener('click', function () { self.openSheet('filtersSheet'); });
+    var questBtn = document.getElementById('questBtn');
+    if (questBtn) questBtn.addEventListener('click', function () { self.openSheet('questsSheet'); });
+    // Anything changed in the filters (a subject chip, an exam, a toggle) refreshes the summary on Home
+    var filtersSheet = document.getElementById('filtersSheet');
+    if (filtersSheet) filtersSheet.addEventListener('click', function () { setTimeout(function () { self._renderFiltersSummary(); }, 0); });
     var goalBtn = document.getElementById('studyGoal');
     if (goalBtn) goalBtn.addEventListener('click', function () { self.openSheet('todaySheet'); });
 
@@ -56,9 +61,11 @@ export var homeMethods = {
     var sheet = document.getElementById(id);
     if (!sheet) return;
     if (id === 'flashcardsSheet') this._renderFlashcardsSheet();
+    if (id === 'questsSheet') this.renderQuests();
     if (id === 'todaySheet') this._renderToday(document.getElementById('todayContent'));
     sheet.classList.add('active');
     trapFocus(sheet);
+    document.dispatchEvent(new CustomEvent('dx:attention-changed'));
   },
 
   /** Close any open Home popup. Returns true when one was open. */
@@ -68,7 +75,7 @@ export var homeMethods = {
       var sheet = document.getElementById(id);
       if (sheet && sheet.classList.contains('active')) { sheet.classList.remove('active'); was = true; }
     });
-    if (was) releaseFocusTrap();
+    if (was) { releaseFocusTrap(); document.dispatchEvent(new CustomEvent('dx:attention-changed')); }
     return was;
   },
 

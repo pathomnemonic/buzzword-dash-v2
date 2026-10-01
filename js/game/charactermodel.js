@@ -86,6 +86,12 @@ class ModelAnimator {
     this.current = null;
   }
 
+  /** True when the model has its own clip for this state (not just the run cycle standing in for it). */
+  hasClip(state) {
+    var resolved = resolveClipName(this.clipNames, state);
+    return !!resolved && resolved.state === state;
+  }
+
   setState(state) {
     if (state === this.state) return;
     var resolved = resolveClipName(this.clipNames, state);

@@ -10,7 +10,7 @@
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
 
-var BOARD_MODES = ['endless', 'tournament', 'daily', 'weakness', 'study', 'mp_highscore', 'mp_suddendeath', 'mp_race'];
+var BOARD_MODES = ['endless', 'weakness', 'study', 'mp_highscore', 'mp_suddendeath', 'mp_race'];
 
 var _state = { tab: 'global', mode: 'endless', period: 'week', groupId: null, requestCount: 0, searchTerm: '', searchResults: null };
 var _root = null;

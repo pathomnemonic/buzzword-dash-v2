@@ -40,7 +40,7 @@ import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { SHOP_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
+import { SHOP_ITEMS, ACHIEVEMENTS, QUESTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
@@ -69,7 +69,6 @@ var _settingsExtensions = [];
 
 /** The tab a screen belongs to (sub-pages keep their parent's tab lit; Settings and Ranks light none). */
 function NAV_PARENT(screenId) {
-  if (screenId === 'screenFilters') return 'screenHome';
   if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards') return 'screenCards';
   return screenId;
 }
@@ -281,7 +280,7 @@ class UI {
     this.hideAll();
   }
 
-  show(screenId) {
+  show(screenId, slideFrom) {
     // Leaving the Locker: the items that wore a red dot have now been seen
     var shopEl = document.getElementById('screenShop');
     if (shopEl && shopEl.classList.contains('active') && screenId !== 'screenShop' && this._lockerFresh && this._lockerFresh.length) {
@@ -296,7 +295,11 @@ class UI {
       s.classList.remove('active');
     });
     var el = document.getElementById(screenId);
-    if (el) el.classList.add('active');
+    if (el) {
+      el.classList.remove('from-left', 'from-right');
+      if (slideFrom) el.classList.add(slideFrom); // swiped in from this side
+      el.classList.add('active');
+    }
     document.body.setAttribute('data-screen', screenId); // the flying objects are a Home-only element
 
     if (screenId === 'screenHome') {
@@ -304,17 +307,16 @@ class UI {
       this.renderHome();
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
-    if (screenId === 'screenStats') { this.renderStats(); this.renderCalendar(); }
+    if (screenId === 'screenStats') this.renderStats();
     if (screenId === 'screenShop') {
       // What newly became affordable since the last visit wears a red dot until the player leaves
       this._lockerFresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
       this.renderShop();
       this.startPreview();
     }
-    if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
-    if (screenId === 'screenProfile') this.renderProfile();
+    if (screenId === 'screenProfile') { this.renderProfile(); this.renderCalendar(); }
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
     if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
     if (screenId === 'screenFlashcard') this.renderFlashcardScreen();
@@ -329,7 +331,9 @@ class UI {
 
     document.dispatchEvent(new CustomEvent('dx:attention-changed'));
 
-    document.querySelectorAll('.nav-item').forEach(function (n) {
+    var indicator = document.querySelectorAll('#tabIndicator span');
+    document.querySelectorAll('.nav-item').forEach(function (n, idx) {
+      if (indicator[idx]) indicator[idx].classList.toggle('on', n.dataset.screen === NAV_PARENT(screenId));
       var isCurrent = n.dataset.screen === NAV_PARENT(screenId);
       n.classList.toggle('active', isCurrent);
       // aria-current drives the highlight too, so it must follow the tab
@@ -356,13 +360,6 @@ class UI {
     document.querySelectorAll('.back-btn').forEach(function (btn) {
       btn.addEventListener('click', function () { self.show('screenHome'); });
     });
-    // Question filters: one row on Home, a page of their own for subjects, exam and the advanced filters
-    var filtersBtn = document.getElementById('filtersBtn');
-    if (filtersBtn) filtersBtn.addEventListener('click', function () { self.show('screenFilters'); });
-    var filtersPage = document.getElementById('screenFilters');
-    // Any change on the page (a subject chip, an exam, a toggle) refreshes the summary on Home
-    if (filtersPage) filtersPage.addEventListener('click', function () { setTimeout(function () { self._renderFiltersSummary(); }, 0); });
-
     // The interactive tutorial: the same one from Home, Settings and the first run
     var howToBtn = document.getElementById('howToPlayBtn');
     if (howToBtn) howToBtn.addEventListener('click', function () { self.showTutorial(); });
@@ -370,8 +367,6 @@ class UI {
     if (settingsBtn) settingsBtn.addEventListener('click', function () { self.show('screenSettings'); });
     var shopBtn = document.getElementById('shopBtn');
     if (shopBtn) shopBtn.addEventListener('click', function () { self.show('screenShop'); });
-    var questBtn = document.getElementById('questBtn');
-    if (questBtn) questBtn.addEventListener('click', function () { self.show('screenQuests'); });
     var myCardsBtn = document.getElementById('myCardsBtn');
     if (myCardsBtn) myCardsBtn.addEventListener('click', function () {
       self.show('screenMyCards');
@@ -447,7 +442,7 @@ class UI {
         'continueOverlay',
         'multiplayerOverlay',
         'accountOverlay',
-        'challengeSheet', 'flashcardsSheet', 'speedSheet', 'todaySheet'
+        'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'
       ];
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
@@ -606,14 +601,11 @@ class UI {
     var current = storage.get('userSpeed') || 1;
     dial.value = current;
     setText(val, current + '×');
-    var btnVal = document.getElementById('speedBtnValue');
-    if (btnVal) setText(btnVal, current + '×');
     var self = this;
     dial.addEventListener('input', function () {
       var v = parseFloat(dial.value);
       storage.set('userSpeed', v);
       setText(val, v + '×');
-      if (btnVal) setText(btnVal, v + '×');
     });
     val.style.cursor = 'pointer';
     val.addEventListener('click', function () {
@@ -639,6 +631,8 @@ class UI {
     if (homeCoins) setText(homeCoins, storage.get('coins'));
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
+    var qs = document.getElementById('questSummary');
+    if (qs) { var ready = storage.getClaimableQuestIds(QUESTS).length; setText(qs, ready > 0 ? ready + ' to claim' : 'Daily'); }
     this._renderFiltersSummary();
     document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }

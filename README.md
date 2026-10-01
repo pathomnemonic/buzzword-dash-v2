@@ -67,22 +67,18 @@ Rush can be stacked up to 3 times while an encounter is active. Each stack incre
 | **Endless** | Play until you run out of lives. Speed increases over time. |
 | **Study** | Infinite lives. Teaching points shown after every answer. |
 | **Weakness** | Focuses on cards you have previously missed. |
-| **Daily** | A fixed 15-card challenge. One attempt per day. |
+| **Daily 15** | A quick habit: today's 15 cards, one try a day, the same for everyone. Keeps your login streak going. Not ranked. |
+| **Weekly Gauntlet** | A real test: 30 cards (the same all week) and only 2 lives. Clear it for a weekly badge and 150 bonus coins; retry as often as you like. Not ranked. |
 | **Friend challenge** | Play 15 fresh cards, then send a link; friends play the same cards and compare. Any time, no sign-up. |
-| **Weekly tournament** | 20 cards, the same for every player this week; your best score is ranked. |
 | **Versus** | Multiplayer via peer-to-peer WebRTC. |
+
+Daily 15, the Weekly Gauntlet and Friend challenges are deliberately not on a leaderboard: many players finish a fixed set perfectly, so a board would just be a wall of ties. Leaderboards are for Endless, Weakness and Versus.
 
 ### The Home screen
 
-Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), a big PLAY button (endless run), a setup row (Question filters, Speed) and four ways to play: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free), **Challenge** (a popup that explains Study, Weakness, Daily 15, Friend challenge and the Weekly tournament) and **Exam Sim**. The tab bar is Stats, Quests, **Home** (center), Locker and Cards (browse the library, write your own). "How to play" opens the guided tutorial.
+Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), the big PLAY button with **Filters** (subjects, exam and advanced filters, plus game speed) on its left and **Quests** on its right, both popups, and a "How to play" link that opens the guided tutorial. Three ways to play sit below: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free) and **Challenge** (a popup explaining Study, Weakness, Daily 15, Weekly Gauntlet, Friend challenge and Exam Sim). The tab bar is Stats, Locker, **Home** (center), Cards and Profile (with your streak calendar and badges). Swipe left or right to move between tabs; a slim indicator along the top of the tab bar shows where you are.
 
-### Multiplayer Modes
-
-| Mode | Rule |
-|------|------|
-| **High Score** | Most points when the timer expires wins. |
-| **Sudden Death** | First wrong answer eliminates that player. |
-| **Race** | First to reach the target number of correct answers wins. |
+Controls feel forgiving: jumps hang in the air for about a second and slides last nearly a second. Jumping cancels a slide, and sliding in the air drops you fast and slides on landing. Animated characters use their own roll or crouch animation to slide, never a faceplant.
 
 ## Power-ups
 

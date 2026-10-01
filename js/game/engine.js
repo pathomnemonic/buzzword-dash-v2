@@ -58,6 +58,11 @@ import { runEndMethods } from './enginerunend.js';
 // GAME CLASS
 // ═══════════════════════════════════════════════════════════════
 
+/** Generous timings so obstacles are comfortable to clear: about a second in the air, nearly a second of slide. */
+var JUMP_SPEED = 13;
+var JUMP_GRAVITY = 26;
+var SLIDE_TIME = 0.8;
+
 class Game {
   constructor() {
     // Three.js core
@@ -764,7 +769,7 @@ class Game {
 
   _resetRunState() {
     this.currentLane = 1; this.targetLane = 1; this.prevLane = 1;
-    this.jumping = false; this.sliding = false; this._slideBlend = 0;
+    this.jumping = false; this.sliding = false; this._slideBlend = 0; this._slideOnLand = false;
     this.playerY = 0; this.jumpVel = 0; this.legPhase = 0;
     this.elapsedTime = 0; this.cameraLeanX = 0; this.playerTilt = 0;
 
@@ -776,7 +781,7 @@ class Game {
     this.score = 0; this.streak = 0; this.bestStreak = 0;
     this.multiplier = 1; this.coins = 0;
     this.encountersDone = 0; this.correct = 0; this.wrong = 0;
-    this.lives = this.mode === GAME_MODES.STUDY ? 99 : 3;
+    this.lives = this.mode === GAME_MODES.STUDY ? 99 : (this._modeConfig.lives || 3);
     this.continued = false; this.continuesUsed = 0;
 
     this.rushing = false; this.rushStacks = 0; this.rushBonus = 0;
@@ -867,15 +872,22 @@ class Game {
   // ═══════════════════════════════════════════════════════
 
   jump() {
-    if (!this.jumping && !this.sliding) {
+    if (this.sliding) { this.sliding = false; this._slideOnLand = false; } // a jump cancels a slide
+    if (!this.jumping) {
       this.jumping = true;
-      this.jumpVel = 12;
+      this.jumpVel = JUMP_SPEED;
       this._emit('obstacle_dodged', { type: 'jump' });
     }
   }
 
   slide() {
-    if (!this.sliding && !this.jumping) {
+    if (this.jumping) {
+      // Sliding in the air drops you fast and starts the slide on landing
+      this.jumpVel = Math.min(this.jumpVel, -18);
+      this._slideOnLand = true;
+      return;
+    }
+    if (!this.sliding) {
       this.sliding = true;
       this.slideTimer = 0;
       this._emit('obstacle_dodged', { type: 'slide' });
@@ -1190,14 +1202,15 @@ class Game {
     // Jump
     if (this.jumping) {
       this.playerY += this.jumpVel * dt;
-      var gravity = 30;
-      if (Math.abs(this.jumpVel) < 3) gravity = 18;
+      var gravity = JUMP_GRAVITY;
+      if (Math.abs(this.jumpVel) < 3) gravity = JUMP_GRAVITY * 0.6; // floaty at the top
       this.jumpVel -= gravity * dt;
       if (this.playerY <= 0) {
         this.playerY = 0;
         this.jumping = false;
         this.jumpVel = 0;
         if (this.wasJumping) this.landingTimer = 0.1;
+        if (this._slideOnLand) { this._slideOnLand = false; this.slide(); }
       }
     }
     this.wasJumping = this.jumping;
@@ -1213,16 +1226,26 @@ class Game {
     // never squashed flat, which looked like a pancake on 3D characters.
     if (this.sliding) {
       this.slideTimer += dt;
-      if (this.slideTimer >= 0.45) this.sliding = false;
+      if (this.slideTimer >= SLIDE_TIME) this.sliding = false;
     }
     this._slideBlend = this._slideBlend || 0;
     this._slideBlend += ((this.sliding ? 1 : 0) - this._slideBlend) * Math.min(1, dt * 14);
     if (this._slideBlend < 0.01 && !this.sliding) this._slideBlend = 0;
     var sb = this._slideBlend;
     if (sb > 0) {
-      this.playerGroup.scale.set(1 + 0.04 * sb, 1 - 0.14 * sb, 1 + 0.04 * sb);
-      this.playerGroup.position.y = this.playerY - 0.3 * sb;
-      this.playerGroup.rotation.x = -0.62 * sb;   // forward lean (characters face -Z)
+      var animator = this.playerGroup.userData.animator;
+      if (animator) {
+        // Animated models roll or crouch with their own clip; without one they just sink a little (no lean, no flattening)
+        var hasClip = animator.hasClip('slide');
+        this.playerGroup.scale.set(1, 1 - (hasClip ? 0.04 : 0.18) * sb, 1);
+        this.playerGroup.position.y = this.playerY - (hasClip ? 0.05 : 0.3) * sb;
+        this.playerGroup.rotation.x = 0;
+      } else {
+        // Blocky characters crouch and lean back a touch, like a feet-first slide
+        this.playerGroup.scale.set(1 + 0.04 * sb, 1 - 0.2 * sb, 1 + 0.04 * sb);
+        this.playerGroup.position.y = this.playerY - 0.3 * sb;
+        this.playerGroup.rotation.x = 0.25 * sb;
+      }
     } else if (this.playerGroup.rotation.x !== 0 && this.stumbleTimer <= 0 && this.mode !== undefined && this._state === GAME_STATES.PLAYING) {
       this.playerGroup.rotation.x = 0;
       this.playerGroup.scale.set(1, 1, 1);
@@ -1288,8 +1311,7 @@ class Game {
 
     // Animated glTF avatars are driven by their own clips.
     if (this.playerGroup.userData.animator) {
-      // Ducking keeps the run cycle (legs pumping) under the forward lean
-      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : 'run';
+      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
       updateModelAnimation(this.playerGroup, dt, modelState);
     }
 
@@ -1494,7 +1516,7 @@ class Game {
           if (c.userData.type === 'powerup') {
             this._collectPowerup(c.userData.powerupType);
           } else if (c.userData.type === 'heart') {
-            var maxLives = this.mode === GAME_MODES.STUDY ? 99 : 3;
+            var maxLives = this.mode === GAME_MODES.STUDY ? 99 : (this._modeConfig.lives || 3);
             if (this.lives < maxLives) this.lives++;
             this._emit('coin_collected', { type: 'heart' });
           } else {

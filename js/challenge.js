@@ -82,9 +82,9 @@ export function parseChallengeHash(hash) {
   return m ? decodeChallenge(m[1]) : null;
 }
 
-// ===== Weekly tournament =====
+// ===== Weekly Gauntlet (the mode id is still 'tournament') =====
 
-export var TOURNAMENT_SIZE = 20;
+export var TOURNAMENT_SIZE = 30;
 
 /**
  * ISO week key in UTC, e.g. "2026-W40". Matches the server's season key.
