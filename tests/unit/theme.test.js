@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  daypartOf, seasonOf, pickTheme, applyTheme, managedVariables, paletteFor, contrast, worldIds, THEME_CHOICES
+  rollWorld, rerollDue, daypartOf, seasonOf, pickTheme, applyTheme, managedVariables, paletteFor, contrast, worldIds, THEME_CHOICES
 } from '../../js/theme.js';
 
 const DAYPARTS = ['dawn', 'day', 'dusk', 'night'];
@@ -37,7 +37,7 @@ describe('theme by time and season', () => {
     expect(Object.keys(t.vars).length).toBeGreaterThan(20);
     const c = pickTheme(new Date(2026, 6, 10, 12), 'classic');
     expect(c.vars).toEqual({});
-    expect(THEME_CHOICES.map((x) => x[0])).toEqual(['auto', 'classic', ...worldIds()]);
+    expect(THEME_CHOICES.map((x) => x[0])).toEqual(['surprise', 'auto', 'classic', ...worldIds()]);
   });
 });
 
@@ -119,5 +119,31 @@ describe('the palettes are tints of one playful look, and stay readable', () => 
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'classic'));
     managedVariables().forEach((k) => expect(root.style.getPropertyValue(k)).toBe(''));
     expect(flyers.children.length).toBe(1);
+  });
+});
+
+describe('Surprise me', () => {
+  it('uses the rolled world, still follows the time of day, and falls back to the season', () => {
+    const t = pickTheme(new Date(2026, 6, 10, 22), 'surprise', 'winter');
+    expect(t.mode).toBe('surprise');
+    expect(t.world).toBe('winter');
+    expect(t.daypart).toBe('night');
+    expect(pickTheme(new Date(2026, 6, 10, 12), 'surprise').world).toBe('summer');
+  });
+
+  it('a reroll always lands on a different world', () => {
+    for (const w of worldIds()) {
+      for (let i = 0; i < 20; i++) expect(rollWorld(w)).not.toBe(w);
+    }
+    expect(worldIds()).toContain(rollWorld(null));
+    expect(rollWorld('winter', () => 0.999)).toBe('autumn');
+  });
+
+  it('rerolls are occasional: after a few runs or a good while, not every time', () => {
+    const t0 = 1_000_000;
+    expect(rerollDue(0, t0, t0 + 60_000)).toBe(false);
+    expect(rerollDue(2, t0, t0 + 60_000)).toBe(false);
+    expect(rerollDue(3, t0, t0 + 60_000)).toBe(true);
+    expect(rerollDue(0, t0, t0 + 21 * 60_000)).toBe(true);
   });
 });

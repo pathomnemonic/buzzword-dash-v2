@@ -160,7 +160,8 @@ export function seasonOf(month) {   // month: 1..12
 
 /** The choices for Settings -> Colors: [id, label]. */
 export var THEME_CHOICES = [
-  ['auto', 'Auto (time & season)'],
+  ['surprise', 'Surprise me (a new look now and then)'],
+  ['auto', 'Seasonal (follows the date)'],
   ['classic', 'Classic'],
   ['winter', 'Winter'],
   ['spring', 'Spring'],
@@ -168,18 +169,34 @@ export var THEME_CHOICES = [
   ['autumn', 'Autumn']
 ];
 
+/** A random world other than `exclude` (so a reroll always looks different). */
+export function rollWorld(exclude, rand) {
+  var r = rand || Math.random;
+  var ids = Object.keys(WORLDS).filter(function (id) { return id !== exclude; });
+  return ids[Math.min(ids.length - 1, Math.floor(r() * ids.length))];
+}
+
+/** Rerolls are occasional: after a few runs, or after the app has been open a while. */
+export var REROLL_EVERY_RUNS = 3;
+export var REROLL_EVERY_MS = 20 * 60 * 1000;
+export function rerollDue(runsSinceRoll, lastRollAt, now) {
+  return runsSinceRoll >= REROLL_EVERY_RUNS || (now - lastRollAt) >= REROLL_EVERY_MS;
+}
+
 /**
  * @param {Date} date
- * @param {string} mode 'auto', 'classic', or a season id to pick by hand (it still follows the time of day)
+ * @param {string} mode 'surprise' (a rolled world, passed as `rolled`), 'auto' (the season), 'classic', or a season id to pick by hand (it still follows the time of day)
+ * @param {string} [rolled] the world a 'surprise' look currently uses
  * @returns {{mode: string, world: string, daypart: string, season: string, name: string, vars: Object<string,string>}}
  */
-export function pickTheme(date, mode) {
+export function pickTheme(date, mode, rolled) {
   if (mode === 'classic') return { mode: 'classic', world: 'classic', daypart: 'night', season: 'classic', name: 'Classic', vars: {} };
   var d = date || new Date();
   var daypart = daypartOf(d.getHours());
-  var world = WORLDS[mode] ? mode : seasonOf(d.getMonth() + 1);
+  var surprise = mode === 'surprise';
+  var world = WORLDS[mode] ? mode : (surprise && WORLDS[rolled] ? rolled : seasonOf(d.getMonth() + 1));
   return {
-    mode: WORLDS[mode] ? mode : 'auto',
+    mode: WORLDS[mode] ? mode : (surprise ? 'surprise' : 'auto'),
     world: world,
     daypart: daypart,
     season: world,

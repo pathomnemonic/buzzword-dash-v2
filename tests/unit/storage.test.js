@@ -221,3 +221,18 @@ describe('retired duplicate characters', () => {
     expect(storage.data.settings.modelColors.avatar_intern).toEqual({ pants: 0x9a2f45 });
   });
 });
+
+describe('the Surprise me colors', () => {
+  it('moves players left on the old Auto over once, and respects a later choice of Seasonal', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    storage.data.settings.uiTheme = 'auto';
+    storage.data.settings.themeSurpriseSeen = false;
+    storage._ensureInvariants();
+    expect(storage.get('uiTheme')).toBe('surprise');
+    storage.data.settings.uiTheme = 'auto';   // chosen on purpose afterwards
+    storage._ensureInvariants();
+    expect(storage.get('uiTheme')).toBe('auto');
+  });
+});

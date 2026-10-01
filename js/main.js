@@ -41,7 +41,7 @@ import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { SHOP_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
-import { pickTheme, applyTheme } from './theme.js';
+import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
 import { installChunkRecovery } from './chunkrecovery.js';
@@ -828,6 +828,7 @@ function launchRun(mode, orderedCardIds, modeConfig) {
     leagueRules: modeConfig && typeof modeConfig.leagueTrophies === 'number' ? leagueRules(modeConfig.leagueTrophies) : undefined
   });
   ui.hideAll();
+  ui.resetQuestionDisplay(); // nothing from the last run's final question may show
   ui.showHud();
 
   game.beginCountdown();
@@ -963,13 +964,27 @@ function refreshFlyers() {
 }
 
 /** Apply the current color theme (a whole palette tinted by the season and time of day). */
+var themeRoll = { world: null, runs: 0, at: Date.now() };
 function refreshTheme() {
-  var theme = pickTheme(new Date(), storage.get('uiTheme') || 'auto');
+  if (!themeRoll.world) themeRoll.world = rollWorld(null);
+  var theme = pickTheme(new Date(), storage.get('uiTheme') || 'surprise', themeRoll.world);
   applyTheme(document.documentElement, theme);
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme.vars['--bg-fallback'] || '#0b1020');
   document.documentElement.setAttribute('data-theme-name', theme.name);
   refreshFlyers();
+}
+
+/** Surprise me: every few runs (or after a while) the look changes to a different season, and a toast says so. */
+function maybeRerollTheme() {
+  if ((storage.get('uiTheme') || 'surprise') !== 'surprise') return;
+  if (!rerollDue(themeRoll.runs, themeRoll.at, Date.now())) return;
+  themeRoll.world = rollWorld(themeRoll.world);
+  themeRoll.runs = 0;
+  themeRoll.at = Date.now();
+  refreshTheme();
+  var name = document.documentElement.getAttribute('data-theme-name');
+  if (name) ui._showToast('🎨 Fresh look: ' + name);
 }
 
 function init() {
@@ -993,6 +1008,7 @@ function init() {
   refreshTheme();
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
+  document.addEventListener('dx:home-shown', maybeRerollTheme);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
   try {
@@ -1076,6 +1092,7 @@ function init() {
   };
 
   game.onRunEnd = function () {
+    themeRoll.runs++;
     ui.hideHud();
     ui.hideAnswerChoices();
     audio.stopAmbient();

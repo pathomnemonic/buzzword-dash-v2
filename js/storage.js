@@ -63,7 +63,8 @@ var DEFAULTS = {
     modelColors: {},   // per 3D character: { avatarId: { partKey: hex } }
     reducedMotion: false,
     quality: 'auto',
-    uiTheme: 'auto',
+    uiTheme: 'surprise',
+    themeSurpriseSeen: false,
     lockerSeen: [],
     fps30Seen: false,
     glowDefaultSeen: false,
@@ -631,6 +632,12 @@ class Storage {
     if (!d.settings.freshnessDefaultSeen) {
       d.settings.freshnessDefaultSeen = true;
       if (d.settings.cardFreshnessWeight === 5) d.settings.cardFreshnessWeight = 8;
+    }
+
+    // The colors now change by themselves now and then ("Surprise me"); players left on the old Auto move over once
+    if (!d.settings.themeSurpriseSeen) {
+      d.settings.themeSurpriseSeen = true;
+      if (d.settings.uiTheme === 'auto') d.settings.uiTheme = 'surprise';
     }
 
     // 30 fps became the default; switch everyone over once (it can still be turned off)

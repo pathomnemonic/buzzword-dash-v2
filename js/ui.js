@@ -300,6 +300,7 @@ class UI {
     document.body.setAttribute('data-screen', screenId); // the flying objects are a Home-only element
 
     if (screenId === 'screenHome') {
+      document.dispatchEvent(new CustomEvent('dx:home-shown'));
       this.renderHome();
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
@@ -975,6 +976,16 @@ class UI {
 
   showHud() {
     document.getElementById('hud').classList.remove('off');
+  }
+
+  /** A new run starts blank: nothing from the last question (or its answer and teaching point) may linger. */
+  resetQuestionDisplay() {
+    setText(document.getElementById('buzzText'), 'GET READY');
+    this.hideAnswerChoices();
+    var fb = document.getElementById('feedbackEl');
+    if (fb) { setText(fb, ''); fb.className = ''; }
+    var tb = document.getElementById('teachEl');
+    if (tb) { setText(tb, ''); tb.classList.remove('show'); }
   }
 
   hideHud() {
