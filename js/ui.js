@@ -36,7 +36,6 @@
 
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
-import { SCRUB_COLORS } from './game/modelcatalog.js';
 import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
@@ -1379,33 +1378,50 @@ class UI {
   }
 
 
-  /** Scrub color swatches for the medical characters. */
-  _renderScrubColors() {
+  /**
+   * Color pickers for one animated 3D character. Every character has its own parts (a doctor's scrub
+   * top and pants, a robot's body and trim, ...) and its own palettes, saved per character.
+   * @param {object} avatar an entry from AVATARS with `parts`
+   */
+  _renderModelColors(avatar) {
     var self = this;
     var wrap = createElement('div', { className: 'shop-item' });
     wrap.style.cssText = 'display:block;margin:8px 0';
-    wrap.appendChild(createElement('div', { text: '🥼 Scrub color' }));
+    wrap.appendChild(createElement('div', { text: '🎨 ' + avatar.name + ' colors' }));
     wrap.lastChild.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
-    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Dress your doctor, nurse or surgeon in any scrub color.' }));
-    var row = createElement('div');
-    row.className = 'pick-chips';
-    var current = storage.get('scrubColor') || 0;
-    SCRUB_COLORS.forEach(function (c) {
-      var on = (current || 0) === c.hex;
-      var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': c.name + ' scrubs', 'aria-pressed': on ? 'true' : 'false', title: c.name } });
-      sw.style.background = c.hex ? '#' + ('000000' + c.hex.toString(16)).slice(-6) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
-      sw.addEventListener('click', function () {
-        storage.set('scrubColor', c.hex);
-        storage.save();
-        row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
-        sw.classList.add('on');
-        sw.setAttribute('aria-pressed', 'true');
-        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-        if (self.onEquipChange) self.onEquipChange();
+    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick a color for each part. "Original" keeps the look it came with.' }));
+
+    function hexOf(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
+
+    (avatar.parts || []).forEach(function (part) {
+      var group = createElement('div', { className: 'color-part', attributes: { 'data-part': part.key } });
+      group.style.marginTop = '8px';
+      group.appendChild(createElement('div', { text: part.label }));
+      group.lastChild.style.cssText = 'font-size:12px;font-weight:700;margin-bottom:3px';
+      var row = createElement('div', { className: 'pick-chips' });
+      var chosen = ((storage.get('modelColors') || {})[avatar.id] || {})[part.key] || 0;
+      part.palette.forEach(function (c) {
+        var on = chosen === c.hex;
+        var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': part.label + ': ' + c.name, 'aria-pressed': on ? 'true' : 'false', title: c.name } });
+        sw.style.background = c.hex ? hexOf(c.hex) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
+        sw.addEventListener('click', function () {
+          var all = Object.assign({}, storage.get('modelColors') || {});
+          var mine = Object.assign({}, all[avatar.id] || {});
+          if (c.hex) mine[part.key] = c.hex; else delete mine[part.key];
+          all[avatar.id] = mine;
+          storage.set('modelColors', all);
+          storage.save();
+          row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+          sw.classList.add('on');
+          sw.setAttribute('aria-pressed', 'true');
+          if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+          if (self.onEquipChange) self.onEquipChange();
+        });
+        row.appendChild(sw);
       });
-      row.appendChild(sw);
+      group.appendChild(row);
+      wrap.appendChild(group);
     });
-    wrap.appendChild(row);
     return wrap;
   }
 

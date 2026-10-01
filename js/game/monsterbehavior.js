@@ -15,6 +15,32 @@
  *    and fades from view again as the player rebuilds a streak or pulls away
  */
 
+/**
+ * How the exam monster is used in each game mode (by mode id). `enabled: false` means the monster never
+ * appears (and the run does not open with the look-back shot). `miss` / `hit` are how far a wrong or
+ * right answer moves it, in "distance to catch" units.
+ *
+ *  - Study and timed practice have no way to lose, so a monster would only be scenery: off.
+ *  - Sudden death ends on the first wrong answer, so the monster could never matter: off.
+ *  - Weakness is practice on the cards you miss: the monster is there but gives you more room.
+ *  - Everything else is a scored run, and challenges, tournaments and versus compare players, so they all
+ *    use the standard settings (it depends only on your answers, so it is the same for everyone).
+ */
+export var MONSTER_POLICY = {
+  study: { enabled: false },
+  timed_practice: { enabled: false },
+  mp_suddendeath: { enabled: false },
+  weakness: { enabled: true, miss: 3, hit: 2 }
+};
+var STANDARD_POLICY = { enabled: true, miss: 4, hit: 1.5 };
+
+/** @returns {{enabled: boolean, miss: number, hit: number}} */
+export function monsterPolicy(mode) {
+  var p = MONSTER_POLICY[mode];
+  if (!p) return STANDARD_POLICY;
+  return p.enabled ? p : { enabled: false, miss: 0, hit: 0 };
+}
+
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
 export function createMonsterBehavior(rand) {

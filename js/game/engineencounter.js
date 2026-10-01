@@ -6,9 +6,9 @@
  */
 
 import { storage } from '../storage.js';
-import { getRandomSkin } from './skins.js';
+import { getNextSkin } from './skins.js';
 import { getCardPool, pickCard, spawnGates, flashGateResult } from './gates.js';
-import { monsterOnAnswer } from './monsterbehavior.js';
+import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
 import { GAME_MODES, RUN_END_REASONS, removeAndDispose } from './enginedefs.js';
 
@@ -221,24 +221,21 @@ card = pickResult ? pickResult.card : null;
       this.encountersUntilTransition = 10;
     } else if (this.encountersUntilTransition <= 0) {
       this.encountersUntilTransition = 10;
-      var newSkin = getRandomSkin();
-      var attempts = 0;
-      while (newSkin.name === this.currentSkin.name && attempts < 20) {
-        newSkin = getRandomSkin();
-        attempts++;
-      }
+      var newSkin = getNextSkin(this.currentSkin, this._mapChanges || 0);
       if (newSkin.name !== this.currentSkin.name) {
+        this._mapChanges = (this._mapChanges || 0) + 1;
         this._transitionSkin(newSkin);
       }
     }
 
     // Monster behavior
-    if (this.examMonster) {
+    if (this.examMonster && this._monsterEnabled()) {
+      var policy = monsterPolicy(this.mode);
       if (this._monsterBehavior) monsterOnAnswer(this._monsterBehavior, ok);
       if (!ok) {
-        this.monsterTargetZ -= 4;
+        this.monsterTargetZ -= policy.miss;
       } else {
-        this.monsterTargetZ += 1.5;
+        this.monsterTargetZ += policy.hit;
       }
       this.monsterTargetZ = Math.min(this.monsterTargetZ, 30);
       this.monsterTargetZ = Math.max(this.monsterTargetZ, 3);

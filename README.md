@@ -96,6 +96,16 @@ When you are down to 1 life, heart pickups may appear on the track. Collecting o
 
 An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only creeps into view when you answer incorrectly, and falls back (and fades away) when you answer correctly or build a streak. If it catches you, your run ends with a dramatic animation. Characters that are animated 3D models do not wear hats; hats are for the Classic characters.
 
+The monster follows the game mode. Study and timed practice have no way to lose, and sudden death ends on the first wrong answer, so there is no monster in those. Weakness practice gives you more room (a wrong answer moves it less, a right one pushes it back more). Every other mode uses the standard monster, and it depends only on your answers, so challenges, tournaments and versus stay comparable.
+
+## Maps
+
+A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry lab). The first map change goes outdoors (the open and body-interior worlds), and after that the next map is random. A favorite map picked in Settings stays for the whole run.
+
+## Look
+
+The menus have a campy clinic look: scrub teal, bubblegum pink, and a faint pattern of crosses, pills, hearts and a heartbeat line. The season and time of day only tint it (a cooler teal with icy accents in winter, mint and blossom pink in spring, aqua with coral in summer, amber and berry in autumn; lighter by day, deeper at night). There is no falling decor. Settings -> Colors can pin a season or switch to Classic.
+
 ## Scoring
 
 - Correct answers build your streak.
@@ -169,7 +179,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
-- **Animated 3D avatar** — "Robo Resident" uses a real glTF model with authored run, jump and death animation clips (CC0 model by Tomás Laulhé, via the three.js examples)
+- **Animated 3D characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
@@ -313,9 +323,7 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 ## Credits
 
-- `public/models/RobotExpressive.glb` — Robot Expressive by Tomás Laulhé (CC0 1.0), with modifications by Don McCurdy, from the [three.js examples](https://github.com/mrdoob/three.js/tree/r160/examples/models/gltf/RobotExpressive).
-
-- `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Twelve characters (Explorer, Ranger, Adventurer, Hooded Rogue, Night-Shift Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Medic, King) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
+- `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Characters (Explorer, Ranger, Adventurer, Hooded Rogue, Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Bot, King, plus the Doctor, Nurse and Paramedic) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
 
 - `public/models/obstacles/*.glb`, `public/models/props/*.glb` — small props (hospital bed, traffic cone, cardboard boxes, traffic barrier, trash can, street light, air conditioner) by [Quaternius](https://quaternius.com/), and a computer screen and hospital sign by [Kenney](https://kenney.nl/), and a telescope by CreativeTrio; all CC0 1.0, from [Poly Pizza](https://poly.pizza/).
 

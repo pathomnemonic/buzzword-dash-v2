@@ -357,6 +357,42 @@ export var SKINS = [
 ];
 
 /**
+ * Maps set in real hospital rooms (and the pharmacy and chemistry lab) are "indoor"; the open and
+ * body-interior worlds are "outdoor". A run starts indoors, then moves outdoors, then is random.
+ */
+var INDOOR_IDS = [
+  'skin_neon_er', 'skin_prescription_sunset', 'skin_hospital_hallway', 'skin_operating_room',
+  'skin_research_lab', 'skin_ambulance_bay', 'skin_surgical_theater', 'skin_candy_lab'
+];
+
+export function isIndoorSkin(skin) {
+  return !!skin && INDOOR_IDS.indexOf(skin.id) >= 0;
+}
+
+function pickFrom(list, rand) {
+  var r = rand || Math.random;
+  return list[Math.floor(r() * list.length) % list.length];
+}
+
+/** The map a run opens on: one of the indoor maps, at random. */
+export function getStartSkin(rand) {
+  return pickFrom(SKINS.filter(isIndoorSkin), rand);
+}
+
+/**
+ * The map after a transition. The first change of a run goes outdoors; after that it is any map but
+ * the current one.
+ * @param {object} current the map being left
+ * @param {number} changesSoFar how many map changes this run has already made (0 for the first)
+ * @param {function(): number} [rand]
+ */
+export function getNextSkin(current, changesSoFar, rand) {
+  var pool = changesSoFar < 1 ? SKINS.filter(function (s) { return !isIndoorSkin(s); }) : SKINS;
+  pool = pool.filter(function (s) { return !current || s.id !== current.id; });
+  return pickFrom(pool, rand);
+}
+
+/**
  * Pick a random skin from the available pool.
  * Called at the start of each solo run.
  */

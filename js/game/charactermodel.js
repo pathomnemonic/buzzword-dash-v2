@@ -109,15 +109,23 @@ class ModelAnimator {
   }
 }
 
-/** Repaint named materials on a clone. The first name gets the color, the others a slightly darker shade. */
-function applyTint(root, tint) {
-  var base = new THREE.Color(tint.color);
+/**
+ * Repaint materials on a clone. `tints` is a list of { names, color }: every material whose name is in
+ * `names` gets `color`. The shared materials are never touched (each repainted one is a copy).
+ */
+function applyTint(root, tints) {
+  var byName = {};
+  tints.forEach(function (t) {
+    if (!t || !t.names || !t.color) return;
+    var c = new THREE.Color(t.color);
+    t.names.forEach(function (n) { byName[n] = c; });
+  });
   root.traverse(function (o) {
     if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
-    var idx = tint.names.indexOf(o.material.name);
-    if (idx < 0) return;
+    var c = byName[o.material.name];
+    if (!c) return;
     var m = o.material.clone();
-    m.color.copy(base).multiplyScalar(idx === 0 ? 1 : 0.88);
+    m.color.copy(c);
     m.userData.shared = false;
     o.material = m;
   });
@@ -128,7 +136,7 @@ function applyTint(root, tint) {
  * @param {string} url
  * @param {number} [scale] avatar scale multiplier
  * @param {number} [height] world height
- * @param {{names: string[], color: number}} [tint] repaint the materials with these names (e.g. scrubs)
+ * @param {Array<{names: string[], color: number}>|{names: string[], color: number}} [tint] repaint the materials with these names (the character's recolored parts)
  * @returns {THREE.Group|null} null if the model is not loaded yet
  */
 export function buildModelCharacter(url, scale, height, tint) {
@@ -136,7 +144,8 @@ export function buildModelCharacter(url, scale, height, tint) {
   if (!entry) return null;
 
   var root = cloneSkinned(entry.scene);
-  if (tint && tint.names && tint.names.length && tint.color) applyTint(root, tint);
+  var tints = Array.isArray(tint) ? tint : (tint ? [tint] : []);
+  if (tints.length) applyTint(root, tints);
   var k = ((height || TARGET_HEIGHT) * (scale || 1)) / entry.height;
   root.scale.setScalar(k);
   root.position.y = -entry.minY * k;

@@ -8,7 +8,7 @@
 import { storage } from '../storage.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
-import { createMonsterBehavior, stepMonsterBehavior } from './monsterbehavior.js';
+import { createMonsterBehavior, stepMonsterBehavior, monsterPolicy } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { GAME_STATES, GAME_MODES } from './enginedefs.js';
 import { LOOKBACK_STYLE, LOOKBACK_HOLD } from './cinematics.js';
@@ -60,7 +60,7 @@ export var examMonsterMethods = {
   _updateIntroMonster() {
     var m = this.examMonster;
     if (!m) return;
-    if (this._introCamStyle !== LOOKBACK_STYLE || (this._rules && this._rules.monsterOff) || storage.get('monsterOff')) {
+    if (this._introCamStyle !== LOOKBACK_STYLE || !this._monsterEnabled()) {
       m.visible = false;
       return;
     }
@@ -81,6 +81,15 @@ export var examMonsterMethods = {
     this.monsterVisible = false;
   },
 
+  /**
+   * Whether the exam monster is part of this run: the player has not turned it off, and the game mode
+   * uses one (study and sudden death do not; see MONSTER_POLICY).
+   */
+  _monsterEnabled() {
+    var off = this._rules ? this._rules.monsterOff : storage.get('monsterOff');
+    return !off && monsterPolicy(this.mode).enabled;
+  },
+
   /** The run is starting: put the monster away; from here on it only shows when the player slips. */
   _hideIntroMonster() {
     if (!this.examMonster) return;
@@ -91,8 +100,8 @@ export var examMonsterMethods = {
 
   _updateExamMonster(dt) {
     if (!this.examMonster) return;
-    if (this._rules && this._rules.monsterOff) {
-      // The player turned the monster off (custom run): it never appears or catches
+    if (!this._monsterEnabled()) {
+      // Turned off by the player (a custom run) or not used in this mode: it never appears or catches
       this.examMonster.visible = false;
       return;
     }

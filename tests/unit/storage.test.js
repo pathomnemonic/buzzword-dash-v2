@@ -195,3 +195,29 @@ describe('Storage — backup and restore', () => {
     expect(storage.get('coins')).toBe(555);
   });
 });
+
+describe('retired duplicate characters', () => {
+  it('moves owners to the character they duplicated and refunds them', () => {
+    storage.data.progression.coins = 100;
+    storage.data.progression.ownedItems = ['avatar_intern', 'avatar_m_resident', 'avatar_m_surgeon', 'avatar_robopro'];
+    storage.data.progression.equipped.skin = 'avatar_m_surgeon';
+    storage._ensureInvariants();
+    const owned = storage.data.progression.ownedItems;
+    ['avatar_m_resident', 'avatar_m_surgeon', 'avatar_robopro'].forEach((id) => expect(owned).not.toContain(id));
+    expect(owned).toContain('avatar_m_robot');                       // the robot they paid for, in its other form
+    expect(storage.data.progression.equipped.skin).toBe('avatar_intern');
+    // 400 + 1000 back (they already had Dr. Dash), and 9000 - 3500 for the robot
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - 3500));
+    // running it again changes nothing
+    storage._ensureInvariants();
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - 3500));
+  });
+
+  it('turns the old shared scrub color into the doctor\'s pants color', () => {
+    storage.data.settings.scrubColor = 0x9a2f45;
+    storage.data.settings.modelColors = {};
+    storage._ensureInvariants();
+    expect(storage.data.settings.scrubColor).toBeUndefined();
+    expect(storage.data.settings.modelColors.avatar_intern).toEqual({ pants: 0x9a2f45 });
+  });
+});

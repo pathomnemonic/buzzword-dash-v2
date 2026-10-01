@@ -39,12 +39,14 @@ describe('Locker tabs', () => {
     expect(groups[1]).toContain('Classic Intern');
   });
 
-  it('a medical character gets scrub colors, but no headwear', () => {
+  it('a 3D character gets color pickers for its own parts, but no headwear', () => {
     storage.data.progression.equipped.skin = 'avatar_intern'; // Dr. Dash
     ui._lockerTab = 'customize';
     ui.renderShop();
-    expect(document.getElementById('shopItems').textContent).toMatch(/Scrub color/);
-    expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(5);
+    expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
+    const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
+    expect(parts).toEqual(['top', 'pants']);
+    expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(8);
     expect(headings().join('|')).not.toContain('Headwear');
     expect(headings().join('|')).not.toContain('Clothing');
   });

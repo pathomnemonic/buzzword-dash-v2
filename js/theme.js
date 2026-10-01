@@ -1,18 +1,15 @@
 /**
- * theme.js — whole new color worlds that follow the clock and the calendar, so
- * the game looks different enough to be worth another look.
+ * theme.js — the look of the menus: a campy clinic (scrub teal, bubblegum pink, a faint pattern of
+ * crosses, pills and hearts) that picks up a light tint from the season and the time of day.
  *
- * A world is a season (or a holiday) crossed with a time of day:
- *   winter  icy blues            spring  fresh greens with blossom pink
- *   summer  turquoise and coral  autumn  burnt orange and amber
- *   halloween  purple and orange     winter holidays  red and green
- * and dawn / day / dusk / night change how bright and warm that world is.
- * Everything is derived from a few hues, so every combination keeps readable
- * contrast (tests check it). Players can pick a world by hand, or Classic,
- * in Settings.
+ * The clinic look is always there. The season only nudges the colors (winter is a cooler teal with
+ * icy accents, spring a mint with blossom pink, summer an aqua with coral and sunshine, autumn a teal
+ * warmed with amber and berry) and the time of day makes it lighter or darker and a touch warmer or
+ * cooler (dawn, day, dusk, night). There are no falling leaves or snowflakes: it is a skin, not a scene.
+ * Everything is derived from a few hues, so every combination keeps readable contrast (tests check it).
+ * Players can pick a season by hand, or Classic (the original purple), in Settings.
  *
- * Pure functions here; applyTheme writes CSS variables on the page root and
- * fills the falling/floating decor layer.
+ * Pure functions here; applyTheme writes CSS variables on the page root.
  */
 
 // ---------- color helpers ----------
@@ -76,22 +73,23 @@ function lightEnough(h, s, l, ink, min) {
 
 // ---------- the worlds ----------
 
-/** base: main hue. a1/a2/a3: highlight hues (the pink, cyan and purple slots). */
+/**
+ * base: main hue (always in the scrub-teal family). a1/a2/a3: accent hues (the pink, cyan and purple slots).
+ * The seasons differ in their accents far more than in their base.
+ */
 var WORLDS = {
-  winter: { name: 'Winter', base: 208, a1: 192, a2: 222, a3: 262, decor: ['❄️', '⛄', '🧊', '❄️', '🧤', '⛷️', '❄️', '🧣'], motion: 'fall' },
-  spring: { name: 'Spring', base: 150, a1: 330, a2: 92, a3: 290, decor: ['🌸', '🌷', '🦋', '🌱', '🐝', '🌼', '🌸', '🍃'], motion: 'fall' },
-  summer: { name: 'Summer', base: 186, a1: 14, a2: 48, a3: 322, decor: ['☀️', '🌴', '🍉', '🏖️', '🕶️', '🐚', '🍍', '🌊'], motion: 'float' },
-  autumn: { name: 'Autumn', base: 22, a1: 40, a2: 352, a3: 300, decor: ['🍂', '🍁', '🌰', '🍄', '🍂', '🍎', '🍁', '🍂'], motion: 'fall' },
-  halloween: { name: 'Halloween', base: 278, a1: 26, a2: 120, a3: 330, decor: ['🎃', '🦇', '👻', '🕸️', '🎃', '🦇', '🍬', '👻'], motion: 'float' },
-  holidays: { name: 'Winter holidays', base: 355, a1: 140, a2: 48, a3: 205, decor: ['🎄', '⛄', '🎁', '❄️', '⭐', '🎄', '🎁', '❄️'], motion: 'fall' }
+  winter: { name: 'Winter', base: 196, a1: 330, a2: 200, a3: 250 },
+  spring: { name: 'Spring', base: 166, a1: 345, a2: 130, a3: 285 },
+  summer: { name: 'Summer', base: 184, a1: 8, a2: 46, a3: 322 },
+  autumn: { name: 'Autumn', base: 174, a1: 24, a2: 44, a3: 350 }
 };
 
-/** How bright and warm each time of day makes a world. */
+/** How bright and warm each time of day makes a world (the warm tint is gentle: the clinic look stays). */
 var DAYPARTS = {
-  dawn:  { name: 'dawn',  warm: { hue: 345, t: 0.4 }, sat: 0.62, top: 0.36, bottom: 0.2,  panel: 0.3 },
-  day:   { name: 'day',   warm: null,                sat: 0.78, top: 0.46, bottom: 0.3,  panel: 0.34 },
-  dusk:  { name: 'dusk',  warm: { hue: 305, t: 0.45 }, sat: 0.58, top: 0.3,  bottom: 0.15, panel: 0.25 },
-  night: { name: 'night', warm: { hue: 252, t: 0.35 }, sat: 0.55, top: 0.19, bottom: 0.07, panel: 0.16 }
+  dawn:  { name: 'dawn',  warm: { hue: 40, t: 0.16 },  sat: 0.62, top: 0.36, bottom: 0.2,  panel: 0.3 },
+  day:   { name: 'day',   warm: null,                  sat: 0.78, top: 0.46, bottom: 0.3,  panel: 0.34 },
+  dusk:  { name: 'dusk',  warm: { hue: 330, t: 0.16 }, sat: 0.58, top: 0.3,  bottom: 0.15, panel: 0.25 },
+  night: { name: 'night', warm: { hue: 235, t: 0.15 }, sat: 0.55, top: 0.19, bottom: 0.07, panel: 0.16 }
 };
 
 /** Every CSS variable the theme sets (so a change can clear the old ones). */
@@ -160,16 +158,6 @@ export function seasonOf(month) {   // month: 1..12
   return 'autumn';
 }
 
-var HOLIDAYS = [
-  { id: 'halloween', from: [10, 24], to: [10, 31] },
-  { id: 'holidays', from: [12, 15], to: [12, 26] }
-];
-
-function inWindow(month, day, from, to) {
-  var v = month * 100 + day;
-  return v >= from[0] * 100 + from[1] && v <= to[0] * 100 + to[1];
-}
-
 /** The choices for Settings -> Colors: [id, label]. */
 export var THEME_CHOICES = [
   ['auto', 'Auto (time & season)'],
@@ -177,77 +165,43 @@ export var THEME_CHOICES = [
   ['winter', 'Winter'],
   ['spring', 'Spring'],
   ['summer', 'Summer'],
-  ['autumn', 'Autumn'],
-  ['halloween', 'Halloween'],
-  ['holidays', 'Winter holidays']
+  ['autumn', 'Autumn']
 ];
 
 /**
  * @param {Date} date
- * @param {string} mode 'auto', 'classic', or a world id to pick by hand (it still follows the time of day)
- * @returns {{mode: string, world: string, daypart: string, season: string, name: string, decor: string[], motion: string, vars: Object<string,string>}}
+ * @param {string} mode 'auto', 'classic', or a season id to pick by hand (it still follows the time of day)
+ * @returns {{mode: string, world: string, daypart: string, season: string, name: string, vars: Object<string,string>}}
  */
 export function pickTheme(date, mode) {
-  if (mode === 'classic') return { mode: 'classic', world: 'classic', daypart: 'night', season: 'classic', holiday: null, name: 'Classic', decor: [], motion: 'none', vars: {} };
+  if (mode === 'classic') return { mode: 'classic', world: 'classic', daypart: 'night', season: 'classic', name: 'Classic', vars: {} };
   var d = date || new Date();
-  var month = d.getMonth() + 1;
   var daypart = daypartOf(d.getHours());
-  var world = WORLDS[mode] ? mode : null;
-  var holiday = null;
-  if (!world) {
-    for (var i = 0; i < HOLIDAYS.length; i++) {
-      if (inWindow(month, d.getDate(), HOLIDAYS[i].from, HOLIDAYS[i].to)) holiday = HOLIDAYS[i].id;
-    }
-    world = holiday || seasonOf(month);
-  } else if (world === 'halloween' || world === 'holidays') {
-    holiday = world;
-  }
-  var w = WORLDS[world];
+  var world = WORLDS[mode] ? mode : seasonOf(d.getMonth() + 1);
   return {
     mode: WORLDS[mode] ? mode : 'auto',
     world: world,
     daypart: daypart,
-    season: WORLDS[world] && !holiday ? world : seasonOf(month),
-    holiday: holiday,
-    name: w.name + ' ' + daypart,
-    decor: w.decor,
-    motion: w.motion,
+    season: world,
+    name: WORLDS[world].name + ' ' + daypart,
     vars: paletteFor(world, daypart)
   };
 }
 
-/** Write the theme onto the page: CSS variables, data attributes, and the decor layer. */
+/** Write the theme onto the page: CSS variables and data attributes (the CSS pattern reads data-daypart). */
 export function applyTheme(root, theme) {
   MANAGED.forEach(function (k) { root.style.removeProperty(k); });
   Object.keys(theme.vars).forEach(function (k) { root.style.setProperty(k, theme.vars[k]); });
   root.setAttribute('data-daypart', theme.daypart);
   root.setAttribute('data-season', theme.season);
   root.setAttribute('data-world', theme.world);
-  if (theme.holiday) root.setAttribute('data-holiday', theme.holiday);
-  else root.removeAttribute('data-holiday');
+  root.removeAttribute('data-holiday');
+  // Older versions filled this layer with falling or floating emoji; it is only a painted backdrop now
   var layer = typeof document !== 'undefined' ? document.getElementById('bgDecor') : null;
-  if (layer) fillDecor(layer, theme);
-}
-
-/** Falling or floating bits that fit the world (snowflakes, petals, leaves, bubbles...). */
-function fillDecor(layer, theme) {
-  var key = theme.world + ':' + theme.motion;
-  if (layer.getAttribute('data-key') === key) return;
-  layer.setAttribute('data-key', key);
-  layer.setAttribute('data-motion', theme.motion);
-  while (layer.firstChild) layer.removeChild(layer.firstChild);
-  if (!theme.decor.length) return;
-  for (var i = 0; i < 16; i++) {
-    var span = document.createElement('span');
-    span.textContent = theme.decor[i % theme.decor.length];
-    // fixed spread so the layout is the same every time
-    span.style.left = ((i * 37 + 7) % 96) + '%';
-    span.style.setProperty('--size', (22 + ((i * 13) % 26)) + 'px');
-    span.style.setProperty('--dur', (9 + ((i * 7) % 9)) + 's');
-    span.style.setProperty('--delay', '-' + ((i * 5) % 14) + 's');
-    span.style.setProperty('--sway', (14 + ((i * 11) % 28)) + 'px');
-    if (theme.motion === 'float') span.style.top = (8 + ((i * 29) % 84)) + '%';
-    layer.appendChild(span);
+  if (layer) {
+    while (layer.firstChild) layer.removeChild(layer.firstChild);
+    layer.removeAttribute('data-motion');
+    layer.removeAttribute('data-key');
   }
 }
 

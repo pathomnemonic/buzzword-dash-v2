@@ -21,6 +21,7 @@
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS } from './game/shopdata.js';
+import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
 var STORAGE_KEY = 'buzzword_dash_v1';
@@ -59,7 +60,7 @@ var DEFAULTS = {
     lastTipPromptAt: 0,
     lastReminderDate: '',
     avatarColors: {},
-    scrubColor: 0,
+    modelColors: {},   // per 3D character: { avatarId: { partKey: hex } }
     reducedMotion: false,
     quality: 'auto',
     uiTheme: 'auto',
@@ -582,6 +583,38 @@ class Storage {
         eq.skin = 'avatar_classic';
       }
     }
+
+    // Duplicate characters were retired (same model in another color). Owners move to the one it
+    // duplicated and are refunded: the full price if they already had it, otherwise the difference.
+    Object.keys(RETIRED_CHARACTERS).forEach(function (oldId) {
+      var info = RETIRED_CHARACTERS[oldId];
+      var owned = d.progression.ownedItems;
+      var at = owned.indexOf(oldId);
+      var wasEquipped = d.progression.equipped.skin === oldId;
+      if (at >= 0) {
+        owned.splice(at, 1);
+        var target = CHARACTER_MODELS.filter(function (m) { return m.id === info.to; })[0];
+        var targetPrice = target ? target.price : 0;
+        var refund = info.price;
+        if (owned.indexOf(info.to) < 0) {
+          owned.push(info.to);
+          refund = Math.max(0, info.price - targetPrice);
+        }
+        d.progression.coins = (d.progression.coins || 0) + refund;
+      }
+      if (wasEquipped) d.progression.equipped.skin = info.to;
+    });
+
+    // Scrub color used to be one setting for every medical character; it is now per character and per part
+    if (d.settings.scrubColor !== undefined) {
+      var oldScrub = d.settings.scrubColor;
+      delete d.settings.scrubColor;
+      if (oldScrub) {
+        d.settings.modelColors = d.settings.modelColors || {};
+        d.settings.modelColors.avatar_intern = Object.assign({ pants: oldScrub }, d.settings.modelColors.avatar_intern);
+      }
+    }
+    if (!d.settings.modelColors || typeof d.settings.modelColors !== 'object') d.settings.modelColors = {};
 
     // 30 fps became the default; switch everyone over once (it can still be turned off)
     if (!d.settings.fps30Seen) {

@@ -18,13 +18,16 @@ describe('theme by time and season', () => {
     expect([9, 10, 11].map(seasonOf)).toEqual(['autumn', 'autumn', 'autumn']);
   });
 
-  it('picks the world from the date, with holidays winning over the season', () => {
+  it('picks the season from the date, and there are no holiday looks', () => {
     expect(pickTheme(new Date(2026, 6, 10, 12), 'auto').world).toBe('summer');
     expect(pickTheme(new Date(2026, 0, 10, 12), 'auto').world).toBe('winter');
-    expect(pickTheme(new Date(2026, 9, 31, 21), 'auto').world).toBe('halloween');
+    expect(pickTheme(new Date(2026, 9, 31, 21), 'auto').world).toBe('autumn');
     expect(pickTheme(new Date(2026, 9, 23, 12), 'auto').world).toBe('autumn');
-    expect(pickTheme(new Date(2026, 11, 20, 12), 'auto').world).toBe('holidays');
+    expect(pickTheme(new Date(2026, 11, 20, 12), 'auto').world).toBe('winter');
     expect(pickTheme(new Date(2026, 6, 10, 12), 'auto').name).toBe('Summer day');
+    expect(worldIds()).toEqual(['winter', 'spring', 'summer', 'autumn']);
+    // a stored choice from the removed holiday looks just means Auto
+    expect(pickTheme(new Date(2026, 9, 31, 21), 'halloween').mode).toBe('auto');
   });
 
   it('lets the player pick a world by hand, and Classic changes nothing', () => {
@@ -38,8 +41,8 @@ describe('theme by time and season', () => {
   });
 });
 
-describe('the palettes are different worlds, and stay readable', () => {
-  it('looks radically different between worlds and between times of day', () => {
+describe('the palettes are tints of one clinic look, and stay readable', () => {
+  it('differs between seasons and between times of day', () => {
     const summerDay = paletteFor('summer', 'day');
     const winterDay = paletteFor('winter', 'day');
     const summerNight = paletteFor('summer', 'night');
@@ -81,19 +84,39 @@ describe('the palettes are different worlds, and stay readable', () => {
     expect(failures).toEqual([]);
   });
 
-  it('applying a theme sets variables and the decor layer, and leaves nothing behind', () => {
-    document.body.innerHTML = '<div id="bgDecor"></div>';
+  it('every season and time of day stays in the clinic teal family, with warm accents only as accents', () => {
+    const hue = (hex) => {
+      const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      if (!d) return 0;
+      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      return (h * 60 + 360) % 360;
+    };
+    worldIds().forEach((w) => DAYPARTS.forEach((d) => {
+      const p = paletteFor(w, d);
+      ['--panel', '--screen-top', '--screen-bottom', '--nav-top'].forEach((k) => {
+        const h = hue(p[k]);
+        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeGreaterThanOrEqual(140);
+        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeLessThanOrEqual(235);
+      });
+    }));
+    // the seasons show in the accents: they are not the same color from one season to the next
+    const pinks = new Set(worldIds().map((w) => paletteFor(w, 'day')['--accent-pink']));
+    expect(pinks.size).toBe(worldIds().length);
+  });
+
+  it('applying a theme sets variables, and there is no falling or floating decor', () => {
+    document.body.innerHTML = '<div id="bgDecor"><span>❄️</span></div>';
     const root = document.documentElement;
     applyTheme(root, pickTheme(new Date(2026, 0, 10, 12), 'auto'));
     expect(root.style.getPropertyValue('--screen-top')).toMatch(/^#[0-9a-f]{6}$/);
     expect(root.getAttribute('data-world')).toBe('winter');
+    expect(root.getAttribute('data-daypart')).toBe('day');
     const layer = document.getElementById('bgDecor');
-    expect(layer.children.length).toBe(16);
-    expect(layer.getAttribute('data-motion')).toBe('fall');
-    expect(layer.textContent).toContain('❄');
+    expect(layer.children.length).toBe(0);       // leftovers from an older version are cleared
+    expect(layer.hasAttribute('data-motion')).toBe(false);
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'auto'));
-    expect(layer.getAttribute('data-motion')).toBe('float');
-    expect(layer.textContent).toContain('☀');
+    expect(layer.children.length).toBe(0);
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'classic'));
     managedVariables().forEach((k) => expect(root.style.getPropertyValue(k)).toBe(''));
     expect(layer.children.length).toBe(0);

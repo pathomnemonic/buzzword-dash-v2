@@ -62,7 +62,7 @@ export var settingsMethods = {
         { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
       ],
       look: [
-        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto repaints the whole game with the time of day and the season. Or pick a season, or Classic for the original look.', type: 'select', options: THEME_CHOICES },
+        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto gives the menus a campy clinic look that picks up a tint from the time of day and the season. Or pick a season by hand, or Classic for the original purple.', type: 'select', options: THEME_CHOICES },
         { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
         { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
@@ -630,7 +630,7 @@ export var settingsMethods = {
       var cardText = createElement('div', {
         className: 'setting-sublabel',
         text: kind === 'model'
-          ? (eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length ? 'Pick the color of your scrubs below. Hats, other clothing and gear are for Classic characters.' : 'Animated 3D characters keep their own look. To wear a hat, change colors or wear clothing and gear, switch to a Classic character.')
+          ? (eqAvatar && eqAvatar.parts && eqAvatar.parts.length ? 'Recolor the parts of this character below. Hats, clothing and gear are for Classic characters.' : 'This character keeps its own look. To wear a hat, change colors or wear clothing and gear, switch to a Classic character.')
           : (kind === 'vehicle'
             ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
             : 'Everything below works on this character.')
@@ -646,7 +646,7 @@ export var settingsMethods = {
       shopItems.appendChild(card);
 
       if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
-      if (kind === 'model' && eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length) shopItems.appendChild(this._renderScrubColors());
+      if (kind === 'model' && eqAvatar && eqAvatar.parts && eqAvatar.parts.length) shopItems.appendChild(this._renderModelColors(eqAvatar));
       if (kind === 'classic') {
         shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
         shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
@@ -654,7 +654,7 @@ export var settingsMethods = {
       }
     } else {
       shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every character.'));
-      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Animated 3D monsters are marked (animated 3D).'));
+      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you.'));
     }
   },
 };

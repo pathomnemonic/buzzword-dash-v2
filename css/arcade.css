@@ -850,7 +850,8 @@ body.is-dying #teachEl {
 #gameContainer { visibility: hidden; }
 body.in-game #gameContainer { visibility: visible; }
 
-/* ---------- the painted backdrop and its falling / floating decor ---------- */
+/* ---------- the painted backdrop: a campy clinic (scrub teal, faint crosses, pills and hearts) ---------- */
+/* The colors come from the theme (season and time of day); the pattern is the same all year. */
 
 #bgDecor {
   position: fixed;
@@ -860,39 +861,10 @@ body.in-game #gameContainer { visibility: visible; }
   pointer-events: none;
   background:
     radial-gradient(ellipse 80% 55% at 50% 0%, var(--glow), transparent 70%),
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1.6px, transparent 1.8px) 0 0 / 18px 18px,
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27132%27 height=%27132%27 viewBox=%270 0 132 132%27%3E%3Cg fill=%27none%27 stroke=%27white%27 stroke-opacity=%27.11%27 stroke-width=%273%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M22 14v16M14 22h16%27/%3E%3Crect x=%2776%27 y=%2716%27 width=%2732%27 height=%2714%27 rx=%277%27 transform=%27rotate(-35 92 23)%27/%3E%3Cpath d=%27M34 98c-10-6-14-12-14-17a8 8 0 0 1 14-4 8 8 0 0 1 14 4c0 5-4 11-14 17z%27/%3E%3Ccircle cx=%27100%27 cy=%27102%27 r=%275%27/%3E%3Cpath d=%27M66 66h9l4-9 6 18 4-9h13%27/%3E%3Cpath d=%27M104 56v10M99 61h10%27 stroke-width=%272.4%27/%3E%3Ccircle cx=%2720%27 cy=%2760%27 r=%273%27/%3E%3C/g%3E%3C/svg%3E") 0 0 / 132px 132px,
     linear-gradient(180deg, var(--screen-top), var(--screen-bottom));
 }
 body.in-game #bgDecor { display: none; }
-#bgDecor span {
-  position: absolute;
-  font-size: var(--size, 30px);
-  opacity: 0.55;
-  will-change: transform;
-}
-#bgDecor[data-motion="fall"] span {
-  top: -60px;
-  animation: decorFall var(--dur, 12s) linear infinite;
-  animation-delay: var(--delay, 0s);
-}
-#bgDecor[data-motion="float"] span {
-  animation: decorBob var(--dur, 10s) ease-in-out infinite;
-  animation-delay: var(--delay, 0s);
-}
-@keyframes decorFall {
-  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  25% { transform: translate3d(var(--sway, 20px), 28vh, 0) rotate(60deg); }
-  50% { transform: translate3d(calc(var(--sway, 20px) * -1), 56vh, 0) rotate(130deg); }
-  75% { transform: translate3d(var(--sway, 20px), 84vh, 0) rotate(200deg); }
-  100% { transform: translate3d(0, 112vh, 0) rotate(270deg); }
-}
-@keyframes decorBob {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
-  50% { transform: translate3d(var(--sway, 20px), -22px, 0) rotate(8deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  #bgDecor span { animation: none !important; top: 20%; }
-}
 
 /* ---------- settings: a list of sections, each with its own page ---------- */
 

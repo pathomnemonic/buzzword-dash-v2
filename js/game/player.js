@@ -1051,6 +1051,17 @@ function applyHat(pg, hatItem, avatar) {
 
 // ===== MAIN BUILD FUNCTION =====
 
+/** The player's chosen colors for this character's parts, as tints for the model. */
+export function modelTints(avatar) {
+    var chosen = (storage.get('modelColors') || {})[avatar.id] || {};
+    var tints = [];
+    (avatar.parts || []).forEach(function (part) {
+        var hex = chosen[part.key];
+        if (hex) tints.push({ names: part.materials, color: hex });
+    });
+    return tints;
+}
+
 export function buildPlayer() {
     var avatar = getAvatarConfig();
     var equipped = storage.get('equipped');
@@ -1063,8 +1074,7 @@ export function buildPlayer() {
         // Real animated model. If it is still downloading, show the
         // procedural stand-in; "buzzword:model-ready" triggers a rebuild.
         var url = (import.meta.env && import.meta.env.BASE_URL ? import.meta.env.BASE_URL : '/') + avatar.modelUrl;
-        var scrubColor = storage.get('scrubColor');
-        var model = buildModelCharacter(url, avatar.scale, undefined, avatar.scrub && scrubColor ? { names: avatar.scrub, color: scrubColor } : null);
+        var model = buildModelCharacter(url, avatar.scale, undefined, modelTints(avatar));
         if (model) {
             // 3D characters keep their own look: no hats (they look wrong on the models)
             return model;

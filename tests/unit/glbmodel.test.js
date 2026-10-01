@@ -7,14 +7,15 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 
 describe('animated glTF avatar', () => {
-  it('loads the real model, finds the clips the state machine needs, and stands 2 units tall', async () => {
+  it('loads a real model, finds the clips the state machine needs, and stands 2 units tall', async () => {
     const { parseCharacterModel, buildModelCharacter, getModelClipNames, updateModelAnimation } = await import('../../js/game/charactermodel.js');
-    const bytes = readFileSync('public/models/RobotExpressive.glb');
+    const bytes = readFileSync('public/models/characters/doctor.glb');
     const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     await parseCharacterModel('test.glb', buffer);
 
     const clips = getModelClipNames('test.glb');
-    ['Running', 'Jump', 'Death', 'Idle', 'ThumbsUp'].forEach((name) => expect(clips, name).toContain(name));
+    expect(clips.length).toBeGreaterThanOrEqual(5);
+    ['Run', 'Death', 'Idle'].forEach((name) => expect(clips.some((c) => c.toLowerCase().includes(name.toLowerCase())), name).toBe(true));
 
     const pg = buildModelCharacter('test.glb', 1);
     expect(pg.userData.isModel).toBe(true);

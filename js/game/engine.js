@@ -27,12 +27,12 @@ import * as THREE from 'three';
 // === Imports from other agents (current signatures used as bridge) ===
 import { storage } from '../storage.js';
 import { getTheme } from './themes.js';
-import { getRandomSkin, SKINS } from './skins.js';
+import { getStartSkin, SKINS } from './skins.js';
 import { buildTrack, spawnEnvProp, calculateTargetFOV, updateCameraFOV, calculateCameraLean, getStreakVisualIntensity } from './track.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
 import { updateGateHighlights } from './gates.js';
-import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances } from './obstacles.js';
+import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstanceMeshes, reattachCoinInstances } from './obstacles.js';
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
@@ -216,6 +216,7 @@ class Game {
 
     // Map transition system
     this.encountersUntilTransition = 10;
+    this._mapChanges = 0;
     this.transitionActive = false;
     this.transitionTimer = 0;
     this.transitionDuration = 3.0;
@@ -397,7 +398,7 @@ class Game {
     var container = options.container || document.getElementById('gameContainer');
 
     this.scene = new THREE.Scene();
-    this.currentSkin = getRandomSkin();
+    this.currentSkin = getStartSkin();
     this.scene.background = new THREE.Color(this.currentSkin.colors.bg);
 
     this.camera = new THREE.PerspectiveCamera(this.baseFOV, innerWidth / innerHeight, 0.1, 300);
@@ -587,6 +588,7 @@ class Game {
   render() {
     if (this.renderer && this.scene && this.camera) {
       if (!this._coinsInstanced) { enableCoinInstancing(this.scene); this._coinsInstanced = true; }
+      reattachCoinInstances(this.scene); // a scene sweep must never leave coins undrawn
       syncCoinInstances(this.coinMeshes);
       this._adaptResolution();
       var fx = this._getPostFX();
@@ -666,7 +668,8 @@ class Game {
     this._cleanupTrack();
     if (this.powerupFX) this.powerupFX.hideAll();
 
-    this.currentSkin = getRandomSkin();
+    this.currentSkin = getStartSkin(); // runs open indoors; the first map change goes outdoors
+    this._mapChanges = 0;
     // A favorite map (Settings) stays for the whole run; it is only cosmetic
     this._mapPinned = false;
     var wantedMap = options.skinId || storage.get('preferredMap');
@@ -710,7 +713,7 @@ class Game {
     var reduced = !!storage.get('reducedMotion');
     this._introStyle = reduced ? 'warp_in' : START_STYLES[Math.floor(Math.random() * START_STYLES.length)];
     // With the exam monster on, the run opens with a look-back shot (the monster is behind you); otherwise a random sweep
-    var monsterOn = !!this.examMonster && !storage.get('monsterOff');
+    var monsterOn = !!this.examMonster && this._monsterEnabled();
     this._introCamStyle = reduced ? 'sweep' : (monsterOn ? LOOKBACK_STYLE : CAMERA_STYLES[Math.floor(Math.random() * CAMERA_STYLES.length)]);
     this._transition(GAME_STATES.COUNTDOWN);
     this._emit('countdown_started', {});
@@ -1013,6 +1016,8 @@ class Game {
     protectedSet.add(self.playerShadow);
     protectedSet.add(self.playerGroup);
     if (self.examMonster) protectedSet.add(self.examMonster);
+    // The meshes that draw every coin in bulk are not scenery
+    coinInstanceMeshes().forEach(function (m) { protectedSet.add(m); });
 
     // Live gameplay objects must survive a map change: the scene is swept for
     // old environment pieces, but obstacles/gates/coins/pickups/props still

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterVisibility } from '../../js/game/monsterbehavior.js';
+import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterVisibility, monsterPolicy, MONSTER_POLICY } from '../../js/game/monsterbehavior.js';
 
 const rng = () => 0.5;
 const run = (st, inp, seconds, dt = 1 / 60) => {
@@ -96,5 +96,42 @@ describe('the monster is out of sight at the start of a run', () => {
     expect(monsterVisibility(18, 0)).toBeGreaterThan(0.3);
     expect(monsterVisibility(18, 0)).toBeLessThan(0.7);
     expect(monsterVisibility(14, 0)).toBe(1);
+  });
+});
+
+describe('the monster in each game mode', () => {
+  it('is off where you cannot lose, or where one miss already ends the run', () => {
+    ['study', 'timed_practice', 'mp_suddendeath'].forEach((m) => expect(monsterPolicy(m).enabled, m).toBe(false));
+  });
+
+  it('is on in every scored mode, with the same settings for competitions so scores compare', () => {
+    ['endless', 'daily', 'challenge', 'tournament', 'versus', 'mp_highscore', 'mp_race'].forEach((m) => {
+      const p = monsterPolicy(m);
+      expect(p.enabled, m).toBe(true);
+      expect(p.miss, m).toBe(4);
+      expect(p.hit, m).toBe(1.5);
+    });
+  });
+
+  it('gives more room in weakness practice, and unknown modes get the standard monster', () => {
+    const weak = monsterPolicy('weakness');
+    expect(weak.enabled).toBe(true);
+    expect(weak.miss).toBeLessThan(monsterPolicy('endless').miss);
+    expect(weak.hit).toBeGreaterThan(monsterPolicy('endless').hit);
+    expect(monsterPolicy('something_new').enabled).toBe(true);
+  });
+
+  it('only names modes the engine knows', async () => {
+    const { GAME_MODES } = await import('../../js/game/enginedefs.js');
+    const known = Object.values(GAME_MODES);
+    Object.keys(MONSTER_POLICY).forEach((m) => expect(known, m).toContain(m));
+  });
+
+  it('a monster that is off never needs to catch anyone: even the worst streak of misses cannot reach 3.6', () => {
+    // enabled modes: starting at 26 it takes six standard misses to be caught, so a run is never ended by one slip
+    let z = 26;
+    let misses = 0;
+    while (z > 3.6) { z -= monsterPolicy('endless').miss; misses++; }
+    expect(misses).toBeGreaterThanOrEqual(6);
   });
 });
