@@ -26,7 +26,7 @@ test.describe('Home layout', () => {
         const box = await page.locator(sel).boundingBox();
         expect(box, sel).not.toBeNull();
         expect(box.y, sel).toBeGreaterThanOrEqual(0);
-        expect(box.y + box.height, sel).toBeLessThanOrEqual(navTop + 1);
+        expect(box.y + box.height, `${sel} bottom=${Math.round(box.y + box.height)} y=${Math.round(box.y)} h=${Math.round(box.height)} navTop=${Math.round(navTop)} viewport=${size.width}x${size.height}`).toBeLessThanOrEqual(navTop + 1);
       }
     });
   }
@@ -90,8 +90,12 @@ test.describe('Home layout', () => {
     await openApp(page);
     const swipe = async (dx) => page.evaluate((d) => {
       const fire = (type, x) => {
-        const t = new Touch({ identifier: 1, target: document.body, clientX: x, clientY: 300 });
-        document.dispatchEvent(new TouchEvent(type, { touches: type === 'touchend' ? [] : [t], changedTouches: [t], bubbles: true }));
+        // Touch and TouchEvent do not exist in desktop Firefox or WebKit, so build a plain event with the same shape
+        const t = { identifier: 1, target: document.body, clientX: x, clientY: 300 };
+        const ev = new Event(type, { bubbles: true, cancelable: true });
+        Object.defineProperty(ev, 'touches', { value: type === 'touchend' ? [] : [t] });
+        Object.defineProperty(ev, 'changedTouches', { value: [t] });
+        document.dispatchEvent(ev);
       };
       fire('touchstart', 200); fire('touchend', 200 + d);
     }, dx);
