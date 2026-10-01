@@ -192,6 +192,11 @@ function deepMerge(stored, defaults) {
     // For arrays, keep stored if it's an array, else use default
     return Array.isArray(stored) ? stored : deepClone(defaults);
   }
+  // A default of {} is a free-form map (card stats, subject stats, calendar...): keep everything
+  // that was stored in it. Merging it key by key would drop every entry.
+  if (Object.keys(defaults).length === 0) {
+    return Array.isArray(stored) ? deepClone(defaults) : stored;
+  }
   var result = {};
   for (var key in defaults) {
     if (!Object.prototype.hasOwnProperty.call(defaults, key)) continue;

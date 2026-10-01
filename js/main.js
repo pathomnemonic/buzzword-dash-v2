@@ -1022,6 +1022,7 @@ function init() {
     window.__game = game;
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
+    window.__storage = storage;
   }
   storage.load();
   storage.checkDailyReset();

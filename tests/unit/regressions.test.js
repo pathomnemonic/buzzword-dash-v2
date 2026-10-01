@@ -145,3 +145,36 @@ describe('adaptive resolution with a 30 fps cap', () => {
     expect(ups).toContain(1);
   });
 });
+
+describe('saved progress survives a reload', () => {
+  it('keeps card stats, subject stats, calendar, daily counts, quest state and avatar colors', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    storage.updateCardStat('n001', false);
+    storage.data.cards.subjectStats.Neurology = { correct: 3, wrong: 1 };
+    storage.data.history.calendarData['2026-09-30'] = 80;
+    storage.data.history.dailyCounts['2026-09-30'] = 12;
+    storage.data.progression.questState.q1 = { progress: 2 };
+    storage.data.settings.avatarColors.shirt = 0xff0000;
+    storage.save();
+    storage.load();
+    expect(storage.getCardStat('n001').wrong).toBe(1);
+    expect(storage.data.cards.subjectStats.Neurology).toEqual({ correct: 3, wrong: 1 });
+    expect(storage.data.history.calendarData['2026-09-30']).toBe(80);
+    expect(storage.data.history.dailyCounts['2026-09-30']).toBe(12);
+    expect(storage.data.progression.questState.q1).toEqual({ progress: 2 });
+    expect(storage.data.settings.avatarColors.shirt).toBe(0xff0000);
+  });
+
+  it('still fills in new settings for old saves', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    const raw = JSON.parse(JSON.stringify(storage.data));
+    delete raw.settings.uiTheme;
+    localStorage.setItem('buzzword_dash_v1', JSON.stringify(raw));
+    storage.load();
+    expect(storage.get('uiTheme')).toBe('auto');
+  });
+});
