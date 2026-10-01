@@ -106,6 +106,7 @@ export var RUN_END_REASONS = Object.freeze({
 
 var LANE_X = [-3, 0, 3];
 var ANSWER_LOCK_Z = -3;
+var OBSTACLE_GATE_GAP = 14; // units an obstacle trails behind the gate it spawns with
 
 // ─── Utility helpers ───
 
@@ -2692,13 +2693,11 @@ card = pickResult ? pickResult.card : null;
   _transitionToNextEncounter() {
     for (var m = 0; m < this.gateMeshes.length; m++) removeAndDispose(this.scene, this.gateMeshes[m]);
     this.gateMeshes = [];
-    // Decide the question first, so the obstacle can stay out of the right answer's lane, and place it
-    // beyond the gate so it only arrives after the answer has been locked in.
+    // Obstacles use any lane (so they give nothing away about the answer), but they trail well behind
+    // the gate: they only arrive after the answer has been locked in, never right at the gate.
     this._spawnEncounter();
     if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
-      var correctLane = -1;
-      for (var cl = 0; cl < this.gates.length; cl++) if (this.gates[cl].correct) correctLane = cl;
-      spawnObstacle(this.scene, this.obstacleMeshes, null, { avoidLane: correctLane, spawnZ: (this._gateSpawnZ || -50) - 8 });
+      spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: (this._gateSpawnZ || -50) - OBSTACLE_GATE_GAP });
     }
   }
 

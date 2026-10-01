@@ -1,5 +1,5 @@
 /* global localStorage, window */
-// tools/verify-obstacles.mjs — obstacles must never sit in the right answer's lane or arrive before the answer is locked;
+// tools/verify-obstacles.mjs — obstacles may use any lane (so they never give the answer away) but must trail well behind the gate;
 // staffed (animated) obstacles must animate.   node tools/verify-obstacles.mjs [http://localhost:4190]
 import { chromium } from '@playwright/test';
 const base = process.argv[2] || 'http://localhost:4190';
@@ -21,7 +21,7 @@ await page.locator('.btn-play').click();
 await page.waitForTimeout(7000);
 const res = await page.evaluate(() => {
   const g = window.__game;
-  const out = { spawned: 0, inCorrectLane: 0, tooEarly: 0, staffed: 0, lanes: [0, 0, 0] };
+  const out = { spawned: 0, inCorrectLane: 0, tooClose: 0, staffed: 0, lanes: [0, 0, 0] };
   for (let i = 0; i < 400; i++) {
     const before = g.obstacleMeshes.length;
     g._transitionToNextEncounter();
@@ -31,7 +31,7 @@ const res = await page.evaluate(() => {
       out.lanes[ob.userData.lane]++;
       const correct = g.gates.findIndex((x) => x.correct);
       if (ob.userData.lane === correct) out.inCorrectLane++;
-      if (ob.position.z >= g.gateZ) out.tooEarly++;
+      if (ob.position.z > g.gateZ - 12) out.tooClose++;
       if (ob.userData.staff) out.staffed++;
     }
     g.obstacleMeshes.forEach((m) => g.scene.remove(m)); g.obstacleMeshes.length = 0;
@@ -41,8 +41,8 @@ const res = await page.evaluate(() => {
 console.log(JSON.stringify(res));
 let problems = 0;
 if (res.spawned < 50) { problems++; console.log('  PROBLEM  too few obstacles spawned to test (' + res.spawned + ')'); }
-if (res.inCorrectLane) { problems++; console.log('  PROBLEM  ' + res.inCorrectLane + ' obstacles in the correct lane'); }
-if (res.tooEarly) { problems++; console.log('  PROBLEM  ' + res.tooEarly + ' obstacles ahead of the gate'); }
+if (!res.inCorrectLane) { problems++; console.log('  PROBLEM  obstacles never use the correct lane, so their lanes would give the answer away'); }
+if (res.tooClose) { problems++; console.log('  PROBLEM  ' + res.tooClose + ' obstacles within 12 units of the gate'); }
 if (!res.staffed) console.log('  note: no staffed obstacle appeared (models may not have loaded yet)');
 // a staffed obstacle animates
 await page.waitForTimeout(3000);

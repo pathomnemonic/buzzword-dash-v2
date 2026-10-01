@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { pickObstacleLane, getObstacleVariant } from '../../js/game/obstacles.js';
 
-describe('obstacles never block the right answer', () => {
-  it('never choose the correct lane, whatever the dice say', () => {
+describe('obstacle lanes', () => {
+  it('can keep a lane clear when asked to', () => {
     for (const correct of [0, 1, 2]) {
       for (let i = 0; i < 100; i++) {
         const lane = pickObstacleLane(correct, () => i / 100);
@@ -12,10 +12,10 @@ describe('obstacles never block the right answer', () => {
     }
   });
 
-  it('use every other lane over time', () => {
+  it('use every lane over time when nothing is excluded, so lanes never reveal the answer', () => {
     const seen = new Set();
-    for (let i = 0; i < 100; i++) seen.add(pickObstacleLane(1, Math.random));
-    expect([...seen].sort()).toEqual([0, 2]);
+    for (let i = 0; i < 200; i++) seen.add(pickObstacleLane(undefined, Math.random));
+    expect([...seen].sort()).toEqual([0, 1, 2]);
   });
 
   it('still work with no restriction', () => {

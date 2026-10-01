@@ -537,9 +537,9 @@ function addSlideIndicator(group) {
  * @returns {object} Metadata about the spawned obstacle: { variantId, type, lane, bounds }
  */
 /**
- * Which lane an obstacle may use. Never the lane holding the right answer, so an obstacle can
- * never get in the way of choosing it.
- * @param {number} avoidLane the correct lane (0-2), or -1/undefined for no restriction
+ * Which lane an obstacle may use. Normally any lane (so obstacles give nothing away about the
+ * answer); pass `avoidLane` to keep one lane clear.
+ * @param {number} [avoidLane] a lane (0-2) to keep clear, or -1/undefined for no restriction
  * @param {function(): number} [rand]
  */
 export function pickObstacleLane(avoidLane, rand) {
@@ -568,8 +568,8 @@ export function buildStaffMember(files, rand) {
 
 /**
  * @param {object} [options]
- * @param {number} [options.avoidLane] lane that must stay clear (the correct answer)
- * @param {number} [options.spawnZ] where it appears; beyond the gate, so it always arrives after the answer is locked
+ * @param {number} [options.avoidLane] a lane to keep clear (not used by the game: obstacles may be in any lane)
+ * @param {number} [options.spawnZ] where it appears; well beyond the gate, so it arrives after the answer is locked
  */
 export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
   options = options || {};
