@@ -134,6 +134,8 @@ const inView = (page, sel) => page.evaluate((s) => {
     return (r.info.render.frame - start) / 3;
   });
   check('A run draws about 30 frames a second by default', frames > 20 && frames < 36, frames.toFixed(1) + ' fps');
+  const fx = await page.evaluate(() => ({ degraded: window.__game._postfx ? !!window.__game._postfx.degraded : null, strikes: window.__storage.get('perfStrikes'), hint: window.__storage.get('perfHint') }));
+  check('The 30 fps cap does not switch the glow off or lower the graphics tier', fx.degraded !== true && !fx.strikes && !fx.hint, JSON.stringify(fx));
   await ctx.close();
 }
 

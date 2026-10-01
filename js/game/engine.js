@@ -652,7 +652,8 @@ class Game {
     if (storage.get('glowEffects') === false || storage.get('reducedMotion') || !useSceneryModels()) return null;
     if (!this._postfx) {
       try {
-        this._postfx = createPostFX(this.renderer, this.scene, this.camera);
+        var selfFx = this;
+        this._postfx = createPostFX(this.renderer, this.scene, this.camera, function () { return selfFx.targetFrameMs; });
       } catch (e) {
         console.warn('[Engine] Post-processing unavailable:', e.message);
         this._postfx = { degraded: true, render: function () {}, setSize: function () {}, dispose: function () {} };

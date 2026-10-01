@@ -21,9 +21,10 @@ var SAMPLE_FRAMES = 120;    // frames averaged before deciding
  * @param {THREE.WebGLRenderer} renderer
  * @param {THREE.Scene} scene
  * @param {THREE.Camera} camera
+ * @param {function(): number} [targetMs] the frame time the game aims for (33 ms when capped at 30 fps)
  * @returns {{render: function, setSize: function, degraded: boolean, dispose: function}}
  */
-export function createPostFX(renderer, scene, camera) {
+export function createPostFX(renderer, scene, camera, targetMs) {
   var size = renderer.getSize(new THREE.Vector2());
   var pixelRatio = renderer.getPixelRatio();
 
@@ -79,7 +80,9 @@ export function createPostFX(renderer, scene, camera) {
           elapsed += dt;
           frames++;
           if (frames >= SAMPLE_FRAMES) {
-            if (elapsed / frames > SLOW_FRAME_MS) api.degraded = true;
+            // "Too slow" is relative to the target: a game capped at 30 fps has 33 ms frames by design
+            var target = (targetMs && targetMs()) || 1000 / 60;
+            if (elapsed / frames > Math.max(SLOW_FRAME_MS, target * 1.45)) api.degraded = true;
             frames = 0;
             elapsed = 0;
           }
