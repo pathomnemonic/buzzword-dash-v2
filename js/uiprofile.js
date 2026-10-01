@@ -5,6 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { ICON_GROUPS, iconFor, iconId } from './profileicons.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
@@ -181,26 +182,31 @@ export var profileMethods = {
 
     // Avatar display
     var avatarSection = createElement('div', { className: 'profile-header' });
-    var avatarEl = createElement('div', { className: 'profile-avatar', text: '👤' });
+    var avatarEl = createElement('div', { className: 'profile-avatar', text: iconFor(profilePicture) });
     avatarSection.appendChild(avatarEl);
 
-    // Profile picture selector
-    var picSelector = createElement('div', { className: 'profile-picture-selector' });
-    var ownedSkins = storage.get('ownedItems').filter(function (id) {
-      return id.indexOf('avatar_') === 0;
-    });
-    ownedSkins.forEach(function (skinId) {
-      var opt = createElement('div', {
-        className: 'profile-pic-option' + (profilePicture === skinId ? ' active' : ''),
-        text: skinId === 'avatar_intern' ? '🩺' : skinId === 'avatar_attending' ? '👨‍⚕️' : skinId === 'avatar_superhero' ? '🦸' : skinId === 'avatar_robot' ? '🤖' : skinId === 'avatar_wizard' ? '🧙' : skinId === 'avatar_zombie' ? '🧟' : skinId === 'avatar_golden' ? '🏆' : skinId === 'avatar_ambulance' ? '🚑' : skinId === 'avatar_racecar' ? '🏎️' : skinId === 'avatar_hearse' ? '⚰️' : skinId === 'avatar_nurse' ? '👩‍⚕️' : skinId === 'avatar_surgeon' ? '🔪' : skinId === 'avatar_skeleton' ? '💀' : '👤'
+    // Profile picture: any symbol from the groups below
+    var picHeading = createElement('div', { className: 'profile-pic-heading', text: 'Pick your symbol' });
+    avatarSection.appendChild(picHeading);
+    var current = iconFor(profilePicture);
+    ICON_GROUPS.forEach(function (group) {
+      avatarSection.appendChild(createElement('div', { className: 'profile-pic-group', text: group.name }));
+      var picSelector = createElement('div', { className: 'profile-picture-selector', attributes: { role: 'group', 'aria-label': group.name + ' symbols' } });
+      group.icons.forEach(function (symbol) {
+        var opt = createElement('button', {
+          className: 'profile-pic-option' + (current === symbol ? ' active' : ''),
+          text: symbol,
+          attributes: { type: 'button', 'aria-label': 'Use ' + symbol, 'aria-pressed': current === symbol ? 'true' : 'false' }
+        });
+        opt.addEventListener('click', function () {
+          storage.set('profilePicture', iconId(symbol));
+          self.renderProfile();
+          document.dispatchEvent(new CustomEvent('dx:profile-changed'));
+        });
+        picSelector.appendChild(opt);
       });
-      opt.addEventListener('click', function () {
-        storage.set('profilePicture', skinId);
-        self.renderProfile();
-      });
-      picSelector.appendChild(opt);
+      avatarSection.appendChild(picSelector);
     });
-    avatarSection.appendChild(picSelector);
 
     // Name input
     var nameInput = createElement('input', {

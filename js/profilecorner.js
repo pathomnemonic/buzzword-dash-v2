@@ -8,6 +8,7 @@
 
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
+import { iconFor } from './profileicons.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 
 /** Short text for the button: the account's name, or an invitation to sign in. */
@@ -20,7 +21,8 @@ export function cornerLabel(status, profileName) {
 }
 
 /** One character for the round avatar. */
-export function cornerInitial(status, profileName) {
+export function cornerInitial(status, profileName, picture) {
+  if (typeof picture === 'string' && picture.indexOf('icon:') === 0) return iconFor(picture);
   if (status && status.email && !status.anonymous) {
     return ((profileName || status.email).charAt(0) || '?').toUpperCase();
   }
@@ -53,7 +55,7 @@ export function mountProfileCorner(deps) {
     var label = document.getElementById('profileCornerLabel');
     var avatar = document.getElementById('profileCornerAvatar');
     if (label) label.textContent = cornerLabel(st, name);
-    if (avatar) avatar.textContent = cornerInitial(st, name);
+    if (avatar) avatar.textContent = cornerInitial(st, name, deps.storage.get('profilePicture'));
     button.classList.toggle('signed-in', !!(st && st.email && !st.anonymous));
   }
 
@@ -134,5 +136,6 @@ export function mountProfileCorner(deps) {
   }
 
   refresh();
+  document.addEventListener('dx:profile-changed', refresh);
   return { refresh: refresh, open: open, close: close, onLeaderboardReady: watchAuth };
 }

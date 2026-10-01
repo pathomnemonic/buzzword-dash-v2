@@ -1348,3 +1348,9 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 }
 .play-sub .link-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
 .play-sub .link-btn:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+
+/* ---------- profile symbol picker ---------- */
+.profile-pic-heading { margin-top: 10px; font-weight: 900; font-size: 13px; color: var(--accent-gold); }
+.profile-pic-group { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-secondary); }
+.profile-pic-option { font-family: inherit; color: inherit; padding: 0; }
+.profile-pic-option:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
