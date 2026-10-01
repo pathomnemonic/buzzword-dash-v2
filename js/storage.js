@@ -78,7 +78,8 @@ var DEFAULTS = {
     nightMode: false,
 
     speedTimerEnabled: false,
-    cardFreshnessWeight: 5
+    cardFreshnessWeight: 8,   // new cards come up much more often than ones already answered
+    freshnessDefaultSeen: false,
   },
 
   // --- Progression ---
@@ -615,6 +616,13 @@ class Storage {
       }
     }
     if (!d.settings.modelColors || typeof d.settings.modelColors !== 'object') d.settings.modelColors = {};
+
+    // New cards are now favored by default (8, was 5). Players still on the old default move over once;
+    // anyone who picked their own number keeps it.
+    if (!d.settings.freshnessDefaultSeen) {
+      d.settings.freshnessDefaultSeen = true;
+      if (d.settings.cardFreshnessWeight === 5) d.settings.cardFreshnessWeight = 8;
+    }
 
     // 30 fps became the default; switch everyone over once (it can still be turned off)
     if (!d.settings.fps30Seen) {

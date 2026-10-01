@@ -1073,3 +1073,59 @@ body.in-game #bgDecor { display: none; }
   .tut-runner.rush { outline: 3px solid var(--accent-gold); border-radius: 8px; }
 }
 @media (max-height: 640px) { .tut-arena { height: 150px; } .tut-obstacle { font-size: 24px; } }
+
+/* ---------- the stat bar: bigger, so coins, score and lives are easy to read at a glance ---------- */
+
+#hud .hud-row { gap: 5px; flex-wrap: nowrap; justify-content: center; }
+#hud .hud-pill {
+  font-size: 15px;
+  font-weight: 900;
+  padding: 4px 7px;
+  min-height: 38px;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+#hud .hud-pill > span[aria-hidden] { font-size: 18px; line-height: 1; }
+#hud #pauseBtn { flex: 0 0 auto; min-width: 42px; padding: 4px 6px; font-size: 18px; }
+#hud #hudSpeedTimer { font-size: 12px; }
+@media (max-width: 360px) {
+  #hud .hud-pill { font-size: 13px; padding: 4px 5px; min-height: 34px; }
+  #hud .hud-pill > span[aria-hidden] { font-size: 15px; }
+}
+
+/* ---------- short messages (map names, hazards, power-ups): a small chip low on the screen ---------- */
+
+#noticeDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom, 0px) + 16px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.notice-chip {
+  max-width: 90vw;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(10, 5, 30, 0.88);
+  border: 3px solid var(--notice-color, var(--accent-cyan));
+  box-shadow: 0 3px 0 var(--ink, #1b0a40);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.notice-chip.show { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .notice-chip { transition: none; transform: none; } }
+body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); } /* above the bottom nav on menus */

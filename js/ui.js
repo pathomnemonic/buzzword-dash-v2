@@ -1110,13 +1110,32 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
 
+  /**
+   * A short message that stays out of the way: a small chip at the bottom of the screen, under the
+   * runner, never over the question, the answer lanes or the track. Used for map names, hazards,
+   * power-ups and match messages. At most three show at once; the oldest goes first.
+   * @param {string} text
+   * @param {{color?: string, ms?: number}} [options]
+   */
+  showNotice(text, options) {
+    options = options || {};
+    var dock = document.getElementById('noticeDock');
+    if (!dock) {
+      dock = createElement('div', { attributes: { id: 'noticeDock', role: 'status', 'aria-live': 'polite' } });
+      document.body.appendChild(dock);
+    }
+    while (dock.children.length >= 3) dock.removeChild(dock.firstChild);
+    var chip = createElement('div', { className: 'notice-chip', text: text });
+    if (options.color) chip.style.setProperty('--notice-color', options.color);
+    dock.appendChild(chip);
+    requestAnimationFrame(function () { chip.classList.add('show'); });
+    var ms = options.ms || 2200;
+    setTimeout(function () { chip.classList.remove('show'); }, ms);
+    setTimeout(function () { if (chip.parentNode) chip.parentNode.removeChild(chip); }, ms + 450);
+  }
+
   showTrackName(text) {
-    var overlay = document.getElementById('trackNameOverlay');
-    if (!overlay) return;
-    var nameEl = document.getElementById('trackNameText');
-    if (nameEl) setText(nameEl, text);
-    overlay.classList.add('show');
-    setTimeout(function () { overlay.classList.remove('show'); }, 2500);
+    this.showNotice('🗺 ' + text, { color: 'var(--accent-cyan)', ms: 2500 });
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1154,13 +1173,8 @@ class UI {
   }
 
   showStreakMilestone(streak, multiplier) {
-    if (prefersReducedMotion()) return;
     var callout = streakCallout(streak);
-    var popup = createElement('div', { text: '🔥 ' + streak + ' STREAK! ×' + multiplier + (callout ? ' — ' + callout : '') });
-    popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;color:var(--accent-cyan);text-shadow:0 0 12px rgba(24,255,255,0.5);pointer-events:none;z-index:6;transition:all 1s ease-out;opacity:1;';
-    document.body.appendChild(popup);
-    requestAnimationFrame(function () { popup.style.top = '25%'; popup.style.opacity = '0'; });
-    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 1000);
+    this.showNotice('🔥 ' + streak + ' streak! ×' + multiplier + (callout ? ' — ' + callout : ''), { color: 'var(--accent-gold)', ms: 1800 });
   }
 
   showPowerupNotification(type) {
@@ -1171,11 +1185,7 @@ class UI {
       autoPilot: '🤖 Auto-Pilot!',
       scoreFrenzy: '💎 Score Frenzy!'
     };
-    var popup = createElement('div', { text: names[type] || type });
-    popup.style.cssText = 'position:fixed;top:45%;left:50%;transform:translateX(-50%);font-size:18px;font-weight:900;color:var(--accent-purple);text-shadow:0 0 10px rgba(179,136,255,0.5);pointer-events:none;z-index:6;transition:all 0.8s ease-out;opacity:1;';
-    document.body.appendChild(popup);
-    requestAnimationFrame(function () { popup.style.top = '30%'; popup.style.opacity = '0'; });
-    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 800);
+    this.showNotice(names[type] || type, { color: 'var(--accent-purple)', ms: 1600 });
   }
 
   showPowerupGlow(type) {

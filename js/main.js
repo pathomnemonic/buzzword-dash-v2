@@ -140,17 +140,8 @@ function hideOpponentHud() {
 }
 
 function showMultiplayerMessage(message, color) {
-  var popup = document.createElement('div');
-  popup.textContent = message;
-  popup.style.cssText =
-    'position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:40;' +
-    'padding:12px 20px;border-radius:14px;background:rgba(10,5,30,0.94);' +
-    'border:2px solid ' + (color || 'var(--accent-cyan)') + ';color:#fff;' +
-    'font-size:14px;font-weight:800;text-align:center;pointer-events:none;' +
-    'transition:opacity .4s ease;';
-  document.body.appendChild(popup);
-  setTimeout(function () { popup.style.opacity = '0'; }, 1800);
-  setTimeout(function () { popup.remove(); }, 2300);
+  // Same out-of-the-way chip as the map names and hazards (see ui.showNotice)
+  ui.showNotice(message, { color: color || 'var(--accent-cyan)', ms: 2200 });
 }
 
 function scheduleVersusStart(config) {
