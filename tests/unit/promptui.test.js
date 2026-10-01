@@ -53,3 +53,22 @@ describe('the ask on the results screen', () => {
     expect(deps.toast).toHaveBeenCalledWith(expect.stringMatching(/copied/i));
   });
 });
+
+describe('the account invitation on the Profile tab', () => {
+  it('shows while signed out, can be put off for the session, and never shows when signed in', async () => {
+    const { attachAccountBanner } = await import('../../js/promptui.js');
+    document.body.innerHTML = '<div id="c"><h4>Existing</h4></div>';
+    const container = document.getElementById('c');
+    const openAccount = vi.fn();
+    expect(attachAccountBanner({ container, signedIn: true, accountsAvailable: true, openAccount })).toBe(false);
+    expect(attachAccountBanner({ container, signedIn: false, accountsAvailable: false, openAccount })).toBe(false);
+    expect(attachAccountBanner({ container, signedIn: false, accountsAvailable: true, openAccount })).toBe(true);
+    expect(container.firstChild.classList.contains('account-banner')).toBe(true);
+    expect(attachAccountBanner({ container, signedIn: false, accountsAvailable: true, openAccount })).toBe(false); // no duplicates
+    container.querySelector('.btn-gold').click();
+    expect(openAccount).toHaveBeenCalled();
+    container.querySelector('.btn-outline').click();
+    expect(container.querySelector('.account-banner')).toBeNull();
+    expect(attachAccountBanner({ container, signedIn: false, accountsAvailable: true, openAccount })).toBe(false); // put off
+  });
+});

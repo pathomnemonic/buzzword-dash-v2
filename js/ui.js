@@ -317,7 +317,7 @@ class UI {
     }
     if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
-    if (screenId === 'screenProfile') { this.renderProfile(); this.renderCalendar(); }
+    if (screenId === 'screenProfile') { this.renderProfile(); this.renderCalendar(); document.dispatchEvent(new CustomEvent('dx:profile-opened')); }
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
     if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
     if (screenId === 'screenFlashcard') this.renderFlashcardScreen();

@@ -46,6 +46,41 @@ export function canShareGame() {
   return !!getShareUrl() && typeof navigator !== 'undefined' && !!(navigator.clipboard && navigator.clipboard.writeText);
 }
 
+var _bannerDismissed = false;
+
+/**
+ * On the Profile tab: while signed out, a card at the top invites the player to make an account.
+ * "Not now" hides it until the app is reopened; it never appears once they are signed in.
+ * @returns {boolean} whether the card was added
+ */
+export function attachAccountBanner(deps) {
+  if (_bannerDismissed || deps.signedIn || !deps.accountsAvailable || !deps.container) return false;
+  if (deps.container.querySelector('.account-banner')) return false;
+  var box = document.createElement('div');
+  box.className = 'prompt-card account-banner';
+  var text = document.createElement('div');
+  text.className = 'prompt-text';
+  text.textContent = 'Create a free account to keep your progress safe, sync it between devices and join the leaderboards.';
+  box.appendChild(text);
+  var row = document.createElement('div');
+  row.className = 'prompt-row';
+  var go = document.createElement('button');
+  go.type = 'button';
+  go.className = 'btn btn-sm btn-gold';
+  go.textContent = '👤 Create account';
+  go.addEventListener('click', function () { deps.openAccount(); });
+  var later = document.createElement('button');
+  later.type = 'button';
+  later.className = 'btn btn-sm btn-outline';
+  later.textContent = 'Not now';
+  later.addEventListener('click', function () { _bannerDismissed = true; box.remove(); });
+  row.appendChild(go);
+  row.appendChild(later);
+  box.appendChild(row);
+  deps.container.insertBefore(box, deps.container.firstChild);
+  return true;
+}
+
 var COPY = {
   account: {
     text: 'Your progress is saved on this device only. Make a free account to keep it safe and to appear on the leaderboards.',

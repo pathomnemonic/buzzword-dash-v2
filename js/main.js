@@ -31,7 +31,7 @@ import { reportError, showUserError, installGlobalErrorHandlers } from './errors
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner } from './profilecorner.js';
-import { attachPromptCard } from './promptui.js';
+import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
 import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
 import { mountFlyers } from './homefx.js';
@@ -1020,6 +1020,17 @@ function init() {
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
+  // Profile tab: signed-out players are invited to make an account
+  document.addEventListener('dx:profile-opened', function () {
+    var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
+    var st = lb ? lb.getStatus() : null;
+    attachAccountBanner({
+      container: document.getElementById('profileContent'),
+      signedIn: !!(st && st.email && !st.anonymous),
+      accountsAvailable: !!(st && st.configured),
+      openAccount: function () { if (profileCorner) profileCorner.open(); }
+    });
+  });
   initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile']);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
