@@ -51,7 +51,7 @@ const SCREENS = {
   'settings data': async (p) => { await p.locator('[data-screen="screenSettings"]').click(); await p.locator('[data-section="data"]').click(); },
   'settings about': async (p) => { await p.locator('[data-screen="screenSettings"]').click(); await p.locator('[data-section="about"]').click(); },
   quests: async (p) => { await p.locator('#questBtn').click(); },
-  achievements: async (p) => { await p.locator('#achievementsBtn').click(); },
+  achievements: async (p) => { await p.locator('#profileBtn').click(); },
   'my cards': async (p) => { await p.locator('#myCardsBtn').click(); },
   multiplayer: async (p) => { await p.locator('#multiplayerBtn').click(); await p.waitForTimeout(800); },
   tutorial: async (p) => { await p.locator('[data-screen="screenSettings"]').click(); await p.locator('[data-section="about"]').click(); await p.locator('#settingsTutorialBtn').click(); },

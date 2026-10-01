@@ -50,6 +50,60 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
   });
 
+  test('the three question filters sit on one page behind a single row on Home', async ({ page }) => {
+    await openApp(page);
+    // Home shows one row, not the filters themselves
+    await expect(page.locator('#screenHome #filtersBtn')).toBeVisible();
+    await expect(page.locator('#screenHome #subjectToggle')).toHaveCount(0);
+    await expect(page.locator('#screenHome #examFilterContainer')).toHaveCount(0);
+    await expect(page.locator('#filtersSummary')).toHaveText(/All subjects/);
+
+    await page.locator('#filtersBtn').click();
+    await expect(page.locator('#screenFilters')).toHaveClass(/active/);
+    await expect(page.locator('.nav-item[aria-current="true"]')).toHaveAttribute('data-screen', 'screenHome');
+    // all three filters are on the page
+    await expect(page.locator('#screenFilters #subjectToggle')).toBeVisible();
+    await expect(page.locator('#screenFilters #examFilterToggle')).toBeVisible();
+    await expect(page.locator('#screenFilters #advancedFilterContainer')).toBeVisible();
+
+    // picking one subject changes the summary on Home
+    await page.locator('#subjectToggle').click();
+    await page.locator('#deselectAllSubjects').click();
+    await page.locator('#subjectScroll .subject-chip').first().click();
+    await page.locator('#screenFilters .back-btn').click();
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+    await expect(page.locator('#filtersSummary')).not.toHaveText(/All subjects/);
+  });
+
+  test('badges live in the profile, and a new badge wears a red dot until the profile is seen', async ({ page }) => {
+    await openApp(page, '/?debug=1');
+    // no separate Badges button on Home any more
+    await expect(page.locator('#achievementsBtn')).toHaveCount(0);
+    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(0);
+
+    // earn a badge: the profile buttons get a dot
+    await page.evaluate(() => {
+      window.__storage.unlockAchievement('ach_first_run');
+      document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+    });
+    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(1);
+    await expect(page.locator('#profileCornerBtn .nav-dot')).toHaveCount(1);
+
+    // the badges are in the profile, with the new one marked
+    await page.locator('#profileBtn').click();
+    await expect(page.locator('#screenProfile')).toHaveClass(/active/);
+    await expect(page.locator('#profileBadges')).toContainText(/Badges \(1\//);
+    await expect(page.locator('#profileBadges .achievement-item.is-new')).toHaveCount(1);
+    // tapping an earned badge pins it
+    await page.locator('#profileBadges .achievement-item.unlocked').first().click();
+    await expect(page.locator('#profileBadges .achievement-item.pinned')).toHaveCount(1);
+
+    // leaving the profile clears the dot
+    await page.locator('[data-screen="screenHome"]').click();
+    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(0);
+    await expect(page.locator('#profileCornerBtn .nav-dot')).toHaveCount(0);
+  });
+
   test('only the current tab is highlighted', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenStats"]').click();

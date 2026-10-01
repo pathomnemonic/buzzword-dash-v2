@@ -55,3 +55,12 @@ describe('flying medical objects on the home backdrop', () => {
     expect(layer.classList.contains('paused')).toBe(false);
   });
 });
+
+describe('where the flying objects show', () => {
+  it('only on the Home screen', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync('css/arcade.css', 'utf8');
+    expect(css).toMatch(/body:not\(\[data-screen="screenHome"\]\) #bgFlyers \{ display: none; \}/);
+    expect(readFileSync('index.html', 'utf8')).toMatch(/<body data-screen="screenHome">/);
+  });
+});

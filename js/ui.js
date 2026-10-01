@@ -113,7 +113,6 @@ class UI {
     this.renderStats();
     this.renderShop();
     this.renderQuests();
-    this.renderAchievements();
     this.setupSpeedDial();
     this.bindNavigation();
     this.bindMusicToggle();
@@ -126,6 +125,7 @@ class UI {
     this.renderCalendar();
     this.renderExamFilter();
     this.renderAdvancedFilters();
+    this._renderFiltersSummary();
     this._bindGlobalEscapeKey();
   }
 
@@ -280,11 +280,15 @@ class UI {
       this._lockerFresh = [];
       document.dispatchEvent(new CustomEvent('dx:coins-changed'));
     }
+    // Leaving the profile: the badges that wore a red dot have now been seen
+    var profileEl = document.getElementById('screenProfile');
+    if (profileEl && profileEl.classList.contains('active') && screenId !== 'screenProfile') storage.markAchievementsSeen();
     document.querySelectorAll('.screen').forEach(function (s) {
       s.classList.remove('active');
     });
     var el = document.getElementById(screenId);
     if (el) el.classList.add('active');
+    document.body.setAttribute('data-screen', screenId); // the flying objects are a Home-only element
 
     if (screenId === 'screenHome') {
       this.renderHome();
@@ -300,7 +304,6 @@ class UI {
     if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
-    if (screenId === 'screenAchievements') this.renderAchievements();
     if (screenId === 'screenProfile') this.renderProfile();
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
     if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
@@ -314,8 +317,10 @@ class UI {
       this.homeCharacter.stopAnimation();
     }
 
+    document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+
     document.querySelectorAll('.nav-item').forEach(function (n) {
-      var isCurrent = n.dataset.screen === screenId;
+      var isCurrent = n.dataset.screen === (screenId === 'screenFilters' ? 'screenHome' : screenId);
       n.classList.toggle('active', isCurrent);
       // aria-current drives the highlight too, so it must follow the tab
       if (isCurrent) n.setAttribute('aria-current', 'true');
@@ -341,6 +346,13 @@ class UI {
     document.querySelectorAll('.back-btn').forEach(function (btn) {
       btn.addEventListener('click', function () { self.show('screenHome'); });
     });
+    // Question filters: one row on Home, a page of their own for subjects, exam and the advanced filters
+    var filtersBtn = document.getElementById('filtersBtn');
+    if (filtersBtn) filtersBtn.addEventListener('click', function () { self.show('screenFilters'); });
+    var filtersPage = document.getElementById('screenFilters');
+    // Any change on the page (a subject chip, an exam, a toggle) refreshes the summary on Home
+    if (filtersPage) filtersPage.addEventListener('click', function () { setTimeout(function () { self._renderFiltersSummary(); }, 0); });
+
     // The interactive tutorial: the same one from Home, Settings and the first run
     var howToBtn = document.getElementById('howToPlayBtn');
     if (howToBtn) howToBtn.addEventListener('click', function () { self.showTutorial(); });
@@ -350,8 +362,6 @@ class UI {
     if (shopBtn) shopBtn.addEventListener('click', function () { self.show('screenShop'); });
     var questBtn = document.getElementById('questBtn');
     if (questBtn) questBtn.addEventListener('click', function () { self.show('screenQuests'); });
-    var achievementsBtn = document.getElementById('achievementsBtn');
-    if (achievementsBtn) achievementsBtn.addEventListener('click', function () { self.show('screenAchievements'); });
     var myCardsBtn = document.getElementById('myCardsBtn');
     if (myCardsBtn) myCardsBtn.addEventListener('click', function () {
       self.show('screenMyCards');
@@ -660,6 +670,8 @@ class UI {
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
     this.renderCalendar();
+    this._renderFiltersSummary();
+    document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }
 
   // ═══════════════════════════════════════════════════════
@@ -959,7 +971,22 @@ class UI {
     });
   }
 
+  /** The one-line summary on Home's "Question filters" row, e.g. "All subjects · USMLE · 2 filters". */
+  _renderFiltersSummary() {
+    var el = document.getElementById('filtersSummary');
+    if (!el) return;
+    var subjects = storage.get('selectedSubjects') || [];
+    var exams = storage.get('selectedExams') || [];
+    var advanced = (storage.get('selectedQuestionTypes') || []).length + (storage.get('selectedYears') || []).length + (storage.get('highYieldOnly') ? 1 : 0);
+    var parts = [];
+    parts.push(subjects.length === 0 || subjects.length >= SUBJECTS.length ? 'All subjects' : subjects.length === 1 ? subjects[0] : subjects.length + ' subjects');
+    if (exams.length) parts.push(exams.length === 1 ? String(exams[0]) : exams.length + ' exams');
+    if (advanced) parts.push(advanced + (advanced === 1 ? ' filter' : ' filters'));
+    setText(el, parts.join(' · '));
+  }
+
   _updateFilterCount() {
+    this._renderFiltersSummary();
     var selectedTypes = storage.get('selectedQuestionTypes') || [];
     var selectedYears = storage.get('selectedYears') || [];
     var highYieldOnly = storage.get('highYieldOnly') || false;
@@ -1210,6 +1237,7 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   showAchievementNotification(achievementIds) {
+    document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the new badges now wear a red dot
     var delay = 0;
     achievementIds.forEach(function (achId) {
       var ach = null;
@@ -1440,34 +1468,6 @@ class UI {
   // QUESTS (with claiming support per Section 14.6) [2]
   // ═══════════════════════════════════════════════════════
 
-
-  // ═══════════════════════════════════════════════════════
-  // ACHIEVEMENTS
-  // ═══════════════════════════════════════════════════════
-
-  renderAchievements() {
-    var container = document.getElementById('achievementsList');
-    if (!container) return;
-    clearElement(container);
-    var unlocked = storage.get('achievements');
-
-    ACHIEVEMENTS.forEach(function (ach) {
-      var isUnlocked = unlocked.indexOf(ach.id) >= 0;
-      var item = createElement('div', {
-        className: 'achievement-item ' + (isUnlocked ? 'unlocked' : 'locked')
-      });
-
-      var iconEl = createElement('div', { className: 'achievement-icon', text: isUnlocked ? ach.icon : '🔒' });
-      item.appendChild(iconEl);
-
-      var info = createElement('div', { className: 'achievement-info' });
-      info.appendChild(createElement('div', { className: 'achievement-name', text: ach.name }));
-      info.appendChild(createElement('div', { className: 'achievement-desc', text: ach.desc }));
-      item.appendChild(info);
-
-      container.appendChild(item);
-    });
-  }
 
   // ═══════════════════════════════════════════════════════
   // SETTINGS (with extension mounting) [2]

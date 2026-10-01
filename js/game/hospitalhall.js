@@ -256,9 +256,11 @@ function bayDetails(g, side, z, k, xin) {
     box(g, 0.08, 0.1, 2.8, 0xffffff, xin(0.14), 3.0, z);
     for (var l = 0; l < 7; l++) box(g, 0.08, 0.36, 0.2, 0xffffff, xin(0.15), 3.4, z - 1.2 + l * 0.4);
   } else {
-    // parked ambulance seen from behind: white box, red stripe, beacon
-    var ax = xin(1.0);
-    var amb = model(g, side < 0 ? 'med_ambulance' : 'med_ambulance2', { width: 2.0, height: 2.4, depth: 4.2 }, xin(1.3), 0, z, side, Math.PI);
+    // A parked ambulance, long side along the wall and backed half into it, so it never reaches the
+    // lanes (the outer lane's edge is 4.5 from the middle; the wall is at 5.5, so only its inner
+    // 0.8 shows). The model's length is its local z, so it is turned to run along the track.
+    var ax = xin(-0.15);
+    var amb = model(g, side < 0 ? 'med_ambulance' : 'med_ambulance2', { width: 2.0, height: 2.4, depth: 4.2 }, xin(-0.15), 0, z, side, side < 0 ? -Math.PI / 2 : Math.PI / 2);
     if (!amb) {
     box(g, 1.5, 1.7, 2.6, 0xf4f6f7, ax, 1.15, z);
     box(g, 1.52, 0.25, 2.62, 0xd93030, ax, 1.3, z);

@@ -32,13 +32,14 @@ import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner } from './profilecorner.js';
 import { mountFlyers } from './homefx.js';
+import { updateAttentionDots } from './attentiondots.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
-import { SHOP_ITEMS } from './game/shopdata.js';
+import { SHOP_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
@@ -96,8 +97,10 @@ function setupCollapsibles() {
 
   if (subjectToggle && subjectBody) {
     subjectToggle.addEventListener('click', function () {
-      var isOpen = subjectBody.style.display !== 'none';
-      subjectBody.style.display = isOpen ? 'none' : 'block';
+      // The section starts closed (the `hidden` attribute); the first tap must open it
+      var isOpen = !subjectBody.hidden;
+      subjectBody.hidden = isOpen;
+      subjectToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
       if (subjectArrow) subjectArrow.classList.toggle('open', !isOpen);
     });
   }
@@ -1261,6 +1264,9 @@ function init() {
   renderLevelChip(document.getElementById('homeLevel'));
   updateLockerDot();
   document.addEventListener('dx:coins-changed', updateLockerDot);
+  // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
+  updateAttentionDots(storage, QUESTS);
+  document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, QUESTS); });
   document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {
     refreshHomeBadge(homeLeague);

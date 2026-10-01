@@ -227,42 +227,63 @@ export var profileMethods = {
     });
     container.appendChild(statsGrid);
 
-    // Badge selector
-    if (achievements.length > 0) {
-      var badgeSection = createElement('div', { className: 'profile-badges' });
-      badgeSection.appendChild(createElement('h4', { text: 'Selected Badges (tap to toggle, max 6)' }));
-      var badgeGrid = createElement('div', { className: 'profile-badge-grid' });
+    // Badges: every badge, earned or not. Earned ones can be pinned to the profile (up to 6); the ones
+    // earned since the profile was last open wear a red dot until the player leaves this screen.
+    var newBadges = storage.getNewAchievementIds();
+    var badgeSection = createElement('div', { className: 'profile-badges', attributes: { id: 'profileBadges' } });
+    var heading = createElement('h4', { text: '🏆 Badges (' + achievements.length + '/' + ACHIEVEMENTS.length + ')' });
+    badgeSection.appendChild(heading);
+    badgeSection.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Tap a badge you have earned to pin it to your profile (up to 6).' }));
+    var badgeList = createElement('div', { className: 'profile-badge-list' });
 
-      ACHIEVEMENTS.forEach(function (ach) {
-        if (achievements.indexOf(ach.id) < 0) return;
-        var isSelected = selectedBadges.indexOf(ach.id) >= 0;
-        var chip = createElement('div', {
-          className: 'subject-chip' + (isSelected ? ' selected' : ''),
-          text: ach.icon + ' ' + ach.name,
-          dataset: { badge: ach.id }
-        });
-        chip.style.cursor = 'pointer';
-        chip.addEventListener('click', function () {
+    ACHIEVEMENTS.forEach(function (ach) {
+      var earned = achievements.indexOf(ach.id) >= 0;
+      var isNew = newBadges.indexOf(ach.id) >= 0;
+      var pinned = selectedBadges.indexOf(ach.id) >= 0;
+      var item = createElement('div', {
+        className: 'achievement-item ' + (earned ? 'unlocked' : 'locked') + (pinned ? ' pinned' : '') + (isNew ? ' is-new' : ''),
+        dataset: { badge: ach.id }
+      });
+      item.appendChild(createElement('div', { className: 'achievement-icon', text: earned ? ach.icon : '🔒' }));
+      var info = createElement('div', { className: 'achievement-info' });
+      info.appendChild(createElement('div', { className: 'achievement-name', text: ach.name }));
+      info.appendChild(createElement('div', { className: 'achievement-desc', text: ach.desc }));
+      item.appendChild(info);
+      if (isNew) {
+        var dot = createElement('span', { className: 'nav-dot', attributes: { 'aria-label': 'New badge' } });
+        item.appendChild(dot);
+      }
+      if (earned) {
+        var pin = createElement('div', { className: 'badge-pin', text: pinned ? '📌' : '' });
+        item.appendChild(pin);
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+        var toggle = function () {
           var badges = storage.get('selectedBadges') || [];
           var idx = badges.indexOf(ach.id);
           if (idx >= 0) {
             badges.splice(idx, 1);
           } else {
             if (badges.length >= 6) {
-              self._showToast('Maximum 6 badges. Remove one first.');
+              self._showToast('You can pin up to 6 badges. Unpin one first.');
               return;
             }
             badges.push(ach.id);
           }
           storage.set('selectedBadges', badges);
-          chip.classList.toggle('selected');
-        });
-        badgeGrid.appendChild(chip);
-      });
-
-      badgeSection.appendChild(badgeGrid);
-      container.appendChild(badgeSection);
-    }
+          var on = badges.indexOf(ach.id) >= 0;
+          item.classList.toggle('pinned', on);
+          item.setAttribute('aria-pressed', on ? 'true' : 'false');
+          pin.textContent = on ? '📌' : '';
+        };
+        item.addEventListener('click', toggle);
+        item.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      }
+      badgeList.appendChild(item);
+    });
+    badgeSection.appendChild(badgeList);
+    container.appendChild(badgeSection);
 
     // Visibility toggle
     var visRow = createElement('div', { className: 'setting-row' });
@@ -379,6 +400,7 @@ export var profileMethods = {
             }
             self.renderQuests();
             self.renderHome();
+            document.dispatchEvent(new CustomEvent('dx:attention-changed'));
           });
           questEl.appendChild(claimBtn);
         } else {

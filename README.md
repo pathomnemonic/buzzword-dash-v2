@@ -106,6 +106,10 @@ A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry l
 
 The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. Settings -> Colors can pin a season or switch to Classic.
 
+## Filters, badges and red dots
+
+The three question filters (subjects, exam and the advanced ones) sit on one page, opened from a single "Question filters" row on Home that shows what is active (for example "All subjects" or "Cardiology · 2 filters"). Badges live in the profile: every badge is listed there, earned ones can be pinned (up to 6). Red dots mark what is waiting for you: a badge you have not looked at yet (on the Profile buttons), a finished quest or the weekly goal whose coins are unclaimed (on Quests and the weekly goal), and new things you can afford in the Locker. A dot goes away once you have seen or claimed the thing.
+
 ## Scoring
 
 - Correct answers build your streak.
@@ -179,6 +183,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
+- **Women doctors** — six Classic characters (Dr. Maya, Lin, Amara, Sofia, Zuri and Priya) with different specialties, hairstyles and skin tones, plus a ponytail on the Classic Nurse. The animated 3D set is still mostly men; adding more needs CC0 model files with the same skeleton, and the Quaternius and Poly Pizza sites were not reachable when this was done.
 - **Animated 3D characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion

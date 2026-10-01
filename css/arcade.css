@@ -868,6 +868,7 @@ body.in-game #bgDecor { display: none; }
 
 /* Things fly out of the middle of the screen: tiny at first, growing as they come toward you */
 #bgFlyers { position: absolute; inset: 0; }
+body:not([data-screen="screenHome"]) #bgFlyers { display: none; } /* a Home-only element: other pages stay easy to read */
 .flyer {
   position: absolute;
   left: 50%;
@@ -1151,3 +1152,26 @@ body.in-game #bgDecor { display: none; }
 .notice-chip.show { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .notice-chip { transition: none; transform: none; } }
 body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); } /* above the bottom nav on menus */
+
+/* ---------- Home's one-row "Question filters" entry (the three filters live on their own page) ---------- */
+.filters-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; }
+.filters-entry-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.filters-summary { font-size: 12px; font-weight: 700; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#screenFilters .back-btn { margin-bottom: 8px; }
+
+/* ---------- red dots on buttons and badges ---------- */
+.has-dot { position: relative; }
+.btn.has-dot > .nav-dot, .home-profile-btn.has-dot > .nav-dot { top: -6px; right: -4px; z-index: 3; }
+.home-profile-btn.has-dot > .nav-dot { top: 0; right: 4px; }
+.collapsible-toggle.has-dot > .nav-dot, #studyGoal.has-dot > .nav-dot { top: 4px; right: 8px; }
+
+/* Profile -> Badges */
+.profile-badges { margin: 14px 0; }
+.profile-badges h4 { margin: 0 0 2px; }
+.profile-badge-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.profile-badge-list .achievement-item { position: relative; cursor: default; }
+.profile-badge-list .achievement-item.unlocked { cursor: pointer; }
+.profile-badge-list .achievement-item.pinned { outline: 3px solid var(--accent-gold); outline-offset: -3px; }
+.profile-badge-list .achievement-item.is-new { box-shadow: 0 0 0 3px var(--accent-red); }
+.profile-badge-list .achievement-item > .nav-dot { top: -5px; right: -3px; }
+.badge-pin { margin-left: auto; font-size: 18px; min-width: 22px; text-align: center; }

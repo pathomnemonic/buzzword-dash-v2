@@ -79,6 +79,18 @@ export function mountProfileCorner(deps) {
     summary.appendChild(full);
     card.appendChild(summary);
 
+    var newBadges = deps.storage.getNewAchievementIds ? deps.storage.getNewAchievementIds().length : 0;
+    if (newBadges > 0) {
+      var badgeBtn = createElement('button', {
+        className: 'btn btn-gold btn-sm',
+        text: '🏆 ' + newBadges + (newBadges === 1 ? ' new badge' : ' new badges') + ' to see',
+        attributes: { type: 'button', id: 'accountBadgesBtn' }
+      });
+      badgeBtn.style.marginBottom = '10px';
+      badgeBtn.addEventListener('click', function () { close(); deps.openProfileScreen(); });
+      card.appendChild(badgeBtn);
+    }
+
     var body = createElement('div', { className: 'account-body', attributes: { id: 'accountBody' } });
     card.appendChild(body);
 

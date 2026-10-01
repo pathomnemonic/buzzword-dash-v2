@@ -80,6 +80,8 @@ var DEFAULTS = {
     speedTimerEnabled: false,
     cardFreshnessWeight: 8,   // new cards come up much more often than ones already answered
     freshnessDefaultSeen: false,
+    achievementsSeen: [],        // badges the player has already been shown (a red dot marks the rest)
+    achievementsSeenInit: false,
   },
 
   // --- Progression ---
@@ -617,6 +619,13 @@ class Storage {
     }
     if (!d.settings.modelColors || typeof d.settings.modelColors !== 'object') d.settings.modelColors = {};
 
+    // Badges the player already had when red dots were introduced count as seen; only new ones get a dot
+    if (!d.settings.achievementsSeenInit) {
+      d.settings.achievementsSeenInit = true;
+      d.settings.achievementsSeen = (d.progression.achievements || []).slice();
+    }
+    if (!Array.isArray(d.settings.achievementsSeen)) d.settings.achievementsSeen = [];
+
     // New cards are now favored by default (8, was 5). Players still on the old default move over once;
     // anyone who picked their own number keeps it.
     if (!d.settings.freshnessDefaultSeen) {
@@ -1089,6 +1098,30 @@ class Storage {
     this.data.progression.achievements.push(achId);
     this.save();
     return true;
+  }
+
+  /** Badges earned that the player has not been shown in their profile yet. */
+  getNewAchievementIds() {
+    var seen = this.data.settings.achievementsSeen || [];
+    return this.data.progression.achievements.filter(function (id) { return seen.indexOf(id) < 0; });
+  }
+
+  /** The player has looked at their badges: clear the red dots. */
+  markAchievementsSeen() {
+    var fresh = this.getNewAchievementIds();
+    if (!fresh.length) return false;
+    this.data.settings.achievementsSeen = (this.data.settings.achievementsSeen || []).concat(fresh);
+    this.save();
+    return true;
+  }
+
+  /** Today's quests that are finished but whose coins have not been claimed. */
+  getClaimableQuestIds(questList) {
+    var self = this;
+    var today = todayKey();
+    return (questList || []).filter(function (q) {
+      return self.getQuestProgress(q.id) >= q.target && !self.isQuestClaimed(q.id, today);
+    }).map(function (q) { return q.id; });
   }
 
   getAchievementCount() {
