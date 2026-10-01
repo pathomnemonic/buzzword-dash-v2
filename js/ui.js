@@ -1259,7 +1259,7 @@ class UI {
       setTimeout(function () {
         audio.play('achievement');
         var popup = createElement('div');
-        popup.style.cssText = 'position:fixed;top:15%;left:50%;transform:translateX(-50%);text-align:center;background:rgba(8,12,36,0.95);backdrop-filter:blur(10px);border:2px solid var(--accent-gold);border-radius:16px;padding:16px 24px;pointer-events:none;z-index:20;transition:all 1.5s ease-out;opacity:1;';
+        popup.style.cssText = 'position:fixed;bottom:110px;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100% - 32px);text-align:center;background:rgba(8,12,36,0.95);backdrop-filter:blur(10px);border:2px solid var(--accent-gold);border-radius:16px;padding:16px 24px;pointer-events:none;z-index:20;transition:all 1.5s ease-out;opacity:1;';
 
         popup.appendChild(createElement('div', { text: ach.icon }));
         popup.firstChild.style.cssText = 'font-size:28px;margin-bottom:4px';
@@ -1277,7 +1277,7 @@ class UI {
         popup.appendChild(descEl);
 
         document.body.appendChild(popup);
-        setTimeout(function () { popup.style.top = '5%'; popup.style.opacity = '0'; }, 2000);
+        setTimeout(function () { popup.style.bottom = '150px'; popup.style.opacity = '0'; }, 2000);
         setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 3500);
       }, delay);
       delay += 2000;

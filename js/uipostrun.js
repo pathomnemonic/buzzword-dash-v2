@@ -108,7 +108,7 @@ export var postRunMethods = {
     actionRow.appendChild(homeBtn);
     content.appendChild(actionRow);
 
-    var secRow = createElement('div');
+    var secRow = createElement('div', { className: 'post-secondary' });
     secRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px';
     content.appendChild(secRow);
 

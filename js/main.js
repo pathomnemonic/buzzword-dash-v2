@@ -1028,6 +1028,7 @@ function init() {
   // ?debug=1 exposes the engine on window.__game for measuring performance
   if (/[?&]debug=1(&|$)/.test(window.location.search)) {
     window.__game = game;
+    window.__ui = ui;
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
     window.__storage = storage;

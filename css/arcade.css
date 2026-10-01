@@ -1358,3 +1358,23 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .profile-pic-box > summary { cursor: pointer; font-weight: 900; font-size: 13px; color: var(--accent-gold); padding: 6px 0; list-style: none; text-align: center; }
 .profile-pic-box > summary::-webkit-details-marker { display: none; }
 .profile-name-input { width: 100%; max-width: 320px; }
+
+/* ---------- results page: everything is centered and fills the same width ---------- */
+#postRunContent .post-stats { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px; }
+#postRunContent .post-stat { padding: 8px 2px; min-width: 0; }
+#postRunContent .post-stat .val { font-size: 16px; white-space: nowrap; }
+#postRunContent .post-stat .label { font-size: 8px; letter-spacing: 0; }
+/* an odd button out (for example Share Score on its own) spans the full row instead of hugging the left */
+#postRunContent .post-secondary > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+#postRunContent .btn-block { width: 100%; }
+
+/* NEW BEST: centered on a full-width line (it used to shrink-wrap off the middle), and clear of the achievement popup, which rises from the bottom */
+.new-best-banner { left: 0 !important; right: 0; width: 100%; transform: none !important; text-align: center; white-space: nowrap; top: 9%; font-size: clamp(28px, 9vw, 38px); animation-name: newBestPulseCentered !important; }
+@keyframes newBestPulseCentered {
+  0% { opacity: 0; scale: 0.5; }
+  20% { opacity: 1; scale: 1.2; }
+  40% { scale: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -30px; }
+}
+#postRunContent > h3 { text-align: center; }
