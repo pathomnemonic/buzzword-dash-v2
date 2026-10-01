@@ -712,7 +712,7 @@ select:focus-visible {
 }
 .onboarding-card h2 { color: #fff; font-size: 24px; font-weight: 900; margin-bottom: 10px; }
 .onboarding-card p { color: rgba(255, 255, 255, 0.85); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
-.onboarding-card .ob-icon { font-size: 60px; margin-bottom: 14px; display: block; }
+.onboarding-card .ob-icon { font-size: 60px; font-weight: 900; color: #fff; letter-spacing: -2px; margin-bottom: 14px; display: block; }
 .onboarding-hand {
   font-size: 40px;
   display: inline-block;

@@ -172,7 +172,7 @@ class UI {
 
     this.tutorialPage = 0;
     this.tutorialPages = [
-      { icon: '⚡', title: 'Welcome!', text: 'Dx Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
+      { icon: 'Dx', title: 'Welcome!', text: 'Dx Dash is a fast-paced game that helps you master medical board concepts. See diagnostic buzzwords and run through the correct diagnosis gate!' },
       { icon: '👆', title: 'Move Between Lanes', text: '' + getControlText().move + ' Each lane has a different diagnosis — pick the one that matches the buzzwords at the top.' },
       { icon: '⬆️', title: 'Jump Over Obstacles', text: getControlText().jump + ' over hospital beds, crates, cones and other obstacles on the ground.' },
       { icon: '⬇️', title: 'Slide Under Obstacles', text: getControlText().slide + ' under overhead obstacles like hanging lights and signs.' },

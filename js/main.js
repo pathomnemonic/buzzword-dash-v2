@@ -99,7 +99,7 @@ function showOnboarding() {
   if (!overlay) return;
 
   var pages = [
-    { icon: '\u26A1', title: 'Welcome to Dx Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
+    { icon: 'Dx', title: 'Welcome to Dx Dash!', text: 'See medical buzzwords, then ' + getControlText().intro + ' to score points!', hand: '\uD83D\uDC46' },
     { icon: '\uD83D\uDC46', title: getControlText().touch ? 'Swipe to Move' : 'Use the Keyboard', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump, down to slide. Double-tap to rush for bonus points!' : 'Arrow keys or A/D switch lanes, up/W jumps, down/S slides. Press Shift or Space to rush for bonus points!', hand: getControlText().touch ? '\uD83D\uDC48\uD83D\uDC49' : '\u2328\uFE0F' },
     { icon: '\uD83C\uDFC6', title: 'Build Your Streak!', text: 'Correct answers build your streak and multiplier. Collect coins, unlock avatars, and climb the leaderboard!', hand: '' }
   ];
