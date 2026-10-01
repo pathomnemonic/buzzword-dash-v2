@@ -1736,12 +1736,7 @@ function handleNativeBack() {
     game.togglePause();
     return true;
   }
-  var current = document.querySelector('.screen.active');
-  if (current && current.id !== 'screenHome') {
-    ui.show('screenHome');
-    return true;
-  }
-  return false;
+  return ui.goBack(); // false on Home: the app may close
 }
 
 function startCloudSync(lbService) {

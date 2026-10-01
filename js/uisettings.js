@@ -46,9 +46,7 @@ export var settingsMethods = {
     }
 
     // ---- one section ----
-    var backBtn = createElement('button', { className: 'btn btn-outline btn-sm settings-back', text: '← All settings', attributes: { type: 'button' } });
-    backBtn.addEventListener('click', function () { self._settingsSection = null; self.renderSettings(); });
-    content.appendChild(backBtn);
+    // (the Back button at the top of the screen steps from a section back to this list)
     var title = createElement('h3', { className: 'settings-section-title', text: current.icon + ' ' + current.title });
     content.appendChild(title);
 

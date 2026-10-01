@@ -113,4 +113,20 @@ test.describe('Home layout', () => {
     await expect(page.locator('#tutorialOverlay')).toBeVisible();
     await expect(page.locator('#tutSkipBtn')).toBeVisible();
   });
+
+  test('every menu has a Back button that steps back one level', async ({ page }) => {
+    await openApp(page);
+    await page.locator('#settingsBtn').click();
+    await page.locator('.settings-card[data-section="sound"]').click();
+    await page.locator('#screenSettings .back-btn').click();     // section -> list of sections
+    await expect(page.locator('.settings-card[data-section="sound"]')).toBeVisible();
+    await page.locator('#screenSettings .back-btn').click();     // list -> Home
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+    await page.locator('#leaderboardBtn').click();
+    await page.locator('#screenLeaderboard .back-btn').click();
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+    await page.locator('#bottomNav [data-screen="screenStats"]').click();
+    await page.locator('#screenStats .back-btn').click();
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+  });
 });

@@ -351,6 +351,45 @@ class UI {
     if (this.homeCharacter) this.homeCharacter.stopAnimation();
   }
 
+  /** Where Back goes from each screen (anything not listed goes Home). */
+  _parentScreen(screenId) {
+    if (screenId === 'screenCardEditor' || screenId === 'screenImportExport') return 'screenMyCards';
+    return 'screenHome';
+  }
+
+  /**
+   * One step back, used by the on-screen Back buttons and the Android back button.
+   * @returns {boolean} false when already on Home (nothing to go back to)
+   */
+  goBack() {
+    var current = document.querySelector('.screen.active');
+    if (!current || current.id === 'screenHome') return false;
+    if (current.id === 'screenSettings' && this._settingsSection) {
+      this._settingsSection = null; // a settings section goes back to the list of sections
+      this.renderSettings();
+      return true;
+    }
+    this.show(this._parentScreen(current.id));
+    return true;
+  }
+
+  /** Every screen except Home and the results screen gets a Back button at the top. */
+  _addBackButtons() {
+    var self = this;
+    document.querySelectorAll('.screen').forEach(function (screen) {
+      if (screen.id === 'screenHome' || screen.id === 'screenPostRun') return;
+      var scroll = screen.querySelector('.screen-scroll');
+      if (!scroll || scroll.querySelector('.back-btn')) return;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-outline btn-sm back-btn';
+      btn.textContent = '← Back';
+      btn.setAttribute('aria-label', 'Back');
+      btn.addEventListener('click', function () { self.goBack(); });
+      scroll.insertBefore(btn, scroll.firstChild);
+    });
+  }
+
   bindNavigation() {
     var self = this;
     document.querySelectorAll('.nav-item').forEach(function (item) {
@@ -358,9 +397,7 @@ class UI {
         self.show(item.dataset.screen);
       });
     });
-    document.querySelectorAll('.back-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () { self.show('screenHome'); });
-    });
+    this._addBackButtons();
     // The interactive tutorial: the same one from Home, Settings and the first run
     var howToBtn = document.getElementById('howToPlayBtn');
     if (howToBtn) howToBtn.addEventListener('click', function () { self.showTutorial(); });

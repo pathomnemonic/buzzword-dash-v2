@@ -57,7 +57,7 @@ const inView = (page, sel) => page.evaluate((s) => {
     const withNotes = await page.locator('#settingsContent .setting-row .setting-sublabel').count();
     check('Settings > ' + sec + ' has rows', rows > 0, 'rows ' + rows);
     if (['sound', 'look', 'study'].includes(sec)) check('Settings > ' + sec + ' explains every setting', withNotes >= rows, withNotes + ' notes for ' + rows + ' rows');
-    await page.locator('.settings-back').click();
+    await page.locator('#screenSettings .back-btn').click();
     check('Settings > ' + sec + ' goes back to the list', (await page.locator('.settings-card').count()) === 6);
   }
 

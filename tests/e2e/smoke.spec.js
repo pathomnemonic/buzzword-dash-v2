@@ -28,7 +28,7 @@ test.describe('Smoke tests', () => {
     await expect(page.locator('.settings-card')).toHaveCount(6);
     await page.locator('.settings-card[data-section="study"]').click();
     await expect(page.getByText(/How much more often you see cards you have never answered/)).toBeVisible();
-    await page.locator('.settings-back').click();
+    await page.locator('#screenSettings .back-btn').click();
     await expect(page.locator('.settings-card')).toHaveCount(6);
   });
 
