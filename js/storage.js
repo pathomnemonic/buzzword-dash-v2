@@ -905,7 +905,7 @@ class Storage {
     return currentWeekKeys().reduce(function (sum, k) { return sum + (counts[k] || 0); }, 0);
   }
 
-  /** Record a top-10% weekly tournament finish once per week. @returns {boolean} true if newly earned */
+  /** Record a cleared Weekly Gauntlet (the old top-10% badge slot) once per week. @returns {boolean} true if newly earned */
   recordTournamentTop10(weekKey) {
     var list = this.data.progression.tournamentTop10Weeks;
     if (!Array.isArray(list)) list = this.data.progression.tournamentTop10Weeks = [];

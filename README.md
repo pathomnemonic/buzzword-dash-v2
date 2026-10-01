@@ -98,7 +98,7 @@ When you are down to 1 life, heart pickups may appear on the track. Collecting o
 
 An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only creeps into view when you answer incorrectly, and falls back (and fades away) when you answer correctly or build a streak. If it catches you, your run ends with a dramatic animation. Characters that are animated 3D models do not wear hats; hats are for the Classic characters.
 
-The monster follows the game mode. Study and timed practice have no way to lose, and sudden death ends on the first wrong answer, so there is no monster in those. Weakness practice gives you more room (a wrong answer moves it less, a right one pushes it back more). Every other mode uses the standard monster, and it depends only on your answers, so challenges, tournaments and versus stay comparable.
+The monster follows the game mode. Study and timed practice have no way to lose, and sudden death ends on the first wrong answer, so there is no monster in those. Weakness practice gives you more room (a wrong answer moves it less, a right one pushes it back more). Every other mode uses the standard monster, and it depends only on your answers, so challenges, the Gauntlet and versus stay comparable.
 
 ## Maps
 
@@ -195,8 +195,8 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
 - **Share image** — save or share a styled picture of your run result
-- **Weekly tournament** — the same 20 cards for everyone each week, a weekly board, your rank and a top-10% badge
-- **Friend activity feed** — see friends' new bests, streaks and tournament finishes, with a one-tap challenge
+- **Weekly Gauntlet** — 30 cards, the same all week, only 2 lives; clear it for a weekly badge and bonus coins (not ranked)
+- **Friend activity feed** — see friends' new bests, streaks and Gauntlet clears, with a one-tap challenge
 - **Group weekly goals** — a shared cards-per-week target with a progress bar and contributor list
 - **Offline decks** — decks fetched by code are saved on the device and can be re-added without a connection
 - **Progress backup** — save and restore all progress as a JSON file (Settings)

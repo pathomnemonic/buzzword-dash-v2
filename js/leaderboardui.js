@@ -363,7 +363,7 @@ function describeActivity(e) {
   switch (e.kind) {
     case 'new_best': return ['🏅', who + ' set a new best score: ' + Number(p.score || 0).toLocaleString()];
     case 'streak': return ['🔥', who + ' hit a ' + Number(p.streak || 0) + '-answer streak'];
-    case 'tournament': return ['🏆', who + ' placed #' + Number(p.rank || 0) + ' of ' + Number(p.total || 0) + ' in the weekly tournament'];
+    case 'tournament': return ['🏆', who + ' took part in an old weekly tournament (#' + Number(p.rank || 0) + ' of ' + Number(p.total || 0) + ')'];
     case 'exam': return ['📝', who + ' scored ' + Number(p.accuracy || 0) + '% on an exam simulation'];
     case 'group_join': return ['👪', who + ' joined a study group'];
     default: return ['✨', who + ' did something great'];

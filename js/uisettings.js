@@ -313,7 +313,7 @@ export var settingsMethods = {
     content.appendChild(heading);
     var note = createElement('div', {
       className: 'setting-sublabel',
-      text: 'Turn things off for endless, study and weakness runs. To keep rankings fair, a run with any rule changed still counts for your own progress but is not posted to leaderboards. Daily, challenges, tournaments and multiplayer always use standard rules.'
+      text: 'Turn things off for endless, study and weakness runs. To keep rankings fair, a run with any rule changed still counts for your own progress but is not posted to leaderboards. Daily, challenges, the Gauntlet and multiplayer always use standard rules.'
     });
     note.style.cssText = 'margin-bottom:8px;line-height:1.4;font-size:11px';
     content.appendChild(note);

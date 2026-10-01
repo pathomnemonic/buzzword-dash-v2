@@ -403,7 +403,7 @@ function configureMultiplayer(client, content) {
 // =========================================================================
 //  MODE STARTER  —  Canonical game.start(options) [2] §6.2
 // =========================================================================
-/** Start this week's tournament: the same 20 seeded cards for everyone. */
+/** Start this week's Gauntlet: the same 30 seeded cards for everyone, with 2 lives. */
 function startTournament() {
   Promise.all([import('./challenge.js'), import('./multiplayer.js')]).then(function (mods) {
     var challenge = mods[0];

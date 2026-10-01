@@ -102,7 +102,7 @@ export function isoWeekKey(date) {
 }
 
 /**
- * Deterministic seed for a week's tournament: everyone gets the same cards.
+ * Deterministic seed for a week's Gauntlet: everyone gets the same cards.
  * @param {string} weekKey
  * @returns {number} integer in [1, 2147483646]
  */

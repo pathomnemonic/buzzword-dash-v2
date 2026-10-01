@@ -23,7 +23,7 @@
  *  - Study and timed practice have no way to lose, so a monster would only be scenery: off.
  *  - Sudden death ends on the first wrong answer, so the monster could never matter: off.
  *  - Weakness is practice on the cards you miss: the monster is there but gives you more room.
- *  - Everything else is a scored run, and challenges, tournaments and versus compare players, so they all
+ *  - Everything else is a scored run, and challenges, the Gauntlet and versus compare players, so they all
  *    use the standard settings (it depends only on your answers, so it is the same for everyone).
  */
 export var MONSTER_POLICY = {

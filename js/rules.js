@@ -6,7 +6,7 @@
  * in single-player modes. To keep rankings fair, any run played with a rule
  * changed is a "custom" run: it still counts for the player's own progress,
  * but is never submitted to a leaderboard. Modes that compare players
- * (daily, challenges, tournaments, multiplayer) always use the standard rules.
+ * (daily, challenges, the Gauntlet, multiplayer) always use the standard rules.
  *
  * Cosmetic choices (avatar, colors, monster look, trail, favorite map) do not
  * change the game, so they never affect ranking.
