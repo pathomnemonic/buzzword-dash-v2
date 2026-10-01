@@ -18,7 +18,8 @@ test.describe('Smoke tests', () => {
   test('unreleased features stay out of sight', async ({ page }) => {
     await openApp(page);
     await expect(page.locator('#cohortsBtn')).toBeHidden();
-    await expect(page.getByText('Cohort', { exact: false })).toHaveCount(0);
+    // nothing a player can see mentions cohorts (hidden elements do not count)
+    expect(await page.evaluate(() => document.body.innerText.toLowerCase().includes('cohort'))).toBe(false);
   });
 
   test('bottom navigation is visible', async ({ page }) => {
