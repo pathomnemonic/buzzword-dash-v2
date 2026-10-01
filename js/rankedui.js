@@ -5,7 +5,7 @@
  */
 
 import { ranked, getCachedTrophies } from './ranked.js';
-import { LEAGUES, getLeague, leagueIndex, leagueProgress, describeLeagueRules } from './leagues.js';
+import { getLeague, tierName, tierStep, tierProgress, describeLeagueRules } from './leagues.js';
 
 var SEARCH_TIMEOUT_MS = 60000;
 var POLL_MS = 3000;
@@ -40,7 +40,7 @@ export function refreshHomeBadge(btn) {
   if (!ranked.isAvailable()) { btn.hidden = true; return; }
   function draw(t) {
     var l = getLeague(t);
-    btn.textContent = l.icon + ' ' + l.name + ' · 🏆 ' + t;
+    btn.textContent = l.icon + ' ' + tierName(t) + ' · 🏆 ' + t;
     btn.hidden = false;
   }
   draw(getCachedTrophies());
@@ -54,12 +54,12 @@ export function renderLeagueCard(box, stats) {
   box.textContent = '';
   var trophies = stats ? stats.trophies : getCachedTrophies();
   var league = getLeague(trophies);
-  var progress = leagueProgress(trophies);
+  var progress = tierProgress(trophies);
 
   var top = el('div', 'rk-top');
   top.appendChild(el('div', 'rk-badge', league.icon));
   var names = el('div', 'rk-names');
-  names.appendChild(el('div', 'rk-league', league.name + ' League'));
+  names.appendChild(el('div', 'rk-league', tierName(trophies)));
   names.appendChild(el('div', 'rk-trophies', '🏆 ' + trophies));
   top.appendChild(names);
   box.appendChild(top);
@@ -73,9 +73,9 @@ export function renderLeagueCard(box, stats) {
     ? progress.needed + ' 🏆 to ' + progress.next.icon + ' ' + progress.next.name
     : 'Top league. Defend your crown.'));
 
-  box.appendChild(el('div', 'rk-rules', 'In this league: ' + describeLeagueRules(trophies)));
+  box.appendChild(el('div', 'rk-rules', 'At your level: ' + describeLeagueRules(trophies)));
   if (progress.next) {
-    box.appendChild(el('div', 'rk-rules rk-rules-next', 'Next up: ' + describeLeagueRules(progress.next.min)));
+    box.appendChild(el('div', 'rk-rules rk-rules-next', (progress.next.promotion ? 'Next league: ' : 'Next step: ') + describeLeagueRules(progress.next.min)));
   }
   if (stats) {
     box.appendChild(el('div', 'rk-record', stats.wins + ' wins · ' + stats.losses + ' losses'));
@@ -290,19 +290,19 @@ function showResultCard(outcome, match, result) {
     var total = el('div', 'rk-total', '🏆 ' + before);
     card.appendChild(total);
     countUp(total, before, result.trophies);
-    var oldLeague = leagueIndex(before);
-    var newLeague = leagueIndex(result.trophies);
-    var league = LEAGUES[newLeague];
-    if (newLeague > oldLeague) {
-      card.appendChild(el('div', 'rk-promo', '🎉 PROMOTED to ' + league.icon + ' ' + league.name + '!'));
+    var oldStep = tierStep(before);
+    var newStep = tierStep(result.trophies);
+    var league = getLeague(result.trophies);
+    if (newStep > oldStep) {
+      card.appendChild(el('div', 'rk-promo', '🎉 PROMOTED to ' + league.icon + ' ' + tierName(result.trophies) + '!'));
       card.appendChild(el('div', 'rk-result-sub', 'New rules: ' + describeLeagueRules(result.trophies)));
     } else {
-      card.appendChild(el('div', 'rk-result-sub', league.icon + ' ' + league.name + ' League'));
+      card.appendChild(el('div', 'rk-result-sub', league.icon + ' ' + tierName(result.trophies)));
     }
   }
 
   // Let the rest of the app celebrate and refresh its league chip
-  var promoted = result.ok && result.settled && leagueIndex(result.trophies) > leagueIndex(Math.max(0, result.trophies - result.delta));
+  var promoted = result.ok && result.settled && tierStep(result.trophies) > tierStep(Math.max(0, result.trophies - result.delta));
   document.dispatchEvent(new CustomEvent('dx:ranked-updated', { detail: { outcome: outcome, promoted: promoted, settled: !!(result.ok && result.settled) } }));
 
   var close = el('button', 'btn btn-primary btn-block', 'Continue');

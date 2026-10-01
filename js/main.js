@@ -36,6 +36,8 @@ import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
+import { pickTheme, applyTheme } from './theme.js';
+import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
@@ -55,6 +57,7 @@ var multiplayerOpponentResult = null;
 var multiplayerResultShown = false;
 var runStartTime = 0;
 var currentRunId = null;
+var lastRunReward = null;
 var runFinalized = false;
 
 // =========================================================================
@@ -706,6 +709,43 @@ var MODE_LABELS = {
 };
 
 /** Post-run: render the result as an image to share or save. */
+/** The XP card at the top of the results screen. */
+function attachRewardCard() {
+  var content = document.getElementById('postRunContent');
+  var reward = lastRunReward;
+  lastRunReward = null;
+  if (!content || !reward) return;
+  var card = buildRunRewardCard(reward.info, reward.score, reward.best, reward.newBest);
+  if (card) content.insertBefore(card, content.children[1] || null);
+  renderLevelChip(document.getElementById('homeLevel'));
+  updateLockerDot();
+}
+
+/** A red dot on the Locker tab when the wallet can afford something new. */
+function updateLockerDot() {
+  import('./game/modelcatalog.js').then(function (m) {
+    var owned = storage.get('ownedItems') || [];
+    var coins = storage.get('coins') || 0;
+    var cheapest = Infinity;
+    m.CHARACTER_MODELS.concat(m.MONSTER_MODELS).forEach(function (item) {
+      if (owned.indexOf(item.id) < 0 && item.price > 0 && item.price < cheapest) cheapest = item.price;
+    });
+    var nav = document.querySelector('.nav-item[data-screen="screenShop"]');
+    if (!nav) return;
+    var dot = nav.querySelector('.nav-dot');
+    if (cheapest <= coins) {
+      if (!dot) {
+        dot = document.createElement('span');
+        dot.className = 'nav-dot';
+        dot.setAttribute('aria-label', 'You can afford something new');
+        nav.appendChild(dot);
+      }
+    } else if (dot) {
+      dot.remove();
+    }
+  }).catch(function () { /* the dot is a nicety */ });
+}
+
 function attachShareImage() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
@@ -932,6 +972,9 @@ function finalizeRun(gameRef) {
   // (idempotent by runId); nothing else writes run totals.
   var summary = gameRef.getRunSummary() || buildRunSummary(gameRef);
   var result = storage.finalizeRun(summary);
+  lastRunReward = result.applied
+    ? { info: awardRunXp(summary), score: summary.score, best: storage.get('bestScore'), newBest: !!result.newBestScore }
+    : null;
 
   if (result.applied && summary.wrong === 0 && summary.correct >= 20 && !storage.ownsItem('avatar_golden')) {
     var owned = storage.get('ownedItems').slice();
@@ -982,6 +1025,16 @@ function hideBootSplash() {
   setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
 }
 
+/** Apply the current color theme, and the season emoji next to the tagline. */
+function refreshTheme() {
+  var theme = pickTheme(new Date(), storage.get('uiTheme') || 'auto');
+  applyTheme(document.documentElement, theme);
+  var tagline = document.querySelector('.home-tagline');
+  if (tagline) tagline.textContent = 'Run the list.' + (theme.emoji ? ' ' + theme.emoji : '');
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme.vars['--bg-fallback'] || '#0b1020');
+}
+
 function init() {
   // Load the question database in the background; screens that show counts refresh when it arrives
   loadCards().then(function () {
@@ -997,6 +1050,10 @@ function init() {
   }
   storage.load();
   storage.checkDailyReset();
+  // Colors follow the time of day and the season (Settings -> Colors can turn that off)
+  refreshTheme();
+  setInterval(refreshTheme, 10 * 60 * 1000);
+  document.addEventListener('dx:theme-changed', refreshTheme);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
   try {
@@ -1086,6 +1143,7 @@ function init() {
     if (homeCharacter) homeCharacter.startAnimation();
 
     ui.showPostRun(game);
+    attachRewardCard();
     audio.setMusicIntensity(0.5, 0);
     attachShareImage();
     attachTipPrompt();
@@ -1254,8 +1312,13 @@ function init() {
       if (open) open.click();
     });
   }
+  renderLevelChip(document.getElementById('homeLevel'));
+  updateLockerDot();
+  document.addEventListener('dx:coins-changed', updateLockerDot);
+  document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {
     refreshHomeBadge(homeLeague);
+    updateLockerDot();
     if (e.detail && (e.detail.promoted || (e.detail.outcome === 'win' && e.detail.settled))) {
       ui.showConfetti(true);
       audio.play('achievement');

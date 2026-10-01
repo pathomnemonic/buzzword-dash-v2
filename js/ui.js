@@ -49,6 +49,8 @@ import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
 import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { streakCallout, runVerdict } from './flavor.js';
+import { dailyReward } from './progress.js';
+import { showDailyRewardModal } from './rewardsui.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -620,42 +622,24 @@ class UI {
       loginStreak = 1;
     }
     storage.set('loginStreak', loginStreak);
-    var rewards = [10, 20, 30, 50, 75, 100, 150, 200];
-    var rewardIndex = Math.min(loginStreak - 1, rewards.length - 1);
-    var reward = rewards[Math.max(rewardIndex, 0)];
-    storage.addCoins(reward);
+    var reward = dailyReward(loginStreak);
+    storage.addCoins(reward.coins);
     var self = this;
-    setTimeout(function () {
-      var popup = createElement('div');
-      popup.innerHTML = ''; // clear
-      var iconEl = createElement('div', { text: '👋' });
-      iconEl.style.cssText = 'font-size:24px;margin-bottom:6px';
-      popup.appendChild(iconEl);
-
-      var titleEl = createElement('div', { text: 'Welcome back!' });
-      titleEl.style.cssText = 'font-size:15px;font-weight:800;color:var(--accent-cyan)';
-      popup.appendChild(titleEl);
-
-      var streakEl = createElement('div', { text: 'Day ' + loginStreak + ' streak' });
-      streakEl.style.cssText = 'font-size:13px;color:var(--text-secondary);margin-top:4px';
-      popup.appendChild(streakEl);
-
-      var rewardEl = createElement('div', { text: '🪙 +' + reward + ' coins!' });
-      rewardEl.style.cssText = 'font-size:16px;font-weight:800;color:var(--accent-gold);margin-top:6px';
-      popup.appendChild(rewardEl);
-
-      popup.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%);text-align:center;background:rgba(8,12,36,0.95);backdrop-filter:blur(10px);border:2px solid var(--accent-cyan);border-radius:16px;padding:18px 28px;pointer-events:none;z-index:30;transition:all 1.5s ease-out;opacity:1;';
-      document.body.appendChild(popup);
+    // The coins are already in the wallet; the screen is the reveal. It waits for the tutorial to finish.
+    function show() {
+      var tutorial = document.getElementById('onboardingOverlay');
+      if (tutorial && tutorial.classList.contains('active')) { setTimeout(show, 1000); return; }
       audio.play('coin');
-      setTimeout(function () {
-        popup.style.top = '15%';
-        popup.style.opacity = '0';
-      }, 2500);
-      setTimeout(function () {
-        if (popup.parentNode) popup.parentNode.removeChild(popup);
-        self.renderHome();
-      }, 4000);
-    }, 500);
+      showDailyRewardModal({
+        streak: loginStreak,
+        reward: reward,
+        onClose: function () {
+          self.renderHome();
+          document.dispatchEvent(new CustomEvent('dx:coins-changed'));
+        }
+      });
+    }
+    setTimeout(show, 500);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1972,6 +1956,7 @@ class UI {
       { key: 'batterySaver', label: '🔋 Battery saver (30 fps)', type: 'toggle' },
       { key: 'cameraView', label: '🎥 Camera', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
       { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
+      { key: 'uiTheme', label: '🎨 Colors (follow time & season)', type: 'select', options: [['auto', 'Auto'], ['classic', 'Classic']] },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
       { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
       { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
@@ -2040,6 +2025,7 @@ class UI {
         }
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
+          if (s.key === 'uiTheme') document.dispatchEvent(new CustomEvent('dx:theme-changed'));
           if (s.key === 'quality') {
             storage.set('perfHint', '');
             storage.set('perfStrikes', 0);

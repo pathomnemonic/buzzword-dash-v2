@@ -8,6 +8,15 @@
 
 import { chromium } from '@playwright/test';
 
+const dismissDaily = async (pg) => {
+  const overlay = pg.locator('#dailyReward');
+  try { await overlay.waitFor({ state: 'visible', timeout: 3000 }); } catch { return; }
+  for (let i = 0; i < 3 && (await overlay.isVisible().catch(() => false)); i++) {
+    await overlay.locator('button').click();
+    await pg.waitForTimeout(1200);
+  }
+};
+
 const base = process.argv[2] || 'http://localhost:4190';
 const browser = await chromium.launch({ args: ['--use-angle=d3d11', '--ignore-gpu-blocklist'] });
 
@@ -22,6 +31,7 @@ async function player(name) {
     await next.click();
   }
   await page.waitForTimeout(1500);
+  await dismissDaily(page);
   await page.evaluate((n) => { const k = 'buzzword_dash_v1'; const d = JSON.parse(localStorage.getItem(k)); d.profile = d.profile || {}; d.profile.name = n; localStorage.setItem(k, JSON.stringify(d)); }, name);
   return page;
 }

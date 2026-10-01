@@ -19,6 +19,14 @@ for (const old of fs.readdirSync(outDir)) if (old.endsWith('.png')) fs.unlinkSyn
 const browser = await chromium.launch({ args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 await page.goto(base + '/?debug=1');
+const dismissDaily = async (pg) => {
+  const overlay = pg.locator('#dailyReward');
+  try { await overlay.waitFor({ state: 'visible', timeout: 3000 }); } catch { return; }
+  for (let i = 0; i < 3 && (await overlay.isVisible().catch(() => false)); i++) {
+    await overlay.locator('button').click();
+    await pg.waitForTimeout(1200);
+  }
+};
 const skip = async () => {
   for (let i = 0; i < 10; i++) {
     const next = page.locator('#obNextBtn');
@@ -26,6 +34,7 @@ const skip = async () => {
     await next.click();
   }
   await page.locator('#onboardingOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await dismissDaily(page);
 };
 await skip();
 await page.waitForTimeout(2500);
@@ -117,6 +126,7 @@ const multiplayerShot = async (name, caption, sub) => {
       await next.click();
     }
     await pg.waitForTimeout(1500);
+    await dismissDaily(pg);
     await pg.reload();
     for (let i = 0; i < 10; i++) {
       const next = pg.locator('#obNextBtn');
@@ -124,6 +134,7 @@ const multiplayerShot = async (name, caption, sub) => {
       await next.click();
     }
     await pg.waitForTimeout(1500);
+    await dismissDaily(pg);
     players.push(pg);
     return pg;
   };

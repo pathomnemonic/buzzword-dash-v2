@@ -61,6 +61,7 @@ var DEFAULTS = {
     avatarColors: {},
     reducedMotion: false,
     quality: 'auto',
+    uiTheme: 'auto',
     perfHint: '',
     disabledPowerups: [],
     hazardsOff: false,
@@ -95,6 +96,7 @@ var DEFAULTS = {
     lastCompletedDailyDate: null,
     lastLoginDate: null,
     loginStreak: 0,
+    xp: 0,
 
     achievements: [],
     ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'],
@@ -649,6 +651,7 @@ class Storage {
       case 'longestSession': return Math.round(this.data.progression.longestSessionMs / 1000);
       case 'lastLoginDate': return this.data.progression.lastLoginDate;
       case 'loginStreak': return this.data.progression.loginStreak;
+      case 'xp': return this.data.progression.xp || 0;
       case 'multiplayerGamesPlayed': return this.data.progression.multiplayerGamesPlayed;
       case 'multiplayerWins': return this.data.progression.multiplayerWins;
       case 'flashcardSessions': return this.data.progression.flashcardSessions;
@@ -700,6 +703,7 @@ class Storage {
       case 'calendarData': this.data.history.calendarData = value; break;
       case 'lastLoginDate': this.data.progression.lastLoginDate = value; break;
       case 'loginStreak': this.data.progression.loginStreak = value; break;
+      case 'xp': this.data.progression.xp = Math.max(0, Math.floor(value) || 0); break;
       case 'totalPlayTime': this.data.progression.totalPlayTimeMs = (value || 0) * 1000; break;
       case 'totalCardsStudied': this.data.progression.totalCardsStudied = value; break;
       case 'multiplayerGamesPlayed': this.data.progression.multiplayerGamesPlayed = value; break;

@@ -9,6 +9,15 @@
 //   node tools/verify-ranked.mjs [http://localhost:4190]
 
 import { chromium } from '@playwright/test';
+
+const dismissDaily = async (pg) => {
+  const overlay = pg.locator('#dailyReward');
+  try { await overlay.waitFor({ state: 'visible', timeout: 3000 }); } catch { return; }
+  for (let i = 0; i < 3 && (await overlay.isVisible().catch(() => false)); i++) {
+    await overlay.locator('button').click();
+    await pg.waitForTimeout(1200);
+  }
+};
 import { PGlite } from '@electric-sql/pglite';
 import { readFileSync } from 'node:fs';
 
@@ -81,6 +90,7 @@ async function player(user) {
     await next.click();
   }
   await page.waitForTimeout(1500);
+  await dismissDaily(page);
   await page.evaluate(() => {
     window.__useRankedTestClient({ rpc: (name, args) => window.__rpc(name, args) });
   });
@@ -111,7 +121,9 @@ async function play(label, trophies) {
   const info = (p) => p.evaluate(() => ({
     mode: window.__game.mode,
     speed: window.__game.userSpeed,
-    disabled: window.__game._rules.disabledPowerups
+    disabled: window.__game._rules.disabledPowerups,
+    heartEvery: window.__game._leagueRules.heartEvery,
+    tier: window.__game._leagueRules.name
   }));
   console.log(label + ': Ada run:', JSON.stringify(await info(a)));
   console.log(label + ': Bo run:', JSON.stringify(await info(b)));
@@ -134,6 +146,8 @@ async function play(label, trophies) {
 }
 
 await play('intern', 0);
+await db.exec('DELETE FROM ranked_reports; DELETE FROM ranked_matches; DELETE FROM ranked_queue;');
+await play('attending', 1250);
 await db.exec('DELETE FROM ranked_reports; DELETE FROM ranked_matches; DELETE FROM ranked_queue;');
 await play('dean', 2800);
 await browser.close();

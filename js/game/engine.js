@@ -1812,10 +1812,11 @@ card = pickResult ? pickResult.card : null;
       return;
     }
 
-    // Heart spawn logic
-    if (this.lives === 1 && this.mode !== GAME_MODES.STUDY) {
+    // Heart spawn logic (ranked leagues make hearts rarer, then take them away)
+    var heartEvery = this._leagueRules && typeof this._leagueRules.heartEvery === 'number' ? this._leagueRules.heartEvery : 3;
+    if (this.lives === 1 && this.mode !== GAME_MODES.STUDY && heartEvery > 0) {
       this.heartSpawnCounter++;
-      if (this.heartSpawnCounter >= 3) {
+      if (this.heartSpawnCounter >= heartEvery) {
         this.heartSpawnCounter = 0;
         if (Math.random() < 0.7) {
           this._spawnHeartPickup();
