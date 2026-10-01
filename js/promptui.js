@@ -1,0 +1,138 @@
+/**
+ * promptui.js — the small card on the results screen that asks to share, rate, or make an account.
+ * What to ask, and when, is decided in prompts.js.
+ */
+
+import { choosePrompt, recordPrompt } from './prompts.js';
+import { isNative, APP_SCHEME } from './native.js';
+
+/** Where to rate the app: a build-time link, or the Play Store page inside the Android app. '' means nowhere (the web). */
+export function getReviewUrl() {
+  /** @type {Record<string, any>} */
+  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+  var url = env.VITE_REVIEW_URL || '';
+  if (/^https:\/\//.test(url)) return url;
+  return isNative() ? 'https://play.google.com/store/apps/details?id=' + APP_SCHEME : '';
+}
+
+/** The link to send friends to: a build-time link, or the page the app is served from. */
+export function getShareUrl() {
+  /** @type {Record<string, any>} */
+  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+  var url = env.VITE_SHARE_URL || '';
+  if (/^https:\/\//.test(url)) return url;
+  return /^https?:/.test(window.location.protocol) ? window.location.origin + window.location.pathname : '';
+}
+
+var SHARE_TEXT = 'I have been studying with Dx Dash, a free endless runner for USMLE and COMLEX questions. Come run the list with me.';
+
+/** Share the game: the system share sheet if there is one, otherwise copy the link. @returns {Promise<'shared'|'copied'|'failed'>} */
+export function shareGame() {
+  var url = getShareUrl();
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    return navigator.share({ title: 'Dx Dash', text: SHARE_TEXT, url: url || undefined }).then(
+      function () { return 'shared'; },
+      function () { return 'failed'; }
+    );
+  }
+  if (url && typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(SHARE_TEXT + ' ' + url).then(function () { return 'copied'; }, function () { return 'failed'; });
+  }
+  return Promise.resolve('failed');
+}
+
+export function canShareGame() {
+  if (typeof navigator !== 'undefined' && navigator.share) return true;
+  return !!getShareUrl() && typeof navigator !== 'undefined' && !!(navigator.clipboard && navigator.clipboard.writeText);
+}
+
+var COPY = {
+  account: {
+    text: 'Your progress is saved on this device only. Make a free account to keep it safe and to appear on the leaderboards.',
+    action: '👤 Make an account'
+  },
+  share: {
+    text: 'Know someone who is studying for boards? Send them Dx Dash. It is free.',
+    action: '📣 Share with a friend'
+  },
+  review: {
+    text: 'If Dx Dash is helping, a quick rating on the store helps other students find it.',
+    action: '⭐ Rate Dx Dash'
+  }
+};
+
+/**
+ * Show at most one ask on the results screen.
+ * @param {object} deps
+ * @param {HTMLElement} deps.container
+ * @param {object} deps.storage
+ * @param {object} deps.run  { correct, accuracy, newBest }
+ * @param {boolean} deps.signedIn
+ * @param {boolean} deps.accountsAvailable
+ * @param {function(): void} deps.openAccount
+ * @param {function(string): void} deps.toast
+ * @returns {string|null} the kind that was shown
+ */
+export function attachPromptCard(deps) {
+  var storage = deps.storage;
+  var now = Date.now();
+  var firstRunAt = storage.get('firstRunAt') || 0;
+  var state = storage.get('promptState') || {};
+  var kind = choosePrompt({
+    now: now,
+    totalRuns: storage.get('runsFinished') || 0,
+    firstRunAt: firstRunAt,
+    correct: deps.run.correct,
+    accuracy: deps.run.accuracy,
+    newBest: !!deps.run.newBest,
+    streak: (storage.getStreakStatus && storage.getStreakStatus().streak) || 0,
+    signedIn: deps.signedIn,
+    accountsAvailable: deps.accountsAvailable,
+    canShare: canShareGame(),
+    reviewUrl: getReviewUrl(),
+    state: state
+  });
+  if (!kind) return null;
+  storage.set('promptState', recordPrompt(state, kind, 'shown', now));
+
+  var copy = COPY[kind];
+  var box = document.createElement('div');
+  box.className = 'prompt-card';
+  box.setAttribute('data-prompt', kind);
+  var text = document.createElement('div');
+  text.className = 'prompt-text';
+  text.textContent = copy.text;
+  box.appendChild(text);
+  var row = document.createElement('div');
+  row.className = 'prompt-row';
+  function button(label, cls, onClick) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-sm ' + cls;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    row.appendChild(b);
+  }
+  function finish(event) {
+    if (event) storage.set('promptState', recordPrompt(storage.get('promptState') || {}, kind, event, Date.now()));
+    box.remove();
+  }
+  button(copy.action, 'btn-gold', function () {
+    if (kind === 'account') { finish('done'); deps.openAccount(); return; }
+    if (kind === 'review') {
+      window.open(getReviewUrl(), '_blank', 'noopener,noreferrer');
+      finish('done');
+      return;
+    }
+    shareGame().then(function (result) {
+      if (result === 'copied') deps.toast('Link copied. Paste it to a friend!');
+      if (result === 'failed') { deps.toast('Could not share from here.'); return; }
+      finish('done');
+    });
+  });
+  button('Not now', 'btn-outline', function () { finish(null); });
+  button('Don’t ask again', 'btn-outline', function () { finish('never'); });
+  box.appendChild(row);
+  deps.container.appendChild(box);
+  return kind;
+}

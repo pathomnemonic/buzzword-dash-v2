@@ -1297,3 +1297,11 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .se-body span { font-size: 11px; line-height: 1.25; }
   .se-body em { font-size: 9px; }
 }
+
+/* ---------- the occasional share / rate / account ask on the results screen ---------- */
+.prompt-card {
+  margin: 14px 0; padding: 12px; text-align: center; border-radius: 14px;
+  background: var(--panel); border: 3px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+}
+.prompt-text { font-size: 13px; line-height: 1.4; margin-bottom: 8px; color: var(--text-secondary); }
+.prompt-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }

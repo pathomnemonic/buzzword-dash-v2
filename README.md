@@ -68,7 +68,13 @@ Rush can be stacked up to 3 times while an encounter is active. Each stack incre
 | **Study** | Infinite lives. Teaching points shown after every answer. |
 | **Weakness** | Focuses on cards you have previously missed. |
 | **Daily** | A fixed 15-card challenge. One attempt per day. |
+| **Friend challenge** | Play 15 fresh cards, then send a link; friends play the same cards and compare. Any time, no sign-up. |
+| **Weekly tournament** | 20 cards, the same for every player this week; your best score is ranked. |
 | **Versus** | Multiplayer via peer-to-peer WebRTC. |
+
+### The Home screen
+
+Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), a big PLAY button (endless run), a setup row (Question filters, Speed) and four ways to play: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free), **Challenge** (a popup that explains Study, Weakness, Daily 15, Friend challenge and the Weekly tournament) and **Exam Sim**. The tab bar is Stats, Quests, **Home** (center), Locker and Cards (browse the library, write your own). "How to play" opens the guided tutorial.
 
 ### Multiplayer Modes
 
@@ -104,11 +110,15 @@ A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry l
 
 ## Look
 
-The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. Settings -> Colors can pin a season or switch to Classic.
+The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. By default ("Surprise me") the look switches to a different season's colors every few runs, or after about 20 minutes, with a small toast. Settings -> Colors can follow the date instead (Seasonal), pin a season, or switch to Classic.
 
 ## Filters, badges and red dots
 
 The three question filters (subjects, exam and the advanced ones) sit on one page, opened from a single "Question filters" row on Home that shows what is active (for example "All subjects" or "Cardiology · 2 filters"). Badges live in the profile: every badge is listed there, earned ones can be pinned (up to 6). Red dots mark what is waiting for you: a badge you have not looked at yet (on the Profile buttons), a finished quest or the weekly goal whose coins are unclaimed (on Quests and the weekly goal), and new things you can afford in the Locker. A dot goes away once you have seen or claimed the thing.
+
+## Asking for shares, ratings and accounts
+
+Now and then the results screen offers one small card: share the game with a friend, rate it on the store, or make a free account to keep progress safe. The timing is deliberate (`js/prompts.js`): only after a good run or a new best score, never during a run or exam, not in the first runs, at most one ask every three days, each kind backing off (14, 28, 56 days) and stopping after three asks, and "Don't ask again" or doing the thing ends that kind for good. An ask only appears when it can work: no "rate" without a store link (set `VITE_REVIEW_URL`; the Android app falls back to its Play Store page), no "make an account" when signed in or when accounts are not set up. Sharing uses the system share sheet, or copies a link (`VITE_SHARE_URL` overrides the link).
 
 ## Scoring
 

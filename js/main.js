@@ -31,6 +31,7 @@ import { reportError, showUserError, installGlobalErrorHandlers } from './errors
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner } from './profilecorner.js';
+import { attachPromptCard } from './promptui.js';
 import { mountFlyers } from './homefx.js';
 import { updateAttentionDots } from './attentiondots.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
@@ -64,6 +65,7 @@ var multiplayerResultShown = false;
 var runStartTime = 0;
 var currentRunId = null;
 var lastRunReward = null;
+var lastRunNewBest = false;
 var runFinalized = false;
 
 // =========================================================================
@@ -585,6 +587,19 @@ function attachTipPrompt() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
   var total = game.correct + game.wrong;
+  // Share / rate / account asks come first; only one ask per results screen, so the tip waits its turn
+  var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
+  var lbStatus = lb ? lb.getStatus() : null;
+  var asked = attachPromptCard({
+    container: content,
+    storage: storage,
+    run: { correct: game.correct, accuracy: total > 0 ? Math.round(game.correct / total * 100) : 0, newBest: lastRunNewBest },
+    signedIn: !!(lbStatus && lbStatus.email && !lbStatus.anonymous),
+    accountsAvailable: !!(lbStatus && lbStatus.configured),
+    openAccount: function () { if (profileCorner) profileCorner.open(); },
+    toast: function (m) { ui._showToast(m); }
+  });
+  if (asked) return;
   var shouldShow = shouldShowTipPrompt({
     tipUrl: getTipUrl(),
     optedOut: !!storage.get('tipPromptOff'),
@@ -632,6 +647,7 @@ function attachRewardCard() {
   var content = document.getElementById('postRunContent');
   var reward = lastRunReward;
   lastRunReward = null;
+  lastRunNewBest = !!(reward && reward.newBest);
   if (!content || !reward) return;
   var card = buildRunRewardCard(reward.info, reward.score, reward.best, reward.newBest);
   if (card) content.insertBefore(card, content.children[1] || null);

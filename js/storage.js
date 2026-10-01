@@ -57,6 +57,9 @@ var DEFAULTS = {
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
+    promptState: {},      // when the share / rate / account asks were last shown (see prompts.js)
+    runsFinished: 0,
+    firstRunAt: 0,
     lastTipPromptAt: 0,
     lastReminderDate: '',
     avatarColors: {},
@@ -1414,6 +1417,10 @@ class Storage {
 
     // --- Achievements ---
     result.newlyUnlockedAchievementIds = this._evaluateAchievements(summary);
+
+    // --- Lifetime run count (the recent-runs list is capped) ---
+    this.data.settings.runsFinished = (this.data.settings.runsFinished || 0) + 1;
+    if (!this.data.settings.firstRunAt) this.data.settings.firstRunAt = Date.now();
 
     // --- Store recent run ---
     this.data.history.recentRuns.push({
