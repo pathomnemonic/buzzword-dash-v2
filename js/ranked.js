@@ -28,7 +28,8 @@ function getClient() {
   return _testClient || leaderboard.getClient();
 }
 
-function call(name, args) {
+/** Call a database function as the signed-in player. Never throws: { ok, data } or { ok: false, error }. */
+export function call(name, args) {
   var client = getClient();
   if (!client || (!_testClient && !leaderboard.isAuthenticated())) {
     return Promise.resolve({ ok: false, error: 'Sign in (or go online) to play ranked matches.' });

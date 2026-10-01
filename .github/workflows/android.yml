@@ -25,6 +25,7 @@ jobs:
       VITE_BASE_PATH: /
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      VITE_FEATURE_COHORTS: ${{ vars.VITE_FEATURE_COHORTS }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4

@@ -262,6 +262,7 @@
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="achievementsBtn" type="button">🏆 Badges</button>
         <button class="btn btn-outline btn-sm" id="settingsBtn" type="button">⚙ Settings</button>
+        <button class="btn btn-outline btn-sm" id="cohortsBtn" type="button" hidden>🛡️ Cohorts</button>
       </div>
       <div class="btn-row">
         <button class="btn btn-outline btn-sm" id="flashcardBtn" type="button">📖 Flashcards</button>
@@ -317,6 +318,11 @@
       <h2>📋 Daily Quests</h2>
       <div id="questList"></div>
     </div>
+  </div>
+
+  <!-- ==================== COHORTS (not released: hidden unless the build enables it) ==================== -->
+  <div class="screen" id="screenCohorts" role="region" aria-label="Cohorts">
+    <div class="screen-scroll" id="cohortsRoot"></div>
   </div>
 
   <!-- ==================== ACHIEVEMENTS ==================== -->

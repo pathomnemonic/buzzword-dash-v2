@@ -35,6 +35,7 @@ import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
+import { FEATURES } from './features.js';
 import { leagueRules } from './leagues.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers } from './rankedui.js';
 
@@ -1229,6 +1230,18 @@ function init() {
       ui.show('screenLeaderboard');
       mountLeaderboard();
     });
+  }
+
+  // Cohorts: built and tested, but hidden until the build turns the feature on
+  if (FEATURES.cohorts) {
+    var cohortsBtn = document.getElementById('cohortsBtn');
+    if (cohortsBtn) {
+      cohortsBtn.hidden = false;
+      cohortsBtn.addEventListener('click', function () {
+        ui.show('screenCohorts');
+        import('./cohortsui.js').then(function (m) { m.mountCohorts(document.getElementById('cohortsRoot')); });
+      });
+    }
   }
 
   // Multiplayer
