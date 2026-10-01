@@ -34,6 +34,9 @@ import { getControlText } from './controlhints.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
+import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
+import { leagueRules } from './leagues.js';
+import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
 var ankiImportModule = null;
@@ -288,6 +291,7 @@ function maybeShowMultiplayerResult() {
   else message = '🤝 Tie game: ' + you;
   showMultiplayerMessage(message, 'var(--accent-gold)');
   if (storage.recordMultiplayerGame) storage.recordMultiplayerGame(outcome === 'win');
+  if (isRankedActive()) finishRankedMatch(outcome === 'tie' ? 'draw' : outcome);
 }
 
 function makeForfeitResult() {
@@ -851,9 +855,11 @@ function launchRun(mode, orderedCardIds, modeConfig) {
   game.start({
     mode: mode,
     runId: currentRunId,
-    userSpeed: storage.get('userSpeed') || 1,
+    // Head-to-head matches use the standard speed so both players run the same track
+    userSpeed: isMultiplayerMode(mode) ? 1 : (storage.get('userSpeed') || 1),
     orderedCardIds: orderedCardIds,
-    modeConfig: modeConfig ? Object.assign({}, modeConfig) : undefined
+    modeConfig: modeConfig ? Object.assign({}, modeConfig) : undefined,
+    leagueRules: modeConfig && typeof modeConfig.leagueTrophies === 'number' ? leagueRules(modeConfig.leagueTrophies) : undefined
   });
   ui.hideAll();
   ui.showHud();
@@ -984,7 +990,10 @@ function init() {
     reportError(e, { system: 'cards', operation: 'load', recoverable: true });
   });
   // ?debug=1 exposes the engine on window.__game for measuring performance
-  if (/[?&]debug=1(&|$)/.test(window.location.search)) window.__game = game;
+  if (/[?&]debug=1(&|$)/.test(window.location.search)) {
+    window.__game = game;
+    window.__useRankedTestClient = useRankedTestClient;
+  }
   storage.load();
   storage.checkDailyReset();
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
@@ -1230,7 +1239,13 @@ function init() {
       var content = document.getElementById('mpContent');
       if (!overlay || !content) return;
       overlay.classList.add('active');
+      var rankedOn = ranked.isAvailable();
       content.innerHTML =
+        (rankedOn ? '<div class="rk-card" id="rkCard"></div>' +
+          '<button class="btn btn-primary btn-block" id="mpRankedBtn" type="button">⚔️ Find Ranked Match</button>' +
+          '<button class="btn btn-outline btn-block" id="mpTopBtn" type="button" style="margin-top:6px">🏆 Top Players</button>' +
+          '<div id="rkTop" class="rk-top-list" hidden></div>' +
+          '<div style="text-align:center;margin:8px 0;color:var(--text-muted)">— or play a friend —</div>' : '') +
         '<button class="btn btn-green btn-block" id="mpHostBtn">\uD83C\uDFAE Host Game</button>' +
         '<div style="text-align:center;margin:8px 0;color:var(--text-muted)">\u2014 or \u2014</div>' +
         '<input type="text" id="mpJoinCode" maxlength="5" placeholder="ROOM CODE" style="width:100%;padding:10px;border-radius:12px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);font-size:18px;text-align:center;letter-spacing:4px;margin-bottom:8px;text-transform:uppercase">' +
@@ -1268,12 +1283,36 @@ function init() {
         content.appendChild(connecting);
         module.multiplayer.joinGame(code);
       });
+
+      if (rankedOn) {
+        mountLeagueCard(document.getElementById('rkCard'));
+        document.getElementById('mpRankedBtn').addEventListener('click', function () {
+          loadCards().then(function () {
+            startRankedSearch({
+              client: module.multiplayer,
+              configure: configureMultiplayer,
+              cardPoolHash: function () { return module.hashCardPool(CARDS); },
+              startMatch: scheduleVersusStart,
+              onBack: function (message) {
+                mpBtn.click();
+                if (message) showMultiplayerMessage(message, 'var(--accent-gold)');
+              }
+            }, content);
+          });
+        });
+        document.getElementById('mpTopBtn').addEventListener('click', function () {
+          var list = document.getElementById('rkTop');
+          list.hidden = !list.hidden;
+          if (!list.hidden) mountTopPlayers(list);
+        });
+      }
     });
   }
 
   var mpCloseBtn = document.getElementById('mpCloseBtn');
   if (mpCloseBtn) {
     mpCloseBtn.addEventListener('click', function () {
+      if (isSearching() && multiplayerClient) cancelRanked(multiplayerClient, {});
       var overlay = document.getElementById('multiplayerOverlay');
       if (overlay) overlay.classList.remove('active');
     });

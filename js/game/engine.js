@@ -760,7 +760,10 @@ class Game {
     this._seededCardIndex = 0;
 
     // Speed
-    this.userSpeed = options.userSpeed || storage.get('userSpeed') || 1;
+    // Ranked matches pass league rules (fewer power-ups, a faster track in the top leagues)
+    this._leagueRules = options.leagueRules || null;
+    this.userSpeed = (options.userSpeed || storage.get('userSpeed') || 1) *
+      ((this._leagueRules && this._leagueRules.speedMultiplier) || 1);
 
     // Transition to preparing
     if (!this._transition(GAME_STATES.PREPARING)) return;
@@ -836,6 +839,9 @@ class Game {
       hazardsOff: storage.get('hazardsOff'),
       monsterOff: storage.get('monsterOff')
     });
+    if (this._leagueRules && Array.isArray(this._leagueRules.disabledPowerups)) {
+      this._rules.disabledPowerups = this._leagueRules.disabledPowerups.slice();
+    }
     this._resetPose();
     this._introAnim = 'run';
     this._runStartedAt = performance.now();
