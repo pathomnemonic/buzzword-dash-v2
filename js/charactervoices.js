@@ -128,24 +128,58 @@ var lastAt = 0;
 var voiceCache = null;
 
 /** Names that hint at a female or male voice on the common speech engines. */
-var FEMALE_HINT = /female|woman|samantha|karen|moira|tessa|victoria|zira|susan|hazel|fiona|serena|google uk english female|aria|jenny/i;
-var MALE_HINT = /\bmale\b|\bman\b|daniel|alex|fred|david|mark|george|oliver|rishi|google uk english male|guy|ryan/i;
+var FEMALE_HINT = /female|woman|samantha|karen|moira|tessa|victoria|zira|susan|hazel|fiona|serena|aria|jenny|sonia|libby|joanna|salli|kendra|kimberly|ivy|allison|ava|nicky|olivia|emma|amy|natasha|clara|michelle/i;
+var MALE_HINT = /\bmale\b|\bman\b|daniel|alex|fred|david|mark|george|oliver|rishi|guy|ryan|brian|matthew|justin|joey|russell|arthur|james|thomas|eric|christopher|roger|davis|tony|liam/i;
+/** Voices that sound like a person rather than a speech synthesizer: neural, "natural", premium or Siri voices. */
+var NATURAL_HINT = /natural|neural|online|premium|enhanced|siri|studio|wavenet|journey|polyglot/i;
 
-/** The English voices this device has, or an empty list. */
+/** Rate a voice: more natural sounding is better, a voice stored on the device is better than a robotic default. */
+export function voiceQuality(voice) {
+  var score = 0;
+  if (NATURAL_HINT.test(voice.name)) score += 10;
+  if (/google/i.test(voice.name)) score += 4;
+  if (/^en[-_](US|GB|AU|CA|IE|ZA|IN)/i.test(voice.lang || '')) score += 1;
+  if (/espeak|festival|flite|compact|robot/i.test(voice.name)) score -= 20;
+  return score;
+}
+
+function hash(str) {
+  var h = 0;
+  for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+/** The English voices this device has, best sounding first, or an empty list. */
 function englishVoices() {
   if (voiceCache && voiceCache.length) return voiceCache;
   if (typeof window === 'undefined' || !window.speechSynthesis || !window.speechSynthesis.getVoices) return [];
-  voiceCache = window.speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang || ''); });
+  voiceCache = window.speechSynthesis.getVoices()
+    .filter(function (v) { return /^en/i.test(v.lang || ''); })
+    .sort(function (a, b) { return voiceQuality(b) - voiceQuality(a); });
   return voiceCache;
 }
 
-/** @returns {SpeechSynthesisVoice|null} a voice that fits the character, when the device has a choice */
-export function chooseVoice(profile) {
+if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.addEventListener) {
+  // Phones load their voices a moment after the page does
+  window.speechSynthesis.addEventListener('voiceschanged', function () { voiceCache = null; });
+}
+
+/**
+ * Pick the best-sounding voice that fits the character, and a different one for each character when the
+ * device has several. Returns null when the device offers no choice (it then uses its default voice).
+ * @param {CharacterVoice} profile
+ * @param {string} [avatarId] used to give every character a different voice from the same pool
+ * @returns {SpeechSynthesisVoice|null}
+ */
+export function chooseVoice(profile, avatarId) {
   var voices = englishVoices();
-  if (!voices.length || profile.voice === 'x') return null;
-  var hint = profile.voice === 'f' ? FEMALE_HINT : MALE_HINT;
-  for (var i = 0; i < voices.length; i++) if (hint.test(voices[i].name)) return voices[i];
-  return null;
+  if (!voices.length) return null;
+  var hint = profile.voice === 'f' ? FEMALE_HINT : (profile.voice === 'm' ? MALE_HINT : null);
+  var fitting = hint ? voices.filter(function (v) { return hint.test(v.name); }) : voices;
+  if (!fitting.length) fitting = voices;
+  // Only the better half of the fitting voices, so nobody gets stuck with the worst one
+  var best = fitting.filter(function (v) { return voiceQuality(v) >= voiceQuality(fitting[0]) - 3; });
+  return best[hash(avatarId || profile.name) % best.length];
 }
 
 /**
@@ -166,11 +200,16 @@ export function say(avatarId, kind, options) {
   lastSpoken[key] = text;
   if (options.speak && options.volume > 0 && typeof window !== 'undefined' && window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
     var u = new SpeechSynthesisUtterance(text);
-    var voice = chooseVoice(profile);
+    var voice = chooseVoice(profile, avatarId);
     if (voice) u.voice = voice;
-    // A sad line comes out lower and slower, a cheer higher and quicker
-    u.pitch = Math.max(0.1, Math.min(2, profile.pitch * (key === 'sad' ? 0.85 : 1.1)));
-    u.rate = Math.max(0.5, Math.min(2, profile.rate * (key === 'sad' ? 0.85 : 1.05)));
+    // A sad line comes out a little lower and slower, a cheer a little higher and quicker. The range is kept
+    // narrow on purpose: stretched pitch and speed are what make a speech engine sound robotic.
+    var natural = !!voice && voiceQuality(voice) >= 10;
+    var spread = natural ? 0.5 : 0.35; // how much of the character's own pitch to use (a natural voice has its own character)
+    var pitch = 1 + (profile.pitch - 1) * spread;
+    u.pitch = Math.max(0.8, Math.min(1.3, pitch * (key === 'sad' ? 0.94 : 1.05)));
+    u.rate = Math.max(0.9, Math.min(1.2, (1 + (profile.rate - 1) * 0.5) * (key === 'sad' ? 0.92 : 1.03)));
+    u.lang = (voice && voice.lang) || 'en-US';
     u.volume = Math.max(0, Math.min(1, options.volume));
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);

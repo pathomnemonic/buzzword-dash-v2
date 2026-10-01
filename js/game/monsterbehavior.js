@@ -11,8 +11,9 @@
  *  - leans toward the player and looms lower/larger as it closes in
  *  - lunges: on every wrong answer, and now and then when it is near
  *  - recoils when the player answers correctly
- *  - stays out of sight while the player is doing well, creeps into view as mistakes pile up,
- *    and fades from view again as the player rebuilds a streak or pulls away
+ *  - stays out of sight while the player is doing well. When the player slips (a wrong answer or a lost
+ *    life) it drifts in from behind the camera as if catching up, and once the player has answered one
+ *    or two correctly it drifts back out of sight. It always stays solid: it moves, it never fades.
  */
 
 /**
@@ -47,7 +48,8 @@ export function createMonsterBehavior(rand) {
   var r = rand || Math.random;
   return {
     x: 0,
-    fade: 0, // hidden at the start of a run; it only creeps into view when the player slips
+    fade: 0, // how far along it is toward being in view (0 = well behind the camera, 1 = in place)
+    calm: 99, // correct answers since the player last slipped (a wrong answer or a lost life)
     lunge: 0,
     recoil: 0,
     cooldown: 3 + r() * 2,
@@ -58,9 +60,21 @@ export function createMonsterBehavior(rand) {
 
 /** The player answered: wrong answers make it lunge, right ones push it back. */
 export function monsterOnAnswer(state, correct) {
-  if (correct) state.recoil = 1;
-  else state.lunge = 1;
+  if (correct) {
+    state.recoil = 1;
+    state.calm++;
+  } else {
+    state.lunge = 1;
+    state.calm = 0;
+  }
 }
+
+/** How many correct answers in a row send it away again. */
+export var CALM_TO_LEAVE = 2;
+/** Distances beyond this mean the player has not slipped yet (the run starts at 26). */
+export var APPEAR_BELOW = 25;
+/** How far behind its place it waits when out of sight: well past the camera. */
+export var DRIFT_DISTANCE = 22;
 
 /** Target visibility: gone beyond 22 (the start of a run), fully there by 14, and gone again on a streak. */
 export function monsterVisibility(dist, streak) {
@@ -74,7 +88,7 @@ export function monsterVisibility(dist, streak) {
  * @param {object} st - state from createMonsterBehavior
  * @param {{playerX:number, dist:number, streak:number, dying:boolean, time:number}} inp
  * @param {number} dt
- * @returns {{x:number,y:number,z:number,scale:number,rotX:number,rotY:number,rotZ:number,opacity:number,lunging:boolean,hop:number,lunged:boolean}}
+ * @returns {{x:number,y:number,z:number,scale:number,rotX:number,rotY:number,rotZ:number,opacity:number,presence:number,lunging:boolean,hop:number,lunged:boolean}}
  */
 export function stepMonsterBehavior(st, inp, dt) {
   var near = clamp((30 - inp.dist) / 27, 0, 1);
@@ -102,20 +116,26 @@ export function stepMonsterBehavior(st, inp, dt) {
   var e = st.lunge * st.lunge * (3 - 2 * st.lunge);
   var back = st.recoil * st.recoil * (3 - 2 * st.recoil);
 
-  // Fade as the streak is rebuilt; always fully visible when it makes the catch.
-  var goal = inp.dying ? 1 : monsterVisibility(inp.dist, inp.streak);
-  st.fade += (goal - st.fade) * Math.min(1, dt * (inp.dying ? 6 : 2.5));
+  // Drift in after a slip, drift away after one or two correct answers; when it is about to catch the
+  // player it stays no matter what. The motion eases, so it glides rather than pops.
+  var present = inp.dying || inp.dist <= 8 || (inp.dist < APPEAR_BELOW && st.calm < CALM_TO_LEAVE);
+  var goal = present ? 1 : 0;
+  var rate = inp.dying ? 1.6 : (goal > st.fade ? 0.55 : 0.45);
+  st.fade = clamp(st.fade + clamp(goal - st.fade, -rate * dt, rate * dt), 0, 1);
+  var glide = st.fade * st.fade * (3 - 2 * st.fade);
+  var away = (1 - glide) * DRIFT_DISTANCE;
 
   var lag = inp.playerX - st.x;
   return {
     x: st.x,
     y: 3.4 + Math.sin(t * 1.7 + st.phase) * 0.18 - near * 0.5 - e * 0.6 + back * 0.5,
-    z: 3.5 - near - e * 1.6 + back * 1.0,
+    z: 3.5 - near - e * 1.6 + back * 1.0 + away,
     scale: 1 + e * 0.35 - back * 0.15,
     rotX: -(0.15 + 0.35 * near + 0.5 * e),
     rotY: Math.sin(t * 0.9 + st.phase) * 0.25,
     rotZ: clamp(-lag * 0.15, -0.4, 0.4),
-    opacity: clamp(st.fade, 0, 1),
+    opacity: 1, // never faded: it moves into and out of view
+    presence: st.fade,
     lunging: st.lunge > 0.15,
     hop: back,
     lunged: lunged

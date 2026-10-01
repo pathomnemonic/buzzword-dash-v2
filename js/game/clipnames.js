@@ -14,7 +14,7 @@
  */
 export var STATE_CLIPS = {
   run: { match: [/^run$/i, /^running$/i, /^running_a$/i, /^fast_flying$/i, /^walk$/i, /^walking$/i, /^flying$/i, /^flying_idle$/i, /run/i, /walk/i, /fly/i], loop: true, scale: 1.0 },
-  jump: { match: [/^jump$/i, /^jump_full_short$/i, /^runningjump$/i, /^walkjump$/i, /^jump_idle$/i, /jump/i, /hop/i], loop: false, scale: 1.5, clamp: true, fallback: 'run' },
+  jump: { match: [/^jump$/i, /^jump_full_short$/i, /^runningjump$/i, /^walkjump$/i, /^jump_idle$/i, /jump/i, /hop/i, /^roll$/i], loop: false, scale: 1.5, clamp: true, fallback: 'run' }, // (a character with no jump clip tumbles in the air with its roll)
   slide: { match: [/^roll$/i, /^duck$/i, /^dodge_forward$/i, /slide/i, /crouch/i], loop: true, scale: 1.5, fallback: 'run' },
   celebrate: { match: [/^wave$/i, /^dance$/i, /^thumbsup$/i, /^clapping$/i, /^yes$/i, /victory|cheer|emote/i], loop: false, scale: 1.2, clamp: true, fallback: 'idle' },
   death: { match: [/^death$/i, /^death_a$/i, /die|dead|faint/i, /death/i, /^hitreact$/i, /^hitrecieve$/i], loop: false, scale: 1.0, clamp: true, fallback: 'idle' },

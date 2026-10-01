@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterVisibility, monsterPolicy, MONSTER_POLICY } from '../../js/game/monsterbehavior.js';
+import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterPolicy, MONSTER_POLICY } from '../../js/game/monsterbehavior.js';
 
 const rng = () => 0.5;
 const run = (st, inp, seconds, dt = 1 / 60) => {
@@ -56,46 +56,63 @@ describe('exam monster behavior', () => {
     expect(farLunges).toBe(0);
   });
 
-  it('fades out as the streak is rebuilt and returns after mistakes', () => {
+  it('drifts in after a slip, drifts away after two correct answers, and never fades', () => {
     const st = createMonsterBehavior(rng);
-    const base = run(st, { playerX: 0, dist: 16, streak: 0, dying: false }, 3);
-    expect(base.opacity).toBeGreaterThan(0.5);
-    const onStreak = run(st, { playerX: 0, dist: 16, streak: 12, dying: false }, 4);
-    expect(onStreak.opacity).toBeLessThan(0.05);
-    const back = run(st, { playerX: 0, dist: 8, streak: 0, dying: false }, 4);
-    expect(back.opacity).toBeGreaterThan(0.9);
+    // not slipped yet: it waits far behind the camera (the camera is at z = 10)
+    const waiting = run(st, { playerX: 0, dist: 26, streak: 0, dying: false }, 3);
+    expect(waiting.z).toBeGreaterThan(20);
+    expect(waiting.presence).toBe(0);
+    // a wrong answer: it glides forward over a second or two, solid the whole way
+    monsterOnAnswer(st, false);
+    const zs = [];
+    let pose;
+    for (let i = 0; i < 4 * 60; i++) {
+      pose = stepMonsterBehavior(st, { time: i / 60, playerX: 0, dist: 22, streak: 0, dying: false }, 1 / 60);
+      expect(pose.opacity).toBe(1);
+      if (i % 20 === 0) zs.push(pose.z);
+    }
+    expect(pose.presence).toBe(1);
+    expect(pose.z).toBeLessThan(5);
+    for (let i = 1; i < zs.length; i++) expect(zs[i]).toBeLessThanOrEqual(zs[i - 1] + 0.3); // drifts one way, no jump
+    expect(zs[0] - zs[1]).toBeLessThan(5); // no sudden pop
+    // one correct answer is not enough
+    monsterOnAnswer(st, true);
+    let still = run(st, { playerX: 0, dist: 22.5, streak: 1, dying: false }, 3);
+    expect(still.presence).toBe(1);
+    // the second sends it away
+    monsterOnAnswer(st, true);
+    const gone = run(st, { playerX: 0, dist: 24, streak: 2, dying: false }, 5);
+    expect(gone.presence).toBe(0);
+    expect(gone.z).toBeGreaterThan(20);
+    expect(gone.opacity).toBe(1);
   });
 
-  it('is fully visible when it makes the catch', () => {
+  it('stays when it is about to catch the player, and returns after the next mistake', () => {
+    const st = createMonsterBehavior(rng);
+    monsterOnAnswer(st, true); monsterOnAnswer(st, true);
+    expect(run(st, { playerX: 0, dist: 6, streak: 5, dying: false }, 4).presence).toBe(1);
+    run(st, { playerX: 0, dist: 24, streak: 5, dying: false }, 6);
+    monsterOnAnswer(st, false);
+    expect(run(st, { playerX: 0, dist: 20, streak: 0, dying: false }, 4).presence).toBe(1);
+  });
+
+  it('is fully there when it makes the catch', () => {
     const st = createMonsterBehavior(rng);
     run(st, { playerX: 0, dist: 28, streak: 10, dying: false }, 3);
-    const pose = run(st, { playerX: 0, dist: 3, streak: 10, dying: true }, 1);
-    expect(pose.opacity).toBeGreaterThan(0.95);
-  });
-
-  it('visibility drops with distance and streak', () => {
-    expect(monsterVisibility(8, 0)).toBe(1);
-    expect(monsterVisibility(28, 0)).toBe(0);
-    expect(monsterVisibility(8, 12)).toBe(0);
-    expect(monsterVisibility(24, 0)).toBeLessThan(monsterVisibility(12, 0));
+    const pose = run(st, { playerX: 0, dist: 3, streak: 10, dying: true }, 3);
+    expect(pose.presence).toBeGreaterThan(0.95);
+    expect(pose.z).toBeLessThan(5);
   });
 });
 
 describe('the monster is out of sight at the start of a run', () => {
-  it('is invisible at the starting distance, even with no streak', () => {
-    expect(monsterVisibility(26, 0)).toBe(0);
+  it('waits behind the camera at the starting distance, even with no streak', () => {
     const st = createMonsterBehavior(() => 0.5);
     expect(st.fade).toBe(0);
     let pose;
     for (let i = 0; i < 300; i++) pose = stepMonsterBehavior(st, { playerX: 0, dist: 26, streak: 0, dying: false, time: i / 60 }, 1 / 60);
-    expect(pose.opacity).toBeLessThan(0.02);
-  });
-
-  it('creeps into view as mistakes bring it closer', () => {
-    expect(monsterVisibility(22, 0)).toBe(0);
-    expect(monsterVisibility(18, 0)).toBeGreaterThan(0.3);
-    expect(monsterVisibility(18, 0)).toBeLessThan(0.7);
-    expect(monsterVisibility(14, 0)).toBe(1);
+    expect(pose.presence).toBe(0);
+    expect(pose.z).toBeGreaterThan(20);
   });
 });
 

@@ -8,7 +8,7 @@
 import { storage } from '../storage.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
-import { createMonsterBehavior, stepMonsterBehavior, monsterPolicy } from './monsterbehavior.js';
+import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { GAME_STATES, GAME_MODES } from './enginedefs.js';
 import { LOOKBACK_STYLE, LOOKBACK_HOLD } from './cinematics.js';
@@ -98,6 +98,14 @@ export var examMonsterMethods = {
     if (this._monsterBehavior) this._monsterBehavior.fade = 0;
   },
 
+  /** The player lost a life to an obstacle: the monster catches up a little, just as it does after a wrong answer. */
+  _monsterSlip() {
+    if (!this.examMonster || !this._monsterEnabled()) return;
+    var policy = monsterPolicy(this.mode);
+    if (this._monsterBehavior) monsterOnAnswer(this._monsterBehavior, false);
+    this.monsterTargetZ = Math.max(3, Math.min(30, this.monsterTargetZ - policy.miss));
+  },
+
   _updateExamMonster(dt) {
     if (!this.examMonster) return;
     if (!this._monsterEnabled()) {
@@ -123,12 +131,12 @@ export var examMonsterMethods = {
       dying: dying,
       time: this.elapsedTime
     }, dt);
-    var shouldBeVisible = dying || pose.opacity > 0.02;
+    var shouldBeVisible = dying || pose.presence > 0.02;
     if (shouldBeVisible !== this.monsterVisible) {
       this.monsterVisible = shouldBeVisible;
       this.examMonster.visible = shouldBeVisible;
     }
-    if (pose.lunged && pose.opacity > 0.3) {
+    if (pose.lunged && pose.presence > 0.6) {
       this._emit('monster_warning', {});
       this._sfx('monster_lunge');
     }
@@ -146,6 +154,7 @@ export var examMonsterMethods = {
     this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);
     if (isModelMonster) {
       // Lean toward the runner; the clips do the rest of the acting.
+      this.examMonster.rotation.order = 'YXZ';
       this.examMonster.rotation.set(pose.rotX * 0.6, pose.rotY * 0.4, pose.rotZ);
       var wanted = dying || pose.lunging ? 'attack' : (onGround ? 'run' : 'idle');
       updateModelAnimation(this.examMonster, dt, wanted);
@@ -225,14 +234,6 @@ export var examMonsterMethods = {
       }
     }
 
-    // Fade every part together. Parts that animate their own opacity were just
-    // set to an absolute value this frame, so scale from that; the rest scale
-    // from the opacity they were built with.
-    if (this.monsterVisible && this._monsterFade) {
-      for (var fi = 0; fi < this._monsterFade.length; fi++) {
-        var fe = this._monsterFade[fi];
-        fe.m.opacity = (fe.animated ? fe.m.opacity : fe.base) * pose.opacity;
-      }
-    }
+    // (the monster never fades: it drifts in from behind the camera and drifts away again)
   },
 };

@@ -1239,11 +1239,12 @@ class Game {
     if (sb > 0) {
       var animator = this.playerGroup.userData.animator;
       if (animator) {
-        // Animated models roll or crouch with their own clip; without one they just sink a little (no lean, no flattening)
+        // Animated models roll or duck with their own clip. Without one the runner crouches: head and hands
+        // forward, lower to the ground, and keeps running in that pose (never flattened)
         var hasClip = animator.hasClip('slide');
-        this.playerGroup.scale.set(1, 1 - (hasClip ? 0.04 : 0.18) * sb, 1);
-        this.playerGroup.position.y = this.playerY - (hasClip ? 0.05 : 0.3) * sb;
-        this.playerGroup.rotation.x = 0;
+        this.playerGroup.scale.set(1, 1 - (hasClip ? 0.04 : 0.08) * sb, 1);
+        this.playerGroup.position.y = this.playerY - (hasClip ? 0.05 : 0.38) * sb;
+        this.playerGroup.rotation.x = hasClip ? 0 : -0.5 * sb;
       } else {
         // Blocky characters crouch and lean back a touch, like a feet-first slide
         this.playerGroup.scale.set(1 + 0.04 * sb, 1 - 0.2 * sb, 1 + 0.04 * sb);
@@ -1317,7 +1318,7 @@ class Game {
     if (this.playerGroup.userData.animator) {
       var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
       // The run cycle plays faster with the look of the run (cadence follows speed, up to a cap)
-      var cadence = modelState === 'run' ? Math.min(3, 1.5 * Math.pow(Math.max(0.5, currentSpeed * rushMult / 1.875), 0.6)) : 1;
+      var cadence = modelState === 'run' ? Math.min(3, 1.3 * Math.pow(Math.max(0.5, currentSpeed * rushMult / 1.875), 0.7)) : 1;
       updateModelAnimation(this.playerGroup, dt * cadence, modelState);
     }
 
@@ -1470,6 +1471,7 @@ class Game {
             } else {
               this.lives--;
               this._emit('damage_taken', { source: 'obstacle', livesRemaining: this.lives });
+              this._monsterSlip();
               this._triggerShake();
               this.stumbleTimer = 0.3;
               if (this.lives <= 0 && this.mode !== GAME_MODES.STUDY) {

@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { VOICES, voiceFor, pickLine, say } from '../../js/charactervoices.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { VOICES, voiceFor, pickLine, say, chooseVoice, voiceQuality } from '../../js/charactervoices.js';
 import { CHARACTER_MODELS } from '../../js/game/modelcatalog.js';
 
 describe('character voices', () => {
@@ -68,6 +68,11 @@ describe('speaking a line', () => {
     expect(spoken).toHaveLength(2);
     expect(spoken[0].pitch).toBeGreaterThan(spoken[1].pitch);
     expect(spoken[0].rate).toBeGreaterThan(spoken[1].rate);
+    // never stretched far enough to sound like a speech engine
+    spoken.forEach((u) => {
+      expect(u.pitch).toBeGreaterThanOrEqual(0.8); expect(u.pitch).toBeLessThanOrEqual(1.3);
+      expect(u.rate).toBeGreaterThanOrEqual(0.9); expect(u.rate).toBeLessThanOrEqual(1.2);
+    });
     expect(spoken[0].volume).toBeCloseTo(0.8);
     expect(VOICES.avatar_m_orc.cheer).toContain(spoken[0].text);
     delete window.speechSynthesis;
@@ -77,5 +82,27 @@ describe('speaking a line', () => {
     await new Promise((r) => setTimeout(r, 750));
     say('avatar_m_king', 'cheer', { speak: false, volume: 0 });
     expect(say('avatar_m_king', 'cheer', { speak: false, volume: 0 })).toBeNull();
+  });
+});
+
+describe('choosing a voice', () => {
+  const v = (name, lang = 'en-US') => ({ name, lang });
+  const install = (voices) => { window.speechSynthesis = { getVoices: () => voices, cancel() {}, speak() {} }; };
+
+  it('prefers natural-sounding voices, and avoids robotic ones', () => {
+    expect(voiceQuality(v('Microsoft Aria Online (Natural) - English'))).toBeGreaterThan(voiceQuality(v('Microsoft David Desktop')));
+    expect(voiceQuality(v('Google US English'))).toBeGreaterThan(voiceQuality(v('English (eSpeak)')));
+  });
+
+  it('gives characters different voices from the best of what the device has, matching male or female', async () => {
+    vi.resetModules();
+    install([v('Samantha'), v('Microsoft Aria Online (Natural) - English'), v('Microsoft Jenny Online (Natural) - English'), v('Daniel'), v('Microsoft Guy Online (Natural) - English'), v('Microsoft Ryan Online (Natural) - English'), v('eSpeak English'), v('Anna', 'de-DE')]);
+    const m = await import('../../js/charactervoices.js');
+    const female = m.chooseVoice(m.VOICES.avatar_m_nurse, 'avatar_m_nurse');
+    expect(female.name).toMatch(/Aria|Jenny/);
+    const males = new Set(Object.keys(m.VOICES).filter((id) => m.VOICES[id].voice === 'm').map((id) => m.chooseVoice(m.VOICES[id], id).name));
+    expect(males.size).toBeGreaterThan(1);
+    [...males].forEach((n) => expect(n).toMatch(/Guy|Ryan/));
+    delete window.speechSynthesis;
   });
 });
