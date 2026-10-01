@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { readFileSync } from 'node:fs';
+import { trophyDelta } from '../../js/leagues.js';
 
 const A = '11111111-1111-1111-1111-111111111111';
 const B = '22222222-2222-2222-2222-222222222222';
@@ -32,6 +33,7 @@ beforeAll(async () => {
     CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS
       $$ SELECT nullif(current_setting('app.uid', true), '')::uuid $$;
     CREATE ROLE authenticated NOLOGIN;
+    CREATE ROLE anon NOLOGIN;
     CREATE PUBLICATION supabase_realtime;
   `);
   // Both files must be safe to run twice.
@@ -46,6 +48,102 @@ beforeAll(async () => {
     INSERT INTO auth.users VALUES ('${A}'), ('${B}'), ('${C}');
   `);
 }, 60000);
+
+
+describe('ranked matches', () => {
+  const call = async (user, sql, params) => (await as(user, () => db.query(sql, params))).rows[0];
+  const trophies = async (user) => (await db.query('SELECT trophies FROM player_trophies WHERE user_id = $1', [user])).rows[0].trophies;
+
+  it('uses the same trophy math as the game', async () => {
+    const cases = [[1000, 1000, 'win'], [1000, 1000, 'loss'], [1000, 1400, 'win'], [1000, 600, 'loss'], [305, 305, 'loss'], [300, 300, 'loss'], [0, 0, 'loss'], [1000, 100, 'win'], [1000, 1000, 'draw'], [2700, 2500, 'win'], [3650, 3900, 'loss']];
+    for (const [mine, theirs, outcome] of cases) {
+      const row = (await db.query('SELECT ranked_delta($1,$2,$3) AS d', [mine, theirs, outcome])).rows[0];
+      expect(row.d, mine + ' vs ' + theirs + ' ' + outcome).toBe(trophyDelta(mine, theirs, outcome));
+    }
+  });
+
+  it('pairs two waiting players and moves trophies once both agree', async () => {
+    const a = (await call(A, "SELECT ranked_find_match('ABCDE') AS r")).r;
+    expect(a.role).toBe('host');
+    const b = (await call(B, "SELECT ranked_find_match('FGHJK') AS r")).r;
+    expect(b.role).toBe('guest');
+    expect(b.room_code).toBe('ABCDE');
+    const polled = (await call(A, 'SELECT ranked_poll_match() AS r')).r;
+    expect(polled.matched).toBe(true);
+    expect(polled.match_id).toBe(b.match_id);
+
+    // a single win claim does not move anything yet
+    const first = (await call(A, "SELECT ranked_report($1, 'win') AS r", [b.match_id])).r;
+    expect(first.settled).toBe(false);
+    expect(await trophies(A)).toBe(0);
+    const second = (await call(B, "SELECT ranked_report($1, 'loss') AS r", [b.match_id])).r;
+    expect(second.settled).toBe(true);
+    expect(await trophies(A)).toBe(20);
+    expect(await trophies(B)).toBe(0); // nobody drops below the start of their league
+    // reporting again changes nothing
+    await call(B, "SELECT ranked_report($1, 'win') AS r", [b.match_id]);
+    expect(await trophies(A)).toBe(20);
+  });
+
+  it('ignores a match where both players claim to have won', async () => {
+    await call(A, "SELECT ranked_find_match('QQQQ2') AS r");
+    const m = (await call(B, "SELECT ranked_find_match('RRRR3') AS r")).r;
+    expect(m.role).toBe('guest');
+    const before = await trophies(A);
+    await call(A, "SELECT ranked_report($1, 'win') AS r", [m.match_id]);
+    const res = (await call(B, "SELECT ranked_report($1, 'win') AS r", [m.match_id])).r;
+    expect(res.settled).toBe(true);
+    expect(await trophies(A)).toBe(before);
+  });
+
+  it('settles at once when a player admits the loss, and after 90 seconds when the other side vanishes', async () => {
+    await call(A, "SELECT ranked_find_match('CCCC4') AS r");
+    const m = (await call(B, "SELECT ranked_find_match('DDDD5') AS r")).r;
+    const bBefore = await trophies(B);
+    const conceded = (await call(A, "SELECT ranked_report($1, 'loss') AS r", [m.match_id])).r;
+    expect(conceded.settled).toBe(true);
+    expect(await trophies(B)).toBeGreaterThan(bBefore);
+
+    await call(A, "SELECT ranked_find_match('EEEE6') AS r");
+    const m2 = (await call(B, "SELECT ranked_find_match('FFFF7') AS r")).r;
+    const aBefore = await trophies(A);
+    const early = (await call(A, "SELECT ranked_report($1, 'win') AS r", [m2.match_id])).r;
+    expect(early.settled).toBe(false);
+    await db.query("UPDATE ranked_reports SET reported_at = now() - interval '2 minutes' WHERE match_id = $1", [m2.match_id]);
+    const n = (await call(C, 'SELECT ranked_settle_stale() AS n')).n;
+    expect(n).toBeGreaterThan(0);
+    expect(await trophies(A)).toBeGreaterThan(aBefore);
+  });
+
+  it('keeps strangers out of each other\'s matches and players away from the tables', async () => {
+    await call(A, "SELECT ranked_find_match('GGGG8') AS r");
+    const m = (await call(B, "SELECT ranked_find_match('HHHH9') AS r")).r;
+    expect(await rejects(C, "SELECT ranked_report($1, 'win')", [m.match_id])).toBe(true);
+    expect(await rejects(C, "SELECT ranked_find_match('bad')", [])).toBe(true);
+    const upd = await as(C, () => db.query("UPDATE player_trophies SET trophies = 9999 WHERE user_id = $1", [C]));
+    expect(upd.affectedRows).toBe(0);
+    const visible = (await as(C, () => db.query('SELECT * FROM player_trophies'))).rows;
+    expect(visible).toHaveLength(0);
+  });
+
+  it('does not pair players far apart in strength, but widens the search as they wait', async () => {
+    await db.query("DELETE FROM ranked_queue");
+    await db.query("INSERT INTO player_trophies (user_id, trophies) VALUES ($1, 1500) ON CONFLICT (user_id) DO UPDATE SET trophies = 1500", [C]);
+    await call(C, "SELECT ranked_find_match('JJJJ2') AS r");
+    const far = (await call(A, "SELECT ranked_find_match('KKKK3') AS r")).r;
+    expect(far.role).toBe('host'); // 1500 vs ~20 is too far apart right now
+    await db.query("UPDATE ranked_queue SET joined_at = now() - interval '5 minutes' WHERE user_id = $1", [C]);
+    const later = (await call(B, "SELECT ranked_find_match('LLLL4') AS r")).r;
+    expect(later.role).toBe('guest'); // after 5 minutes the window is wide enough
+    expect(later.room_code).toBe('JJJJ2');
+  });
+
+  it('lists top players', async () => {
+    const rows = (await as(A, () => db.query('SELECT * FROM ranked_top(10)'))).rows;
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0].trophies).toBeGreaterThanOrEqual(rows[rows.length - 1].trophies);
+  });
+});
 
 describe('score limits', () => {
   it('rejects impossible scores and floods from a player, but not normal play', async () => {

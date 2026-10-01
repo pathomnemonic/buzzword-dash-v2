@@ -578,6 +578,301 @@ REVOKE ALL ON FUNCTION delete_my_account() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION delete_my_account() TO authenticated;
 
 
+-- ==================== RANKED MULTIPLAYER ====================
+-- Trophies and leagues for matches against random players.
+--
+--   player_trophies   one row per player: trophies, wins, losses.
+--   ranked_queue      players waiting for an opponent (each holds a PeerJS room).
+--   ranked_matches    a pairing. Both players then play peer to peer.
+--   ranked_reports    what each player says happened. Trophies change only when
+--                     the two reports agree (or one player concedes, or one
+--                     report stands unanswered for 90 seconds).
+--
+-- Players never write these tables directly; they call the functions below.
+-- The trophy formula is the same as js/leagues.js (trophyDelta).
+
+CREATE TABLE IF NOT EXISTS player_trophies (
+  user_id       uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  trophies      integer NOT NULL DEFAULT 0 CHECK (trophies >= 0),
+  best_trophies integer NOT NULL DEFAULT 0 CHECK (best_trophies >= 0),
+  wins          integer NOT NULL DEFAULT 0 CHECK (wins >= 0),
+  losses        integer NOT NULL DEFAULT 0 CHECK (losses >= 0),
+  draws         integer NOT NULL DEFAULT 0 CHECK (draws >= 0),
+  updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS player_trophies_rank_idx ON player_trophies (trophies DESC);
+
+CREATE TABLE IF NOT EXISTS ranked_queue (
+  user_id   uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  room_code text NOT NULL CHECK (room_code ~ '^[A-Z0-9]{5}$'),
+  trophies  integer NOT NULL,
+  joined_at timestamptz NOT NULL DEFAULT now(),
+  seen_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ranked_matches (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  host_id        uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  guest_id       uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  room_code      text NOT NULL,
+  host_trophies  integer NOT NULL,
+  guest_trophies integer NOT NULL,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  settled        boolean NOT NULL DEFAULT false,
+  winner_id      uuid,
+  CHECK (host_id <> guest_id)
+);
+CREATE INDEX IF NOT EXISTS ranked_matches_host_idx ON ranked_matches (host_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS ranked_reports (
+  match_id    uuid NOT NULL REFERENCES ranked_matches(id) ON DELETE CASCADE,
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  outcome     text NOT NULL CHECK (outcome IN ('win', 'loss', 'draw')),
+  reported_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (match_id, user_id)
+);
+
+-- The first trophy count of the player's current league: nobody drops below it.
+CREATE OR REPLACE FUNCTION ranked_league_floor(t integer) RETURNS integer
+LANGUAGE sql IMMUTABLE AS $$
+  SELECT CASE
+    WHEN t >= 3600 THEN 3600 WHEN t >= 2700 THEN 2700 WHEN t >= 1900 THEN 1900
+    WHEN t >= 1200 THEN 1200 WHEN t >= 700 THEN 700 WHEN t >= 300 THEN 300 ELSE 0 END;
+$$;
+
+-- Trophy change for one player (see trophyDelta in js/leagues.js).
+CREATE OR REPLACE FUNCTION ranked_delta(mine integer, theirs integer, outcome text) RETURNS integer
+LANGUAGE plpgsql IMMUTABLE AS $$
+DECLARE
+  expected numeric := 1 / (1 + power(10::numeric, (theirs - mine) / 400.0));
+  delta integer;
+BEGIN
+  IF outcome = 'draw' THEN RETURN 0; END IF;
+  IF outcome = 'win' THEN
+    delta := greatest(10, round(40 * (1 - expected))::integer);
+  ELSE
+    delta := -greatest(8, round(40 * expected)::integer);
+  END IF;
+  IF mine + delta < ranked_league_floor(mine) THEN
+    delta := ranked_league_floor(mine) - mine;
+  END IF;
+  RETURN delta;
+END;
+$$;
+
+-- Give one player their trophy change for a finished match.
+CREATE OR REPLACE FUNCTION ranked_apply(p_user uuid, p_mine integer, p_theirs integer, p_outcome text)
+RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  cur integer;
+  d integer := ranked_delta(p_mine, p_theirs, p_outcome);
+  nxt integer;
+BEGIN
+  INSERT INTO player_trophies (user_id) VALUES (p_user) ON CONFLICT DO NOTHING;
+  SELECT trophies INTO cur FROM player_trophies WHERE user_id = p_user FOR UPDATE;
+  nxt := greatest(cur + d, ranked_league_floor(cur));
+  UPDATE player_trophies SET
+    trophies = nxt,
+    best_trophies = greatest(best_trophies, nxt),
+    wins = wins + (CASE WHEN p_outcome = 'win' THEN 1 ELSE 0 END),
+    losses = losses + (CASE WHEN p_outcome = 'loss' THEN 1 ELSE 0 END),
+    draws = draws + (CASE WHEN p_outcome = 'draw' THEN 1 ELSE 0 END),
+    updated_at = now()
+  WHERE user_id = p_user;
+  RETURN nxt - cur;
+END;
+$$;
+REVOKE ALL ON FUNCTION ranked_apply(uuid, integer, integer, text) FROM PUBLIC;
+
+-- Settle a match if its reports allow it. Returns true when the match is now settled.
+CREATE OR REPLACE FUNCTION ranked_try_settle(p_match uuid) RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  m ranked_matches;
+  hr ranked_reports;
+  gr ranked_reports;
+  host_out text;
+  guest_out text;
+BEGIN
+  SELECT * INTO m FROM ranked_matches WHERE id = p_match FOR UPDATE;
+  IF NOT FOUND OR m.settled THEN RETURN COALESCE(m.settled, false); END IF;
+  SELECT * INTO hr FROM ranked_reports WHERE match_id = p_match AND user_id = m.host_id;
+  SELECT * INTO gr FROM ranked_reports WHERE match_id = p_match AND user_id = m.guest_id;
+
+  IF hr.user_id IS NOT NULL AND gr.user_id IS NOT NULL THEN
+    IF hr.outcome = 'win' AND gr.outcome = 'loss' THEN host_out := 'win'; guest_out := 'loss';
+    ELSIF hr.outcome = 'loss' AND gr.outcome = 'win' THEN host_out := 'loss'; guest_out := 'win';
+    ELSIF hr.outcome = 'draw' AND gr.outcome = 'draw' THEN host_out := 'draw'; guest_out := 'draw';
+    ELSE
+      -- the two stories do not match: nobody gains or loses anything
+      UPDATE ranked_matches SET settled = true WHERE id = p_match;
+      RETURN true;
+    END IF;
+  ELSIF hr.user_id IS NOT NULL THEN
+    IF hr.outcome = 'loss' THEN host_out := 'loss'; guest_out := 'win';
+    ELSIF hr.reported_at < now() - interval '90 seconds' THEN
+      IF hr.outcome = 'win' THEN host_out := 'win'; guest_out := 'loss'; ELSE host_out := 'draw'; guest_out := 'draw'; END IF;
+    ELSE RETURN false; END IF;
+  ELSIF gr.user_id IS NOT NULL THEN
+    IF gr.outcome = 'loss' THEN guest_out := 'loss'; host_out := 'win';
+    ELSIF gr.reported_at < now() - interval '90 seconds' THEN
+      IF gr.outcome = 'win' THEN guest_out := 'win'; host_out := 'loss'; ELSE guest_out := 'draw'; host_out := 'draw'; END IF;
+    ELSE RETURN false; END IF;
+  ELSE
+    RETURN false;
+  END IF;
+
+  PERFORM ranked_apply(m.host_id, m.host_trophies, m.guest_trophies, host_out);
+  PERFORM ranked_apply(m.guest_id, m.guest_trophies, m.host_trophies, guest_out);
+  UPDATE ranked_matches SET settled = true,
+    winner_id = CASE WHEN host_out = 'win' THEN m.host_id WHEN guest_out = 'win' THEN m.guest_id ELSE NULL END
+  WHERE id = p_match;
+  RETURN true;
+END;
+$$;
+REVOKE ALL ON FUNCTION ranked_try_settle(uuid) FROM PUBLIC;
+
+-- Join the queue with a PeerJS room you have just opened. Returns either
+--   {role:'guest', match_id, room_code, ...}  an opponent was waiting: join their room, or
+--   {role:'host', ...}                         nobody yet: keep your room open and call ranked_poll_match.
+CREATE OR REPLACE FUNCTION ranked_find_match(p_room_code text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  me uuid := auth.uid();
+  code text := upper(p_room_code);
+  my_t integer;
+  cand ranked_queue;
+  m ranked_matches;
+BEGIN
+  IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
+  IF code !~ '^[A-Z0-9]{5}$' THEN RAISE EXCEPTION 'Bad room code'; END IF;
+  INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
+  SELECT trophies INTO my_t FROM player_trophies WHERE user_id = me;
+  DELETE FROM ranked_queue WHERE user_id = me;
+
+  -- a waiting player of similar strength; the window widens 10 trophies per second waited
+  SELECT * INTO cand FROM ranked_queue q
+   WHERE q.user_id <> me
+     AND q.seen_at > now() - interval '15 seconds'
+     AND abs(q.trophies - my_t) <= 150 + 10 * extract(epoch FROM (now() - q.joined_at))::integer
+   ORDER BY q.joined_at
+   LIMIT 1
+   FOR UPDATE SKIP LOCKED;
+
+  IF FOUND THEN
+    DELETE FROM ranked_queue WHERE user_id = cand.user_id;
+    INSERT INTO ranked_matches (host_id, guest_id, room_code, host_trophies, guest_trophies)
+    VALUES (cand.user_id, me, cand.room_code, cand.trophies, my_t)
+    RETURNING * INTO m;
+    RETURN jsonb_build_object('role', 'guest', 'match_id', m.id, 'room_code', m.room_code,
+                              'own_trophies', my_t, 'opponent_trophies', cand.trophies);
+  END IF;
+
+  INSERT INTO ranked_queue (user_id, room_code, trophies) VALUES (me, code, my_t);
+  RETURN jsonb_build_object('role', 'host', 'own_trophies', my_t);
+END;
+$$;
+
+-- The host calls this every few seconds while waiting. It keeps the queue entry
+-- alive and reports when someone has been paired with the room.
+CREATE OR REPLACE FUNCTION ranked_poll_match() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  me uuid := auth.uid();
+  m ranked_matches;
+BEGIN
+  IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
+  SELECT * INTO m FROM ranked_matches
+   WHERE host_id = me AND NOT settled AND created_at > now() - interval '2 minutes'
+     AND NOT EXISTS (SELECT 1 FROM ranked_reports r WHERE r.match_id = ranked_matches.id)
+   ORDER BY created_at DESC LIMIT 1;
+  IF FOUND THEN
+    RETURN jsonb_build_object('matched', true, 'match_id', m.id, 'room_code', m.room_code,
+                              'own_trophies', m.host_trophies, 'opponent_trophies', m.guest_trophies);
+  END IF;
+  UPDATE ranked_queue SET seen_at = now() WHERE user_id = me;
+  RETURN jsonb_build_object('matched', false, 'waiting', FOUND OR EXISTS (SELECT 1 FROM ranked_queue WHERE user_id = me));
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION ranked_cancel() RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  DELETE FROM ranked_queue WHERE user_id = auth.uid();
+$$;
+
+-- Say how a match ended for you. Trophies change once the story is settled.
+-- Returns {settled, delta, trophies}.
+CREATE OR REPLACE FUNCTION ranked_report(p_match uuid, p_outcome text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  me uuid := auth.uid();
+  m ranked_matches;
+  before_t integer;
+  done boolean;
+  after_t integer;
+BEGIN
+  IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
+  IF p_outcome NOT IN ('win', 'loss', 'draw') THEN RAISE EXCEPTION 'Bad outcome'; END IF;
+  SELECT * INTO m FROM ranked_matches WHERE id = p_match;
+  IF NOT FOUND OR me NOT IN (m.host_id, m.guest_id) THEN RAISE EXCEPTION 'Not your match'; END IF;
+  INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
+  SELECT trophies INTO before_t FROM player_trophies WHERE user_id = me;
+  IF m.settled THEN
+    RETURN jsonb_build_object('settled', true, 'delta', 0, 'trophies', before_t);
+  END IF;
+  INSERT INTO ranked_reports (match_id, user_id, outcome) VALUES (p_match, me, p_outcome) ON CONFLICT DO NOTHING;
+  done := ranked_try_settle(p_match);
+  SELECT trophies INTO after_t FROM player_trophies WHERE user_id = me;
+  RETURN jsonb_build_object('settled', done, 'delta', after_t - before_t, 'trophies', after_t);
+END;
+$$;
+
+-- Settle matches where one side reported and the other never did (they left).
+CREATE OR REPLACE FUNCTION ranked_settle_stale() RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  r record;
+  n integer := 0;
+BEGIN
+  FOR r IN
+    SELECT m.id FROM ranked_matches m
+     WHERE NOT m.settled AND m.created_at > now() - interval '1 day'
+       AND EXISTS (SELECT 1 FROM ranked_reports x WHERE x.match_id = m.id AND x.reported_at < now() - interval '90 seconds')
+     LIMIT 50
+  LOOP
+    IF ranked_try_settle(r.id) THEN n := n + 1; END IF;
+  END LOOP;
+  RETURN n;
+END;
+$$;
+
+-- My own trophies (creates the row on first use).
+CREATE OR REPLACE FUNCTION ranked_my_stats() RETURNS player_trophies
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  me uuid := auth.uid();
+  t player_trophies;
+BEGIN
+  IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
+  INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
+  SELECT * INTO t FROM player_trophies WHERE user_id = me;
+  RETURN t;
+END;
+$$;
+
+-- The top players by trophies.
+CREATE OR REPLACE FUNCTION ranked_top(p_limit integer DEFAULT 50)
+RETURNS TABLE (user_id uuid, player_name text, avatar text, trophies integer, wins integer, losses integer)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT t.user_id, coalesce(p.player_name, 'Anonymous'), coalesce(p.avatar, 'avatar_intern'),
+         t.trophies, t.wins, t.losses
+    FROM player_trophies t LEFT JOIN player_profiles p ON p.user_id = t.user_id
+   WHERE t.wins + t.losses + t.draws > 0 AND coalesce(p.visible, true)
+   ORDER BY t.trophies DESC, t.wins DESC
+   LIMIT least(greatest(p_limit, 1), 100);
+$$;
+
 -- ==================== REALTIME ====================
 -- Lets the app receive match invites instantly.
 

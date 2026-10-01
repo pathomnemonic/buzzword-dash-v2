@@ -278,3 +278,24 @@ CREATE POLICY "saves_delete_own"
 REVOKE INSERT, UPDATE ON player_saves FROM authenticated;
 GRANT EXECUTE ON FUNCTION push_save(jsonb, integer, timestamptz) TO authenticated;
 GRANT EXECUTE ON FUNCTION force_save(jsonb, integer) TO authenticated;
+
+
+-- ==================== RANKED MULTIPLAYER ====================
+-- Nobody reads or writes these tables directly; the functions in schema.sql do.
+
+ALTER TABLE player_trophies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ranked_queue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ranked_matches ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ranked_reports ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON player_trophies, ranked_queue, ranked_matches, ranked_reports FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON FUNCTION ranked_find_match(text), ranked_poll_match(), ranked_cancel(), ranked_report(uuid, text),
+  ranked_settle_stale(), ranked_my_stats(), ranked_top(integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION ranked_find_match(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_poll_match() TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_cancel() TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_report(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_settle_stale() TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_my_stats() TO authenticated;
+GRANT EXECUTE ON FUNCTION ranked_top(integer) TO authenticated;
