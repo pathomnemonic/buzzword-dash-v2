@@ -17,6 +17,16 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 var SLOW_FRAME_MS = 30;     // average frame time considered "too slow"
 var SAMPLE_FRAMES = 120;    // frames averaged before deciding
 
+/** True for laptop-class integrated graphics (Intel UHD/Iris, etc.), where multisampling is the main cost. */
+function isIntegratedGpu(renderer) {
+  try {
+    var gl = renderer.getContext();
+    var ext = gl.getExtension('WEBGL_debug_renderer_info');
+    var name = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+    return /intel|uhd|iris|mali|adreno|apple gpu|powervr/i.test(name);
+  } catch (e) { return false; }
+}
+
 /**
  * @param {THREE.WebGLRenderer} renderer
  * @param {THREE.Scene} scene
@@ -32,7 +42,7 @@ export function createPostFX(renderer, scene, camera, targetMs) {
   var coarse = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   var target = new THREE.WebGLRenderTarget(size.x * pixelRatio, size.y * pixelRatio, {
     type: THREE.HalfFloatType,
-    samples: coarse ? 2 : 4 // phones and tablets: half the multisampling cost
+    samples: (coarse || isIntegratedGpu(renderer)) ? 2 : 4 // phones, tablets and integrated GPUs: half the multisampling cost
   });
 
   var composer = new EffectComposer(renderer, target);

@@ -625,7 +625,7 @@ function getCoinTemplate() {
   });
 
   // Minted disc: face turned toward +Z so it spins like a real coin
-  var coin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.07, 32), gold);
+  var coin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.07, 20), gold);
   coin.rotation.x = Math.PI / 2;
   group.add(coin);
   var rim = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.032, 10, 32), shine);
