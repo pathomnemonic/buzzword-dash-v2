@@ -55,7 +55,7 @@ describe('every button in the page is wired up', () => {
 
   it('has a listener for each nav tab', () => {
     const tabs = [...html.matchAll(/class="nav-item[^"]*" data-screen="([^"]+)"/g)].map((m) => m[1]);
-    expect(tabs).toEqual(['screenHome', 'screenStats', 'screenShop', 'screenLeaderboard', 'screenSettings']);
+    expect(tabs).toEqual(['screenStats', 'screenQuests', 'screenHome', 'screenShop', 'screenCards']);
     const ui = sources.find((s) => s.file.endsWith('js/ui.js')).text;
     expect(ui).toMatch(/querySelectorAll\('\.nav-item'\)\.forEach\(function \(item\) \{\s*item\.addEventListener\('click'/);
   });

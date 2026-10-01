@@ -163,111 +163,185 @@
        Bottom nav is OUTSIDE all screens so it persists everywhere.
   ==================================================================== -->
 
-  <!-- ==================== HOME ==================== -->
+  <!-- ==================== HOME (one screen, no scrolling) ==================== -->
   <div class="screen active" id="screenHome" role="region" aria-label="Home">
-    <div class="screen-scroll">
+    <div class="home-layout">
 
-      <header class="home-header">
+      <!-- Top bar: settings (left), coins, ranks, account (right) -->
+      <div class="home-topbar">
+        <button class="top-btn" id="settingsBtn" type="button" aria-label="Settings">⚙</button>
+        <div class="home-coins" id="homeCoinsDisplay" aria-label="Your coins and best score">
+          <span aria-hidden="true">🪙</span> <span id="homeCoins">100</span>
+          <span class="home-coins-sep" aria-hidden="true">|</span>
+          <span aria-hidden="true">⭐</span> <span id="homeBest">0</span>
+        </div>
+        <button class="top-btn top-btn-label" id="leaderboardBtn" type="button" aria-label="Ranks and leaderboard">
+          <span aria-hidden="true">🏆</span><span class="top-btn-text">Ranks</span>
+        </button>
         <button class="home-profile-btn" id="profileCornerBtn" type="button" aria-label="Profile and account">
           <span class="hp-avatar" id="profileCornerAvatar" aria-hidden="true">👤</span>
           <span class="hp-label" id="profileCornerLabel">Sign in</span>
         </button>
+      </div>
+
+      <header class="home-header">
         <h1>Dx Dash</h1>
         <p class="home-tagline">Run the list.</p>
-        <p class="home-sub">USMLE &amp; COMLEX Board Runner</p>
-        <div class="home-coins" id="homeCoinsDisplay" aria-label="Your coins and best score">
-          <span aria-hidden="true">🪙</span> <span id="homeCoins">100</span>
-          &nbsp;|&nbsp;
-          <span aria-hidden="true">🏆</span> <span id="homeBest">0</span>
-        </div>
-        <div class="home-level" id="homeLevel"></div>
-        <button class="home-league" id="homeLeague" type="button" hidden></button>
-        <div class="study-goal" id="studyGoal" role="status"></div>
       </header>
 
+      <!-- Level, league and today's progress in one tappable strip -->
+      <div class="home-progress">
+        <div class="home-level" id="homeLevel"></div>
+        <button class="home-league" id="homeLeague" type="button" hidden></button>
+        <button class="study-goal" id="studyGoal" type="button" aria-haspopup="dialog" aria-controls="todaySheet"></button>
+      </div>
 
-      <!-- PRIMARY ACTION: Giant PLAY button -->
+      <!-- PRIMARY ACTION -->
       <div class="play-section">
-        <button class="btn-play" data-mode="endless" type="button" aria-label="Play endless mode">
+        <button class="btn-play" data-mode="endless" type="button" aria-label="Play an endless run">
           <span class="play-icon" aria-hidden="true">▶</span>
           <span class="play-label">PLAY</span>
         </button>
+        <div class="play-sub">Endless run · <button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button></div>
       </div>
 
-      <!-- SECONDARY MODES -->
-      <div class="mode-row" role="group" aria-label="Game modes">
-        <button class="mode-btn" data-mode="study" type="button">
-          <span class="mode-btn-icon" aria-hidden="true">📖</span>
-          <span class="mode-btn-label">Study</span>
+      <!-- Set up the run: which questions, how fast -->
+      <div class="setup-row" role="group" aria-label="Set up your run">
+        <button class="setup-btn" id="filtersBtn" type="button" aria-controls="screenFilters">
+          <span class="setup-title">🎛 Question filters</span>
+          <span class="filters-summary" id="filtersSummary">All subjects</span>
         </button>
-        <button class="mode-btn" data-mode="weakness" type="button">
-          <span class="mode-btn-icon" aria-hidden="true">🎯</span>
-          <span class="mode-btn-label">Weakness</span>
+        <button class="setup-btn setup-speed" id="speedBtn" type="button" aria-haspopup="dialog" aria-controls="speedSheet">
+          <span class="setup-title">🏎 Speed</span>
+          <span class="filters-summary" id="speedBtnValue">1×</span>
         </button>
-        <button class="mode-btn" data-mode="daily" type="button">
-          <span class="mode-btn-icon" aria-hidden="true">📅</span>
-          <span class="mode-btn-label">Daily</span>
-        </button>
+      </div>
+
+      <!-- Four ways to play, each with its own popup or screen -->
+      <div class="mode-row" role="group" aria-label="Ways to play">
         <button class="mode-btn" id="multiplayerBtn" type="button">
           <span class="mode-btn-icon" aria-hidden="true">🎮</span>
           <span class="mode-btn-label">Versus</span>
         </button>
+        <button class="mode-btn" id="homeFlashcardsBtn" type="button" aria-haspopup="dialog" aria-controls="flashcardsSheet">
+          <span class="mode-btn-icon" aria-hidden="true">🃏</span>
+          <span class="mode-btn-label">Flashcards</span>
+        </button>
+        <button class="mode-btn" id="homeChallengeBtn" type="button" aria-haspopup="dialog" aria-controls="challengeSheet">
+          <span class="mode-btn-icon" aria-hidden="true">🏁</span>
+          <span class="mode-btn-label">Challenge</span>
+        </button>
+        <button class="mode-btn" id="examBtn" type="button">
+          <span class="mode-btn-icon" aria-hidden="true">📝</span>
+          <span class="mode-btn-label">Exam Sim</span>
+        </button>
       </div>
 
-      <!-- QUESTION FILTERS: one row; subjects, exam and the advanced filters live on their own page -->
-      <button class="collapsible-toggle filters-entry" id="filtersBtn" type="button" aria-controls="screenFilters">
-        <span class="filters-entry-text">
-          <span>🎛 Question filters</span>
-          <span class="filters-summary" id="filtersSummary">All subjects</span>
-        </span>
-        <span class="collapse-arrow" aria-hidden="true">▸</span>
-      </button>
+    </div>
+  </div>
 
-      <!-- SPEED DIAL -->
+  <!-- ==================== POPUPS (sheets) ==================== -->
+
+  <!-- Challenge: every way to play a set of questions, and how they differ -->
+  <div class="tutorial-overlay sheet-overlay" id="challengeSheet" role="dialog" aria-label="Challenge modes" aria-modal="true">
+    <div class="sheet-card">
+      <h2>🏁 Challenge</h2>
+      <p class="sheet-intro">Pick how you want to play. The big PLAY button is the endless run.</p>
+      <div class="sheet-list">
+        <button class="sheet-entry" data-mode="study" type="button">
+          <span class="se-icon" aria-hidden="true">📖</span>
+          <span class="se-body"><strong>Study</strong><span>Relaxed practice with a teaching point after every answer.</span><em>Solo · no lives lost · no pressure</em></span>
+        </button>
+        <button class="sheet-entry" data-mode="weakness" type="button">
+          <span class="se-icon" aria-hidden="true">🎯</span>
+          <span class="se-body"><strong>Weakness</strong><span>Drill the cards you miss most, until they stick.</span><em>Solo · your missed cards · extra room from the monster</em></span>
+        </button>
+        <button class="sheet-entry" data-mode="daily" type="button">
+          <span class="se-icon" aria-hidden="true">📅</span>
+          <span class="se-body"><strong>Daily 15</strong><span>Today's 15 cards, the same for everyone. One try a day.</span><em>Everyone · resets daily · keeps your streak going</em></span>
+        </button>
+        <button class="sheet-entry" id="challengeBtn" type="button">
+          <span class="se-icon" aria-hidden="true">🤝</span>
+          <span class="se-body"><strong>Friend challenge</strong><span>Play 15 fresh cards, then send a link. Friends play the same cards and compare.</span><em>You and friends · any time · no sign-up needed</em></span>
+        </button>
+        <button class="sheet-entry" id="tournamentBtn" type="button">
+          <span class="se-icon" aria-hidden="true">🏆</span>
+          <span class="se-body"><strong>Weekly tournament</strong><span>20 cards, the same for every player this week. Your best score is ranked.</span><em>Everyone · resets weekly · top 10% earns a badge</em></span>
+        </button>
+        <button class="sheet-entry" id="cohortsBtn" type="button" hidden>
+          <span class="se-icon" aria-hidden="true">🛡️</span>
+          <span class="se-body"><strong>Cohorts</strong><span>Team up with classmates and compete against other cohorts each week.</span><em>Teams · weekly war</em></span>
+        </button>
+      </div>
+      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Flashcards: choose which cards, then flip them or listen hands-free -->
+  <div class="tutorial-overlay sheet-overlay" id="flashcardsSheet" role="dialog" aria-label="Flashcards" aria-modal="true">
+    <div class="sheet-card">
+      <h2>🃏 Flashcards</h2>
+      <p class="sheet-intro">No runner, no lives. Choose your cards, then flip them yourself or listen hands-free.</p>
+      <div class="sheet-list" id="flashcardsList">
+        <button class="sheet-entry" id="flashcardBtn" data-source="mine" type="button">
+          <span class="se-icon" aria-hidden="true">📖</span>
+          <span class="se-body"><strong>Study my subjects</strong><span>A random mix from the subjects you picked in Question filters.</span><em>Flip cards or hands-free</em></span>
+        </button>
+        <button class="sheet-entry" data-source="due" type="button">
+          <span class="se-icon" aria-hidden="true">⏰</span>
+          <span class="se-body"><strong>Review due cards</strong><span id="fcDueText">Cards that are ready to see again, most overdue first.</span><em>Spaced repetition</em></span>
+        </button>
+        <button class="sheet-entry" data-source="missed" type="button">
+          <span class="se-icon" aria-hidden="true">🩹</span>
+          <span class="se-body"><strong>Cards I miss</strong><span id="fcMissedText">The cards you get wrong the most.</span><em>Targeted practice</em></span>
+        </button>
+        <button class="sheet-entry" data-source="fresh" type="button">
+          <span class="se-icon" aria-hidden="true">🆕</span>
+          <span class="se-body"><strong>New cards</strong><span id="fcFreshText">Cards you have not seen yet.</span><em>Discover something new</em></span>
+        </button>
+      </div>
+      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Speed: moved off the Home screen -->
+  <div class="tutorial-overlay sheet-overlay" id="speedSheet" role="dialog" aria-label="Game speed" aria-modal="true">
+    <div class="sheet-card">
+      <h2>🏎 Speed</h2>
+      <p class="sheet-intro">Faster runs score more points per correct answer.</p>
       <div class="speed-dial">
-        <label for="speedDial">🏎️ Speed</label>
+        <label for="speedDial">Speed</label>
         <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
         <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
       </div>
+      <button class="btn btn-primary btn-block sheet-close" type="button">Done</button>
+    </div>
+  </div>
 
-      <!-- UTILITY BUTTONS -->
-      <div class="btn-row">
-        <button class="btn btn-gold btn-sm" id="shopBtn" type="button">🧥 Locker</button>
-        <button class="btn btn-outline btn-sm" id="questBtn" type="button">📋 Quests</button>
-        <button class="btn btn-outline btn-sm" id="myCardsBtn" type="button">📝 My Cards</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-outline btn-sm" id="settingsBtn" type="button">⚙ Settings</button>
-        <button class="btn btn-outline btn-sm" id="cohortsBtn" type="button" hidden>🛡️ Cohorts</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-outline btn-sm" id="flashcardBtn" type="button">📖 Flashcards</button>
-        <button class="btn btn-outline btn-sm" id="cardBrowserBtn" type="button">📚 Browse Cards</button>
-        <button class="btn btn-outline btn-sm" id="profileBtn" type="button">👤 Profile &amp; badges</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-outline btn-sm" id="examBtn" type="button">📝 Exam Sim</button>
-        <button class="btn btn-outline btn-sm" id="challengeBtn" type="button">🏁 Challenge</button>
-        <button class="btn btn-gold btn-sm" id="tournamentBtn" type="button">🏆 Weekly Tournament</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-outline btn-sm" id="leaderboardBtn" type="button">🏆 Leaderboard</button>
-      </div>
+  <!-- Today: goal, streak, reviews and the weekly reward -->
+  <div class="tutorial-overlay sheet-overlay" id="todaySheet" role="dialog" aria-label="Today" aria-modal="true">
+    <div class="sheet-card">
+      <h2>🎯 Today</h2>
+      <div id="todayContent"></div>
+      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
+    </div>
+  </div>
 
-      <!-- How to Play: opens the same interactive tutorial as Settings -> About -> How to play -->
-      <div id="howToPlaySection">
-        <button class="btn btn-outline btn-block" id="howToPlayBtn" type="button">📖 How to Play</button>
+  <!-- ==================== CARDS (library: browse and make your own) ==================== -->
+  <div class="screen" id="screenCards" role="region" aria-label="Cards">
+    <div class="screen-scroll">
+      <h2>📚 Cards</h2>
+      <p class="muted">The question library. To study cards, use Flashcards on Home.</p>
+      <div class="sheet-list">
+        <button class="sheet-entry" id="cardBrowserBtn" type="button">
+          <span class="se-icon" aria-hidden="true">🔎</span>
+          <span class="se-body"><strong>Browse cards</strong><span>Search every card by subject or text, flag mistakes, and see your stats per card.</span></span>
+        </button>
+        <button class="sheet-entry" id="myCardsBtn" type="button">
+          <span class="se-icon" aria-hidden="true">📝</span>
+          <span class="se-body"><strong>My cards</strong><span>Write your own cards, import Anki decks and manage saved decks.</span></span>
+        </button>
       </div>
-
-      <!-- Study Streak Calendar -->
-      <div class="streak-calendar" id="streakCalendar">
-        <h4>📅 Study Streak</h4>
-        <div class="calendar-day-labels" aria-hidden="true">
-          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-        </div>
-        <div class="calendar-grid" id="calendarGrid" role="img" aria-label="Study streak calendar"></div>
-      </div>
-
     </div>
   </div>
 
@@ -305,6 +379,14 @@
   <div class="screen" id="screenStats" role="region" aria-label="Performance statistics">
     <div class="screen-scroll">
       <h2>📊 Performance</h2>
+      <!-- Study Streak Calendar -->
+      <div class="streak-calendar" id="streakCalendar">
+        <h4>📅 Study Streak</h4>
+        <div class="calendar-day-labels" aria-hidden="true">
+          <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid" role="img" aria-label="Study streak calendar"></div>
+      </div>
       <div id="statsContent"></div>
     </div>
   </div>
@@ -455,20 +537,20 @@
        PERSISTENT BOTTOM NAV
   ==================================================================== -->
   <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
-    <button class="nav-item active" data-screen="screenHome" type="button" aria-current="true">
-      <span class="nav-icon" aria-hidden="true">🏠</span>Home
-    </button>
     <button class="nav-item" data-screen="screenStats" type="button">
       <span class="nav-icon" aria-hidden="true">📊</span>Stats
+    </button>
+    <button class="nav-item" data-screen="screenQuests" type="button">
+      <span class="nav-icon" aria-hidden="true">📋</span>Quests
+    </button>
+    <button class="nav-item nav-home active" data-screen="screenHome" type="button" aria-current="true">
+      <span class="nav-icon" aria-hidden="true">🏠</span>Home
     </button>
     <button class="nav-item" data-screen="screenShop" type="button">
       <span class="nav-icon" aria-hidden="true">🧥</span>Locker
     </button>
-    <button class="nav-item" data-screen="screenLeaderboard" type="button">
-      <span class="nav-icon" aria-hidden="true">🏆</span>Ranks
-    </button>
-    <button class="nav-item" data-screen="screenSettings" type="button">
-      <span class="nav-icon" aria-hidden="true">⚙</span>Settings
+    <button class="nav-item" data-screen="screenCards" type="button">
+      <span class="nav-icon" aria-hidden="true">📚</span>Cards
     </button>
   </nav>
 

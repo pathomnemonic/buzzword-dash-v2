@@ -1175,3 +1175,125 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .profile-badge-list .achievement-item.is-new { box-shadow: 0 0 0 3px var(--accent-red); }
 .profile-badge-list .achievement-item > .nav-dot { top: -5px; right: -3px; }
 .badge-pin { margin-left: auto; font-size: 18px; min-width: 22px; text-align: center; }
+
+/* =====================================================================
+   HOME: one screen, no scrolling. Top bar, one big PLAY, a setup row and four ways to play.
+   Everything is sized from the screen height so it fits phones and laptops alike.
+   ===================================================================== */
+#screenHome { overflow: hidden; }
+.home-layout {
+  flex: 1; min-height: 0; width: 100%; max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column; align-items: stretch; justify-content: space-between;
+  gap: clamp(4px, 1.2vh, 12px);
+  padding: calc(var(--safe-top) + 6px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 76px) calc(var(--safe-left) + 12px);
+}
+.home-topbar { display: flex; align-items: center; gap: 8px; }
+.home-topbar .home-coins { flex: 1; text-align: center; margin: 0; white-space: nowrap; font-size: 14px; }
+.home-coins-sep { opacity: .5; margin: 0 4px; }
+.top-btn {
+  min-width: 44px; height: 44px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  background: var(--panel); color: #fff; font: inherit; font-weight: 900; font-size: 20px; cursor: pointer; position: relative;
+  border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink);
+}
+.top-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.top-btn-label { font-size: 18px; }
+.top-btn-text { font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+.top-btn:focus-visible, .setup-btn:focus-visible, .sheet-entry:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+/* the profile button now sits in the top bar rather than floating over the header */
+.home-topbar .home-profile-btn { position: relative; top: auto; right: auto; min-width: 44px; padding: 0; flex-direction: row; gap: 6px; }
+.home-topbar .home-profile-btn .hp-avatar { width: 40px; height: 40px; }
+.home-topbar .home-profile-btn .hp-label { display: none; }
+
+.home-header { padding: 0; text-align: center; }
+.home-header h1 { font-size: clamp(30px, 6.5vh, 46px); line-height: 1; margin: 0; }
+.home-header .home-tagline { margin: 2px 0 0; font-size: 12px; }
+
+.home-progress { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px; }
+.home-progress .home-level, .home-progress .home-league { margin: 0; }
+.home-progress .study-goal {
+  flex: 1 1 100%; max-width: 100%; margin: 0; padding: 6px 12px; text-align: left; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+  background: var(--panel); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink); color: #fff; position: relative;
+}
+.home-progress .study-goal-bar { max-width: none; height: 10px; margin-top: 4px; }
+.home-progress .study-goal-due { display: none; }
+
+.play-section { display: flex; flex-direction: column; align-items: center; margin: 0; }
+.play-section .btn-play { width: clamp(96px, 20vh, 150px); height: clamp(96px, 20vh, 150px); margin-bottom: 6px; }
+.play-section .play-icon { font-size: clamp(30px, 6vh, 46px); }
+.play-section .play-label { font-size: clamp(18px, 3vh, 24px); }
+.play-sub { font-size: 12px; font-weight: 800; color: var(--text-secondary); text-shadow: 0 2px 0 var(--ink); }
+.link-btn { background: none; border: 0; padding: 6px 4px; color: var(--accent-cyan); font: inherit; font-weight: 900; cursor: pointer; text-decoration: underline; }
+
+.setup-row { display: flex; gap: 8px; }
+.setup-btn {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 12px; min-height: 48px;
+  background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); color: #fff; font: inherit; cursor: pointer; text-align: left; position: relative;
+  border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink);
+}
+.setup-btn:first-child { flex: 2 1 0; }
+.setup-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.setup-title { font-weight: 900; font-size: 13px; }
+.setup-btn .filters-summary { max-width: 100%; }
+
+.home-layout .mode-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0; }
+.home-layout .mode-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: clamp(64px, 11vh, 84px); padding: 4px 2px; cursor: pointer; font: inherit; position: relative;
+}
+.home-layout .mode-btn-label { font-size: 10px; }
+
+@media (max-height: 600px) {
+  .home-header .home-tagline { display: none; }
+  .home-progress .study-goal-bar { display: none; }
+}
+
+/* ---------- popups (sheets) ---------- */
+.sheet-overlay.active { align-items: center; justify-content: center; }
+.sheet-card {
+  width: 100%; max-width: 440px; max-height: 100%; overflow-y: auto; padding: 16px 14px 12px; border-radius: 20px; text-align: left;
+  background: var(--bg-card-solid); border: 3px solid var(--ink); box-shadow: 0 6px 0 var(--ink);
+}
+.sheet-card h2 { margin: 0 0 4px; font-size: 22px; font-weight: 900; color: var(--accent-cyan); }
+.sheet-intro { margin: 0 0 10px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
+.sheet-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.sheet-entry {
+  display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 10px 12px; text-align: left; cursor: pointer; position: relative;
+  background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); color: #fff; font: inherit;
+  border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink);
+}
+.sheet-entry[hidden] { display: none; }
+.sheet-entry:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.se-icon { font-size: 24px; line-height: 1.1; flex: none; }
+.se-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.se-body strong { font-size: 14px; font-weight: 900; }
+.se-body span { font-size: 12px; line-height: 1.35; color: rgba(255, 255, 255, .9); }
+.se-body em { font-size: 10px; font-style: normal; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; color: var(--accent-gold); }
+.sheet-close { margin-top: 2px; }
+.today-line { margin: 8px 0; font-size: 13px; font-weight: 700; }
+
+/* ---------- bottom nav: five tabs, Home in the middle and a little bigger ---------- */
+.bottom-nav { justify-content: space-between; gap: 2px; }
+.bottom-nav .nav-item { flex: 1 1 0; min-width: 0; padding: 4px 2px; }
+.bottom-nav .nav-home .nav-icon { font-size: 26px; }
+.bottom-nav .nav-home { flex: 1.25 1 0; }
+
+/* the streak calendar now lives on Stats */
+#screenStats .streak-calendar { margin: 0 0 12px; }
+
+@media (min-width: 1000px) and (min-height: 600px) {
+  .home-layout { max-width: 560px; }
+}
+
+/* short phones: the Challenge popup shows every mode without scrolling */
+@media (max-height: 760px) {
+  .sheet-card { padding: 10px 10px 6px; }
+  .sheet-card h2 { font-size: 19px; margin-bottom: 2px; }
+  .sheet-intro { display: none; }
+  .sheet-list { gap: 5px; margin-bottom: 6px; }
+  .sheet-entry { padding: 6px 10px; gap: 8px; }
+  .se-icon { font-size: 20px; }
+  .se-body { gap: 1px; }
+  .se-body strong { font-size: 13px; }
+  .se-body span { font-size: 11px; line-height: 1.25; }
+  .se-body em { font-size: 9px; }
+}

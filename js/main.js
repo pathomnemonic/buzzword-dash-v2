@@ -1215,7 +1215,7 @@ function init() {
   }
 
   // Secondary mode buttons
-  document.querySelectorAll('.mode-btn').forEach(function (btn) {
+  document.querySelectorAll('.mode-btn[data-mode], .sheet-entry[data-mode]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var mode = this.dataset.mode;
       if (mode) startMode(mode);
@@ -1690,7 +1690,7 @@ function handleNativeBack() {
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
   if (isTutorialOpen()) { skipTutorial(); return true; }
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay'];
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

@@ -7,7 +7,7 @@ import { openApp } from './helpers.js';
 test.describe('Personalization', () => {
   test('turning off a power-up marks runs as custom (not ranked)', async ({ page }) => {
     await openApp(page);
-    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('#settingsBtn').click();
     await page.locator('.settings-card[data-section="rules"]').click();
     await expect(page.getByText('Your Rules (single-player)')).toBeVisible();
     await expect(page.getByText('Standard rules: runs are ranked.')).toBeVisible();

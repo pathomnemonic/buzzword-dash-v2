@@ -47,7 +47,7 @@ const inView = (page, sel) => page.evaluate((s) => {
 // ---------- Settings, the tutorial and How to Play ----------
 {
   const { ctx, page, errors } = await open({ width: 420, height: 800 });
-  await page.locator('[data-screen="screenSettings"]').click();
+  await page.locator('#settingsBtn').click();
   const cards = await page.locator('.settings-card').count();
   check('Settings opens as a list of sections', cards === 6, 'found ' + cards);
 

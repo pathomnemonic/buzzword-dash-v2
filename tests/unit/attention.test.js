@@ -9,7 +9,7 @@ beforeEach(async () => {
   const mod = await import('../../js/storage.js');
   storage = mod.storage;
   storage.load();
-  document.body.innerHTML = '<button id="profileBtn">Profile</button><button id="profileCornerBtn">P</button><button id="questBtn">Quests</button><div id="studyGoal"></div>';
+  document.body.innerHTML = '<button id="profileCornerBtn">P</button><button id="questBtn" class="nav-item" data-screen="screenQuests">Quests</button><div id="studyGoal"></div>';
 });
 
 describe('badges and red dots', () => {
@@ -48,7 +48,6 @@ describe('badges and red dots', () => {
     expect(document.querySelectorAll('.nav-dot').length).toBe(0);
     storage.unlockAchievement('ach_first_run');
     updateAttentionDots(storage, QUESTS);
-    expect(document.querySelector('#profileBtn .nav-dot')).toBeTruthy();
     expect(document.querySelector('#profileCornerBtn .nav-dot')).toBeTruthy();
     expect(document.querySelector('#questBtn .nav-dot')).toBeNull();
     storage.markAchievementsSeen();

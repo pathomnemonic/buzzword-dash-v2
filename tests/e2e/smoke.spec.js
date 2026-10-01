@@ -24,7 +24,7 @@ test.describe('Smoke tests', () => {
 
   test('settings are grouped into sections, each explained', async ({ page }) => {
     await openApp(page);
-    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('#settingsBtn').click();
     await expect(page.locator('.settings-card')).toHaveCount(6);
     await page.locator('.settings-card[data-section="study"]').click();
     await expect(page.getByText(/How much more often you see cards you have never answered/)).toBeVisible();
@@ -34,7 +34,7 @@ test.describe('Smoke tests', () => {
 
   test('Settings and Home open the same tutorial, and it can be skipped', async ({ page }) => {
     await openApp(page);
-    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('#settingsBtn').click();
     await page.locator('.settings-card[data-section="about"]').click();
     await page.locator('#settingsTutorialBtn').click();
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
@@ -79,18 +79,17 @@ test.describe('Smoke tests', () => {
     await openApp(page, '/?debug=1');
     // no separate Badges button on Home any more
     await expect(page.locator('#achievementsBtn')).toHaveCount(0);
-    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(0);
 
     // earn a badge: the profile buttons get a dot
     await page.evaluate(() => {
       window.__storage.unlockAchievement('ach_first_run');
       document.dispatchEvent(new CustomEvent('dx:attention-changed'));
     });
-    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(1);
     await expect(page.locator('#profileCornerBtn .nav-dot')).toHaveCount(1);
 
     // the badges are in the profile, with the new one marked
-    await page.locator('#profileBtn').click();
+    await page.locator('#profileCornerBtn').click();
+    await page.locator('#accountBadgesBtn').click();
     await expect(page.locator('#screenProfile')).toHaveClass(/active/);
     await expect(page.locator('#profileBadges')).toContainText(/Badges \(1\//);
     await expect(page.locator('#profileBadges .achievement-item.is-new')).toHaveCount(1);
@@ -100,7 +99,6 @@ test.describe('Smoke tests', () => {
 
     // leaving the profile clears the dot
     await page.locator('[data-screen="screenHome"]').click();
-    await expect(page.locator('#profileBtn .nav-dot')).toHaveCount(0);
     await expect(page.locator('#profileCornerBtn .nav-dot')).toHaveCount(0);
   });
 
@@ -159,12 +157,13 @@ test.describe('Smoke tests', () => {
 
   test('navigating to Settings screen works', async ({ page }) => {
     await openApp(page);
-    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('#settingsBtn').click();
     await expect(page.locator('#screenSettings')).toBeVisible();
   });
 
   test('the Flashcards button opens the flashcard screen', async ({ page }) => {
     await openApp(page);
+    await page.locator('#homeFlashcardsBtn').click();
     await page.locator('#flashcardBtn').click();
     await expect(page.locator('#screenFlashcard')).toBeVisible();
   });

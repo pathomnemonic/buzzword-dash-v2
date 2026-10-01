@@ -54,6 +54,7 @@ import { settingsMethods } from './uisettings.js';
 import { studyMethods } from './uistudy.js';
 import { browseMethods } from './uibrowse.js';
 import { profileMethods } from './uiprofile.js';
+import { homeMethods } from './uihome.js';
 import { prefersReducedMotion, trapFocus, releaseFocusTrap, _copyToClipboard } from './uihelpers.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -65,6 +66,13 @@ var _settingsExtensions = [];
 // ═══════════════════════════════════════════════════════════
 // UI CLASS
 // ═══════════════════════════════════════════════════════════
+
+/** The tab a screen belongs to (sub-pages keep their parent's tab lit; Settings and Ranks light none). */
+function NAV_PARENT(screenId) {
+  if (screenId === 'screenFilters') return 'screenHome';
+  if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards') return 'screenCards';
+  return screenId;
+}
 
 class UI {
   constructor() {
@@ -115,6 +123,7 @@ class UI {
     this.renderQuests();
     this.setupSpeedDial();
     this.bindNavigation();
+    this.bindHomeSheets();
     this.bindMusicToggle();
     this.bindFlashcardKeys();
     this.bindSubjectControls();
@@ -294,7 +303,7 @@ class UI {
       this.renderHome();
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
-    if (screenId === 'screenStats') this.renderStats();
+    if (screenId === 'screenStats') { this.renderStats(); this.renderCalendar(); }
     if (screenId === 'screenShop') {
       // What newly became affordable since the last visit wears a red dot until the player leaves
       this._lockerFresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
@@ -320,7 +329,7 @@ class UI {
     document.dispatchEvent(new CustomEvent('dx:attention-changed'));
 
     document.querySelectorAll('.nav-item').forEach(function (n) {
-      var isCurrent = n.dataset.screen === (screenId === 'screenFilters' ? 'screenHome' : screenId);
+      var isCurrent = n.dataset.screen === NAV_PARENT(screenId);
       n.classList.toggle('active', isCurrent);
       // aria-current drives the highlight too, so it must follow the tab
       if (isCurrent) n.setAttribute('aria-current', 'true');
@@ -436,7 +445,8 @@ class UI {
         'quickReviewOverlay',
         'continueOverlay',
         'multiplayerOverlay',
-        'accountOverlay'
+        'accountOverlay',
+        'challengeSheet', 'flashcardsSheet', 'speedSheet', 'todaySheet'
       ];
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
@@ -595,11 +605,14 @@ class UI {
     var current = storage.get('userSpeed') || 1;
     dial.value = current;
     setText(val, current + '×');
+    var btnVal = document.getElementById('speedBtnValue');
+    if (btnVal) setText(btnVal, current + '×');
     var self = this;
     dial.addEventListener('input', function () {
       var v = parseFloat(dial.value);
       storage.set('userSpeed', v);
       setText(val, v + '×');
+      if (btnVal) setText(btnVal, v + '×');
     });
     val.style.cursor = 'pointer';
     val.addEventListener('click', function () {
@@ -619,57 +632,12 @@ class UI {
   // HOME SCREEN
   // ═══════════════════════════════════════════════════════
 
-  renderStudyGoal() {
-    var self = this;
-    var el = document.getElementById('studyGoal');
-    if (!el) return;
-    clearElement(el);
-    var goal = storage.get('dailyGoal') || 20;
-    var done = storage.getStudiedToday();
-    var pct = Math.min(100, Math.round(done / goal * 100));
-    var label = '🎯 Today: ' + done + ' / ' + goal + ' cards' + (done >= goal ? ' ✅' : '');
-    el.appendChild(createElement('div', { text: label }));
-    var bar = createElement('div', {
-      className: 'study-goal-bar',
-      attributes: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(goal), 'aria-valuenow': String(Math.min(done, goal)), 'aria-label': 'Daily study goal' }
-    });
-    var fill = createElement('div', { className: 'study-goal-fill' });
-    fill.style.width = pct + '%';
-    bar.appendChild(fill);
-    el.appendChild(bar);
-    var due = storage.getDueCount();
-    if (due > 0) {
-      el.appendChild(createElement('div', { className: 'study-goal-due', text: '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review' }));
-    }
-
-    var streak = storage.getStreakStatus();
-    if (streak.streak > 0 || streak.shields > 0) {
-      var streakText = '🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  \u00B7  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : '');
-      el.appendChild(createElement('div', { className: 'study-goal-due', text: streakText }));
-    }
-
-    var week = storage.getWeeklyProgress();
-    var weekEl = createElement('div', { className: 'study-goal-due', text: '📆 This week: ' + week.daysMet + '/' + week.target + ' goal days' + (week.claimed ? ' \u2705' : '') });
-    el.appendChild(weekEl);
-    if (week.daysMet >= week.target && !week.claimed) {
-      var claim = createElement('button', { className: 'btn btn-gold btn-sm', text: '🎁 Claim ' + week.reward + ' coins', attributes: { type: 'button' } });
-      claim.style.marginTop = '4px';
-      claim.addEventListener('click', function () {
-        var res = storage.claimWeeklyGoal();
-        self._showToast(res.success ? '🪙 +' + res.reward + ' coins for hitting your weekly goal!' : res.error);
-        self.renderHome();
-      });
-      el.appendChild(claim);
-    }
-  }
-
   renderHome() {
     var homeCoins = document.getElementById('homeCoins');
     var homeBest = document.getElementById('homeBest');
     if (homeCoins) setText(homeCoins, storage.get('coins'));
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
-    this.renderCalendar();
     this._renderFiltersSummary();
     document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }
@@ -2073,6 +2041,6 @@ class UI {
 } // end class UI
 
 // Screens split into their own files; attached here so `this` is still the UI controller.
-Object.assign(UI.prototype, postRunMethods, settingsMethods, studyMethods, browseMethods, profileMethods);
+Object.assign(UI.prototype, postRunMethods, settingsMethods, studyMethods, browseMethods, profileMethods, homeMethods);
 
 export var ui = new UI();
