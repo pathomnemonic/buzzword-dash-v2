@@ -47,6 +47,15 @@ beforeAll(async () => {
   `);
 }, 60000);
 
+describe('score limits', () => {
+  it('rejects impossible scores and floods from a player, but not normal play', async () => {
+    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',9999999,'big1')", [C])).toBe(true);
+    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, best_streak, run_id) VALUES ($1,'C',100,5000,'st1')", [C])).toBe(true);
+    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',1200,'ok1')", [C])).toBe(false);
+    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',1300,'ok2')", [C])).toBe(true);
+  });
+});
+
 describe('scores and profiles', () => {
   it('lets players write only their own scores, and never edit them', async () => {
     expect(await rejects(A, `INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'A',10,'x1')`, [A])).toBe(false);

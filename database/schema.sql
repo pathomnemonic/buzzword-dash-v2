@@ -49,6 +49,29 @@ CREATE TABLE IF NOT EXISTS scores (
 CREATE INDEX IF NOT EXISTS scores_board_idx ON scores (mode, season, score DESC);
 CREATE INDEX IF NOT EXISTS scores_user_idx ON scores (user_id);
 
+-- Basic sanity limits on scores submitted by players (the app signs in, so these
+-- run for real clients; admin and SQL-editor inserts are not limited).
+-- One score per player per 20 seconds, and an absolute ceiling. This stops a
+-- script flooding the leaderboard; it is not a full anti-cheat.
+CREATE OR REPLACE FUNCTION scores_sanity() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  IF current_user <> 'authenticated' THEN
+    RETURN NEW;
+  END IF;
+  IF NEW.score > 5000000 OR NEW.best_streak > 1000 THEN
+    RAISE EXCEPTION 'score outside the believable range' USING ERRCODE = '22023';
+  END IF;
+  IF EXISTS (SELECT 1 FROM scores WHERE user_id = NEW.user_id AND created_at > now() - interval '20 seconds') THEN
+    RAISE EXCEPTION 'scores are coming in too fast' USING ERRCODE = '54000';
+  END IF;
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS scores_sanity_trg ON scores;
+CREATE TRIGGER scores_sanity_trg BEFORE INSERT ON scores
+  FOR EACH ROW EXECUTE FUNCTION scores_sanity();
+
 
 -- ==================== FRIENDS ====================
 
