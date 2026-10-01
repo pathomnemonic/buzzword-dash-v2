@@ -37,7 +37,18 @@ export var SCENERY_FILES = {
   potion: 'props/potion.glb',
   skull: 'props/skull.glb',
   bone: 'props/bone.glb',
-  tree: 'props/tree.glb'
+  tree: 'props/tree.glb',
+  // Rooms (hospital hallway, operating room, lab, ambulance bay)
+  med_wheelchair: 'medical/wheelchair.glb',
+  med_ivstand: 'medical/ivstand.glb',
+  med_doctor: 'medical/doctor.glb',
+  med_wetfloor: 'medical/wetfloor.glb',
+  med_microscope: 'medical/microscope.glb',
+  med_tuberack: 'medical/tuberack.glb',
+  med_labdesk: 'medical/labdesk.glb',
+  med_ambulance: 'medical/ambulance.glb',
+  med_ambulance2: 'medical/ambulance2.glb',
+  med_extinguisher: 'medical/extinguisher.glb'
 };
 
 /** Keys used as floating props beside the track. */

@@ -8,6 +8,7 @@
 
 import * as THREE from 'three';
 import { softDotTexture } from './materials.js';
+import { buildScenery } from './scenery.js';
 
 export var HALL_BAY = 4;
 export var HALL_PERIOD = 16;
@@ -80,6 +81,19 @@ function texture(mesh, tex, rx, ry) {
   return mesh;
 }
 
+/**
+ * Put a real 3D model in the room if it has loaded (returns false so the caller can draw the
+ * simple built-in version instead). `side` turns it to face the track.
+ */
+function model(g, key, fit, x, y, z, side, extraYaw) {
+  var m = buildScenery(key, fit);
+  if (!m) return false;
+  m.position.set(x, y, z);
+  m.rotation.y = (side < 0 ? Math.PI / 2 : -Math.PI / 2) + (extraYaw || 0);
+  g.add(m);
+  return true;
+}
+
 function cylinder(g, r, h, color, x, y, z, rotZ, rotX) {
   var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 12), new THREE.MeshBasicMaterial({ color: color }));
   m.position.set(x, y, z);
@@ -97,6 +111,8 @@ export function bayIndex(z) {
 
 function hospitalDetails(g, side, z, k, xin, c) {
   if (k === 0 || k === 2) {
+    if (k === 0 && side < 0) model(g, 'med_wheelchair', { height: 1.2, width: 0.9, depth: 1.1 }, xin(0.8), 0, z + 0.9, side);
+    if (k === 2 && side > 0) model(g, 'med_extinguisher', { height: 0.9, width: 0.5, depth: 0.5 }, xin(0.4), 0, z + 1.9, side);
     // door with a small window, a frame and a room plaque
     var wide = k === 2;
     var span = wide ? 3.0 : 1.5;
@@ -116,6 +132,9 @@ function hospitalDetails(g, side, z, k, xin, c) {
       box(g, 0.08, 0.1, 0.22, 0xf0f5f6, xin(0.12), 3.0, z);
     }
   } else if (k === 1) {
+    // staff and a wet floor sign in front of the ward window
+    if (side > 0) model(g, 'med_doctor', { height: 1.9, width: 0.9, depth: 0.9 }, xin(0.8), 0, z + 0.6, side);
+    else model(g, 'med_wetfloor', { height: 1.0, width: 0.8, depth: 0.8 }, xin(0.8), 0, z + 0.4, side, 0.6);
     // window into a ward: frame, glass, blinds
     box(g, 0.1, 1.7, 3.2, 0x8aa0a5, xin(0.06), 2.5, z);
     box(g, 0.08, 1.5, 3.0, 0xa7dcec, xin(0.1), 2.5, z);
@@ -130,13 +149,13 @@ function hospitalDetails(g, side, z, k, xin, c) {
     box(g, 0.08, 0.5, 0.5, 0xf2c230, xin(0.1), 2.7, z - 0.8);
     cylinder(g, 0.13, 0.7, 0xd93030, xin(0.22), 1.75, z + 1.3);
     box(g, 0.05, 0.14, 0.2, 0x222a2e, xin(0.12), 2.2, z + 1.3);
-    if (side < 0) {
+    if (side < 0 && !model(g, 'bed', { width: 1.2, height: 1.2, depth: 2.3 }, xin(0.85), 0, z - 0.4, side, Math.PI / 2)) {
       // gurney (white mattress on a steel frame)
       box(g, 0.85, 0.1, 1.9, 0xaab6ba, xin(0.75), 0.75, z - 0.6);
       box(g, 0.8, 0.16, 1.8, 0xf4f8f9, xin(0.75), 0.9, z - 0.6);
       box(g, 0.8, 0.5, 0.1, 0xaab6ba, xin(0.75), 1.15, z + 0.3);
       for (var lx = -1; lx <= 1; lx += 2) for (var lz = -1; lz <= 1; lz += 2) cylinder(g, 0.04, 0.7, 0x8a979b, xin(0.75) + lx * 0.34, 0.37, z - 0.6 + lz * 0.8);
-    } else {
+    } else if (side > 0 && !model(g, 'med_ivstand', { height: 2.4, width: 0.9, depth: 0.9 }, xin(0.7), 0, z - 0.5, side)) {
       // IV stand with a drip bag
       cylinder(g, 0.03, 2.2, 0xaab6ba, xin(0.7), 1.1, z - 0.5);
       box(g, 0.5, 0.06, 0.06, 0xaab6ba, xin(0.7), 2.2, z - 0.5);
@@ -149,6 +168,9 @@ function hospitalDetails(g, side, z, k, xin, c) {
 
 // ---------- Operating room: tiled walls, observation window, cabinets, wall monitor, sliding OR doors ----------
 function orDetails(g, side, z, k, xin) {
+  if (k === 0 && side > 0) model(g, 'med_doctor', { height: 1.9, width: 0.9, depth: 0.9 }, xin(0.8), 0, z + 0.9, side);
+  if (k === 3 && side < 0) model(g, 'bed', { width: 1.2, height: 1.2, depth: 2.3 }, xin(0.85), 0, z - 1.4, side, Math.PI / 2);
+  if (k === 2 && side < 0) model(g, 'med_wetfloor', { height: 1.0, width: 0.8, depth: 0.8 }, xin(0.9), 0, z + 1.6, side, 0.5);
   if (k === 0) {
     box(g, 0.1, 1.9, 3.3, 0x9fb7b2, xin(0.06), 2.6, z);
     box(g, 0.08, 1.7, 3.1, 0xb9e6ee, xin(0.1), 2.6, z);
@@ -195,8 +217,11 @@ function labDetails(g, side, z, k, xin) {
       cylinder(g, 0.13, 0.3, col, xin(0.55), 1.23, z - 1.0 + i * 0.5);
       cylinder(g, 0.05, 0.2, col, xin(0.55), 1.46, z - 1.0 + i * 0.5);
     }
-    box(g, 0.2, 0.5, 0.2, 0x3a4350, xin(0.45), 1.33, z + 1.3);
-    box(g, 0.3, 0.1, 0.3, 0x3a4350, xin(0.45), 1.1, z + 1.3);
+    if (!model(g, 'med_microscope', { height: 0.75, width: 0.5, depth: 0.5 }, xin(0.5), 1.08, z + 1.3, side)) {
+      box(g, 0.2, 0.5, 0.2, 0x3a4350, xin(0.45), 1.33, z + 1.3);
+      box(g, 0.3, 0.1, 0.3, 0x3a4350, xin(0.45), 1.1, z + 1.3);
+    }
+    model(g, 'med_tuberack', { height: 0.4, width: 0.4, depth: 0.9 }, xin(0.5), 1.08, z - 0.15, side, Math.PI / 2);
     // shelf above with bottles
     box(g, 0.4, 0.06, 3.0, 0xdfe5ea, xin(0.25), 2.6, z);
     for (var j = 0; j < 5; j++) cylinder(g, 0.1, 0.35, glass[(j + k) % glass.length], xin(0.25), 2.82, z - 1.2 + j * 0.6);
@@ -204,7 +229,8 @@ function labDetails(g, side, z, k, xin) {
     // periodic-table style poster
     box(g, 0.07, 1.8, 3.0, 0xf5f8f8, xin(0.07), 3.0, z);
     for (var r = 0; r < 4; r++) for (var cI = 0; cI < 7; cI++) box(g, 0.08, 0.28, 0.32, [0x3a86d9, 0xf2c230, 0xe03a3a, 0x2f9e6f][(r + cI) % 4], xin(0.12), 2.4 + r * 0.38, z - 1.2 + cI * 0.4);
-    box(g, 0.8, 1.9, 1.0, 0xc9d3d6, xin(0.45), 0.95, z + 1.9 - 3.3 + 0.3);
+    if (!model(g, 'med_labdesk', { width: 1.0, height: 1.2, depth: 2.4 }, xin(0.55), 0, z - 1.3, side)) box(g, 0.8, 1.9, 1.0, 0xc9d3d6, xin(0.45), 0.95, z + 1.9 - 3.3 + 0.3);
+    model(g, 'med_doctor', { height: 1.9, width: 0.9, depth: 0.9 }, xin(1.1), 0, z + 1.2, side);
   } else {
     // fume hood with a glass front
     box(g, 0.9, 2.9, 3.0, 0xc9d3d6, xin(0.45), 1.45, z);
@@ -232,6 +258,8 @@ function bayDetails(g, side, z, k, xin) {
   } else {
     // parked ambulance seen from behind: white box, red stripe, beacon
     var ax = xin(1.0);
+    var amb = model(g, side < 0 ? 'med_ambulance' : 'med_ambulance2', { width: 2.0, height: 2.4, depth: 4.2 }, xin(1.3), 0, z, side, Math.PI);
+    if (!amb) {
     box(g, 1.5, 1.7, 2.6, 0xf4f6f7, ax, 1.15, z);
     box(g, 1.52, 0.25, 2.62, 0xd93030, ax, 1.3, z);
     box(g, 1.5, 0.9, 0.9, 0xe6ebec, ax, 0.75, z + 1.7);
@@ -242,7 +270,9 @@ function bayDetails(g, side, z, k, xin) {
     cylinder(g, 0.25, 0.2, 0x1d2428, ax + 0.7, 0.25, z + 0.9, Math.PI / 2);
     cylinder(g, 0.25, 0.2, 0x1d2428, ax - 0.7, 0.25, z - 0.9, Math.PI / 2);
     cylinder(g, 0.25, 0.2, 0x1d2428, ax + 0.7, 0.25, z - 0.9, Math.PI / 2);
+    }
   }
+  if (k === 0 || k === 2) { model(g, 'cone', { height: 0.7, width: 0.5, depth: 0.5 }, xin(0.6), 0, z - 1.9, side); }
   // bollard by every door
   cylinder(g, 0.1, 0.8, 0xf2c230, xin(0.5), 0.4, z + 1.8);
 }

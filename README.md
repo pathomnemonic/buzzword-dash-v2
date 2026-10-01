@@ -307,6 +307,8 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 - `public/models/obstacles/*.glb` (crate, traffic light, chandelier, spot light, sign) and `public/models/props/*.glb` (heart, first aid kit, potion bottle, skull, bone, tree) — by Quaternius (CC0 1.0) except the chandelier (CreativeTrio) and spot light (iPoly3D), all CC0 1.0 from [Poly Pizza](https://poly.pizza/); the tree is by Kenney.
 
+- `public/models/medical/*.glb` — set dressing for the hospital hallway, operating room, research lab and ambulance bay, downloaded from [Poly Pizza](https://poly.pizza/). Licensed CC BY 3.0 (credit required): Wheelchair by Poly by Google, IV stand ("15") by Daisuke Takeoka, Doctor by jeremy, Wet Floor Sign by J-Toastie, Microscope by Colonel Cthulu, Science Tubes by Ryan Donaldson, Lab Desk by Colonel Cthulu, Ambulance (two) by Poly by Google and jeremy, Fire Extinguisher by Jarlan Perez. The hospital bed and traffic cone in the rooms are the CC0 Quaternius ones listed above. These credits are also shown in Settings -> About.
+
 ## Graphics
 
 The world is lit with physically based materials, a soft studio reflection map and ACES tone mapping (`js/game/materials.js`). Tracks have a gradient sky with stars, distance haze and a glossy floor; walls, obstacles, gates, coins and power-ups use lit materials and rounded geometry so they match the animated characters. Every obstacle, all floating scenery and the street lights and trees along the track are real 3D models (`js/game/scenery.js`).

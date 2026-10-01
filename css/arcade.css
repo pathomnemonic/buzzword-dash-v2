@@ -997,3 +997,6 @@ body.in-game #bgDecor { display: none; }
   .answer-choice { font-size: 16px; padding: 12px 8px; }
   .answer-choice .lane-label { font-size: 11px; }
 }
+
+.credit-box { margin: 8px 0 14px; }
+.credit-box summary { cursor: pointer; font-weight: 900; font-size: 14px; }

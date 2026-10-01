@@ -2253,6 +2253,16 @@ class UI {
       });
       disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
       content.appendChild(disclaimer);
+      var credits = createElement('details', { className: 'credit-box' });
+      credits.appendChild(createElement('summary', { text: '🎨 Credits' }));
+      var creditsBody = createElement('div', { className: 'howto-body' });
+      [
+        'Characters, monsters, props, the hospital bed and traffic cone: Quaternius (CC0). Screens and signs: Kenney (CC0). More props: CreativeTrio, iPoly3D (CC0).',
+        'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
+        'Robot character: Tomás Laulhé (CC0), with changes by Don McCurdy.'
+      ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
+      credits.appendChild(creditsBody);
+      content.appendChild(credits);
 
       // Optional tip link (only when a tip page is configured at build time)
       if (getTipUrl()) {
