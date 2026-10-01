@@ -850,8 +850,8 @@ body.is-dying #teachEl {
 #gameContainer { visibility: hidden; }
 body.in-game #gameContainer { visibility: visible; }
 
-/* ---------- the painted backdrop: a campy clinic (scrub teal, faint crosses, pills and hearts) ---------- */
-/* The colors come from the theme (season and time of day); the pattern is the same all year. */
+/* ---------- the painted backdrop: a fun space-arcade sky with medical odds and ends flying out of it ---------- */
+/* The colors come from the theme (season and time of day). */
 
 #bgDecor {
   position: fixed;
@@ -861,10 +861,32 @@ body.in-game #gameContainer { visibility: visible; }
   pointer-events: none;
   background:
     radial-gradient(ellipse 80% 55% at 50% 0%, var(--glow), transparent 70%),
-    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27132%27 height=%27132%27 viewBox=%270 0 132 132%27%3E%3Cg fill=%27none%27 stroke=%27white%27 stroke-opacity=%27.11%27 stroke-width=%273%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M22 14v16M14 22h16%27/%3E%3Crect x=%2776%27 y=%2716%27 width=%2732%27 height=%2714%27 rx=%277%27 transform=%27rotate(-35 92 23)%27/%3E%3Cpath d=%27M34 98c-10-6-14-12-14-17a8 8 0 0 1 14-4 8 8 0 0 1 14 4c0 5-4 11-14 17z%27/%3E%3Ccircle cx=%27100%27 cy=%27102%27 r=%275%27/%3E%3Cpath d=%27M66 66h9l4-9 6 18 4-9h13%27/%3E%3Cpath d=%27M104 56v10M99 61h10%27 stroke-width=%272.4%27/%3E%3Ccircle cx=%2720%27 cy=%2760%27 r=%273%27/%3E%3C/g%3E%3C/svg%3E") 0 0 / 132px 132px,
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1.6px, transparent 1.8px) 0 0 / 18px 18px,
     linear-gradient(180deg, var(--screen-top), var(--screen-bottom));
 }
 body.in-game #bgDecor { display: none; }
+
+/* Things fly out of the middle of the screen: tiny at first, growing as they come toward you */
+#bgFlyers { position: absolute; inset: 0; }
+.flyer {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  font-size: var(--size, 34px);
+  line-height: 1;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: flyOut var(--dur, 7s) cubic-bezier(0.45, 0, 0.9, 0.55) infinite;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.25));
+}
+@keyframes flyOut {
+  0% { transform: translate(-50%, -50%) scale(0.05) rotate(0deg); opacity: 0; }
+  12% { opacity: 0.9; }
+  80% { opacity: 0.75; }
+  100% { transform: translate(calc(-50% + var(--dx, 40vw)), calc(-50% + var(--dy, 40vh))) scale(var(--end, 3)) rotate(var(--rot, 120deg)); opacity: 0; }
+}
+#bgFlyers.paused .flyer { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { #bgFlyers { display: none; } }
 
 /* ---------- settings: a list of sections, each with its own page ---------- */
 

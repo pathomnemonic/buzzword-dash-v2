@@ -31,6 +31,7 @@ import { reportError, showUserError, installGlobalErrorHandlers } from './errors
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner } from './profilecorner.js';
+import { mountFlyers } from './homefx.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
@@ -946,13 +947,26 @@ function hideBootSplash() {
   setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
 }
 
-/** Apply the current color theme (a whole palette, plus falling decor). */
+var flyersOn = null;
+
+/** The medical odds and ends flying out of the middle of the home backdrop (off for reduced motion). */
+function refreshFlyers() {
+  var layer = document.getElementById('bgFlyers');
+  if (!layer) return;
+  var reduced = !!storage.get('reducedMotion') || (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (flyersOn === !reduced) return; // already in the right state
+  flyersOn = !reduced;
+  mountFlyers(layer, { reducedMotion: reduced });
+}
+
+/** Apply the current color theme (a whole palette tinted by the season and time of day). */
 function refreshTheme() {
   var theme = pickTheme(new Date(), storage.get('uiTheme') || 'auto');
   applyTheme(document.documentElement, theme);
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme.vars['--bg-fallback'] || '#0b1020');
   document.documentElement.setAttribute('data-theme-name', theme.name);
+  refreshFlyers();
 }
 
 function init() {

@@ -1,13 +1,13 @@
 /**
- * theme.js — the look of the menus: a campy clinic (scrub teal, bubblegum pink, a faint pattern of
- * crosses, pills and hearts) that picks up a light tint from the season and the time of day.
+ * theme.js — the look of the menus: a fun, campy arcade (grape purple, candy pink, bright accents) that
+ * picks up a light tint from the season and the time of day.
  *
- * The clinic look is always there. The season only nudges the colors (winter is a cooler teal with
- * icy accents, spring a mint with blossom pink, summer an aqua with coral and sunshine, autumn a teal
- * warmed with amber and berry) and the time of day makes it lighter or darker and a touch warmer or
- * cooler (dawn, day, dusk, night). There are no falling leaves or snowflakes: it is a skin, not a scene.
- * Everything is derived from a few hues, so every combination keeps readable contrast (tests check it).
- * Players can pick a season by hand, or Classic (the original purple), in Settings.
+ * The playful look is always there. The season only nudges the colors (winter is a cooler indigo with
+ * ice-blue accents, spring an orchid with blossom pink and lime, summer a magenta with coral and
+ * sunshine, autumn a plum with pumpkin and berry) and the time of day makes it lighter or darker and a
+ * touch warmer or cooler (dawn, day, dusk, night). There are no falling leaves or snowflakes: it is a
+ * skin, not a scene. Everything is derived from a few hues, so every combination keeps readable contrast
+ * (tests check it). Players can pick a season by hand, or Classic (the original purple), in Settings.
  *
  * Pure functions here; applyTheme writes CSS variables on the page root.
  */
@@ -74,17 +74,17 @@ function lightEnough(h, s, l, ink, min) {
 // ---------- the worlds ----------
 
 /**
- * base: main hue (always in the scrub-teal family). a1/a2/a3: accent hues (the pink, cyan and purple slots).
- * The seasons differ in their accents far more than in their base.
+ * base: main hue (always in the grape-purple family). a1/a2/a3: accent hues (the pink, cyan and purple
+ * slots). The seasons differ in their accents far more than in their base.
  */
 var WORLDS = {
-  winter: { name: 'Winter', base: 196, a1: 330, a2: 200, a3: 250 },
-  spring: { name: 'Spring', base: 166, a1: 345, a2: 130, a3: 285 },
-  summer: { name: 'Summer', base: 184, a1: 8, a2: 46, a3: 322 },
-  autumn: { name: 'Autumn', base: 174, a1: 24, a2: 44, a3: 350 }
+  winter: { name: 'Winter', base: 248, a1: 335, a2: 195, a3: 275 },
+  spring: { name: 'Spring', base: 282, a1: 340, a2: 120, a3: 300 },
+  summer: { name: 'Summer', base: 296, a1: 12, a2: 48, a3: 175 },
+  autumn: { name: 'Autumn', base: 262, a1: 28, a2: 45, a3: 350 }
 };
 
-/** How bright and warm each time of day makes a world (the warm tint is gentle: the clinic look stays). */
+/** How bright and warm each time of day makes a world (the warm tint is gentle: the playful look stays). */
 var DAYPARTS = {
   dawn:  { name: 'dawn',  warm: { hue: 40, t: 0.16 },  sat: 0.62, top: 0.36, bottom: 0.2,  panel: 0.3 },
   day:   { name: 'day',   warm: null,                  sat: 0.78, top: 0.46, bottom: 0.3,  panel: 0.34 },
@@ -188,7 +188,7 @@ export function pickTheme(date, mode) {
   };
 }
 
-/** Write the theme onto the page: CSS variables and data attributes (the CSS pattern reads data-daypart). */
+/** Write the theme onto the page: CSS variables and data attributes . */
 export function applyTheme(root, theme) {
   MANAGED.forEach(function (k) { root.style.removeProperty(k); });
   Object.keys(theme.vars).forEach(function (k) { root.style.setProperty(k, theme.vars[k]); });
@@ -196,13 +196,6 @@ export function applyTheme(root, theme) {
   root.setAttribute('data-season', theme.season);
   root.setAttribute('data-world', theme.world);
   root.removeAttribute('data-holiday');
-  // Older versions filled this layer with falling or floating emoji; it is only a painted backdrop now
-  var layer = typeof document !== 'undefined' ? document.getElementById('bgDecor') : null;
-  if (layer) {
-    while (layer.firstChild) layer.removeChild(layer.firstChild);
-    layer.removeAttribute('data-motion');
-    layer.removeAttribute('data-key');
-  }
 }
 
 /** The managed variable names (for tests). */

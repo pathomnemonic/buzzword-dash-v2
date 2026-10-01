@@ -62,7 +62,7 @@ export var settingsMethods = {
         { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
       ],
       look: [
-        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto gives the menus a campy clinic look that picks up a tint from the time of day and the season. Or pick a season by hand, or Classic for the original purple.', type: 'select', options: THEME_CHOICES },
+        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto keeps the fun purple arcade look and tints it with the time of day and the season. Or pick a season by hand, or Classic for the original colors.', type: 'select', options: THEME_CHOICES },
         { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
         { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },

@@ -41,7 +41,7 @@ describe('theme by time and season', () => {
   });
 });
 
-describe('the palettes are tints of one clinic look, and stay readable', () => {
+describe('the palettes are tints of one playful look, and stay readable', () => {
   it('differs between seasons and between times of day', () => {
     const summerDay = paletteFor('summer', 'day');
     const winterDay = paletteFor('winter', 'day');
@@ -84,7 +84,7 @@ describe('the palettes are tints of one clinic look, and stay readable', () => {
     expect(failures).toEqual([]);
   });
 
-  it('every season and time of day stays in the clinic teal family, with warm accents only as accents', () => {
+  it('every season and time of day stays in the fun grape-purple family, with the season showing in the accents', () => {
     const hue = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
       const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
@@ -96,8 +96,8 @@ describe('the palettes are tints of one clinic look, and stay readable', () => {
       const p = paletteFor(w, d);
       ['--panel', '--screen-top', '--screen-bottom', '--nav-top'].forEach((k) => {
         const h = hue(p[k]);
-        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeGreaterThanOrEqual(140);
-        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeLessThanOrEqual(235);
+        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeGreaterThanOrEqual(235);
+        expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeLessThanOrEqual(330);
       });
     }));
     // the seasons show in the accents: they are not the same color from one season to the next
@@ -105,20 +105,19 @@ describe('the palettes are tints of one clinic look, and stay readable', () => {
     expect(pinks.size).toBe(worldIds().length);
   });
 
-  it('applying a theme sets variables, and there is no falling or floating decor', () => {
-    document.body.innerHTML = '<div id="bgDecor"><span>❄️</span></div>';
+  it('applying a theme sets variables and attributes, and leaves the flying objects alone', () => {
+    document.body.innerHTML = '<div id="bgDecor"><div id="bgFlyers"><span class="flyer">💊</span></div></div>';
     const root = document.documentElement;
     applyTheme(root, pickTheme(new Date(2026, 0, 10, 12), 'auto'));
     expect(root.style.getPropertyValue('--screen-top')).toMatch(/^#[0-9a-f]{6}$/);
     expect(root.getAttribute('data-world')).toBe('winter');
     expect(root.getAttribute('data-daypart')).toBe('day');
-    const layer = document.getElementById('bgDecor');
-    expect(layer.children.length).toBe(0);       // leftovers from an older version are cleared
-    expect(layer.hasAttribute('data-motion')).toBe(false);
+    const flyers = document.getElementById('bgFlyers');
+    expect(flyers.children.length).toBe(1);
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'auto'));
-    expect(layer.children.length).toBe(0);
+    expect(flyers.children.length).toBe(1);
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'classic'));
     managedVariables().forEach((k) => expect(root.style.getPropertyValue(k)).toBe(''));
-    expect(layer.children.length).toBe(0);
+    expect(flyers.children.length).toBe(1);
   });
 });
