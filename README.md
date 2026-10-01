@@ -106,7 +106,7 @@ A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry l
 
 ## Look
 
-The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. By default ("Surprise me") the look switches to a different season's colors every few runs, or after about 20 minutes, with a small toast. Settings -> Colors can follow the date instead (Seasonal), pin a season, or switch to Classic.
+The menus have a fun, campy arcade look: grape purple, candy pink and bright accents, with medical odds and ends (pills, syringes, microbes, brains, ambulances and so on) flying out of the middle of the screen behind the menus. The season and time of day only tint it (a cooler indigo with ice-blue accents in winter, orchid with blossom pink and lime in spring, magenta with coral and sunshine in summer, plum with pumpkin and berry in autumn; lighter by day, deeper at night). There are no falling leaves or snowflakes. The flying objects turn off for reduced motion. By default ("Surprise me") the look switches to a different season's colors after every run, or after about 20 minutes, with a small toast. Settings -> Colors can follow the date instead (Seasonal), pin a season, or switch to Classic.
 
 ## Filters, badges and red dots
 

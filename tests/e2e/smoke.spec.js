@@ -88,7 +88,6 @@ test.describe('Smoke tests', () => {
 
     // the badges are in the profile, with the new one marked
     await page.locator('#profileCornerBtn').click();
-    await page.locator('#accountBadgesBtn').click();
     await expect(page.locator('#screenProfile')).toHaveClass(/active/);
     await expect(page.locator('#profileBadges')).toContainText(/Badges \(1\//);
     await expect(page.locator('#profileBadges .achievement-item.is-new')).toHaveCount(1);
@@ -140,12 +139,12 @@ test.describe('Smoke tests', () => {
     const vp = page.viewportSize();
     expect(box.x + box.width / 2).toBeGreaterThan(vp.width / 2);
     expect(box.y).toBeLessThan(160);
+    // The corner button is a shortcut to the Profile tab, which holds the account section
     await btn.click();
-    await expect(page.locator('#accountOverlay')).toHaveClass(/active/);
-    // With accounts configured there is an email field; without, the panel says accounts are not set up.
-    await expect(page.locator('#accountBody')).toContainText(/Create account|not set up|Loading|Signed in/);
-    await page.locator('#accountCloseBtn').click();
-    await expect(page.locator('#accountOverlay')).not.toHaveClass(/active/);
+    await expect(page.locator('#screenProfile')).toHaveClass(/active/);
+    await expect(page.locator('#bottomNav .nav-item[aria-current="true"]')).toHaveAttribute('data-screen', 'screenProfile');
+    // With accounts configured there is an email field; without, the section says accounts are not set up.
+    await expect(page.locator('#profileAccount')).toContainText(/Create account|not set up|Loading|Signed in/);
   });
 
   test('navigating to Stats screen works', async ({ page }) => {

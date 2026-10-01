@@ -1354,3 +1354,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .profile-pic-group { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-secondary); }
 .profile-pic-option { font-family: inherit; color: inherit; padding: 0; }
 .profile-pic-option:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+.profile-pic-box { width: 100%; margin-top: 6px; }
+.profile-pic-box > summary { cursor: pointer; font-weight: 900; font-size: 13px; color: var(--accent-gold); padding: 6px 0; list-style: none; text-align: center; }
+.profile-pic-box > summary::-webkit-details-marker { display: none; }
+.profile-name-input { width: 100%; max-width: 320px; }

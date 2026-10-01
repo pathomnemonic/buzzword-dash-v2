@@ -30,7 +30,7 @@ import { customCards } from './customcards.js';
 import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
-import { mountProfileCorner } from './profilecorner.js';
+import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
 import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
@@ -986,7 +986,7 @@ function refreshTheme() {
   refreshFlyers();
 }
 
-/** Surprise me: every few runs (or after a while) the look changes to a different season, and a toast says so. */
+/** Surprise me: after every run (or after a while) the look changes to a different season, and a toast says so. */
 function maybeRerollTheme() {
   if ((storage.get('uiTheme') || 'surprise') !== 'surprise') return;
   if (!rerollDue(themeRoll.runs, themeRoll.at, Date.now())) return;
@@ -996,6 +996,25 @@ function maybeRerollTheme() {
   refreshTheme();
   var name = document.documentElement.getAttribute('data-theme-name');
   if (name) ui._showToast('🎨 Fresh look: ' + name);
+}
+
+/** Fill the account section of the Profile tab, and add the invitation when signed out. */
+function fillProfileAccount() {
+  var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
+  var st = lb ? lb.getStatus() : null;
+  var section = document.getElementById('profileAccount');
+  renderAccountSection(section, {
+    getLeaderboard: function () { return lb; },
+    getCloudSync: function () { return cloudSync; },
+    toast: function (msg) { ui._showToast(msg); },
+    rerender: function () { fillProfileAccount(); if (profileCorner) profileCorner.refresh(); }
+  });
+  attachAccountBanner({
+    container: document.getElementById('profileContent'),
+    signedIn: !!(st && st.email && !st.anonymous),
+    accountsAvailable: !!(st && st.configured),
+    openAccount: function () { if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
 }
 
 function init() {
@@ -1020,17 +1039,8 @@ function init() {
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
-  // Profile tab: signed-out players are invited to make an account
-  document.addEventListener('dx:profile-opened', function () {
-    var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
-    var st = lb ? lb.getStatus() : null;
-    attachAccountBanner({
-      container: document.getElementById('profileContent'),
-      signedIn: !!(st && st.email && !st.anonymous),
-      accountsAvailable: !!(st && st.configured),
-      openAccount: function () { if (profileCorner) profileCorner.open(); }
-    });
-  });
+  // Profile tab: the account section, and an invitation for signed-out players to make an account
+  document.addEventListener('dx:profile-opened', fillProfileAccount);
   initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile']);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
@@ -1057,8 +1067,8 @@ function init() {
     getLeaderboard: function () { return leaderboardModule ? leaderboardModule.leaderboard : null; },
     getCloudSync: function () { return cloudSync; },
     storage: storage,
-    toast: function (msg) { ui._showToast(msg); },
-    openProfileScreen: function () { ui.show('screenProfile'); }
+    openProfileScreen: function () { ui.show('screenProfile'); },
+    onAuthChange: function () { if (document.getElementById('screenProfile').classList.contains('active')) fillProfileAccount(); }
   });
 
   // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
@@ -1730,7 +1740,7 @@ function handleNativeBack() {
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
   if (isTutorialOpen()) { skipTutorial(); return true; }
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

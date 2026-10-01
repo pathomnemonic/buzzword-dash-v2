@@ -29,7 +29,7 @@ export function isTabSwipe(dx, dy, ms) {
 export function initTabSwipe(ui, order) {
   var start = null;
   function blocked(target) {
-    if (document.querySelector('.sheet-overlay.active, .tutorial-overlay.active, #multiplayerOverlay.active, #accountOverlay.active, #quickReviewOverlay.active, #dailyReward')) return true;
+    if (document.querySelector('.sheet-overlay.active, .tutorial-overlay.active, #multiplayerOverlay.active, #quickReviewOverlay.active, #dailyReward')) return true;
     return !!(target && target.closest && target.closest('input, textarea, select, .subject-scroll, .shop-preview, canvas, [data-no-swipe]'));
   }
   document.addEventListener('touchstart', function (e) {

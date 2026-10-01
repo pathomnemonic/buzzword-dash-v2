@@ -139,11 +139,10 @@ describe('Surprise me', () => {
     expect(rollWorld('winter', () => 0.999)).toBe('autumn');
   });
 
-  it('rerolls are occasional: after a few runs or a good while, not every time', () => {
+  it('a reroll is due after each run, or after a good while', () => {
     const t0 = 1_000_000;
     expect(rerollDue(0, t0, t0 + 60_000)).toBe(false);
-    expect(rerollDue(2, t0, t0 + 60_000)).toBe(false);
-    expect(rerollDue(3, t0, t0 + 60_000)).toBe(true);
+    expect(rerollDue(1, t0, t0 + 60_000)).toBe(true);   // after every run
     expect(rerollDue(0, t0, t0 + 21 * 60_000)).toBe(true);
   });
 });

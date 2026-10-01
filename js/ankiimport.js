@@ -23,11 +23,6 @@
  * - All untrusted content rendered with textContent / safe DOM
  */
 
-// ===== CDN URLs =====
-var JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
-var SQLJS_URL = 'https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.js';
-var SQLJS_WASM_URL = 'https://cdn.jsdelivr.net/npm/sql.js@1.8.0/dist/sql-wasm.wasm';
-
 // ===== LIMITS =====
 var MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
 var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB
@@ -40,53 +35,18 @@ var _dependencies = null;
 var _parsedCards = null;
 var _abortController = null;
 
-// ===== DYNAMIC SCRIPT LOADING =====
+// ===== LIBRARIES (bundled, loaded only when an .apkg is imported, so they also work offline) =====
 
-/**
- * Load a script from a URL, returning a Promise.
- * Deduplicates by checking for existing script tags.
- * @param {string} url
- * @returns {Promise<void>}
- */
-function loadScript(url) {
-  return new Promise(function (resolve, reject) {
-    var existing = document.querySelector('script[src="' + url + '"]');
-    if (existing) {
-      if (existing.dataset.loaded === 'true') {
-        resolve();
-        return;
-      }
-      var onLoad = function () {
-        existing.dataset.loaded = 'true';
-        existing.removeEventListener('load', onLoad);
-        existing.removeEventListener('error', onError);
-        resolve();
-      };
-      var onError = function () {
-        existing.removeEventListener('load', onLoad);
-        existing.removeEventListener('error', onError);
-        reject(new Error('Failed to load script: ' + url));
-      };
-      existing.addEventListener('load', onLoad);
-      existing.addEventListener('error', onError);
-      return;
-    }
+async function loadJSZip() {
+  var mod = await import('jszip');
+  return mod.default || mod;
+}
 
-    var script = document.createElement('script');
-    script.src = url;
-    script.async = true;
-
-    script.onload = function () {
-      script.dataset.loaded = 'true';
-      resolve();
-    };
-
-    script.onerror = function () {
-      reject(new Error('Failed to load script: ' + url));
-    };
-
-    document.head.appendChild(script);
-  });
+async function loadSqlJs() {
+  var mods = await Promise.all([import('sql.js'), import('sql.js/dist/sql-wasm.wasm?url')]);
+  var init = mods[0].default || mods[0];
+  var wasmUrl = mods[1].default;
+  return init({ locateFile: function () { return wasmUrl; } });
 }
 
 // ===== BOM HANDLING =====
@@ -119,8 +79,40 @@ function stripHtml(html) {
   text = text.replace(/&quot;/g, '"');
   text = text.replace(/&#39;/g, "'");
   text = text.replace(/&nbsp;/g, ' ');
+  text = text.replace(/&#x27;|&apos;/g, "'");
   text = text.replace(/\s+/g, ' ');
   return text.trim();
+}
+
+// ===== CLOZE NOTES ({{c1::answer::hint}}) =====
+
+/**
+ * Turn a cloze note into one card per cloze number: the front hides that number's answer as [...] (or
+ * [hint]) while the other clozes are shown, and the back is the answer, with the note's extra field.
+ * @param {string[]} fields the note's fields
+ * @returns {Array<{front: string, back: string}>|null} null when the note has no cloze
+ */
+function clozeCards(fields) {
+  var text = fields[0] || '';
+  var re = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
+  var nums = [];
+  var m;
+  while ((m = re.exec(text))) { if (nums.indexOf(m[1]) < 0) nums.push(m[1]); }
+  if (!nums.length) return null;
+  var extra = stripHtml(fields[1] || '');
+  var out = [];
+  nums.forEach(function (n) {
+    var answers = [];
+    var front = text.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, function (all, num, ans, hint) {
+      if (num === n) { answers.push(stripHtml(ans)); return '[' + (hint ? stripHtml(hint) : '...') + ']'; }
+      return ans;
+    });
+    var back = answers.join(', ');
+    if (extra) back += ' (' + extra + ')';
+    front = stripHtml(front);
+    if (front && back) out.push({ front: front, back: back });
+  });
+  return out;
 }
 
 // ===== CSV/TSV PARSING (RFC 4180 compliant with liberal extensions) =====
@@ -354,27 +346,17 @@ async function parseApkg(file, options) {
     };
   }
 
-  // Load JSZip
-  await loadScript(JSZIP_URL);
-  if (typeof JSZip === 'undefined') {
-    throw new Error('JSZip failed to load.');
-  }
-
-  // Load sql.js
-  await loadScript(SQLJS_URL);
-  if (typeof initSqlJs === 'undefined') {
-    throw new Error('sql.js failed to load.');
-  }
-
   // Read the file as ArrayBuffer
   var arrayBuffer = await file.arrayBuffer();
 
   // Unzip with JSZip
+  var JSZip = await loadJSZip();
   var zip = await JSZip.loadAsync(arrayBuffer);
 
   // Look for the SQLite database file inside the ZIP
   var dbFile = null;
-  var dbFilenames = ['collection.anki2', 'collection.anki21'];
+  // collection.anki21 holds the real notes when present (collection.anki2 is then only a stand-in)
+  var dbFilenames = ['collection.anki21', 'collection.anki2'];
 
   for (var fi = 0; fi < dbFilenames.length; fi++) {
     if (zip.files[dbFilenames[fi]]) {
@@ -384,11 +366,13 @@ async function parseApkg(file, options) {
   }
 
   if (!dbFile) {
+    var modern = !!zip.files['collection.anki21b'];
     return {
       cards: [],
       warnings: [
-        'Could not find collection.anki2 or collection.anki21 in the .apkg file. ' +
-        'If this is a newer Anki export, try re-exporting with "Support older Anki versions" enabled.'
+        modern
+          ? 'This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.'
+          : 'Could not find a collection in the .apkg file. Re-export it from Anki with "Support older Anki versions" ticked.'
       ]
     };
   }
@@ -397,11 +381,7 @@ async function parseApkg(file, options) {
   var dbData = await dbFile.async('uint8array');
 
   // Initialize sql.js with WASM
-  var SQL = await initSqlJs({
-    locateFile: function () {
-      return SQLJS_WASM_URL;
-    }
-  });
+  var SQL = await loadSqlJs();
 
   // Open the database — cleanup in finally (Section 28.3)
   var db = null;
@@ -420,7 +400,10 @@ async function parseApkg(file, options) {
 
         if (typeof flds === 'string') {
           var fields = flds.split('\x1f');
-          if (fields.length >= 2) {
+          var cloze = clozeCards(fields);
+          if (cloze) {
+            cloze.forEach(function (c) { results.push(c); });
+          } else if (fields.length >= 2) {
             var front = stripHtml(fields[0]).trim();
             var back = stripHtml(fields[1]).trim();
             if (front && back) {
@@ -446,6 +429,12 @@ async function parseApkg(file, options) {
         // Best-effort cleanup: db may already be closed.
       }
     }
+  }
+
+  // A deck exported without "Support older Anki versions" holds a single note asking you to update Anki
+  if (results.length === 1 && /update to the latest anki/i.test(results[0].front + ' ' + results[0].back)) {
+    results = [];
+    warnings.push('This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.');
   }
 
   if (results.length > MAX_CARDS_PER_IMPORT) {
@@ -1117,6 +1106,8 @@ function _renderUI() {
 export var ankiImport = {
   parseDelimitedText: parseDelimitedText,
   parseApkg: parseApkg,
+  clozeCards: clozeCards,
+  stripHtml: stripHtml,
   importRaw: importRaw,
   convertWithBackend: convertWithBackend,
   mount: mount,

@@ -160,7 +160,7 @@ export function seasonOf(month) {   // month: 1..12
 
 /** The choices for Settings -> Colors: [id, label]. */
 export var THEME_CHOICES = [
-  ['surprise', 'Surprise me (a new look now and then)'],
+  ['surprise', 'Surprise me (a new look after each run)'],
   ['auto', 'Seasonal (follows the date)'],
   ['classic', 'Classic'],
   ['winter', 'Winter'],
@@ -176,8 +176,8 @@ export function rollWorld(exclude, rand) {
   return ids[Math.min(ids.length - 1, Math.floor(r() * ids.length))];
 }
 
-/** Rerolls are occasional: after a few runs, or after the app has been open a while. */
-export var REROLL_EVERY_RUNS = 3;
+/** A new look after every run (or after the app has been open a while). */
+export var REROLL_EVERY_RUNS = 1;
 export var REROLL_EVERY_MS = 20 * 60 * 1000;
 export function rerollDue(runsSinceRoll, lastRollAt, now) {
   return runsSinceRoll >= REROLL_EVERY_RUNS || (now - lastRollAt) >= REROLL_EVERY_MS;

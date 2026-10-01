@@ -185,12 +185,19 @@ export var profileMethods = {
     var avatarEl = createElement('div', { className: 'profile-avatar', text: iconFor(profilePicture) });
     avatarSection.appendChild(avatarEl);
 
+    // Name input
+    var nameInput = createElement('input', {
+      className: 'profile-name-input',
+      attributes: { type: 'text', placeholder: 'Enter display name', value: profileName, maxlength: '30' }
+    });
+    avatarSection.appendChild(nameInput);
     // Profile picture: any symbol from the groups below
-    var picHeading = createElement('div', { className: 'profile-pic-heading', text: 'Pick your symbol' });
-    avatarSection.appendChild(picHeading);
+    var picBox = createElement('details', { className: 'profile-pic-box' });
+    picBox.appendChild(createElement('summary', { text: '✏️ Change symbol' }));
+    avatarSection.appendChild(picBox);
     var current = iconFor(profilePicture);
     ICON_GROUPS.forEach(function (group) {
-      avatarSection.appendChild(createElement('div', { className: 'profile-pic-group', text: group.name }));
+      picBox.appendChild(createElement('div', { className: 'profile-pic-group', text: group.name }));
       var picSelector = createElement('div', { className: 'profile-picture-selector', attributes: { role: 'group', 'aria-label': group.name + ' symbols' } });
       group.icons.forEach(function (symbol) {
         var opt = createElement('button', {
@@ -205,16 +212,14 @@ export var profileMethods = {
         });
         picSelector.appendChild(opt);
       });
-      avatarSection.appendChild(picSelector);
+      picBox.appendChild(picSelector);
     });
 
-    // Name input
-    var nameInput = createElement('input', {
-      className: 'profile-name-input',
-      attributes: { type: 'text', placeholder: 'Enter display name', value: profileName, maxlength: '30' }
-    });
-    avatarSection.appendChild(nameInput);
     container.appendChild(avatarSection);
+
+    // Account: sign up, sign in, sign out (filled in by main.js once the account service is ready)
+    var accountSection = createElement('div', { className: 'profile-account', attributes: { id: 'profileAccount' } });
+    container.appendChild(accountSection);
 
     // Stats grid
     var statsGrid = createElement('div', { className: 'profile-stats-grid' });
@@ -235,6 +240,15 @@ export var profileMethods = {
 
     // Badges: every badge, earned or not. Earned ones can be pinned to the profile (up to 6); the ones
     // earned since the profile was last open wear a red dot until the player leaves this screen.
+    // Study streak calendar, just above the badges
+    var calendar = createElement('div', { className: 'streak-calendar', attributes: { id: 'streakCalendar' } });
+    calendar.appendChild(createElement('h4', { text: '📅 Study Streak' }));
+    var dayLabels = createElement('div', { className: 'calendar-day-labels', attributes: { 'aria-hidden': 'true' } });
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function (d) { dayLabels.appendChild(createElement('span', { text: d })); });
+    calendar.appendChild(dayLabels);
+    calendar.appendChild(createElement('div', { className: 'calendar-grid', attributes: { id: 'calendarGrid', role: 'img', 'aria-label': 'Study streak calendar' } }));
+    container.appendChild(calendar);
+
     var newBadges = storage.getNewAchievementIds();
     var badgeSection = createElement('div', { className: 'profile-badges', attributes: { id: 'profileBadges' } });
     var heading = createElement('h4', { text: '🏆 Badges (' + achievements.length + '/' + ACHIEVEMENTS.length + ')' });
@@ -314,6 +328,9 @@ export var profileMethods = {
       self._showToast('Profile saved!');
     });
     container.appendChild(saveBtn);
+
+    this.renderCalendar();
+    document.dispatchEvent(new CustomEvent('dx:profile-opened')); // main.js fills the account section
   },
 
   renderCalendar() {
