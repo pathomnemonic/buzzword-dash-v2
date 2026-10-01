@@ -32,3 +32,17 @@ describe('no card is silently dropped', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
+
+describe('clues fit on a phone screen', () => {
+  const total = (c) => c.bw.join(' • ').length;
+  it('every card has at least 3 clues and none is cut mid-sentence', () => {
+    const short = CARDS.filter((c) => c.bw.length < 3).map((c) => c.id);
+    expect(short).toEqual([]);
+    const fragments = CARDS.flatMap((c) => c.bw.map((b, i) => [c.id, i, b])).filter(([, i, b]) => i > 0 && /^[a-z]{2,} [a-z]/.test(b));
+    expect(fragments).toEqual([]);
+  });
+  it('no card shows more than 260 characters of clues at once', () => {
+    const long = CARDS.filter((c) => total(c) > 260).map((c) => c.id + ':' + total(c));
+    expect(long).toEqual([]);
+  });
+});

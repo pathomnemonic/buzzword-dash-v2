@@ -119,6 +119,8 @@ function normalizeCard(raw) {
  * Validate a single normalized card.
  * Returns { valid: boolean, errors: string[], warnings: string[] }
  */
+var MAX_CLUE_WORDS = 30;
+
 function validateCard(c) {
   var errors = [];
   var warnings = [];
@@ -244,14 +246,14 @@ function validateCard(c) {
     }
   }
 
-  // Trim long buzzwords
+  // Only absurdly long clues are split, so ordinary clues are never cut mid-sentence
   c.bw = c.bw.flatMap(function (b) {
     var words = b.split(/\s+/);
-    if (words.length > 10) {
+    if (words.length > MAX_CLUE_WORDS) {
       warnings.push(c.id + ': split long buzzword "' + b.substring(0, 40) + '..."');
       var chunks = [];
-      for (var j = 0; j < words.length; j += 7) {
-        chunks.push(words.slice(j, j + 7).join(' '));
+      for (var j = 0; j < words.length; j += MAX_CLUE_WORDS) {
+        chunks.push(words.slice(j, j + MAX_CLUE_WORDS).join(' '));
       }
       return chunks;
     }
