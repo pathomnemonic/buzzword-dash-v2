@@ -57,6 +57,7 @@ var DEFAULTS = {
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
+    scoreBests: {},       // best score already sent to the leaderboard, by "mode|season" (see scorebest.js)
     promptState: {},      // when the share / rate / account asks were last shown (see prompts.js)
     runsFinished: 0,
     firstRunAt: 0,

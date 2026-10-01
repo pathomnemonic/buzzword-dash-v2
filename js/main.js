@@ -33,6 +33,7 @@ import { isTutorialOpen, skipTutorial } from './tutorial.js';
 import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
+import { beatsBest, recordBest } from './scorebest.js';
 import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
 import { mountFlyers } from './homefx.js';
 import { updateAttentionDots } from './attentiondots.js';
@@ -929,7 +930,10 @@ function finalizeRun(gameRef) {
   var canPost = leaderboardModule && storage.get('profileVisible') && storage.get('profileName') &&
     leaderboardModule.leaderboard.isAuthenticated() && isRankedRun(summary);
   if (canPost) postActivities(summary, result);
-  if (canPost && summary.encountersCompleted > 0 && !isUnrankedMode(summary.mode)) {
+  // Only a run that beats the player's best for this mode this season is sent: the board keeps one entry per player
+  var season = canPost ? leaderboardModule.leaderboard.getSeasonKey() : '';
+  if (canPost && summary.encountersCompleted > 0 && !isUnrankedMode(summary.mode) &&
+      beatsBest(storage.get('scoreBests'), summary.mode, season, summary.score)) {
     leaderboardModule.leaderboard.submitVerifiedScore({
       runId: summary.runId,
       playerName: storage.get('profileName'),
@@ -946,6 +950,7 @@ function finalizeRun(gameRef) {
         reportError(new Error(res.error), { system: 'leaderboard', operation: 'submitScore', recoverable: true });
         return;
       }
+      storage.set('scoreBests', recordBest(storage.get('scoreBests'), summary.mode, season, summary.score));
       syncWeeklyStudy();
     });
   }

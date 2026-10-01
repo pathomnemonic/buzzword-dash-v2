@@ -47,7 +47,7 @@ import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
 import { CONTINUE_COST } from './shopdata.js';
-import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
+import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, VISUAL_SPEED, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
 export { GAME_STATES, GAME_MODES, RUN_END_REASONS } from './enginedefs.js';
 import { visualMethods } from './enginevisuals.js';
 import { examMonsterMethods } from './engineexam.js';
@@ -1294,7 +1294,7 @@ class Game {
         // Crouch: legs forward, arms out front for balance
         tLL = 1.1; tRL = 1.0; tLA = 0.9; tRA = 0.9;
       } else {
-        this.legPhase += currentSpeed * rushMult * dt * 0.8;
+        this.legPhase += currentSpeed * rushMult * VISUAL_SPEED * dt * 0.8;
         var sw = Math.sin(this.legPhase) * 0.45;
         tLL = sw; tRL = -sw; tLA = -sw * 0.9; tRA = sw * 0.9;
         this.playerGroup.position.y = this.playerY + Math.abs(Math.sin(this.legPhase)) * 0.06 - 0.3 * (this._slideBlend || 0);
@@ -1312,7 +1312,9 @@ class Game {
     // Animated glTF avatars are driven by their own clips.
     if (this.playerGroup.userData.animator) {
       var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
-      updateModelAnimation(this.playerGroup, dt, modelState);
+      // The run cycle plays faster with the look of the run (cadence follows speed, up to a cap)
+      var cadence = modelState === 'run' ? Math.min(3, 1.5 * Math.pow(Math.max(0.5, currentSpeed * rushMult / 1.875), 0.6)) : 1;
+      updateModelAnimation(this.playerGroup, dt * cadence, modelState);
     }
 
     // Shadow
@@ -1427,7 +1429,7 @@ class Game {
     for (var ei = this.envPropMeshes.length - 1; ei >= 0; ei--) {
       var ep = this.envPropMeshes[ei];
       var epu = ep.userData;
-      ep.position.z += move * (epu.speed || 0.7);
+      ep.position.z += move * VISUAL_SPEED * (epu.speed || 0.7);
       ep.rotation.y += dt * (epu.spin || 0.3);
       if (epu.baseY !== undefined) ep.position.y = epu.baseY + Math.sin(this.elapsedTime * 0.6 + epu.phase) * epu.bob;
       if (ep.position.z > 10) {
@@ -1437,7 +1439,7 @@ class Game {
     }
 
     // Track visuals
-    this._updateVisuals(dt, move, currentSpeed, rushMult);
+    this._updateVisuals(dt, move * VISUAL_SPEED, currentSpeed * VISUAL_SPEED, rushMult);
 
     // Obstacles
     for (var oi = this.obstacleMeshes.length - 1; oi >= 0; oi--) {

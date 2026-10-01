@@ -73,6 +73,35 @@ CREATE TRIGGER scores_sanity_trg BEFORE INSERT ON scores
   FOR EACH ROW EXECUTE FUNCTION scores_sanity();
 
 
+-- Keep only each player's best run per mode and season, so the table (and every board built from it)
+-- is never cluttered with lower runs. A run that does not beat the stored best is ignored (the insert
+-- succeeds but adds nothing); one that does replaces the old row. Safe to re-run.
+CREATE OR REPLACE FUNCTION scores_keep_best() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM scores
+    WHERE user_id = NEW.user_id AND mode = NEW.mode AND season = NEW.season AND score >= NEW.score
+  ) THEN
+    RETURN NULL;
+  END IF;
+  DELETE FROM scores WHERE user_id = NEW.user_id AND mode = NEW.mode AND season = NEW.season;
+  RETURN NEW;
+END $$;
+
+-- (Named so it fires after scores_sanity_trg: the flood and range checks run first.)
+DROP TRIGGER IF EXISTS scores_keep_best_trg ON scores;
+DROP TRIGGER IF EXISTS scores_zkeep_best_trg ON scores;
+CREATE TRIGGER scores_zkeep_best_trg BEFORE INSERT ON scores
+  FOR EACH ROW EXECUTE FUNCTION scores_keep_best();
+
+-- One-time tidy-up of runs saved before this rule: keep the best row per player, mode and season.
+DELETE FROM scores s
+USING scores better
+WHERE better.user_id = s.user_id AND better.mode = s.mode AND better.season = s.season
+  AND (better.score > s.score OR (better.score = s.score AND better.id < s.id));
+
+
 -- ==================== FRIENDS ====================
 
 CREATE TABLE IF NOT EXISTS friends (

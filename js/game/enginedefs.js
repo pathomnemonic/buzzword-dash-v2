@@ -52,6 +52,12 @@ export var RUN_END_REASONS = Object.freeze({
 
 export var LANE_X = [-3, 0, 3];
 export var ANSWER_LOCK_Z = -3;
+/**
+ * How much faster the look of the run is than the run itself. The walls, floor, scenery and legs move this many
+ * times faster than the gates, obstacles and coins, so the time to reach a gate is unchanged but 1x no longer
+ * looks like a slow walk.
+ */
+export var VISUAL_SPEED = 2.2;
 /** Where the exam monster starts, as a distance to catch (3 = caught). Far enough to be out of sight. */
 export var MONSTER_START_DIST = 26;
 export var OBSTACLE_GATE_GAP = 14; // units an obstacle trails behind the gate it spawns with

@@ -154,6 +154,38 @@ describe('score limits', () => {
   });
 });
 
+describe('one best run per player, mode and season', () => {
+  const season = '2099-W01';
+  const insert = (u, score, run, mode = 'endless') =>
+    db.query(`INSERT INTO scores (user_id, player_name, score, run_id, mode, season, created_at) VALUES ($1,'x',$2,$3,$4,$5, now() - interval '1 hour')`, [u, score, run, mode, season]);
+  const mine = async (u, mode = 'endless') =>
+    (await db.query('SELECT score FROM scores WHERE user_id = $1 AND mode = $2 AND season = $3', [u, mode, season])).rows.map((r) => r.score);
+
+  it('keeps a single row, replacing it only with a higher score', async () => {
+    await insert(A, 300, 'kb1');
+    expect(await mine(A)).toEqual([300]);
+    await insert(A, 200, 'kb2');   // lower: ignored
+    expect(await mine(A)).toEqual([300]);
+    await insert(A, 300, 'kb3');   // equal: ignored
+    expect(await mine(A)).toEqual([300]);
+    await insert(A, 500, 'kb4');   // higher: replaces
+    expect(await mine(A)).toEqual([500]);
+  });
+
+  it('keeps each mode and each player separate', async () => {
+    await insert(A, 50, 'kb5', 'weakness');
+    await insert(B, 70, 'kb6');
+    expect(await mine(A, 'weakness')).toEqual([50]);
+    expect(await mine(A)).toEqual([500]);
+    expect(await mine(B)).toEqual([70]);
+  });
+
+  it('still shows one entry per player on the board', async () => {
+    const rows = (await db.query(`SELECT user_id FROM leaderboard_best WHERE season = $1 AND mode = 'endless'`, [season])).rows;
+    expect(new Set(rows.map((r) => r.user_id)).size).toBe(rows.length);
+  });
+});
+
 describe('scores and profiles', () => {
   it('lets players write only their own scores, and never edit them', async () => {
     expect(await rejects(A, `INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'A',10,'x1')`, [A])).toBe(false);
