@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { POWERUP_OPTIONS, getRunRules, isRankedRun, isCustomizableMode, describeRules } from '../../js/rules.js';
+import { POWERUP_OPTIONS, getRunRules, isRankedRun, isCustomizableMode, describeRules, speedBonus, normalizeSpeedRamp } from '../../js/rules.js';
 import { spawnPowerup } from '../../js/game/obstacles.js';
 
 describe('personal rules and ranking', () => {
@@ -21,8 +21,8 @@ describe('personal rules and ranking', () => {
   it('competitive and seeded modes ignore the player\'s rules entirely', () => {
     ['daily', 'challenge', 'tournament', 'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race'].forEach((mode) => {
       expect(isCustomizableMode(mode), mode).toBe(false);
-      const rules = getRunRules(mode, { disabledPowerups: ['shield', 'magnet'], hazardsOff: true, monsterOff: true });
-      expect(rules, mode).toEqual({ disabledPowerups: [], hazardsOff: false, monsterOff: false, custom: false });
+      const rules = getRunRules(mode, { disabledPowerups: ['shield', 'magnet'], hazardsOff: true, monsterOff: true, speedRamp: { on: false } });
+      expect(rules, mode).toEqual({ disabledPowerups: [], hazardsOff: false, monsterOff: false, speedRamp: { on: true, every: 20, step: 0.5 }, custom: false });
     });
   });
 
@@ -66,5 +66,35 @@ describe('power-up spawning honours disabled power-ups', () => {
     spawnPowerup(scene, list, { type: 'shield', lane: 1, offset: -50 }, ['shield']);
     expect(list).toHaveLength(1);
     expect(list[0].userData.powerupType).toBe('shield');
+  });
+});
+
+describe('speed-up as you go', () => {
+  it('by default the run gets 0.5 faster every 20 questions, and that is a standard (ranked) run', () => {
+    const rules = getRunRules('endless', {});
+    expect(rules.speedRamp).toEqual({ on: true, every: 20, step: 0.5 });
+    expect(rules.custom).toBe(false);
+    expect(speedBonus(rules.speedRamp, 0)).toBe(0);
+    expect(speedBonus(rules.speedRamp, 19)).toBe(0);
+    expect(speedBonus(rules.speedRamp, 20)).toBe(0.5);
+    expect(speedBonus(rules.speedRamp, 45)).toBe(1);
+    expect(speedBonus(rules.speedRamp, 100)).toBe(2.5);
+  });
+
+  it('can be turned off or changed, which makes the run custom (not ranked)', () => {
+    const off = getRunRules('endless', { speedRamp: { on: false } });
+    expect(speedBonus(off.speedRamp, 500)).toBe(0);
+    expect(off.custom).toBe(true);
+    expect(describeRules(off)).toBe('no speed-up');
+    const custom = getRunRules('weakness', { speedRamp: { on: true, every: 10, step: 1 } });
+    expect(speedBonus(custom.speedRamp, 30)).toBe(3);
+    expect(custom.custom).toBe(true);
+    expect(describeRules(custom)).toBe('speed +1 every 10 questions');
+  });
+
+  it('a standard rule set written out by hand is still standard, and nonsense falls back to it', () => {
+    expect(getRunRules('endless', { speedRamp: { on: true, every: 20, step: 0.5 } }).custom).toBe(false);
+    expect(normalizeSpeedRamp({ on: true, every: -4, step: 'fast' })).toEqual({ on: true, every: 20, step: 0.5 });
+    expect(normalizeSpeedRamp(null)).toEqual({ on: true, every: 20, step: 0.5 });
   });
 });

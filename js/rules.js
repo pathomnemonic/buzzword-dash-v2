@@ -20,6 +20,30 @@ export var POWERUP_OPTIONS = [
   { id: 'scoreFrenzy', icon: '🔥', label: 'Frenzy', desc: 'Bigger coins and bonuses' }
 ];
 
+/** The standard speed-up: every 20 questions the run gets 0.5 faster (on the 1-10 speed dial). */
+export var DEFAULT_SPEED_RAMP = { on: true, every: 20, step: 0.5 };
+export var SPEED_RAMP_EVERY_OPTIONS = [5, 10, 20, 30, 50];
+export var SPEED_RAMP_STEP_OPTIONS = [0.25, 0.5, 1, 2];
+
+/** Clean up speed-up preferences (anything unknown falls back to the standard). */
+export function normalizeSpeedRamp(prefs) {
+  var d = DEFAULT_SPEED_RAMP;
+  if (!prefs) return { on: d.on, every: d.every, step: d.step };
+  var every = Number(prefs.every);
+  var step = Number(prefs.step);
+  return {
+    on: prefs.on !== false,
+    every: every >= 1 && every <= 200 ? Math.round(every) : d.every,
+    step: step > 0 && step <= 5 ? step : d.step
+  };
+}
+
+/** How much faster than the starting speed the run is after a number of questions (dial units). */
+export function speedBonus(ramp, questionsDone) {
+  if (!ramp || !ramp.on) return 0;
+  return Math.floor(Math.max(0, questionsDone) / ramp.every) * ramp.step;
+}
+
 /** Modes where the player's own rules apply. Everything else is standard. */
 export var CUSTOMIZABLE_MODES = ['endless', 'study', 'weakness', 'timed_practice'];
 
@@ -29,11 +53,11 @@ export function isCustomizableMode(mode) {
 
 /**
  * @param {string} mode game mode
- * @param {{disabledPowerups?: string[], hazardsOff?: boolean, monsterOff?: boolean}} prefs
+ * @param {{disabledPowerups?: string[], hazardsOff?: boolean, monsterOff?: boolean, speedRamp?: {on: boolean, every: number, step: number}}} prefs
  * @returns {{disabledPowerups: string[], hazardsOff: boolean, monsterOff: boolean, custom: boolean}}
  */
 export function getRunRules(mode, prefs) {
-  var none = { disabledPowerups: [], hazardsOff: false, monsterOff: false, custom: false };
+  var none = { disabledPowerups: [], hazardsOff: false, monsterOff: false, speedRamp: normalizeSpeedRamp(null), custom: false };
   if (!isCustomizableMode(mode) || !prefs) return none;
   var known = POWERUP_OPTIONS.map(function (p) { return p.id; });
   var disabled = (Array.isArray(prefs.disabledPowerups) ? prefs.disabledPowerups : [])
@@ -42,9 +66,12 @@ export function getRunRules(mode, prefs) {
     disabledPowerups: disabled,
     hazardsOff: !!prefs.hazardsOff,
     monsterOff: !!prefs.monsterOff,
+    speedRamp: normalizeSpeedRamp(prefs.speedRamp),
     custom: false
   };
-  rules.custom = disabled.length > 0 || rules.hazardsOff || rules.monsterOff;
+  var ramp = rules.speedRamp;
+  var rampChanged = ramp.on !== DEFAULT_SPEED_RAMP.on || ramp.every !== DEFAULT_SPEED_RAMP.every || ramp.step !== DEFAULT_SPEED_RAMP.step;
+  rules.custom = disabled.length > 0 || rules.hazardsOff || rules.monsterOff || rampChanged;
   return rules;
 }
 
@@ -66,5 +93,9 @@ export function describeRules(rules) {
   }
   if (rules.hazardsOff) parts.push('no map hazards');
   if (rules.monsterOff) parts.push('no exam monster');
+  var r = rules.speedRamp;
+  if (r && (r.on !== DEFAULT_SPEED_RAMP.on || r.every !== DEFAULT_SPEED_RAMP.every || r.step !== DEFAULT_SPEED_RAMP.step)) {
+    parts.push(r.on ? 'speed +' + r.step + ' every ' + r.every + ' questions' : 'no speed-up');
+  }
   return parts.join(' · ');
 }

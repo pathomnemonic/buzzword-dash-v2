@@ -10,7 +10,7 @@ import { getNextSkin } from './skins.js';
 import { getCardPool, pickCard, spawnGates, flashGateResult } from './gates.js';
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
-import { GAME_MODES, RUN_END_REASONS, removeAndDispose } from './enginedefs.js';
+import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
 
@@ -127,7 +127,9 @@ card = pickResult ? pickResult.card : null;
     // Gates start closer at slow speeds so a question never takes half a minute to arrive:
     // about 16 s away at 1x, the original 60 units from 2x upward.
     var slowFactor = Math.min(1, Math.max(0, (this.baseSpeed - 1.875) / 1.875));
-    this._gateSpawnZ = -(30 + 30 * slowFactor);
+    // (world units: the road moves VISUAL_SPEED times faster than the run's own speed, and starts that much
+    // farther away, so the time to reach the gate is the same)
+    this._gateSpawnZ = -(30 + 30 * slowFactor) * VISUAL_SPEED;
     this.gateZ = this._gateSpawnZ;
     for (var g = 0; g < this.gateMeshes.length; g++) removeAndDispose(this.scene, this.gateMeshes[g]);
     var gateTheme = { glow: this.currentSkin.colors.gateGlow, gate: this.currentSkin.colors.gateBase };

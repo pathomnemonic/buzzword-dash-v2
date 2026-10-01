@@ -1122,6 +1122,10 @@ function init() {
   //  ENGINE EVENT ROUTING
   // ==========================
 
+  game.onSpeedUp = function (dial) {
+    ui.showNotice('⚡ Faster! Speed ' + dial + '×', { color: 'var(--accent-gold)', ms: 1800 });
+  };
+
   game.onEncounterStart = function (card, gates) {
     ui.showBuzzwords(card);
     ui.showAnswerChoices(gates);

@@ -248,7 +248,8 @@ export var runEndMethods = {
       rules: this._rules ? {
         disabledPowerups: this._rules.disabledPowerups.slice(),
         hazardsOff: this._rules.hazardsOff,
-        monsterOff: this._rules.monsterOff
+        monsterOff: this._rules.monsterOff,
+        speedRamp: this._rules.speedRamp
       } : null,
 
       encounters: encounters,

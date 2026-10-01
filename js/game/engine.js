@@ -39,7 +39,7 @@ import { PowerUpFX } from './powerupfx.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery } from './scenery.js';
-import { getRunRules } from '../rules.js';
+import { getRunRules, normalizeSpeedRamp, speedBonus } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -60,9 +60,9 @@ import { runEndMethods } from './enginerunend.js';
 // ═══════════════════════════════════════════════════════════════
 
 /** Generous timings so obstacles are comfortable to clear: about a second in the air, nearly a second of slide. */
-var JUMP_SPEED = 13;
-var JUMP_GRAVITY = 26;
-var SLIDE_TIME = 0.8;
+var JUMP_SPEED = 12;
+var JUMP_GRAVITY = 22;
+var SLIDE_TIME = 1.1;
 
 class Game {
   constructor() {
@@ -740,7 +740,8 @@ class Game {
     this._rules = getRunRules(this.mode, {
       disabledPowerups: storage.get('disabledPowerups'),
       hazardsOff: storage.get('hazardsOff'),
-      monsterOff: storage.get('monsterOff')
+      monsterOff: storage.get('monsterOff'),
+      speedRamp: storage.get('speedRamp')
     });
     if (this._leagueRules && Array.isArray(this._leagueRules.disabledPowerups)) {
       this._rules.disabledPowerups = this._leagueRules.disabledPowerups.slice();
@@ -780,6 +781,7 @@ class Game {
     this.speed = this.mode === GAME_MODES.STUDY ? 1.5 : mapped;
     this.baseSpeed = this.speed;
 
+    this._lastSpeedBonus = 0;
     this.score = 0; this.streak = 0; this.bestStreak = 0;
     this.multiplier = 1; this.coins = 0;
     this.encountersDone = 0; this.correct = 0; this.wrong = 0;
@@ -905,12 +907,12 @@ class Game {
       this.rushInvulnerable = true;
       this.rushesUsed++;
 
-      var distToGate = Math.abs(this.gateZ);
+      var distToGate = Math.abs(this.gateZ) / VISUAL_SPEED; // in run units
       this.rushPropelTimer = 0.5;
       var neededSpeed = distToGate / 0.5;
       this.rushSpeedOverride = neededSpeed / Math.max(this.speed, 0.01);
 
-      var distanceBonus = Math.max(0, (-this.gateZ - 10)) / 50;
+      var distanceBonus = Math.max(0, (-this.gateZ / VISUAL_SPEED - 10)) / 50;
       this.rushBonus = Math.floor(distanceBonus * 40 * this.rushStacks);
 
       this._emit('rush_started', { stacks: this.rushStacks, bonus: this.rushBonus });
@@ -1361,7 +1363,7 @@ class Game {
     this._fovKick *= Math.max(0, 1 - dt * 5);
 
     // ─── Lane commitment (Section 8.3) ───
-    if (this.gatesActive && !this.answerLocked && this.gateZ >= ANSWER_LOCK_Z) {
+    if (this.gatesActive && !this.answerLocked && this.gateZ >= ANSWER_LOCK_Z * VISUAL_SPEED) {
       // Lock the answer based on nearest lane to player position
       var playerX = this.playerGroup.position.x;
       var bestLane = 1;
@@ -1380,7 +1382,7 @@ class Game {
 
     // Gates movement
     if (this.gatesActive) {
-      this.gateZ += move;
+      this.gateZ += move * VISUAL_SPEED;
       for (var gi = 0; gi < this.gateMeshes.length; gi++) {
         this.gateMeshes[gi].position.z = this.gateZ;
         var approachProgress = 1.0 - Math.max(0, -this.gateZ) / Math.abs(this._gateSpawnZ || -60);
@@ -1446,12 +1448,16 @@ class Game {
     // Obstacles
     for (var oi = this.obstacleMeshes.length - 1; oi >= 0; oi--) {
       var ob = this.obstacleMeshes[oi];
-      ob.position.z += move;
+      ob.position.z += move * VISUAL_SPEED;
       if (ob.userData.staff) updateModelAnimation(ob.userData.staff, dt, 'run');
-      if (ob.position.z > 2) {
-        var od = ob.userData;
+      var od = ob.userData;
+      // The check happens once, as the obstacle reaches the runner (the runner stands at z = 0 and the
+      // obstacle's middle has just come level with them). A jump or slide that is under way at that
+      // moment clears it, and both last long enough (about a second) to be easy to time.
+      if (!od.checked && ob.position.z > -0.3) {
+        od.checked = true;
         if (od.lane === this.currentLane) {
-          var dodged = (od.type === 'high' && this.sliding) || (od.type === 'low' && this.jumping);
+          var dodged = (od.type === 'high' && (this.sliding || this._slideBlend > 0.5)) || (od.type === 'low' && this.jumping && this.playerY > 0.4);
           if (dodged) {
             if (od.type === 'low') this.obstaclesJumped++;
             else this.obstaclesSlid++;
@@ -1477,6 +1483,9 @@ class Game {
             }
           }
         }
+      }
+      // It leaves once it is well behind the runner
+      if (ob.position.z > 2.5 * VISUAL_SPEED) {
         removeAndDispose(this.scene, ob);
         this.obstacleMeshes.splice(oi, 1);
       }
@@ -1485,7 +1494,7 @@ class Game {
     // Coins, power-ups, hearts
     for (var ci = this.coinMeshes.length - 1; ci >= 0; ci--) {
       var c = this.coinMeshes[ci];
-      c.position.z += move;
+      c.position.z += move * VISUAL_SPEED;
 
       if (c.userData.type === 'coin') {
         c.rotation.y += dt * 3;
@@ -1499,18 +1508,18 @@ class Game {
         c.position.y = 1.5 + Math.sin(this.elapsedTime * 2 + ci) * 0.2;
       }
 
-      if (c.position.z > 3) {
+      if (c.position.z > 3 * VISUAL_SPEED) {
         removeAndDispose(this.scene, c);
         this.coinMeshes.splice(ci, 1);
         continue;
       }
 
-      if (c.position.z > -3 && c.position.z < 2 && !c.userData.collected) {
+      if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED && !c.userData.collected) {
         var inLane = c.userData.lane === this.currentLane;
         var magnetActive = this.powerups.magnet > 0;
         var closeEnough = Math.abs(LANE_X[this.currentLane] - c.position.x) < 1.8;
 
-        if (magnetActive && !inLane && c.position.z > -5) {
+        if (magnetActive && !inLane && c.position.z > -5 * VISUAL_SPEED) {
           c.position.x += (this.playerGroup.position.x - c.position.x) * dt * 5;
         }
 
@@ -1549,7 +1558,14 @@ class Game {
 
     // Speed progression
     if (this.mode !== GAME_MODES.STUDY) {
-      this.speed = Math.min(this.baseSpeed * 2.0, this.baseSpeed + this.encountersDone * 0.3);
+      // Every N questions the run gets a little faster (set in Settings; 0.5 every 20 by default)
+      var ramp = (this._rules && this._rules.speedRamp) || normalizeSpeedRamp(null);
+      var bonus = speedBonus(ramp, this.encountersDone);
+      this.speed = Math.min(1.875 * 10, this.baseSpeed + bonus * 1.875);
+      if (bonus !== this._lastSpeedBonus) {
+        if (bonus > 0 && this.onSpeedUp) this.onSpeedUp(+(this.speed / 1.875).toFixed(2));
+        this._lastSpeedBonus = bonus;
+      }
     }
 
     // HUD update
@@ -1576,7 +1592,7 @@ class Game {
   _spawnHeartPickup() {
     var lane = Math.floor(Math.random() * 3);
     var heartGroup = buildHeartMesh();
-    heartGroup.position.set(LANE_X[lane], 1.5, -45 - Math.random() * 15);
+    heartGroup.position.set(LANE_X[lane], 1.5, (-45 - Math.random() * 15) * VISUAL_SPEED);
     heartGroup.userData = { lane: lane, collected: false, type: 'heart' };
     this.scene.add(heartGroup);
     this.coinMeshes.push(heartGroup);
@@ -1613,7 +1629,7 @@ class Game {
     // the gate: they only arrive after the answer has been locked in, never right at the gate.
     this._spawnEncounter();
     if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
-      spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: (this._gateSpawnZ || -50) - OBSTACLE_GATE_GAP });
+      spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED });
     }
   }
 

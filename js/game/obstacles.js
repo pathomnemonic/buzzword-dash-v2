@@ -27,6 +27,7 @@ import { buildScenery, buildHanging } from './scenery.js';
 import { buildModelCharacter, loadCharacterModel, isModelReady } from './charactermodel.js';
 import { modelUrl } from './modelcatalog.js';
 import { useCharacterModels } from './quality.js';
+import { VISUAL_SPEED } from './enginedefs.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -583,7 +584,7 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
     lane = planEntry.lane;
     isSlide = planEntry.type === 'slide';
     variant = ALL_VARIANTS_BY_ID[planEntry.variantId];
-    spawnZ = planEntry.spawnOffset || -50;
+    spawnZ = (planEntry.spawnOffset || -50) * VISUAL_SPEED;
 
     // Fallback if variant not found
     if (!variant) {
@@ -596,7 +597,7 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
     isSlide = Math.random() < 0.5;
     var variants2 = (isSlide ? SLIDE_VARIANTS : JUMP_VARIANTS).filter(function (v) { return !v.staff || useCharacterModels(); });
     variant = variants2[Math.floor(Math.random() * variants2.length)];
-    spawnZ = options.spawnZ || -50;
+    spawnZ = options.spawnZ || -50 * VISUAL_SPEED; // already in world units when the engine passes one
   }
 
   // Real 3D model when one is ready (high graphics tier); otherwise the built-in version.
@@ -785,12 +786,12 @@ export function syncCoinInstances(coinList) {
 function makeCoinMesh(lane, z, y) {
   if (_instancing) {
     var proxy = new THREE.Object3D();
-    proxy.position.set(LANE_X[lane], y || 1.2, z);
+    proxy.position.set(LANE_X[lane], y || 1.2, z * VISUAL_SPEED);
     proxy.userData = { lane: lane, collected: false, type: 'coin' };
     return proxy;
   }
   var group = getCoinTemplate().clone(true);
-  group.position.set(LANE_X[lane], y || 1.2, z);
+  group.position.set(LANE_X[lane], y || 1.2, z * VISUAL_SPEED);
   group.userData = { lane: lane, collected: false, type: 'coin' };
   return group;
 }
@@ -930,7 +931,7 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
   if (planEntry) {
     // Deterministic
     lane = planEntry.lane;
-    spawnZ = planEntry.offset || -55;
+    spawnZ = (planEntry.offset || -55) * VISUAL_SPEED;
     puDef = null;
     for (var pi = 0; pi < PU_TYPES.length; pi++) {
       if (PU_TYPES[pi].type === planEntry.type) {
@@ -945,7 +946,7 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
     if (allowed.length === 0) return;
     puDef = allowed[Math.floor(Math.random() * allowed.length)];
     lane = Math.floor(Math.random() * 3);
-    spawnZ = -55;
+    spawnZ = -55 * VISUAL_SPEED;
   }
 
   var color = puDef.color;

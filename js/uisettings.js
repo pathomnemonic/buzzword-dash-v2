@@ -10,7 +10,7 @@ import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { LOCKER_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
-import { POWERUP_OPTIONS, describeRules, getRunRules } from './rules.js';
+import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_RAMP_EVERY_OPTIONS, SPEED_RAMP_STEP_OPTIONS } from './rules.js';
 import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
@@ -350,7 +350,8 @@ export var settingsMethods = {
       var rules = getRunRules('endless', {
         disabledPowerups: storage.get('disabledPowerups'),
         hazardsOff: storage.get('hazardsOff'),
-        monsterOff: storage.get('monsterOff')
+        monsterOff: storage.get('monsterOff'),
+        speedRamp: storage.get('speedRamp')
       });
       setText(badge, rules.custom ? '⚠ Custom rules on: ' + describeRules(rules) + '. Runs will not be ranked.' : '✓ Standard rules: runs are ranked.');
       badge.style.color = rules.custom ? 'var(--accent-gold)' : 'var(--accent-green)';
@@ -370,6 +371,35 @@ export var settingsMethods = {
     toggleRow('👾', 'Exam monster', 'The monster that chases you when you slip', !storage.get('monsterOff'), function (on) {
       storage.set('monsterOff', !on);
     });
+    // Speed-up: the run gets a little faster as you go. The standard is +0.5 every 20 questions.
+    var ramp = normalizeSpeedRamp(storage.get('speedRamp'));
+    function saveRamp() { storage.set('speedRamp', { on: ramp.on, every: ramp.every, step: ramp.step }); refreshBadge(); }
+    toggleRow('⚡', 'Speed up as you go', 'The run gets faster the longer you last. Turn off to keep your starting speed.', ramp.on, function (on) {
+      ramp.on = on;
+      saveRamp();
+      everySelect.disabled = !on;
+      stepSelect.disabled = !on;
+    });
+    function rampSelect(label, options, current, fmt, onPick) {
+      var row = createElement('div', { className: 'setting-row' });
+      row.appendChild(createElement('div', { text: label }));
+      var sel = createElement('select', { attributes: { 'aria-label': label } });
+      sel.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
+      options.forEach(function (v) {
+        var o = createElement('option', { text: fmt(v), attributes: { value: String(v) } });
+        if (v === current) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', function () { onPick(Number(sel.value)); saveRamp(); });
+      row.appendChild(sel);
+      content.appendChild(row);
+      return sel;
+    }
+    var everySelect = rampSelect('🔁 Speed up every', SPEED_RAMP_EVERY_OPTIONS, ramp.every, function (v) { return v + ' questions'; }, function (v) { ramp.every = v; });
+    var stepSelect = rampSelect('➕ Each time, add', SPEED_RAMP_STEP_OPTIONS, ramp.step, function (v) { return '+' + v + '×'; }, function (v) { ramp.step = v; });
+    everySelect.disabled = !ramp.on;
+    stepSelect.disabled = !ramp.on;
+
     content.appendChild(badge);
     refreshBadge();
 
