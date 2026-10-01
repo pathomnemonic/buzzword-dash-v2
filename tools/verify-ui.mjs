@@ -1,0 +1,174 @@
+/* global localStorage, window, document */
+// tools/verify-ui.mjs — plays through the parts of the UI that have broken before and checks each one.
+//
+//   npm run build && npx vite preview --port 4190 &   (then)
+//   node tools/verify-ui.mjs [http://localhost:4190]
+//
+// Prints PASS / FAIL per check and exits with 1 if anything failed.
+
+import { chromium } from '@playwright/test';
+
+const base = process.argv[2] || 'http://localhost:4190';
+const browser = await chromium.launch({ args: ['--use-angle=d3d11', '--ignore-gpu-blocklist'] });
+let failed = 0;
+const check = (name, ok, detail) => {
+  if (!ok) failed++;
+  console.log((ok ? 'PASS  ' : 'FAIL  ') + name + (ok || !detail ? '' : '  -> ' + detail));
+};
+
+async function open(viewport, seed) {
+  const ctx = await browser.newContext({ viewport, hasTouch: true, isMobile: viewport.width < 700 });
+  if (seed) await ctx.addInitScript(seed);
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error' && !/favicon|Failed to load resource/.test(m.text())) errors.push(m.text().slice(0, 140)); });
+  page.on('dialog', (d) => d.accept().catch(() => {}));
+  await page.goto(base + '/?debug=1');
+  for (let i = 0; i < 10; i++) {
+    const n = page.locator('#obNextBtn');
+    if (!(await n.isVisible().catch(() => false))) break;
+    await n.click();
+  }
+  const dr = page.locator('#dailyReward button');
+  await dr.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  for (let i = 0; i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
+  await page.waitForTimeout(400);
+  return { ctx, page, errors };
+}
+
+const inView = (page, sel) => page.evaluate((s) => {
+  const el = document.querySelector(s);
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.left >= 0 && r.right <= window.innerWidth;
+}, sel);
+
+// ---------- Settings, the tutorial and How to Play ----------
+{
+  const { ctx, page, errors } = await open({ width: 420, height: 800 });
+  await page.locator('[data-screen="screenSettings"]').click();
+  const cards = await page.locator('.settings-card').count();
+  check('Settings opens as a list of sections', cards === 6, 'found ' + cards);
+
+  for (const sec of ['sound', 'look', 'study', 'rules', 'data', 'about']) {
+    await page.locator('.settings-card[data-section="' + sec + '"]').click();
+    const rows = await page.locator('#settingsContent .setting-row').count();
+    const withNotes = await page.locator('#settingsContent .setting-row .setting-sublabel').count();
+    check('Settings > ' + sec + ' has rows', rows > 0, 'rows ' + rows);
+    if (['sound', 'look', 'study'].includes(sec)) check('Settings > ' + sec + ' explains every setting', withNotes >= rows, withNotes + ' notes for ' + rows + ' rows');
+    await page.locator('.settings-back').click();
+    check('Settings > ' + sec + ' goes back to the list', (await page.locator('.settings-card').count()) === 6);
+  }
+
+  // Tutorial from Settings: Next walks through every page, then it closes; Close also works
+  await page.locator('.settings-card[data-section="about"]').click();
+  await page.getByRole('button', { name: 'Open' }).first().click();
+  check('Tutorial opens from Settings', await page.locator('#tutorialOverlay.active').count() === 1);
+  let pages = 0;
+  while (await page.locator('#tutorialOverlay.active').count() === 1 && pages < 20) {
+    await page.locator('#tutNextBtn').click();
+    pages++;
+    await page.waitForTimeout(100);
+  }
+  check('Tutorial Next button walks to the end and closes it', pages >= 5 && pages < 20, 'pages ' + pages);
+  await page.getByRole('button', { name: 'Open' }).first().click();
+  await page.locator('#tutCloseBtn').click();
+  check('Tutorial Close button closes it', await page.locator('#tutorialOverlay.active').count() === 0);
+
+  // Home: one How to Play dropdown with everything in it
+  await page.locator('[data-screen="screenHome"]').click();
+  const hows = await page.locator('details.howto').count();
+  check('Home has a single How to Play dropdown', hows === 1, 'found ' + hows);
+  await page.locator('details.howto summary').click();
+  const items = await page.locator('details.howto .howto-item').count();
+  check('How to Play lists the instructions', items >= 8, 'items ' + items);
+  await page.getByRole('button', { name: /step by step/i }).click();
+  check('How to Play can open the step-by-step tutorial', await page.locator('#tutorialOverlay.active').count() === 1);
+  await page.locator('#tutCloseBtn').click();
+  check('No script errors in Settings and the tutorial', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
+// ---------- Overlays fit on a short laptop screen ----------
+{
+  const { ctx, page } = await open({ width: 1366, height: 560 });
+  await page.locator('#multiplayerBtn').click();
+  await page.waitForTimeout(800);
+  check('Versus: Close button is visible on a short screen', await inView(page, '#mpCloseBtn'));
+  await page.locator('#mpCloseBtn').click();
+  check('Versus: Close button closes it', await page.locator('#multiplayerOverlay.active').count() === 0);
+  check('Home: PLAY is above the tab bar on a short screen', await page.evaluate(() => document.querySelector('.btn-play').getBoundingClientRect().bottom + 8 <= document.getElementById('bottomNav').getBoundingClientRect().top));
+  await ctx.close();
+}
+
+// ---------- Pause and resume ----------
+{
+  const { ctx, page, errors } = await open({ width: 420, height: 800 });
+  await page.locator('.btn-play').click();
+  await page.waitForTimeout(6500);
+  await page.locator('#pauseBtn').click();
+  await page.waitForTimeout(300);
+  check('Pause screen appears', await page.locator('#pauseOverlay.active').count() === 1 && (await page.evaluate('window.__game._state')) === 'paused');
+  await page.locator('#resumeBtn').click();
+  await page.waitForTimeout(400);
+  check('Resume hides the pause screen and the run continues', await page.locator('#pauseOverlay.active').count() === 0 && (await page.evaluate('window.__game._state')) === 'playing');
+  await page.locator('#pauseBtn').click();
+  await page.waitForTimeout(200);
+  await page.locator('#endRunBtn').click();
+  await page.waitForTimeout(1800);
+  check('End Run from the pause screen leaves the run', await page.locator('#pauseOverlay.active').count() === 0 && (await page.evaluate('window.__game._state')) !== 'playing');
+  check('No script errors while pausing', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
+// ---------- 30 fps by default ----------
+{
+  const { ctx, page } = await open({ width: 420, height: 800 });
+  await page.locator('.btn-play').click();
+  await page.waitForTimeout(9000);
+  const frames = await page.evaluate(async () => {
+    const r = window.__game.renderer;
+    const start = r.info.render.frame;
+    await new Promise((res) => setTimeout(res, 3000));
+    return (r.info.render.frame - start) / 3;
+  });
+  check('A run draws about 30 frames a second by default', frames > 20 && frames < 36, frames.toFixed(1) + ' fps');
+  await ctx.close();
+}
+
+// ---------- Study plan: runner or flashcards ----------
+{
+  // three cards that are due for review
+  const seed = () => {
+    window.__seedDone = true;
+  };
+  const { ctx, page, errors } = await open({ width: 420, height: 900 }, seed);
+  await page.evaluate(() => {
+    const k = 'buzzword_dash_v1';
+    const d = JSON.parse(localStorage.getItem(k));
+    d.cards.cardStats = d.cards.cardStats || {};
+    ['n001', 'n002', 'n003', 'n004'].forEach((id) => { d.cards.cardStats[id] = { seen: 3, correct: 1, wrong: 2, due: Date.now() - 86400000, last: Date.now() - 2 * 86400000 }; });
+    localStorage.setItem(k, JSON.stringify(d));
+  });
+  await page.reload();
+  for (let i = 0; i < 10; i++) { const n = page.locator('#obNextBtn'); if (!(await n.isVisible().catch(() => false))) break; await n.click(); }
+  await page.waitForTimeout(1500);
+  await page.locator('[data-screen="screenStats"]').click();
+  await page.waitForTimeout(600);
+  const runBtns = await page.locator('.plan-step-buttons .btn-green').count();
+  const flashBtns = await page.locator('.plan-step-buttons .btn-outline').count();
+  check('Study plan offers both the runner and flashcards for each step', runBtns >= 1 && runBtns === flashBtns, runBtns + ' run / ' + flashBtns + ' flashcards');
+  await page.locator('.plan-step-buttons .btn-green').first().click();
+  await page.waitForTimeout(8000);
+  const info = await page.evaluate(() => ({ mode: window.__game.mode, state: window.__game._state, plan: (window.__game._modeConfig || {}).planCardIds }));
+  check('"Run it" starts a runner session with the planned cards', info.mode === 'study' && Array.isArray(info.plan) && info.plan.length >= 1, JSON.stringify(info));
+  const firstIsPlanned = await page.evaluate(() => { const g = window.__game; return !!(g.card && (g._modeConfig.planCardIds || []).indexOf(g.card.id) >= 0); });
+  check('The first question comes from the plan', firstIsPlanned);
+  check('No script errors in the study plan', errors.length === 0, errors.join(' | '));
+  await ctx.close();
+}
+
+await browser.close();
+console.log(failed ? '\n' + failed + ' check(s) FAILED' : '\nAll checks passed');
+process.exit(failed ? 1 : 0);

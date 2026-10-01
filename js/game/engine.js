@@ -1461,6 +1461,14 @@ class Game {
     mode: this.mode
 });
 
+// A study-plan run plays exactly its planned cards, whatever the subject and exam filters say
+if (this._modeConfig && Array.isArray(this._modeConfig.planCardIds)) {
+  var planIds = {};
+  this._modeConfig.planCardIds.forEach(function (id) { planIds[id] = true; });
+  var everything = getCardPool({ subjects: [], filters: { exams: [], questionTypes: [], sources: [], years: [], highYieldOnly: false }, includeCustomCards: true, mode: this.mode });
+  poolResult = { cards: everything.cards.filter(function (c) { return planIds[c.id]; }), error: everything.error };
+}
+
 if (poolResult.error || poolResult.cards.length === 0) {
     this._endRun(RUN_END_REASONS.NO_MATCHING_CARDS);
     return;
@@ -1804,6 +1812,14 @@ card = pickResult ? pickResult.card : null;
       this.waitingForNext = false;
       var selfC = this;
       setTimeout(function () { selfC._endRun(RUN_END_REASONS.CHALLENGE_COMPLETE); }, 600);
+      return;
+    }
+
+    // Study-plan run: it ends when the planned cards are done
+    if (this._modeConfig && Array.isArray(this._modeConfig.planCardIds) && this.encountersDone >= this._modeConfig.planCardIds.length) {
+      this.waitingForNext = false;
+      var selfP = this;
+      setTimeout(function () { selfP._endRun(RUN_END_REASONS.CHALLENGE_COMPLETE); }, 600);
       return;
     }
 
@@ -2240,7 +2256,7 @@ card = pickResult ? pickResult.card : null;
     // Environment props
     this.envPropSpawnTimer -= dt;
     if (this.envPropSpawnTimer <= 0) {
-      spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'), this.currentSkin && this.currentSkin.name);
+      spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
       this.envPropSpawnTimer = 1.5 + Math.random() * 2;
     }
     for (var ei = this.envPropMeshes.length - 1; ei >= 0; ei--) {

@@ -29,10 +29,10 @@ import { isNative, nativeHaptic } from './native.js';
 // ===== MUSICAL CONSTANTS =====
 
 /** Music is turned down, and every effect up, so effects always cut through the music. */
-var MUSIC_TRIM = 0.55;
-var SFX_BOOST = 3.6;
+var MUSIC_TRIM = 0.3;
+var SFX_BOOST = 5.0;
 /** Effects that were naturally very quiet get a little extra. */
-var SFX_EXTRA = { coin: 1.8, jump: 1.8, land: 1.8, slide: 2.6, ui_tap: 2.2, ui_nav: 2.0, wrong: 1.3, lane: 2.0 };
+var SFX_EXTRA = { coin: 2.2, jump: 2.0, land: 2.0, slide: 3.2, ui_tap: 2.6, ui_nav: 2.2, wrong: 1.3, lane: 2.4 };
 const SCALES = {
   cMinorPentatonic: [0, 3, 5, 7, 10],
   cMajorPentatonic: [0, 2, 4, 7, 9],

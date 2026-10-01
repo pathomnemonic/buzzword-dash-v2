@@ -151,34 +151,6 @@ function showOnboarding() {
 }
 
 // =========================================================================
-//  HOW TO PLAY
-// =========================================================================
-function renderHowToPlay() {
-  var container = document.getElementById('howToPlaySection');
-  if (!container) return;
-
-  var sections = [
-    { icon: '\uD83C\uDFAE', title: 'Controls', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them.' : 'Use the arrow keys or WASD: left/right to switch lanes, up to jump over obstacles, down to slide under them.' },
-    { icon: '\u26A1', title: 'Rush Mode', text: getControlText().rushVerb + ' to RUSH through gates! Rush makes you invulnerable and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
-    { icon: '\u2764\uFE0F', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. Look for heart pickups on the track!' },
-    { icon: '\uD83E\uDE99', title: 'Coins & Power-ups', text: 'Collect coins as you run. Power-ups include Shield, Magnet, Double Score, Auto-Pilot, and Score Frenzy.' },
-    { icon: '\uD83D\uDCCA', title: 'Scoring', text: 'Correct answers build your streak. Every 5 correct increases your multiplier up to 8\u00D7. Rush through gates for bonus points!' },
-    { icon: '\uD83D\uDC79', title: 'The Exam Monster', text: 'An exam monster chases you. It gets closer when you miss questions and falls back when you answer correctly.' },
-    { icon: '\uD83C\uDFAF', title: 'Game Modes', text: 'Endless, Study, Weakness, Daily, and Versus multiplayer!' },
-    { icon: '\uD83D\uDCDD', title: 'Custom Cards & Flashcards', text: 'Create your own cards. Use Flashcard mode to study without the runner. Import Anki cards for AI-converted questions.' }
-  ];
-
-  var html = '<div style="margin-top:4px"><h4 style="font-size:13px;font-weight:800;color:var(--text-secondary);margin-bottom:6px">\uD83D\uDCD6 How to Play</h4>';
-  sections.forEach(function (s) {
-    html += '<details style="margin-bottom:4px;background:var(--bg-card);border-radius:var(--radius-sm);padding:8px 12px;border:var(--border-card)">' +
-      '<summary style="font-size:12px;font-weight:700;cursor:pointer">' + s.icon + ' ' + s.title + '</summary>' +
-      '<p style="font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.5">' + s.text + '</p></details>';
-  });
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-// =========================================================================
 //  HOME CHARACTER
 // =========================================================================
 function showWebGLNotice() {
@@ -811,6 +783,17 @@ function attachChallengeResult(finalScore) {
   content.insertBefore(box, content.children[1] || null);
 }
 
+/** Play a list of cards in the runner (the study plan's "Run it" button). */
+function startStudyPlanRun(cardIds) {
+  if (!areCardsReady()) {
+    ui._showToast(loadingLine());
+    loadCards().then(function () { startStudyPlanRun(cardIds); });
+    return;
+  }
+  ui.hideAll();
+  launchRun('study', cardIds, { planCardIds: cardIds.slice(), allowContinue: false });
+}
+
 function startMode(mode) {
   // The questions load in the background after the first paint; wait for them if needed
   if (!areCardsReady()) {
@@ -1056,15 +1039,13 @@ function init() {
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
   ui.init();
+  ui.onStudyPlanRun = startStudyPlanRun;
 
   // Home is a plain menu (no 3D scene), so there is only a notice to show when WebGL is missing
   if (!webglOk) showWebGLNotice();
 
   // Collapsibles
   setupCollapsibles();
-
-  // How to Play
-  renderHowToPlay();
 
   // Onboarding
   if (!storage.get('firstRunComplete')) {

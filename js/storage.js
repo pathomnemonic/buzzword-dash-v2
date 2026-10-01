@@ -99,6 +99,9 @@ var DEFAULTS = {
     lastLoginDate: null,
     loginStreak: 0,
     xp: 0,
+    // One-time migrations: these must be listed here or they are forgotten on the next load
+    modelIntroSeen: false,
+    monsterDefaultSeen: false,
 
     achievements: [],
     ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'],

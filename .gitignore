@@ -10,3 +10,4 @@ e2e.log
 
 # scratch scripts for local experiments
 tools/_*.mjs
+dist2/

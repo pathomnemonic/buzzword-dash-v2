@@ -1,0 +1,147 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { stepAdaptiveResolution, createAdaptiveResolution } from '../../js/game/quality.js';
+
+// Bugs that were found by playing the game, so they stay fixed.
+
+function loadPage() {
+  const html = readFileSync('index.html', 'utf8');
+  const body = html.slice(html.indexOf('<body'), html.indexOf('</body>'));
+  document.body.innerHTML = body.replace(/<script[\s\S]*?<\/script>/g, '');
+}
+
+describe('pause screen', () => {
+  let game;
+  beforeEach(async () => {
+    localStorage.clear();
+    loadPage();
+    ({ game } = await import('../../js/game/engine.js'));
+  });
+
+  it('shows when the game pauses and goes away when it resumes (even via the Resume button)', () => {
+    const overlay = document.getElementById('pauseOverlay');
+    game._state = 'playing';
+    game.pause('user');
+    expect(game._state).toBe('paused');
+    expect(overlay.classList.contains('active')).toBe(true);
+    game.resume(); // what the Resume button calls
+    expect(game._state).toBe('playing');
+    expect(overlay.classList.contains('active')).toBe(false);
+  });
+
+  it('is cleared by resume even if the state already moved on', () => {
+    const overlay = document.getElementById('pauseOverlay');
+    overlay.classList.add('active');
+    game._state = 'ended';
+    game.resume();
+    expect(overlay.classList.contains('active')).toBe(false);
+  });
+
+  it('toggles from the pause button', () => {
+    const overlay = document.getElementById('pauseOverlay');
+    game._state = 'playing';
+    game.togglePause();
+    expect(overlay.classList.contains('active')).toBe(true);
+    game.togglePause();
+    expect(overlay.classList.contains('active')).toBe(false);
+  });
+});
+
+describe('navigation tabs', () => {
+  it('only the current tab is highlighted (aria-current follows the tab)', async () => {
+    localStorage.clear();
+    loadPage();
+    const { ui } = await import('../../js/ui.js');
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    ui.show('screenQuests');
+    const current = [...document.querySelectorAll('.nav-item')].filter((n) => n.getAttribute('aria-current') === 'true');
+    expect(current).toHaveLength(0); // Quests is not a tab, so no tab is lit
+    ui.show('screenStats');
+    const lit = [...document.querySelectorAll('.nav-item')].filter((n) => n.getAttribute('aria-current') === 'true' || n.classList.contains('active'));
+    expect(lit.map((n) => n.dataset.screen)).toEqual(['screenStats']);
+    ui.show('screenHome');
+    const home = [...document.querySelectorAll('.nav-item')].filter((n) => n.getAttribute('aria-current') === 'true');
+    expect(home.map((n) => n.dataset.screen)).toEqual(['screenHome']);
+  });
+});
+
+describe('starting monster and defaults', () => {
+  it('everyone starts with the animated 3D ghost, and the old monster stays available', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    expect(storage.get('equipped').monster).toBe('monster_m_ghost');
+    expect(storage.get('ownedItems')).toContain('monster_m_ghost');
+    expect(storage.get('ownedItems')).toContain('monster_classic');
+  });
+
+  it('players still on the old round monster are moved to the 3D one once', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    const raw = JSON.parse(JSON.stringify(storage.data));
+    raw.progression.equipped.monster = 'monster_classic';
+    delete raw.progression.monsterDefaultSeen;
+    localStorage.setItem('buzzword_dash_v1', JSON.stringify(raw));
+    storage.load();
+    expect(storage.get('equipped').monster).toBe('monster_m_ghost');
+    // choosing the old one again afterwards is respected
+    storage.data.progression.equipped.monster = 'monster_classic';
+    storage.save && storage.save();
+    storage.load();
+    expect(storage.get('equipped').monster).toBe('monster_classic');
+  });
+
+  it('30 fps is on by default, once, and can be turned off', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    expect(storage.get('batterySaver')).toBe(true);
+    storage.set('batterySaver', false);
+    storage.save && storage.save();
+    storage.load();
+    expect(storage.get('batterySaver')).toBe(false);
+  });
+});
+
+describe('monster names', () => {
+  it('has no name that could offend', async () => {
+    const { CHARACTER_MODELS, MONSTER_MODELS } = await import('../../js/game/modelcatalog.js');
+    const names = CHARACTER_MODELS.concat(MONSTER_MODELS).map((m) => m.name.toLowerCase()).join(' | ');
+    ['abominable', 'retard', 'crazy', 'insane', 'psycho', 'savage', 'slave'].forEach((w) => expect(names).not.toContain(w));
+  });
+});
+
+describe('adaptive resolution with a 30 fps cap', () => {
+  const run = (state, ms, frames, target, start = 10000) => {
+    let out = null;
+    for (let i = 0; i < frames; i++) {
+      const r = stepAdaptiveResolution(state, ms, start + i * ms, target);
+      if (r !== null) out = r;
+    }
+    return out;
+  };
+
+  it('does not mistake a steady 30 fps cap for a slow device', () => {
+    const st = createAdaptiveResolution();
+    expect(run(st, 33.3, 400, 1000 / 30)).toBeNull();
+    expect(st.level).toBe(0);
+  });
+
+  it('still steps down when even 30 fps is missed', () => {
+    const st = createAdaptiveResolution();
+    expect(run(st, 60, 100, 1000 / 30)).toBe(0.85);
+  });
+
+  it('steps back up after holding the cap for two samples', () => {
+    const st = createAdaptiveResolution();
+    run(st, 60, 100, 1000 / 30);               // down one level
+    const ups = [];
+    for (let k = 0; k < 4; k++) {
+      const r = run(st, 33.3, 90, 1000 / 30, 40000 + k * 20000);
+      if (r !== null) ups.push(r);
+    }
+    expect(ups).toContain(1);
+  });
+});

@@ -413,7 +413,7 @@ class UI {
       this.startPreview();
     }
     if (screenId === 'screenQuests') this.renderQuests();
-    if (screenId === 'screenSettings') this.renderSettings();
+    if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
     if (screenId === 'screenAchievements') this.renderAchievements();
     if (screenId === 'screenProfile') this.renderProfile();
@@ -456,6 +456,16 @@ class UI {
     document.querySelectorAll('.back-btn').forEach(function (btn) {
       btn.addEventListener('click', function () { self.show('screenHome'); });
     });
+    // The step-by-step tutorial (opened from Home and from Settings)
+    var tutNext = document.getElementById('tutNextBtn');
+    if (tutNext) tutNext.addEventListener('click', function () { self.tutorialNext(); });
+    var tutClose = document.getElementById('tutCloseBtn');
+    if (tutClose) {
+      tutClose.addEventListener('click', function () {
+        document.getElementById('tutorialOverlay').classList.remove('active');
+        releaseFocusTrap();
+      });
+    }
     var settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', function () { self.show('screenSettings'); });
     var shopBtn = document.getElementById('shopBtn');
@@ -1085,39 +1095,34 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   renderHowToPlay() {
+    var self = this;
     var container = document.getElementById('howToPlaySection');
     if (!container) return;
     clearElement(container);
 
-    var sections = [
-      { icon: '🎮', title: 'Controls', text: getControlText().touch ? 'Swipe left/right to switch lanes. Swipe up to jump over obstacles, down to slide under them.' : 'Use the arrow keys or WASD: left/right to switch lanes, up to jump over obstacles, down to slide under them.' },
-      { icon: '⚡', title: 'Rush Mode', text: getControlText().rushVerb + ' to RUSH through gates! Rush makes you invulnerable to obstacles and pushes you through in 0.5 seconds. Stack up to 3 rushes for bonus points!' },
-      { icon: '❤️', title: 'Lives & Hearts', text: 'You start with 3 lives. Wrong answers and hitting obstacles cost a life. When you\'re down to 1 life, look for heart pickups on the track!' },
-      { icon: '🪙', title: 'Coins & Power-ups', text: 'Collect coins as you run. Power-ups include: Shield (🛡), Magnet (🧲), Double Score (2×), Auto-Pilot (🤖), and Score Frenzy (💎).' },
-      { icon: '📊', title: 'Scoring', text: 'Correct answers build your streak. Every 5 correct increases your multiplier up to 8×. Rush through gates for bonus points!' },
-      { icon: '👾', title: 'The Exam Monster', text: 'Beware! An exam monster chases you. It gets closer when you miss questions and falls back when you answer correctly.' },
-      { icon: '🎯', title: 'Game Modes', text: 'Endless: play until you run out of lives. Study: infinite lives with teaching points. Weakness: focus on missed cards. Daily: 15-card challenge. Versus: multiplayer!' },
-      { icon: '📝', title: 'Custom Cards & Flashcards', text: 'Create your own cards in My Cards. Use Flashcard mode to study without the runner game. Import Anki cards for AI-converted questions.' }
-    ];
-
-    var wrapper = createElement('div');
-    wrapper.style.marginTop = '4px';
-
-    var heading = createElement('h4', { text: '📖 How to Play' });
-    heading.style.cssText = 'font-size:13px;font-weight:800;color:var(--text-secondary);margin-bottom:6px';
-    wrapper.appendChild(heading);
-
-    sections.forEach(function (s) {
-      var details = createElement('details');
-      var summary = createElement('summary', { text: s.icon + ' ' + s.title });
-      details.appendChild(summary);
-      var p = createElement('p', { text: s.text });
-      p.style.cssText = 'font-size:11px;color:var(--text-secondary);margin-top:6px;line-height:1.5';
-      details.appendChild(p);
-      wrapper.appendChild(details);
+    var details = createElement('details', { className: 'howto' });
+    details.appendChild(createElement('summary', { text: '📖 How to Play' }));
+    var body = createElement('div', { className: 'howto-body' });
+    this.tutorialPages.forEach(function (p, i) {
+      if (i === 0) return; // the welcome page is only for the walk-through
+      var item = createElement('div', { className: 'howto-item' });
+      item.appendChild(createElement('strong', { text: p.icon + ' ' + p.title + '. ' }));
+      item.appendChild(document.createTextNode(p.text));
+      body.appendChild(item);
     });
-
-    container.appendChild(wrapper);
+    var modes = createElement('div', { className: 'howto-item' });
+    modes.appendChild(createElement('strong', { text: '🎯 Game modes. ' }));
+    modes.appendChild(document.createTextNode('Endless: run until you are out of lives. Study: no lives lost, with a teaching point after each question. Weakness: practice the cards you miss. Daily: today\'s 15-card challenge. Versus: race a friend live, or play ranked.'));
+    body.appendChild(modes);
+    var cards = createElement('div', { className: 'howto-item' });
+    cards.appendChild(createElement('strong', { text: '📝 Your own cards. ' }));
+    cards.appendChild(document.createTextNode('Make cards in My Cards, import Anki decks, or study the same cards as flashcards or in the runner: it is your choice.'));
+    body.appendChild(cards);
+    var walk = createElement('button', { className: 'btn btn-outline btn-sm', text: '▶ Show me step by step', attributes: { type: 'button' } });
+    walk.addEventListener('click', function () { self.showTutorial(); });
+    body.appendChild(walk);
+    details.appendChild(body);
+    container.appendChild(details);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1978,35 +1983,85 @@ class UI {
   // SETTINGS (with extension mounting) [2]
   // ═══════════════════════════════════════════════════════
 
+  /** The groups on the Settings screen: a list of cards, each opening its own page. */
+  _settingsSections() {
+    return [
+      { id: 'sound', icon: '🔊', title: 'Sound', desc: 'Music, effects, volume and reading aloud' },
+      { id: 'look', icon: '🎨', title: 'Look & performance', desc: 'Colors, camera, graphics and frame rate' },
+      { id: 'study', icon: '📚', title: 'Study', desc: 'Daily goal, reminders and how cards are picked' },
+      { id: 'rules', icon: '🎛️', title: 'Your rules', desc: 'Turn power-ups, hazards and the monster off' },
+      { id: 'data', icon: '💾', title: 'Backup & data', desc: 'Save, restore, export or reset your progress' },
+      { id: 'about', icon: 'ℹ️', title: 'About & help', desc: 'How to play, legal pages and support' }
+    ];
+  }
+
   renderSettings() {
     var self = this;
     var content = document.getElementById('settingsContent');
     if (!content) return;
     clearElement(content);
 
-    var settings = [
-      { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
-      { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
-      { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
-      { key: 'batterySaver', label: '🎞 30 fps (smoother and cooler; turn off for 60)', type: 'toggle' },
-      { key: 'cameraView', label: '🎥 Camera', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
-      { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
-      { key: 'uiTheme', label: '🎨 Colors', type: 'select', options: THEME_CHOICES },
-      { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
-      { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
-      { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
-      { key: 'reminderHour', label: '⏰ Reminder Hour (24h)', type: 'range', min: 0, max: 23, step: 1 },
-      { key: 'ttsEnabled', label: '🗣 Text-to-Speech', type: 'toggle' },
-      { key: 'masterVolume', label: '🔊 Master Volume', type: 'range', min: 0, max: 1, step: 0.1 },
-      { key: 'sfxVolume', label: '🎵 SFX Volume', type: 'range', min: 0, max: 1, step: 0.1 },
-      { key: 'musicVolume', label: '🎵 Music Volume', type: 'range', min: 0, max: 1, step: 0.1 },
-      { key: 'cardFreshnessWeight', label: '🔄 Card Freshness', type: 'range', min: 1, max: 10, step: 1 }
-    ];
+    var sections = this._settingsSections();
+    var current = null;
+    for (var si = 0; si < sections.length; si++) if (sections[si].id === this._settingsSection) current = sections[si];
 
-    settings.forEach(function (s) {
-      var row = createElement('div', { className: 'setting-row' });
-      var label = createElement('div', { text: s.label });
-      label.style.fontSize = '13px';
+    // ---- the list of sections ----
+    if (!current) {
+      var hub = createElement('div', { className: 'settings-hub' });
+      sections.forEach(function (sec) {
+        var card = createElement('button', { className: 'settings-card', attributes: { type: 'button', 'data-section': sec.id } });
+        card.appendChild(createElement('span', { className: 'settings-card-icon', text: sec.icon }));
+        var text = createElement('span', { className: 'settings-card-text' });
+        text.appendChild(createElement('span', { className: 'settings-card-title', text: sec.title }));
+        text.appendChild(createElement('span', { className: 'settings-card-desc', text: sec.desc }));
+        card.appendChild(text);
+        card.appendChild(createElement('span', { className: 'settings-card-arrow', text: '›' }));
+        card.addEventListener('click', function () { self._settingsSection = sec.id; self.renderSettings(); });
+        hub.appendChild(card);
+      });
+      content.appendChild(hub);
+      return;
+    }
+
+    // ---- one section ----
+    var backBtn = createElement('button', { className: 'btn btn-outline btn-sm settings-back', text: '← All settings', attributes: { type: 'button' } });
+    backBtn.addEventListener('click', function () { self._settingsSection = null; self.renderSettings(); });
+    content.appendChild(backBtn);
+    var title = createElement('h3', { className: 'settings-section-title', text: current.icon + ' ' + current.title });
+    content.appendChild(title);
+
+    // Every setting says what it does, in plain words
+    var ROWS = {
+      sound: [
+        { key: 'musicOn', label: '🎵 Music', desc: 'Background music while you run.', type: 'toggle' },
+        { key: 'masterVolume', label: '🔊 Master volume', desc: 'The overall loudness of everything.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
+        { key: 'sfxVolume', label: '💥 Sound effects', desc: 'Jumps, coins, answers, menus and rewards.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
+        { key: 'musicVolume', label: '🎶 Music volume', desc: 'How loud the background music is.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
+        { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
+      ],
+      look: [
+        { key: 'uiTheme', label: '🎨 Colors', desc: 'Auto repaints the whole game with the time of day and the season. Or pick a season, or Classic for the original look.', type: 'select', options: THEME_CHOICES },
+        { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
+        { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
+        { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
+        { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
+        { key: 'glowEffects', label: '✨ Glow effects', desc: 'The soft glow around bright things. Turn it off to run smoother on older devices.', type: 'toggle' },
+        { key: 'batterySaver', label: '🎞 30 frames per second', desc: 'Keeps the game at a steady 30 fps: cooler, smoother and easier on the battery. Turn off for up to 60 fps on a fast device.', type: 'toggle' }
+      ],
+      study: [
+        { key: 'dailyGoal', label: '🎯 Daily goal', desc: 'How many cards you aim to study each day. Hitting it keeps your streak going.', type: 'range', min: 5, max: 100, step: 5, unit: ' cards' },
+        { key: 'reminders', label: '🔔 Daily reminder', desc: 'A notification at your reminder time, while the app is open or installed.', type: 'toggle' },
+        { key: 'reminderHour', label: '⏰ Reminder time', desc: 'The hour of the day for the reminder (0 is midnight, 13 is 1 pm).', type: 'range', min: 0, max: 23, step: 1, unit: ':00' },
+        { key: 'cardFreshnessWeight', label: '🆕 New-card priority', desc: 'How much more often you see cards you have never answered. 1 treats every card the same; 10 brings new cards up much more often than ones you already know.', type: 'range', min: 1, max: 10, step: 1 }
+      ]
+    };
+
+    function buildRow(s) {
+      var row = createElement('div', { className: 'setting-row', attributes: { 'data-setting': s.key } });
+      var label = createElement('div');
+      label.appendChild(createElement('div', { className: 'setting-label-text', text: s.label }));
+      label.appendChild(createElement('span', { className: 'setting-sublabel', text: s.desc }));
+      label.style.flex = '1';
       row.appendChild(label);
 
       if (s.type === 'toggle') {
@@ -2055,12 +2110,10 @@ class UI {
           select.appendChild(o);
         });
         if (s.key === 'uiTheme') {
-          var themeNote = createElement('span', { className: 'setting-sublabel', text: 'Now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') });
-          label.appendChild(themeNote);
+          label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Right now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') }));
         }
         if (s.key === 'quality') {
-          var tierNote = createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) });
-          label.appendChild(tierNote);
+          label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) }));
         }
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
@@ -2077,109 +2130,141 @@ class UI {
         var currentVal = storage.get(s.key);
         if (currentVal === undefined || currentVal === null) currentVal = s.min;
         var range = createElement('input', {
-          attributes: { type: 'range', min: String(s.min), max: String(s.max), step: String(s.step), value: String(currentVal) }
+          attributes: { type: 'range', min: String(s.min), max: String(s.max), step: String(s.step), value: String(currentVal), 'aria-label': s.label }
         });
         range.style.cssText = 'width:100px;accent-color:var(--accent-cyan)';
+        var valueEl = createElement('span', { className: 'setting-value' });
+        var showValue = function (v) {
+          setText(valueEl, s.pct ? Math.round(v * 100) + '%' : v + (s.unit || ''));
+        };
+        showValue(currentVal);
         range.addEventListener('input', function () {
           var val = parseFloat(range.value);
           storage.set(s.key, val);
+          showValue(val);
           if (s.key === 'dailyGoal') self.renderStudyGoal();
           if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
             audio.updateSettings();
           }
         });
-        row.appendChild(range);
+        var rangeWrap = createElement('div', { className: 'setting-range' });
+        rangeWrap.appendChild(range);
+        rangeWrap.appendChild(valueEl);
+        row.appendChild(rangeWrap);
       }
-
-      content.appendChild(row);
-    });
-
-    this._renderRuleSettings(content);
-
-    // About and legal (required for the app stores; useful on the web too)
-    var aboutHeading = createElement('h3', { text: 'ℹ️ About' });
-    aboutHeading.style.cssText = 'margin:16px 0 4px;font-size:14px;color:var(--text-secondary)';
-    content.appendChild(aboutHeading);
-    var aboutRow = createElement('div', { className: 'setting-row' });
-    var aboutLinks = createElement('div');
-    aboutLinks.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;font-size:13px';
-    [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html'], ['Report a problem', 'https://github.com/pathomnemonic/buzzword-dash-v2/issues']].forEach(function (l) {
-      var a = createElement('a', { text: l[0], attributes: { href: l[1], target: '_blank', rel: 'noopener noreferrer' } });
-      a.style.color = 'var(--accent-cyan)';
-      aboutLinks.appendChild(a);
-    });
-    aboutRow.appendChild(aboutLinks);
-    content.appendChild(aboutRow);
-    var disclaimer = createElement('div', {
-      className: 'setting-sublabel',
-      text: 'Dx Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
-    });
-    disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
-    content.appendChild(disclaimer);
-
-    // Tutorial button
-    var tutRow = createElement('div', { className: 'setting-row' });
-    tutRow.appendChild(createElement('div', { text: '❓ How to Play' }));
-    var tutBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Tutorial' });
-    tutBtn.addEventListener('click', function () { self.showTutorial(); });
-    tutRow.appendChild(tutBtn);
-    content.appendChild(tutRow);
-
-    // Optional tip link (only when a tip page is configured at build time)
-    if (getTipUrl()) {
-      var tipRow = createElement('div', { className: 'setting-row' });
-      var tipLabel = createElement('div');
-      tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
-      tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
-      tipRow.appendChild(tipLabel);
-      var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
-      tipBtn.addEventListener('click', function () { openTipPage(); });
-      tipRow.appendChild(tipBtn);
-      content.appendChild(tipRow);
+      return row;
     }
 
-    // Export reports
-    var reportRow = createElement('div', { className: 'setting-row' });
-    reportRow.appendChild(createElement('div', { text: '📤 Export Card Reports' }));
-    var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Export' });
-    reportBtn.addEventListener('click', function () { self.exportCardReports(); });
-    reportRow.appendChild(reportBtn);
-    content.appendChild(reportRow);
+    if (ROWS[current.id]) {
+      ROWS[current.id].forEach(function (s) { content.appendChild(buildRow(s)); });
+    }
 
-    // Backup / restore progress
-    var backupRow = createElement('div', { className: 'setting-row' });
-    backupRow.appendChild(createElement('div', { text: '💾 Progress Backup' }));
-    var backupBtns = createElement('div');
-    var backupBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Save' });
-    backupBtn.addEventListener('click', function () { self.downloadBackup(); });
-    var restoreBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Restore' });
-    var restoreInput = createElement('input', {
-      attributes: { type: 'file', accept: 'application/json,.json', hidden: '', 'aria-label': 'Backup file' }
-    });
-    restoreBtn.addEventListener('click', function () { restoreInput.click(); });
-    restoreInput.addEventListener('change', function () { self.restoreBackup(restoreInput.files[0]); });
-    backupBtns.appendChild(backupBtn);
-    backupBtns.appendChild(restoreBtn);
-    backupBtns.appendChild(restoreInput);
-    backupRow.appendChild(backupBtns);
-    content.appendChild(backupRow);
+    if (current.id === 'study') {
+      // Anki import container (mount point for the importer)
+      content.appendChild(createElement('div', { attributes: { id: 'ankiImportContainer' } }));
+    }
 
-    // Anki import container (mount point for settings extension)
-    var ankiContainer = createElement('div', { attributes: { id: 'ankiImportContainer' } });
-    content.appendChild(ankiContainer);
+    if (current.id === 'rules') {
+      this._renderRuleSettings(content);
+    }
 
-    // Reset button
-    var resetWrap = createElement('div');
-    resetWrap.style.marginTop = '20px';
-    var resetBtn = createElement('button', { className: 'btn btn-red btn-block', text: '🗑 Reset All Progress' });
-    resetBtn.addEventListener('click', function () {
-      if (confirm('Reset ALL progress? This cannot be undone.')) {
-        storage.reset();
-        window.location.reload();
+    if (current.id === 'data') {
+      var explain = function (text) {
+        var n = createElement('div', { className: 'setting-sublabel', text: text });
+        n.style.cssText = 'margin:6px 0 10px;line-height:1.4';
+        return n;
+      };
+      content.appendChild(explain('Your progress lives on this device. Save a backup file before switching devices, then restore it on the new one.'));
+
+      var backupRow = createElement('div', { className: 'setting-row' });
+      var backupLabel = createElement('div');
+      backupLabel.style.flex = '1';
+      backupLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '💾 Progress backup' }));
+      backupLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Save everything to a file, or load a file you saved before.' }));
+      backupRow.appendChild(backupLabel);
+      var backupBtns = createElement('div');
+      var backupBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Save', attributes: { type: 'button' } });
+      backupBtn.addEventListener('click', function () { self.downloadBackup(); });
+      var restoreBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Restore', attributes: { type: 'button' } });
+      var restoreInput = createElement('input', {
+        attributes: { type: 'file', accept: 'application/json,.json', hidden: '', 'aria-label': 'Backup file' }
+      });
+      restoreBtn.addEventListener('click', function () { restoreInput.click(); });
+      restoreInput.addEventListener('change', function () { self.restoreBackup(restoreInput.files[0]); });
+      backupBtns.appendChild(backupBtn);
+      backupBtns.appendChild(restoreBtn);
+      backupBtns.appendChild(restoreInput);
+      backupRow.appendChild(backupBtns);
+      content.appendChild(backupRow);
+
+      var reportRow = createElement('div', { className: 'setting-row' });
+      var reportLabel = createElement('div');
+      reportLabel.style.flex = '1';
+      reportLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '🚩 Card reports' }));
+      reportLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Save the list of cards you flagged as wrong or confusing, to send to the author.' }));
+      reportRow.appendChild(reportLabel);
+      var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Export', attributes: { type: 'button' } });
+      reportBtn.addEventListener('click', function () { self.exportCardReports(); });
+      reportRow.appendChild(reportBtn);
+      content.appendChild(reportRow);
+
+      var resetWrap = createElement('div');
+      resetWrap.style.marginTop = '20px';
+      resetWrap.appendChild(explain('Reset erases your coins, unlocks, stats and settings from this device. It cannot be undone, so save a backup first.'));
+      var resetBtn = createElement('button', { className: 'btn btn-red btn-block', text: '🗑 Reset all progress', attributes: { type: 'button' } });
+      resetBtn.addEventListener('click', function () {
+        if (confirm('Reset ALL progress? This cannot be undone.')) {
+          storage.reset();
+          window.location.reload();
+        }
+      });
+      resetWrap.appendChild(resetBtn);
+      content.appendChild(resetWrap);
+    }
+
+    if (current.id === 'about') {
+      var tutRow = createElement('div', { className: 'setting-row' });
+      var tutLabel = createElement('div');
+      tutLabel.style.flex = '1';
+      tutLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '❓ How to play' }));
+      tutLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'A quick walk-through of the controls and the rules. Also on the Home screen.' }));
+      tutRow.appendChild(tutLabel);
+      var tutBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Open', attributes: { type: 'button' } });
+      tutBtn.addEventListener('click', function () { self.showTutorial(); });
+      tutRow.appendChild(tutBtn);
+      content.appendChild(tutRow);
+
+      var aboutRow = createElement('div', { className: 'setting-row' });
+      var aboutLinks = createElement('div');
+      aboutLinks.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;font-size:13px';
+      [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html'], ['Report a problem', 'https://github.com/pathomnemonic/buzzword-dash-v2/issues']].forEach(function (l) {
+        var a = createElement('a', { text: l[0], attributes: { href: l[1], target: '_blank', rel: 'noopener noreferrer' } });
+        a.style.color = 'var(--accent-cyan)';
+        aboutLinks.appendChild(a);
+      });
+      aboutRow.appendChild(aboutLinks);
+      content.appendChild(aboutRow);
+      var disclaimer = createElement('div', {
+        className: 'setting-sublabel',
+        text: 'Dx Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
+      });
+      disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
+      content.appendChild(disclaimer);
+
+      // Optional tip link (only when a tip page is configured at build time)
+      if (getTipUrl()) {
+        var tipRow = createElement('div', { className: 'setting-row' });
+        var tipLabel = createElement('div');
+        tipLabel.style.flex = '1';
+        tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
+        tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
+        tipRow.appendChild(tipLabel);
+        var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
+        tipBtn.addEventListener('click', function () { openTipPage(); });
+        tipRow.appendChild(tipBtn);
+        content.appendChild(tipRow);
       }
-    });
-    resetWrap.appendChild(resetBtn);
-    content.appendChild(resetWrap);
+    }
 
     this.applySettings();
 
@@ -2274,19 +2359,51 @@ class UI {
       box.appendChild(createElement('p', { text: 'You are all caught up. Play a run or start a flashcard session to keep the streak going.' }));
       box.lastChild.style.cssText = 'font-size:12px;color:var(--text-secondary)';
     }
+    // Which cards each step is about (used for the runner; flashcards pick their own)
+    var statsNow = storage.get('cardStats') || {};
+    var cardsFor = function (step) {
+      var ids;
+      if (step.kind === 'due') {
+        ids = plan.dueIds.slice(0, 20);
+      } else if (step.kind === 'weak') {
+        ids = cards.filter(function (c) { return c.subj === step.subject; }).map(function (c) {
+          var st = statsNow[c.id];
+          return { id: c.id, acc: st && st.seen ? st.correct / st.seen : 0.5 };
+        }).sort(function (x, y) { return x.acc - y.acc; }).slice(0, 20).map(function (x) { return x.id; });
+      } else {
+        // the rest of the daily goal: cards not seen yet first, then the ones seen longest ago
+        ids = cards.slice().sort(function (x, y) {
+          var sx = statsNow[x.id], sy = statsNow[y.id];
+          return (sx && sx.seen ? sx.last || 1 : 0) - (sy && sy.seen ? sy.last || 1 : 0);
+        }).slice(0, Math.min(25, step.count || 10)).map(function (c) { return c.id; });
+      }
+      return ids;
+    };
     plan.steps.forEach(function (step, i) {
-      var row = createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0;font-size:12px';
-      row.appendChild(createElement('span', { text: (i + 1) + '. ' + step.label }));
-      var go = createElement('button', { className: 'btn btn-primary btn-sm', text: 'Start', attributes: { type: 'button' } });
-      go.addEventListener('click', function () {
+      var row = createElement('div', { className: 'plan-step' });
+      row.appendChild(createElement('span', { className: 'plan-step-label', text: (i + 1) + '. ' + step.label }));
+      var buttons = createElement('span', { className: 'plan-step-buttons' });
+      // Both ways to do the same cards: the runner game, or flashcards. Either one counts.
+      var play = createElement('button', { className: 'btn btn-green btn-sm', text: '🏃 Run it', attributes: { type: 'button', title: 'Study these cards in the runner game' } });
+      play.addEventListener('click', function () {
+        var ids = cardsFor(step);
+        if (self.onStudyPlanRun && ids.length) self.onStudyPlanRun(ids);
+        else self._showToast('No cards to study for this step yet.');
+      });
+      var flash = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗂 Flashcards', attributes: { type: 'button', title: 'Study these cards as flashcards' } });
+      flash.addEventListener('click', function () {
         if (step.kind === 'due') self.startFlashcardSession(null, plan.dueIds.slice(0, 20));
         else if (step.kind === 'weak') self.startFlashcardSession([step.subject]);
         else self.startFlashcardSession();
       });
-      row.appendChild(go);
+      buttons.appendChild(play);
+      buttons.appendChild(flash);
+      row.appendChild(buttons);
       box.appendChild(row);
     });
+    if (plan.steps.length) {
+      box.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick whichever you like: the runner and the flashcards use the same cards, and both count toward your daily goal.' }));
+    }
 
     // Due forecast (next 7 days)
     var max = Math.max(1, plan.dueCount, Math.max.apply(null, plan.forecast));
