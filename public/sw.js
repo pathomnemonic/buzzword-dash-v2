@@ -1,5 +1,5 @@
 // Offline support: network-first for pages, cache-first for hashed assets.
-const CACHE = 'dx-dash-v2';
+const CACHE = 'dx-dash-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -27,7 +27,7 @@ self.addEventListener('fetch', (event) => {
   };
 
   if (req.mode === 'navigate') {
-    event.respondWith(fetch(req).then(store).catch(() => caches.match(req).then((r) => r || caches.match('./'))));
+    event.respondWith(fetch(req, { cache: 'no-cache' }).then(store).catch(() => caches.match(req).then((r) => r || caches.match('./'))));
     return;
   }
   event.respondWith(caches.match(req).then((hit) => hit || fetch(req).then(store)));

@@ -2048,7 +2048,7 @@ class UI {
         { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
         { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
-        { key: 'glowEffects', label: '✨ Glow effects', desc: 'The soft glow around bright things. Turn it off to run smoother on older devices.', type: 'toggle' },
+        { key: 'glowEffects', label: '✨ Glow effects', desc: 'A soft glow around bright things. It looks great but makes the game noticeably more demanding: it can slow older laptops and drain a phone battery faster. Off by default.', type: 'toggle' },
         { key: 'batterySaver', label: '🎞 30 frames per second', desc: 'Keeps the game at a steady 30 fps: cooler, smoother and easier on the battery. Turn off for up to 60 fps on a fast device.', type: 'toggle' }
       ],
       study: [
@@ -3234,7 +3234,7 @@ class UI {
   // FLASHCARD SCREEN
   // ═══════════════════════════════════════════════════════
 
-  startFlashcardSession(subjects, cardIds) {
+  startFlashcardSession(subjects, cardIds, count) {
     var subjs = subjects || storage.get('selectedSubjects');
     if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
     var fm = this.flashcardMode;
@@ -3243,7 +3243,7 @@ class UI {
     var result = fm.start({
       subjects: subjs,
       cardIds: cardIds || null,
-      cardCount: 20,
+      cardCount: count || 20,
       filters: {
         exams: storage.get('selectedExams') || [],
         questionTypes: storage.get('selectedQuestionTypes') || [],
@@ -3265,18 +3265,20 @@ class UI {
   // teaching point. For commutes and workouts; it does not record ratings.
   // ═══════════════════════════════════════════════════════
 
-  startHandsFree() {
+  startHandsFree(subjects, cardIds, count) {
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
       this._showToast('Speech is not supported in this browser.');
       return;
     }
-    var subjs = storage.get('selectedSubjects');
+    var subjs = subjects || storage.get('selectedSubjects');
     if (!subjs || subjs.length === 0) subjs = SUBJECTS.slice();
     var fm = this.flashcardMode;
     if (fm.state === 'active' || fm.state === 'revealed') this._endFlashcardSession();
+    this._hfLast = { subjects: subjects || null, cardIds: cardIds || null, count: count || 20 };
     var result = fm.start({
       subjects: subjs,
-      cardCount: 20,
+      cardIds: cardIds || null,
+      cardCount: count || 20,
       filters: {
         exams: storage.get('selectedExams') || [],
         questionTypes: storage.get('selectedQuestionTypes') || [],
@@ -3290,7 +3292,7 @@ class UI {
     }
     var cards = fm.cards.slice();
     fm.end('handsfree'); // only borrowed the card selection
-    this._hf = { active: true, finished: false, cancel: false, index: 0, phase: 'clue', cards: cards, heard: 0 };
+    this._hf = { active: true, finished: false, cancel: false, index: 0, phase: 'clue', cards: cards, heard: 0, last: this._hfLast };
     this.show('screenFlashcard');
     this._runHandsFree();
   }
@@ -3365,7 +3367,7 @@ class UI {
       wrap.appendChild(this._flashcardText('h2', '🎧 Session finished'));
       wrap.appendChild(this._flashcardText('p', 'You listened to ' + hf.heard + ' card' + (hf.heard === 1 ? '' : 's') + '. It counts toward your daily goal.', 'margin:10px 0;color:var(--text-secondary)'));
       var again = createElement('button', { className: 'btn btn-green btn-block', text: '🎧 Another round', attributes: { type: 'button' } });
-      again.addEventListener('click', function () { self._hf = null; self.startHandsFree(); });
+      again.addEventListener('click', function () { var last = self._hf.last || {}; self._hf = null; self.startHandsFree(last.subjects, last.cardIds, last.count); });
       var home = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Home', attributes: { type: 'button' } });
       home.style.marginTop = '6px';
       home.addEventListener('click', function () { self._hf = null; self.show('screenHome'); });
@@ -3428,6 +3430,137 @@ class UI {
     return el;
   }
 
+  /** Cards for each way of choosing what to study (so the picker can show real counts). */
+  _pickerPools() {
+    var stats = storage.get('cardStats') || {};
+    var now = Date.now();
+    var all = CARDS.concat(customCards.getAll());
+    var disabled = storage.get('disabledCards') || [];
+    var live = all.filter(function (c) { return disabled.indexOf(c.id) < 0; });
+    var mine = storage.get('selectedSubjects');
+    if (!mine || mine.length === 0) mine = SUBJECTS.slice();
+    var due = [];
+    var missed = [];
+    var fresh = [];
+    live.forEach(function (c) {
+      var s = stats[c.id];
+      if (!s || !s.seen) { if (mine.indexOf(c.subj) >= 0) fresh.push(c.id); return; }
+      if (typeof s.due === 'number' && s.due <= now) due.push(c.id);
+      if ((s.wrong || 0) > 0 && (s.wrong || 0) >= (s.correct || 0) * 0.5) missed.push(c.id);
+    });
+    due.sort(function (x, y) { return stats[x].due - stats[y].due; });
+    missed.sort(function (x, y) { return (stats[y].wrong || 0) - (stats[x].wrong || 0); });
+    return { due: due, missed: missed, fresh: fresh, mine: mine };
+  }
+
+  /** "What do you want to study?" for flashcards and hands-free audio: pick the cards, then the way. */
+  _renderStudyPicker(container) {
+    var self = this;
+    var pools = this._pickerPools();
+    var pick = this._fcPick || (this._fcPick = { source: 'mine', subjects: [], count: 20 });
+    var wrap = createElement('div');
+    wrap.className = 'study-picker';
+
+    wrap.appendChild(this._flashcardText('h3', 'What do you want to study?', 'font-size:16px;margin:6px 0 4px'));
+    wrap.appendChild(this._flashcardText('p', 'Choose the cards, then how to study them: flip cards yourself, or listen hands-free.', 'font-size:12px;color:var(--text-secondary);margin-bottom:10px'));
+
+    var sources = [
+      ['mine', '🎯 My subjects', pools.mine.length + ' subject' + (pools.mine.length === 1 ? '' : 's') + ' chosen in Home. A random mix.'],
+      ['due', '⏰ Due for review', pools.due.length + ' card' + (pools.due.length === 1 ? '' : 's') + ' ready to see again (most overdue first).'],
+      ['missed', '🩹 Cards I miss', pools.missed.length + ' card' + (pools.missed.length === 1 ? '' : 's') + ' you get wrong the most.'],
+      ['fresh', '🆕 New cards', pools.fresh.length + ' card' + (pools.fresh.length === 1 ? '' : 's') + ' you have not seen yet.'],
+      ['subjects', '📚 Pick subjects', 'Choose exactly which subjects to study.']
+    ];
+    var list = createElement('div');
+    list.className = 'pick-list';
+    var detail = createElement('div');
+    var renderDetail = function () {
+      clearElement(detail);
+      if (pick.source !== 'subjects') return;
+      var chips = createElement('div');
+      chips.className = 'pick-chips';
+      SUBJECTS.forEach(function (s) {
+        var on = pick.subjects.indexOf(s) >= 0;
+        var chip = createElement('button', { className: 'pick-chip' + (on ? ' on' : ''), text: s, attributes: { type: 'button', 'aria-pressed': on ? 'true' : 'false' } });
+        chip.addEventListener('click', function () {
+          var i = pick.subjects.indexOf(s);
+          if (i >= 0) pick.subjects.splice(i, 1); else pick.subjects.push(s);
+          chip.classList.toggle('on', i < 0);
+          chip.setAttribute('aria-pressed', i < 0 ? 'true' : 'false');
+        });
+        chips.appendChild(chip);
+      });
+      detail.appendChild(chips);
+    };
+    sources.forEach(function (src) {
+      var btn = createElement('button', { className: 'pick-source' + (pick.source === src[0] ? ' on' : ''), attributes: { type: 'button', 'aria-pressed': pick.source === src[0] ? 'true' : 'false' } });
+      btn.appendChild(self._flashcardText('strong', src[1]));
+      btn.appendChild(self._flashcardText('span', src[2]));
+      btn.addEventListener('click', function () {
+        pick.source = src[0];
+        list.querySelectorAll('.pick-source').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+        btn.classList.add('on');
+        btn.setAttribute('aria-pressed', 'true');
+        renderDetail();
+      });
+      list.appendChild(btn);
+    });
+    wrap.appendChild(list);
+    renderDetail();
+    wrap.appendChild(detail);
+
+    wrap.appendChild(this._flashcardText('div', 'How many cards?', 'font-size:12px;font-weight:700;margin:12px 0 4px'));
+    var counts = createElement('div');
+    counts.className = 'pick-chips';
+    [10, 20, 40, 80].forEach(function (n) {
+      var chip = createElement('button', { className: 'pick-chip' + (pick.count === n ? ' on' : ''), text: String(n), attributes: { type: 'button', 'aria-pressed': pick.count === n ? 'true' : 'false' } });
+      chip.addEventListener('click', function () {
+        pick.count = n;
+        counts.querySelectorAll('.pick-chip').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+        chip.classList.add('on');
+        chip.setAttribute('aria-pressed', 'true');
+      });
+      counts.appendChild(chip);
+    });
+    wrap.appendChild(counts);
+
+    // Resolve the choice into subjects / explicit card ids, or explain what is missing
+    var resolve = function () {
+      var p = self._pickerPools();
+      if (pick.source === 'due') return p.due.length ? { ids: p.due.slice(0, pick.count) } : { error: 'Nothing is due yet. Play a few runs or flashcards first, and cards will come back here.' };
+      if (pick.source === 'missed') return p.missed.length ? { ids: p.missed.slice(0, pick.count) } : { error: 'No missed cards yet. Cards you get wrong will show up here.' };
+      if (pick.source === 'fresh') return p.fresh.length ? { ids: p.fresh.sort(function () { return Math.random() - 0.5; }).slice(0, pick.count) } : { error: 'You have seen every card in your subjects.' };
+      if (pick.source === 'subjects') return pick.subjects.length ? { subjects: pick.subjects.slice() } : { error: 'Pick at least one subject above.' };
+      return { subjects: null };
+    };
+
+    var go = createElement('div');
+    go.style.cssText = 'display:flex;gap:8px;margin-top:14px';
+    var flip = createElement('button', { className: 'btn btn-green', text: '📖 Flip cards', attributes: { type: 'button' } });
+    flip.style.flex = '1';
+    flip.addEventListener('click', function () {
+      var r = resolve();
+      if (r.error) { self._showToast(r.error); return; }
+      self.startFlashcardSession(r.subjects, r.ids || null, pick.count);
+    });
+    var listen = createElement('button', { className: 'btn btn-outline', text: '🎧 Listen hands-free', attributes: { type: 'button' } });
+    listen.style.flex = '1';
+    listen.addEventListener('click', function () {
+      var r = resolve();
+      if (r.error) { self._showToast(r.error); return; }
+      self.startHandsFree(r.subjects, r.ids || null, pick.count);
+    });
+    go.appendChild(flip);
+    go.appendChild(listen);
+    wrap.appendChild(go);
+
+    var back = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Back to Home', attributes: { type: 'button' } });
+    back.style.marginTop = '8px';
+    back.addEventListener('click', function () { self.show('screenHome'); });
+    wrap.appendChild(back);
+    container.appendChild(wrap);
+  }
+
   renderFlashcardScreen() {
     var container = document.getElementById('flashcardContent');
     if (!container) return;
@@ -3441,22 +3574,7 @@ class UI {
     }
 
     if (!this._flashcardActive()) {
-      var startBtn = createElement('button', { className: 'btn btn-green btn-block', text: '📖 Start Flashcard Session' });
-      startBtn.style.marginTop = '12px';
-      startBtn.addEventListener('click', function () { self.startFlashcardSession(); });
-      var handsFreeBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎧 Hands-free audio review', attributes: { type: 'button' } });
-      handsFreeBtn.style.marginTop = '6px';
-      handsFreeBtn.addEventListener('click', function () { self.startHandsFree(); });
-      var backBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🏠 Back to Home' });
-      backBtn.style.marginTop = '6px';
-      backBtn.addEventListener('click', function () { self.show('screenHome'); });
-      var wrap = createElement('div');
-      wrap.style.cssText = 'text-align:center;padding:30px';
-      wrap.appendChild(this._flashcardText('p', 'No active flashcard session.', 'color:var(--text-muted)'));
-      wrap.appendChild(startBtn);
-      wrap.appendChild(handsFreeBtn);
-      wrap.appendChild(backBtn);
-      container.appendChild(wrap);
+      this._renderStudyPicker(container);
       return;
     }
 

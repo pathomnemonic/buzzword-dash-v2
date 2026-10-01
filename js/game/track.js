@@ -32,6 +32,7 @@ import {
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
 import { upgradeMaterials, mergeStatic, softDotTexture } from './materials.js';
 import { isLowQuality } from './quality.js';
+import { HALL_PERIOD, isHospitalHall } from './hospitalhall.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -237,7 +238,7 @@ export function buildTrack(trackRoot, skin, options) {
   convertToPeriodic(trackRefs.wallMarkers, WALL_MARKER_SPACING * 12, trackRoot, trackRefs);
 
   // Skybox elements (skip if reduced motion)
-  if (!reducedMotion) {
+  if (!reducedMotion && !isHospitalHall(skin)) {
     buildSkyboxElements(trackRoot, skin, trackRefs, qc);
   }
 
@@ -331,10 +332,12 @@ export function updateScrollers(scrollers, move) {
 }
 
 function buildWalls(trackRoot, skin, qc, trackRefs) {
-  var spacing = qc.wallSegmentSpacing || WALL_SEGMENT_SPACING;
+  var hall = isHospitalHall(skin);
+  var spacing = hall ? HALL_PERIOD : (qc.wallSegmentSpacing || WALL_SEGMENT_SPACING);
+  var step = hall ? 4 : spacing; // the corridor is four bays per repeat, so it scrolls seamlessly
   var group = makeScroller(trackRoot, trackRefs, spacing);
   for (var side = -1; side <= 1; side += 2) {
-    for (var z = -160 - spacing; z < 20; z += spacing) {
+    for (var z = -160 - spacing; z < 20; z += step) {
       var segment = buildWallSegment(skin, side, z, 3.5);
       group.add(segment);
     }
@@ -353,7 +356,7 @@ function buildArches(trackRoot, skin, qc, trackRefs) {
     var arch = buildArch(skin, z);
     group.add(arch);
 
-    for (var legSide = -1; legSide <= 1; legSide += 2) {
+    for (var legSide = -1; legSide <= 1 && !isHospitalHall(skin); legSide += 2) {
       var leg = new THREE.Mesh(
         new THREE.CylinderGeometry(0.06, 0.06, 5, 6),
         new THREE.MeshBasicMaterial({ color: skin.colors.archMain })

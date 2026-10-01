@@ -2269,7 +2269,8 @@ card = pickResult ? pickResult.card : null;
     // Environment props
     this.envPropSpawnTimer -= dt;
     if (this.envPropSpawnTimer <= 0) {
-      spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
+      // (nothing floats inside the hospital corridor: it has a ceiling)
+      if (!(this.currentSkin && this.currentSkin.wallType === 'hospital_hall')) spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
       this.envPropSpawnTimer = 1.5 + Math.random() * 2;
     }
     for (var ei = this.envPropMeshes.length - 1; ei >= 0; ei--) {

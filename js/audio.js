@@ -32,7 +32,7 @@ import { isNative, nativeHaptic } from './native.js';
 var MUSIC_TRIM = 0.3;
 var SFX_BOOST = 5.0;
 /** Effects that were naturally very quiet get a little extra. */
-var SFX_EXTRA = { coin: 2.2, jump: 2.0, land: 2.0, slide: 3.2, ui_tap: 2.6, ui_nav: 2.2, wrong: 1.3, lane: 2.4 };
+var SFX_EXTRA = { coin: 2.2, jump: 2.0, land: 2.0, slide: 3.2, ui_tap: 2.6, ui_nav: 2.2, wrong: 1.3, lane: 1.2 };
 const SCALES = {
   cMinorPentatonic: [0, 3, 5, 7, 10],
   cMajorPentatonic: [0, 2, 4, 7, 9],
@@ -241,6 +241,9 @@ function getNoiseBuffer(ctx, duration) {
 
 
 // ===== MUSIC GENERATOR CLASS (look-ahead scheduler) =====
+
+// The corridor map plays the ER track
+SKIN_MUSIC["Hospital Hallway"] = SKIN_MUSIC["Neon ER"];
 
 class MusicGenerator {
   constructor(ctx, outputNode, skinName, settingsGetter) {
@@ -780,8 +783,7 @@ class AudioEngine {
         this._vibrate(8);
         break;
       case 'lane':
-        this._noise(0.08, sfxVol * 0.05, 1800);
-        this._sweep('sine', 560, 900, 0.07, sfxVol * 0.04, 3000);
+        this._sweep('sine', 330, 270, 0.07, sfxVol * 0.05, 1400);
         break;
       case 'pause':
         this._sweep('triangle', 700, 380, 0.14, sfxVol * 0.09, 2500);
@@ -1449,7 +1451,7 @@ class AudioEngine {
     var self = this;
     var vol = this._settings.masterVolume * this._settings.ambientVolume * 0.02;
 
-    var hospitalSkins = ['Neon ER', 'Surgical Theater', 'Cardiac Pulse'];
+    var hospitalSkins = ['Neon ER', 'Hospital Hallway', 'Surgical Theater', 'Cardiac Pulse'];
     var natureSkins = ['Cellular Matrix', 'DNA Helix Tunnel'];
 
     function scheduleBeep() {

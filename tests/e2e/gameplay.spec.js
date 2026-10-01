@@ -80,7 +80,7 @@ test.describe('Settings and screens', () => {
   test('a flashcard session can be started and answered', async ({ page }) => {
     await openApp(page);
     await page.locator('#flashcardBtn').click();
-    await page.getByRole('button', { name: /Start Flashcard Session/ }).click();
+    await page.getByRole('button', { name: /Flip cards/ }).click();
     await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);
     await page.getByRole('button', { name: 'Show Answer' }).click();
     await page.getByRole('button', { name: /Got it/ }).click();
@@ -108,7 +108,7 @@ test.describe('Without WebGL', () => {
     await page.locator('.btn-play').click();
     await expect(page.locator('body')).toContainText(/needs WebGL/);
     await page.locator('#flashcardBtn').click();
-    await page.getByRole('button', { name: /Start Flashcard Session/ }).click();
+    await page.getByRole('button', { name: /Flip cards/ }).click();
     await expect(page.locator('#flashcardContent')).toContainText(/Card 1 of/);
   });
 });

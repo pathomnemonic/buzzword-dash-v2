@@ -52,7 +52,7 @@ var DEFAULTS = {
     hapticsEnabled: true,
     dailyGoal: 20,
     colorblindMode: false,
-    glowEffects: true,
+    glowEffects: false,
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
@@ -64,6 +64,7 @@ var DEFAULTS = {
     uiTheme: 'auto',
     lockerSeen: [],
     fps30Seen: false,
+    glowDefaultSeen: false,
     perfHint: '',
     disabledPowerups: [],
     hazardsOff: false,
@@ -585,6 +586,12 @@ class Storage {
     if (!d.settings.fps30Seen) {
       d.settings.fps30Seen = true;
       d.settings.batterySaver = true;
+    }
+
+    // Glow is now off by default (it is the costliest effect); switch everyone once
+    if (!d.settings.glowDefaultSeen) {
+      d.settings.glowDefaultSeen = true;
+      d.settings.glowEffects = false;
     }
 
     // The starting monster is now an animated 3D one (the Ghost). Players still on the

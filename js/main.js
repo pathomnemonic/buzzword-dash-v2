@@ -40,6 +40,7 @@ import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
+import { installChunkRecovery } from './chunkrecovery.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
@@ -623,6 +624,9 @@ function startNewChallenge() {
   import('./challenge.js').then(function (mod) {
     activeChallenge = { seed: mod.newChallengeSeed(), n: mod.CHALLENGE_SIZE, from: null, score: null };
     startMode('challenge');
+  }).catch(function (err) {
+    reportError(err, { system: 'challenge', operation: 'start', recoverable: true });
+    ui._showToast('Could not start the challenge. Check your connection and try again.');
   });
 }
 
@@ -1039,6 +1043,7 @@ function init() {
     webglOk = false;
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
+  installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;
 

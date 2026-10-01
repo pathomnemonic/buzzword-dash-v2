@@ -162,29 +162,18 @@ export function buildHanging(key, hang) {
 var SIDE_PERIOD = 28;
 
 /**
- * What lines each map. Giant medical objects rise over the walls on both
- * sides, chosen to fit the map's subject. Each entry: [model key, height].
+ * Only the skeleton maps have giant models drifting beside the track (the skull and bones
+ * look right there); every other map uses the classic themed floating props instead. Each entry: [model key, height].
  */
 export var SIDE_THEMES = {
-  'Neural Highway': [['monitor', 6], ['spotlight', 6.5]],
-  'Vascular Rush': [['heart', 5.5], ['potion', 6.5]],
   'Skeletal Corridor': [['bone', 7], ['skull', 5.5]],
-  'Cellular Matrix': [['potion', 7], ['telescope', 6.5]],
-  'Neon ER': [['streetlight', 7.5], ['sign', 5.5], ['firstaid', 4.8]],
-  'DNA Helix Tunnel': [['telescope', 7], ['potion', 6.5]],
-  'Prescription Sunset': [['potion', 7], ['firstaid', 5]],
-  'Cardiac Pulse': [['heart', 6], ['monitor', 5.5]],
-  'Surgical Theater': [['spotlight', 7], ['monitor', 5.5], ['firstaid', 4.8]],
-  'Candy Lab': [['potion', 6.5], ['heart', 5]],
-  'X-Ray Vision': [['skull', 6], ['bone', 7]],
-  'Defibrillator Shock': [['monitor', 6], ['heart', 5.5], ['spotlight', 6.5]]
+  'X-Ray Vision': [['skull', 6], ['bone', 7]]
 };
 
-var DEFAULT_SIDE_THEME = [['sign', 5.5], ['firstaid', 4.8]];
 
 /** The scenery models a map uses (for tests and preloading decisions). */
 export function getSideTheme(skinName) {
-  return SIDE_THEMES[skinName] || DEFAULT_SIDE_THEME;
+  return SIDE_THEMES[skinName] || null;
 }
 
 /**
@@ -196,6 +185,7 @@ export function getSideTheme(skinName) {
 export function buildSideScenery(skinName) {
   if (!useSceneryModels()) return null;
   var theme = getSideTheme(skinName);
+  if (!theme) return null; // only the bone maps get giant models; the rest keep the classic floating props
   if (!theme.every(function (t) { return isSceneryReady(t[0]); })) return null;
   var group = new THREE.Group();
   group.userData.isSideScenery = true;

@@ -187,6 +187,27 @@ export var SKINS = [
     }
   },
   {
+    id: 'skin_hospital_hallway',
+    name: 'Hospital Hallway',
+    desc: 'Sprint down the ward corridor',
+    wallType: 'hospital_hall',
+    archType: 'hall_signs',
+    groundType: 'hall_floor',
+    particleType: 'dust_motes',
+    colors: {
+      bg: 0xbcd6dc, sky: 0xcfe4e8,
+      ground: 0x9fb4bb, groundStripe: 0x6f858c, groundAccent: 0x8aa0a5,
+      wallA: 0xe9f1f0, wallB: 0x2a8f9a, wallGlow: 0x7fd8e6,
+      archMain: 0xdde7ea, archGlow: 0xffffff,
+      lane: 0x5aa9b8,
+      gateBase: 0x1d6f7a, gateGlow: 0x5ff0ff,
+      particle: 0xffffff, particleB: 0xcfe9ef,
+      coin: 0xffcc22,
+      ambient: 0xcfe6ea, hemiTop: 0xe8f6f8, hemiBot: 0x6f858c,
+      dirLight: 0xffffff
+    }
+  },
+  {
     id: 'skin_surgical_theater',
     name: 'Surgical Theater',
     desc: 'Under the bright OR lights',

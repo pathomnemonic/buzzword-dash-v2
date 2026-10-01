@@ -16,6 +16,7 @@ export var HAZARD_BY_SKIN = {
   'Skeletal Corridor': 'quake',
   'Cellular Matrix': 'fog',
   'Neon ER': 'surge',
+  'Hospital Hallway': 'surge',
   'DNA Helix Tunnel': 'fog',
   'Prescription Sunset': 'flare',
   'Cardiac Pulse': 'pulse',

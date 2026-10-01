@@ -939,6 +939,8 @@ body.in-game #bgDecor { display: none; }
 }
 #pauseOverlay.active, #continueOverlay.active, #onboardingOverlay.active, .tutorial-overlay.active,
 #multiplayerOverlay.active, #quickReviewOverlay.active {
+  flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
 }
 #pauseOverlay > :first-child, #continueOverlay > :first-child, #onboardingOverlay > :first-child,
@@ -967,3 +969,16 @@ body.in-game #bgDecor { display: none; }
 .plan-step { margin: 8px 0; font-size: 12px; font-weight: 700; }
 .plan-step-buttons { display: flex; gap: 6px; margin-top: 4px; }
 .plan-step-buttons .btn { flex: 1; }
+
+/* study picker (flashcards and hands-free) */
+.study-picker { text-align: left; padding: 4px 2px 12px; }
+.pick-list { display: flex; flex-direction: column; gap: 6px; }
+.pick-source { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 14px;
+  border: 2px solid var(--ink, #1b1030); background: var(--bg-card-solid); color: inherit; font: inherit; cursor: pointer; }
+.pick-source strong { font-size: 14px; }
+.pick-source span { font-size: 11px; color: var(--text-secondary); }
+.pick-source.on { background: var(--accent-green, #22c55e); color: #08210f; box-shadow: 0 3px 0 var(--ink, #1b1030); }
+.pick-source.on span { color: #0d3a1b; }
+.pick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pick-chip { padding: 6px 12px; border-radius: 999px; border: 2px solid var(--ink, #1b1030); background: var(--bg-card-solid); color: inherit; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.pick-chip.on { background: var(--accent-gold, #fbbf24); color: #2a1c00; }

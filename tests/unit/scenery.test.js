@@ -86,12 +86,10 @@ describe('3D scenery models', () => {
     expect(getObstacleVariant('xray_arm').id).toBe('hanging_spotlight');
   });
 
-  it('themes the side scenery to each map', () => {
-    const names = ['Neural Highway', 'Vascular Rush', 'Skeletal Corridor', 'Cellular Matrix', 'Neon ER', 'DNA Helix Tunnel',
-      'Prescription Sunset', 'Cardiac Pulse', 'Surgical Theater', 'Candy Lab', 'X-Ray Vision', 'Defibrillator Shock'];
-    names.forEach((n) => expect(SIDE_THEMES[n], n).toBeTruthy());
+  it('only the skeleton maps get giant side models; the rest keep the classic floating props', () => {
+    expect(Object.keys(SIDE_THEMES).sort()).toEqual(['Skeletal Corridor', 'X-Ray Vision']);
     expect(getSideTheme('Skeletal Corridor').map((t) => t[0])).toEqual(expect.arrayContaining(['bone', 'skull']));
-    expect(getSideTheme('Cardiac Pulse').map((t) => t[0])).toContain('heart');
+    expect(getSideTheme('Cardiac Pulse')).toBeNull();
     // No random trees anywhere
     Object.values(SIDE_THEMES).forEach((theme) => theme.forEach((t) => expect(t[0]).not.toBe('tree')));
     // Every model a theme names exists
