@@ -22,7 +22,7 @@
 
 import * as THREE from 'three';
 import { roundedBox } from './materials.js';
-import { buildHallWallBay, buildHallSign, buildHallFloor } from './hospitalhall.js';
+import { buildHallWallBay, buildHallSign, buildHallFloor, isHospitalHall } from './hospitalhall.js';
 
 // ===== WALL SEGMENT BUILDERS =====
 
@@ -45,6 +45,9 @@ export function buildWallSegment(skin, side, z, height) {
   switch (skin.wallType) {
 
     case "hospital_hall":
+    case "room_or":
+    case "room_lab":
+    case "room_bay":
       return buildHallWallBay(skin, side, z);
 
     case "organic_tubes":
@@ -386,6 +389,9 @@ export function buildArch(skin, z) {
   switch (skin.archType) {
 
     case "hall_signs":
+    case "or_lamps":
+    case "lab_pipes":
+    case "bay_lights":
       return buildHallSign(skin, z);
 
     case "synapse_arcs":
@@ -823,7 +829,10 @@ export function buildGround(skin) {
       break;
 
     case "hall_floor":
-      g.add(buildHallFloor());
+    case "or_floor":
+    case "lab_floor":
+    case "bay_floor":
+      g.add(buildHallFloor(skin));
       break;
 
     case "linoleum":
@@ -1208,7 +1217,7 @@ export function buildWallGlowStrips(skin, side) {
   var x = side * 5.5;
 
   // The hospital corridor has its own trim
-  if (skin.wallType === 'hospital_hall') return g;
+  if (isHospitalHall(skin)) return g;
 
   // Top glow strip
   var topGlow = new THREE.Mesh(

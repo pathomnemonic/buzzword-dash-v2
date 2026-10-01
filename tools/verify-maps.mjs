@@ -24,7 +24,7 @@ async function open(viewport, settings) {
   await page.waitForTimeout(1000);
   return { ctx, page };
 }
-const maps = ['Neural Highway', 'Vascular Rush', 'Skeletal Corridor', 'Cellular Matrix', 'Neon ER', 'Hospital Hallway', 'DNA Helix Tunnel', 'Prescription Sunset', 'Cardiac Pulse', 'Surgical Theater', 'Candy Lab', 'X-Ray Vision', 'Defibrillator Shock'];
+const maps = ["Operating Room", "Research Lab", "Ambulance Bay", 'Neural Highway', 'Vascular Rush', 'Skeletal Corridor', 'Cellular Matrix', 'Neon ER', 'Hospital Hallway', 'DNA Helix Tunnel', 'Prescription Sunset', 'Cardiac Pulse', 'Surgical Theater', 'Candy Lab', 'X-Ray Vision', 'Defibrillator Shock'];
 console.log('\n== every map');
 for (const map of maps) {
   for (const glow of [false, true]) {

@@ -208,6 +208,69 @@ export var SKINS = [
     }
   },
   {
+    id: 'skin_operating_room',
+    name: 'Operating Room',
+    desc: 'Scrubbed in and running',
+    wallType: 'room_or',
+    archType: 'or_lamps',
+    groundType: 'or_floor',
+    particleType: 'dust_motes',
+    colors: {
+      bg: 0xa9d6cc, sky: 0xc4e8e0,
+      ground: 0x7fb5aa, groundStripe: 0x4f8f84, groundAccent: 0x6fa59a,
+      wallA: 0xcdeee6, wallB: 0x2fa48f, wallGlow: 0x7fe8d4,
+      archMain: 0xdcefea, archGlow: 0xffffff,
+      lane: 0x4fb8a5,
+      gateBase: 0x136b5c, gateGlow: 0x5ffff0,
+      particle: 0xffffff, particleB: 0xcfeee8,
+      coin: 0xffcc22,
+      ambient: 0xd0f0ea, hemiTop: 0xeafaf6, hemiBot: 0x6f9f96,
+      dirLight: 0xffffff
+    }
+  },
+  {
+    id: 'skin_research_lab',
+    name: 'Research Lab',
+    desc: 'Between the benches',
+    wallType: 'room_lab',
+    archType: 'lab_pipes',
+    groundType: 'lab_floor',
+    particleType: 'dust_motes',
+    colors: {
+      bg: 0xb9c6d6, sky: 0xd0dae6,
+      ground: 0x5d6b7c, groundStripe: 0x3a4658, groundAccent: 0x4a586b,
+      wallA: 0xe8eef4, wallB: 0x4a6fa5, wallGlow: 0x8fb8ff,
+      archMain: 0xdfe6ee, archGlow: 0xffffff,
+      lane: 0x6f8fc0,
+      gateBase: 0x24427a, gateGlow: 0x7fb0ff,
+      particle: 0xffffff, particleB: 0xd6e4f6,
+      coin: 0xffcc22,
+      ambient: 0xd6e2f2, hemiTop: 0xeef4fb, hemiBot: 0x6b7a90,
+      dirLight: 0xffffff
+    }
+  },
+  {
+    id: 'skin_ambulance_bay',
+    name: 'Ambulance Bay',
+    desc: 'Sirens and sliding doors',
+    wallType: 'room_bay',
+    archType: 'bay_lights',
+    groundType: 'bay_floor',
+    particleType: 'dust_motes',
+    colors: {
+      bg: 0x3b4a60, sky: 0x2a3548,
+      ground: 0x3c4450, groundStripe: 0x59636b, groundAccent: 0x4a525c,
+      wallA: 0xb8bfc7, wallB: 0xc0392b, wallGlow: 0xff7a6a,
+      archMain: 0x59636b, archGlow: 0xfff6c8,
+      lane: 0x8a96a3,
+      gateBase: 0x7a1f18, gateGlow: 0xff6a5a,
+      particle: 0xdde6f0, particleB: 0xaebccc,
+      coin: 0xffcc22,
+      ambient: 0x9fb0c6, hemiTop: 0xc6d6ea, hemiBot: 0x2a3340,
+      dirLight: 0xfff0d0
+    }
+  },
+  {
     id: 'skin_surgical_theater',
     name: 'Surgical Theater',
     desc: 'Under the bright OR lights',

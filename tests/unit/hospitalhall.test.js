@@ -48,3 +48,16 @@ describe('stale app recovery', () => {
     expect(reloads).toBe(1);
   });
 });
+
+describe('the other walled-in maps', () => {
+  ['Operating Room', 'Research Lab', 'Ambulance Bay'].forEach((name) => {
+    it(name + ' builds walls, fixtures and a floor', () => {
+      const skin = SKINS.find((s) => s.name === name);
+      expect(skin).toBeTruthy();
+      expect(isHospitalHall(skin)).toBe(true);
+      for (let k = 0; k < 4; k++) expect(buildWallSegment(skin, 1, -k * 4, 3.5).children.length).toBeGreaterThan(6);
+      expect(buildArch(skin, -44).children.length).toBeGreaterThan(2);
+      expect(buildGround(skin).children.length).toBeGreaterThan(2);
+    });
+  });
+});

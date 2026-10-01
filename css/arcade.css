@@ -985,3 +985,15 @@ body.in-game #bgDecor { display: none; }
 
 /* in a column overlay, panels keep their height (the overlay scrolls instead of squashing them) */
 #pauseOverlay > *, #continueOverlay > *, #onboardingOverlay > *, .tutorial-overlay > *, #multiplayerOverlay > *, #quickReviewOverlay > * { flex-shrink: 0; }
+
+/* ---------- big screens: wider menus, and the in-game question stays in the middle ---------- */
+@media (min-width: 1000px) and (min-height: 600px) {
+  .screen-scroll { max-width: 840px; }
+  #screenHome .screen-scroll { max-width: 700px; }
+  .bottom-nav { left: 50%; right: auto; width: min(840px, 100%); transform: translateX(-50%); border-radius: 18px 18px 0 0; }
+  #hud .hud-row, #opponentHud, .powerup-row { max-width: 980px; margin-left: auto; margin-right: auto; }
+  #buzzBox, #answerRow { max-width: 980px; }
+  #buzzText { font-size: 22px; }
+  .answer-choice { font-size: 16px; padding: 12px 8px; }
+  .answer-choice .lane-label { font-size: 11px; }
+}

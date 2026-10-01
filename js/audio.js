@@ -244,6 +244,9 @@ function getNoiseBuffer(ctx, duration) {
 
 // The corridor map plays the ER track
 SKIN_MUSIC["Hospital Hallway"] = SKIN_MUSIC["Neon ER"];
+SKIN_MUSIC["Operating Room"] = SKIN_MUSIC["Surgical Theater"];
+SKIN_MUSIC["Research Lab"] = SKIN_MUSIC["Cellular Matrix"];
+SKIN_MUSIC["Ambulance Bay"] = SKIN_MUSIC["Defibrillator Shock"];
 
 class MusicGenerator {
   constructor(ctx, outputNode, skinName, settingsGetter) {
@@ -1451,7 +1454,7 @@ class AudioEngine {
     var self = this;
     var vol = this._settings.masterVolume * this._settings.ambientVolume * 0.02;
 
-    var hospitalSkins = ['Neon ER', 'Hospital Hallway', 'Surgical Theater', 'Cardiac Pulse'];
+    var hospitalSkins = ['Neon ER', 'Hospital Hallway', 'Operating Room', 'Ambulance Bay', 'Surgical Theater', 'Cardiac Pulse'];
     var natureSkins = ['Cellular Matrix', 'DNA Helix Tunnel'];
 
     function scheduleBeep() {
