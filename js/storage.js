@@ -62,13 +62,15 @@ var DEFAULTS = {
     reducedMotion: false,
     quality: 'auto',
     uiTheme: 'auto',
+    lockerSeen: [],
+    fps30Seen: false,
     perfHint: '',
     disabledPowerups: [],
     hazardsOff: false,
     monsterOff: false,
     preferredMap: '',
     cameraView: 'default',
-    batterySaver: false,
+    batterySaver: true,        // 30 fps: the game does not need more, and it runs cooler and smoother
     perfStrikes: 0,
     nightMode: false,
 
@@ -99,9 +101,9 @@ var DEFAULTS = {
     xp: 0,
 
     achievements: [],
-    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'],
+    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'],
     equipped: {
-      monster: 'monster_classic',
+      monster: 'monster_m_ghost',
       skin: 'avatar_intern',
       hat: 'hat_none',
       trail: 'trail_none',
@@ -298,7 +300,7 @@ function migrateFromV1(old) {
   if (Array.isArray(old.ownedItems)) {
     data.progression.ownedItems = old.ownedItems.slice();
     // Ensure defaults are present
-    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
+    var requiredItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'];
     for (var ri = 0; ri < requiredItems.length; ri++) {
       if (data.progression.ownedItems.indexOf(requiredItems[ri]) < 0) {
         data.progression.ownedItems.push(requiredItems[ri]);
@@ -554,7 +556,7 @@ class Storage {
     if (!d) return;
 
     // Ensure required owned items
-    var requiredItems = ['avatar_intern', 'avatar_classic', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic'];
+    var requiredItems = ['avatar_intern', 'avatar_classic', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'];
     for (var i = 0; i < requiredItems.length; i++) {
       if (d.progression.ownedItems.indexOf(requiredItems[i]) < 0) {
         d.progression.ownedItems.push(requiredItems[i]);
@@ -568,6 +570,21 @@ class Storage {
       var eq = d.progression.equipped;
       if (eq.skin === 'avatar_intern' && ((eq.gear && eq.gear !== 'gear_none') || (eq.clothing && eq.clothing !== 'cloth_none'))) {
         eq.skin = 'avatar_classic';
+      }
+    }
+
+    // 30 fps became the default; switch everyone over once (it can still be turned off)
+    if (!d.settings.fps30Seen) {
+      d.settings.fps30Seen = true;
+      d.settings.batterySaver = true;
+    }
+
+    // The starting monster is now an animated 3D one (the Ghost). Players still on the
+    // old round monster are moved over once; the old one stays in the Locker.
+    if (!d.progression.monsterDefaultSeen) {
+      d.progression.monsterDefaultSeen = true;
+      if (!d.progression.equipped.monster || d.progression.equipped.monster === 'monster_classic') {
+        d.progression.equipped.monster = 'monster_m_ghost';
       }
     }
 

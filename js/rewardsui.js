@@ -4,6 +4,7 @@
  */
 
 import { storage } from './storage.js';
+import { audio } from './audio.js';
 import { levelFromXp, xpForRun, nearMissLine, dailyTrack } from './progress.js';
 
 function el(tag, className, text) {
@@ -77,7 +78,7 @@ export function buildRunRewardCard(info, score, best, newBest) {
       fill.style.transition = '';
       fill.style.width = Math.round(to.fraction * 100) + '%';
     }, 1100);
-    setTimeout(celebrate, 700);
+    setTimeout(function () { audio.play('level_up'); celebrate(); }, 700);
     card.classList.add('xp-levelup');
   }
 
@@ -129,6 +130,7 @@ export function showDailyRewardModal(opts) {
   button.addEventListener('click', function () {
     if (reward.chest && !opened) {
       opened = true;
+      audio.play('chest_open');
       card.classList.add('dr-opening');
       button.disabled = true;
       setTimeout(function () {
@@ -141,6 +143,7 @@ export function showDailyRewardModal(opts) {
       }, 900);
       return;
     }
+    audio.play('daily_claim');
     close();
   });
   card.appendChild(message);

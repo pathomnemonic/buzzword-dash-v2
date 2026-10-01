@@ -301,6 +301,12 @@ export class HomeCharacter {
             this.camera.clearViewOffset();
             return;
         }
+        // Wide screens (laptops, tablets): the menu is a centered column, so the character
+        // stands in the free space on its left instead of squeezing in above PLAY.
+        if (w >= 900) {
+            this.camera.setViewOffset(w, h, Math.round((0.5 - 0.2) * w), Math.round((0.5 - 0.52) * h), w, h);
+            return;
+        }
         var rect = hero.getBoundingClientRect();
         var wanted = (rect.top + rect.height / 2) / h;       // where the character should appear (0..1 down the screen)
         var shift = Math.round((0.5 - wanted) * h);          // content moves up by this many pixels

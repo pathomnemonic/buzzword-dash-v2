@@ -7,3 +7,6 @@ e2e.log
 .env
 .env.local
 *.log
+
+# scratch scripts for local experiments
+tools/_*.mjs

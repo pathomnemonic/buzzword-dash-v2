@@ -27,7 +27,6 @@ import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
-import { HomeCharacter } from './game/homecharacter.js';
 import { reportError } from './errors.js';
 import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { getControlText } from './controlhints.js';
@@ -36,6 +35,8 @@ import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
+import { SHOP_ITEMS } from './game/shopdata.js';
+import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
@@ -191,11 +192,6 @@ function showWebGLNotice() {
   section.appendChild(note);
 }
 
-function initHomeCharacter() {
-  homeCharacter = new HomeCharacter();
-  homeCharacter.init(game.renderer);
-  ui.homeCharacter = homeCharacter;
-}
 
 // =========================================================================
 //  MULTIPLAYER HELPERS
@@ -721,29 +717,25 @@ function attachRewardCard() {
   updateLockerDot();
 }
 
-/** A red dot on the Locker tab when the wallet can afford something new. */
+/**
+ * A red dot on the Locker tab when something has become affordable since the last visit.
+ * It goes away once the Locker has been opened and left (see ui.show).
+ */
 function updateLockerDot() {
-  import('./game/modelcatalog.js').then(function (m) {
-    var owned = storage.get('ownedItems') || [];
-    var coins = storage.get('coins') || 0;
-    var cheapest = Infinity;
-    m.CHARACTER_MODELS.concat(m.MONSTER_MODELS).forEach(function (item) {
-      if (owned.indexOf(item.id) < 0 && item.price > 0 && item.price < cheapest) cheapest = item.price;
-    });
-    var nav = document.querySelector('.nav-item[data-screen="screenShop"]');
-    if (!nav) return;
-    var dot = nav.querySelector('.nav-dot');
-    if (cheapest <= coins) {
-      if (!dot) {
-        dot = document.createElement('span');
-        dot.className = 'nav-dot';
-        dot.setAttribute('aria-label', 'You can afford something new');
-        nav.appendChild(dot);
-      }
-    } else if (dot) {
-      dot.remove();
+  var fresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
+  var nav = document.querySelector('.nav-item[data-screen="screenShop"]');
+  if (!nav) return;
+  var dot = nav.querySelector('.nav-dot');
+  if (fresh.length) {
+    if (!dot) {
+      dot = document.createElement('span');
+      dot.className = 'nav-dot';
+      dot.setAttribute('aria-label', 'You can afford something new in the Locker');
+      nav.appendChild(dot);
     }
-  }).catch(function () { /* the dot is a nicety */ });
+  } else if (dot) {
+    dot.remove();
+  }
 }
 
 function attachShareImage() {
@@ -1025,14 +1017,13 @@ function hideBootSplash() {
   setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 400);
 }
 
-/** Apply the current color theme, and the season emoji next to the tagline. */
+/** Apply the current color theme (a whole palette, plus falling decor). */
 function refreshTheme() {
   var theme = pickTheme(new Date(), storage.get('uiTheme') || 'auto');
   applyTheme(document.documentElement, theme);
-  var tagline = document.querySelector('.home-tagline');
-  if (tagline) tagline.textContent = 'Run the list.' + (theme.emoji ? ' ' + theme.emoji : '');
   var meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme.vars['--bg-fallback'] || '#0b1020');
+  document.documentElement.setAttribute('data-theme-name', theme.name);
 }
 
 function init() {
@@ -1047,6 +1038,7 @@ function init() {
   if (/[?&]debug=1(&|$)/.test(window.location.search)) {
     window.__game = game;
     window.__useRankedTestClient = useRankedTestClient;
+    window.__audio = audio;
   }
   storage.load();
   storage.checkDailyReset();
@@ -1065,9 +1057,8 @@ function init() {
   }
   ui.init();
 
-  // Home character
-  if (webglOk) initHomeCharacter();
-  else showWebGLNotice();
+  // Home is a plain menu (no 3D scene), so there is only a notice to show when WebGL is missing
+  if (!webglOk) showWebGLNotice();
 
   // Collapsibles
   setupCollapsibles();
@@ -1178,6 +1169,7 @@ function init() {
   };
 
   game.onStreakMilestone = function (streak, multiplier) {
+    audio.play('streak');
     ui.showStreakMilestone(streak, multiplier);
   };
 
@@ -1234,8 +1226,8 @@ function init() {
   // Exam monster: warn when it closes in, and play the "consumed" sting when
   // it catches the player (the engine ends the run with the faceplant).
   game.onMonsterWarning = function () {
+    // A sound is enough: no on-screen text every time the monster gets close
     audio.play('monster_close');
-    showMultiplayerMessage('The exam monster is closing in!', 'var(--accent-red)');
   };
   game.onHazard = function (info) {
     showMultiplayerMessage('\u26A0 ' + info.label, 'var(--accent-gold)');
@@ -1505,15 +1497,25 @@ function init() {
   var lastFrameMs = 0;
   var lastMusicMs = 0;
   var GAME_SCENE_STATES = ['preparing', 'countdown', 'playing', 'paused', 'dying', 'continue_prompt', 'finishing'];
-  // Battery saver caps a run at 30 fps; the home screen (an idle character) always runs at
-  // 30 fps, which saves power and heat on phones without any visible difference.
+  // A run is capped at 30 fps by default (Settings can switch it to 60): a runner this size
+  // does not need more, and half the frames means a cooler, steadier game.
   var batterySaver = !!storage.get('batterySaver');
-  setInterval(function () { batterySaver = !!storage.get('batterySaver'); }, 1000);
-  var HOME_FRAME_MS = 1000 / 30 - 2;
+  game.targetFrameMs = batterySaver ? 1000 / 30 : 1000 / 60;
+  setInterval(function () {
+    batterySaver = !!storage.get('batterySaver');
+    game.targetFrameMs = batterySaver ? 1000 / 30 : 1000 / 60;
+  }, 1000);
+  var canvasShown = null;
   var SAVER_FRAME_MS = 1000 / 30 - 2;
   if (webglOk && game.renderer) game.renderer.setAnimationLoop(function (nowMs) {
     var inGame = GAME_SCENE_STATES.indexOf(game._state) >= 0;
-    var capMs = inGame ? (batterySaver ? SAVER_FRAME_MS : 0) : HOME_FRAME_MS;
+    // The 3D canvas is only used during a run; every other screen is plain HTML
+    if (inGame !== canvasShown) {
+      canvasShown = inGame;
+      document.body.classList.toggle('in-game', inGame);
+    }
+    if (!inGame) return;
+    var capMs = batterySaver ? SAVER_FRAME_MS : 0;
     if (capMs && lastFrameMs && nowMs - lastFrameMs < capMs) return;
     var dt = lastFrameMs ? Math.min((nowMs - lastFrameMs) / 1000, 0.1) : 0.016;
     lastFrameMs = nowMs;
@@ -1523,13 +1525,8 @@ function init() {
       var danger = 1 - Math.min(1, Math.max(0, (game.monsterZ - 3) / 13));
       audio.setMusicIntensity(Math.min(1, 0.3 + game.streak / 14), danger);
     }
-    if (GAME_SCENE_STATES.indexOf(game._state) >= 0) {
-      game.update(dt, nowMs);
-      game.render();
-    } else if (homeCharacter) {
-      homeCharacter.update(dt);
-      homeCharacter.render();
-    }
+    game.update(dt, nowMs);
+    game.render();
   });
 
   // A glTF avatar finished downloading: swap the stand-in for the real model.

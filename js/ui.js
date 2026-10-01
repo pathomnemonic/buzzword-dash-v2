@@ -50,6 +50,8 @@ import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { streakCallout, runVerdict } from './flavor.js';
 import { dailyReward } from './progress.js';
+import { THEME_CHOICES } from './theme.js';
+import { newlyAffordable, markSeen } from './lockerdots.js';
 import { showDailyRewardModal } from './rewardsui.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
 
@@ -386,6 +388,13 @@ class UI {
   }
 
   show(screenId) {
+    // Leaving the Locker: the items that wore a red dot have now been seen
+    var shopEl = document.getElementById('screenShop');
+    if (shopEl && shopEl.classList.contains('active') && screenId !== 'screenShop' && this._lockerFresh && this._lockerFresh.length) {
+      storage.set('lockerSeen', markSeen(storage.get('lockerSeen') || [], this._lockerFresh));
+      this._lockerFresh = [];
+      document.dispatchEvent(new CustomEvent('dx:coins-changed'));
+    }
     document.querySelectorAll('.screen').forEach(function (s) {
       s.classList.remove('active');
     });
@@ -397,7 +406,12 @@ class UI {
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
     if (screenId === 'screenStats') this.renderStats();
-    if (screenId === 'screenShop') { this.renderShop(); this.startPreview(); }
+    if (screenId === 'screenShop') {
+      // What newly became affordable since the last visit wears a red dot until the player leaves
+      this._lockerFresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
+      this.renderShop();
+      this.startPreview();
+    }
     if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenSettings') this.renderSettings();
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }
@@ -416,7 +430,11 @@ class UI {
     }
 
     document.querySelectorAll('.nav-item').forEach(function (n) {
-      n.classList.toggle('active', n.dataset.screen === screenId);
+      var isCurrent = n.dataset.screen === screenId;
+      n.classList.toggle('active', isCurrent);
+      // aria-current drives the highlight too, so it must follow the tab
+      if (isCurrent) n.setAttribute('aria-current', 'true');
+      else n.removeAttribute('aria-current');
     });
   }
 
@@ -551,11 +569,13 @@ class UI {
         self.titleTapCount++;
         clearTimeout(self.titleTapTimer);
         self.titleTapTimer = setTimeout(function () { self.titleTapCount = 0; }, 2000);
-        if (self.titleTapCount >= 10) {
+        if (self.titleTapCount >= 20) {
           self.titleTapCount = 0;
-          storage.addCoins(500);
-          self._showToast('Secret found! +500 coins!');
+          storage.addCoins(100000);
+          audio.play('secret');
+          self._showToast('Secret found! +100,000 coins!');
           self.renderHome();
+          document.dispatchEvent(new CustomEvent('dx:coins-changed'));
         }
       });
     }
@@ -1700,6 +1720,10 @@ class UI {
         nameWrap.style.flex = '1';
         nameWrap.appendChild(createElement('div', { text: item.name }));
         nameWrap.firstChild.style.cssText = 'font-size:13px;font-weight:700';
+        if ((self._lockerFresh || []).indexOf(item.id) >= 0) {
+          var itemDot = createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } });
+          nameWrap.firstChild.appendChild(itemDot);
+        }
         row.appendChild(nameWrap);
 
         // Buttons
@@ -1733,6 +1757,7 @@ class UI {
           });
           equipBtn.addEventListener('click', function () {
             storage.equipItem(item.id, type);
+            audio.play('equip');
             self.renderShop();
             if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
             if (self.onEquipChange) self.onEquipChange();
@@ -1745,7 +1770,7 @@ class UI {
           });
           buyBtn.addEventListener('click', function () {
             if (storage.buyItem(item.id, item.price)) {
-              audio.play('coin');
+              audio.play('buy');
               self.renderShop();
               if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
             } else {
@@ -1780,6 +1805,10 @@ class UI {
 
     var tabBar = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
     tabBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px';
+    var fresh = this._lockerFresh || [];
+    var tabOf = function (item) { return item.type === 'skin' ? 'characters' : (item.type === 'trail' || item.type === 'monster') ? 'extras' : 'customize'; };
+    var freshTabs = {};
+    SHOP_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
     [['characters', '🎭 Characters'], ['customize', '🎨 Customize'], ['extras', '✨ Trails & Monsters']].forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
@@ -1787,9 +1816,15 @@ class UI {
         attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
       });
       b.addEventListener('click', function () { self._lockerTab = t[0]; self.renderShop(); });
+      if (freshTabs[t[0]]) b.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'New items you can afford' } }));
       tabBar.appendChild(b);
     });
     shopItems.appendChild(tabBar);
+
+    if (fresh.length) {
+      var why = createElement('div', { className: 'locker-why', text: 'You can now afford ' + (fresh.length === 1 ? 'a new item' : fresh.length + ' new items') + '! Look for the red dots.' });
+      shopItems.appendChild(why);
+    }
 
     if (tab === 'characters') {
       shopItems.appendChild(renderGroup('skin', '🎬 Animated 3D characters', isKind('model'),
@@ -1953,10 +1988,10 @@ class UI {
       { key: 'musicOn', label: '🎵 Music', type: 'toggle' },
       { key: 'nightMode', label: '🌙 Night Shift', type: 'toggle' },
       { key: 'colorblindMode', label: '👁 Colorblind-Safe Colors', type: 'toggle' },
-      { key: 'batterySaver', label: '🔋 Battery saver (30 fps)', type: 'toggle' },
+      { key: 'batterySaver', label: '🎞 30 fps (smoother and cooler; turn off for 60)', type: 'toggle' },
       { key: 'cameraView', label: '🎥 Camera', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
       { key: 'quality', label: '🎮 Graphics', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
-      { key: 'uiTheme', label: '🎨 Colors (follow time & season)', type: 'select', options: [['auto', 'Auto'], ['classic', 'Classic']] },
+      { key: 'uiTheme', label: '🎨 Colors', type: 'select', options: THEME_CHOICES },
       { key: 'glowEffects', label: '✨ Glow Effects (bloom)', type: 'toggle' },
       { key: 'dailyGoal', label: '🎯 Daily Goal (cards)', type: 'range', min: 5, max: 100, step: 5 },
       { key: 'reminders', label: '🔔 Daily Reminder (while app is open/installed)', type: 'toggle' },
@@ -2019,6 +2054,10 @@ class UI {
           if ((storage.get(s.key) || 'auto') === opt[0]) o.selected = true;
           select.appendChild(o);
         });
+        if (s.key === 'uiTheme') {
+          var themeNote = createElement('span', { className: 'setting-sublabel', text: 'Now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') });
+          label.appendChild(themeNote);
+        }
         if (s.key === 'quality') {
           var tierNote = createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) });
           label.appendChild(tierNote);
@@ -2398,6 +2437,20 @@ class UI {
 
         var arrow = createElement('span', { className: 'review-arrow', text: '→' });
         row.appendChild(arrow);
+
+        // Tapping a weak concept opens a quick review of it (then the next weakest ones)
+        row.setAttribute('role', 'button');
+        row.setAttribute('tabindex', '0');
+        row.setAttribute('aria-label', 'Review ' + w.card.ans);
+        row.style.cursor = 'pointer';
+        var openReview = function () {
+          var ordered = [w].concat(weakCards.filter(function (x) { return x !== w; }));
+          self.showQuickReview(ordered.map(function (x) { return { card: x.card }; }));
+        };
+        row.addEventListener('click', openReview);
+        row.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(); }
+        });
 
         weakBox.appendChild(row);
       });

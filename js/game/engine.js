@@ -48,7 +48,7 @@ import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, isLowQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery, buildSideScenery, animateSideScenery } from './scenery.js';
 import { getRunRules } from '../rules.js';
-import { START_STYLES, CAMERA_STYLES, getStartPose, getIntroCamera, pickDeathStyle, getDeathPose } from './cinematics.js';
+import { START_STYLES, CAMERA_STYLES, getStartPose, getIntroCamera, pickDeathStyle, getDeathPose, DEATH_DURATION } from './cinematics.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -422,6 +422,7 @@ class Game {
     // Update legacy boolean flags for backward compat
     this.running = (newState === GAME_STATES.PLAYING || newState === GAME_STATES.DYING || newState === GAME_STATES.COUNTDOWN);
     this.paused = (newState === GAME_STATES.PAUSED);
+    if (typeof document !== 'undefined' && document.body) document.body.classList.toggle('is-dying', newState === GAME_STATES.DYING);
 
     this._emit('state_changed', { from: oldState, to: newState });
     return true;
@@ -552,8 +553,8 @@ class Game {
     this.powerupFX = new PowerUpFX(this.scene);
     var self = this;
     this._inputDispose = setupInput(this.renderer.domElement, {
-        moveLeft: function() { if (self.targetLane > 0) self.targetLane--; },
-        moveRight: function() { if (self.targetLane < 2) self.targetLane++; },
+        moveLeft: function() { if (self.targetLane > 0) { self.targetLane--; self._sfx('lane'); } },
+        moveRight: function() { if (self.targetLane < 2) { self.targetLane++; self._sfx('lane'); } },
         jump: function() { self.jump(); },
         slide: function() { self.slide(); },
         rush: function() { self.addRushStack(); },
@@ -681,7 +682,7 @@ class Game {
   _adaptResolution() {
     var now = performance.now();
     if (this._lastFrameAt) {
-      var scale = stepAdaptiveResolution(this._adaptive, now - this._lastFrameAt, now);
+      var scale = stepAdaptiveResolution(this._adaptive, now - this._lastFrameAt, now, this.targetFrameMs);
       if (scale !== null) this._setResolutionScale(scale);
     }
     this._lastFrameAt = now;
@@ -867,7 +868,7 @@ class Game {
 
   _resetRunState() {
     this.currentLane = 1; this.targetLane = 1; this.prevLane = 1;
-    this.jumping = false; this.sliding = false;
+    this.jumping = false; this.sliding = false; this._slideBlend = 0;
     this.playerY = 0; this.jumpVel = 0; this.legPhase = 0;
     this.elapsedTime = 0; this.cameraLeanX = 0; this.playerTilt = 0;
 
@@ -933,25 +934,35 @@ class Game {
   // PAUSE / RESUME
   // ═══════════════════════════════════════════════════════
 
+  /** Show or hide the pause screen. Whoever pauses or resumes, the screen follows. */
+  _showPauseOverlay(show) {
+    if (typeof document === 'undefined') return;
+    var overlay = document.getElementById('pauseOverlay');
+    if (overlay) overlay.classList.toggle('active', !!show);
+  }
+
   pause(reason) {
     if (this._state === GAME_STATES.PLAYING) {
       this._transition(GAME_STATES.PAUSED);
+      this._showPauseOverlay(true);
+      this._sfx('pause');
     }
   }
 
   resume(reason) {
     if (this._state === GAME_STATES.PAUSED) {
       this._transition(GAME_STATES.PLAYING);
+      this._sfx('resume');
     }
+    // Always clear the screen, even if the state already moved on
+    this._showPauseOverlay(false);
   }
 
   togglePause() {
     if (this._state === GAME_STATES.PLAYING) {
       this.pause('user');
-      document.getElementById('pauseOverlay').classList.add('active');
     } else if (this._state === GAME_STATES.PAUSED) {
       this.resume('user');
-      document.getElementById('pauseOverlay').classList.remove('active');
     }
   }
 
@@ -1840,20 +1851,23 @@ card = pickResult ? pickResult.card : null;
     this._deathT = 0;
     this._deathImpactAt = -1;
 
-    if (this.examMonster && this.monsterZ < 20) {
+    // The monster only dives in when it is the one that caught the runner; after a
+    // crash it stays where it was so it does not cover the death.
+    this._deathCause = cause || 'other';
+    if (this._deathCause === 'monster' && this.examMonster && this.monsterZ < 20) {
       this.monsterTargetZ = 0;
       this.monsterZ = Math.min(this.monsterZ, 10);
       this.examMonster.visible = true;
     }
 
     this.faceplanting = true;
-    this.faceplantTimer = 1.8;
+    this.faceplantTimer = DEATH_DURATION;
     this._emit('death_started', {});
   }
 
   _updateDying(dt) {
     this.faceplantTimer -= dt;
-    var totalDuration = 1.8;
+    var totalDuration = DEATH_DURATION;
     var fp = totalDuration - this.faceplantTimer;
 
     // Each death is different; "faceplant" keeps the classic behaviour.
@@ -1882,16 +1896,19 @@ card = pickResult ? pickResult.card : null;
       this.playerGroup.position.y = Math.max(0, this.playerGroup.position.y - dt * 5);
     }
 
-    // Dramatic camera
+    // Death camera: move in on the runner and drift to a three-quarter view, always
+    // keeping the runner in frame so the whole fall can be seen.
     var camProgress = Math.min(fp / totalDuration, 1.0);
-    this.camera.position.x = this.cameraBasePos.x + Math.sin(camProgress * Math.PI) * 2;
-    this.camera.position.y = this.cameraBasePos.y - camProgress * 2;
-    this.camera.position.z = this.cameraBasePos.z - camProgress * 3;
+    var px = this.playerGroup.position.x;
+    var pz = this.playerGroup.position.z;
+    this.camera.position.x = px * 0.6 + Math.sin(camProgress * 1.4) * 2.2;
+    this.camera.position.y = this.cameraBasePos.y - 1.5 - camProgress * 0.3;
+    this.camera.position.z = pz + 8 - camProgress * 1.5;
     if (shake > 0) {
       this.camera.position.x += (Math.random() - 0.5) * shake;
       this.camera.position.y += (Math.random() - 0.5) * shake * 0.6;
     }
-    this.camera.lookAt(this.playerGroup.position.x, 1, this.playerGroup.position.z);
+    this.camera.lookAt(px, 1.1 + this.playerGroup.position.y * 0.4, pz);
 
     this._updateExamMonster(dt);
 
@@ -2035,16 +2052,23 @@ card = pickResult ? pickResult.card : null;
       this.playerGroup.scale.y = 1 + Math.max(0, Math.min(this.jumpVel, 12)) / 12 * 0.08;
     }
 
-    // Slide
+    // Slide (duck): lean into it and sink a little, easing in and out. The body is
+    // never squashed flat, which looked like a pancake on 3D characters.
     if (this.sliding) {
       this.slideTimer += dt;
-      this.playerGroup.scale.y = 0.35;
-      this.playerGroup.position.y = -0.35;
-      if (this.slideTimer >= 0.45) {
-        this.sliding = false;
-        this.playerGroup.scale.y = 1;
-        this.playerGroup.position.y = this.playerY;
-      }
+      if (this.slideTimer >= 0.45) this.sliding = false;
+    }
+    this._slideBlend = this._slideBlend || 0;
+    this._slideBlend += ((this.sliding ? 1 : 0) - this._slideBlend) * Math.min(1, dt * 14);
+    if (this._slideBlend < 0.01 && !this.sliding) this._slideBlend = 0;
+    var sb = this._slideBlend;
+    if (sb > 0) {
+      this.playerGroup.scale.set(1 + 0.04 * sb, 1 - 0.14 * sb, 1 + 0.04 * sb);
+      this.playerGroup.position.y = this.playerY - 0.3 * sb;
+      this.playerGroup.rotation.x = -0.62 * sb;   // forward lean (characters face -Z)
+    } else if (this.playerGroup.rotation.x !== 0 && this.stumbleTimer <= 0 && this.mode !== undefined && this._state === GAME_STATES.PLAYING) {
+      this.playerGroup.rotation.x = 0;
+      this.playerGroup.scale.set(1, 1, 1);
     }
 
     // Landing squash
@@ -2093,7 +2117,7 @@ card = pickResult ? pickResult.card : null;
         this.legPhase += currentSpeed * rushMult * dt * 0.8;
         var sw = Math.sin(this.legPhase) * 0.45;
         tLL = sw; tRL = -sw; tLA = -sw * 0.9; tRA = sw * 0.9;
-        this.playerGroup.position.y = this.playerY + Math.abs(Math.sin(this.legPhase)) * 0.06;
+        this.playerGroup.position.y = this.playerY + Math.abs(Math.sin(this.legPhase)) * 0.06 - 0.3 * (this._slideBlend || 0);
         if (lm.cape) {
           lm.cape.rotation.x = 0.15 + Math.sin(this.legPhase * 1.5) * 0.1;
         }
@@ -2107,7 +2131,8 @@ card = pickResult ? pickResult.card : null;
 
     // Animated glTF avatars are driven by their own clips.
     if (this.playerGroup.userData.animator) {
-      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
+      // Ducking keeps the run cycle (legs pumping) under the forward lean
+      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : 'run';
       updateModelAnimation(this.playerGroup, dt, modelState);
     }
 
@@ -2473,7 +2498,7 @@ card = pickResult ? pickResult.card : null;
     // grows/approaches as the catch distance shrinks.
     var near = Math.min(1, Math.max(0, (30 - this.monsterZ) / 27));
     // Stalk the player across lanes, lunge, and fade as the streak returns.
-    var dying = this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT;
+    var dying = (this._state === GAME_STATES.DYING || this._state === GAME_STATES.CONTINUE_PROMPT) && this._deathCause === 'monster';
     var pose = stepMonsterBehavior(this._monsterBehavior, {
       playerX: this.playerGroup.position.x,
       dist: this.monsterZ,

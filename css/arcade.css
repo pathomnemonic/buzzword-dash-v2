@@ -55,6 +55,12 @@
 
   --alt-a: #5a35bd; --alt-b: #432a9a; --alt-hi: #6a43d3; --deep: #321a82;
   --screen-top: #2a1480; --screen-bottom: #170a47; --nav-top: #2a1480; --nav-bottom: #1b0a40;
+  --glow: rgba(255, 92, 173, 0.28);
+  --tile-1: linear-gradient(180deg, #ffe566, #ffb41f);
+  --tile-2: linear-gradient(180deg, #ff8fc4, #ff4f9a);
+  --tile-3: linear-gradient(180deg, #7fe6ff, #2dbff0);
+  --tile-4: linear-gradient(180deg, #c49bff, #8b52f0);
+  --lane-1: #ff9ccb; --lane-2: #ffe14a; --lane-3: #7fe6ff;
   --font-display: "Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI Black", "Roboto Black", system-ui, sans-serif;
 }
 
@@ -64,14 +70,8 @@ html, body {
 
 /* ---------- screens ---------- */
 
-/* Comic-book halftone behind every menu except Home (Home shows the hero) */
-.screen:not(#screenHome) .screen-scroll::before {
-  background:
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1.6px, transparent 1.8px) 0 0 / 18px 18px,
-    linear-gradient(180deg, var(--screen-top), var(--screen-bottom));
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+/* Every menu sits on the painted backdrop in #bgDecor (colors come from the theme) */
+.screen .screen-scroll::before { background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 .screen.active { animation: popIn 0.32s cubic-bezier(0.2, 1.4, 0.4, 1); }
 @keyframes popIn {
@@ -263,10 +263,10 @@ html, body {
 }
 .mode-btn:hover { border-color: var(--ink); box-shadow: 0 4px 0 var(--ink); transform: translateY(-2px); }
 .mode-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
-.mode-row .mode-btn:nth-child(1) { background: linear-gradient(180deg, #ffe566, #ffb41f); }
-.mode-row .mode-btn:nth-child(2) { background: linear-gradient(180deg, #ff8fc4, #ff4f9a); }
-.mode-row .mode-btn:nth-child(3) { background: linear-gradient(180deg, #7fe6ff, #2dbff0); }
-.mode-row .mode-btn:nth-child(4) { background: linear-gradient(180deg, #c49bff, #8b52f0); }
+.mode-row .mode-btn:nth-child(1) { background: var(--tile-1); }
+.mode-row .mode-btn:nth-child(2) { background: var(--tile-2); }
+.mode-row .mode-btn:nth-child(3) { background: var(--tile-3); }
+.mode-row .mode-btn:nth-child(4) { background: var(--tile-4); }
 .mode-btn .mode-btn-label { color: var(--ink); font-weight: 900; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
 .mode-btn-icon { font-size: 24px; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.25)); }
 
@@ -465,9 +465,9 @@ html, body {
   box-shadow: 0 4px 0 var(--ink);
   backdrop-filter: none;
 }
-.answer-choice:nth-child(1) { background: #ff9ccb; }
-.answer-choice:nth-child(2) { background: #ffe14a; }
-.answer-choice:nth-child(3) { background: #7fe6ff; }
+.answer-choice:nth-child(1) { background: var(--lane-1); }
+.answer-choice:nth-child(2) { background: var(--lane-2); }
+.answer-choice:nth-child(3) { background: var(--lane-3); }
 .answer-choice .lane-label { color: rgba(27, 10, 64, 0.65); font-weight: 900; }
 .answer-choice.active {
   color: var(--ink);
@@ -781,4 +781,116 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .dr-day.today, .nav-dot, .xp-levelup .xp-level { animation: none !important; }
+}
+
+/* ---------- short screens (laptops): keep PLAY above the tab bar without scrolling ---------- */
+
+@media (max-height: 860px) {
+  .home-header { padding-top: 8px; padding-bottom: 0; }
+  .home-header h1 { font-size: 38px; }
+  .home-header .home-tagline { margin-top: 4px; }
+  .home-header .home-sub { display: none; }
+  .home-coins, .home-level, .home-league { margin-top: 6px; }
+  .study-goal { margin-top: 4px; }
+  .play-section { margin: 6px 0; }
+  .btn-play { width: 124px; height: 124px; }
+  .play-icon { font-size: 36px; }
+  .play-label { font-size: 20px; }
+}
+@media (max-height: 700px) {
+  .home-header h1 { font-size: 32px; }
+  .home-header .home-tagline { display: none; }
+  .study-goal-bar, .study-goal-due { display: none; }
+  .btn-play { width: 108px; height: 108px; }
+  .play-icon { font-size: 30px; }
+}
+@media (max-height: 580px) {
+  .study-goal { display: none; }
+  .btn-play { width: 96px; height: 96px; }
+}
+
+
+
+/* While the runner is going down, the question banner and answer tiles step aside so the whole fall can be seen */
+body.is-dying #answerRow,
+body.is-dying #buzzBox,
+body.is-dying #feedbackEl,
+body.is-dying #teachEl {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+/* red dots in the Locker */
+.new-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 6px;
+  vertical-align: middle;
+  background: var(--accent-red);
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  box-sizing: content-box;
+  width: 8px;
+  height: 8px;
+}
+.locker-why {
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: var(--accent-red);
+  color: #fff;
+  font-weight: 900;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--ink);
+  text-shadow: 0 2px 0 var(--ink);
+}
+
+/* The 3D canvas is only for runs; every other screen is plain HTML on a painted backdrop */
+#gameContainer { visibility: hidden; }
+body.in-game #gameContainer { visibility: visible; }
+
+/* ---------- the painted backdrop and its falling / floating decor ---------- */
+
+#bgDecor {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 0%, var(--glow), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1.6px, transparent 1.8px) 0 0 / 18px 18px,
+    linear-gradient(180deg, var(--screen-top), var(--screen-bottom));
+}
+body.in-game #bgDecor { display: none; }
+#bgDecor span {
+  position: absolute;
+  font-size: var(--size, 30px);
+  opacity: 0.55;
+  will-change: transform;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.25));
+}
+#bgDecor[data-motion="fall"] span {
+  top: -60px;
+  animation: decorFall var(--dur, 12s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+#bgDecor[data-motion="float"] span {
+  animation: decorBob var(--dur, 10s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes decorFall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  25% { transform: translate3d(var(--sway, 20px), 28vh, 0) rotate(60deg); }
+  50% { transform: translate3d(calc(var(--sway, 20px) * -1), 56vh, 0) rotate(130deg); }
+  75% { transform: translate3d(var(--sway, 20px), 84vh, 0) rotate(200deg); }
+  100% { transform: translate3d(0, 112vh, 0) rotate(270deg); }
+}
+@keyframes decorBob {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
+  50% { transform: translate3d(var(--sway, 20px), -22px, 0) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #bgDecor span { animation: none !important; top: 20%; }
 }

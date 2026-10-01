@@ -1,57 +1,149 @@
 /**
- * theme.js — colors that follow the clock and the calendar, so the game never
- * looks quite the same two days running.
+ * theme.js — whole new color worlds that follow the clock and the calendar, so
+ * the game looks different enough to be worth another look.
  *
- * Time of day sets the mood of the backgrounds and panels (a warm dawn, a
- * bright day, a magenta dusk, a deep night). The season (and a couple of
- * holidays) picks the highlight colors and a small emoji next to the tagline.
- * Players can turn it off in Settings ("Classic" keeps the original night look).
+ * A world is a season (or a holiday) crossed with a time of day:
+ *   winter  icy blues            spring  fresh greens with blossom pink
+ *   summer  turquoise and coral  autumn  burnt orange and amber
+ *   halloween  purple and orange     winter holidays  red and green
+ * and dawn / day / dusk / night change how bright and warm that world is.
+ * Everything is derived from a few hues, so every combination keeps readable
+ * contrast (tests check it). Players can pick a world by hand, or Classic,
+ * in Settings.
  *
- * Pure functions here; applyTheme writes CSS variables on the page root.
+ * Pure functions here; applyTheme writes CSS variables on the page root and
+ * fills the falling/floating decor layer.
  */
 
-/** Variables each time of day sets. Night is the classic look (the CSS defaults). */
+// ---------- color helpers ----------
+
+function hsl(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  s = Math.max(0, Math.min(1, s));
+  l = Math.max(0, Math.min(1, l));
+  var c = (1 - Math.abs(2 * l - 1)) * s;
+  var x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  var m = l - c / 2;
+  var r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; } else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; } else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  function hex(v) { var n = Math.round((v + m) * 255); return (n < 16 ? '0' : '') + n.toString(16); }
+  return '#' + hex(r) + hex(g) + hex(b);
+}
+
+/** Move hue a toward hue b by t (0..1) along the short way round. */
+function mixHue(a, b, t) {
+  var d = ((b - a + 540) % 360) - 180;
+  return a + d * t;
+}
+
+/** WCAG contrast ratio between two #rrggbb colors (exported for tests). */
+export function contrast(c1, c2) {
+  function lum(c) {
+    var v = [1, 3, 5].map(function (i) {
+      var x = parseInt(c.slice(i, i + 2), 16) / 255;
+      return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+  }
+  var a = lum(c1), b = lum(c2);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+/**
+ * A background color that white text can sit on: lowers the lightness (a little at a
+ * time) until the contrast reaches `min`. Yellow-greens look much brighter than blues at
+ * the same lightness, so each hue needs its own amount.
+ */
+function darkEnough(h, s, l, min) {
+  var c = hsl(h, s, l);
+  for (var i = 0; i < 60 && contrast('#ffffff', c) < min; i++) {
+    l -= 0.01;
+    c = hsl(h, s, l);
+  }
+  return c;
+}
+
+/** A light color that dark ink can sit on: raises the lightness until the contrast reaches `min`. */
+function lightEnough(h, s, l, ink, min) {
+  var c = hsl(h, s, l);
+  for (var i = 0; i < 60 && contrast(ink, c) < min; i++) {
+    l += 0.01;
+    c = hsl(h, s, l);
+  }
+  return c;
+}
+
+// ---------- the worlds ----------
+
+/** base: main hue. a1/a2/a3: highlight hues (the pink, cyan and purple slots). */
+var WORLDS = {
+  winter: { name: 'Winter', base: 208, a1: 192, a2: 222, a3: 262, decor: ['❄️', '⛄', '🧊', '❄️', '🧤', '⛷️', '❄️', '🧣'], motion: 'fall' },
+  spring: { name: 'Spring', base: 150, a1: 330, a2: 92, a3: 290, decor: ['🌸', '🌷', '🦋', '🌱', '🐝', '🌼', '🌸', '🍃'], motion: 'fall' },
+  summer: { name: 'Summer', base: 186, a1: 14, a2: 48, a3: 322, decor: ['☀️', '🌴', '🍉', '🏖️', '🕶️', '🐚', '🍍', '🌊'], motion: 'float' },
+  autumn: { name: 'Autumn', base: 22, a1: 40, a2: 352, a3: 300, decor: ['🍂', '🍁', '🌰', '🍄', '🍂', '🍎', '🍁', '🍂'], motion: 'fall' },
+  halloween: { name: 'Halloween', base: 278, a1: 26, a2: 120, a3: 330, decor: ['🎃', '🦇', '👻', '🕸️', '🎃', '🦇', '🍬', '👻'], motion: 'float' },
+  holidays: { name: 'Winter holidays', base: 355, a1: 140, a2: 48, a3: 205, decor: ['🎄', '⛄', '🎁', '❄️', '⭐', '🎄', '🎁', '❄️'], motion: 'fall' }
+};
+
+/** How bright and warm each time of day makes a world. */
 var DAYPARTS = {
-  dawn: {
-    '--panel': '#5a2570', '--panel-2': '#75338f', '--alt-a': '#8a3fa0', '--alt-b': '#6a2f87', '--alt-hi': '#a24cb8',
-    '--deep': '#4a1f66', '--screen-top': '#5a2470', '--screen-bottom': '#2e1048', '--nav-top': '#5a2470', '--nav-bottom': '#2e1048',
-    '--bg-fallback': '#2e1048'
-  },
-  day: {
-    '--panel': '#2450b8', '--panel-2': '#2f63d6', '--alt-a': '#3d78e6', '--alt-b': '#2d5fc4', '--alt-hi': '#4f8bf0',
-    '--deep': '#1f449c', '--screen-top': '#2a5fd0', '--screen-bottom': '#17338f', '--nav-top': '#2a5fd0', '--nav-bottom': '#17338f',
-    '--bg-fallback': '#17338f'
-  },
-  dusk: {
-    '--panel': '#7a2a8e', '--panel-2': '#9a3aa8', '--alt-a': '#b04aa8', '--alt-b': '#8a3590', '--alt-hi': '#c85bb0',
-    '--deep': '#5f1f78', '--screen-top': '#7a2a8e', '--screen-bottom': '#3d1160', '--nav-top': '#7a2a8e', '--nav-bottom': '#3d1160',
-    '--bg-fallback': '#3d1160'
-  },
-  night: {}
+  dawn:  { name: 'dawn',  warm: { hue: 345, t: 0.4 }, sat: 0.62, top: 0.36, bottom: 0.2,  panel: 0.3 },
+  day:   { name: 'day',   warm: null,                sat: 0.78, top: 0.46, bottom: 0.3,  panel: 0.34 },
+  dusk:  { name: 'dusk',  warm: { hue: 305, t: 0.45 }, sat: 0.58, top: 0.3,  bottom: 0.15, panel: 0.25 },
+  night: { name: 'night', warm: { hue: 252, t: 0.35 }, sat: 0.55, top: 0.19, bottom: 0.07, panel: 0.16 }
 };
 
-/** Highlight colors by season. */
-var SEASONS = {
-  winter: { name: 'Winter', emoji: '❄️', vars: { '--accent-pink': '#4aa8ff', '--accent-cyan': '#b8f0ff' } },
-  spring: { name: 'Spring', emoji: '🌸', vars: { '--accent-pink': '#ff7ac0', '--accent-cyan': '#7dffb0' } },
-  summer: { name: 'Summer', emoji: '☀️', vars: { '--accent-pink': '#ff8a3d', '--accent-cyan': '#3df0e0' } },
-  autumn: { name: 'Autumn', emoji: '🍂', vars: { '--accent-pink': '#e8742a', '--accent-cyan': '#ffcf5a' } }
-};
-
-/** Short holiday windows that override the season. */
-var HOLIDAYS = [
-  { id: 'halloween', name: 'Halloween', emoji: '🎃', from: [10, 24], to: [10, 31], vars: { '--accent-pink': '#ff7a1a', '--accent-cyan': '#b57bff' } },
-  { id: 'winter-holidays', name: 'Winter holidays', emoji: '🎄', from: [12, 15], to: [12, 26], vars: { '--accent-pink': '#e0353f', '--accent-cyan': '#7dffb0' } }
+/** Every CSS variable the theme sets (so a change can clear the old ones). */
+var MANAGED = [
+  '--ink', '--panel', '--panel-2', '--alt-a', '--alt-b', '--alt-hi', '--deep',
+  '--screen-top', '--screen-bottom', '--nav-top', '--nav-bottom', '--bg-fallback', '--glow',
+  '--text-secondary', '--text-muted', '--accent-pink', '--accent-cyan', '--accent-purple',
+  '--grad-primary', '--tile-1', '--tile-2', '--tile-3', '--tile-4', '--lane-1', '--lane-2', '--lane-3'
 ];
 
-/** Every variable the theme can set (so a change can clear the old ones). */
-var MANAGED = (function () {
-  var keys = {};
-  [DAYPARTS.dawn, DAYPARTS.day, DAYPARTS.dusk].forEach(function (p) { Object.keys(p).forEach(function (k) { keys[k] = true; }); });
-  Object.keys(SEASONS).forEach(function (s) { Object.keys(SEASONS[s].vars).forEach(function (k) { keys[k] = true; }); });
-  HOLIDAYS.forEach(function (h) { Object.keys(h.vars).forEach(function (k) { keys[k] = true; }); });
-  return Object.keys(keys);
-})();
+/**
+ * All the variables for one world at one time of day.
+ * @returns {Object<string,string>}
+ */
+export function paletteFor(worldId, daypart) {
+  var w = WORLDS[worldId];
+  var d = DAYPARTS[daypart] || DAYPARTS.night;
+  var h = d.warm ? mixHue(w.base, d.warm.hue, d.warm.t) : w.base;
+  var s = d.sat;
+  var night = daypart === 'night';
+  var ink = hsl(h, 0.55, night ? 0.04 : 0.06);
+  var p = d.panel;
+  var vars = {
+    '--ink': ink,
+    '--panel': darkEnough(h, s, p, 4.8),
+    '--panel-2': darkEnough(h, s, p + 0.07, 4.6),
+    '--alt-a': darkEnough(h + 6, s, p + 0.1, 4.6),
+    '--alt-b': darkEnough(h + 6, s, p + 0.03, 4.8),
+    '--alt-hi': darkEnough(h + 10, s, p + 0.15, 4.5),
+    '--deep': darkEnough(h, s, p - 0.04, 5),
+    '--screen-top': darkEnough(h, s, d.top, 3.4),
+    '--screen-bottom': darkEnough(h, s * 0.9, d.bottom, 4),
+    '--nav-top': darkEnough(h, s, d.top - 0.04, 4.5),
+    '--nav-bottom': darkEnough(h, s * 0.9, d.bottom - 0.03, 5),
+    '--bg-fallback': darkEnough(h, s * 0.9, d.bottom, 4),
+    '--glow': hsl(w.a1, 0.95, night ? 0.45 : 0.62) + (night ? '55' : '66'),
+    '--text-secondary': hsl(h, 0.75, 0.92),
+    '--text-muted': hsl(h, 0.35, 0.74),
+    '--accent-pink': darkEnough(w.a1, 0.9, 0.5, 3.2),
+    '--accent-cyan': hsl(w.a2, 0.95, 0.62),
+    '--accent-purple': hsl(w.a3, 0.8, 0.6),
+    '--grad-primary': 'linear-gradient(180deg, ' + darkEnough(h + 8, 0.9, 0.62, 3.2) + ', ' + darkEnough(h + 8, 0.85, 0.46, 4) + ')',
+    '--tile-1': 'linear-gradient(180deg, ' + hsl(w.a2, 0.95, 0.72) + ', ' + hsl(w.a2, 0.9, 0.56) + ')',
+    '--tile-2': 'linear-gradient(180deg, ' + hsl(w.a1, 0.95, 0.75) + ', ' + hsl(w.a1, 0.9, 0.6) + ')',
+    '--tile-3': 'linear-gradient(180deg, ' + hsl(h + 25, 0.9, 0.72) + ', ' + hsl(h + 25, 0.85, 0.56) + ')',
+    '--tile-4': 'linear-gradient(180deg, ' + hsl(w.a3, 0.9, 0.76) + ', ' + hsl(w.a3, 0.8, 0.62) + ')',
+    '--lane-1': lightEnough(w.a1, 0.95, 0.78, ink, 7),
+    '--lane-2': lightEnough(w.a2, 0.95, 0.7, ink, 7),
+    '--lane-3': lightEnough(h + 25, 0.9, 0.74, ink, 7)
+  };
+  return vars;
+}
 
 export function daypartOf(hour) {
   if (hour >= 5 && hour < 9) return 'dawn';
@@ -68,53 +160,103 @@ export function seasonOf(month) {   // month: 1..12
   return 'autumn';
 }
 
+var HOLIDAYS = [
+  { id: 'halloween', from: [10, 24], to: [10, 31] },
+  { id: 'holidays', from: [12, 15], to: [12, 26] }
+];
+
 function inWindow(month, day, from, to) {
   var v = month * 100 + day;
   return v >= from[0] * 100 + from[1] && v <= to[0] * 100 + to[1];
 }
 
+/** The choices for Settings -> Colors: [id, label]. */
+export var THEME_CHOICES = [
+  ['auto', 'Auto (time & season)'],
+  ['classic', 'Classic'],
+  ['winter', 'Winter'],
+  ['spring', 'Spring'],
+  ['summer', 'Summer'],
+  ['autumn', 'Autumn'],
+  ['halloween', 'Halloween'],
+  ['holidays', 'Winter holidays']
+];
+
 /**
  * @param {Date} date
- * @param {'auto'|'classic'} mode
- * @returns {{mode: string, daypart: string, season: string, holiday: string|null, emoji: string, vars: Object<string,string>}}
+ * @param {string} mode 'auto', 'classic', or a world id to pick by hand (it still follows the time of day)
+ * @returns {{mode: string, world: string, daypart: string, season: string, name: string, decor: string[], motion: string, vars: Object<string,string>}}
  */
 export function pickTheme(date, mode) {
-  if (mode === 'classic') return { mode: 'classic', daypart: 'night', season: 'classic', holiday: null, emoji: '', vars: {} };
+  if (mode === 'classic') return { mode: 'classic', world: 'classic', daypart: 'night', season: 'classic', holiday: null, name: 'Classic', decor: [], motion: 'none', vars: {} };
   var d = date || new Date();
   var month = d.getMonth() + 1;
   var daypart = daypartOf(d.getHours());
-  var seasonId = seasonOf(month);
-  var season = SEASONS[seasonId];
+  var world = WORLDS[mode] ? mode : null;
   var holiday = null;
-  for (var i = 0; i < HOLIDAYS.length; i++) {
-    if (inWindow(month, d.getDate(), HOLIDAYS[i].from, HOLIDAYS[i].to)) holiday = HOLIDAYS[i];
+  if (!world) {
+    for (var i = 0; i < HOLIDAYS.length; i++) {
+      if (inWindow(month, d.getDate(), HOLIDAYS[i].from, HOLIDAYS[i].to)) holiday = HOLIDAYS[i].id;
+    }
+    world = holiday || seasonOf(month);
+  } else if (world === 'halloween' || world === 'holidays') {
+    holiday = world;
   }
-  var vars = {};
-  var dayVars = DAYPARTS[daypart];
-  Object.keys(dayVars).forEach(function (k) { vars[k] = dayVars[k]; });
-  var accent = holiday ? holiday.vars : season.vars;
-  Object.keys(accent).forEach(function (k) { vars[k] = accent[k]; });
+  var w = WORLDS[world];
   return {
-    mode: 'auto',
+    mode: WORLDS[mode] ? mode : 'auto',
+    world: world,
     daypart: daypart,
-    season: seasonId,
-    holiday: holiday ? holiday.id : null,
-    emoji: holiday ? holiday.emoji : season.emoji,
-    vars: vars
+    season: WORLDS[world] && !holiday ? world : seasonOf(month),
+    holiday: holiday,
+    name: w.name + ' ' + daypart,
+    decor: w.decor,
+    motion: w.motion,
+    vars: paletteFor(world, daypart)
   };
 }
 
-/** Write the theme onto the page: CSS variables plus data attributes for CSS hooks. */
+/** Write the theme onto the page: CSS variables, data attributes, and the decor layer. */
 export function applyTheme(root, theme) {
   MANAGED.forEach(function (k) { root.style.removeProperty(k); });
   Object.keys(theme.vars).forEach(function (k) { root.style.setProperty(k, theme.vars[k]); });
   root.setAttribute('data-daypart', theme.daypart);
   root.setAttribute('data-season', theme.season);
+  root.setAttribute('data-world', theme.world);
   if (theme.holiday) root.setAttribute('data-holiday', theme.holiday);
   else root.removeAttribute('data-holiday');
+  var layer = typeof document !== 'undefined' ? document.getElementById('bgDecor') : null;
+  if (layer) fillDecor(layer, theme);
+}
+
+/** Falling or floating bits that fit the world (snowflakes, petals, leaves, bubbles...). */
+function fillDecor(layer, theme) {
+  var key = theme.world + ':' + theme.motion;
+  if (layer.getAttribute('data-key') === key) return;
+  layer.setAttribute('data-key', key);
+  layer.setAttribute('data-motion', theme.motion);
+  while (layer.firstChild) layer.removeChild(layer.firstChild);
+  if (!theme.decor.length) return;
+  for (var i = 0; i < 16; i++) {
+    var span = document.createElement('span');
+    span.textContent = theme.decor[i % theme.decor.length];
+    // fixed spread so the layout is the same every time
+    span.style.left = ((i * 37 + 7) % 96) + '%';
+    span.style.setProperty('--size', (22 + ((i * 13) % 26)) + 'px');
+    span.style.setProperty('--dur', (9 + ((i * 7) % 9)) + 's');
+    span.style.setProperty('--delay', '-' + ((i * 5) % 14) + 's');
+    span.style.setProperty('--sway', (14 + ((i * 11) % 28)) + 'px');
+    if (theme.motion === 'float') span.style.top = (8 + ((i * 29) % 84)) + '%';
+    layer.appendChild(span);
+  }
 }
 
 /** The managed variable names (for tests). */
 export function managedVariables() {
   return MANAGED.slice();
+}
+
+/** World ids (for tests). */
+export function worldIds() {
+  return Object.keys(WORLDS);
 }

@@ -124,7 +124,7 @@ var SAMPLE = 90;                  // frames per decision
 var COOLDOWN_MS = 4000;           // minimum time between changes (resizes are not free)
 
 export function createAdaptiveResolution() {
-  return { level: 0, frames: 0, total: 0, lastChange: 0 };
+  return { level: 0, frames: 0, total: 0, lastChange: 0, good: 0 };
 }
 
 /**
@@ -133,9 +133,11 @@ export function createAdaptiveResolution() {
  * @param {object} state from createAdaptiveResolution
  * @param {number} frameMs
  * @param {number} nowMs
+ * @param {number} [targetMs] the frame time the game is aiming for (16.7 for 60 fps, 33.3 when capped at 30)
  * @returns {number|null} scale (1 = full) to apply, or null for no change
  */
-export function stepAdaptiveResolution(state, frameMs, nowMs) {
+export function stepAdaptiveResolution(state, frameMs, nowMs, targetMs) {
+  var target = targetMs || 1000 / 60;
   if (frameMs > 250) return null;
   state.frames++;
   state.total += frameMs;
@@ -144,14 +146,23 @@ export function stepAdaptiveResolution(state, frameMs, nowMs) {
   state.frames = 0;
   state.total = 0;
   if (nowMs - state.lastChange < COOLDOWN_MS) return null;
-  if (avg > SLOW_MS && state.level < LEVELS.length - 1) {
+  // Slow means missing the target by about half again; at 60 fps that is the old 24 ms.
+  var slow = target * (SLOW_MS / (1000 / 60));
+  if (avg > slow && state.level < LEVELS.length - 1) {
     state.level++;
     state.lastChange = nowMs;
+    state.good = 0;
     return LEVELS[state.level];
   }
-  if (avg < FAST_MS && state.level > 0) {
+  // Headroom: at 60 fps that is "much faster than needed". When capped (30 fps) frames can
+  // never be faster than the cap, so hitting the cap steadily for two samples counts.
+  var capped = target > 20;
+  var fast = capped ? avg <= target * 1.1 : avg < target * (FAST_MS / (1000 / 60));
+  state.good = fast ? state.good + 1 : 0;
+  if (fast && state.level > 0 && (!capped || state.good >= 2)) {
     state.level--;
     state.lastChange = nowMs;
+    state.good = 0;
     return LEVELS[state.level];
   }
   return null;

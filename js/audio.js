@@ -28,6 +28,11 @@ import { isNative, nativeHaptic } from './native.js';
 
 // ===== MUSICAL CONSTANTS =====
 
+/** Music is turned down, and every effect up, so effects always cut through the music. */
+var MUSIC_TRIM = 0.55;
+var SFX_BOOST = 3.6;
+/** Effects that were naturally very quiet get a little extra. */
+var SFX_EXTRA = { coin: 1.8, jump: 1.8, land: 1.8, slide: 2.6, ui_tap: 2.2, ui_nav: 2.0, wrong: 1.3, lane: 2.0 };
 const SCALES = {
   cMinorPentatonic: [0, 3, 5, 7, 10],
   cMajorPentatonic: [0, 2, 4, 7, 9],
@@ -639,12 +644,13 @@ class AudioEngine {
     this._applyBusGains();
   }
 
+  /** The music sits under the sound effects: trimmed down, while effects are boosted. */
   _applyBusGains() {
     if (!this._masterGain) return;
     var s = this._settings;
     this._masterGain.gain.value = s.masterVolume;
-    if (this._musicBus) this._musicBus.gain.value = s.musicVolume;
-    if (this._sfxBus) this._sfxBus.gain.value = s.sfxVolume;
+    if (this._musicBus) this._musicBus.gain.value = s.musicVolume * MUSIC_TRIM;
+    if (this._sfxBus) this._sfxBus.gain.value = s.sfxVolume * SFX_BOOST;
     if (this._ambientBus) this._ambientBus.gain.value = s.ambientVolume;
     if (this._voiceBus) this._voiceBus.gain.value = s.voiceVolume;
   }
@@ -688,6 +694,7 @@ class AudioEngine {
     var sfxVol = this._settings.masterVolume * this._settings.sfxVolume;
     if (sfxVol <= 0) return;
     if (!this._canPlay(eventName)) return;
+    sfxVol *= SFX_EXTRA[eventName] || 1;
 
     var opts = options || {};
 
@@ -767,6 +774,65 @@ class AudioEngine {
       case 'ui_tap':
         this._sweep('sine', 880, 620, 0.06, sfxVol * 0.05, 3500);
         this._vibrate(8);
+        break;
+      case 'ui_nav':
+        this._sweep('triangle', 520, 780, 0.09, sfxVol * 0.06, 4000);
+        this._vibrate(8);
+        break;
+      case 'lane':
+        this._noise(0.08, sfxVol * 0.05, 1800);
+        this._sweep('sine', 560, 900, 0.07, sfxVol * 0.04, 3000);
+        break;
+      case 'pause':
+        this._sweep('triangle', 700, 380, 0.14, sfxVol * 0.09, 2500);
+        break;
+      case 'resume':
+        this._sweep('triangle', 380, 760, 0.14, sfxVol * 0.09, 2500);
+        break;
+      case 'equip':
+        this._sweep('sine', 700, 700, 0.07, sfxVol * 0.08, 4000);
+        this._sweep('sine', 1050, 1050, 0.1, sfxVol * 0.08, 5000, 0.07);
+        this._vibrate(12);
+        break;
+      case 'buy':
+        this._playBuy(sfxVol);
+        this._vibrate([20, 30, 40]);
+        break;
+      case 'streak':
+        // a quick rising arpeggio when the streak reaches a milestone
+        [523, 659, 784].forEach(function (f, i) { this._sweep('triangle', f, f, 0.13, sfxVol * 0.09, 4500, i * 0.08); }, this);
+        this._sweep('sine', 1568, 2093, 0.2, sfxVol * 0.05, 7000, 0.24);
+        this._vibrate([20, 20, 40]);
+        break;
+      case 'level_up':
+        this._playFanfare(sfxVol, false);
+        this._vibrate([40, 30, 40, 30, 90]);
+        break;
+      case 'promotion':
+        this._playFanfare(sfxVol, true);
+        this._vibrate([60, 40, 60, 40, 120]);
+        break;
+      case 'trophy_win':
+        [523, 659, 784, 1047].forEach(function (f, i) { this._sweep('triangle', f, f, 0.22, sfxVol * 0.1, 5000, i * 0.1); }, this);
+        this._sweep('sine', 1047, 1047, 0.5, sfxVol * 0.06, 6000, 0.4);
+        this._vibrate([40, 20, 40, 20, 80]);
+        break;
+      case 'trophy_loss':
+        [392, 349, 311].forEach(function (f, i) { this._sweep('triangle', f, f * 0.97, 0.25, sfxVol * 0.08, 2500, i * 0.16); }, this);
+        break;
+      case 'daily_claim':
+        [0, 0.07, 0.14].forEach(function (d) { this._sweep('sine', 1200, 1900, 0.1, sfxVol * 0.08, 6000, d); }, this);
+        this._vibrate([20, 20, 20]);
+        break;
+      case 'chest_open':
+        this._sweep('sawtooth', 110, 260, 0.45, sfxVol * 0.07, 900);
+        this._noise(0.2, sfxVol * 0.04, 1200, 0.1);
+        this._sweep('sine', 1568, 2349, 0.35, sfxVol * 0.07, 7000, 0.5);
+        this._sweep('sine', 2093, 3136, 0.4, sfxVol * 0.05, 8000, 0.62);
+        this._vibrate([30, 40, 30, 40, 100]);
+        break;
+      case 'secret':
+        [392, 523, 659, 784, 1047].forEach(function (f, i) { this._sweep('square', f, f, 0.12, sfxVol * 0.05, 4000, i * 0.07); }, this);
         break;
       case 'shield_break':
         this._playShieldBreak(sfxVol);
@@ -1216,6 +1282,25 @@ class AudioEngine {
     nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
     noise.connect(nGain);
     noise.start(t); noise.stop(t + 0.15);
+  }
+
+  /** A rising fanfare; the bigger one adds a second, higher run and sparkle. */
+  _playFanfare(vol, big) {
+    var notes = big ? [392, 494, 587, 784, 988, 1175] : [392, 523, 659, 784];
+    notes.forEach(function (f, i) {
+      this._sweep('triangle', f, f, 0.2, vol * 0.1, 5000, i * 0.11);
+      this._sweep('square', f / 2, f / 2, 0.2, vol * 0.025, 1800, i * 0.11);
+    }, this);
+    var end = notes.length * 0.11;
+    this._sweep('sine', 1568, 2349, 0.45, vol * 0.07, 8000, end);
+    if (big) this._sweep('sine', 2093, 3136, 0.5, vol * 0.05, 9000, end + 0.12);
+  }
+
+  /** A little cash-register ring for buying something. */
+  _playBuy(vol) {
+    this._sweep('sine', 1318, 1318, 0.09, vol * 0.09, 6000);
+    this._sweep('sine', 1760, 1760, 0.22, vol * 0.09, 7000, 0.08);
+    this._noise(0.05, vol * 0.04, 4000, 0.02);
   }
 
   _playGeneric(vol) {

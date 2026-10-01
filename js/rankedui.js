@@ -5,6 +5,7 @@
  */
 
 import { ranked, getCachedTrophies } from './ranked.js';
+import { audio } from './audio.js';
 import { getLeague, tierName, tierStep, tierProgress, describeLeagueRules } from './leagues.js';
 
 var SEARCH_TIMEOUT_MS = 60000;
@@ -300,6 +301,10 @@ function showResultCard(outcome, match, result) {
       card.appendChild(el('div', 'rk-result-sub', league.icon + ' ' + tierName(result.trophies)));
     }
   }
+
+  // Sound for the result (a fanfare for a promotion)
+  var heard = result.ok && result.settled ? (tierStep(result.trophies) > tierStep(Math.max(0, result.trophies - result.delta)) ? 'promotion' : outcome === 'win' ? 'trophy_win' : outcome === 'loss' ? 'trophy_loss' : null) : (outcome === 'win' ? 'trophy_win' : outcome === 'loss' ? 'trophy_loss' : null);
+  if (heard) audio.play(heard);
 
   // Let the rest of the app celebrate and refresh its league chip
   var promoted = result.ok && result.settled && tierStep(result.trophies) > tierStep(Math.max(0, result.trophies - result.delta));

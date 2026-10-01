@@ -6,6 +6,7 @@ export default [
   {
     ignores: [
       'dist/**',
+      'tools/_*.mjs',
       'coverage/**',
       'node_modules/**',
       'test-results/**',

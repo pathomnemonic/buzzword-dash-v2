@@ -1,18 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { daypartOf, seasonOf, pickTheme, applyTheme, managedVariables } from '../../js/theme.js';
+import {
+  daypartOf, seasonOf, pickTheme, applyTheme, managedVariables, paletteFor, contrast, worldIds, THEME_CHOICES
+} from '../../js/theme.js';
+
+const DAYPARTS = ['dawn', 'day', 'dusk', 'night'];
 
 describe('theme by time and season', () => {
   it('knows the time of day', () => {
-    expect(daypartOf(4)).toBe('night');
-    expect(daypartOf(5)).toBe('dawn');
-    expect(daypartOf(8)).toBe('dawn');
-    expect(daypartOf(9)).toBe('day');
-    expect(daypartOf(16)).toBe('day');
-    expect(daypartOf(17)).toBe('dusk');
-    expect(daypartOf(19)).toBe('dusk');
-    expect(daypartOf(20)).toBe('night');
-    expect(daypartOf(23)).toBe('night');
-    expect(daypartOf(0)).toBe('night');
+    expect([4, 5, 8, 9, 16, 17, 19, 20, 23, 0].map(daypartOf)).toEqual(
+      ['night', 'dawn', 'dawn', 'day', 'day', 'dusk', 'dusk', 'night', 'night', 'night']);
   });
 
   it('knows the season', () => {
@@ -22,45 +18,84 @@ describe('theme by time and season', () => {
     expect([9, 10, 11].map(seasonOf)).toEqual(['autumn', 'autumn', 'autumn']);
   });
 
-  it('looks different at different hours and in different seasons', () => {
-    const a = pickTheme(new Date(2026, 6, 10, 12), 'auto');   // July noon
-    const b = pickTheme(new Date(2026, 6, 10, 22), 'auto');   // July night
-    const c = pickTheme(new Date(2026, 0, 10, 12), 'auto');   // January noon
-    expect(a.daypart).toBe('day');
-    expect(a.vars['--screen-top']).toBeDefined();
-    expect(b.vars['--screen-top']).toBeUndefined();           // night is the classic look
-    expect(a.vars['--accent-pink']).not.toBe(c.vars['--accent-pink']); // summer vs winter highlights
-    expect(a.emoji).toBe('☀️');
-    expect(c.emoji).toBe('❄️');
+  it('picks the world from the date, with holidays winning over the season', () => {
+    expect(pickTheme(new Date(2026, 6, 10, 12), 'auto').world).toBe('summer');
+    expect(pickTheme(new Date(2026, 0, 10, 12), 'auto').world).toBe('winter');
+    expect(pickTheme(new Date(2026, 9, 31, 21), 'auto').world).toBe('halloween');
+    expect(pickTheme(new Date(2026, 9, 23, 12), 'auto').world).toBe('autumn');
+    expect(pickTheme(new Date(2026, 11, 20, 12), 'auto').world).toBe('holidays');
+    expect(pickTheme(new Date(2026, 6, 10, 12), 'auto').name).toBe('Summer day');
   });
 
-  it('has short holiday looks that win over the season', () => {
-    const h = pickTheme(new Date(2026, 9, 31, 21), 'auto');
-    expect(h.holiday).toBe('halloween');
-    expect(h.emoji).toBe('🎃');
-    const x = pickTheme(new Date(2026, 11, 20, 12), 'auto');
-    expect(x.holiday).toBe('winter-holidays');
-    expect(pickTheme(new Date(2026, 9, 10, 12), 'auto').holiday).toBeNull();
-    expect(pickTheme(new Date(2026, 9, 23, 12), 'auto').holiday).toBeNull();
+  it('lets the player pick a world by hand, and Classic changes nothing', () => {
+    const t = pickTheme(new Date(2026, 6, 10, 22), 'autumn');
+    expect(t.world).toBe('autumn');
+    expect(t.daypart).toBe('night');
+    expect(Object.keys(t.vars).length).toBeGreaterThan(20);
+    const c = pickTheme(new Date(2026, 6, 10, 12), 'classic');
+    expect(c.vars).toEqual({});
+    expect(THEME_CHOICES.map((x) => x[0])).toEqual(['auto', 'classic', ...worldIds()]);
+  });
+});
+
+describe('the palettes are different worlds, and stay readable', () => {
+  it('looks radically different between worlds and between times of day', () => {
+    const summerDay = paletteFor('summer', 'day');
+    const winterDay = paletteFor('winter', 'day');
+    const summerNight = paletteFor('summer', 'night');
+    expect(summerDay['--screen-top']).not.toBe(winterDay['--screen-top']);
+    expect(summerDay['--accent-pink']).not.toBe(winterDay['--accent-pink']);
+    expect(summerDay['--screen-top']).not.toBe(summerNight['--screen-top']);
+    // every world and time of day has its own backdrop
+    const tops = new Set();
+    worldIds().forEach((w) => DAYPARTS.forEach((d) => tops.add(paletteFor(w, d)['--screen-top'])));
+    expect(tops.size).toBe(worldIds().length * DAYPARTS.length);
   });
 
-  it('classic mode changes nothing', () => {
-    const t = pickTheme(new Date(2026, 6, 10, 12), 'classic');
-    expect(t.vars).toEqual({});
-    expect(t.emoji).toBe('');
+  it('keeps white text readable on every panel and button color', () => {
+    const failures = [];
+    worldIds().forEach((w) => DAYPARTS.forEach((d) => {
+      const p = paletteFor(w, d);
+      ['--panel', '--panel-2', '--alt-a', '--alt-b', '--alt-hi', '--deep'].forEach((k) => {
+        const ratio = contrast('#ffffff', p[k]);
+        if (ratio < 4.5) failures.push(w + ' ' + d + ' ' + k + ' ' + ratio.toFixed(2));
+      });
+      // text sits on the backdrop with a dark outline: a lower bar is enough
+      ['--screen-top', '--screen-bottom'].forEach((k) => {
+        const ratio = contrast('#ffffff', p[k]);
+        if (ratio < 3) failures.push(w + ' ' + d + ' ' + k + ' ' + ratio.toFixed(2));
+      });
+    }));
+    expect(failures).toEqual([]);
   });
 
-  it('only sets variables the page expects, and applying twice leaves no leftovers', () => {
+  it('keeps dark outline text readable on the bright tiles and answer lanes', () => {
+    const failures = [];
+    worldIds().forEach((w) => DAYPARTS.forEach((d) => {
+      const p = paletteFor(w, d);
+      ['--lane-1', '--lane-2', '--lane-3'].forEach((k) => {
+        const ratio = contrast(p['--ink'], p[k]);
+        if (ratio < 7) failures.push(w + ' ' + d + ' ' + k + ' ' + ratio.toFixed(2));
+      });
+    }));
+    expect(failures).toEqual([]);
+  });
+
+  it('applying a theme sets variables and the decor layer, and leaves nothing behind', () => {
+    document.body.innerHTML = '<div id="bgDecor"></div>';
     const root = document.documentElement;
+    applyTheme(root, pickTheme(new Date(2026, 0, 10, 12), 'auto'));
+    expect(root.style.getPropertyValue('--screen-top')).toMatch(/^#[0-9a-f]{6}$/);
+    expect(root.getAttribute('data-world')).toBe('winter');
+    const layer = document.getElementById('bgDecor');
+    expect(layer.children.length).toBe(16);
+    expect(layer.getAttribute('data-motion')).toBe('fall');
+    expect(layer.textContent).toContain('❄');
     applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'auto'));
-    expect(root.style.getPropertyValue('--screen-top')).toBe('#2a5fd0');
-    expect(root.getAttribute('data-daypart')).toBe('day');
-    expect(root.getAttribute('data-season')).toBe('summer');
-    applyTheme(root, pickTheme(new Date(2026, 6, 10, 22), 'auto')); // night: the day colors must go
-    expect(root.style.getPropertyValue('--screen-top')).toBe('');
-    expect(root.style.getPropertyValue('--accent-pink')).not.toBe('');
-    applyTheme(root, pickTheme(new Date(2026, 6, 10, 22), 'classic'));
+    expect(layer.getAttribute('data-motion')).toBe('float');
+    expect(layer.textContent).toContain('☀');
+    applyTheme(root, pickTheme(new Date(2026, 6, 10, 12), 'classic'));
     managedVariables().forEach((k) => expect(root.style.getPropertyValue(k)).toBe(''));
-    expect(root.getAttribute('data-holiday')).toBeNull();
+    expect(layer.children.length).toBe(0);
   });
 });

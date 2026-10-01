@@ -178,7 +178,7 @@ export function pickDeathStyle(cause, previous, rand) {
 }
 
 /** Seconds a death plays before the continue prompt or results. */
-export var DEATH_DURATION = 1.8;
+export var DEATH_DURATION = 2.6;
 
 /**
  * @param {string} style one of DEATH_STYLES
