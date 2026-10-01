@@ -1338,3 +1338,13 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .home-layout .mode-row { width: 100%; max-width: none; padding: 0; }
 .home-layout .mode-btn { width: 100%; max-width: none; }
 .home-layout .mode-btn-label { letter-spacing: 0; white-space: nowrap; }
+
+/* How to play: a small pill button; the bottom buttons sit clear of the tab bar and its swipe indicator */
+.home-layout { padding-bottom: calc(var(--safe-bottom) + 96px); }
+.play-sub { margin-top: 0; }
+.play-sub .link-btn {
+  display: inline-flex; align-items: center; gap: 4px; padding: 5px 14px; min-height: 32px; font-size: 12px; text-decoration: none; color: #fff;
+  background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); border: 3px solid var(--ink); border-radius: 999px; box-shadow: 0 3px 0 var(--ink);
+}
+.play-sub .link-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.play-sub .link-btn:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
