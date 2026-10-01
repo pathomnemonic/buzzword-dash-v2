@@ -22,6 +22,17 @@ test.describe('Gameplay', () => {
     expect(errors).toEqual([]);
   });
 
+  test('pause shows the pause screen and Resume takes it away', async ({ page }) => {
+    await openApp(page);
+    test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
+    await page.locator('.btn-play').click();
+    await expect(page.locator('#buzzText')).not.toHaveText('GET READY', { timeout: 20000 });
+    await page.locator('#pauseBtn').click();
+    await expect(page.locator('#pauseOverlay')).toHaveClass(/active/);
+    await page.locator('#resumeBtn').click();
+    await expect(page.locator('#pauseOverlay')).not.toHaveClass(/active/);
+  });
+
   test('the 3D scene actually renders (canvas is not blank)', async ({ page }) => {
     await openApp(page);
     test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
@@ -51,6 +62,7 @@ test.describe('Settings and screens', () => {
   test('settings toggles work from the keyboard', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('.settings-card[data-section="look"]').click();
     const toggle = page.getByRole('switch', { name: /Colorblind/ });
     await toggle.focus();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');

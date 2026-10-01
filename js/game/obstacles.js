@@ -22,7 +22,7 @@
  */
 
 import * as THREE from 'three';
-import { roundedBox, upgradeMaterials, markShared } from './materials.js';
+import { roundedBox, upgradeMaterials, markShared, mergeStatic } from './materials.js';
 import { buildScenery, buildHanging } from './scenery.js';
 
 var LANE_X = [-3, 0, 3];
@@ -645,12 +645,88 @@ function getCoinTemplate() {
     new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.3 })
   );
   group.add(halo);
+  // The disc, rim and cross pieces never move relative to each other: merge them by material so a
+  // coin costs 3 draw calls instead of 7 (a dozen coins on screen used to cost over 300).
+  mergeStatic(group);
   markShared(group);
   _coinTemplate = group;
   return group;
 }
 
+// ----- Coins drawn in bulk -----
+// Every coin on the track is drawn by a few shared instanced meshes (one draw call per coin part for
+// ALL coins, instead of a few per coin). Each coin is still its own light object that the game moves,
+// spins and collects as before; it just has nothing to draw by itself.
+var _instancing = null;
+var MAX_COIN_INSTANCES = 320;
+
+/** Switch coins to instanced drawing. Call once the scene exists; safe to call twice. */
+export function enableCoinInstancing(scene) {
+  if (_instancing) return;
+  var template = getCoinTemplate();
+  var parts = [];
+  var meshes = [];
+  template.children.forEach(function (child) {
+    if (!child.isMesh) return;
+    child.updateMatrix();
+    var inst = new THREE.InstancedMesh(child.geometry, child.material, MAX_COIN_INSTANCES);
+    inst.count = 0;
+    inst.frustumCulled = false;
+    inst.userData.noMerge = true;
+    inst.renderOrder = child.renderOrder;
+    scene.add(inst);
+    meshes.push(inst);
+    parts.push(child.matrix.clone());
+  });
+  _instancing = { scene: scene, meshes: meshes, parts: parts };
+}
+
+export function disableCoinInstancing() {
+  if (!_instancing) return;
+  _instancing.meshes.forEach(function (m) {
+    if (m.parent) m.parent.remove(m);
+    m.dispose(); // frees the instance buffers only; the geometry and materials are shared
+  });
+  _instancing = null;
+}
+
+/** Whether coins are currently drawn in bulk. */
+export function coinInstancingActive() {
+  return !!_instancing;
+}
+
+var _tmpMatrix = null;
+
+/** Copy each coin's position into the instanced meshes. Call once per frame, after the coins have moved. */
+export function syncCoinInstances(coinList) {
+  if (!_instancing) return 0;
+  if (!_tmpMatrix) _tmpMatrix = new THREE.Matrix4();
+  var n = 0;
+  for (var i = 0; i < coinList.length && n < MAX_COIN_INSTANCES; i++) {
+    var c = coinList[i];
+    if (!c.userData || c.userData.type !== 'coin' || c.children.length > 0 || !c.visible) continue;
+    c.updateMatrixWorld(true);
+    for (var k = 0; k < _instancing.meshes.length; k++) {
+      _tmpMatrix.multiplyMatrices(c.matrixWorld, _instancing.parts[k]);
+      _instancing.meshes[k].setMatrixAt(n, _tmpMatrix);
+    }
+    n++;
+  }
+  for (var j = 0; j < _instancing.meshes.length; j++) {
+    var inst = _instancing.meshes[j];
+    inst.count = n;
+    inst.instanceMatrix.needsUpdate = true;
+  }
+  return n;
+}
+
 function makeCoinMesh(lane, z, y) {
+  if (_instancing) {
+    var proxy = new THREE.Object3D();
+    proxy.position.set(LANE_X[lane], y || 1.2, z);
+    proxy.userData = { lane: lane, collected: false, type: 'coin' };
+    return proxy;
+  }
   var group = getCoinTemplate().clone(true);
   group.position.set(LANE_X[lane], y || 1.2, z);
   group.userData = { lane: lane, collected: false, type: 'coin' };

@@ -160,7 +160,7 @@ export function buildTrack(trackRoot, skin, options) {
   var trackRefs = {
     root: trackRoot,
     lights: [],
-    runningLights: [],
+    runningLights: null,
     particlePool: [],
     particleStates: [],
     scrollLines: [],
@@ -176,7 +176,7 @@ export function buildTrack(trackRoot, skin, options) {
         trackRoot.remove(trackRoot.children[0]);
       }
       // Clear references
-      this.runningLights = [];
+      this.runningLights = null;
       this.particlePool = [];
       this.particleStates = [];
       this.scrollLines = [];
@@ -702,37 +702,46 @@ export function updateSkyboxElements(skyboxElements, dt, move, time) {
 
 function buildRunningLights(trackRoot, skin, trackRefs) {
   var c = skin.colors;
-
+  var positions = [];
   for (var side = -1; side <= 1; side += 2) {
-    for (var z = -160; z < 20; z += RUNNING_LIGHT_SPACING) {
-      var light = new THREE.Mesh(
-        new THREE.SphereGeometry(0.06, 4, 4),
-        new THREE.MeshBasicMaterial({
-          color: c.wallGlow,
-          transparent: true,
-          opacity: 0.15
-        })
-      );
-      light.position.set(side * 4.5, 0.06, z);
-      light.userData = { baseZ: z, side: side, baseOpacity: 0.15, maxOpacity: 0.7 };
-      trackRoot.add(light);
-      trackRefs.runningLights.push(light);
-    }
+    for (var z = -160; z < 20; z += RUNNING_LIGHT_SPACING) positions.push({ x: side * 4.5, z: z });
   }
+  // One instanced mesh for all the little lights (120 draw calls become 1). Each light's brightness
+  // is its instance color; additive blending makes a dim light a faint glow, as before.
+  var mesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.06, 4, 4),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
+    positions.length
+  );
+  var m = new THREE.Matrix4();
+  var base = new THREE.Color(c.wallGlow);
+  for (var i = 0; i < positions.length; i++) {
+    m.makeTranslation(positions[i].x, 0.06, positions[i].z);
+    mesh.setMatrixAt(i, m);
+    mesh.setColorAt(i, base);
+  }
+  mesh.frustumCulled = false;
+  mesh.userData.noMerge = true;
+  trackRoot.add(mesh);
+  trackRefs.runningLights = { instanced: mesh, baseZ: positions.map(function (p) { return p.z; }), color: base.clone() };
 }
 
 export function updateRunningLights(runningLights, time, speed) {
-  if (!runningLights || runningLights.length === 0) return;
+  if (!runningLights || !runningLights.instanced) return;
   var waveSpeed = speed * 0.3;
   var waveLength = 20;
-
-  for (var i = 0; i < runningLights.length; i++) {
-    var light = runningLights[i];
-    var d = light.userData;
-    var phase = (d.baseZ + time * waveSpeed) / waveLength;
+  var mesh = runningLights.instanced;
+  var baseZ = runningLights.baseZ;
+  var base = runningLights.color;
+  var col = updateRunningLights._c || (updateRunningLights._c = new THREE.Color());
+  for (var i = 0; i < baseZ.length; i++) {
+    var phase = (baseZ[i] + time * waveSpeed) / waveLength;
     var wave = (Math.sin(phase * Math.PI * 2) + 1) * 0.5;
-    light.material.opacity = d.baseOpacity + wave * (d.maxOpacity - d.baseOpacity);
+    var intensity = 0.15 + wave * (0.7 - 0.15);
+    col.setRGB(base.r * intensity, base.g * intensity, base.b * intensity);
+    mesh.setColorAt(i, col);
   }
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 }
 
 // ===== ATMOSPHERIC PARTICLE POOL =====

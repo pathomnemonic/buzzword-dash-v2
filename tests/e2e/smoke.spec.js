@@ -22,6 +22,52 @@ test.describe('Smoke tests', () => {
     expect(await page.evaluate(() => document.body.innerText.toLowerCase().includes('cohort'))).toBe(false);
   });
 
+  test('settings are grouped into sections, each explained', async ({ page }) => {
+    await openApp(page);
+    await page.locator('[data-screen="screenSettings"]').click();
+    await expect(page.locator('.settings-card')).toHaveCount(6);
+    await page.locator('.settings-card[data-section="study"]').click();
+    await expect(page.getByText(/How much more often you see cards you have never answered/)).toBeVisible();
+    await page.locator('.settings-back').click();
+    await expect(page.locator('.settings-card')).toHaveCount(6);
+  });
+
+  test('the tutorial can be clicked through and closed from Settings and Home', async ({ page }) => {
+    await openApp(page);
+    await page.locator('[data-screen="screenSettings"]').click();
+    await page.locator('.settings-card[data-section="about"]').click();
+    await page.getByRole('button', { name: 'Open' }).first().click();
+    await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
+    for (let i = 0; i < 20 && (await page.locator('#tutorialOverlay.active').count()) === 1; i++) {
+      await page.locator('#tutNextBtn').click();
+    }
+    await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
+
+    await page.locator('[data-screen="screenHome"]').click();
+    await expect(page.locator('details.howto')).toHaveCount(1);
+    await page.locator('details.howto summary').click();
+    await page.getByRole('button', { name: /step by step/i }).click();
+    await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
+    await page.locator('#tutCloseBtn').click();
+    await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
+  });
+
+  test('only the current tab is highlighted', async ({ page }) => {
+    await openApp(page);
+    await page.locator('[data-screen="screenStats"]').click();
+    await expect(page.locator('.nav-item[aria-current="true"]')).toHaveCount(1);
+    await expect(page.locator('.nav-item[data-screen="screenStats"]')).toHaveAttribute('aria-current', 'true');
+  });
+
+  test('the Versus close button stays on screen on a short laptop window', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 560 });
+    await openApp(page);
+    await page.locator('#multiplayerBtn').click();
+    await expect(page.locator('#mpCloseBtn')).toBeInViewport();
+    await page.locator('#mpCloseBtn').click();
+    await expect(page.locator('#multiplayerOverlay')).not.toHaveClass(/active/);
+  });
+
   test('bottom navigation is visible', async ({ page }) => {
     await openApp(page);
     await expect(page.locator('#bottomNav')).toBeVisible();

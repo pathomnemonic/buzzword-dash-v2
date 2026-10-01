@@ -39,7 +39,7 @@ import {
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
 import { getCardPool, pickCard, spawnGates, updateGateHighlights, flashGateResult } from './gates.js';
-import { spawnObstacle, spawnCoinBatch, spawnPowerup } from './obstacles.js';
+import { spawnObstacle, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances } from './obstacles.js';
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
@@ -699,6 +699,8 @@ class Game {
 
   render() {
     if (this.renderer && this.scene && this.camera) {
+      if (!this._coinsInstanced) { enableCoinInstancing(this.scene); this._coinsInstanced = true; }
+      syncCoinInstances(this.coinMeshes);
       this._adaptResolution();
       var fx = this._getPostFX();
       if (fx) fx.render();
@@ -1206,6 +1208,8 @@ class Game {
     this._cleanupTrack();
     if (this.trailSystem) { this.trailSystem.dispose(); this.trailSystem = null; }
     if (this.powerupFX) { this.powerupFX.dispose(); this.powerupFX = null; }
+    disableCoinInstancing();
+    this._coinsInstanced = false;
     if (this.renderer) { this.renderer.dispose(); }
   }
 

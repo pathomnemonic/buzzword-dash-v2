@@ -869,7 +869,6 @@ body.in-game #bgDecor { display: none; }
   font-size: var(--size, 30px);
   opacity: 0.55;
   will-change: transform;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.25));
 }
 #bgDecor[data-motion="fall"] span {
   top: -60px;

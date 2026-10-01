@@ -1,4 +1,4 @@
-/* global localStorage, document, window, getComputedStyle, innerWidth, innerHeight */
+/* global localStorage, document, window, getComputedStyle */
 // tools/audit-buttons.mjs — clicks every button on every screen and reports the ones that do nothing.
 //
 //   npm run build && npx vite preview --port 4190 &   (then)
@@ -17,7 +17,7 @@ const browser = await chromium.launch({ args: ['--use-angle=d3d11', '--ignore-gp
 
 const SKIP_TEXT = /reset all progress|delete my account|delete account|sign out/i;
 
-async function fresh() {
+async function fresh(keepDaily) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 800 }, hasTouch: true, isMobile: true });
   await ctx.addInitScript(() => { try { window.confirm = () => true; window.alert = () => {}; window.open = () => null; } catch { /* ignore */ } });
   const page = await ctx.newPage();
@@ -33,7 +33,7 @@ async function fresh() {
   }
   const dr = page.locator('#dailyReward button');
   await dr.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-  for (let i = 0; i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
+  for (let i = 0; !keepDaily && i < 3 && (await dr.isVisible().catch(() => false)); i++) { await dr.click(); await page.waitForTimeout(1300); }
   await page.waitForTimeout(500);
   return { ctx, page, errors };
 }
@@ -59,6 +59,19 @@ const SCREENS = {
   'card browser': async (p) => { await p.getByRole('button', { name: /Browse/ }).first().click(); },
   profile: async (p) => { await p.getByRole('button', { name: /Profile/ }).first().click(); },
   exam: async (p) => { await p.getByRole('button', { name: /Exam Sim/i }).first().click(); },
+  'daily reward': async () => {},
+  'post-run results': async (p) => {
+    await p.locator('.btn-play').click();
+    await p.waitForTimeout(6500);
+    await p.evaluate(() => window.__game.endRun());
+    await p.waitForTimeout(2500);
+  },
+  'continue prompt': async (p) => {
+    await p.locator('.btn-play').click();
+    await p.waitForTimeout(6500);
+    await p.evaluate(() => window.__game._triggerDeath('ground'));
+    await p.waitForTimeout(3500);
+  },
   'pause menu': async (p) => {
     await p.locator('.btn-play').click();
     await p.waitForTimeout(6000);
@@ -67,27 +80,30 @@ const SCREENS = {
   }
 };
 
-/** Everything on screen that can be clicked, with a stable description. */
+/** Everything on the open screen that can be clicked (also below the fold), each tagged with data-audit. */
 async function clickables(page) {
   return page.evaluate(() => {
     const sel = 'button, a[href], [role="button"], [role="switch"], [role="tab"], summary, select, input[type="checkbox"], input[type="range"], .nav-item, .mode-btn, .subject-chip, .settings-card, .shop-item .btn';
+    // an open overlay hides everything under it, so only look inside it
+    const overlay = [...document.querySelectorAll('[role="dialog"].active, .dr-overlay, .rk-result, .tutorial-overlay.active')].pop();
+    const scope = overlay || document;
     const seen = new Set();
     const out = [];
-    document.querySelectorAll(sel).forEach((el) => {
-      const r = el.getBoundingClientRect();
+    let n = 0;
+    scope.querySelectorAll(sel).forEach((el) => {
       const cs = getComputedStyle(el);
-      if (r.width < 4 || r.height < 4 || cs.visibility === 'hidden' || cs.display === 'none' || el.disabled) return;
-      if (cs.pointerEvents === 'none') return;
-      // the point we will click must belong to this element (not hidden under an overlay)
-      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      if (cx < 0 || cy < 0 || cx > innerWidth || cy > innerHeight) return;
-      const top = document.elementFromPoint(cx, cy);
-      if (!top || !(el === top || el.contains(top))) return;
-      const text = (el.getAttribute('aria-label') || el.textContent || el.value || el.getAttribute('data-screen') || el.id || '').trim().replace(/\s+/g, ' ').slice(0, 40);
-      const key = (el.id || '') + '|' + text + '|' + Math.round(r.left) + ',' + Math.round(r.top);
+      if (cs.visibility === 'hidden' || cs.display === 'none' || el.disabled || cs.pointerEvents === 'none') return;
+      if (!el.offsetParent && cs.position !== 'fixed') return;
+      const screen = el.closest('.screen');
+      if (screen && !screen.classList.contains('active')) return;
+      const text = (el.getAttribute('aria-label') || el.textContent || el.value || el.getAttribute('data-screen') || el.id || '').trim().replace(/s+/g, ' ').slice(0, 40);
+      const r = el.getBoundingClientRect();
+      const key = (el.id || '') + '|' + text + '|' + Math.round(r.left) + ',' + Math.round(r.top + window.scrollY);
       if (seen.has(key)) return;
       seen.add(key);
-      out.push({ tag: el.tagName.toLowerCase(), id: el.id || '', text, x: cx, y: cy });
+      el.setAttribute('data-audit', String(n));
+      out.push({ n, tag: el.tagName.toLowerCase(), id: el.id || '', text });
+      n++;
     });
     return out;
   });
@@ -108,9 +124,10 @@ let totalNoEffect = 0;
 let totalErrors = 0;
 for (const [name, open] of Object.entries(SCREENS)) {
   if (only && name !== only) continue;
+  const keep = name === 'daily reward';
   let list;
   {
-    const { ctx, page } = await fresh();
+    const { ctx, page } = await fresh(keep);
     await open(page);
     await page.waitForTimeout(600);
     list = await clickables(page);
@@ -120,7 +137,7 @@ for (const [name, open] of Object.entries(SCREENS)) {
   for (let i = 0; i < list.length; i++) {
     const target = list[i];
     if (SKIP_TEXT.test(target.text)) { console.log('   skipped: ' + target.text); continue; }
-    const { ctx, page, errors } = await fresh();
+    const { ctx, page, errors } = await fresh(keep);
     try {
       await open(page);
       await page.waitForTimeout(600);
@@ -128,7 +145,9 @@ for (const [name, open] of Object.entries(SCREENS)) {
       const el = now.find((c) => c.tag === target.tag && c.id === target.id && c.text === target.text) || now[i];
       if (!el) { console.log('   ? could not find again: ' + target.tag + ' "' + target.text + '"'); continue; }
       const before = await signature(page);
-      await page.mouse.click(el.x, el.y);
+      const handle = page.locator('[data-audit="' + el.n + '"]');
+      await handle.scrollIntoViewIfNeeded({ timeout: 5000 }).catch(() => {});
+      await handle.click({ timeout: 8000, force: false }).catch(async () => { await handle.click({ timeout: 4000, force: true }); });
       await page.waitForTimeout(700);
       const after = await signature(page);
       const bad = errors.filter((e) => !/Dropped|auto-fix/.test(e));
