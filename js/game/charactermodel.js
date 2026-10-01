@@ -188,37 +188,6 @@ export function updateModelAnimation(pg, dt, state) {
   if (!animator) return false;
   if (state) animator.setState(state);
   animator.update(dt);
-  var acc = pg.userData.headAccessory;
-  if (acc) {
-    // Keep a hat on the head as it bobs and leans
-    acc.bone.getWorldPosition(_headPos);
-    pg.worldToLocal(_headPos);
-    acc.group.position.copy(_headPos).sub(acc.rest);
-  }
-  return true;
-}
-
-var _headPos = new THREE.Vector3();
-
-/**
- * Attach an accessory (built in the procedural humanoid's coordinates, e.g. a
- * hat) so it follows the model's head bone.
- * @param {THREE.Object3D} pg a model character from buildModelCharacter
- * @param {THREE.Object3D} group the accessory
- * @returns {boolean} false if the model has no head bone
- */
-export function attachHeadAccessory(pg, group) {
-  var bone = null;
-  pg.traverse(function (o) {
-    if (!bone && o.isBone && /head/i.test(o.name) && !/top|end|tip/i.test(o.name)) bone = o;
-  });
-  if (!bone) return false;
-  pg.add(group);
-  pg.updateMatrixWorld(true);
-  var rest = new THREE.Vector3();
-  bone.getWorldPosition(rest);
-  pg.worldToLocal(rest);
-  pg.userData.headAccessory = { bone: bone, group: group, rest: rest };
   return true;
 }
 

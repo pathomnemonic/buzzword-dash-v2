@@ -11,7 +11,8 @@
  *  - leans toward the player and looms lower/larger as it closes in
  *  - lunges: on every wrong answer, and now and then when it is near
  *  - recoils when the player answers correctly
- *  - fades from view as the player rebuilds a streak or pulls away
+ *  - stays out of sight while the player is doing well, creeps into view as mistakes pile up,
+ *    and fades from view again as the player rebuilds a streak or pulls away
  */
 
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -20,7 +21,7 @@ export function createMonsterBehavior(rand) {
   var r = rand || Math.random;
   return {
     x: 0,
-    fade: 0.6,
+    fade: 0, // hidden at the start of a run; it only creeps into view when the player slips
     lunge: 0,
     recoil: 0,
     cooldown: 3 + r() * 2,
@@ -35,9 +36,9 @@ export function monsterOnAnswer(state, correct) {
   else state.lunge = 1;
 }
 
-/** Target visibility: strong when close and the streak is low, gone when far or on a streak. */
+/** Target visibility: gone beyond 22 (the start of a run), fully there by 14, and gone again on a streak. */
 export function monsterVisibility(dist, streak) {
-  var byDistance = clamp((28 - dist) / 8, 0, 1);
+  var byDistance = clamp((22 - dist) / 8, 0, 1);
   var byStreak = clamp(1 - streak * 0.09, 0, 1);
   return byDistance * byStreak;
 }

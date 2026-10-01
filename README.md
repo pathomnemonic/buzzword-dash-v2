@@ -94,7 +94,7 @@ When you are down to 1 life, heart pickups may appear on the track. Collecting o
 
 ## The Exam Monster
 
-An exam monster chases you from behind. It gets closer when you answer incorrectly and falls back when you answer correctly. If it catches you, your run ends with a dramatic animation.
+An exam monster chases you from behind. Every run opens with a quick look-back shot that shows it lurking behind you, then the camera swings round to the normal view and the monster is out of sight. It only creeps into view when you answer incorrectly, and falls back (and fades away) when you answer correctly or build a streak. If it catches you, your run ends with a dramatic animation. Characters that are animated 3D models do not wear hats; hats are for the Classic characters.
 
 ## Scoring
 

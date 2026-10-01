@@ -39,7 +39,7 @@ import { setupEnvironment, softDotTexture } from './materials.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery } from './scenery.js';
 import { getRunRules } from '../rules.js';
-import { START_STYLES, CAMERA_STYLES, getStartPose, getIntroCamera } from './cinematics.js';
+import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
 import { isHospitalHall } from './hospitalhall.js';
@@ -47,7 +47,7 @@ import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
 import { CONTINUE_COST } from './shopdata.js';
-import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, OBSTACLE_GATE_GAP, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
+import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
 export { GAME_STATES, GAME_MODES, RUN_END_REASONS } from './enginedefs.js';
 import { visualMethods } from './enginevisuals.js';
 import { examMonsterMethods } from './engineexam.js';
@@ -176,6 +176,7 @@ class Game {
     this._fovKick = 0;
     this._slowmo = 0;
     this._flyInT = 0;
+    this._flyInStart = 0;
     this._introStyle = 'drop_in';
     this._introCamStyle = 'sweep';
     this._introAnim = 'idle';
@@ -225,8 +226,8 @@ class Game {
     // Exam Monster
     this.examMonster = null;
     this.monsterParts = null;
-    this.monsterZ = 20;
-    this.monsterTargetZ = 20;
+    this.monsterZ = MONSTER_START_DIST;
+    this.monsterTargetZ = MONSTER_START_DIST;
     this.monsterVisible = false;
     this.monsterWarningPlayed = false;
 
@@ -476,7 +477,7 @@ class Game {
     } else if (state === GAME_STATES.COUNTDOWN) {
       // Countdown is managed by UI; engine just keeps scene renderable
       this._updateVisuals(deltaSeconds);
-      this._updateFlyIn(deltaSeconds);
+      this._updateFlyIn();
       updateModelAnimation(this.playerGroup, deltaSeconds, this._introAnim || 'idle');
     } else if (state === GAME_STATES.PAUSED) {
       // No simulation update during pause
@@ -484,11 +485,14 @@ class Game {
   }
 
   /** Cinematic camera sweep over the track while the countdown runs. */
-  _updateFlyIn(dt) {
-    this._flyInT += dt;
+  _updateFlyIn() {
+    // Wall-clock time, like the 3-2-1 overlay it plays under, so a slow frame rate cannot leave the shot unfinished at GO
+    this._flyInT = (performance.now() - this._flyInStart) / 1000;
     var cam = getIntroCamera(this._introCamStyle, this._flyInT, this.cameraBasePos);
     this.camera.position.set(cam.position.x, cam.position.y, cam.position.z);
     this.camera.lookAt(cam.lookAt.x, cam.lookAt.y, cam.lookAt.z);
+
+    this._updateIntroMonster();
 
     // The runner has an entrance too: a varied start each run
     var start = getStartPose(this._introStyle, this._flyInT);
@@ -701,10 +705,13 @@ class Game {
       else this.renderer.compile(this.scene, this.camera);
     } catch (e) { /* warm-up is only an optimization */ }
     this._flyInT = 0;
+    this._flyInStart = performance.now();
     this._introImpactAt = -1;
     var reduced = !!storage.get('reducedMotion');
     this._introStyle = reduced ? 'warp_in' : START_STYLES[Math.floor(Math.random() * START_STYLES.length)];
-    this._introCamStyle = reduced ? 'sweep' : CAMERA_STYLES[Math.floor(Math.random() * CAMERA_STYLES.length)];
+    // With the exam monster on, the run opens with a look-back shot (the monster is behind you); otherwise a random sweep
+    var monsterOn = !!this.examMonster && !storage.get('monsterOff');
+    this._introCamStyle = reduced ? 'sweep' : (monsterOn ? LOOKBACK_STYLE : CAMERA_STYLES[Math.floor(Math.random() * CAMERA_STYLES.length)]);
     this._transition(GAME_STATES.COUNTDOWN);
     this._emit('countdown_started', {});
   }
@@ -729,6 +736,7 @@ class Game {
       this._rules.disabledPowerups = this._leagueRules.disabledPowerups.slice();
     }
     this._resetPose();
+    this._hideIntroMonster();
     this._introAnim = 'run';
     this._runStartedAt = performance.now();
     this._emit('run_started', { skinName: this.currentSkin.name });
@@ -797,7 +805,7 @@ class Game {
     this.encountersUntilTransition = 10;
     this.transitionActive = false; this.transitionTimer = 0;
 
-    this.monsterZ = 20; this.monsterTargetZ = 20; this._monsterY = undefined;
+    this.monsterZ = MONSTER_START_DIST; this.monsterTargetZ = MONSTER_START_DIST; this._monsterY = undefined;
     this.monsterVisible = false; this.monsterWarningPlayed = false;
     this.heartSpawnCounter = 0;
     this.faceplanting = false; this.faceplantTimer = 0;

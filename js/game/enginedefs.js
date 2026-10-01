@@ -52,6 +52,8 @@ export var RUN_END_REASONS = Object.freeze({
 
 export var LANE_X = [-3, 0, 3];
 export var ANSWER_LOCK_Z = -3;
+/** Where the exam monster starts, as a distance to catch (3 = caught). Far enough to be out of sight. */
+export var MONSTER_START_DIST = 26;
 export var OBSTACLE_GATE_GAP = 14; // units an obstacle trails behind the gate it spawns with
 
 // ─── Utility helpers ───

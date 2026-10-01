@@ -21,7 +21,7 @@
 import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { SHOP_ITEMS, AVATARS } from './shopdata.js';
-import { loadCharacterModel, buildModelCharacter, attachHeadAccessory } from './charactermodel.js';
+import { loadCharacterModel, buildModelCharacter } from './charactermodel.js';
 import { useCharacterModels } from './quality.js';
 
 // ===== HELPERS =====
@@ -1066,16 +1066,7 @@ export function buildPlayer() {
         var scrubColor = storage.get('scrubColor');
         var model = buildModelCharacter(url, avatar.scale, undefined, avatar.scrub && scrubColor ? { names: avatar.scrub, color: scrubColor } : null);
         if (model) {
-            // Hats work on the 3D characters too: they follow the head bone
-            var modelHat = null;
-            for (var mh = 0; mh < SHOP_ITEMS.length; mh++) {
-                if (SHOP_ITEMS[mh].id === equipped.hat) modelHat = SHOP_ITEMS[mh];
-            }
-            if (modelHat && modelHat.color) {
-                var hatGroup = new THREE.Group();
-                applyHat(hatGroup, modelHat, avatar);
-                if (hatGroup.children.length) attachHeadAccessory(model, hatGroup);
-            }
+            // 3D characters keep their own look: no hats (they look wrong on the models)
             return model;
         }
         loadCharacterModel(url).catch(function (e) {

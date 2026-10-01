@@ -407,7 +407,7 @@ export var settingsMethods = {
     if (equippedAvatar && equippedAvatar.isModel) {
       wrap.appendChild(createElement('div', {
         className: 'setting-sublabel',
-        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look (hats work on all of them).'
+        text: 'Colors apply to the Classic Intern and the other blocky characters. Animated 3D characters keep their own look.'
       }));
       return wrap;
     }
@@ -611,7 +611,7 @@ export var settingsMethods = {
 
     if (tab === 'characters') {
       shopItems.appendChild(renderGroup('skin', '🎬 Animated 3D characters', isKind('model'),
-        'Real animated models. Each keeps its own look; you can add a hat. Colors, clothing and gear are for Classic characters.'));
+        'Real animated models. Each keeps its own look. Hats, colors, clothing and gear are for Classic characters.'));
       shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
       shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
@@ -630,7 +630,7 @@ export var settingsMethods = {
       var cardText = createElement('div', {
         className: 'setting-sublabel',
         text: kind === 'model'
-          ? (eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length ? 'Pick the color of your scrubs and add a hat below. Other clothing and gear are for Classic characters.' : 'Animated 3D characters keep their own look. You can add a hat below. To change colors or wear clothing and gear, switch to a Classic character.')
+          ? (eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length ? 'Pick the color of your scrubs below. Hats, other clothing and gear are for Classic characters.' : 'Animated 3D characters keep their own look. To wear a hat, change colors or wear clothing and gear, switch to a Classic character.')
           : (kind === 'vehicle'
             ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
             : 'Everything below works on this character.')
@@ -647,8 +647,8 @@ export var settingsMethods = {
 
       if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
       if (kind === 'model' && eqAvatar && eqAvatar.scrub && eqAvatar.scrub.length) shopItems.appendChild(this._renderScrubColors());
-      if (kind !== 'vehicle') shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
       if (kind === 'classic') {
+        shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
         shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
         shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
       }

@@ -11,6 +11,7 @@ import { buildMonster } from './monsters.js';
 import { createMonsterBehavior, stepMonsterBehavior } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { GAME_STATES, GAME_MODES } from './enginedefs.js';
+import { LOOKBACK_STYLE, LOOKBACK_HOLD } from './cinematics.js';
 
 export var examMonsterMethods = {
 
@@ -49,6 +50,43 @@ export var examMonsterMethods = {
     var before = this.examMonster;
     this._createExamMonster();
     if (this.examMonster === before) return;
+  },
+
+  /**
+   * The look-back opening: while the camera is in front of the runner the monster is seen behind them,
+   * then it drops back past the camera and fades out as the camera swings round, so by the time the run
+   * starts it is out of the field of view. Every other start keeps the monster hidden.
+   */
+  _updateIntroMonster() {
+    var m = this.examMonster;
+    if (!m) return;
+    if (this._introCamStyle !== LOOKBACK_STYLE || (this._rules && this._rules.monsterOff) || storage.get('monsterOff')) {
+      m.visible = false;
+      return;
+    }
+    var t = this._flyInT;
+    var leave = Math.min(1, Math.max(0, (t - LOOKBACK_HOLD) / 1.1)); // 0 while it is being looked at, 1 once it is gone
+    var alpha = 1 - Math.min(1, Math.max(0, (leave - 0.5) / 0.5));
+    var model = !!m.userData.isModelMonster;
+    var ground = model && !m.userData.flying;
+    var s = 0.9 * (m.userData.displayScale || 1);
+    m.visible = alpha > 0.01;
+    m.position.set(0, ground ? 0 : 1.8 + Math.sin(t * 2) * 0.15, 7 + leave * 9);
+    m.rotation.set(0, Math.PI, 0); // facing the runner
+    m.scale.set(s, s, s);
+    if (model) updateModelAnimation(m, 1 / 60, ground ? 'run' : 'idle');
+    if (this._monsterFade) {
+      for (var i = 0; i < this._monsterFade.length; i++) this._monsterFade[i].m.opacity = this._monsterFade[i].base * alpha;
+    }
+    this.monsterVisible = false;
+  },
+
+  /** The run is starting: put the monster away; from here on it only shows when the player slips. */
+  _hideIntroMonster() {
+    if (!this.examMonster) return;
+    this.examMonster.visible = false;
+    this.monsterVisible = false;
+    if (this._monsterBehavior) this._monsterBehavior.fade = 0;
   },
 
   _updateExamMonster(dt) {

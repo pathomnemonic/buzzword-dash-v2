@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import {
-  START_STYLES, CAMERA_STYLES, DEATH_STYLES, INTRO_DURATION, DEATH_DURATION,
+  START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, LOOKBACK_HOLD, DEATH_STYLES, INTRO_DURATION, DEATH_DURATION,
   getStartPose, getIntroCamera, pickDeathStyle, getDeathPose
 } from '../../js/game/cinematics.js';
 import { isTouchFirst, getControlText } from '../../js/controlhints.js';
@@ -103,5 +103,38 @@ describe('floating scenery', () => {
     const avg = (list, f) => list.reduce((a, g) => a + f(g), 0) / list.length;
     expect(avg(far, (g) => g.userData.speed)).toBeLessThan(avg(near, (g) => g.userData.speed));
     expect(avg(far, (g) => g.scale.x)).toBeGreaterThan(avg(near, (g) => g.scale.x));
+  });
+});
+
+describe('look-back opening (the monster is behind you)', () => {
+  const base = { x: 0, y: 4.5, z: 10 };
+
+  it('starts in front of the runner, looking back toward the monster', () => {
+    const cam = getIntroCamera(LOOKBACK_STYLE, 0, base);
+    expect(cam.position.z).toBeLessThan(0);          // in front of the runner (who faces -z)
+    expect(cam.lookAt.z).toBeGreaterThan(0);          // looking back along +z
+  });
+
+  it('holds on the monster, then swings around into the normal chase view', () => {
+    const held = getIntroCamera(LOOKBACK_STYLE, LOOKBACK_HOLD * 0.9, base).position;
+    const first = getIntroCamera(LOOKBACK_STYLE, 0, base).position;
+    expect(held).toEqual(first);
+    const end = getIntroCamera(LOOKBACK_STYLE, 5, base);
+    expect(end.position).toEqual(base);
+    expect(end.lookAt).toEqual({ x: 0, y: 1, z: -20 });
+  });
+
+  it('moves smoothly (no jumps) the whole way', () => {
+    let prev = getIntroCamera(LOOKBACK_STYLE, 0, base).position;
+    for (let t = 0.02; t <= 3; t += 0.02) {
+      const p = getIntroCamera(LOOKBACK_STYLE, t, base).position;
+      const step = Math.hypot(p.x - prev.x, p.y - prev.y, p.z - prev.z);
+      expect(step, `t=${t}`).toBeLessThan(1.2);
+      prev = p;
+    }
+  });
+
+  it('is not part of the random pool', () => {
+    expect(CAMERA_STYLES).not.toContain(LOOKBACK_STYLE);
   });
 });

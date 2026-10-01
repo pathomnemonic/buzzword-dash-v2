@@ -80,3 +80,21 @@ describe('exam monster behavior', () => {
     expect(monsterVisibility(24, 0)).toBeLessThan(monsterVisibility(12, 0));
   });
 });
+
+describe('the monster is out of sight at the start of a run', () => {
+  it('is invisible at the starting distance, even with no streak', () => {
+    expect(monsterVisibility(26, 0)).toBe(0);
+    const st = createMonsterBehavior(() => 0.5);
+    expect(st.fade).toBe(0);
+    let pose;
+    for (let i = 0; i < 300; i++) pose = stepMonsterBehavior(st, { playerX: 0, dist: 26, streak: 0, dying: false, time: i / 60 }, 1 / 60);
+    expect(pose.opacity).toBeLessThan(0.02);
+  });
+
+  it('creeps into view as mistakes bring it closer', () => {
+    expect(monsterVisibility(22, 0)).toBe(0);
+    expect(monsterVisibility(18, 0)).toBeGreaterThan(0.3);
+    expect(monsterVisibility(18, 0)).toBeLessThan(0.7);
+    expect(monsterVisibility(14, 0)).toBe(1);
+  });
+});
