@@ -278,8 +278,8 @@ export var settingsMethods = {
       [
         'Characters, monsters, props, the hospital bed and traffic cone: Quaternius (CC0). Screens and signs: Kenney (CC0). More props: CreativeTrio, iPoly3D (CC0).',
         'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
-        'Doctor, nurse, surgeon, resident and paramedic: Quaternius characters (CC0), repainted as medical staff.',
-        'Robot character: Tomás Laulhé (CC0), with changes by Don McCurdy.'
+        'Doctor, nurse and paramedic: Quaternius characters (CC0).',
+        'Scout: KayKit Adventurers Rogue by Kay Lousberg (CC0), www.kaylousberg.com.'
       ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
       credits.appendChild(creditsBody);
       content.appendChild(credits);

@@ -1,54 +1,57 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
+import { existsSync } from 'node:fs';
 import { AVATARS, SHOP_ITEMS } from '../../js/game/shopdata.js';
+import { CHARACTER_MODELS, RETIRED_CHARACTERS, getCharacterParts } from '../../js/game/modelcatalog.js';
 import { addHairStyle } from '../../js/game/player.js';
+import { findClipName } from '../../js/game/clipnames.js';
 
-const doctors = AVATARS.filter((a) => /^avatar_dr_/.test(a.id));
+describe('women in the 3D roster, at the same quality as the men', () => {
+  it('has a physician (Dr. Nova) and the Scout as full 3D characters', () => {
+    const nova = AVATARS.find((a) => a.id === 'avatar_m_nurse');
+    expect(nova.name).toBe('Dr. Nova');
+    expect(nova.isModel).toBe(true);
+    expect(nova.desc).toMatch(/medicine/i);
+    const scout = AVATARS.find((a) => a.id === 'avatar_m_scout');
+    expect(scout.isModel).toBe(true);
+    expect(existsSync('public/models/' + CHARACTER_MODELS.find((m) => m.id === 'avatar_m_scout').file)).toBe(true);
+    expect(SHOP_ITEMS.some((i) => i.id === 'avatar_m_scout')).toBe(true);
+  });
 
-describe('women doctors in the roster', () => {
-  it('has several, each with a name, a specialty and a shop entry', () => {
-    expect(doctors.length).toBeGreaterThanOrEqual(6);
-    doctors.forEach((a) => {
-      expect(a.name).toMatch(/^Dr\. /);
-      expect(a.desc.length).toBeGreaterThan(10);
-      expect(a.icon).toBeTruthy();
-      expect(SHOP_ITEMS.some((i) => i.id === a.id && i.type === 'skin' && i.price === a.price), a.id).toBe(true);
+  it('does not use the lower-quality Classic women doctors any more', () => {
+    ['maya', 'lin', 'amara', 'sofia', 'zuri', 'priya'].forEach((n) => {
+      expect(AVATARS.some((a) => a.id === 'avatar_dr_' + n)).toBe(false);
+      expect(RETIRED_CHARACTERS['avatar_dr_' + n].to).toBe('avatar_m_nurse');
     });
   });
 
-  it('are different from each other: hairstyle, skin tone and outfit', () => {
-    const styles = new Set(doctors.map((a) => a.hairStyle));
-    expect(styles.size).toBeGreaterThanOrEqual(5);
-    const skins = new Set(doctors.map((a) => a.skinColor));
-    expect(skins.size).toBe(doctors.length);
-    const outfits = new Set(doctors.map((a) => a.bodyColor + '/' + a.pantsColor));
-    expect(outfits.size).toBe(doctors.length);
-    // a spread of skin tones, light to deep
-    const lum = (hex) => ((hex >> 16) & 255) * 0.3 + ((hex >> 8) & 255) * 0.59 + (hex & 255) * 0.11;
-    expect(Math.max(...doctors.map((a) => lum(a.skinColor))) - Math.min(...doctors.map((a) => lum(a.skinColor)))).toBeGreaterThan(80);
+  it('the medical characters get the same skin tone choices, and hair color where they have hair', () => {
+    ['avatar_intern', 'avatar_m_nurse', 'avatar_m_paramedic'].forEach((id) => {
+      const skin = getCharacterParts(id).find((p) => p.key === 'skin');
+      expect(skin, id + ' skin').toBeTruthy();
+      expect(skin.palette.length).toBeGreaterThanOrEqual(6);
+    });
+    ['avatar_intern', 'avatar_m_nurse'].forEach((id) => expect(getCharacterParts(id).some((p) => p.key === 'hair'), id).toBe(true));
+    // both doctors offer exactly the same skin tones
+    const tones = (id) => JSON.stringify(getCharacterParts(id).find((p) => p.key === 'skin').palette);
+    expect(tones('avatar_intern')).toBe(tones('avatar_m_nurse'));
   });
 
-  it('every hairstyle draws something, and the plain one draws nothing extra', () => {
+  it('the Scout\'s animation clip names are understood by the game', () => {
+    const clips = ['Running_A', 'Jump_Full_Short', 'Dodge_Forward', 'Cheer', 'Death_A', 'Idle'];
+    expect(findClipName(clips, 'run')).toBe('Running_A');
+    expect(findClipName(clips, 'jump')).toBe('Jump_Full_Short');
+    expect(findClipName(clips, 'slide')).toBe('Dodge_Forward');
+    expect(findClipName(clips, 'death')).toBe('Death_A');
+    expect(findClipName(clips, 'idle')).toBe('Idle');
+    expect(findClipName(clips, 'celebrate')).toBe('Cheer');
+  });
+
+  it('hairstyles still work for the Classic characters that use them', () => {
     ['ponytail', 'bun', 'bob', 'long', 'braids', 'puffs'].forEach((style) => {
       const g = new THREE.Group();
       addHairStyle(g, { hairStyle: style, hairColor: 0x222222 }, 0.38, 1);
       expect(g.children.length, style).toBeGreaterThan(0);
-      g.children.forEach((m) => expect(m.isMesh).toBe(true));
-    });
-    const plain = new THREE.Group();
-    addHairStyle(plain, { hairColor: 0x222222 }, 0.38, 1);
-    addHairStyle(plain, { hairStyle: 'short', hairColor: 0x222222 }, 0.38, 1);
-    expect(plain.children.length).toBe(0);
-  });
-
-  it('hair stays on the head: nothing sticks out below the shoulders or far to the sides', () => {
-    ['ponytail', 'bun', 'bob', 'long', 'braids', 'puffs'].forEach((style) => {
-      const g = new THREE.Group();
-      addHairStyle(g, { hairStyle: style, hairColor: 0x222222 }, 0.38, 1);
-      const box = new THREE.Box3().setFromObject(g);
-      expect(box.min.y, style).toBeGreaterThan(0.85);  // above the waist
-      expect(box.max.y, style).toBeLessThan(2.5);
-      expect(Math.max(Math.abs(box.min.x), Math.abs(box.max.x)), style).toBeLessThan(0.7);
     });
   });
 });

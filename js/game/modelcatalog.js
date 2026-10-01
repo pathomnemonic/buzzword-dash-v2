@@ -31,6 +31,8 @@ var ALIEN = swatches([['Green', 0x4ad05a], ['Violet', 0x9a5ae0], ['Blue', 0x3a8a
 var ORC = swatches([['Moss', 0x5a7a3a], ['Swamp', 0x3a6b4a], ['Slate', 0x56667a], ['Ember', 0xa8502a], ['Violet', 0x6a4a8a], ['Bone', 0xc8c0a0]]);
 var ROBES = swatches([['Midnight', 0x24306a], ['Violet', 0x6a3aa8], ['Crimson', 0xa82a3a], ['Emerald', 0x1f7a5a], ['Teal', 0x1f8a9a], ['Ash', 0x7a808a]]);
 var NINJA = swatches([['Black', 0x15161a], ['Crimson', 0xa82a2a], ['Navy', 0x1f2f5a], ['Forest', 0x2a5a3a], ['Violet', 0x4a2a6a], ['Snow', 0xe8eef2]]);
+var SKIN_TONES = swatches([['Fair', 0xf3d2b6], ['Light', 0xe6b48c], ['Tan', 0xc98f62], ['Brown', 0xa8734d], ['Deep', 0x6f4630], ['Ebony', 0x4a2e20]]);
+var HAIR_COLORS = swatches([['Black', 0x15110f], ['Dark brown', 0x3b2418], ['Auburn', 0x7a3a22], ['Blonde', 0xe0c070], ['Ginger', 0xb4521f], ['Silver', 0xb8bcc4], ['Pink', 0xe86fa0], ['Blue', 0x3a7ae0]]);
 var SHOES = swatches([['White', 0xf2f2f2], ['Black', 0x1d1f24], ['Pink', 0xe86fa0], ['Sky', 0x7fb8f0], ['Red', 0xd93030]]);
 
 /**
@@ -43,19 +45,24 @@ export var CHARACTER_MODELS = [
   { id: 'avatar_intern', name: 'Dr. Dash', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
     parts: [
       { key: 'top', label: 'Scrub top', materials: ['LightBrown'], palette: SCRUBS },
-      { key: 'pants', label: 'Scrub pants', materials: ['LightBlue'], palette: SCRUBS }
+      { key: 'pants', label: 'Scrub pants', materials: ['LightBlue'], palette: SCRUBS },
+      { key: 'skin', label: 'Skin', materials: ['Skin', 'Skin_Darker'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
-  { id: 'avatar_m_nurse', name: 'Nurse Nova', desc: 'Keeps the whole ward running', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc,
+  { id: 'avatar_m_nurse', name: 'Dr. Nova', desc: 'Emergency medicine: calm in every code', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc,
     parts: [
       { key: 'top', label: 'Scrub top', materials: ['White'], palette: PASTELS },
       { key: 'pants', label: 'Scrub pants', materials: ['Orange'], palette: PASTELS },
-      { key: 'shoes', label: 'Shoes', materials: ['Grey'], palette: SHOES }
+      { key: 'shoes', label: 'Shoes', materials: ['Grey'], palette: SHOES },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair_Blond', 'Hair_Brown'], palette: HAIR_COLORS }
     ] },
   { id: 'avatar_m_paramedic', name: 'Paramedic Pat', desc: 'First on scene, fastest on foot', file: 'characters/paramedic.glb', price: 800, icon: '🚑', color: 0xd93030,
     parts: [
       { key: 'helmet', label: 'Helmet', materials: ['Worker_Yellow'], palette: SAFETY },
       { key: 'vest', label: 'Vest', materials: ['Worker_Vest'], palette: HIVIS },
-      { key: 'pants', label: 'Pants', materials: ['Brown'], palette: DARKS }
+      { key: 'pants', label: 'Pants', materials: ['Brown'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
     ] },
   { id: 'avatar_m_intern', name: 'Explorer', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 300, icon: '🧭', color: 0x2288dd,
     parts: [
@@ -77,6 +84,7 @@ export var CHARACTER_MODELS = [
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
       { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
     ] },
+  { id: 'avatar_m_scout', name: 'Scout', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 1800, icon: '🏹', color: 0x3fa98a },
   { id: 'avatar_m_zombie', name: 'Zombie', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
   { id: 'avatar_m_ninja', name: 'Ninja', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344,
     parts: [
@@ -121,7 +129,14 @@ export var CHARACTER_MODELS = [
 export var RETIRED_CHARACTERS = {
   avatar_m_resident: { to: 'avatar_intern', price: 400 },
   avatar_m_surgeon: { to: 'avatar_intern', price: 1000 },
-  avatar_robopro: { to: 'avatar_m_robot', price: 9000 }
+  avatar_robopro: { to: 'avatar_m_robot', price: 9000 },
+  // The six Classic women doctors were replaced by Dr. Nova (a full 3D character) with skin and hair choices
+  avatar_dr_maya: { to: 'avatar_m_nurse', price: 1500 },
+  avatar_dr_lin: { to: 'avatar_m_nurse', price: 2000 },
+  avatar_dr_amara: { to: 'avatar_m_nurse', price: 2500 },
+  avatar_dr_sofia: { to: 'avatar_m_nurse', price: 2800 },
+  avatar_dr_zuri: { to: 'avatar_m_nurse', price: 3000 },
+  avatar_dr_priya: { to: 'avatar_m_nurse', price: 3500 }
 };
 
 /** The recolorable parts of a character, or [] */

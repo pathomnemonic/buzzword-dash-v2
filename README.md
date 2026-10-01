@@ -183,7 +183,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
-- **Women doctors** — six Classic characters (Dr. Maya, Lin, Amara, Sofia, Zuri and Priya) with different specialties, hairstyles and skin tones, plus a ponytail on the Classic Nurse. The animated 3D set is still mostly men; adding more needs CC0 model files with the same skeleton, and the Quaternius and Poly Pizza sites were not reachable when this was done.
+- **Women in 3D** — Dr. Nova (a physician) and the Scout are full animated 3D characters. The medical characters (Dr. Dash, Dr. Nova, Paramedic Pat) can all be given any skin tone, and Dr. Dash and Dr. Nova any hair color, so one character covers many looks.
 - **Animated 3D characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
@@ -327,6 +327,8 @@ Supabase setup for accounts:
 In the app: set a display name on the Leaderboard screen, then use **Find** or **＋ Add** to send friend requests, **Requests** to accept them, and **Invite** on a friend (after hosting a multiplayer room) to send a match invite.
 
 ## Credits
+
+- `public/models/characters/scout.glb` — the Rogue from the KayKit Adventurers Character Pack 1.0 by Kay Lousberg ([kaylousberg.com](https://www.kaylousberg.com/), CC0 1.0); the weapons were removed and the animation clips trimmed with `tools/import-character.mjs`.
 
 - `public/models/characters/*.glb` and `public/models/monsters/*.glb` — animated characters and monsters by [Quaternius](https://quaternius.com/) (CC0 1.0, public domain), downloaded from [Poly Pizza](https://poly.pizza/). Characters (Explorer, Ranger, Adventurer, Hooded Rogue, Zombie, Ninja, Bones, Orc, Archmage, Alien, Mecha Bot, King, plus the Doctor, Nurse and Paramedic) and six monsters (Ghost, Flying Skull, Yeti, Brute, Demon, Dragon). Catalog and clip mapping live in `js/game/modelcatalog.js` and `js/game/charactermodel.js`.
 

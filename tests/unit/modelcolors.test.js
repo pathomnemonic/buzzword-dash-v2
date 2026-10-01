@@ -50,7 +50,7 @@ describe('each character is customized in its own way', () => {
 
   it('most characters can be recolored, with parts that fit them', () => {
     expect(customizable.length).toBeGreaterThanOrEqual(10);
-    expect(getCharacterParts('avatar_intern').map((p) => p.label)).toEqual(['Scrub top', 'Scrub pants']);
+    expect(getCharacterParts('avatar_intern').map((p) => p.label)).toEqual(['Scrub top', 'Scrub pants', 'Skin', 'Hair']);
     expect(getCharacterParts('avatar_m_robot').map((p) => p.label)).toEqual(['Body', 'Trim']);
     expect(getCharacterParts('avatar_m_wizard').map((p) => p.label)).toEqual(['Robe & hat', 'Trim']);
     expect(getCharacterParts('nonsense')).toEqual([]);

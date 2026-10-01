@@ -45,7 +45,7 @@ describe('Locker tabs', () => {
     ui.renderShop();
     expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
     const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
-    expect(parts).toEqual(['top', 'pants']);
+    expect(parts).toEqual(['top', 'pants', 'skin', 'hair']);
     expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(8);
     expect(headings().join('|')).not.toContain('Headwear');
     expect(headings().join('|')).not.toContain('Clothing');

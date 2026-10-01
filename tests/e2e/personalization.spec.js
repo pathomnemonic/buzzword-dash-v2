@@ -30,7 +30,7 @@ test.describe('Personalization', () => {
     await page.getByRole('tab', { name: /Customize/ }).click();
     await expect(page.getByText(/Equipped: .* · Animated 3D character/)).toBeVisible();
     await expect(page.getByText(/Dr\. Dash colors/)).toBeVisible();
-    await expect(page.locator('.color-part')).toHaveCount(2);
+    await expect(page.locator('.color-part')).toHaveCount(4);
     await page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]').click();
     await expect(page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]')).toHaveAttribute('aria-pressed', 'true');
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('buzzword_dash_v1')).settings.modelColors);
