@@ -65,6 +65,7 @@ const applyShowcase = () => {
     d.settings.selectedSubjects = o.subjects;
     d.settings.preferredMap = o.map;
     d.settings.quality = 'high';
+    d.settings.glowEffects = true;
     localStorage.setItem(key, JSON.stringify(d));
   } catch { /* ignore */ }
 };
@@ -179,7 +180,7 @@ const results = async (opts, name, caption, sub) => {
   await snap(name, caption, sub);
 };
 
-await run({ skin: 'avatar_m_ninja', monster: 'monster_m_demon', subjects: ['Infectious Disease'], map: 'Neon ER' },
+await run({ skin: 'avatar_m_ninja', monster: 'monster_m_demon', subjects: ['Infectious Disease'], map: 'Hospital Hallway' },
   'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
 await run({ skin: 'avatar_m_wizard', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
   'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
