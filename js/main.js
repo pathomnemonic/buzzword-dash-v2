@@ -34,6 +34,7 @@ import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
 import { beatsBest, recordBest } from './scorebest.js';
+import { getDashControl, attachDashPrompt } from './dashcontrol.js';
 import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
 import { mountFlyers } from './homefx.js';
 import { updateAttentionDots } from './attentiondots.js';
@@ -567,6 +568,8 @@ function attachTipPrompt() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
   var total = game.correct + game.wrong;
+  // After a few games on a phone: offer the double tap once (one ask per results screen, so this one goes first)
+  if (attachDashPrompt(content, function (m) { ui._showToast(m); })) return;
   // Share / rate / account asks come first; only one ask per results screen, so the tip waits its turn
   var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
   var lbStatus = lb ? lb.getStatus() : null;
@@ -1047,7 +1050,7 @@ function init() {
   document.addEventListener('dx:home-shown', maybeRerollTheme);
   // Dash: double-tap, an on-screen button, or off (Settings -> Look -> Dash control)
   var dashBtn = document.getElementById('dashBtn');
-  function applyDashControl() { if (dashBtn) dashBtn.hidden = (storage.get('dashControl') || 'double') !== 'button'; }
+  function applyDashControl() { if (dashBtn) dashBtn.hidden = getDashControl() !== 'button'; }
   if (dashBtn) {
     dashBtn.addEventListener('pointerdown', function (e) { e.preventDefault(); game.addRushStack(); });
     dashBtn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); game.addRushStack(); } });

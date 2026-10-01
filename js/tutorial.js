@@ -13,7 +13,7 @@
 import { createElement, clearElement } from './dom.js';
 import { setupInput } from './game/input.js';
 import { getControlText } from './controlhints.js';
-import { storage } from './storage.js';
+import { getDashControl } from './dashcontrol.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 
 var MIN_LANE = 0;
@@ -95,7 +95,7 @@ export function startTutorial(opts) {
   var overlay = document.getElementById('tutorialOverlay');
   if (!overlay || _session) return;
 
-  var steps = buildSteps(undefined, storage.get('dashControl')).filter(function (s) { return !(s.id === 'rush' && getControlText(undefined, storage.get('dashControl')).touch && storage.get('dashControl') === 'off'); });
+  var steps = buildSteps(undefined, getDashControl()).filter(function (s) { return !(s.id === 'rush' && getControlText().touch && getDashControl() === 'off'); });
   var index = 0;
   var lane = CENTER_LANE;
   var locked = false;

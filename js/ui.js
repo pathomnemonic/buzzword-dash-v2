@@ -44,6 +44,7 @@ import { SHOP_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
+import { getDashControl } from './dashcontrol.js';
 import { streakCallout } from './flavor.js';
 import { dailyReward } from './progress.js';
 import { newlyAffordable, markSeen } from './lockerdots.js';
@@ -1340,7 +1341,7 @@ class UI {
     audio.play('countdown');
 
     if (tip) {
-      var rushVerb = getControlText(undefined, storage.get('dashControl')).rushVerb;
+      var rushVerb = getControlText(undefined, getDashControl()).rushVerb;
       setText(tip, rushVerb ? '💡 Know the answer? ' + rushVerb.toUpperCase() + ' to RUSH through! ⚡ Faster = more points' : '💡 Read the clue, then run into the right gate');
       tip.style.opacity = '1';
     }

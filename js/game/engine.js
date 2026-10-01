@@ -31,6 +31,7 @@ import { getStartSkin, SKINS } from './skins.js';
 import { buildTrack, spawnEnvProp, calculateTargetFOV, updateCameraFOV, calculateCameraLean, getStreakVisualIntensity } from './track.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
+import { getDashControl } from '../dashcontrol.js';
 import { updateGateHighlights } from './gates.js';
 import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstanceMeshes, reattachCoinInstances } from './obstacles.js';
 import { TrailSystem } from './trails.js';
@@ -442,7 +443,7 @@ class Game {
         pause: function() { self.togglePause(); }
     }, {
         enabled: function() { return self._state === GAME_STATES.PLAYING; },
-        doubleTap: function() { return (storage.get('dashControl') || 'double') === 'double'; }
+        doubleTap: function() { return getDashControl() === 'double'; }
     });
 
     // Moving keys are ignored while paused, but Escape must be able to un-pause

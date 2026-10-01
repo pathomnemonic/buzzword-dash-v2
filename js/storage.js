@@ -57,7 +57,9 @@ var DEFAULTS = {
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
-    dashControl: 'double',  // how to dash: 'double' (double-tap), 'button' (on-screen button) or 'off'
+    dashControl: 'auto',    // how to dash: 'auto' (button on phones, double-tap on computers), 'double', 'button' or 'off'
+    dashPromptSeen: false,  // asked once, after 3 games, whether to switch the phone default to double-tap
+    dashDefaultSeen: false,
     scoreBests: {},       // best score already sent to the leaderboard, by "mode|season" (see scorebest.js)
     promptState: {},      // when the share / rate / account asks were last shown (see prompts.js)
     runsFinished: 0,
@@ -643,6 +645,12 @@ class Storage {
     if (!d.settings.themeSurpriseSeen) {
       d.settings.themeSurpriseSeen = true;
       if (d.settings.uiTheme === 'auto') d.settings.uiTheme = 'surprise';
+    }
+
+    // The dash used to default to the double tap; players who never chose move to Automatic (a button on phones)
+    if (!d.settings.dashDefaultSeen) {
+      d.settings.dashDefaultSeen = true;
+      if (d.settings.dashControl === 'double') d.settings.dashControl = 'auto';
     }
 
     // 30 fps became the default; switch everyone over once (it can still be turned off)
