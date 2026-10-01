@@ -24,6 +24,9 @@
 import * as THREE from 'three';
 import { roundedBox, upgradeMaterials, markShared, mergeStatic } from './materials.js';
 import { buildScenery, buildHanging } from './scenery.js';
+import { buildModelCharacter, loadCharacterModel, isModelReady } from './charactermodel.js';
+import { modelUrl } from './modelcatalog.js';
+import { useCharacterModels } from './quality.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -36,7 +39,9 @@ var JUMP_VARIANTS = [
   { id: 'crate',            builder: buildWheelchair,       bounds: { width: 1.0, height: 1.0, depth: 0.8 }, model: 'crate' },
   { id: 'spilled_supplies', builder: buildSpilledSupplies,  bounds: { width: 1.5, height: 0.5, depth: 0.8 }, model: 'boxes' },
   { id: 'fallen_stretcher', builder: buildFallenStretcher,  bounds: { width: 2.0, height: 0.5, depth: 0.8 }, model: 'barrier' },
-  { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 }, model: 'bin' }
+  { id: 'medical_waste_bin',builder: buildMedicalWasteBin,  bounds: { width: 0.7, height: 0.7, depth: 0.7 }, model: 'bin' },
+  // A staff member pushing a gurney toward you: animated, jump over the gurney
+  { id: 'orderly_gurney',    builder: buildGurney,           bounds: { width: 2.2, height: 0.7, depth: 1.2 }, model: 'bed', staff: ['characters/orc.glb', 'characters/zombie.glb', 'characters/robot.glb'] }
 ];
 
 var SLIDE_VARIANTS = [
@@ -531,7 +536,43 @@ function addSlideIndicator(group) {
  *   Shape: { type: 'jump'|'slide', lane: 0|1|2, variantId: string, spawnOffset: number }
  * @returns {object} Metadata about the spawned obstacle: { variantId, type, lane, bounds }
  */
-export function spawnObstacle(scene, obstacleMeshes, planEntry) {
+/**
+ * Which lane an obstacle may use. Never the lane holding the right answer, so an obstacle can
+ * never get in the way of choosing it.
+ * @param {number} avoidLane the correct lane (0-2), or -1/undefined for no restriction
+ * @param {function(): number} [rand]
+ */
+export function pickObstacleLane(avoidLane, rand) {
+  var r = rand || Math.random;
+  var lanes = [0, 1, 2].filter(function (l) { return l !== avoidLane; });
+  return lanes[Math.floor(r() * lanes.length)];
+}
+
+/** Start downloading the characters that push gurneys (they are only used on the 3D tiers). */
+export function preloadStaffModels() {
+  if (!useCharacterModels()) return;
+  JUMP_VARIANTS.forEach(function (v) { (v.staff || []).forEach(function (f) { loadCharacterModel(modelUrl(f)).catch(function () { /* optional */ }); }); });
+}
+
+/** The animated crew behind a staffed obstacle (null until its character model has loaded). */
+export function buildStaffMember(files, rand) {
+  var file = files[Math.floor((rand || Math.random)() * files.length)];
+  var url = modelUrl(file);
+  if (!isModelReady(url)) { loadCharacterModel(url).catch(function () { /* the plain gurney is used */ }); return null; }
+  var pg = buildModelCharacter(url, 1, 1.9);
+  if (!pg) return null;
+  pg.rotation.y = Math.PI; // pushing the gurney toward the runner
+  pg.position.set(0, 0, -1.7);
+  return pg;
+}
+
+/**
+ * @param {object} [options]
+ * @param {number} [options.avoidLane] lane that must stay clear (the correct answer)
+ * @param {number} [options.spawnZ] where it appears; beyond the gate, so it always arrives after the answer is locked
+ */
+export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
+  options = options || {};
   var lane;
   var isSlide;
   var variant;
@@ -551,11 +592,11 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry) {
     }
   } else {
     // Random spawning
-    lane = Math.floor(Math.random() * 3);
+    lane = pickObstacleLane(options.avoidLane);
     isSlide = Math.random() < 0.5;
-    var variants2 = isSlide ? SLIDE_VARIANTS : JUMP_VARIANTS;
+    var variants2 = (isSlide ? SLIDE_VARIANTS : JUMP_VARIANTS).filter(function (v) { return !v.staff || useCharacterModels(); });
     variant = variants2[Math.floor(Math.random() * variants2.length)];
-    spawnZ = -50;
+    spawnZ = options.spawnZ || -50;
   }
 
   // Real 3D model when one is ready (high graphics tier); otherwise the built-in version.
@@ -568,8 +609,11 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry) {
     obs = variant.builder();
     upgradeMaterials(obs, { glowAbove: 0.92 });
   }
+  var staff = variant.staff ? buildStaffMember(variant.staff) : null;
+  if (staff) obs.add(staff);
   obs.position.set(LANE_X[lane], 0, spawnZ);
   obs.userData = {
+    staff: staff,
     lane: lane,
     type: isSlide ? 'high' : 'low',
     variantId: variant.id,

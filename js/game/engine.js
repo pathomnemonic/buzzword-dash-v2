@@ -39,7 +39,7 @@ import {
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
 import { getCardPool, pickCard, spawnGates, updateGateHighlights, flashGateResult } from './gates.js';
-import { spawnObstacle, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances } from './obstacles.js';
+import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances } from './obstacles.js';
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { getMonsterParts, disposeExamMonster } from './exammonster.js';
@@ -540,6 +540,7 @@ class Game {
     this.renderer.shadowMap.enabled = useSceneryModels();
     setupEnvironment(this.renderer, this.scene);
     preloadScenery().catch(function () { /* the built-in versions are used */ });
+    preloadStaffModels();
     container.appendChild(this.renderer.domElement);
 
     // Create trackRoot group
@@ -2293,6 +2294,7 @@ card = pickResult ? pickResult.card : null;
     for (var oi = this.obstacleMeshes.length - 1; oi >= 0; oi--) {
       var ob = this.obstacleMeshes[oi];
       ob.position.z += move;
+      if (ob.userData.staff) updateModelAnimation(ob.userData.staff, dt, 'run');
       if (ob.position.z > 2) {
         var od = ob.userData;
         if (od.lane === this.currentLane) {
@@ -2690,10 +2692,14 @@ card = pickResult ? pickResult.card : null;
   _transitionToNextEncounter() {
     for (var m = 0; m < this.gateMeshes.length; m++) removeAndDispose(this.scene, this.gateMeshes[m]);
     this.gateMeshes = [];
-    if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
-      spawnObstacle(this.scene, this.obstacleMeshes);
-    }
+    // Decide the question first, so the obstacle can stay out of the right answer's lane, and place it
+    // beyond the gate so it only arrives after the answer has been locked in.
     this._spawnEncounter();
+    if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
+      var correctLane = -1;
+      for (var cl = 0; cl < this.gates.length; cl++) if (this.gates[cl].correct) correctLane = cl;
+      spawnObstacle(this.scene, this.obstacleMeshes, null, { avoidLane: correctLane, spawnZ: (this._gateSpawnZ || -50) - 8 });
+    }
   }
 
   _spawnGateParticles(position, color, count) {

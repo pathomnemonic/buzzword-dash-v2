@@ -56,7 +56,7 @@ function scaleNote(scale, baseNote, index) {
 
 // ===== SKIN MUSIC CONFIGURATIONS =====
 
-const SKIN_MUSIC = {
+export const SKIN_MUSIC = {
   'Neural Highway': {
     bpm: 128, key: 48, scale: 'cMinorPentatonic',
     bassPattern: [0, 0, -1, 0, 2, 2, -1, 3, 0, 0, -1, 2, 3, 3, -1, 0],
@@ -242,11 +242,63 @@ function getNoiseBuffer(ctx, duration) {
 
 // ===== MUSIC GENERATOR CLASS (look-ahead scheduler) =====
 
-// The corridor map plays the ER track
-SKIN_MUSIC["Hospital Hallway"] = SKIN_MUSIC["Neon ER"];
-SKIN_MUSIC["Operating Room"] = SKIN_MUSIC["Surgical Theater"];
-SKIN_MUSIC["Research Lab"] = SKIN_MUSIC["Cellular Matrix"];
-SKIN_MUSIC["Ambulance Bay"] = SKIN_MUSIC["Defibrillator Shock"];
+// Music for the walled-in maps: each has its own tempo, key, scale, bassline, melody and drums
+SKIN_MUSIC['Hospital Hallway'] = {
+  // calm and steady, like a quiet ward at night: soft pads, a walking bass, sparse brushed drums
+  bpm: 112, key: 50, scale: 'cDorian',
+  bassPattern: [0, -1, 0, -1, 3, -1, 3, -1, 5, -1, 5, -1, 3, -1, 2, -1],
+  melodyPattern: [7, -1, 9, -1, 10, -1, 9, 7, -1, 5, -1, 7, -1, -1, 9, -1],
+  chordIntervals: [[0, 3, 7], [3, 7, 10], [5, 9, 12], [3, 7, 10]],
+  bassType: 'triangle', melodyType: 'sine', padType: 'sine',
+  drumPattern: {
+    kick:  [1,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0],
+    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
+    hat:   [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0]
+  },
+  filterFreq: 1800, filterQ: 1
+};
+SKIN_MUSIC['Operating Room'] = {
+  // tense and clinical: a slow heartbeat kick, ticking hats and a thin, nervous melody
+  bpm: 100, key: 43, scale: 'cMinor',
+  bassPattern: [0, -1, -1, -1, 0, -1, -1, 1, 0, -1, -1, -1, 0, -1, 1, -1],
+  melodyPattern: [-1, -1, 10, -1, -1, -1, 9, -1, -1, 7, -1, -1, 9, -1, -1, 10],
+  chordIntervals: [[0, 3, 7], [0, 3, 6], [0, 3, 7], [-2, 2, 5]],
+  bassType: 'sine', melodyType: 'triangle', padType: 'sawtooth',
+  drumPattern: {
+    kick:  [1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
+    snare: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    hat:   [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]
+  },
+  filterFreq: 1500, filterQ: 4
+};
+SKIN_MUSIC['Research Lab'] = {
+  // curious and bouncy: a hopping bass and a plinky square-wave arpeggio, like a lab-bench jingle
+  bpm: 132, key: 52, scale: 'cMixolydian',
+  bassPattern: [0, -1, 4, -1, 0, -1, 4, 5, 0, -1, 4, -1, 7, 5, 4, -1],
+  melodyPattern: [7, 9, 11, 9, 7, 9, 11, 14, 12, 11, 9, 7, 9, -1, 7, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-2, 2, 5], [-2, 2, 5]],
+  bassType: 'square', melodyType: 'square', padType: 'triangle',
+  drumPattern: {
+    kick:  [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],
+    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
+    hat:   [1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1]
+  },
+  filterFreq: 3200, filterQ: 3
+};
+SKIN_MUSIC['Ambulance Bay'] = {
+  // urgent: a blues-scale riff that alternates like a siren, a driving four-on-the-floor kick
+  bpm: 156, key: 46, scale: 'cBlues',
+  bassPattern: [0, 0, -1, 0, 0, 3, -1, 0, 0, 0, -1, 0, 4, 3, -1, 0],
+  melodyPattern: [9, 12, 9, 12, 9, 12, 9, 12, 8, 11, 8, 11, 8, 11, 8, 11],
+  chordIntervals: [[0, 3, 7], [0, 3, 7], [5, 8, 12], [5, 8, 12]],
+  bassType: 'sawtooth', melodyType: 'sawtooth', padType: 'square',
+  drumPattern: {
+    kick:  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
+    snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0],
+    hat:   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  },
+  filterFreq: 2800, filterQ: 3
+};
 
 class MusicGenerator {
   constructor(ctx, outputNode, skinName, settingsGetter) {
