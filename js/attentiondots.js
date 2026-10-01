@@ -52,7 +52,7 @@ export function updateAttentionDots(storage, quests, doc) {
   var profileLabel = a.profile === 1 ? 'You have a new badge' : 'You have ' + a.profile + ' new badges';
   setDot(q('#profileCornerBtn'), a.profile > 0, profileLabel);
   setDot(q('.nav-item[data-screen="screenProfile"]'), a.profile > 0, profileLabel);
-  setDot(q('#questBtn'), a.quests > 0, a.quests === 1 ? 'A quest reward is waiting' : a.quests + ' quest rewards are waiting');
+  setDot(q('.nav-item[data-screen="screenQuests"]'), a.quests > 0, a.quests === 1 ? 'A quest reward is waiting' : a.quests + ' quest rewards are waiting');
   setDot(q('#studyGoal'), a.weekly, 'Your weekly goal reward is waiting');
   return a;
 }

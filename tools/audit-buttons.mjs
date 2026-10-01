@@ -50,7 +50,7 @@ const SCREENS = {
   'settings rules': async (p) => { await p.locator('#settingsBtn').click(); await p.locator('[data-section="rules"]').click(); },
   'settings data': async (p) => { await p.locator('#settingsBtn').click(); await p.locator('[data-section="data"]').click(); },
   'settings about': async (p) => { await p.locator('#settingsBtn').click(); await p.locator('[data-section="about"]').click(); },
-  quests: async (p) => { await p.locator('#questBtn').click(); },
+  quests: async (p) => { await p.locator('[data-screen="screenQuests"]').click(); },
   achievements: async (p) => { await p.locator('#profileCornerBtn').click(); },
   'my cards': async (p) => { await p.locator('#myCardsBtn').click(); },
   multiplayer: async (p) => { await p.locator('#multiplayerBtn').click(); await p.waitForTimeout(800); },

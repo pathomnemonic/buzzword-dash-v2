@@ -209,10 +209,10 @@
             <span class="play-label">PLAY</span>
           </button>
         </div>
-        <button class="side-btn" id="questBtn" type="button" aria-haspopup="dialog" aria-controls="questsSheet">
-          <span class="side-icon" aria-hidden="true">📋</span>
-          <span class="side-label">Quests</span>
-          <span class="filters-summary" id="questSummary">Daily</span>
+        <button class="side-btn" id="speedBtn" type="button" aria-haspopup="dialog" aria-controls="speedSheet">
+          <span class="side-icon" aria-hidden="true">🏎</span>
+          <span class="side-label">Speed</span>
+          <span class="filters-summary" id="speedBtnValue">1×</span>
         </button>
       </div>
       <div class="play-sub"><button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button></div>
@@ -299,8 +299,30 @@
           <span class="se-icon" aria-hidden="true">🆕</span>
           <span class="se-body"><strong>New cards</strong><span id="fcFreshText">Cards you have not seen yet.</span><em>Discover something new</em></span>
         </button>
+        <button class="sheet-entry" id="cardBrowserBtn" type="button">
+          <span class="se-icon" aria-hidden="true">🔎</span>
+          <span class="se-body"><strong>Browse cards</strong><span>Search every card by subject or text, flag mistakes and see your stats per card.</span><em>The library</em></span>
+        </button>
+        <button class="sheet-entry" id="myCardsBtn" type="button">
+          <span class="se-icon" aria-hidden="true">📝</span>
+          <span class="se-body"><strong>My cards</strong><span>Write your own cards, import Anki decks and manage saved decks.</span><em>Make it yours</em></span>
+        </button>
       </div>
       <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Speed -->
+  <div class="tutorial-overlay sheet-overlay" id="speedSheet" role="dialog" aria-label="Game speed" aria-modal="true">
+    <div class="sheet-card">
+      <h2>🏎 Speed</h2>
+      <p class="sheet-intro">Faster runs score more points per correct answer.</p>
+      <div class="speed-dial">
+        <label for="speedDial">🏎 Speed</label>
+        <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
+        <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
+      </div>
+      <button class="btn btn-primary btn-block sheet-close" type="button">Done</button>
     </div>
   </div>
 
@@ -313,35 +335,11 @@
     </div>
   </div>
 
-  <!-- ==================== CARDS (library: browse and make your own) ==================== -->
-  <div class="screen" id="screenCards" role="region" aria-label="Cards">
-    <div class="screen-scroll">
-      <h2>📚 Cards</h2>
-      <p class="muted">The question library. To study cards, use Flashcards on Home.</p>
-      <div class="sheet-list">
-        <button class="sheet-entry" id="cardBrowserBtn" type="button">
-          <span class="se-icon" aria-hidden="true">🔎</span>
-          <span class="se-body"><strong>Browse cards</strong><span>Search every card by subject or text, flag mistakes, and see your stats per card.</span></span>
-        </button>
-        <button class="sheet-entry" id="myCardsBtn" type="button">
-          <span class="se-icon" aria-hidden="true">📝</span>
-          <span class="se-body"><strong>My cards</strong><span>Write your own cards, import Anki decks and manage saved decks.</span></span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== QUESTION FILTERS (subjects, exam, advanced) ==================== -->
-  <div class="tutorial-overlay sheet-overlay" id="filtersSheet" role="dialog" aria-label="Question filters and speed" aria-modal="true">
+  <div class="tutorial-overlay sheet-overlay" id="filtersSheet" role="dialog" aria-label="Question filters" aria-modal="true">
     <div class="sheet-card sheet-tall">
-      <h2>🎛 Filters &amp; speed</h2>
+      <h2>🎛 Question filters</h2>
       <p class="muted" id="filtersIntro">Choose which questions you get. Your choices are saved.</p>
-
-      <div class="speed-dial">
-        <label for="speedDial">🏎 Speed</label>
-        <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
-        <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
-      </div>
 
       <!-- Subjects -->
       <div class="collapsible-section">
@@ -386,11 +384,10 @@
   </div>
 
   <!-- ==================== QUESTS ==================== -->
-  <div class="tutorial-overlay sheet-overlay" id="questsSheet" role="dialog" aria-label="Daily quests" aria-modal="true">
-    <div class="sheet-card sheet-tall">
+  <div class="screen" id="screenQuests" role="region" aria-label="Daily Quests">
+    <div class="screen-scroll">
       <h2>📋 Daily Quests</h2>
       <div id="questList"></div>
-      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
     </div>
   </div>
 
@@ -540,8 +537,8 @@
     <button class="nav-item nav-home active" data-screen="screenHome" type="button" aria-current="true">
       <span class="nav-icon" aria-hidden="true">🏠</span>Home
     </button>
-    <button class="nav-item" data-screen="screenCards" type="button">
-      <span class="nav-icon" aria-hidden="true">📚</span>Cards
+    <button class="nav-item" data-screen="screenQuests" type="button">
+      <span class="nav-icon" aria-hidden="true">📋</span>Quests
     </button>
     <button class="nav-item" data-screen="screenProfile" type="button">
       <span class="nav-icon" aria-hidden="true">👤</span>Profile

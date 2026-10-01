@@ -1020,7 +1020,7 @@ function init() {
   setInterval(refreshTheme, 10 * 60 * 1000);
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
-  initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenCards', 'screenProfile']);
+  initTabSwipe(ui, ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile']);
   // The 3D engine needs WebGL. If it cannot start (old browser, blocked GPU,
   // or ?webgl=off for diagnostics) the rest of the app must still work.
   try {
@@ -1719,7 +1719,7 @@ function handleNativeBack() {
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
   if (isTutorialOpen()) { skipTutorial(); return true; }
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'];
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'accountOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

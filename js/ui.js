@@ -40,7 +40,7 @@ import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { SHOP_ITEMS, ACHIEVEMENTS, QUESTS } from './game/shopdata.js';
+import { SHOP_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
@@ -69,7 +69,7 @@ var _settingsExtensions = [];
 
 /** The tab a screen belongs to (sub-pages keep their parent's tab lit; Settings and Ranks light none). */
 function NAV_PARENT(screenId) {
-  if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards') return 'screenCards';
+  if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards' || screenId === 'screenFlashcard') return 'screenHome';
   return screenId;
 }
 
@@ -308,6 +308,7 @@ class UI {
       if (this.homeCharacter) this.homeCharacter.startAnimation();
     }
     if (screenId === 'screenStats') this.renderStats();
+    if (screenId === 'screenQuests') this.renderQuests();
     if (screenId === 'screenShop') {
       // What newly became affordable since the last visit wears a red dot until the player leaves
       this._lockerFresh = newlyAffordable(SHOP_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
@@ -442,7 +443,7 @@ class UI {
         'continueOverlay',
         'multiplayerOverlay',
         'accountOverlay',
-        'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'
+        'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'
       ];
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
@@ -601,11 +602,14 @@ class UI {
     var current = storage.get('userSpeed') || 1;
     dial.value = current;
     setText(val, current + '×');
+    var btnVal = document.getElementById('speedBtnValue');
+    if (btnVal) setText(btnVal, current + '×');
     var self = this;
     dial.addEventListener('input', function () {
       var v = parseFloat(dial.value);
       storage.set('userSpeed', v);
       setText(val, v + '×');
+      if (btnVal) setText(btnVal, v + '×');
     });
     val.style.cursor = 'pointer';
     val.addEventListener('click', function () {
@@ -631,8 +635,6 @@ class UI {
     if (homeCoins) setText(homeCoins, storage.get('coins'));
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
-    var qs = document.getElementById('questSummary');
-    if (qs) { var ready = storage.getClaimableQuestIds(QUESTS).length; setText(qs, ready > 0 ? ready + ' to claim' : 'Daily'); }
     this._renderFiltersSummary();
     document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }

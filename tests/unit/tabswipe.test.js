@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { nextTab, isTabSwipe } from '../../js/tabswipe.js';
 
-const ORDER = ['screenStats', 'screenShop', 'screenHome', 'screenCards', 'screenProfile'];
+const ORDER = ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile'];
 
 describe('swiping between tabs', () => {
   it('a swipe left goes to the next tab and a swipe right to the previous one', () => {
-    expect(nextTab(ORDER, 'screenHome', -100)).toBe('screenCards');
+    expect(nextTab(ORDER, 'screenHome', -100)).toBe('screenQuests');
     expect(nextTab(ORDER, 'screenHome', 100)).toBe('screenShop');
   });
   it('stops at the ends and ignores screens that are not tabs', () => {

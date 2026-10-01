@@ -9,7 +9,7 @@ import { createElement, clearElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 
-export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'questsSheet', 'todaySheet'];
+export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
 
 export var homeMethods = {
 
@@ -22,8 +22,8 @@ export var homeMethods = {
     if (flashcardsBtn) flashcardsBtn.addEventListener('click', function () { self.openSheet('flashcardsSheet'); });
     var filtersBtn = document.getElementById('filtersBtn');
     if (filtersBtn) filtersBtn.addEventListener('click', function () { self.openSheet('filtersSheet'); });
-    var questBtn = document.getElementById('questBtn');
-    if (questBtn) questBtn.addEventListener('click', function () { self.openSheet('questsSheet'); });
+    var speedBtn = document.getElementById('speedBtn');
+    if (speedBtn) speedBtn.addEventListener('click', function () { self.openSheet('speedSheet'); });
     // Anything changed in the filters (a subject chip, an exam, a toggle) refreshes the summary on Home
     var filtersSheet = document.getElementById('filtersSheet');
     if (filtersSheet) filtersSheet.addEventListener('click', function () { setTimeout(function () { self._renderFiltersSummary(); }, 0); });
@@ -48,9 +48,11 @@ export var homeMethods = {
     var fc = document.getElementById('flashcardsSheet');
     if (fc) fc.querySelectorAll('.sheet-entry').forEach(function (b) {
       b.addEventListener('click', function () {
-        var pick = self._fcPick || (self._fcPick = { source: 'mine', subjects: [], count: 20 });
-        pick.source = b.getAttribute('data-source') || 'mine';
         self.closeSheets();
+        var source = b.getAttribute('data-source');
+        if (!source) return; // Browse cards and My cards open their own screens
+        var pick = self._fcPick || (self._fcPick = { source: 'mine', subjects: [], count: 20 });
+        pick.source = source;
         self.show('screenFlashcard');
       });
     });
@@ -61,7 +63,6 @@ export var homeMethods = {
     var sheet = document.getElementById(id);
     if (!sheet) return;
     if (id === 'flashcardsSheet') this._renderFlashcardsSheet();
-    if (id === 'questsSheet') this.renderQuests();
     if (id === 'todaySheet') this._renderToday(document.getElementById('todayContent'));
     sheet.classList.add('active');
     trapFocus(sheet);
