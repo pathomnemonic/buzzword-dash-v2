@@ -540,6 +540,9 @@ class UI {
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
 
+      var rankedCard = document.getElementById('rankedResult');
+      if (rankedCard) { rankedCard.remove(); return; }
+
       // Close modals in priority order
       var overlays = [
         'quickReviewOverlay',

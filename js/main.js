@@ -1706,6 +1706,23 @@ function handleDeepLink(url) {
 
 /** Android back button: close things in order, and only leave the app from the home screen. */
 function handleNativeBack() {
+  // Whatever is on top goes first: the ranked result card, then pop-ups, then the screen underneath
+  var result = document.getElementById('rankedResult');
+  if (result) { result.remove(); return true; }
+  if (document.getElementById('dailyReward')) return true; // claim the reward first
+  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'tutorialOverlay'];
+  for (var pi = 0; pi < popups.length; pi++) {
+    var pop = document.getElementById(popups[pi]);
+    if (pop && pop.classList.contains('active')) {
+      if (popups[pi] === 'multiplayerOverlay') {
+        var closeMp = document.getElementById('mpCloseBtn');
+        if (closeMp) closeMp.click();
+      } else {
+        pop.classList.remove('active');
+      }
+      return true;
+    }
+  }
   if (game.running || game.paused) {
     game.togglePause();
     return true;
