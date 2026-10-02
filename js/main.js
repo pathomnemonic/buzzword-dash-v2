@@ -1110,7 +1110,7 @@ function init() {
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
     window.__storage = storage;
-    window.__cards = CARDS;
+    Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();
   storage.checkDailyReset();
