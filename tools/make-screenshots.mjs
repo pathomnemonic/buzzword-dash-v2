@@ -45,7 +45,7 @@ await page.waitForTimeout(2500);
 
 const frames = [];
 const snap = async (name, caption, sub, from) => {
-  const buf = await (from || page).screenshot();
+  const buf = await (from || page).screenshot({ timeout: 180000 });
   frames.push({ name, caption, sub, buf });
   console.log('captured ' + name);
 };
