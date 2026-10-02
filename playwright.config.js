@@ -16,6 +16,9 @@ export default defineConfig({
   },
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4173',
+    // The page ships a Content-Security-Policy, which also blocks the string evaluation Playwright uses for waitForFunction.
+    // Tests run without it; csp.spec.js turns it back on (test.use({ bypassCSP: false })) to check the real policy.
+    bypassCSP: true,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     actionTimeout: 8000,

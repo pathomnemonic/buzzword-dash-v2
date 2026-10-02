@@ -1491,7 +1491,7 @@ function init() {
           '<div style="text-align:center;margin:8px 0;color:var(--text-muted)">— or play a friend —</div>' : '') +
         '<button class="btn btn-green btn-block" id="mpHostBtn">\uD83C\uDFAE Host Game</button>' +
         '<div style="text-align:center;margin:8px 0;color:var(--text-muted)">\u2014 or \u2014</div>' +
-        '<input type="text" id="mpJoinCode" maxlength="5" placeholder="ROOM CODE" style="width:100%;padding:10px;border-radius:12px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);font-size:18px;text-align:center;letter-spacing:4px;margin-bottom:8px;text-transform:uppercase">' +
+        '<input type="text" id="mpJoinCode" maxlength="5" placeholder="ROOM CODE" aria-label="Room code" style="width:100%;padding:10px;border-radius:12px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);font-size:18px;text-align:center;letter-spacing:4px;margin-bottom:8px;text-transform:uppercase">' +
         '<button class="btn btn-primary btn-block" id="mpJoinBtn">Join Game</button>';
 
       var module;

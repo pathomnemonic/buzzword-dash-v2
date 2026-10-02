@@ -196,7 +196,7 @@ export var profileMethods = {
     // Name input
     var nameInput = createElement('input', {
       className: 'profile-name-input',
-      attributes: { type: 'text', placeholder: 'Enter display name', value: profileName, maxlength: '30' }
+      attributes: { type: 'text', placeholder: 'Enter display name', 'aria-label': 'Display name', value: profileName, maxlength: '30' }
     });
     avatarSection.appendChild(nameInput);
     // Profile picture: any symbol from the groups below

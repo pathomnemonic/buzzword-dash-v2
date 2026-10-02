@@ -396,6 +396,12 @@ describe('account deletion', () => {
     await as(D, () => db.query(`SELECT push_save('{"x":1}'::jsonb, 1, NULL)`));
     await as(D, () => db.query(`INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'Doomed',5,'del1')`, [D]));
     await as(E, () => db.query(`SELECT upsert_player_profile($1,'Keeper','a','{}',10,1,true)`, [E]));
+    // posts and kudos (the social side) go too
+    await db.query("INSERT INTO friends (requester_id, addressee_id, status) VALUES ($1,$2,'accepted')", [D, E]);
+    const post = (await as(D, () => db.query("INSERT INTO activity_events (user_id, kind, visibility) VALUES ($1,'run','friends') RETURNING id", [D]))).rows[0].id;
+    const theirs = (await as(E, () => db.query("INSERT INTO activity_events (user_id, kind, visibility) VALUES ($1,'run','friends') RETURNING id", [E]))).rows[0].id;
+    await as(E, () => db.query('SELECT give_kudos($1)', [post]));
+    await as(D, () => db.query('SELECT give_kudos($1)', [theirs]));
 
     await as(D, () => db.query('SELECT delete_my_account()'));
 
@@ -404,8 +410,11 @@ describe('account deletion', () => {
     expect(await count('SELECT count(*) AS n FROM player_profiles WHERE user_id = $1', [D])).toBe(0);
     expect(await count('SELECT count(*) AS n FROM player_saves WHERE user_id = $1', [D])).toBe(0);
     expect(await count('SELECT count(*) AS n FROM scores WHERE user_id = $1', [D])).toBe(0);
+    expect(await count('SELECT count(*) AS n FROM activity_events WHERE user_id = $1', [D])).toBe(0);
+    expect(await count('SELECT count(*) AS n FROM activity_kudos WHERE event_id = $1 OR user_id = $2', [post, D])).toBe(0);
     // Someone else's data is untouched
     expect(await count('SELECT count(*) AS n FROM player_profiles WHERE user_id = $1', [E])).toBe(1);
+    expect(await count('SELECT count(*) AS n FROM activity_events WHERE id = $1', [theirs])).toBe(1);
   });
 
   it('requires a signed-in user', async () => {
