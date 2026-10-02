@@ -29,6 +29,14 @@ export function topSubjects(runCards) {
     .sort(function (a, b) { return b.n - a.n; }).slice(0, 3);
 }
 
+/** "🔥 12-day streak · 340 cards met": the long-term side of the story, only when there is something to say. */
+export function shareFooterLine(data) {
+  var bits = [];
+  if ((data.streakDays || 0) >= 2) bits.push('🔥 ' + data.streakDays + '-day streak');
+  if ((data.cardsMet || 0) >= 25) bits.push(Number(data.cardsMet).toLocaleString() + ' cards met');
+  return bits.join('  ·  ');
+}
+
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -137,9 +145,15 @@ export function renderShareCard(data) {
     });
   }
 
+  var line = shareFooterLine(data);
+  if (line) {
+    ctx.fillStyle = '#ffd700';
+    ctx.font = '700 34px "Segoe UI", sans-serif';
+    ctx.fillText(line, W / 2, 1245);
+  }
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '600 30px "Segoe UI", sans-serif';
-  ctx.fillText('Can you beat it?', W / 2, 1290);
+  ctx.fillText('Can you beat it?', W / 2, 1300);
 
   return new Promise(function (resolve, reject) {
     canvas.toBlob(function (blob) {

@@ -42,6 +42,13 @@ describe('FSRS model', () => {
     expect(c.difficulty).toBeGreaterThan(b.difficulty);
   });
 
+  it('answering right on every due date grows the interval the way FSRS-5 does (3, 11, 35 days...)', () => {
+    let m = fsrs.review(null, true, 0);
+    const days = [m.intervalDays];
+    for (let i = 0; i < 2; i++) { m = fsrs.review(m, true, m.due); days.push(m.intervalDays); }
+    expect(days).toEqual([3, 11, 35]);
+  });
+
   it('reviewing early adds less stability than reviewing on time', () => {
     const t0 = 1_700_000_000_000;
     const m = fsrs.review(fsrs.review(null, true, t0), true, t0 + 3 * DAY);

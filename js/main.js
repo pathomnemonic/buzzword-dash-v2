@@ -723,6 +723,8 @@ function attachShareImage() {
     bestStreak: game.bestStreak,
     modeLabel: MODE_LABELS[game.mode] || 'Runner',
     trackName: game.currentSkin ? game.currentSkin.name : '',
+    streakDays: Number(storage.get('loginStreak')) || 0,
+    cardsMet: Number(storage.get('totalCardsStudied')) || 0,
     runCards: game.runCards ? game.runCards.slice() : []
   };
   shareBtn.addEventListener('click', function () {

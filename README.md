@@ -205,6 +205,11 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
 - **Share image** — save or share a styled picture of your run result
 - **Weekly Gauntlet** — 30 cards, the same all week, only 2 lives; clear it for a weekly badge and bonus coins (not ranked)
+- **Why not that one?** — after a miss the teaching line also says why the answer you ran into is wrong (from the card's per-answer reasons, `js/explain.js`), and stays up long enough to read
+- **Interleaving** — flashcard sessions never put the same subject twice in a row when another is available (`js/interleave.js`), and cards past their FSRS due date come first
+- **First weeks checklist** — seven small steps in the Today popup (a run, flashcards, the Daily 15, your exam date, a trail, a three-day streak, a visible profile), hidden when finished, after two weeks, or on request (`js/firstweek.js`)
+- **Challenge links that survive updates** — a friend-challenge link carries its card ids, so it still plays the same cards after the card set changes (`js/challenge.js`)
+- **Graceful offline and low battery** — a notice when the connection drops or returns, a clear message in Friends, and "Auto" graphics step down a tier below 20% battery (`js/offline.js`, `js/battery.js`)
 - **Friend activity feed** — a Strava-style feed (`js/feedui.js`, `js/sharing.js`): your runs, personal bests and milestones with the numbers, kudos from friends (one tap, or pick a reaction), a weekly recap, the kudos you got, and a one-tap challenge. You choose who sees your runs (friends or only you) and can hide or delete any post. Server rules (private posts, blocks, rate limits) are in `database/schema.sql` and tested in `tests/unit/database.test.js`
 - **Study buddies and public groups** (built and tested, hidden behind `FEATURES.discovery` until there are enough players; see `docs/DISCOVERY.md`)
 - **Group weekly goals** — a shared cards-per-week target with a progress bar and contributor list

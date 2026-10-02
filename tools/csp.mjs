@@ -41,7 +41,7 @@ export function buildCsp(opts) {
     try {
       var u = new URL(opts.supabaseUrl);
       connect.push('https://' + u.host, 'wss://' + u.host);
-    } catch (e) { /* a malformed URL just means no Supabase host is allowed */ }
+    } catch { /* a malformed URL just means no Supabase host is allowed */ }
   }
   PEER_HOSTS.forEach(function (h) { connect.push('https://' + h, 'wss://' + h); });
   var scripts = ["'self'", "'wasm-unsafe-eval'"].concat(inlineScripts(opts.html || '').map(scriptHash));

@@ -23,6 +23,7 @@
  * memory is noisy, only a large, steady rise counts as a failure.
  */
 
+/* global window, document */
 import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -116,7 +117,7 @@ async function openApp(page, url) {
     await page.locator('#tutExitYes').click().catch(function () {});
   }
   var reward = page.locator('#dailyReward');
-  try { await reward.waitFor({ state: 'visible', timeout: 6000 }); } catch (e) { return; }
+  try { await reward.waitFor({ state: 'visible', timeout: 6000 }); } catch { return; }
   for (var j = 0; j < 3 && (await reward.isVisible().catch(function () { return false; })); j++) {
     await reward.locator('button').click();
     await page.waitForTimeout(1000);
