@@ -128,9 +128,12 @@ export var runEndMethods = {
       this.targetLane = 1;
 
       // Back the monster off; it would otherwise still be on top of the player.
-      this.monsterTargetZ = 14;
-      this.monsterZ = Math.max(this.monsterZ, 12);
+      this.monsterTargetZ = 18;
+      this.monsterZ = Math.max(this.monsterZ, 16);
       this.monsterWarningPlayed = false;
+      this._deathCause = null;
+      // ...and put it out of sight behind the camera, so it does not pop in from where it knocked the runner
+      if (this._monsterBehavior) { this._monsterBehavior.fade = 0; this._monsterBehavior.calm = 99; this._monsterBehavior.lunge = 0; }
 
       if (this.limbs) {
         if (this.limbs.leftArm) this.limbs.leftArm.rotation.x = 0;

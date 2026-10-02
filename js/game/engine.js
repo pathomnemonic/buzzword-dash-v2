@@ -782,6 +782,10 @@ class Game {
     this.baseSpeed = this.speed;
 
     this._lastSpeedBonus = 0;
+    // Nothing from the last run's ending may carry into this one
+    this._slowmo = 0; this._fovKick = 0;
+    this._deathStyle = null; this._deathCause = null; this._deathT = 0; this._monsterDeathFromZ = undefined;
+    if (this._monsterBehavior) { this._monsterBehavior.fade = 0; this._monsterBehavior.calm = 99; this._monsterBehavior.lunge = 0; this._monsterBehavior.recoil = 0; }
     this.score = 0; this.streak = 0; this.bestStreak = 0;
     this.multiplier = 1; this.coins = 0;
     this.encountersDone = 0; this.correct = 0; this.wrong = 0;
