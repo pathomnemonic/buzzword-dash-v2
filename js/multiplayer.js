@@ -35,6 +35,8 @@
  * handshake via the free PeerJS cloud server, all data flows directly
  * between browsers with DTLS encryption.
  */
+import { uniqueByAnswer } from './cardleaks.js';
+
 
 // ===== CONSTANTS =====
 
@@ -169,7 +171,8 @@ export function buildEncounterPlan(options) {
 
   if (cards.length === 0) return [];
 
-  var shuffled = seededShuffle(cards, rng);
+  // One card per diagnosis, so a shared deck never repeats a diagnosis
+  var shuffled = seededShuffle(uniqueByAnswer(cards), rng);
   var plan = [];
 
   for (var i = 0; i < count; i++) {

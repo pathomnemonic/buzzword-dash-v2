@@ -27,6 +27,8 @@ import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
+import { createDailyOrder } from './game/gates.js';
+import { uniqueByAnswer } from './cardleaks.js';
 import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
@@ -805,6 +807,16 @@ function startMode(mode) {
       var plan = mod.buildEncounterPlan({ seed: challengeSeed, cards: CARDS, count: challengeCount });
       launchRun('challenge', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challengeCount, allowContinue: false });
     });
+    return;
+  }
+
+  // The Daily 15 is the same fifteen cards for everyone on the same date (it was being dealt from each player's
+  // own filters and history, so no two players got the same round)
+  if (mode === 'daily') {
+    var now = new Date();
+    var dayKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    var dailyOrder = createDailyOrder({ dateKey: dayKey, eligibleCardIds: uniqueByAnswer(CARDS).map(function (c) { return c.id; }), count: 15 });
+    launchRun('daily', dailyOrder.slice(), { dailyEncounterCount: 15 });
     return;
   }
 

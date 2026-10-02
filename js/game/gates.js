@@ -26,6 +26,7 @@ import { storage } from '../storage.js';
 import { customCards } from '../customcards.js';
 import { getSubjectStyle } from './subjectstyle.js';
 import { roundedBox } from './materials.js';
+import { answerKey } from '../cardleaks.js';
 
 // ===== CONSTANTS =====
 
@@ -246,10 +247,6 @@ export function nextSeededIndex(pickResult, current) {
   return used + 1;
 }
 
-/** An answer without its parenthetical, so "Ascending Cholangitis (Reynolds Pentad)" matches "Ascending Cholangitis". */
-function answerKey(ans) {
-  return String(ans || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
-}
 
 /**
  * Canonical card-selection contract.

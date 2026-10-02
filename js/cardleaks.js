@@ -76,3 +76,19 @@ export function clueLeaksAnswer(clue, answer, distractors, generic) {
   }
   return false;
 }
+
+/** An answer without any parenthetical, lower-cased: "Ascending Cholangitis (Reynolds Pentad)" and "Ascending Cholangitis" match. */
+export function answerKey(ans) {
+  return String(ans || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
+}
+
+/** The cards with only the first one for each diagnosis (some diagnoses have several cards; a deck should not repeat one). */
+export function uniqueByAnswer(cards) {
+  var seen = {};
+  return cards.filter(function (c) {
+    var key = answerKey(c.ans);
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+}

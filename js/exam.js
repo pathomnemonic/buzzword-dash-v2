@@ -11,6 +11,7 @@
 
 import { createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
+import { uniqueByAnswer } from './cardleaks.js';
 import { getCardPool } from './game/gates.js';
 import { getSubjectStyle, getSubjectCssColor } from './game/subjectstyle.js';
 
@@ -35,7 +36,7 @@ function shuffle(items, rng) {
 export function buildExam(cards, count, rng) {
   rng = rng || Math.random;
   var usable = cards.filter(function (c) { return c && c.ans && Array.isArray(c.d) && c.d.length >= 2; });
-  var chosen = shuffle(usable, rng).slice(0, count);
+  var chosen = uniqueByAnswer(shuffle(usable, rng)).slice(0, count); // no diagnosis twice in one exam
   return chosen.map(function (card) {
     var options = shuffle([card.ans, card.d[0], card.d[1]], rng);
     return { card: card, options: options, correctIndex: options.indexOf(card.ans) };

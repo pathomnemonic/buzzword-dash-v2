@@ -28,6 +28,7 @@
 
 import { CARDS, SUBJECTS } from '../cardhub.js';
 import { storage } from '../storage.js';
+import { answerKey } from '../cardleaks.js';
 import { customCards } from '../customcards.js';
 
 // --- Helpers ---
@@ -203,6 +204,7 @@ function selectCards(pool, count) {
   });
 
   var selected = [];
+  var seenAnswers = {};
   var limit = Math.min(count || 20, weighted.length);
 
   for (var pick = 0; pick < limit; pick++) {
@@ -223,7 +225,13 @@ function selectCards(pool, count) {
       chosen = weighted[weighted.length - 1];
       chosenIdx = weighted.length - 1;
     }
-    selected.push(chosen.card);
+    // A diagnosis with several cards is only dealt once per session
+    if (!seenAnswers[answerKey(chosen.card.ans)]) {
+      seenAnswers[answerKey(chosen.card.ans)] = true;
+      selected.push(chosen.card);
+    } else {
+      pick--;
+    }
     weighted.splice(chosenIdx, 1);
     if (weighted.length === 0) break;
   }
