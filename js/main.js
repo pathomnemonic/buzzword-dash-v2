@@ -45,7 +45,6 @@ import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
-import { say as sayCharacterLine } from './charactervoices.js';
 import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
@@ -150,6 +149,10 @@ function updateOpponentHud(state) {
 function hideOpponentHud() {
   var hud = document.getElementById('opponentHud');
   if (hud) hud.style.display = 'none';
+  ['opponentScore', 'opponentStreak', 'opponentCorrect', 'opponentWrong'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = '0';
+  });
 }
 
 function showMultiplayerMessage(message, color) {
@@ -846,6 +849,10 @@ function launchRun(mode, orderedCardIds, modeConfig) {
   });
   ui.hideAll();
   ui.resetQuestionDisplay(); // nothing from the last run's final question may show
+  // The top bar belongs to this run: show its own starting numbers (and lives, which study mode does not use)
+  // and put away the other player's bar unless this is a head-to-head match
+  if (!isMultiplayerMode(mode)) hideOpponentHud(); else updateOpponentHud({});
+  ui.updateHud(game);
   ui.showHud();
 
   game.beginCountdown();
@@ -1141,11 +1148,9 @@ function init() {
     if (wasCorrect) {
       audio.play('correct');
     }
-    // The runner reacts out loud in their own voice
+    // The runner cheers or groans in their own voice (a vocal sound, not speech)
     if (storage.get('characterVoices') !== false && game.mode !== 'exam') {
-      var equippedSkin = (storage.get('equipped') || {}).skin || 'avatar_intern';
-      var voiceVol = (storage.get('masterVolume') ?? 0.7) * (storage.get('voiceVolume') ?? 0.7);
-      sayCharacterLine(equippedSkin, wasCorrect ? 'cheer' : 'sad', { speak: true, volume: Math.min(1, voiceVol * 1.4) });
+      audio.playCharacter((storage.get('equipped') || {}).skin || 'avatar_intern', wasCorrect ? 'cheer' : 'sad');
     }
     // Route to multiplayer (once)
     sendMultiplayerEncounterResult(wasCorrect, card);

@@ -10,8 +10,8 @@ import { getMonsterParts, disposeExamMonster } from './exammonster.js';
 import { buildMonster } from './monsters.js';
 import { createMonsterBehavior, stepMonsterBehavior, monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { updateModelAnimation } from './charactermodel.js';
-import { GAME_STATES, GAME_MODES } from './enginedefs.js';
-import { LOOKBACK_STYLE, LOOKBACK_HOLD } from './cinematics.js';
+import { GAME_STATES, GAME_MODES, LANE_X } from './enginedefs.js';
+import { LOOKBACK_STYLE, LOOKBACK_HOLD, monsterCatch } from './cinematics.js';
 
 export var examMonsterMethods = {
 
@@ -96,6 +96,13 @@ export var examMonsterMethods = {
     this.examMonster.visible = false;
     this.monsterVisible = false;
     if (this._monsterBehavior) this._monsterBehavior.fade = 0;
+    // (the opening shot leaves it faded out; it must be solid again when it next appears)
+    if (this._monsterFade) {
+      for (var ri = 0; ri < this._monsterFade.length; ri++) {
+        var fr = this._monsterFade[ri];
+        if (!fr.animated) fr.m.opacity = fr.base;
+      }
+    }
   },
 
   /** The player lost a life to an obstacle: the monster catches up a little, just as it does after a wrong answer. */
@@ -151,8 +158,21 @@ export var examMonsterMethods = {
     var targetY = onGround ? pose.hop * 0.6 : (dying ? 1.6 : pose.y - (isModelMonster ? 0.9 : 0));
     this._monsterY = (this._monsterY === undefined ? targetY : this._monsterY);
     this._monsterY += (targetY - this._monsterY) * Math.min(1, dt * 6);
-    this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);
-    if (isModelMonster) {
+    // When it is the monster that catches the runner, it lunges in, hits them and goes after the runner it knocked away
+    var strike = null;
+    if (dying && this._deathCause === 'monster') {
+      strike = monsterCatch(this._deathT, this._monsterDeathFromZ === undefined ? 3.5 : this._monsterDeathFromZ, !onGround);
+      this._monsterY = strike.y;
+      this.examMonster.position.set(LANE_X[this.currentLane], strike.y, strike.z);
+    } else {
+      this.examMonster.position.set(pose.x, this._monsterY, dying ? Math.min(this.monsterZ, 5) : pose.z);
+    }
+    if (strike) {
+      // Leans in for the blow, then rears up
+      this.examMonster.rotation.order = 'YXZ';
+      this.examMonster.rotation.set(strike.struck ? -0.15 : -0.5, 0, 0);
+      if (isModelMonster) updateModelAnimation(this.examMonster, dt, 'attack');
+    } else if (isModelMonster) {
       // Lean toward the runner; the clips do the rest of the acting.
       this.examMonster.rotation.order = 'YXZ';
       this.examMonster.rotation.set(pose.rotX * 0.6, pose.rotY * 0.4, pose.rotZ);
@@ -234,6 +254,14 @@ export var examMonsterMethods = {
       }
     }
 
-    // (the monster never fades: it drifts in from behind the camera and drifts away again)
+    // The monster never fades during the run: it drifts in from behind the camera and drifts away again. (The
+    // opening shot does fade it out, so every part goes back to the opacity it was built with. Parts that animate
+    // their own opacity were just set to an absolute value this frame.)
+    if (this.monsterVisible && this._monsterFade) {
+      for (var fi = 0; fi < this._monsterFade.length; fi++) {
+        var fe = this._monsterFade[fi];
+        if (!fe.animated) fe.m.opacity = fe.base;
+      }
+    }
   },
 };

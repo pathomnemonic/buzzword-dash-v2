@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
 import {
   START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, LOOKBACK_HOLD, DEATH_STYLES, INTRO_DURATION, DEATH_DURATION,
-  getStartPose, getIntroCamera, pickDeathStyle, getDeathPose
+  getStartPose, getIntroCamera, pickDeathStyle, getDeathPose, monsterCatch, MONSTER_STRIKE_AT
 } from '../../js/game/cinematics.js';
 import { isTouchFirst, getControlText } from '../../js/controlhints.js';
 import { placeFloatingProp } from '../../js/game/scenery.js';
@@ -55,7 +55,8 @@ describe('death animations', () => {
   it('picks deaths that suit the cause and does not repeat back to back', () => {
     const monster = new Set();
     for (let i = 0; i < 200; i++) monster.add(pickDeathStyle('monster'));
-    expect([...monster].sort()).toEqual(['launch', 'poof', 'spin_out', 'tumble']);
+    expect([...monster]).toEqual(['monster_catch']);
+    for (let i = 0; i < 20; i++) expect(pickDeathStyle('monster', 'monster_catch')).toBe('monster_catch'); // the only monster death, even straight after one
     const overhead = new Set();
     for (let i = 0; i < 200; i++) overhead.add(pickDeathStyle('overhead'));
     expect(overhead.has('faceplant')).toBe(false);
@@ -136,5 +137,34 @@ describe('look-back opening (the monster is behind you)', () => {
 
   it('is not part of the random pool', () => {
     expect(CAMERA_STYLES).not.toContain(LOOKBACK_STYLE);
+  });
+});
+
+describe('the monster really catches the runner', () => {
+  it('lunges from where it was to the runner, hits, then goes after the runner it knocked away', () => {
+    const start = monsterCatch(0, 3.5, true);
+    const strike = monsterCatch(MONSTER_STRIKE_AT, 3.5, true);
+    const after = monsterCatch(1.4, 3.5, true);
+    expect(start.z).toBeCloseTo(3.5);
+    expect(strike.z).toBeLessThan(1);          // right up against the runner (who stands at z = 0)
+    expect(strike.struck).toBe(true);
+    expect(monsterCatch(MONSTER_STRIKE_AT - 0.05, 3.5, true).struck).toBe(false);
+    expect(after.z).toBeLessThan(strike.z);    // it keeps going after the runner
+    expect(monsterCatch(0.1, 20, true).z).toBeLessThan(20); // even from far away it swoops in
+    expect(monsterCatch(0.5, 3.5, false).y).toBe(0);         // a walking monster stays on the ground
+    expect(strike.y).toBeLessThan(monsterCatch(0, 3.5, true).y); // a flying one swoops down
+  });
+
+  it('the runner is hit at the moment the monster arrives, knocked forward into flips, and lands', () => {
+    expect(getDeathPose('monster_catch', MONSTER_STRIKE_AT - 0.05).pose.y).toBeLessThan(0.2);
+    const hit = getDeathPose('monster_catch', MONSTER_STRIKE_AT + 0.02);
+    expect(hit.impact).toBe('sparkle');
+    expect(hit.camShake).toBeGreaterThan(0.5);
+    const flying = getDeathPose('monster_catch', 0.9).pose;
+    expect(flying.y).toBeGreaterThan(1.2);
+    expect(flying.z).toBeLessThan(-1);
+    expect(Math.abs(flying.rotX)).toBeGreaterThan(Math.PI);
+    expect(getDeathPose('monster_catch', 1.48).impact).toBe('dust');
+    expect(getDeathPose('monster_catch', 1.9).useClip).toBe(true);
   });
 });

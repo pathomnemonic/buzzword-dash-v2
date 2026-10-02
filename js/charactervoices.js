@@ -1,218 +1,284 @@
 /**
- * charactervoices.js — every character cheers when you score and sulks when you miss, like the
- * emotes in a mobile card battler.
+ * charactervoices.js — every character cheers when you score and groans when you miss, in a voice of their own.
  *
- * Each character has a voice (the device's speech engine at its own pitch, speed and, where the
- * device has one, a matching male or female voice) and its own short lines. The lines are only spoken,
- * never shown. The pure parts (the lines, picking one) are separate from the browser part (the speech).
+ * These are not speech. A speech engine sounds robotic, so each reaction is a short vocal sound (a "woo-hoo",
+ * a "yay", an "aww", an "oh no") built live with the Web Audio API from a buzzing voice source run through
+ * vowel filters (formants), the way a real mouth shapes a sound. Each character has a different pitch and
+ * vocal size, and a few have their own kind of noise (the robot beeps, the alien chirps, the zombie groans,
+ * the skeleton rattles). Nothing is downloaded and nothing needs a license.
+ *
+ * The profiles and the choosing of a reaction are plain data and functions so they can be tested; only
+ * `playReaction` touches the audio context.
  */
 
-/**
- * @typedef {{name: string, icon: string, pitch: number, rate: number, voice: 'f'|'m'|'x', cheer: string[], sad: string[]}} CharacterVoice
- */
-
-/** @type {Object<string, CharacterVoice>} */
-export var VOICES = {
-  avatar_intern: {
-    name: 'Dr. Dash', icon: '🩺', pitch: 1.0, rate: 1.1, voice: 'm',
-    cheer: ['Textbook!', 'Nailed the diagnosis!', 'That is why I read First Aid!', 'Correct, doctor!', 'On the list and off the list!', 'Pimped and survived!'],
-    sad: ['Oof. Differential failed.', 'I knew that... I think.', 'Back to the textbook.', 'Missed that one.', 'Add it to the anki pile.', 'That one is on me.']
-  },
-  avatar_m_nurse: {
-    name: 'Dr. Nova', icon: '👩‍⚕️', pitch: 1.25, rate: 1.1, voice: 'f',
-    cheer: ['Stable and correct!', 'Right on the money!', 'Calm under pressure!', 'Another save!', 'Exactly what I expected!', 'Code averted!'],
-    sad: ['Okay, take a breath.', 'That was not the one.', 'Deep breath. Next case.', 'I will get the next one.', 'Lesson learned.', 'Noted for the chart.']
-  },
-  avatar_m_paramedic: {
-    name: 'Paramedic Pat', icon: '🚑', pitch: 1.05, rate: 1.25, voice: 'x',
-    cheer: ['Transport confirmed!', 'Fast and right!', 'First on scene, first to answer!', 'Lights and sirens, baby!', 'Right call!', 'Patient delivered!'],
-    sad: ['Wrong turn, dispatch.', 'Ugh, rerouting.', 'Not the right call.', 'We will make it up.', 'That one got away.', 'Back on the road.']
-  },
-  avatar_m_intern: {
-    name: 'Explorer', icon: '🧭', pitch: 1.1, rate: 1.1, voice: 'x',
-    cheer: ['Found it!', 'X marks the spot!', 'What a discovery!', 'Onward!', 'The map was right!', 'Easy trail!'],
-    sad: ['Wrong trail.', 'We are a bit lost.', 'Hmm, the map lied.', 'Back to the compass.', 'Missed the landmark.', 'Okay, regroup.']
-  },
-  avatar_m_explorer: {
-    name: 'Ranger', icon: '🏹', pitch: 0.85, rate: 1.0, voice: 'm',
-    cheer: ['Right on target!', 'Bullseye!', 'Steady aim!', 'Clean shot!', 'Told you.', 'That is how it is done!'],
-    sad: ['Missed the mark.', 'The wind took it.', 'Reset and aim again.', 'Not my best shot.', 'Hmm. Off target.', 'Next arrow.']
-  },
-  avatar_m_adventurer: {
-    name: 'Adventurer', icon: '🎒', pitch: 1.15, rate: 1.2, voice: 'x',
-    cheer: ['Treasure!', 'Adventure on!', 'Woohoo, yes!', 'Another victory!', 'This is fun!', 'Bring on the next one!'],
-    sad: ['Aw, a trap!', 'That did not go to plan.', 'Whoops!', 'Rolled a one.', 'Tough luck.', 'We try again!']
-  },
-  avatar_m_rogue: {
-    name: 'Hooded Rogue', icon: '🗡️', pitch: 0.7, rate: 0.95, voice: 'm',
-    cheer: ['Smooth.', 'Too easy.', 'As planned.', 'Nobody saw that coming.', 'Quick and quiet.', 'Mine.'],
-    sad: ['Tch. Sloppy.', 'They saw me.', 'That was not the plan.', 'Hmm. Noted.', 'Next time.', 'Shadows, fail me not.']
-  },
-  avatar_m_scout: {
-    name: 'Scout', icon: '🏹', pitch: 1.45, rate: 1.25, voice: 'f',
-    cheer: ['Yes yes yes!', 'Got it, got it!', 'Ha, easy!', 'Spotted it first!', 'Faster than the rest!', 'Boom!'],
-    sad: ['Aww, so close!', 'Oh no!', 'Wait, really?', 'I was so sure!', 'Okay okay, next!', 'Ouch.']
-  },
-  avatar_m_zombie: {
-    name: 'Zombie', icon: '🧟', pitch: 0.5, rate: 0.7, voice: 'm',
-    cheer: ['Braaains... yes!', 'Correct... mmm.', 'Rrrright.', 'Gooood.', 'Uhhh... yes!', 'Brains approve.'],
-    sad: ['Grrrh...', 'Uhhh... no.', 'Brains... missed.', 'Aaarrgh.', 'So sad... groan.', 'Nooo... moan.']
-  },
-  avatar_m_ninja: {
-    name: 'Ninja', icon: '🥷', pitch: 0.9, rate: 1.3, voice: 'm',
-    cheer: ['Hiyah!', 'Silent victory.', 'Swift as the wind!', 'Flawless.', 'Strike true!', 'Clean cut!'],
-    sad: ['Dishonor...', 'A ninja never misses... almost.', 'The shadows laugh.', 'I must train more.', 'Hmph.', 'Failure.']
-  },
-  avatar_m_skeleton: {
-    name: 'Bones', icon: '💀', pitch: 0.65, rate: 1.0, voice: 'm',
-    cheer: ['That tickled my funny bone!', 'Right to the marrow!', 'Rattle rattle, yes!', 'Good to the bone!', 'Bone-afide!', 'Rib-bing you, I knew it!'],
-    sad: ['I am falling apart.', 'That hurt right in the humerus.', 'Dead wrong.', 'Gonna need a new skull.', 'No guts, no glory.', 'Bone-headed move.']
-  },
-  avatar_m_orc: {
-    name: 'Orc', icon: '🪓', pitch: 0.4, rate: 0.85, voice: 'm',
-    cheer: ['Orc smash correct!', 'Me right! Hah!', 'Big brain, big win!', 'Strong! Strong!', 'Ha! Told you!', 'Victory!'],
-    sad: ['Orc angry!', 'Grr! Wrong!', 'Me no like that.', 'Smash the question!', 'Argh!', 'Hmph. Bad.']
-  },
-  avatar_m_wizard: {
-    name: 'Archmage', icon: '🧙', pitch: 0.75, rate: 0.95, voice: 'm',
-    cheer: ['Magnificent!', 'The spell worked!', 'Abracadabra, correct!', 'As the prophecy foretold.', 'By my beard!', 'Arcane precision!'],
-    sad: ['A spell misfired!', 'By my beard, no.', 'The runes were wrong.', 'Fizzle and sizzle.', 'Back to the grimoire.', 'Alas.']
-  },
-  avatar_m_alien: {
-    name: 'Alien', icon: '👽', pitch: 1.7, rate: 1.1, voice: 'x',
-    cheer: ['Beep boop, correct!', 'Human knowledge acquired!', 'Fascinating success!', 'Earth is fun!', 'Zorp! Yes!', 'Logical!'],
-    sad: ['Error, Earthling.', 'Bleep. Wrong.', 'Fascinating failure.', 'Zorp... no.', 'Humans are hard.', 'Recalculating.']
-  },
-  avatar_m_robot: {
-    name: 'Mecha Bot', icon: '🤖', pitch: 0.6, rate: 1.0, voice: 'x',
-    cheer: ['Calculation correct.', 'Beep boop. Success.', 'Optimal result.', 'Processing complete: win.', 'Affirmative.', 'Systems nominal.'],
-    sad: ['Error. Error.', 'Does not compute.', 'System fault.', 'Rebooting hope.', 'Incorrect output.', 'Bzzt. No.']
-  },
-  avatar_m_king: {
-    name: 'King', icon: '👑', pitch: 0.8, rate: 0.9, voice: 'm',
-    cheer: ['Royally correct!', 'Bow before my knowledge!', 'A decree of victory!', 'The crown approves!', 'As expected of royalty.', 'Magnificent, as always!'],
-    sad: ['How dare you, question!', 'A royal blunder.', 'Off with its head!', 'The crown slips.', 'Unacceptable.', 'The court is silent.']
-  }
+/** Vowel formants (Hz) for an adult male voice: the first three resonances of the mouth. */
+export var VOWELS = {
+  a: [800, 1150, 2900],  // "ah"
+  o: [500, 800, 2830],   // "oh"
+  e: [530, 1840, 2480],  // "eh"
+  i: [270, 2290, 3010],  // "ee"
+  u: [300, 870, 2240],   // "oo"
+  w: [570, 840, 2410]    // "aw"
 };
 
-/** Used when a character has no entry. */
-export var DEFAULT_VOICE = VOICES.avatar_intern;
+/**
+ * @typedef {{name: string, kit: 'voice'|'robot'|'alien'|'zombie'|'skeleton'|'orc', f0: number, size: number, bright: number}} CharacterSound
+ * f0: the voice's pitch in Hz; size: how big the vocal tract is (1 = adult male; smaller is higher and brighter, larger is deeper)
+ */
 
-/** @returns {CharacterVoice} the voice profile for a character id */
-export function voiceFor(avatarId) {
-  return VOICES[avatarId] || DEFAULT_VOICE;
+/** @type {Object<string, CharacterSound>} */
+export var PROFILES = {
+  avatar_intern:       { name: 'Dr. Dash',      kit: 'voice',    f0: 125, size: 1.0,  bright: 1.0 },
+  avatar_m_nurse:      { name: 'Dr. Nova',      kit: 'voice',    f0: 215, size: 1.17, bright: 1.1 },
+  avatar_m_paramedic:  { name: 'Paramedic Pat', kit: 'voice',    f0: 160, size: 1.06, bright: 1.1 },
+  avatar_m_intern:     { name: 'Explorer',      kit: 'voice',    f0: 190, size: 1.12, bright: 1.0 },
+  avatar_m_explorer:   { name: 'Ranger',        kit: 'voice',    f0: 105, size: 0.95, bright: 0.9 },
+  avatar_m_adventurer: { name: 'Adventurer',    kit: 'voice',    f0: 255, size: 1.22, bright: 1.2 },
+  avatar_m_rogue:      { name: 'Hooded Rogue',  kit: 'voice',    f0: 98,  size: 0.92, bright: 0.8 },
+  avatar_m_scout:      { name: 'Scout',         kit: 'voice',    f0: 270, size: 1.25, bright: 1.25 },
+  avatar_m_zombie:     { name: 'Zombie',        kit: 'zombie',   f0: 72,  size: 0.9,  bright: 0.6 },
+  avatar_m_ninja:      { name: 'Ninja',         kit: 'voice',    f0: 142, size: 1.02, bright: 1.1 },
+  avatar_m_skeleton:   { name: 'Bones',         kit: 'skeleton', f0: 235, size: 1.18, bright: 1.3 },
+  avatar_m_orc:        { name: 'Orc',           kit: 'orc',      f0: 62,  size: 0.78, bright: 0.6 },
+  avatar_m_wizard:     { name: 'Archmage',      kit: 'voice',    f0: 112, size: 0.97, bright: 0.9 },
+  avatar_m_alien:      { name: 'Alien',         kit: 'alien',    f0: 520, size: 1.3,  bright: 1.4 },
+  avatar_m_robot:      { name: 'Mecha Bot',     kit: 'robot',    f0: 330, size: 1.0,  bright: 1.0 },
+  avatar_m_king:       { name: 'King',          kit: 'voice',    f0: 118, size: 0.96, bright: 0.9 }
+};
+
+export var DEFAULT_PROFILE = PROFILES.avatar_intern;
+
+/** @returns {CharacterSound} the sound profile for a character id */
+export function profileFor(avatarId) {
+  return PROFILES[avatarId] || DEFAULT_PROFILE;
 }
 
 /**
- * Pick a line for a moment, never the same one twice in a row.
- * @param {string} avatarId
+ * A reaction is a list of syllables. Each: vowels (start, end), pitch multipliers (start, end), length in
+ * seconds, and a gap before the next one.
+ */
+var CHEERS = [
+  { id: 'woohoo', syl: [{ v: 'uo', p: [1.0, 1.22], len: 0.26, gap: 0.05 }, { v: 'uo', p: [1.18, 1.5], len: 0.34, gap: 0 }] },
+  { id: 'yay', syl: [{ v: 'ei', p: [1.0, 1.35], len: 0.5, gap: 0 }] },
+  { id: 'hey', syl: [{ v: 'ee', p: [1.1, 1.3], len: 0.22, gap: 0.04 }, { v: 'ei', p: [1.3, 1.1], len: 0.2, gap: 0 }] },
+  { id: 'haha', syl: [{ v: 'aa', p: [1.2, 1.2], len: 0.12, gap: 0.07 }, { v: 'aa', p: [1.28, 1.28], len: 0.12, gap: 0.07 }, { v: 'aa', p: [1.36, 1.3], len: 0.2, gap: 0 }] },
+  { id: 'whoop', syl: [{ v: 'uo', p: [0.9, 1.7], len: 0.45, gap: 0 }] }
+];
+var GROANS = [
+  { id: 'aww', syl: [{ v: 'wo', p: [1.1, 0.78], len: 0.75, gap: 0 }] },
+  { id: 'ohno', syl: [{ v: 'oo', p: [1.1, 0.95], len: 0.28, gap: 0.06 }, { v: 'ou', p: [0.95, 0.7], len: 0.5, gap: 0 }] },
+  { id: 'uhoh', syl: [{ v: 'aa', p: [1.1, 1.1], len: 0.16, gap: 0.08 }, { v: 'oo', p: [0.88, 0.8], len: 0.4, gap: 0 }] },
+  { id: 'ugh', syl: [{ v: 'aw', p: [1.0, 0.7], len: 0.55, gap: 0 }] }
+];
+
+/**
+ * Which reaction to play, never the same one twice in a row.
  * @param {'cheer'|'sad'} kind
  * @param {{rand?: function(): number, last?: string}} [options]
- * @returns {string}
+ * @returns {{id: string, syl: object[]}}
  */
-export function pickLine(avatarId, kind, options) {
+export function pickReaction(kind, options) {
   options = options || {};
   var rand = options.rand || Math.random;
-  var pool = voiceFor(avatarId)[kind === 'sad' ? 'sad' : 'cheer'];
-  var choices = pool.length > 1 ? pool.filter(function (l) { return l !== options.last; }) : pool;
+  var pool = kind === 'sad' ? GROANS : CHEERS;
+  var choices = pool.filter(function (r) { return r.id !== options.last; });
   return choices[Math.floor(rand() * choices.length) % choices.length];
 }
 
+/** How long a reaction lasts, in seconds. */
+export function reactionLength(reaction) {
+  return reaction.syl.reduce(function (t, s) { return t + s.len + s.gap; }, 0);
+}
+
 // ─────────────────────────────────────────────────────────────
-// The browser parts
+// Sound making (needs an AudioContext)
 // ─────────────────────────────────────────────────────────────
 
-var MIN_GAP_MS = 700;
-var lastSpoken = { cheer: '', sad: '' };
-var lastAt = 0;
-var voiceCache = null;
-
-/** Names that hint at a female or male voice on the common speech engines. */
-var FEMALE_HINT = /female|woman|samantha|karen|moira|tessa|victoria|zira|susan|hazel|fiona|serena|aria|jenny|sonia|libby|joanna|salli|kendra|kimberly|ivy|allison|ava|nicky|olivia|emma|amy|natasha|clara|michelle/i;
-var MALE_HINT = /\bmale\b|\bman\b|daniel|alex|fred|david|mark|george|oliver|rishi|guy|ryan|brian|matthew|justin|joey|russell|arthur|james|thomas|eric|christopher|roger|davis|tony|liam/i;
-/** Voices that sound like a person rather than a speech synthesizer: neural, "natural", premium or Siri voices. */
-var NATURAL_HINT = /natural|neural|online|premium|enhanced|siri|studio|wavenet|journey|polyglot/i;
-
-/** Rate a voice: more natural sounding is better, a voice stored on the device is better than a robotic default. */
-export function voiceQuality(voice) {
-  var score = 0;
-  if (NATURAL_HINT.test(voice.name)) score += 10;
-  if (/google/i.test(voice.name)) score += 4;
-  if (/^en[-_](US|GB|AU|CA|IE|ZA|IN)/i.test(voice.lang || '')) score += 1;
-  if (/espeak|festival|flite|compact|robot/i.test(voice.name)) score -= 20;
-  return score;
+var noiseBuffer = null;
+function getNoise(ctx) {
+  if (noiseBuffer && noiseBuffer.sampleRate === ctx.sampleRate) return noiseBuffer;
+  var len = Math.floor(ctx.sampleRate * 0.6);
+  noiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  var d = noiseBuffer.getChannelData(0);
+  for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  return noiseBuffer;
 }
 
-function hash(str) {
-  var h = 0;
-  for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
+/** One vowel-shaped syllable from a buzzing source through three formant filters. */
+function syllable(ctx, dest, t, prof, s, opts) {
+  var v0 = VOWELS[s.v[0]] || VOWELS.a;
+  var v1 = VOWELS[s.v[s.v.length - 1]] || v0;
+  var f0a = prof.f0 * s.p[0] * (opts.pitchMul || 1);
+  var f0b = prof.f0 * s.p[1] * (opts.pitchMul || 1);
+  var end = t + s.len;
+
+  var src = ctx.createOscillator();
+  src.type = 'sawtooth';
+  src.frequency.setValueAtTime(f0a, t);
+  src.frequency.linearRampToValueAtTime(f0b, end);
+  // A little vibrato, and a hint of drift, so it is a voice and not a tone
+  var lfo = ctx.createOscillator();
+  var lfoGain = ctx.createGain();
+  lfo.frequency.value = opts.vibRate || 5.6;
+  lfoGain.gain.value = f0a * (opts.vib === undefined ? 0.018 : opts.vib);
+  lfo.connect(lfoGain); lfoGain.connect(src.frequency);
+
+  var out = ctx.createGain();
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(opts.level || 0.5, t + Math.min(0.04, s.len * 0.25));
+  out.gain.setValueAtTime(opts.level || 0.5, Math.max(t + 0.05, end - s.len * 0.35));
+  out.gain.exponentialRampToValueAtTime(0.0001, end + 0.05);
+  var soften = ctx.createBiquadFilter();
+  soften.type = 'lowpass';
+  soften.frequency.value = 3200 * prof.bright;
+  out.connect(soften); soften.connect(dest);
+
+  var weights = [1, 0.7, 0.35];
+  var qs = [9, 12, 14];
+  for (var k = 0; k < 3; k++) {
+    var f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.Q.value = qs[k];
+    f.frequency.setValueAtTime(v0[k] * prof.size, t);
+    f.frequency.linearRampToValueAtTime(v1[k] * prof.size, end);
+    var g = ctx.createGain();
+    g.gain.value = weights[k] * (k === 0 ? 1.6 : 2.2);
+    src.connect(f); f.connect(g); g.connect(out);
+  }
+  // Breath: a touch of filtered noise at the start of each syllable
+  var n = ctx.createBufferSource();
+  n.buffer = getNoise(ctx);
+  var nf = ctx.createBiquadFilter();
+  nf.type = 'bandpass'; nf.frequency.value = v0[1] * prof.size; nf.Q.value = 1.5;
+  var ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.0001, t);
+  ng.gain.exponentialRampToValueAtTime(opts.breath === undefined ? 0.12 : opts.breath, t + 0.02);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(0.25, s.len));
+  n.connect(nf); nf.connect(ng); ng.connect(out);
+
+  src.start(t); lfo.start(t); n.start(t);
+  src.stop(end + 0.08); lfo.stop(end + 0.08); n.stop(Math.min(end + 0.08, t + 0.6));
 }
 
-/** The English voices this device has, best sounding first, or an empty list. */
-function englishVoices() {
-  if (voiceCache && voiceCache.length) return voiceCache;
-  if (typeof window === 'undefined' || !window.speechSynthesis || !window.speechSynthesis.getVoices) return [];
-  voiceCache = window.speechSynthesis.getVoices()
-    .filter(function (v) { return /^en/i.test(v.lang || ''); })
-    .sort(function (a, b) { return voiceQuality(b) - voiceQuality(a); });
-  return voiceCache;
+/** A little beeping tune: up for a cheer, down for a groan. */
+function beeps(ctx, dest, t, prof, kind, type) {
+  var notes = kind === 'sad' ? [1, 0.84, 0.7, 0.5] : [1, 1.25, 1.5, 2];
+  notes.forEach(function (m, i) {
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    var at = t + i * 0.1;
+    o.type = type;
+    o.frequency.setValueAtTime(prof.f0 * m, at);
+    if (kind === 'sad') o.frequency.linearRampToValueAtTime(prof.f0 * m * 0.9, at + 0.12);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.28, at + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.11);
+    o.connect(g); g.connect(dest);
+    o.start(at); o.stop(at + 0.14);
+  });
 }
 
-if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.addEventListener) {
-  // Phones load their voices a moment after the page does
-  window.speechSynthesis.addEventListener('voiceschanged', function () { voiceCache = null; });
+/** A rising or falling chirp with a wobble, like something talking from far away. */
+function chirps(ctx, dest, t, prof, kind) {
+  for (var i = 0; i < 3; i++) {
+    var o = ctx.createOscillator();
+    var mod = ctx.createOscillator();
+    var mg = ctx.createGain();
+    var g = ctx.createGain();
+    var at = t + i * 0.13;
+    var from = prof.f0 * (kind === 'sad' ? 1.6 - i * 0.25 : 0.8 + i * 0.25);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(from, at);
+    o.frequency.exponentialRampToValueAtTime(from * (kind === 'sad' ? 0.55 : 1.7), at + 0.11);
+    mod.frequency.value = 38; mg.gain.value = from * 0.25;
+    mod.connect(mg); mg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.3, at + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.13);
+    o.connect(g); g.connect(dest);
+    o.start(at); mod.start(at); o.stop(at + 0.15); mod.stop(at + 0.15);
+  }
+}
+
+/** A quick burst of clicking, like bones. */
+function rattle(ctx, dest, t, kind) {
+  var count = kind === 'sad' ? 5 : 8;
+  for (var i = 0; i < count; i++) {
+    var n = ctx.createBufferSource();
+    n.buffer = getNoise(ctx);
+    var f = ctx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 2200 + (i % 3) * 700; f.Q.value = 6;
+    var g = ctx.createGain();
+    var at = t + i * (kind === 'sad' ? 0.07 : 0.045);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.5, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.04);
+    n.connect(f); f.connect(g); g.connect(dest);
+    n.start(at); n.stop(at + 0.05);
+  }
 }
 
 /**
- * Pick the best-sounding voice that fits the character, and a different one for each character when the
- * device has several. Returns null when the device offers no choice (it then uses its default voice).
- * @param {CharacterVoice} profile
- * @param {string} [avatarId] used to give every character a different voice from the same pool
- * @returns {SpeechSynthesisVoice|null}
- */
-export function chooseVoice(profile, avatarId) {
-  var voices = englishVoices();
-  if (!voices.length) return null;
-  var hint = profile.voice === 'f' ? FEMALE_HINT : (profile.voice === 'm' ? MALE_HINT : null);
-  var fitting = hint ? voices.filter(function (v) { return hint.test(v.name); }) : voices;
-  if (!fitting.length) fitting = voices;
-  // Only the better half of the fitting voices, so nobody gets stuck with the worst one
-  var best = fitting.filter(function (v) { return voiceQuality(v) >= voiceQuality(fitting[0]) - 3; });
-  return best[hash(avatarId || profile.name) % best.length];
-}
-
-/**
- * Say a line out loud in the character's voice (nothing is shown on screen).
+ * Play a reaction on an audio context.
+ * @param {AudioContext} ctx
+ * @param {AudioNode} dest where the sound goes
  * @param {string} avatarId the equipped character
  * @param {'cheer'|'sad'} kind
- * @param {{speak: boolean, volume: number}} options speak: use the device voice; volume: 0 to 1
- * @returns {string|null} the line, or null when it was too soon after the last one
+ * @param {{reaction?: object, delay?: number}} [options]
+ * @returns {number} how long it lasts, in seconds
  */
-export function say(avatarId, kind, options) {
-  options = options || { speak: true, volume: 0.7 };
+export function playReaction(ctx, dest, avatarId, kind, options) {
+  options = options || {};
+  var prof = profileFor(avatarId);
+  var reaction = options.reaction || pickReaction(kind);
+  var t = ctx.currentTime + (options.delay || 0.02);
+  var length = reactionLength(reaction);
+
+  if (prof.kit === 'robot') {
+    beeps(ctx, dest, t, prof, kind, 'square');
+    return 0.5;
+  }
+  if (prof.kit === 'alien') {
+    chirps(ctx, dest, t, prof, kind);
+    return 0.45;
+  }
+  var opts = {};
+  if (prof.kit === 'zombie') opts = { vib: 0.05, vibRate: 3.2, breath: 0.35, pitchMul: kind === 'sad' ? 0.9 : 1 };
+  if (prof.kit === 'orc') opts = { vib: 0.03, breath: 0.28, level: 0.6 };
+  if (prof.kit === 'skeleton') opts = { vib: 0.04, vibRate: 8 };
+  // The zombie and the orc drag every sound out
+  var stretch = prof.kit === 'zombie' ? 1.5 : (prof.kit === 'orc' ? 1.25 : 1);
+  var offset = 0;
+  reaction.syl.forEach(function (s) {
+    var syl = Object.assign({}, s, { len: s.len * stretch });
+    syllable(ctx, dest, t + offset, prof, syl, opts);
+    offset += (s.len + s.gap) * stretch;
+  });
+  if (prof.kit === 'skeleton') rattle(ctx, dest, t + offset * 0.5, kind);
+  return length * stretch;
+}
+
+var MIN_GAP_MS = 600;
+var lastAt = 0;
+var lastReaction = { cheer: '', sad: '' };
+
+/**
+ * Cheer or groan for the equipped character, unless one just played.
+ * @param {{ctx: AudioContext, dest: AudioNode}|null} output the audio output to use (null when there is no audio)
+ * @param {string} avatarId
+ * @param {'cheer'|'sad'} kind
+ * @returns {string|null} the reaction that played, or null
+ */
+export function say(output, avatarId, kind) {
+  if (!output || !output.ctx) return null;
   var now = Date.now();
   if (now - lastAt < MIN_GAP_MS) return null;
   lastAt = now;
-  var profile = voiceFor(avatarId);
   var key = kind === 'sad' ? 'sad' : 'cheer';
-  var text = pickLine(avatarId, key, { last: lastSpoken[key] });
-  lastSpoken[key] = text;
-  if (options.speak && options.volume > 0 && typeof window !== 'undefined' && window.speechSynthesis && typeof SpeechSynthesisUtterance !== 'undefined') {
-    var u = new SpeechSynthesisUtterance(text);
-    var voice = chooseVoice(profile, avatarId);
-    if (voice) u.voice = voice;
-    // A sad line comes out a little lower and slower, a cheer a little higher and quicker. The range is kept
-    // narrow on purpose: stretched pitch and speed are what make a speech engine sound robotic.
-    var natural = !!voice && voiceQuality(voice) >= 10;
-    var spread = natural ? 0.5 : 0.35; // how much of the character's own pitch to use (a natural voice has its own character)
-    var pitch = 1 + (profile.pitch - 1) * spread;
-    u.pitch = Math.max(0.8, Math.min(1.3, pitch * (key === 'sad' ? 0.94 : 1.05)));
-    u.rate = Math.max(0.9, Math.min(1.2, (1 + (profile.rate - 1) * 0.5) * (key === 'sad' ? 0.92 : 1.03)));
-    u.lang = (voice && voice.lang) || 'en-US';
-    u.volume = Math.max(0, Math.min(1, options.volume));
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-  }
-  return text;
+  var reaction = pickReaction(key, { last: lastReaction[key] });
+  lastReaction[key] = reaction.id;
+  try {
+    playReaction(output.ctx, output.dest, avatarId, key, { reaction: reaction });
+  } catch (_e) { /* a sound that cannot play is not worth a crash */ }
+  return reaction.id;
 }

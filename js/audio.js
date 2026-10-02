@@ -25,6 +25,7 @@
 
 import { storage } from './storage.js';
 import { isNative, nativeHaptic } from './native.js';
+import { say as sayCharacter } from './charactervoices.js';
 
 // ===== MUSICAL CONSTANTS =====
 
@@ -912,6 +913,14 @@ class AudioEngine {
       case 'death_flatten':
         this._sweep('sine', 260, 70, 0.4, sfxVol * 0.16, 700);
         break;
+      case 'death_monster_catch':
+        // A roar, then the blow and the runner flying
+        this._sweep('sawtooth', 160, 55, 0.4, sfxVol * 0.14, 900);
+        this._noise(0.35, sfxVol * 0.08, 700);
+        this._sweep('sine', 200, 40, 0.3, sfxVol * 0.25, 400, 0.3);
+        this._noise(0.2, sfxVol * 0.1, 1200, 0.3);
+        this._vibrate([80, 40, 140]);
+        break;
       case 'death_launch':
         this._sweep('square', 220, 900, 0.35, sfxVol * 0.08, 2500);
         this._sweep('sine', 900, 120, 0.7, sfxVol * 0.1, 2500, 0.35);
@@ -1409,6 +1418,21 @@ class AudioEngine {
     u.volume = this._settings.masterVolume * this._settings.voiceVolume;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
+  }
+
+  /**
+   * A character's cheer or groan (see charactervoices.js): a made-up vocal sound, never speech.
+   * @param {string} avatarId
+   * @param {'cheer'|'sad'} kind
+   */
+  playCharacter(avatarId, kind) {
+    if (!this.ctx || this.ctx.state === 'suspended') this.unlock();
+    if (!this.ctx || this._paused) return;
+    var vol = this._settings.masterVolume * this._settings.voiceVolume;
+    if (vol <= 0) return;
+    // The voice bus is a plain gain into the master; keep it at the voice volume (a little lively, since it is brief)
+    if (this._voiceBus) this._voiceBus.gain.value = Math.min(1.5, this._settings.voiceVolume * 1.6);
+    sayCharacter({ ctx: this.ctx, dest: this._voiceBus || this._masterGain }, avatarId, kind);
   }
 
   cancelSpeech() {

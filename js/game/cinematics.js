@@ -174,7 +174,7 @@ export function getIntroCamera(style, t, base) {
 
 // ===== DEATH ANIMATIONS =====
 
-export var DEATH_STYLES = ['faceplant', 'tumble', 'spin_out', 'launch', 'collapse', 'dizzy', 'poof', 'flatten'];
+export var DEATH_STYLES = ['faceplant', 'tumble', 'spin_out', 'launch', 'collapse', 'dizzy', 'poof', 'flatten', 'monster_catch'];
 
 /**
  * Which deaths suit what happened. The runner is hit by something on the
@@ -183,7 +183,7 @@ export var DEATH_STYLES = ['faceplant', 'tumble', 'spin_out', 'launch', 'collaps
 var DEATH_BY_CAUSE = {
   ground: ['faceplant', 'tumble', 'launch', 'flatten'],
   overhead: ['collapse', 'dizzy', 'flatten', 'spin_out'],
-  monster: ['launch', 'spin_out', 'poof', 'tumble'],
+  monster: ['monster_catch'], // the monster lunges in, hits the runner and sends them flying (see getDeathPose and monsterCatch)
   other: ['faceplant', 'dizzy', 'collapse', 'spin_out', 'poof']
 };
 
@@ -195,8 +195,30 @@ var DEATH_BY_CAUSE = {
  */
 export function pickDeathStyle(cause, previous, rand) {
   var r = rand || Math.random;
-  var options = (DEATH_BY_CAUSE[cause] || DEATH_BY_CAUSE.other).filter(function (s) { return s !== previous; });
+  var all = DEATH_BY_CAUSE[cause] || DEATH_BY_CAUSE.other;
+  var options = all.filter(function (s) { return s !== previous; });
+  if (!options.length) options = all;
   return options[Math.floor(r() * options.length) % options.length];
+}
+
+/** When, in seconds into a monster death, the monster reaches the runner. */
+export var MONSTER_STRIKE_AT = 0.32;
+
+/**
+ * Where the monster is during the death it causes: it lunges from where it was to the runner's back, hits, and
+ * keeps going after the runner it knocked away.
+ * @param {number} t seconds since the death began
+ * @param {number} fromZ where the monster was when it caught the runner
+ * @param {boolean} flying hovering monsters swoop down to the runner; walking ones stay on the ground
+ * @returns {{z: number, y: number, struck: boolean}}
+ */
+export function monsterCatch(t, fromZ, flying) {
+  var lunge = clamp01(t / MONSTER_STRIKE_AT);
+  var z = fromZ + (0.7 - fromZ) * easeOut(lunge);
+  var follow = clamp01((t - MONSTER_STRIKE_AT) / 1.1);
+  z -= easeOut(follow) * 2.6;
+  var y = flying ? 1.9 - 0.9 * easeOut(lunge) + Math.sin(t * 3) * 0.06 * follow : 0;
+  return { z: z, y: y, struck: t >= MONSTER_STRIKE_AT };
 }
 
 /** Seconds a death plays before the continue prompt or results. */
@@ -284,6 +306,24 @@ export function getDeathPose(style, t) {
       if (t > 0.9) p.squash = 0.15 + 0.42 * easeOut(clamp01((t - 0.9) / 0.5));
       if (t > 0.3 && t < 0.36) { impact = 'dust'; camShake = 0.5; }
       useClip = t > 1.3;
+      break;
+    }
+    case 'monster_catch': {
+      // The monster lunges in (see monsterCatch). The runner hunches as it arrives, then is knocked forward
+      // into flips by the blow, lands hard and lies still.
+      if (t < MONSTER_STRIKE_AT) {
+        p.rotX = -0.2 * clamp01(t / MONSTER_STRIKE_AT);
+        p.y = 0.08 * clamp01(t / MONSTER_STRIKE_AT);
+      } else {
+        var k = clamp01((t - MONSTER_STRIKE_AT) / 1.15);
+        p.rotX = k * Math.PI * 3;
+        p.y = Math.sin(k * Math.PI) * 2.2;
+        p.z = -k * 3.4;
+        p.rotZ = 0.5 * k;
+      }
+      if (t >= MONSTER_STRIKE_AT && t < MONSTER_STRIKE_AT + 0.06) { impact = 'sparkle'; camShake = 1.0; }
+      if (t > 1.45 && t < 1.52) { impact = 'dust'; camShake = 0.45; }
+      useClip = t > 1.5;
       break;
     }
     case 'faceplant':

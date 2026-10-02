@@ -1452,13 +1452,17 @@ class Game {
       ob.position.z += move * VISUAL_SPEED;
       if (ob.userData.staff) updateModelAnimation(ob.userData.staff, dt, 'run');
       var od = ob.userData;
-      // The check happens once, as the obstacle reaches the runner (the runner stands at z = 0 and the
-      // obstacle's middle has just come level with them). A jump or slide that is under way at that
-      // moment clears it, and both last long enough (about a second) to be easy to time.
-      if (!od.checked && ob.position.z > -0.3) {
+      // The runner stands at z = 0. From the moment the obstacle is within about a stride and a half of the runner
+      // until its middle reaches them, any moment spent jumping (clear of the ground) or sliding counts as clearing
+      // it, so a jump or slide timed a little early or a little late still works. Only an obstacle that arrives
+      // without one of those having happened hurts.
+      if (!od.checked && od.lane === this.currentLane && ob.position.z > -1.5 && !od.cleared) {
+        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) od.cleared = true;
+      }
+      if (!od.checked && ob.position.z > 0.15) {
         od.checked = true;
         if (od.lane === this.currentLane) {
-          var dodged = (od.type === 'high' && (this.sliding || this._slideBlend > 0.5)) || (od.type === 'low' && this.jumping && this.playerY > 0.4);
+          var dodged = !!od.cleared;
           if (dodged) {
             if (od.type === 'low') this.obstaclesJumped++;
             else this.obstaclesSlid++;

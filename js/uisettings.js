@@ -58,7 +58,7 @@ export var settingsMethods = {
         { key: 'sfxVolume', label: '💥 Sound effects', desc: 'Jumps, coins, answers, menus and rewards.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'musicVolume', label: '🎶 Music volume', desc: 'How loud the background music is.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' },
-        { key: 'characterVoices', label: '💬 Character voices', desc: 'Your runner cheers out loud when you score and sulks when you miss, each in their own voice.', type: 'toggle' }
+        { key: 'characterVoices', label: '💬 Character voices', desc: 'Your runner cheers when you score and groans when you miss, each with a voice of their own.', type: 'toggle' }
       ],
       look: [
         { key: 'uiTheme', label: '🎨 Colors', desc: 'Surprise me keeps the fun purple arcade look but switches to a different season\'s colors after every run. Seasonal follows the date. Or pick a season by hand, or Classic for the original colors.', type: 'select', options: THEME_CHOICES },

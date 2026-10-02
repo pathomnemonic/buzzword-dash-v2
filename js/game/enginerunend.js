@@ -32,6 +32,8 @@ export var runEndMethods = {
       this.monsterTargetZ = 0;
       this.monsterZ = Math.min(this.monsterZ, 10);
       this.examMonster.visible = true;
+      // Where it lunges from (it may have been hidden far behind the camera: it swoops in from no farther than this)
+      this._monsterDeathFromZ = Math.min(this.examMonster.position.z, 12);
     }
 
     this.faceplanting = true;
