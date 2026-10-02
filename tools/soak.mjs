@@ -124,6 +124,16 @@ async function openApp(page, url) {
   }
 }
 
+/** Make sure Home is usable: close anything left open, and reload if a control is still covered. */
+async function ensureHome(page, url) {
+  await page.keyboard.press('Escape').catch(function () {});
+  var ok = await page.locator('.btn-play').click({ trial: true, timeout: 3000 }).then(function () { return true; }, function () { return false; });
+  if (!ok) {
+    await page.reload();
+    await openApp(page, url);
+  }
+}
+
 async function goHome(page) {
   var home = page.locator('#goHomeBtn');
   if (await home.isVisible().catch(function () { return false; })) { await home.click().catch(function () {}); return; }
@@ -180,6 +190,7 @@ export async function soak(opts) {
     errors.push('console.error: ' + text.slice(0, 300));
   });
 
+  page.setDefaultTimeout(8000);
   var rng = makeRng(opts.seed);
   var deadline = Date.now() + opts.minutes * 60 * 1000;
   var samples = [];
@@ -198,6 +209,7 @@ export async function soak(opts) {
     n++;
     var result = { mode: mode.id, inputs: 0, error: null };
     try {
+      await ensureHome(page, opts.url);
       await mode.start(page);
       await page.waitForTimeout(1500);
       result.inputs = await playRun(page, rng, deadline);
