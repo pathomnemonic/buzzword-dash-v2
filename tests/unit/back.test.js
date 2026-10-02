@@ -13,20 +13,22 @@ describe('Back buttons and the Android back button', () => {
   });
   const active = () => document.querySelector('.screen.active').id;
 
-  it('every screen except Home and the results screen has a Back button', () => {
+  const TABS = ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile'];
+
+  it('the bottom-bar tab screens and the results screen have no Back button; every other screen does', () => {
     document.querySelectorAll('.screen').forEach((s) => {
       const has = !!s.querySelector('.back-btn');
-      expect(has, s.id).toBe(s.id !== 'screenHome' && s.id !== 'screenPostRun');
+      expect(has, s.id).toBe(TABS.indexOf(s.id) < 0 && s.id !== 'screenPostRun');
     });
   });
 
   it('does not add a second button when called again', () => {
     ui._addBackButtons();
-    expect(document.querySelectorAll('#screenStats .back-btn').length).toBe(1);
+    expect(document.querySelectorAll('#screenSettings .back-btn').length).toBe(1);
   });
 
   it('Back goes Home from a tab or a page, and says there is nothing behind Home', () => {
-    ['screenStats', 'screenSettings', 'screenLeaderboard', 'screenCardBrowser', 'screenFlashcard'].forEach((id) => {
+    ['screenSettings', 'screenLeaderboard', 'screenCardBrowser', 'screenFlashcard'].forEach((id) => {
       ui.show(id);
       expect(ui.goBack()).toBe(true);
       expect(active()).toBe('screenHome');
@@ -55,8 +57,8 @@ describe('Back buttons and the Android back button', () => {
   });
 
   it('the on-screen button does the same as goBack', () => {
-    ui.show('screenQuests');
-    document.querySelector('#screenQuests .back-btn').click();
+    ui.show('screenLeaderboard');
+    document.querySelector('#screenLeaderboard .back-btn').click();
     expect(active()).toBe('screenHome');
   });
 });

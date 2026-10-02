@@ -909,12 +909,122 @@ export function spawnCoinsFromPlan(scene, coinMeshes, coinPlan) {
 // ===== POWER-UPS =====
 
 var PU_TYPES = [
-  { type: 'shield', color: 0x4488ff, iconGeo: 'octahedron', label: 'SHIELD' },
-  { type: 'magnet', color: 0xffaa00, iconGeo: 'cone', label: 'MAGNET' },
-  { type: 'double', color: 0xaa44ff, iconGeo: 'tetrahedron', label: '2× SCORE' },
-  { type: 'autoPilot', color: 0x00ee66, iconGeo: 'box', label: 'AUTO' },
-  { type: 'scoreFrenzy', color: 0xff4488, iconGeo: 'dodecahedron', label: 'FRENZY' }
+  { type: 'shield', color: 0x4488ff, iconGeo: 'shield', label: 'SHIELD' },
+  { type: 'magnet', color: 0xffaa00, iconGeo: 'horseshoe', label: 'MAGNET' },
+  { type: 'double', color: 0xaa44ff, iconGeo: 'two-times', label: '2× SCORE' },
+  { type: 'autoPilot', color: 0x00ee66, iconGeo: 'steering-wheel', label: 'AUTO' },
+  { type: 'scoreFrenzy', color: 0xff4488, iconGeo: 'gem', label: 'FRENZY' }
 ];
+
+// ===== POWER-UP ICONS =====
+// Each power-up floats a shape that shows what it does, so nobody has to memorize them:
+//   shield -> a shield, magnet -> a horseshoe magnet, double -> "2×", auto-pilot -> a steering wheel,
+//   score frenzy -> a gem (coins and points rain in).
+
+function iconMaterial(color, glow) {
+  return new THREE.MeshStandardMaterial({ color: color, emissive: glow === undefined ? color : glow, emissiveIntensity: 0.5, roughness: 0.25, metalness: 0.3, envMapIntensity: 1.4 });
+}
+
+var _twoTimesTexture = null;
+function twoTimesTexture() {
+  if (_twoTimesTexture) return _twoTimesTexture;
+  var canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  var ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.font = '900 84px system-ui, "Arial Black", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#3b1670';
+    ctx.strokeText('2\u00d7', 64, 68);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('2\u00d7', 64, 68);
+  }
+  _twoTimesTexture = new THREE.CanvasTexture(canvas);
+  return _twoTimesTexture;
+}
+
+/**
+ * @param {string} type one of the PU_TYPES
+ * @returns {{icon: THREE.Object3D, flat: boolean}} flat icons face the camera instead of spinning edge-on
+ */
+export function buildPowerupIcon(type) {
+  var g = new THREE.Group();
+  var white = 0xffffff;
+  switch (type) {
+    case 'shield': {
+      // a heater shield with a blue field in the middle
+      var outline = new THREE.Shape();
+      outline.moveTo(0, 0.4); outline.lineTo(0.3, 0.3); outline.lineTo(0.3, 0.04);
+      outline.quadraticCurveTo(0.3, -0.26, 0, -0.44);
+      outline.quadraticCurveTo(-0.3, -0.26, -0.3, 0.04); outline.lineTo(-0.3, 0.3); outline.closePath();
+      var inset = new THREE.Shape();
+      inset.moveTo(0, 0.3); inset.lineTo(0.2, 0.23); inset.lineTo(0.2, 0.04);
+      inset.quadraticCurveTo(0.2, -0.17, 0, -0.32);
+      inset.quadraticCurveTo(-0.2, -0.17, -0.2, 0.04); inset.lineTo(-0.2, 0.23); inset.closePath();
+      var body = new THREE.Mesh(new THREE.ExtrudeGeometry(outline, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.025, bevelSegments: 2 }), iconMaterial(white));
+      var field = new THREE.Mesh(new THREE.ExtrudeGeometry(inset, { depth: 0.04, bevelEnabled: false }), iconMaterial(0x2f6fe0));
+      body.position.z = -0.04;
+      field.position.z = 0.06;
+      g.add(body); g.add(field);
+      return { icon: g, flat: true };
+    }
+    case 'magnet': {
+      // a red horseshoe with silver tips, open end down
+      var arc = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.075, 10, 24, Math.PI), iconMaterial(0xe53935));
+      g.add(arc);
+      [-0.2, 0.2].forEach(function (x) {
+        var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.22, 12), iconMaterial(0xe53935));
+        leg.position.set(x, -0.11, 0);
+        g.add(leg);
+        var tip = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.1, 12), iconMaterial(0xe8edf2));
+        tip.position.set(x, -0.27, 0);
+        g.add(tip);
+      });
+      g.position.y = 0;
+      var holder = new THREE.Group();
+      g.position.y = 0.06;
+      holder.add(g);
+      return { icon: holder, flat: true };
+    }
+    case 'double': {
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: twoTimesTexture(), transparent: true, depthWrite: false }));
+      sprite.scale.set(0.95, 0.95, 1);
+      g.add(sprite);
+      return { icon: g, flat: false }; // a sprite already faces the camera
+    }
+    case 'autoPilot': {
+      // a steering wheel: the runner steers itself
+      var rim = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.05, 10, 28), iconMaterial(white));
+      g.add(rim);
+      [90, 210, 330].forEach(function (deg) {
+        var a = deg * Math.PI / 180;
+        var spoke = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.27, 0.05), iconMaterial(white));
+        spoke.position.set(Math.cos(a) * 0.135, Math.sin(a) * 0.135, 0);
+        spoke.rotation.z = a - Math.PI / 2;
+        g.add(spoke);
+      });
+      var hub = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 16), iconMaterial(0x14b85a));
+      hub.rotation.x = Math.PI / 2;
+      g.add(hub);
+      return { icon: g, flat: true };
+    }
+    case 'scoreFrenzy': {
+      // a cut gem: points and coins pour in
+      var gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), iconMaterial(0xffd1e6, 0xff4488));
+      gem.scale.set(1, 1.4, 1);
+      g.add(gem);
+      return { icon: g, flat: false };
+    }
+    default: {
+      var fallback = new THREE.Mesh(new THREE.OctahedronGeometry(0.27, 0), iconMaterial(white));
+      g.add(fallback);
+      return { icon: g, flat: false };
+    }
+  }
+}
 
 /**
  * Spawn a random power-up orb.
@@ -973,32 +1083,12 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
   );
   group.add(inner);
 
-  // Type-specific icon
-  var icon;
-  switch (puDef.iconGeo) {
-    case 'octahedron':
-      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
-      break;
-    case 'cone':
-      icon = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
-      break;
-    case 'tetrahedron':
-      icon = new THREE.Mesh(new THREE.TetrahedronGeometry(0.27, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
-      break;
-    case 'box':
-      var crossGroup = new THREE.Group();
-      crossGroup.add(new THREE.Mesh(roundedBox(0.38, 0.12, 0.12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 })));
-      crossGroup.add(new THREE.Mesh(roundedBox(0.12, 0.38, 0.12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 })));
-      icon = crossGroup;
-      break;
-    case 'dodecahedron':
-      icon = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
-      break;
-    default:
-      icon = new THREE.Mesh(new THREE.OctahedronGeometry(0.27, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.4, envMapIntensity: 1.4 }));
-  }
+  // Type-specific icon: a shape that says what the power-up does (see buildPowerupIcon)
+  var made = buildPowerupIcon(puDef.type);
+  var icon = made.icon;
   if (icon) {
-    icon.position.set(0, 0.9, 0);
+    icon.scale.setScalar(1.4); // big enough to read from far down the track
+    icon.position.set(0, 1.1, 0);
     group.add(icon);
   }
 
@@ -1030,7 +1120,10 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
     lane: lane,
     collected: false,
     type: 'powerup',
-    powerupType: puDef.type
+    powerupType: puDef.type,
+    // flat icons (shield, magnet, 2x, wheel) are turned back toward the camera as the orb spins, so they always read
+    icon: icon,
+    flatIcon: made.flat
   };
 
   scene.add(group);

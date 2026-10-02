@@ -32,6 +32,7 @@ import { uniqueByAnswer } from './cardleaks.js';
 import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, skipTutorial } from './tutorial.js';
+import { startGameTutorial, isGameTutorialOpen, skipGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
 import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
@@ -1121,6 +1122,27 @@ function init() {
     onAuthChange: function () { if (document.getElementById('screenProfile').classList.contains('active')) fillProfileAccount(); }
   });
 
+  // The how-to-play is played on the real track; the practice-track tutorial is the fallback where the runner cannot start
+  ui.startRealTutorial = function (opts) {
+    if (!webglOk || game.running || game.paused) return false;
+    // (the card list can still be loading on the very first launch: the two ids are only looked up when a question is sent)
+    var ids = TUTORIAL_CARD_IDS.slice();
+    if (CARDS.length > 0) {
+      var known = {};
+      CARDS.forEach(function (c) { known[c.id] = true; });
+      ids = ids.filter(function (id) { return known[id]; });
+      for (var ci = 0; ci < CARDS.length && ids.length < 2; ci++) {
+        if (ids.indexOf(CARDS[ci].id) < 0) ids.push(CARDS[ci].id);
+      }
+    }
+    return startGameTutorial({
+      game: game,
+      cardIds: ids,
+      onClose: opts && opts.onClose,
+      begin: function (cardIds) { launchRun('study', cardIds, { tutorial: true, allowContinue: false }); }
+    });
+  };
+
   // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
   if (!storage.get('firstRunComplete')) {
     ui.showTutorial({ firstRun: true });
@@ -1167,7 +1189,7 @@ function init() {
   game.onEncounterResolve = function (card, wasCorrect) {
     ui.showFeedback(card, wasCorrect);
     ui.flashScreen(wasCorrect);
-    if (game.mode === 'study' && wasCorrect) {
+    if (game.mode === 'study' && wasCorrect && !game._tutorial) {
       ui.showStudyTeaching(card);
     }
     // Route to audio (once)
@@ -1183,10 +1205,20 @@ function init() {
   };
 
   game.onRunEnd = function () {
-    themeRoll.runs++;
     ui.hideHud();
     ui.hideAnswerChoices();
     audio.stopAmbient();
+
+    // The tutorial is not a real run: nothing is saved or shown afterwards, and the player lands on Home
+    if (game._tutorial) {
+      game._tutorial = false;
+      showBottomNav(true);
+      if (homeCharacter) homeCharacter.startAnimation();
+      ui.resetQuestionDisplay();
+      ui.show('screenHome');
+      return;
+    }
+    themeRoll.runs++;
 
     // Finalize run ONCE
     finalizeRun(game);
@@ -1803,6 +1835,7 @@ function handleNativeBack() {
   var result = document.getElementById('rankedResult');
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
+  if (isGameTutorialOpen()) { skipGameTutorial(); return true; }
   if (isTutorialOpen()) { skipTutorial(); return true; }
   var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {

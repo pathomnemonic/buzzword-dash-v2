@@ -1401,3 +1401,40 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 }
 #countdownNum { font-size: 72px; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 5px 0 var(--ink); }
 #countdownTip { bottom: auto; top: calc(66vh + 92px); background: rgba(10, 5, 30, 0.55); border-width: 2px; }
+
+/* ---------- the tutorial on the real track: a coach card over the game ---------- */
+.tutorial-coach { display: none; position: fixed; inset: 0; z-index: 26; pointer-events: none; }
+.tutorial-coach.active { display: flex; }
+/* practice steps: a card docked at the bottom; the track above it stays free for swipes */
+.tutorial-coach.docked { align-items: flex-end; justify-content: center; padding: 0 12px calc(var(--safe-bottom, 0px) + 12px); }
+.tutorial-coach.docked.with-dash { padding-right: 104px; }
+.tutorial-coach .coach-card { pointer-events: auto; padding: 12px 14px 10px; max-width: 420px; }
+.tutorial-coach.docked .coach-card h2 { font-size: 17px; margin: 2px 0 2px; }
+.tutorial-coach.docked .tut-text { font-size: 12px; margin: 0 0 4px; line-height: 1.4; }
+.tutorial-coach.docked .tut-dots { margin: 6px 0; }
+.coach-prompt { font-size: 16px; font-weight: 900; color: var(--accent-gold); margin: 2px 0 4px; }
+.coach-feedback { min-height: 18px; font-size: 13px; font-weight: 800; }
+.coach-feedback.good { color: var(--accent-green); }
+.coach-feedback.bad { color: var(--accent-orange); }
+.tutorial-coach.docked .tut-buttons { display: flex; gap: 8px; justify-content: center; }
+/* the welcome and finish pages: a centered page over a dimmed track */
+.tutorial-coach.modal { align-items: center; justify-content: center; padding: 20px; background: var(--bg-overlay); backdrop-filter: blur(6px); pointer-events: auto; overflow-y: auto; }
+@media (max-height: 640px) { .tutorial-coach.docked .tut-text { display: none; } }
+#hud.tut-no-question #buzzBox, #hud.tut-no-question #answerRow { display: none; }
+
+/* ---------- the color wheel (Locker -> character colors) ---------- */
+.scrub-custom { background: conic-gradient(#f33, #ff3, #3f3, #3ff, #33f, #f3f, #f33); position: relative; }
+.scrub-custom.has-color::after { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--picked, transparent); border: 2px solid var(--ink, #1b1030); }
+.cw-panel { margin-top: 8px; }
+.color-wheel { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px; border-radius: 16px; background: rgba(0, 0, 0, .18); border: 2px solid var(--ink, #1b1030); }
+.cw-stage { position: relative; width: 200px; max-width: 100%; aspect-ratio: 1; flex: 0 0 auto; }
+.cw-canvas { width: 100%; height: 100%; display: block; border-radius: 50%; touch-action: none; cursor: crosshair; outline-offset: 3px; box-shadow: 0 2px 0 var(--ink, #1b1030); }
+.cw-canvas:focus-visible { outline: 3px solid var(--accent-gold, #fbbf24); }
+.cw-marker { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--ink, #1b1030); pointer-events: none; }
+.cw-side { flex: 1 1 130px; min-width: 130px; }
+.cw-label { font-size: 11px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--text-secondary); margin: 6px 0 3px; }
+.cw-bright { width: 100%; accent-color: var(--cw-color, #fff); }
+.cw-row { display: flex; gap: 8px; align-items: center; }
+.cw-preview { width: 36px; height: 36px; border-radius: 10px; border: 3px solid var(--ink, #1b1030); flex: 0 0 auto; }
+.cw-hex { width: 100%; min-width: 0; padding: 8px; border-radius: 10px; border: 2px solid var(--ink, #1b1030); background: rgba(30, 15, 70, .8); color: #fff; font: 700 14px/1 monospace; text-transform: lowercase; }
+.cw-hex.bad { border-color: var(--accent-red, #ff3355); }

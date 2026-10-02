@@ -38,6 +38,8 @@ import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
+import { isGameTutorialOpen } from './tutorialrun.js';
+import { createColorWheel } from './colorwheel.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
 import { LOCKER_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
@@ -374,11 +376,15 @@ class UI {
     return true;
   }
 
-  /** Every screen except Home and the results screen gets a Back button at the top. */
+  /**
+   * Every screen except the tab screens (Stats, Locker, Home, Quests, Profile: the bottom bar and a swipe
+   * already move between them) and the results screen gets a Back button at the top.
+   */
   _addBackButtons() {
     var self = this;
+    var tabScreens = ['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile', 'screenPostRun'];
     document.querySelectorAll('.screen').forEach(function (screen) {
-      if (screen.id === 'screenHome' || screen.id === 'screenPostRun') return;
+      if (tabScreens.indexOf(screen.id) >= 0) return;
       var scroll = screen.querySelector('.screen-scroll');
       if (!scroll || scroll.querySelector('.back-btn')) return;
       var btn = document.createElement('button');
@@ -592,7 +598,8 @@ class UI {
     // The coins are already in the wallet; the screen is the reveal. It waits for the tutorial to finish.
     function show() {
       var tutorial = document.getElementById('tutorialOverlay');
-      if (tutorial && tutorial.classList.contains('active')) { setTimeout(show, 1000); return; }
+      var coach = document.getElementById('tutorialCoach');
+      if ((tutorial && tutorial.classList.contains('active')) || (coach && coach.classList.contains('active')) || isGameTutorialOpen()) { setTimeout(show, 1000); return; }
       audio.play('coin');
       showDailyRewardModal({
         streak: loginStreak,
@@ -1440,7 +1447,7 @@ class UI {
     wrap.style.cssText = 'display:block;margin:8px 0';
     wrap.appendChild(createElement('div', { text: '🎨 ' + avatar.name + ' colors' }));
     wrap.lastChild.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
-    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick a color for each part. "Original" keeps the look it came with.' }));
+    wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Pick a color for each part, or tap the rainbow for any color. "Original" keeps the look it came with.' }));
 
     function hexOf(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
 
@@ -1451,25 +1458,67 @@ class UI {
       group.lastChild.style.cssText = 'font-size:12px;font-weight:700;margin-bottom:3px';
       var row = createElement('div', { className: 'pick-chips' });
       var chosen = ((storage.get('modelColors') || {})[avatar.id] || {})[part.key] || 0;
+      var inPalette = chosen === 0 || part.palette.some(function (c) { return c.hex === chosen; });
+      var custom = null;
+      var wheel = null;
+      var panel = null;
+
+      // Save a color for this part (0 = back to the original look) and refresh the character
+      function save(hex) {
+        var all = Object.assign({}, storage.get('modelColors') || {});
+        var mine = Object.assign({}, all[avatar.id] || {});
+        if (hex) mine[part.key] = hex; else delete mine[part.key];
+        all[avatar.id] = mine;
+        storage.set('modelColors', all);
+        storage.save();
+        if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+        if (self.onEquipChange) self.onEquipChange();
+      }
+      function mark(target) {
+        row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
+        if (target) { target.classList.add('on'); target.setAttribute('aria-pressed', 'true'); }
+      }
+      function showCustom(hex) {
+        custom.style.setProperty('--picked', hex ? hexOf(hex) : 'transparent');
+        custom.classList.toggle('has-color', !!hex);
+      }
+
       part.palette.forEach(function (c) {
         var on = chosen === c.hex;
         var sw = createElement('button', { className: 'scrub-swatch' + (on ? ' on' : ''), attributes: { type: 'button', 'aria-label': part.label + ': ' + c.name, 'aria-pressed': on ? 'true' : 'false', title: c.name } });
         sw.style.background = c.hex ? hexOf(c.hex) : 'linear-gradient(135deg,#fff 50%,#aab 50%)';
         sw.addEventListener('click', function () {
-          var all = Object.assign({}, storage.get('modelColors') || {});
-          var mine = Object.assign({}, all[avatar.id] || {});
-          if (c.hex) mine[part.key] = c.hex; else delete mine[part.key];
-          all[avatar.id] = mine;
-          storage.set('modelColors', all);
-          storage.save();
-          row.querySelectorAll('.scrub-swatch').forEach(function (el) { el.classList.remove('on'); el.setAttribute('aria-pressed', 'false'); });
-          sw.classList.add('on');
-          sw.setAttribute('aria-pressed', 'true');
-          if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
-          if (self.onEquipChange) self.onEquipChange();
+          save(c.hex);
+          mark(sw);
+          showCustom(0);
+          if (wheel && c.hex) wheel.setHex(c.hex);
         });
         row.appendChild(sw);
       });
+
+      // Any color at all: the full wheel opens under this row
+      custom = createElement('button', {
+        className: 'scrub-swatch scrub-custom' + (!inPalette ? ' on' : ''),
+        attributes: { type: 'button', 'aria-label': part.label + ': pick any color', 'aria-pressed': !inPalette ? 'true' : 'false', 'aria-expanded': 'false', title: 'Any color' }
+      });
+      showCustom(inPalette ? 0 : chosen);
+      custom.addEventListener('click', function () {
+        if (panel) {
+          panel.hidden = !panel.hidden;
+          custom.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+          return;
+        }
+        panel = createElement('div', { className: 'cw-panel' });
+        wheel = createColorWheel({
+          hex: chosen || (part.palette[1] && part.palette[1].hex) || 0x1fa3b5,
+          onCommit: function (hex) { chosen = hex; save(hex); mark(custom); showCustom(hex); }
+        });
+        panel.appendChild(wheel.el);
+        group.appendChild(panel);
+        custom.setAttribute('aria-expanded', 'true');
+      });
+      row.appendChild(custom);
+
       group.appendChild(row);
       wrap.appendChild(group);
     });
@@ -2052,11 +2101,12 @@ class UI {
    */
   showTutorial(opts) {
     var firstRun = !!(opts && opts.firstRun);
-    startTutorial({
-      onClose: function () {
-        if (firstRun) storage.set('firstRunComplete', true);
-      }
-    });
+    var onClose = function () {
+      if (firstRun) storage.set('firstRunComplete', true);
+    };
+    // On the real track when the runner can start (main.js provides it); the practice track otherwise
+    if (typeof this.startRealTutorial === 'function' && this.startRealTutorial({ onClose: onClose })) return;
+    startTutorial({ onClose: onClose });
   }
 
   // ═══════════════════════════════════════════════════════

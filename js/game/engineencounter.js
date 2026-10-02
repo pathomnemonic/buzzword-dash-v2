@@ -138,7 +138,8 @@ card = pickResult ? pickResult.card : null;
     var slowFactor = Math.min(1, Math.max(0, (this.baseSpeed - 1.875) / 1.875));
     // (world units: the road moves VISUAL_SPEED times faster than the run's own speed, and starts that much
     // farther away, so the time to reach the gate is the same)
-    this._gateSpawnZ = -(30 + 30 * slowFactor) * VISUAL_SPEED;
+    // (the tutorial's question comes a little nearer so nobody waits long to try the move)
+    this._gateSpawnZ = -(this._tutorial ? 20 : 30 + 30 * slowFactor) * VISUAL_SPEED;
     this.gateZ = this._gateSpawnZ;
     for (var g = 0; g < this.gateMeshes.length; g++) removeAndDispose(this.scene, this.gateMeshes[g]);
     var gateTheme = { glow: this.currentSkin.colors.gateGlow, gate: this.currentSkin.colors.gateBase };
@@ -169,6 +170,7 @@ card = pickResult ? pickResult.card : null;
     document.getElementById('rushEl').classList.remove('show');
 
     var wasRushing = this.rushing;
+    this.lastResolvedRushed = wasRushing;
     var stacks = this.rushStacks;
     this.rushing = false;
     this.rushStacks = 0;
@@ -382,6 +384,16 @@ card = pickResult ? pickResult.card : null;
     } else {
       this.waitingForNext = true;
       this.nextEncounterTimer = 0.05;
+    }
+
+    // The tutorial brings the next question itself, and clears the gates once the result has been seen
+    if (this._tutorial) {
+      this.waitingForNext = false;
+      this.teachTimer = 0;
+      var selfT = this;
+      setTimeout(function () { if (!selfT.gatesActive) selfT._clearGates(); }, 1400);
+      this._tut('resolved', { correct: ok });
+      return;
     }
 
     // Challenge completion: a fixed number of seeded encounters

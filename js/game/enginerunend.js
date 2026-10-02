@@ -157,6 +157,7 @@ export var runEndMethods = {
     if (this._runEnded) return;
     this._runEnded = true;
     this._setHazardClass(null);
+    this._tut('ended');
 
     document.getElementById('pauseOverlay').classList.remove('active');
     document.getElementById('rushEl').classList.remove('show');

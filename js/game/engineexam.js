@@ -86,6 +86,7 @@ export var examMonsterMethods = {
    * uses one (study and sudden death do not; see MONSTER_POLICY).
    */
   _monsterEnabled() {
+    if (this._tutorial) return false;
     var off = this._rules ? this._rules.monsterOff : storage.get('monsterOff');
     return !off && monsterPolicy(this.mode).enabled;
   },

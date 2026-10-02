@@ -55,6 +55,43 @@ describe('Locker tabs', () => {
     expect(headings().join('|')).not.toContain('Clothing');
   });
 
+  it('every part also has a rainbow swatch that opens a full color wheel and saves any color picked on it', () => {
+    HTMLCanvasElement.prototype.getContext = () => null;
+    storage.data.progression.equipped.skin = 'avatar_intern';
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    const part = document.querySelector('#shopItems .color-part[data-part="top"]');
+    const rainbow = part.querySelector('.scrub-custom');
+    expect(rainbow).not.toBeNull();
+    expect(part.querySelector('.color-wheel')).toBeNull();
+    rainbow.click();
+    expect(part.querySelector('.color-wheel')).not.toBeNull();
+    const field = part.querySelector('.cw-hex');
+    field.value = '#12ab34';
+    field.dispatchEvent(new Event('change'));
+    expect(storage.get('modelColors').avatar_intern.top).toBe(0x12ab34);
+    expect(rainbow.classList.contains('on')).toBe(true);
+    // a palette swatch afterwards takes over again
+    part.querySelector('.scrub-swatch[title="Maroon"]').click();
+    expect(storage.get('modelColors').avatar_intern.top).toBe(0x9a2f45);
+    expect(rainbow.classList.contains('on')).toBe(false);
+    // closing and reopening the wheel keeps one wheel
+    rainbow.click();
+    expect(part.querySelector('.cw-panel').hidden).toBe(true);
+    rainbow.click();
+    expect(part.querySelectorAll('.color-wheel').length).toBe(1);
+  });
+
+  it('a color that is not in the palette is shown as chosen when the Locker opens', () => {
+    storage.data.progression.equipped.skin = 'avatar_intern';
+    storage.data.settings.modelColors = { avatar_intern: { top: 0x12ab34 } };
+    ui._lockerTab = 'customize';
+    ui.renderShop();
+    const part = document.querySelector('#shopItems .color-part[data-part="top"]');
+    expect(part.querySelector('.scrub-custom').classList.contains('on')).toBe(true);
+    expect(part.querySelectorAll('.scrub-swatch.on').length).toBe(1);
+  });
+
   it('another character has nothing to customize, and the screen says why', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
     ui._lockerTab = 'customize';

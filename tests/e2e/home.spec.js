@@ -118,7 +118,7 @@ test.describe('Home layout', () => {
     await expect(page.locator('#tutSkipBtn')).toBeVisible();
   });
 
-  test('every menu has a Back button that steps back one level', async ({ page }) => {
+  test('every page has a Back button that steps back one level, and the tab screens rely on the bottom bar', async ({ page }) => {
     await openApp(page);
     await page.locator('#settingsBtn').click();
     await page.locator('.settings-card[data-section="sound"]').click();
@@ -130,7 +130,8 @@ test.describe('Home layout', () => {
     await page.locator('#screenLeaderboard .back-btn').click();
     await expect(page.locator('#screenHome')).toHaveClass(/active/);
     await page.locator('#bottomNav [data-screen="screenStats"]').click();
-    await page.locator('#screenStats .back-btn').click();
+    await expect(page.locator('#screenStats .back-btn')).toHaveCount(0);  // a tab: the bottom bar moves you
+    await page.locator('#bottomNav [data-screen="screenHome"]').click();
     await expect(page.locator('#screenHome')).toHaveClass(/active/);
   });
 });

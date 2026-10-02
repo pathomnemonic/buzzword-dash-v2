@@ -572,22 +572,11 @@ class MusicGenerator {
     osc.stop(t + 0.1);
   }
 
-  _playHiHat(vol, t) {
-    var ctx = this.ctx;
-    var noise = ctx.createBufferSource();
-    noise.buffer = getNoiseBuffer(ctx, 0.03);
-    var filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.value = 8000;
-    var gain = ctx.createGain();
-    gain.gain.setValueAtTime(vol * 0.04, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.outputGain);
-    noise.start(t);
-    noise.stop(t + 0.05);
-  }
+  /**
+   * Hi-hats are off: on the busy tracks (the red Vascular Rush especially) a hat on every step is a constant,
+   * irritating tapping behind the music. The kick, snare, bass, pads and melody carry the rhythm.
+   */
+  _playHiHat() {}
 
   dispose() {
     this.stop();
@@ -1526,45 +1515,11 @@ class AudioEngine {
     this._startEnvironmentalFX(skinName);
   }
 
-  _startEnvironmentalFX(skinName) {
-    var self = this;
-    var vol = this._settings.masterVolume * this._settings.ambientVolume * 0.02;
-
-    var hospitalSkins = ['Neon ER', 'Hospital Hallway', 'Operating Room', 'Ambulance Bay', 'Surgical Theater', 'Cardiac Pulse'];
-    var natureSkins = ['Cellular Matrix', 'DNA Helix Tunnel'];
-
-    function scheduleBeep() {
-      if (!self.ambientPlaying) return;
-      var delay = 3000 + Math.random() * 8000;
-      var timer = setTimeout(function () {
-        if (!self.ambientPlaying || !self.ctx || self._paused) return;
-        var t = self.ctx.currentTime;
-        var g = self.ctx.createGain(); g.connect(self._ambientBus);
-        var o = self.ctx.createOscillator(); o.type = 'sine';
-        if (hospitalSkins.indexOf(skinName) >= 0) {
-          o.frequency.setValueAtTime(1000, t);
-          g.gain.setValueAtTime(vol, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-          o.connect(g); o.start(t); o.stop(t + 0.08);
-        } else if (natureSkins.indexOf(skinName) >= 0) {
-          o.frequency.setValueAtTime(400 + Math.random() * 300, t);
-          o.frequency.exponentialRampToValueAtTime(200, t + 0.1);
-          g.gain.setValueAtTime(vol * 0.5, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-          o.connect(g); o.start(t); o.stop(t + 0.15);
-        } else {
-          o.frequency.setValueAtTime(800 + Math.random() * 400, t);
-          g.gain.setValueAtTime(vol * 0.3, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-          o.connect(g); o.start(t); o.stop(t + 0.05);
-        }
-        scheduleBeep();
-      }, delay);
-      self.ambientTimers.push(timer);
-    }
-
-    scheduleBeep();
-  }
+  /**
+   * No environmental FX: the random beeps and blips every few seconds (monitor beeps, bubbles, ticks) read as an
+   * obnoxious tapping behind the music, so nothing is scheduled. (startAmbient/stopAmbient keep their lifecycle.)
+   */
+  _startEnvironmentalFX() {}
 
   stopAmbient() {
     for (var i = 0; i < this.ambientTimers.length; i++) {

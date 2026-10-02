@@ -76,7 +76,7 @@ Daily 15, the Weekly Gauntlet and Friend challenges are deliberately not on a le
 
 ### The Home screen
 
-Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), the big PLAY button with **Filters** (subjects, exam and advanced filters, plus game speed) on its left and **Quests** on its right, both popups, and a "How to play" link that opens the guided tutorial. Three ways to play sit below: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free) and **Challenge** (a popup explaining Study, Weakness, Daily 15, Weekly Gauntlet, Friend challenge and Exam Sim). The tab bar is Stats, Locker, **Home** (center), Cards and Profile (with your streak calendar and badges). Swipe left or right to move between tabs; a slim indicator along the top of the tab bar shows where you are.
+Home fits on one screen with no scrolling. Top bar: Settings (left), coins and best score, a Ranks button and the profile/account button. Then the level, a one-tap "Today" strip (goal, streak, reviews, weekly reward), the big PLAY button with **Filters** (subjects, exam and advanced filters, plus game speed) on its left and **Quests** on its right, both popups, and a "How to play" link that opens the guided tutorial, which is played on the real track (see below). Three ways to play sit below: **Versus**, **Flashcards** (a popup to choose due, missed, new or your subjects, then flip cards or listen hands-free) and **Challenge** (a popup explaining Study, Weakness, Daily 15, Weekly Gauntlet, Friend challenge and Exam Sim). The tab bar is Stats, Locker, **Home** (center), Cards and Profile (with your streak calendar and badges). Swipe left or right to move between tabs; a slim indicator along the top of the tab bar shows where you are.
 
 Dash: on phones and tablets the default is an on-screen Dash button (double taps fire by accident while swiping); on a computer it is a double-click, and Space or Shift always work. After the third game, a phone player is asked once whether to switch to double-tap dashing (with a note that it can trigger by accident and can be switched back). Settings -> Look -> Dash control has Automatic, Double-tap, Button and Off, and the tutorial teaches whichever you use. The run looks fast (walls, floor, scenery and legs move about 2.2x faster) while the time to each gate is unchanged. During the 3-2-1 the scene stays visible, so you can see your runner's face and the monster behind them.
 
@@ -84,13 +84,15 @@ Controls feel forgiving: jumps hang in the air for about a second and slides las
 
 ## Power-ups
 
-| Power-up | Effect |
-|----------|--------|
-| 🛡 Shield | Absorbs one hit from an obstacle or wrong answer |
-| 🧲 Magnet | Attracts nearby coins to you for 10 seconds |
-| 2× Score | Doubles points earned for 15 seconds |
-| 🤖 Auto-Pilot | Automatically steers to the correct lane for 1 gate |
-| 💎 Frenzy | Multiplies coin value by 5 for 8 seconds |
+Each orb floats a shape that shows what it does, so nothing has to be memorized.
+
+| Power-up | Shape on the orb | Effect |
+|----------|------------------|--------|
+| 🛡 Shield | a shield | Absorbs one hit from an obstacle or wrong answer |
+| 🧲 Magnet | a horseshoe magnet | Attracts nearby coins to you for 10 seconds |
+| 2× Score | "2×" | Doubles points earned for 15 seconds |
+| 🤖 Auto-Pilot | a steering wheel | Automatically steers to the correct lane for 1 gate |
+| 💎 Frenzy | a gem | Multiplies coin value by 5 for 8 seconds |
 
 ## Hearts
 
@@ -196,6 +198,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Hands-free audio review** — the game reads clues and answers aloud, for commutes
 - **Visual polish** — bloom glow, subject icons on gates, a run-start fly-in, slow motion on lightning-fast answers, screen feedback and streak flames, recolorable characters in the Locker, and a redesigned exam monster
 - **Women in the roster** — Dr. Nova (a physician) and the Scout are full animated characters. The medical characters (Dr. Dash, Dr. Nova, Paramedic Pat) can all be given any skin tone, and Dr. Dash and Dr. Nova any hair color, so one character covers many looks.
+- **Any color** — beside each part's swatches is a rainbow swatch that opens a full color wheel (drag it or use the arrow keys), a brightness slider and a color-code field, so any color can be picked (`js/colorwheel.js`).
 - **Animated characters** — real glTF models with authored animation clips. Each one has its own recolorable parts and palettes in the Locker (a doctor's scrub top and pants, a robot's body and trim, and so on), saved per character.
 - **Purchasable exam monsters** — Pager Wraith, Textbook Golem and Caffeine Kraken, each with its own back-view design
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
@@ -359,6 +362,10 @@ The world is lit with physically based materials, a soft studio reflection map a
 **Graphics tiers:** Settings -> Graphics chooses Auto, High, Medium or Low. *High* is everything (3D characters and monsters, 3D obstacles and scenery, glow, shadows). *Medium* keeps the animated 3D character and monster, the sky, reflections and lit materials, but uses simple built-in obstacles and scenery, no glow or shadows, and caps resolution at 1.5x. *Low* is the fast backup: the simple built-in characters and obstacles, no model downloads, and normal resolution. Auto picks Low for software rendering, very little memory or 2 or fewer cores or data-saver, Medium for modest devices (4 GB or fewer, 4 cores or fewer, or touch-first), otherwise High, and steps down a tier after repeated slow sessions. Adaptive resolution also trims the render resolution in small steps while the game runs slowly and restores it when there is headroom. Cached model geometry is shared between copies and never freed by one copy, shader compilation is warmed up during the countdown, and the service worker caches model files after first use.
 
 **Character voices:** every character cheers when you score and groans when you miss, each with a voice of their own (`js/charactervoices.js`). These are not speech: each reaction (a "woo-hoo", a "yay", an "aww", an "oh no") is a short vocal sound built live with the Web Audio API from a buzzing voice source run through vowel filters, with a different pitch and vocal size per character, and special sounds for the robot (beeps), the alien (chirps), the zombie and orc (groans and roars) and the skeleton (rattles). Nothing is downloaded and nothing needs a license. Settings → Sound → Character voices turns it off.
+
+**How to play:** the tutorial (`js/tutorialrun.js`) is an ordinary run on the real track with the real top bar, clue and answer gates. A welcome page starts it; then a coach card at the bottom asks for one move at a time and only then sends what that move needs: left, right, a jump over an obstacle, a slide under one, a dash through a real question, and finally picking the right gate. A missed obstacle or question is sent again. Nothing from it is saved (no score, coins, stats or history), and it can be skipped at any time (Skip, Escape or the Android back button). Where the runner cannot start (no WebGL) the older practice-track tutorial (`js/tutorial.js`) is used instead. The tab screens (Stats, Locker, Home, Quests, Profile) have no Back button, since the bottom bar and a swipe move between them.
+
+**Sound:** the music has no hi-hats and there are no random environmental beeps, which sounded like a constant tapping behind the busier tracks.
 
 **Locker:** the Locker has three tabs. *Characters* lists the characters. *Customize* shows only what works on the equipped character (characters with recolorable parts get color pickers). *Trails & Monsters* works with every character. The original blocky characters, the vehicles and the original monsters are archived: they stay in the code (`ARCHIVE_CLASSIC` in `js/game/shopdata.js`) but are hidden from the Locker, and anyone who was using one is moved to Dr. Dash or the Ghost.
 

@@ -95,19 +95,28 @@ test.describe('Phone defaults', () => {
     await expect(card).toHaveCount(0);
   });
 
-  test('the tutorial teaches the Dash button on a phone, and tapping it advances', async ({ page }) => {
-    await page.goto('/');
-    const step = (id) => expect(page.locator('#tutorialOverlay .tut-card')).toHaveAttribute('data-step', id);
+  test('the tutorial teaches the Dash button on a phone, and tapping the real button is a rush', async ({ page }) => {
+    test.setTimeout(120000);
+    await page.goto('/?debug=1');
+    test.skip(!(await hasWebGL(page)), 'the real-track tutorial needs WebGL');
+    const step = (id, timeout = 30000) => expect(page.locator('#tutorialCoach .tut-card, #tutorialOverlay .tut-card')).toHaveAttribute('data-step', id, { timeout });
     await step('welcome');
     await page.locator('#tutNextBtn').click();
-    for (const [id, key] of [['left', 'ArrowLeft'], ['right', 'ArrowRight'], ['jump', 'ArrowUp'], ['slide', 'ArrowDown']]) {
+    await step('left');
+    for (const [id, key] of [['left', 'ArrowLeft'], ['right', 'ArrowRight']]) {
       await step(id);
       await page.keyboard.press(key);
     }
+    await step('jump');
+    await page.locator('#tutSkipStepBtn').click();
+    await step('slide');
+    await page.locator('#tutSkipStepBtn').click();
     await step('rush');
-    await expect(page.locator('#tutDashBtn')).toBeVisible();
-    await expect(page.locator('.tut-prompt')).toContainText(/Dash button/);
-    await page.locator('#tutDashBtn').dispatchEvent('pointerdown');
+    // The game's own on-screen button is there, and the coach points at it
+    await expect(page.locator('#dashBtn')).toBeVisible();
+    await expect(page.locator('.coach-prompt')).toContainText(/Dash button/);
+    await page.waitForFunction(() => window.__game.gatesActive && !window.__game.answerLocked, null, { timeout: 30000 });
+    await page.locator('#dashBtn').dispatchEvent('pointerdown');
     await step('answer');
   });
 });

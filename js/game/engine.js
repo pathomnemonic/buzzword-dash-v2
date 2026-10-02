@@ -61,6 +61,7 @@ import { runEndMethods } from './enginerunend.js';
 
 /** Generous timings so obstacles are comfortable to clear: about a second in the air, nearly a second of slide. */
 var JUMP_SPEED = 12;
+var TUTORIAL_OBSTACLE_DISTANCE = 10; // run units: about five seconds away at the tutorial pace
 var JUMP_GRAVITY = 22;
 var SLIDE_TIME = 1.1;
 
@@ -255,6 +256,8 @@ class Game {
 
     // Mode config
     this._modeConfig = null;
+    this._tutorial = false;
+    this.tutorialListener = null;
 
     // Subjects seen tracking
     this._subjectsSeen = new Set();
@@ -435,12 +438,12 @@ class Game {
     this.powerupFX = new PowerUpFX(this.scene);
     var self = this;
     this._inputDispose = setupInput(this.renderer.domElement, {
-        moveLeft: function() { if (self.targetLane > 0) { self.targetLane--; self._sfx('lane'); } },
-        moveRight: function() { if (self.targetLane < 2) { self.targetLane++; self._sfx('lane'); } },
+        moveLeft: function() { if (self.targetLane > 0) { self.targetLane--; self._sfx('lane'); self._tut('action', 'moveLeft'); } },
+        moveRight: function() { if (self.targetLane < 2) { self.targetLane++; self._sfx('lane'); self._tut('action', 'moveRight'); } },
         jump: function() { self.jump(); },
         slide: function() { self.slide(); },
         rush: function() { self.addRushStack(); },
-        pause: function() { self.togglePause(); }
+        pause: function() { if (self._tutorial) self._tut('pause'); else self.togglePause(); }
     }, {
         enabled: function() { return self._state === GAME_STATES.PLAYING; },
         doubleTap: function() { return getDashControl() === 'double'; }
@@ -635,6 +638,9 @@ class Game {
     this.mode = options.mode || GAME_MODES.ENDLESS;
 
     this._modeConfig = options.modeConfig || {};
+    // The how-to-play runs in the real game: no random coins, power-ups, obstacles or monster, and the
+    // tutorial decides when an obstacle or a question arrives (see tutorialObstacle / tutorialEncounter)
+    this._tutorial = !!this._modeConfig.tutorial;
     if (this._modeConfig.allowContinue === undefined) {
       this._modeConfig.allowContinue = (this.mode !== GAME_MODES.MP_SUDDEN_DEATH &&
                                          this.mode !== GAME_MODES.MP_HIGH_SCORE &&
@@ -763,7 +769,8 @@ class Game {
       this._mpTargetCorrect = this._modeConfig.targetCorrect;
     }
 
-    this._spawnEncounter();
+    if (!this._tutorial) this._spawnEncounter();
+    this._tut('go');
   }
 
   // ═══════════════════════════════════════════════════════
@@ -778,7 +785,8 @@ class Game {
 
     // 1x is a calm 1.875 units/s; higher settings scale linearly from there.
     var mapped = 1.875 * this.userSpeed;
-    this.speed = this.mode === GAME_MODES.STUDY ? 1.5 : mapped;
+    // (the tutorial runs at the normal 1x pace whatever the speed setting)
+    this.speed = this._tutorial ? 1.875 : (this.mode === GAME_MODES.STUDY ? 1.5 : mapped);
     this.baseSpeed = this.speed;
 
     this._lastSpeedBonus = 0;
@@ -885,6 +893,7 @@ class Game {
       this.jumping = true;
       this.jumpVel = JUMP_SPEED;
       this._emit('obstacle_dodged', { type: 'jump' });
+      this._tut('action', 'jump');
     }
   }
 
@@ -899,6 +908,7 @@ class Game {
       this.sliding = true;
       this.slideTimer = 0;
       this._emit('obstacle_dodged', { type: 'slide' });
+      this._tut('action', 'slide');
     }
   }
 
@@ -920,6 +930,7 @@ class Game {
       this.rushBonus = Math.floor(distanceBonus * 40 * this.rushStacks);
 
       this._emit('rush_started', { stacks: this.rushStacks, bonus: this.rushBonus });
+      this._tut('action', 'rush');
 
       document.getElementById('rushEl').textContent = '\u26A1 RUSH \u00D7' + this.rushStacks + ' \u26A1';
       document.getElementById('rushEl').classList.add('show');
@@ -1415,7 +1426,7 @@ class Game {
 
     // Coin spawning
     this.coinSpawnTimer -= dt;
-    if (this.coinSpawnTimer <= 0) {
+    if (this.coinSpawnTimer <= 0 && !this._tutorial) {
       // The next batch only starts once this one has passed, plus a breather, so lanes stay uncluttered
       var batchLength = spawnCoinBatch(this.scene, this.coinMeshes);
       this.coinSpawnTimer = batchLength / Math.max(this.speed, 0.5) + 1.0 + Math.random() * 1.5;
@@ -1423,7 +1434,7 @@ class Game {
 
     // Power-up spawning
     this.powerupSpawnTimer -= dt;
-    if (this.powerupSpawnTimer <= 0) {
+    if (this.powerupSpawnTimer <= 0 && !this._tutorial) {
       spawnPowerup(this.scene, this.coinMeshes, undefined, this._rules && this._rules.disabledPowerups);
       this.powerupSpawnTimer = 15 + Math.random() * 10;
     }
@@ -1510,6 +1521,8 @@ class Game {
         c.rotation.y += dt * 3;
       } else if (c.userData.type === 'powerup') {
         c.rotation.y += dt * 2;
+        // a flat icon (shield, magnet, wheel) turns back to face the camera and only sways, so it always reads
+        if (c.userData.flatIcon && c.userData.icon) c.userData.icon.rotation.y = -c.rotation.y + Math.sin(this.elapsedTime * 2.2) * 0.3;
         c.position.y = 1.5 + Math.sin(this.elapsedTime * 3 + ci) * 0.3;
       } else if (c.userData.type === 'heart') {
         c.rotation.y += dt * 2;
@@ -1632,9 +1645,44 @@ class Game {
 
   _triggerShake() { this.shakeTimer = 0.15; }
 
-  _transitionToNextEncounter() {
+  _clearGates() {
     for (var m = 0; m < this.gateMeshes.length; m++) removeAndDispose(this.scene, this.gateMeshes[m]);
     this.gateMeshes = [];
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // TUTORIAL (the how-to-play runs in the real game)
+  // ═══════════════════════════════════════════════════════
+
+  /** Tell the tutorial (if one is open) what just happened: a move, an obstacle result, an answer. */
+  _tut(type, data) {
+    if (this._tutorial && typeof this.tutorialListener === 'function') {
+      try { this.tutorialListener(type, data); } catch (e) { console.error('[Tutorial] listener error:', e); }
+    }
+  }
+
+  /** Send one obstacle down the runner's own lane: 'low' (jump over it) or 'high' (slide under it). */
+  tutorialObstacle(kind) {
+    if (!this._tutorial) return;
+    spawnObstacle(this.scene, this.obstacleMeshes, {
+      lane: this.currentLane,
+      type: kind === 'high' ? 'slide' : 'jump',
+      variantId: kind === 'high' ? 'hanging_sign' : 'gurney',
+      spawnOffset: -TUTORIAL_OBSTACLE_DISTANCE
+    });
+  }
+
+  /** Put one chosen question on the track (the same gates, clue and answer choices as a real run). */
+  tutorialEncounter(cardId) {
+    if (!this._tutorial) return;
+    this._clearGates();
+    this.seededCardOrder = [cardId];
+    this._seededCardIndex = 0;
+    this._spawnEncounter();
+  }
+
+  _transitionToNextEncounter() {
+    this._clearGates();
     // Obstacles use any lane (so they give nothing away about the answer), but they trail well behind
     // the gate: they only arrive after the answer has been locked in, never right at the gate.
     this._spawnEncounter();
