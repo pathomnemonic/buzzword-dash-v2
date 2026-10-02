@@ -228,18 +228,11 @@ GRANT EXECUTE ON FUNCTION get_shared_deck(text) TO authenticated;
 ALTER TABLE activity_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE weekly_study ENABLE ROW LEVEL SECURITY;
 
+-- What a friend kept private is not readable by anyone else, and a block hides posts both ways.
 DROP POLICY IF EXISTS "activity_select_self_or_friend" ON activity_events;
 CREATE POLICY "activity_select_self_or_friend"
   ON activity_events FOR SELECT
-  USING (
-    user_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM friends f
-      WHERE f.status = 'accepted'
-        AND ((f.requester_id = auth.uid() AND f.addressee_id = activity_events.user_id)
-          OR (f.addressee_id = auth.uid() AND f.requester_id = activity_events.user_id))
-    )
-  );
+  USING (can_see_post(user_id, visibility));
 
 DROP POLICY IF EXISTS "activity_insert_own" ON activity_events;
 CREATE POLICY "activity_insert_own"
@@ -250,6 +243,17 @@ DROP POLICY IF EXISTS "activity_delete_own" ON activity_events;
 CREATE POLICY "activity_delete_own"
   ON activity_events FOR DELETE
   USING (user_id = auth.uid());
+
+ALTER TABLE activity_kudos ENABLE ROW LEVEL SECURITY;
+-- Kudos are written and read only through give_kudos / remove_kudos / get_feed / my_recent_kudos.
+REVOKE ALL ON activity_kudos FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION can_see_post(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION can_see_activity(bigint) TO authenticated;
+GRANT EXECUTE ON FUNCTION give_kudos(bigint, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION remove_kudos(bigint) TO authenticated;
+GRANT EXECUTE ON FUNCTION set_activity_visibility(bigint, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_feed(integer, bigint, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION my_recent_kudos(timestamptz) TO authenticated;
 
 -- weekly_study is written only through report_study() and read through
 -- group_goal_status(), so it has no direct policies.

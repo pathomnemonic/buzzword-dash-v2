@@ -21,6 +21,7 @@
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, isArchivedItem } from './game/shopdata.js';
+import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
@@ -53,6 +54,9 @@ var DEFAULTS = {
     characterVoices: true,     // the runner cheers when you score and sulks when you miss
     hapticsEnabled: true,
     dailyGoal: 20,
+    targetRetention: 0.9,      // how likely you want to be to remember a card when it comes back (FSRS)
+    examDate: '',              // YYYY-MM-DD of the player's exam, for the study plan
+    examName: '',
     colorblindMode: false,
     glowEffects: false,
     reminders: false,
@@ -1032,28 +1036,22 @@ class Storage {
     s.seen++;
     if (wasCorrect) s.correct++;
     else s.wrong++;
+    var lastSeenBefore = s.lastSeen;
     s.lastSeen = Date.now();
 
-    // Spaced-repetition schedule (SM-2 style). Correct answers push the next
-    // review further out; a miss brings the card back within minutes.
-    var DAY = 24 * 60 * 60 * 1000;
-    var ease = typeof s.ease === 'number' ? s.ease : 2.5;
-    var reps = s.reps || 0;
-    var interval = s.interval || 0; // days
-    if (wasCorrect) {
-      reps++;
-      interval = reps === 1 ? 1 : reps === 2 ? 3 : Math.round(interval * ease);
-      ease = Math.min(3, ease + 0.05);
-      s.due = s.lastSeen + interval * DAY;
-    } else {
-      reps = 0;
-      interval = 0;
-      ease = Math.max(1.3, ease - 0.2);
-      s.due = s.lastSeen + 10 * 60 * 1000;
+    // Spaced-repetition schedule: FSRS, the open algorithm Anki offers (see fsrs.js). A card saved with the old
+    // schedule is converted the first time it is reviewed, so nobody loses their history.
+    var memory = null;
+    if (s.seen > 1) {
+      if (s.stability > 0) memory = { stability: s.stability, difficulty: s.difficulty, lastReview: s.lastReview || s.lastSeen };
+      else memory = fsrs.fromLegacy({ seen: s.seen - 1, correct: s.correct - (wasCorrect ? 1 : 0), wrong: s.wrong - (wasCorrect ? 0 : 1), interval: s.interval, ease: s.ease, lastSeen: lastSeenBefore });
     }
-    s.ease = ease;
-    s.reps = reps;
-    s.interval = interval;
+    var next = fsrs.review(memory, wasCorrect, s.lastSeen, { retention: this.data.settings.targetRetention });
+    s.stability = next.stability;
+    s.difficulty = next.difficulty;
+    s.lastReview = next.lastReview;
+    s.interval = next.intervalDays;
+    s.due = next.due;
 
     stats[cardId] = s;
     this.save();

@@ -289,6 +289,66 @@ describe('tournament standing, activity feed and group goals', () => {
     expect(await rejects(A, `INSERT INTO activity_events (user_id, kind) VALUES ($1,'made_up')`, [A])).toBe(true);
   });
 
+  it('keeps private runs private, and lets friends give kudos on shared ones', async () => {
+    const post = async (user, vis, kind = 'run') => (await as(user, () => db.query(
+      "INSERT INTO activity_events (user_id, kind, visibility, payload) VALUES ($1,$2,$3,'{\"mode\":\"endless\",\"score\":900}') RETURNING id", [user, kind, vis]))).rows[0].id;
+    const shared = await post(A, 'friends');
+    const secret = await post(A, 'private');
+
+    const bSees = (await as(B, () => db.query('SELECT id FROM activity_events'))).rows.map((r) => r.id);
+    expect(bSees).toContain(shared);
+    expect(bSees).not.toContain(secret);
+    expect((await as(A, () => db.query('SELECT id FROM activity_events WHERE id = $1', [secret]))).rows).toHaveLength(1);
+
+    // kudos: friends only, not on your own, not on what you cannot see
+    await as(B, () => db.query('SELECT give_kudos($1, $2)', [shared, 'fire']));
+    expect(await rejects(B, 'SELECT give_kudos($1)', [secret])).toBe(true);
+    expect(await rejects(A, 'SELECT give_kudos($1)', [shared])).toBe(true);
+    expect(await rejects(C, 'SELECT give_kudos($1)', [shared])).toBe(true);
+    expect(await rejects(B, "SELECT give_kudos($1, 'insult')", [shared])).toBe(true);
+    await as(B, () => db.query('SELECT give_kudos($1, $2)', [shared, 'brain'])); // changing it keeps one per friend
+    const row = (await as(A, () => db.query('SELECT * FROM get_feed(40, NULL, $1) WHERE id = $2', ['all', shared]))).rows[0];
+    expect(Number(row.kudos_count)).toBe(1);
+    const bRow = (await as(B, () => db.query('SELECT * FROM get_feed(40, NULL, $1) WHERE id = $2', ['all', shared]))).rows[0];
+    expect(bRow.i_gave).toBe('brain');
+    expect((await as(A, () => db.query('SELECT * FROM my_recent_kudos()'))).rows).toHaveLength(1);
+
+    // the feed hides private runs from friends and respects scopes
+    const bFeed = (await as(B, () => db.query("SELECT id FROM get_feed(40, NULL, 'friends')"))).rows.map((r) => r.id);
+    expect(bFeed).toContain(shared);
+    expect(bFeed).not.toContain(secret);
+    expect((await as(A, () => db.query("SELECT id FROM get_feed(40, NULL, 'mine')"))).rows.map((r) => r.id)).toContain(secret);
+    expect((await as(C, () => db.query("SELECT id FROM get_feed(40, NULL, 'all')"))).rows).toHaveLength(0);
+
+    // changing visibility later: only the owner, and it takes effect straight away
+    expect(await rejects(B, "SELECT set_activity_visibility($1, 'private')", [shared])).toBe(true);
+    await as(A, () => db.query("SELECT set_activity_visibility($1, 'private')", [shared]));
+    expect((await as(B, () => db.query('SELECT id FROM activity_events WHERE id = $1', [shared]))).rows).toHaveLength(0);
+    expect(await rejects(B, 'SELECT give_kudos($1)', [shared])).toBe(true);
+    await as(A, () => db.query("SELECT set_activity_visibility($1, 'friends')", [shared]));
+
+    await as(B, () => db.query('SELECT remove_kudos($1)', [shared]));
+    expect((await as(A, () => db.query('SELECT * FROM my_recent_kudos()'))).rows).toHaveLength(0);
+  });
+
+  it('hides a blocked player from the feed and stops their kudos', async () => {
+    const id = (await as(A, () => db.query("INSERT INTO activity_events (user_id, kind, visibility) VALUES ($1,'run','friends') RETURNING id", [A]))).rows[0].id;
+    await as(B, () => db.query('SELECT give_kudos($1)', [id]));
+    await as(A, () => db.query('INSERT INTO friend_blocks (blocker_id, blocked_id) VALUES ($1,$2)', [A, B]));
+    expect((await as(B, () => db.query('SELECT id FROM activity_events WHERE id = $1', [id]))).rows).toHaveLength(0);
+    expect((await as(A, () => db.query('SELECT * FROM my_recent_kudos()'))).rows).toHaveLength(0);
+    await db.query('DELETE FROM friend_blocks WHERE blocker_id = $1 AND blocked_id = $2', [A, B]);
+  });
+
+  it('limits how fast one player can post', async () => {
+    for (let i = 0; i < 30; i++) await db.query("INSERT INTO activity_events (user_id, kind) VALUES ($1,'streak')", [C]);
+    // (C is at 30 of the 60 an hour) the next 40 cannot all go through
+    let blocked = false;
+    for (let i = 0; i < 40 && !blocked; i++) blocked = await rejects(C, "INSERT INTO activity_events (user_id, kind) VALUES ($1,'streak')", [C]);
+    expect(blocked).toBe(true);
+    await db.query('DELETE FROM activity_events WHERE user_id = $1', [C]);
+  });
+
   it('tracks a group study goal that only the owner can set', async () => {
     const group = (await as(A, () => db.query("SELECT * FROM create_group('Goal group')"))).rows[0];
     await as(B, () => db.query('SELECT * FROM join_group($1)', [group.code]));

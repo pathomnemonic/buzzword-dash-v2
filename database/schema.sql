@@ -454,6 +454,127 @@ CREATE TABLE IF NOT EXISTS activity_events (
 
 CREATE INDEX IF NOT EXISTS activity_events_user_idx ON activity_events (user_id, created_at DESC);
 
+-- Strava-style feed: runs can be shared with friends or kept private, and friends can give kudos.
+-- (The list of kinds grew, so the old check is replaced.)
+ALTER TABLE activity_events DROP CONSTRAINT IF EXISTS activity_events_kind_check;
+ALTER TABLE activity_events ADD CONSTRAINT activity_events_kind_check
+  CHECK (kind IN ('new_best', 'streak', 'tournament', 'exam', 'group_join', 'run', 'milestone', 'streak_days', 'weekly_recap'));
+ALTER TABLE activity_events ADD COLUMN IF NOT EXISTS visibility text NOT NULL DEFAULT 'friends'
+  CHECK (visibility IN ('friends', 'private'));
+
+-- Can the caller see a post by this owner with this visibility? (Takes the row's own values rather than its id,
+-- so the read policy also works for a row that is being inserted.)
+CREATE OR REPLACE FUNCTION can_see_post(p_owner uuid, p_visibility text) RETURNS boolean
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT auth.uid() IS NOT NULL AND (
+    p_owner = auth.uid()
+    OR (p_visibility = 'friends'
+      AND NOT has_block_between(auth.uid(), p_owner)
+      AND EXISTS (SELECT 1 FROM friends f
+                  WHERE f.status = 'accepted'
+                    AND ((f.requester_id = auth.uid() AND f.addressee_id = p_owner)
+                      OR (f.addressee_id = auth.uid() AND f.requester_id = p_owner))))
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION can_see_activity(p_event bigint) RETURNS boolean
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM activity_events e WHERE e.id = p_event AND can_see_post(e.user_id, e.visibility));
+$$;
+
+-- No more than 60 events an hour from one player.
+CREATE OR REPLACE FUNCTION activity_rate_limit() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF (SELECT count(*) FROM activity_events WHERE user_id = NEW.user_id AND created_at > now() - interval '1 hour') >= 60 THEN
+    RAISE EXCEPTION 'Too many posts. Try again later.';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS activity_rate_limit_trg ON activity_events;
+CREATE TRIGGER activity_rate_limit_trg BEFORE INSERT ON activity_events
+  FOR EACH ROW EXECUTE FUNCTION activity_rate_limit();
+
+CREATE TABLE IF NOT EXISTS activity_kudos (
+  event_id    bigint NOT NULL REFERENCES activity_events(id) ON DELETE CASCADE,
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  emoji       text NOT NULL DEFAULT 'kudos' CHECK (emoji IN ('kudos', 'fire', 'brain', 'clap')),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (event_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS activity_kudos_user_idx ON activity_kudos (user_id, created_at DESC);
+
+-- Give (or change) kudos on a friend's post. Not on your own, not on what you cannot see.
+CREATE OR REPLACE FUNCTION give_kudos(p_event bigint, p_emoji text DEFAULT 'kudos') RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE owner uuid;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  SELECT user_id INTO owner FROM activity_events WHERE id = p_event;
+  IF owner IS NULL OR NOT can_see_activity(p_event) THEN RAISE EXCEPTION 'That post is not available'; END IF;
+  IF owner = auth.uid() THEN RAISE EXCEPTION 'You cannot give kudos to yourself'; END IF;
+  IF (SELECT count(*) FROM activity_kudos WHERE user_id = auth.uid() AND created_at > now() - interval '1 hour') >= 120 THEN
+    RAISE EXCEPTION 'Slow down a little';
+  END IF;
+  INSERT INTO activity_kudos (event_id, user_id, emoji) VALUES (p_event, auth.uid(), coalesce(p_emoji, 'kudos'))
+  ON CONFLICT (event_id, user_id) DO UPDATE SET emoji = EXCLUDED.emoji;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION remove_kudos(p_event bigint) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  DELETE FROM activity_kudos WHERE event_id = p_event AND user_id = auth.uid();
+$$;
+
+-- Change who can see one of your posts.
+CREATE OR REPLACE FUNCTION set_activity_visibility(p_event bigint, p_visibility text) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF p_visibility NOT IN ('friends', 'private') THEN RAISE EXCEPTION 'unknown visibility'; END IF;
+  UPDATE activity_events SET visibility = p_visibility WHERE id = p_event AND user_id = auth.uid();
+  IF NOT FOUND THEN RAISE EXCEPTION 'That post is not yours'; END IF;
+END;
+$$;
+
+-- The feed: your posts and your friends' (never what a friend kept private), with kudos counts.
+-- p_scope: 'all' (default), 'friends' (not mine) or 'mine'.
+CREATE OR REPLACE FUNCTION get_feed(p_limit integer DEFAULT 40, p_before bigint DEFAULT NULL, p_scope text DEFAULT 'all')
+RETURNS TABLE (id bigint, user_id uuid, player_name text, avatar text, kind text, payload jsonb, visibility text,
+               created_at timestamptz, kudos_count bigint, i_gave text, kudos_by text[])
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT e.id, e.user_id, coalesce(p.player_name, 'Player'), coalesce(p.avatar, 'avatar_intern'), e.kind, e.payload, e.visibility, e.created_at,
+         (SELECT count(*) FROM activity_kudos k WHERE k.event_id = e.id),
+         (SELECT k.emoji FROM activity_kudos k WHERE k.event_id = e.id AND k.user_id = auth.uid()),
+         ARRAY(SELECT coalesce(kp.player_name, 'Player') FROM activity_kudos k
+               LEFT JOIN player_profiles kp ON kp.user_id = k.user_id
+               WHERE k.event_id = e.id ORDER BY k.created_at DESC LIMIT 3)
+  FROM activity_events e
+  LEFT JOIN player_profiles p ON p.user_id = e.user_id
+  WHERE auth.uid() IS NOT NULL
+    AND e.created_at > now() - interval '30 days'
+    AND (p_before IS NULL OR e.id < p_before)
+    AND can_see_activity(e.id)
+    AND (CASE WHEN p_scope = 'mine' THEN e.user_id = auth.uid()
+              WHEN p_scope = 'friends' THEN e.user_id <> auth.uid()
+              ELSE true END)
+  ORDER BY e.id DESC
+  LIMIT least(greatest(coalesce(p_limit, 40), 1), 100);
+$$;
+
+-- Kudos others gave the caller recently (the "kudos you got" list).
+CREATE OR REPLACE FUNCTION my_recent_kudos(p_since timestamptz DEFAULT now() - interval '7 days')
+RETURNS TABLE (event_id bigint, kind text, giver_id uuid, giver_name text, emoji text, created_at timestamptz)
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT k.event_id, e.kind, k.user_id, coalesce(p.player_name, 'Player'), k.emoji, k.created_at
+  FROM activity_kudos k
+  JOIN activity_events e ON e.id = k.event_id AND e.user_id = auth.uid()
+  LEFT JOIN player_profiles p ON p.user_id = k.user_id
+  WHERE auth.uid() IS NOT NULL AND k.created_at > p_since AND NOT has_block_between(auth.uid(), k.user_id)
+  ORDER BY k.created_at DESC
+  LIMIT 50;
+$$;
+
 
 -- ==================== GROUP WEEKLY GOALS ====================
 -- Members report cards studied per week; the group has one shared target.

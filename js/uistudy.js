@@ -10,6 +10,7 @@ import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
 import { customCards } from './customcards.js';
 import { buildStudyPlan } from './studyplan.js';
+import { estimateReadiness, examPace, READINESS_NOTE } from './readiness.js';
 
 export var studyMethods = {
 
@@ -396,7 +397,69 @@ export var studyMethods = {
         box.appendChild(line);
       });
     }
+    this._renderReadiness(box, cards);
     container.appendChild(box);
+  },
+
+  /** Memory estimate by subject, the exam date and the pace it implies, and the retention setting. */
+  _renderReadiness(box, cards) {
+    var self = this;
+    var disabled = storage.get('disabledCards') || [];
+    var live = cards.filter(function (c) { return disabled.indexOf(c.id) < 0; });
+    var est = estimateReadiness({ cardStats: storage.get('cardStats') || {}, cards: live });
+    var head = createElement('div', { text: '🧠 Memory estimate' });
+    head.style.cssText = 'font-size:11px;color:var(--text-muted);margin-top:12px';
+    box.appendChild(head);
+    var big = createElement('div', { className: 'readiness-overall', attributes: { id: 'readinessOverall' },
+      text: est.overall === null ? 'Study 20 cards to see your estimate.' : Math.round(est.overall * 100) + '% remembered, across ' + est.studied + ' cards you have met' });
+    big.style.cssText = 'font-size:13px;font-weight:700;margin-top:2px';
+    box.appendChild(big);
+    est.subjects.filter(function (s) { return s.studied > 0; }).slice(0, 6).forEach(function (s) {
+      var line = createElement('div', { className: 'readiness-row',
+        text: s.subject + ': ' + (s.memory === null ? 'not enough yet' : Math.round(s.memory * 100) + '%') + '  ·  ' + s.studied + '/' + s.total + ' met' });
+      line.style.cssText = 'font-size:11px;margin-top:2px;color:' + (s.memory !== null && s.memory < 0.6 ? 'var(--accent-red)' : 'var(--text-secondary)');
+      box.appendChild(line);
+    });
+    box.appendChild(createElement('div', { className: 'setting-sublabel', text: READINESS_NOTE }));
+
+    var row = createElement('div', { className: 'plan-exam-row' });
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap';
+    var label = createElement('label', { text: '📅 My exam date', attributes: { for: 'examDateInput' } });
+    label.style.cssText = 'font-size:12px';
+    var input = createElement('input', { attributes: { type: 'date', id: 'examDateInput', value: storage.get('examDate') || '' } });
+    input.addEventListener('change', function () {
+      storage.set('examDate', /^\d{4}-\d{2}-\d{2}$/.test(input.value) ? input.value : '');
+      self._renderPlanPace(paceLine, live);
+    });
+    row.appendChild(label);
+    row.appendChild(input);
+    box.appendChild(row);
+    var paceLine = createElement('div', { className: 'setting-sublabel', attributes: { id: 'examPaceLine' } });
+    box.appendChild(paceLine);
+    this._renderPlanPace(paceLine, live);
+
+    var rrow = createElement('div');
+    rrow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap';
+    var rl = createElement('label', { text: '🎯 Remember when due', attributes: { for: 'retentionSelect' } });
+    rl.style.cssText = 'font-size:12px';
+    var sel = createElement('select', { attributes: { id: 'retentionSelect' } });
+    [[0.8, '80% (fewer reviews)'], [0.85, '85%'], [0.9, '90% (recommended)'], [0.95, '95% (more reviews)']].forEach(function (o) {
+      var opt = createElement('option', { text: o[1], attributes: { value: String(o[0]) } });
+      if (Math.abs((storage.get('targetRetention') || 0.9) - o[0]) < 0.001) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function () { storage.set('targetRetention', Number(sel.value)); });
+    rrow.appendChild(rl);
+    rrow.appendChild(sel);
+    box.appendChild(rrow);
+    box.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Reviews are timed by FSRS, the open scheduling algorithm Anki offers. A higher number means more reviews.' }));
+  },
+
+  _renderPlanPace(el, live) {
+    var stats = storage.get('cardStats') || {};
+    var unseen = live.filter(function (c) { return !stats[c.id] || !stats[c.id].seen; }).length;
+    var pace = examPace({ examDate: storage.get('examDate') || '', unseen: unseen, due: storage.getDueCount(), dailyGoal: storage.get('dailyGoal') || 20 });
+    setText(el, pace ? pace.text : 'Add your exam date and the plan will pace the days you have left.');
   },
 
   startFlashcardSession(subjects, cardIds, count) {

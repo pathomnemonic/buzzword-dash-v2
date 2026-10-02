@@ -21,19 +21,23 @@ describe('spaced repetition schedule', () => {
     const DAY = 24 * 60 * 60 * 1000;
     storage.updateCardStat('c1', true);
     let s = storage.getCardStat('c1');
-    expect(s.interval).toBe(1);
-    expect(s.due - s.lastSeen).toBe(DAY);
+    expect(s.interval).toBe(3); // FSRS: the first "Good" is about three days
+    expect(s.due - s.lastSeen).toBe(3 * DAY);
 
-    storage.updateCardStat('c1', true);
-    expect(storage.getCardStat('c1').interval).toBe(3);
-    storage.updateCardStat('c1', true);
-    expect(storage.getCardStat('c1').interval).toBeGreaterThan(3);
+    // later reviews, on the day each is due, keep stretching the interval
+    let last = { interval: s.interval };
+    for (let i = 0; i < 2; i++) {
+      s = storage.data.cards.cardStats.c1;
+      s.lastReview -= s.interval * DAY; s.lastSeen -= s.interval * DAY;
+      storage.updateCardStat('c1', true);
+      expect(storage.getCardStat('c1').interval).toBeGreaterThan(last.interval);
+      last = { interval: storage.getCardStat('c1').interval };
+    }
 
     storage.updateCardStat('c1', false);
     s = storage.getCardStat('c1');
     expect(s.interval).toBe(0);
     expect(s.due - s.lastSeen).toBeLessThanOrEqual(10 * 60 * 1000);
-    expect(s.ease).toBeGreaterThanOrEqual(1.3);
   });
 
   it('counts only previously studied cards whose review is due', () => {
