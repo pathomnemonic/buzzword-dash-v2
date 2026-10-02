@@ -1406,8 +1406,9 @@ function init() {
         module.multiplayer.hostGame(function (code) {
           content.innerHTML =
             '<div class="mp-status">Waiting for opponent...</div>' +
-            '<div class="mp-room-code">' + code + '</div>' +
+            '<div class="mp-room-code"></div>' +
             '<div class="mp-status">Share this code with a friend.</div>';
+          content.querySelector('.mp-room-code').textContent = code;
         });
       });
 

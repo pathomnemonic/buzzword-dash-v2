@@ -200,6 +200,13 @@ function deepClone(obj) {
  * the same type, keep it; otherwise use the default. For nested objects,
  * recurse. This ensures new fields are always present.
  */
+function sameKind(value, fallback) {
+  if (fallback === null || fallback === undefined) return true;
+  if (Array.isArray(fallback)) return Array.isArray(value);
+  if (typeof fallback === 'number') return typeof value === 'number' && isFinite(value);
+  return typeof value === typeof fallback;
+}
+
 function deepMerge(stored, defaults) {
   if (stored === null || stored === undefined || typeof stored !== 'object' || typeof defaults !== 'object') {
     return deepClone(defaults);
@@ -220,8 +227,9 @@ function deepMerge(stored, defaults) {
       if (typeof defaults[key] === 'object' && defaults[key] !== null && !Array.isArray(defaults[key])) {
         result[key] = deepMerge(stored[key], defaults[key]);
       } else {
-        // Keep stored value (preserves zero, false, empty string, empty array)
-        result[key] = stored[key];
+        // Keep stored value (preserves zero, false, empty string, empty array), but only
+        // when it has the right type: a damaged or hand-edited save must not brick startup.
+        result[key] = sameKind(stored[key], defaults[key]) ? stored[key] : deepClone(defaults[key]);
       }
     } else {
       result[key] = deepClone(defaults[key]);
@@ -557,7 +565,13 @@ class Storage {
       this.data = deepClone(DEFAULTS);
     }
 
-    this._ensureInvariants();
+    try {
+      this._ensureInvariants();
+    } catch (e) {
+      console.warn('[Storage] Damaged data, using defaults:', e.message);
+      this.data = deepClone(DEFAULTS);
+      this._ensureInvariants();
+    }
   }
 
   save() {
