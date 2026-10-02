@@ -1,4 +1,4 @@
-/* global localStorage, sessionStorage, document */
+/* global localStorage, sessionStorage, document, window */
 // tools/make-screenshots.mjs — captioned portrait store screenshots.
 //
 //   npm run build && npx vite preview --port 4190 &   (then)
