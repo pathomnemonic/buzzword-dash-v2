@@ -12,6 +12,7 @@ import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
+import { estimateReadiness } from './readiness.js';
 import { QUESTS, ACHIEVEMENTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
@@ -66,6 +67,11 @@ export var profileMethods = {
     subjectBox.style.cssText = 'background:var(--bg-card);border-radius:10px;padding:10px';
     var hasSubjectData = false;
 
+    // Mastery level per subject (New, Learning, Solid, Mastered) from how much is met and how well it is remembered
+    var live = CARDS.concat(customCards.getAll()).filter(function (c) { return (storage.get('disabledCards') || []).indexOf(c.id) < 0; });
+    var levels = {};
+    estimateReadiness({ cardStats: storage.get('cardStats') || {}, cards: live }).subjects.forEach(function (r) { levels[r.subject] = r.level; });
+
     SUBJECTS.forEach(function (s) {
       var ss = storage.getSubjectStat(s);
       var total = ss.correct + ss.wrong;
@@ -78,7 +84,7 @@ export var profileMethods = {
       var row = createElement('div');
       row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
 
-      var nameEl = createElement('span', { text: s + (mastered ? ' ⭐' : '') });
+      var nameEl = createElement('span', { text: s + (mastered ? ' ⭐' : '') + (levels[s] ? '  ·  ' + levels[s] : '') });
       nameEl.style.fontSize = '12px';
       row.appendChild(nameEl);
 

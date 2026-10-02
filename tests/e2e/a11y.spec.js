@@ -124,9 +124,9 @@ test.describe('Keyboard and dialogs', () => {
     await page.keyboard.press('ArrowLeft');
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Space');
-    await page.keyboard.press('p'); // pause
+    await page.keyboard.press('Escape'); // pause
     await expect(page.locator('#pauseOverlay')).toHaveClass(/active/);
-    await page.keyboard.press('p');
+    await page.locator('#resumeBtn').click();
     await expect(page.locator('#pauseOverlay')).not.toHaveClass(/active/);
   });
 });

@@ -217,40 +217,16 @@ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
 $$;
 
 
--- ==================== REPORTS ====================
-
-CREATE TABLE IF NOT EXISTS content_reports (
-  id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  reporter_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  kind         text NOT NULL CHECK (kind IN ('buddy', 'group')),
-  target_id    text NOT NULL CHECK (char_length(target_id) <= 40),
-  reason       text NOT NULL CHECK (reason IN ('spam', 'harassment', 'inappropriate_name', 'other')),
-  created_at   timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE OR REPLACE FUNCTION report_content(p_kind text, p_target text, p_reason text) RETURNS void
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
-  IF (SELECT count(*) FROM content_reports WHERE reporter_id = auth.uid() AND created_at > now() - interval '1 day') >= 20 THEN
-    RAISE EXCEPTION 'You have sent a lot of reports today';
-  END IF;
-  INSERT INTO content_reports (reporter_id, kind, target_id, reason) VALUES (auth.uid(), p_kind, left(p_target, 40), p_reason);
-END;
-$$;
-
-
 -- ==================== WHO MAY CALL WHAT ====================
 
 ALTER TABLE buddy_listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE group_join_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE content_reports ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON buddy_listings, group_join_requests, content_reports FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON buddy_listings, group_join_requests FROM PUBLIC, anon, authenticated;
 
 REVOKE ALL ON FUNCTION set_buddy_listing(text, date, text[], text, integer, boolean), my_buddy_listing(), remove_buddy_listing(),
   find_buddies(integer), set_group_discovery(uuid, boolean, text, text), discover_groups(text, text, integer),
   join_public_group(uuid), cancel_group_request(uuid), group_requests(uuid), resolve_group_request(uuid, uuid, boolean),
-  my_groups(), report_content(text, text, text) FROM PUBLIC;
+  my_groups() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION set_buddy_listing(text, date, text[], text, integer, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION my_buddy_listing() TO authenticated;
 GRANT EXECUTE ON FUNCTION remove_buddy_listing() TO authenticated;
@@ -262,4 +238,3 @@ GRANT EXECUTE ON FUNCTION cancel_group_request(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION group_requests(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION resolve_group_request(uuid, uuid, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION my_groups() TO authenticated;
-GRANT EXECUTE ON FUNCTION report_content(text, text, text) TO authenticated;

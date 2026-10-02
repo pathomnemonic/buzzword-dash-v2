@@ -1,5 +1,7 @@
 # Turning Dx Dash into a phone app
 
+> Ready to publish? Follow `docs/RELEASE_GUIDE.md` (Google Play first, then the App Store). This page is the background.
+
 The game is wrapped with [Capacitor](https://capacitorjs.com/): the same web code runs inside a native shell, so the website and the apps stay in step. Android is fully set up in this repository. iOS is set up as a build recipe; because Apple only allows iOS builds on a Mac, that part is finished on a Mac (or a cloud Mac).
 
 ## What is already done

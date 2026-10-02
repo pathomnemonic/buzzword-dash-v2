@@ -1,5 +1,7 @@
 # Store listing (drafts)
 
+> **Publishing? Start with `docs/RELEASE_GUIDE.md`.** The ready-to-paste text and policy answers are in `store/google-play/` and `store/app-store/`. This page keeps the background and the rules about what the listing may claim.
+
 Edit freely. Keep claims honest: the game is a study aid and does not guarantee exam results.
 
 ## Name and short description

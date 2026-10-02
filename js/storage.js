@@ -54,6 +54,7 @@ var DEFAULTS = {
     characterVoices: true,     // the runner cheers when you score and sulks when you miss
     hapticsEnabled: true,
     dailyGoal: 20,
+    fsrsMigrated: false,       // cards have been moved from the old schedule to FSRS
     targetRetention: 0.9,      // how likely you want to be to remember a card when it comes back (FSRS)
     examDate: '',              // YYYY-MM-DD of the player's exam, for the study plan
     examName: '',
@@ -602,6 +603,21 @@ class Storage {
   _ensureInvariants() {
     var d = this.data;
     if (!d) return;
+
+    // One-time move of every card from the old schedule to FSRS (see fsrs.js), so nobody loses their history
+    if (d.cards && d.cards.cardStats && !d.settings.fsrsMigrated) {
+      var stats = d.cards.cardStats;
+      Object.keys(stats).forEach(function (id) {
+        var s = stats[id];
+        if (!s || typeof s !== 'object' || !(s.seen > 0) || s.stability > 0) return;
+        var m = fsrs.fromLegacy(s);
+        if (!m) return;
+        s.stability = m.stability;
+        s.difficulty = m.difficulty;
+        s.lastReview = m.lastReview;
+      });
+      d.settings.fsrsMigrated = true;
+    }
 
     // Ensure required owned items
     var requiredItems = ['avatar_intern', 'avatar_classic', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'];

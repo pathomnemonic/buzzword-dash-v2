@@ -103,7 +103,7 @@ export function buildTourSteps(ctx) {
       text: 'Calm study with no runner and no lives. Open it.' },
     { id: 'flashcards', title: 'Choose your cards', target: '#flashcardsList', press: 'next',
       after: closeSheet('#flashcardsSheet'),
-      text: 'Study your subjects, review the cards that are due (spaced repetition), drill the ones you miss, or meet new ones. Flip them yourself or listen hands-free. Browse cards and My cards (your own, or imported from Anki) are here too.' },
+      text: 'Study your subjects, review the cards that are due (timed by FSRS, the same spaced-repetition algorithm Anki uses), drill the ones you miss, or meet new ones. Flip them yourself or listen hands-free. Browse cards and My cards (your own, or imported from Anki) are here too.' },
 
     { id: 'challenge-btn', title: 'Challenge', target: '#homeChallengeBtn', press: 'pass', hint: 'Tap Challenge to look inside',
       text: 'Everything else you can play with a set of questions. Open it, and we will go through them one at a time.' },

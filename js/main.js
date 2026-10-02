@@ -1110,6 +1110,7 @@ function init() {
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
     window.__storage = storage;
+    window.__cards = CARDS;
   }
   storage.load();
   storage.checkDailyReset();

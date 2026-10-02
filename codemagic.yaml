@@ -1,0 +1,51 @@
+# Codemagic builds the iOS app in the cloud (no Mac needed) and sends it to TestFlight / App Store Connect.
+# One-time setup is in docs/RELEASE_GUIDE.md (Part 2). This file has not been run yet: expect to fix a small
+# thing or two on the first build, and read the log when a step fails.
+workflows:
+  ios-release:
+    name: Dx Dash iOS (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Dx Dash App Store Connect   # the name you give the API key in Codemagic (Teams > Integrations)
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pathomnemonic.dxdash
+      vars:
+        VITE_BASE_PATH: /
+        # Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as secure variables in Codemagic (same values as on GitHub)
+    scripts:
+      - name: Build the web game
+        script: |
+          npm ci
+          npx vite build
+      - name: Create the iOS project
+        script: |
+          npm i --no-save @capacitor/ios
+          npx cap add ios
+          npx cap sync ios
+          npx capacitor-assets generate --ios
+      - name: Portrait only, export compliance, build number
+        script: |
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" $PLIST
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" $PLIST
+          /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" $PLIST || true
+          cd ios/App && agvtool new-version -all $BUILD_NUMBER
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build the signed app
+        script: |
+          xcode-project build-ipa --workspace "ios/App/App.xcworkspace" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

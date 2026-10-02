@@ -146,3 +146,20 @@ describe('readiness and exam pace', () => {
     expect(examPace({ examDate: '', unseen: 5, due: 0, now })).toBeNull();
   });
 });
+
+describe('one-time migration to FSRS', () => {
+  it('converts every old card on load, once, and keeps their due dates', () => {
+    localStorage.clear(); storage.data = null; storage.load();
+    storage.data.cards.cardStats.m1 = { seen: 6, correct: 6, wrong: 0, lastSeen: 1000, interval: 14, ease: 2.5, reps: 5, due: 5000 };
+    storage.data.cards.cardStats.m2 = { seen: 0 };
+    storage.data.settings.fsrsMigrated = false;
+    storage._ensureInvariants();
+    const s = storage.data.cards.cardStats;
+    expect(s.m1.stability).toBe(14);
+    expect(s.m1.due).toBe(5000);
+    expect(s.m2.stability).toBeUndefined();
+    expect(storage.data.settings.fsrsMigrated).toBe(true);
+    s.m1.stability = 99; storage._ensureInvariants();
+    expect(s.m1.stability).toBe(99); // not run again
+  });
+});

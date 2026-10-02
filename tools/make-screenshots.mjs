@@ -14,9 +14,8 @@ import { BG, CYAN } from './brand.mjs';
 const base = process.argv[2] || 'http://localhost:4190';
 const outDir = 'assets/store/screenshots';
 fs.mkdirSync(outDir, { recursive: true });
-for (const old of fs.readdirSync(outDir)) if (old.endsWith('.png')) fs.unlinkSync(outDir + '/' + old);
 
-const browser = await chromium.launch({ args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 await page.goto(base + '/?debug=1');
 const dismissDaily = async (pg) => {
@@ -27,12 +26,17 @@ const dismissDaily = async (pg) => {
     await pg.waitForTimeout(1200);
   }
 };
-const skip = async () => {
+// Close the first-run tutorial the way a player does: the x in the corner, then "Exit the tutorial" on the warning
+const closeTutorial = async (pg) => {
   for (let i = 0; i < 10; i++) {
-    const next = page.locator('#tutSkipBtn');
-    if (!(await next.isVisible().catch(() => false))) break;
-    await next.click();
+    const x = pg.locator('#tutCloseBtn');
+    if (!(await x.isVisible().catch(() => false))) break;
+    await x.click();
+    await pg.locator('#tutExitYes').click().catch(() => {});
   }
+};
+const skip = async () => {
+  await closeTutorial(page);
   await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDaily(page);
 };
@@ -121,19 +125,11 @@ const multiplayerShot = async (name, caption, sub) => {
     const pg = await ctx.newPage();
     pg.on('dialog', (d) => d.accept());
     await pg.goto(base + '/?debug=1');
-    for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#tutSkipBtn');
-      if (!(await next.isVisible().catch(() => false))) break;
-      await next.click();
-    }
+    await closeTutorial(pg);
     await pg.waitForTimeout(1500);
     await dismissDaily(pg);
     await pg.reload();
-    for (let i = 0; i < 10; i++) {
-      const next = pg.locator('#tutSkipBtn');
-      if (!(await next.isVisible().catch(() => false))) break;
-      await next.click();
-    }
+    await closeTutorial(pg);
     await pg.waitForTimeout(1500);
     await dismissDaily(pg);
     players.push(pg);
@@ -194,30 +190,58 @@ await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
 await page.waitForTimeout(1500);
 await snap('goals', 'Build a daily streak', 'Short goals that keep you consistent');
 
+// Stats: the study plan with the memory estimate (some FSRS history is filled in for the picture)
+await page.evaluate(() => {
+  const st = window.__storage; const cards = window.__cards || [];
+  const now = Date.now(); const DAY = 86400000;
+  cards.slice(0, 260).forEach((c, i) => {
+    const seen = 3 + (i % 5); const wrong = i % 7 === 0 ? 2 : 0;
+    st.data.cards.cardStats[c.id] = { seen, correct: seen - wrong, wrong, lastSeen: now - (i % 9) * DAY, stability: 6 + (i % 30), difficulty: 4 + (i % 4), lastReview: now - (i % 9) * DAY, due: now + ((i % 12) - 3) * DAY, interval: 6 };
+    st.data.cards.subjectStats[c.subj] = { correct: 40 + (i % 50), wrong: 6 + (i % 9) };
+  });
+  st.data.settings.examDate = new Date(now + 62 * DAY).toISOString().slice(0, 10);
+  st.save();
+});
+await page.locator('[data-screen="screenStats"]').click();
+await page.waitForTimeout(1500);
+await snap('stats', 'Know what you remember', 'Reviews timed by FSRS, the algorithm Anki uses');
+
 await page.locator('[data-screen="screenShop"]').click();
 await page.waitForTimeout(3500);
 await snap('rewards', 'Earn rewards as you improve', 'Coins from correct answers unlock new looks');
 
 await browser.close();
 
-const W = 1080, H = 1920, CAP = 330, PAD = 70;
-let n = 1;
-for (const f of frames) {
-  const shotW = W - PAD * 2;
-  const shotH = H - CAP - PAD - 40;
-  const shot = await sharp(f.buf).resize(shotW, shotH, { fit: 'cover', position: 'top' })
-    .composite([{ input: Buffer.from(`<svg width="${shotW}" height="${shotH}"><rect width="${shotW}" height="${shotH}" rx="56" fill="#fff"/></svg>`), blend: 'dest-in' }]).png().toBuffer();
-  const size = Math.min(86, Math.floor(960 / (f.caption.length * 0.62)));
-  const font = 'font-family="Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif" font-weight="900" text-anchor="middle"';
-  const label = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${CAP}">
-    <g transform="translate(${W / 2} 152) skewX(-8)">
-      <text x="0" y="8" ${font} font-size="${size}" fill="#1b0a40" stroke="#1b0a40" stroke-width="16" stroke-linejoin="round">${f.caption}</text>
-      <text x="0" y="0" ${font} font-size="${size}" fill="#ffd23f" stroke="#1b0a40" stroke-width="10" stroke-linejoin="round">${f.caption}</text>
-      <text x="0" y="0" ${font} font-size="${size}" fill="#ffd23f">${f.caption}</text>
-    </g>
-    <text x="${W / 2}" y="240" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
-  await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
-    .composite([{ input: label, top: 0, left: 0 }, { input: shot, top: CAP, left: PAD }])
-    .png().toFile(`${outDir}/${String(n++).padStart(2, '0')}-${f.name}.png`);
+for (const old of fs.readdirSync(outDir)) if (old.endsWith('.png')) fs.unlinkSync(outDir + '/' + old);
+
+// Google Play takes 1080x1920; the App Store wants exact sizes (6.9-inch: 1290x2796, 6.5-inch: 1284x2778)
+const SIZES = [
+  { dir: outDir, W: 1080, H: 1920, CAP: 330, PAD: 70 },
+  { dir: 'assets/store/appstore', W: 1290, H: 2796, CAP: 400, PAD: 80 },
+  { dir: 'assets/store/appstore-6.5', W: 1284, H: 2778, CAP: 400, PAD: 80 }
+];
+for (const size of SIZES) {
+  fs.mkdirSync(size.dir, { recursive: true });
+  for (const old of fs.readdirSync(size.dir)) if (old.endsWith('.png')) fs.unlinkSync(size.dir + '/' + old);
+  const { W, H, CAP, PAD } = size;
+  let n = 1;
+  for (const f of frames) {
+    const shotW = W - PAD * 2;
+    const shotH = H - CAP - PAD - 40;
+    const shot = await sharp(f.buf).resize(shotW, shotH, { fit: 'cover', position: 'top' })
+      .composite([{ input: Buffer.from(`<svg width="${shotW}" height="${shotH}"><rect width="${shotW}" height="${shotH}" rx="56" fill="#fff"/></svg>`), blend: 'dest-in' }]).png().toBuffer();
+    const fs0 = Math.min(86, Math.floor((W - 120) / (f.caption.length * 0.62)));
+    const font = 'font-family="Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif" font-weight="900" text-anchor="middle"';
+    const label = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${CAP}">
+      <g transform="translate(${W / 2} ${CAP * 0.46}) skewX(-8)">
+        <text x="0" y="8" ${font} font-size="${fs0}" fill="#1b0a40" stroke="#1b0a40" stroke-width="16" stroke-linejoin="round">${f.caption}</text>
+        <text x="0" y="0" ${font} font-size="${fs0}" fill="#ffd23f" stroke="#1b0a40" stroke-width="10" stroke-linejoin="round">${f.caption}</text>
+        <text x="0" y="0" ${font} font-size="${fs0}" fill="#ffd23f">${f.caption}</text>
+      </g>
+      <text x="${W / 2}" y="${CAP * 0.73}" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
+    await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
+      .composite([{ input: label, top: 0, left: 0 }, { input: shot, top: CAP, left: PAD }])
+      .png().toFile(`${size.dir}/${String(n++).padStart(2, '0')}-${f.name}.png`);
+  }
+  console.log('wrote ' + (n - 1) + ' screenshots to ' + size.dir);
 }
-console.log('wrote ' + (n - 1) + ' screenshots to ' + outDir);

@@ -38,7 +38,8 @@ export var REFERENCE = [
   { icon: '❤️', title: 'Lives', text: 'You start with 3. Wrong answers and obstacles cost one. At 1 life, look for hearts on the track.' },
   { icon: '🪙', title: 'Coins and the Locker', text: 'Grab coins and power-up orbs, then spend coins in the Locker on characters, hats, trails and gear.' },
   { icon: '🎯', title: 'Game modes', text: 'Endless runs until you are out of lives. Study loses no lives and teaches after each question. Weakness drills the cards you miss. Daily is today\'s 15-card challenge. Versus races a friend live, or play ranked.' },
-  { icon: '📝', title: 'Your own cards', text: 'Make cards in My Cards, import Anki decks, or study the same cards as flashcards.' }
+  { icon: '📝', title: 'Your own cards', text: 'Make cards in My Cards, import Anki decks, or study the same cards as flashcards.' },
+  { icon: '🧠', title: 'Smart reviews', text: 'Cards come back just before you would forget them, scheduled with FSRS, the same algorithm Anki uses.' }
 ];
 
 /**

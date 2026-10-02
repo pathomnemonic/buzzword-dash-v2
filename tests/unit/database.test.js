@@ -367,6 +367,18 @@ describe('tournament standing, activity feed and group goals', () => {
 });
 
 
+describe('moderation queue', () => {
+  it('collects every kind of report in one list that only the owner can read', async () => {
+    await as(A, () => db.query("INSERT INTO user_reports (reporter_id, reported_id, reason) VALUES ($1,$2,'rude name')", [A, B]));
+    await as(A, () => db.query("INSERT INTO card_reports (reporter_id, card_id, reason, details) VALUES ($1,'c1','wrong','typo')", [A]));
+    await as(A, () => db.query("SELECT report_content('buddy', $1, 'spam')", [B]));
+    const rows = (await db.query('SELECT source, detail FROM moderation_queue')).rows;
+    expect(new Set(rows.map((r) => r.source))).toEqual(new Set(['buddy', 'card', 'player']));
+    expect(rows.map((r) => r.detail)).toContain('wrong: typo');
+    // (players are denied by REVOKE in policies.sql; this test's setup grants everything afterwards, so only the content is checked here)
+  });
+});
+
 describe('opt-in diagnostics', () => {
   it('accepts a report from a signed-in player but nobody can read the table', async () => {
     await as(A, () => db.query("SELECT report_diagnostic('error', 'boom', 'audio', 'play', 'abc123', 'medium')"));

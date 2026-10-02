@@ -625,6 +625,55 @@ END;
 $$;
 
 
+-- ==================== REPORTS ====================
+
+CREATE TABLE IF NOT EXISTS content_reports (
+  id           bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  reporter_id  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  kind         text NOT NULL CHECK (kind IN ('buddy', 'group')),
+  target_id    text NOT NULL CHECK (char_length(target_id) <= 40),
+  reason       text NOT NULL CHECK (reason IN ('spam', 'harassment', 'inappropriate_name', 'other')),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION report_content(p_kind text, p_target text, p_reason text) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  IF (SELECT count(*) FROM content_reports WHERE reporter_id = auth.uid() AND created_at > now() - interval '1 day') >= 20 THEN
+    RAISE EXCEPTION 'You have sent a lot of reports today';
+  END IF;
+  INSERT INTO content_reports (reporter_id, kind, target_id, reason) VALUES (auth.uid(), p_kind, left(p_target, 40), p_reason);
+END;
+$$;
+
+
+
+-- ==================== MODERATION QUEUE ====================
+-- One list of everything players have reported, newest first, for the owner to read in the Supabase table editor
+-- (Table editor -> moderation_queue) or the SQL editor: SELECT * FROM moderation_queue LIMIT 50;
+-- Players cannot read it. Acting on a report is done by hand (see docs/MODERATION.md).
+
+CREATE OR REPLACE VIEW moderation_queue AS
+  SELECT 'player'::text AS source, r.created_at, r.reporter_id, rp.player_name AS reporter_name,
+         r.reported_id::text AS target_id, tp.player_name AS target_name, left(r.reason, 200) AS detail
+  FROM user_reports r
+  LEFT JOIN player_profiles rp ON rp.user_id = r.reporter_id
+  LEFT JOIN player_profiles tp ON tp.user_id = r.reported_id
+  UNION ALL
+  SELECT 'card', c.created_at, c.reporter_id, rp.player_name, c.card_id, NULL, left(c.reason || ': ' || c.details, 200)
+  FROM card_reports c
+  LEFT JOIN player_profiles rp ON rp.user_id = c.reporter_id
+  UNION ALL
+  SELECT c.kind, c.created_at, c.reporter_id, rp.player_name, c.target_id,
+         coalesce(tp.player_name, g.name), c.reason
+  FROM content_reports c
+  LEFT JOIN player_profiles rp ON rp.user_id = c.reporter_id
+  LEFT JOIN player_profiles tp ON c.kind = 'buddy' AND tp.user_id::text = c.target_id
+  LEFT JOIN study_groups g ON c.kind = 'group' AND g.id::text = c.target_id
+  ORDER BY created_at DESC;
+
+
 -- ==================== DIAGNOSTICS (opt-in) ====================
 -- Anonymous crash and slow-frame reports, sent only by players who switch "Help fix problems" on in Settings.
 -- No user id, no scores, no card or account data: a short message, where it happened, the app version and the

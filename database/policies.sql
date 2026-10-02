@@ -264,6 +264,15 @@ GRANT EXECUTE ON FUNCTION set_group_goal(uuid, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION group_goal_status(uuid, text) TO authenticated;
 
 
+-- ==================== REPORTS AND MODERATION ====================
+
+ALTER TABLE content_reports ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON content_reports FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON moderation_queue FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION report_content(text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION report_content(text, text, text) TO authenticated;
+
+
 -- ==================== DIAGNOSTICS ====================
 
 ALTER TABLE client_diagnostics ENABLE ROW LEVEL SECURITY;
