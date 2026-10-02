@@ -1,7 +1,7 @@
 {
   "name": "Dx Dash",
   "short_name": "Dx Dash",
-  "description": "Run the list. A 3D endless runner for USMLE & COMLEX board prep",
+  "description": "Run the list. An endless runner for USMLE & COMLEX board prep",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -10,7 +10,7 @@ Edit freely. Keep claims honest: the game is a study aid and does not guarantee 
 
 **App Store subtitle (30 chars):** Board questions, at a sprint
 
-**Short description (80 chars):** Run the list. Dodge, dash and Dx USMLE & COMLEX questions in 3D.
+**Short description (80 chars):** Run the list. Dodge, dash and Dx USMLE & COMLEX questions.
 
 ## Full description
 
@@ -23,7 +23,7 @@ Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and a
 - **Learn from your misses.** Spaced repetition brings back the cards you get wrong until they stick.
 - **Flashcards and a timed exam simulator** for when you want to slow down and test yourself.
 - **Daily goals, streaks and a weekly study plan** that keep you consistent.
-- **An exam monster that chases you** when your streak slips, and fades when you get back on track.
+- **An exam monster that chases you** when your streak slips, and drifts away when you get back on track.
 - **Earn coins and unlock** animated characters, monsters, trails and themed tracks.
 - **Solo play needs no internet.** No ads. No tracking.
 
