@@ -44,10 +44,10 @@ describe('Locker tabs', () => {
   });
 
   it('a character gets color pickers for its own parts, but no headwear', () => {
-    storage.data.progression.equipped.skin = 'avatar_intern'; // Dr. Dash
+    storage.data.progression.equipped.skin = 'avatar_intern'; // Pager Pete
     ui._lockerTab = 'customize';
     ui.renderShop();
-    expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
+    expect(document.getElementById('shopItems').textContent).toMatch(/Pager Pete colors/);
     const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
     expect(parts).toEqual(['top', 'pants', 'skin', 'hair']);
     expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(8);

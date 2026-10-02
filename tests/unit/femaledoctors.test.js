@@ -7,9 +7,9 @@ import { addHairStyle } from '../../js/game/player.js';
 import { findClipName } from '../../js/game/clipnames.js';
 
 describe('women in the 3D roster, at the same quality as the men', () => {
-  it('has a physician (Dr. Nova) and the Scout as full 3D characters', () => {
+  it('has a physician (Dr. Dash) and the Scout as full 3D characters', () => {
     const nova = AVATARS.find((a) => a.id === 'avatar_m_nurse');
-    expect(nova.name).toBe('Dr. Nova');
+    expect(nova.name).toBe('Dr. Dash');
     expect(nova.isModel).toBe(true);
     expect(nova.desc).toMatch(/medicine/i);
     const scout = AVATARS.find((a) => a.id === 'avatar_m_scout');

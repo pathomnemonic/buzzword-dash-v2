@@ -42,14 +42,14 @@ var SHOES = swatches([['White', 0xf2f2f2], ['Black', 0x1d1f24], ['Pink', 0xe86fa
  * Names stay plain where the model is not a medical character.
  */
 export var CHARACTER_MODELS = [
-  { id: 'avatar_intern', name: 'Dr. Dash', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
+  { id: 'avatar_intern', name: 'Pager Pete', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
     parts: [
       { key: 'top', label: 'Scrub top', materials: ['LightBrown'], palette: SCRUBS },
       { key: 'pants', label: 'Scrub pants', materials: ['LightBlue'], palette: SCRUBS },
       { key: 'skin', label: 'Skin', materials: ['Skin', 'Skin_Darker'], palette: SKIN_TONES },
       { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
-  { id: 'avatar_m_nurse', name: 'Dr. Nova', desc: 'Emergency medicine: calm in every code', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc,
+  { id: 'avatar_m_nurse', name: 'Dr. Dash', desc: 'Emergency medicine: calm in every code', file: 'characters/nurse.glb', price: 600, icon: '👩‍⚕️', color: 0x5bc4dc,
     parts: [
       { key: 'top', label: 'Scrub top', materials: ['White'], palette: PASTELS },
       { key: 'pants', label: 'Scrub pants', materials: ['Orange'], palette: PASTELS },
@@ -130,7 +130,7 @@ export var RETIRED_CHARACTERS = {
   avatar_m_resident: { to: 'avatar_intern', price: 400 },
   avatar_m_surgeon: { to: 'avatar_intern', price: 1000 },
   avatar_robopro: { to: 'avatar_m_robot', price: 9000 },
-  // The six Classic women doctors were replaced by Dr. Nova (a full 3D character) with skin and hair choices
+  // The six Classic women doctors were replaced by Dr. Dash (a full 3D character) with skin and hair choices
   avatar_dr_maya: { to: 'avatar_m_nurse', price: 1500 },
   avatar_dr_lin: { to: 'avatar_m_nurse', price: 2000 },
   avatar_dr_amara: { to: 'avatar_m_nurse', price: 2500 },

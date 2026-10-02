@@ -28,8 +28,8 @@ export var VOWELS = {
 
 /** @type {Object<string, CharacterSound>} */
 export var PROFILES = {
-  avatar_intern:       { name: 'Dr. Dash',      kit: 'voice',    f0: 125, size: 1.0,  bright: 1.0 },
-  avatar_m_nurse:      { name: 'Dr. Nova',      kit: 'voice',    f0: 215, size: 1.17, bright: 1.1 },
+  avatar_intern:       { name: 'Pager Pete',    kit: 'voice',    f0: 125, size: 1.0,  bright: 1.0 },
+  avatar_m_nurse:      { name: 'Dr. Dash',      kit: 'voice',    f0: 215, size: 1.17, bright: 1.1 },
   avatar_m_paramedic:  { name: 'Paramedic Pat', kit: 'voice',    f0: 160, size: 1.06, bright: 1.1 },
   avatar_m_intern:     { name: 'Explorer',      kit: 'voice',    f0: 190, size: 1.12, bright: 1.0 },
   avatar_m_explorer:   { name: 'Ranger',        kit: 'voice',    f0: 105, size: 0.95, bright: 0.9 },
