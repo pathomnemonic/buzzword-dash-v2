@@ -36,7 +36,7 @@ export var PROFILES = {
   avatar_m_adventurer: { name: 'Locum Lou',    kit: 'voice',    f0: 255, size: 1.22, bright: 1.2 },
   avatar_m_rogue:      { name: 'Dark-Room Dex',  kit: 'voice',    f0: 98,  size: 0.92, bright: 0.8 },
   avatar_m_scout:      { name: 'Stat Sadie',         kit: 'voice',    f0: 270, size: 1.25, bright: 1.25 },
-  avatar_m_zombie:     { name: 'Zombie',        kit: 'zombie',   f0: 72,  size: 0.9,  bright: 0.6 },
+  avatar_m_zombie:     { name: 'Decaffeinated Dan', kit: 'zombie',   f0: 72,  size: 0.9,  bright: 0.6 },
   avatar_m_ninja:      { name: 'Night-Shift Nico',         kit: 'voice',    f0: 142, size: 1.02, bright: 1.1 },
   avatar_m_skeleton:   { name: 'Femur Fred',         kit: 'skeleton', f0: 235, size: 1.18, bright: 1.3 },
   avatar_m_orc:        { name: 'Gurney Grog',           kit: 'orc',      f0: 62,  size: 0.78, bright: 0.6 },

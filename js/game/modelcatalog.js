@@ -85,7 +85,7 @@ export var CHARACTER_MODELS = [
       { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
     ] },
   { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 1800, icon: '🏹', color: 0x3fa98a },
-  { id: 'avatar_m_zombie', name: 'Zombie', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
+  { id: 'avatar_m_zombie', name: 'Decaffeinated Dan', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
   { id: 'avatar_m_ninja', name: 'Night-Shift Nico', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344,
     parts: [
       { key: 'outfit', label: 'Outfit', materials: ['Ninja_Main'], palette: NINJA },
