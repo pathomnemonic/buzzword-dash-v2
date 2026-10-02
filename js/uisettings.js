@@ -578,7 +578,8 @@ export var settingsMethods = {
               audio.play('equip');
               if (self.onEquipChange) self.onEquipChange();
             }
-            self._lockerTab = 'customize';
+            self._lockerTab = 'heroes';
+            self._heroColorsOpen = true;
             self.renderShop();
             if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
           });
@@ -653,27 +654,31 @@ export var settingsMethods = {
       return function (item) { return kindOf(item.id) === kind; };
     };
 
-    var tab = this._lockerTab || 'characters';
+    // Three tabs on one line: Heroes (with the colors of the hero you wear, right there), Trails and Monsters.
+    // (Older saves of the tab name still work: 'characters' and 'customize' are Heroes, 'extras' is Trails.)
+    var rawTab = this._lockerTab || 'heroes';
+    var tab = rawTab === 'characters' || rawTab === 'customize' ? 'heroes' : (rawTab === 'extras' ? 'trails' : rawTab);
+    if (rawTab === 'customize') this._heroColorsOpen = true;
+    this._lockerTab = tab;
     var shopItems = document.getElementById('shopItems');
     clearElement(shopItems);
 
-    var tabBar = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
-    tabBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px';
+    var tabBar = createElement('div', { className: 'locker-tabs', attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
     var fresh = this._lockerFresh || [];
-    var tabOf = function (item) { return item.type === 'skin' ? 'characters' : (item.type === 'trail' || item.type === 'monster') ? 'extras' : 'customize'; };
+    var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : 'heroes'; };
     var freshTabs = {};
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['characters', '🎭 Characters'], ['customize', '🎨 Customize'], ['extras', '✨ Trails & Monsters']].forEach(function (t) {
+    [['heroes', '🦸 Heroes'], ['trails', '✨ Trails'], ['monsters', '👾 Monsters']].forEach(function (t) {
       var b = createElement('button', {
-        className: 'btn btn-sm ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
+        className: 'btn btn-sm locker-tab ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
         text: t[1],
         attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
       });
       b.addEventListener('click', function () {
         self._lockerTab = t[0];
         self.renderShop();
-        // leaving the trails and monsters: the display goes back to the character
-        if (t[0] !== 'extras' && self.characterPreview) self.characterPreview.clearPreview();
+        // changing tab puts the display back to your hero (with the trail you wear)
+        if (self.characterPreview) self.characterPreview.clearPreview();
       });
       if (freshTabs[t[0]]) b.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'New items you can afford' } }));
       tabBar.appendChild(b);
@@ -685,52 +690,62 @@ export var settingsMethods = {
       shopItems.appendChild(why);
     }
 
-    if (tab === 'characters') {
-      shopItems.appendChild(renderGroup('skin', '🎬 Characters', isKind('model'),
-        'A 🎨 beside a character means you can change its colors. Tap it to start.'));
+    if (tab === 'heroes') {
+      shopItems.appendChild(this._renderHeroCard(avatarOf, kindOf, renderGroup));
+      shopItems.appendChild(renderGroup('skin', '🎬 Heroes', isKind('model'),
+        'A 🎨 beside a hero means you can change its colors. Tap it to start.'));
       if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
       if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
         'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
-    } else if (tab === 'customize') {
-      var eqSkin = storage.get('equipped').skin || 'avatar_intern';
-      var eqAvatar = avatarOf(eqSkin);
-      var kind = kindOf(eqSkin);
-      var kindLabel = kind === 'model' ? 'Character' : (kind === 'vehicle' ? 'Vehicle' : 'Classic character');
-
-      var card = createElement('div', { className: 'shop-item' });
-      card.style.cssText = 'display:block;margin:8px 0';
-      var cardTitle = createElement('div', { text: 'Equipped: ' + (eqAvatar ? eqAvatar.name : eqSkin) + ' · ' + kindLabel });
-      cardTitle.style.cssText = 'font-size:13px;font-weight:800;margin-bottom:4px';
-      card.appendChild(cardTitle);
-      var cardText = createElement('div', {
-        className: 'setting-sublabel',
-        text: kind === 'model'
-          ? (eqAvatar && eqAvatar.parts && eqAvatar.parts.length ? 'Recolor the parts of this character below.' : 'This character keeps its own look.')
-          : (kind === 'vehicle'
-            ? 'Vehicles cannot wear anything. Pick a character on the Characters tab to customize.'
-            : 'Everything below works on this character.')
-      });
-      cardText.style.lineHeight = '1.4';
-      card.appendChild(cardText);
-      if (kind !== 'classic' && !ARCHIVE_CLASSIC) {
-        var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Choose a Classic character', attributes: { type: 'button' } });
-        goBtn.style.marginTop = '8px';
-        goBtn.addEventListener('click', function () { self._lockerTab = 'characters'; self.renderShop(); });
-        card.appendChild(goBtn);
-      }
-      shopItems.appendChild(card);
-
-      if (kind === 'classic') shopItems.appendChild(this._renderColorPickers());
-      if (kind === 'model' && eqAvatar && eqAvatar.parts && eqAvatar.parts.length) shopItems.appendChild(this._renderModelColors(eqAvatar));
-      if (kind === 'classic') {
-        shopItems.appendChild(renderGroup('hat', '🧢 Headwear'));
-        shopItems.appendChild(renderGroup('clothing', '🥼 Clothing'));
-        shopItems.appendChild(renderGroup('gear', '🩺 Gear'));
-      }
+    } else if (tab === 'trails') {
+      shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every hero. Tap one to see it in the display above.'));
     } else {
-      shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every character.'));
-      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you.'));
+      shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Tap one to see it in the display above.'));
     }
+  },
+
+  /**
+   * The card at the top of the Heroes tab: who you are wearing, and (if that hero can be recolored) a button that
+   * opens the colors right here. The colors are part of the hero, not a tab of their own.
+   */
+  _renderHeroCard(avatarOf, kindOf, renderGroup) {
+    var self = this;
+    var eqSkin = storage.get('equipped').skin || 'avatar_intern';
+    var eqAvatar = avatarOf(eqSkin);
+    var kind = kindOf(eqSkin);
+    var recolorable = kind === 'model' && !!(eqAvatar && eqAvatar.parts && eqAvatar.parts.length);
+
+    var wrap = createElement('div', { className: 'hero-card' });
+    var head = createElement('div', { className: 'hero-card-head' });
+    var title = createElement('div', { className: 'hero-card-title' });
+    title.appendChild(createElement('span', { className: 'hero-card-label', text: 'You are wearing' }));
+    title.appendChild(createElement('strong', { text: eqAvatar ? eqAvatar.name : eqSkin }));
+    head.appendChild(title);
+    if (recolorable) {
+      var open = !!this._heroColorsOpen;
+      var toggle = createElement('button', {
+        className: 'btn btn-sm ' + (open ? 'btn-primary' : 'btn-outline'),
+        text: open ? '🎨 Hide colors' : '🎨 Change colors',
+        attributes: { type: 'button', id: 'heroColorsToggle', 'aria-expanded': open ? 'true' : 'false' }
+      });
+      toggle.addEventListener('click', function () { self._heroColorsOpen = !self._heroColorsOpen; self.renderShop(); });
+      head.appendChild(toggle);
+    }
+    wrap.appendChild(head);
+
+    if (!recolorable && kind === 'model') {
+      wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'This hero keeps its own look.' }));
+    } else if (kind === 'vehicle') {
+      wrap.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Vehicles cannot wear anything. Pick a hero to change colors.' }));
+    }
+    if (recolorable && this._heroColorsOpen) wrap.appendChild(this._renderModelColors(eqAvatar));
+    if (kind === 'classic') {
+      wrap.appendChild(this._renderColorPickers());
+      wrap.appendChild(renderGroup('hat', '🧢 Headwear'));
+      wrap.appendChild(renderGroup('clothing', '🥼 Clothing'));
+      wrap.appendChild(renderGroup('gear', '🩺 Gear'));
+    }
+    return wrap;
   },
 };

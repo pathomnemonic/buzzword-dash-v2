@@ -41,7 +41,9 @@ describe('women in the 3D roster, at the same quality as the men', () => {
     const clips = ['Running_A', 'Jump_Full_Short', 'Dodge_Forward', 'Cheer', 'Death_A', 'Idle'];
     expect(findClipName(clips, 'run')).toBe('Running_A');
     expect(findClipName(clips, 'jump')).toBe('Jump_Full_Short');
-    expect(findClipName(clips, 'slide')).toBe('Dodge_Forward');
+    // Dodge_Forward is a 0.4 second forward flip: looped for a whole slide it looked frantic, so the Scout has no slide
+    // clip and ducks the way the models without one do (a held crouch while she keeps running)
+    expect(findClipName(clips, 'slide')).toBeNull();
     expect(findClipName(clips, 'death')).toBe('Death_A');
     expect(findClipName(clips, 'idle')).toBe('Idle');
     expect(findClipName(clips, 'celebrate')).toBe('Cheer');

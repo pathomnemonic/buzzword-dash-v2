@@ -491,6 +491,8 @@ export var SHOP_ITEMS = [
       intern.desc = m.desc;
       intern.bodyColor = m.color;
       intern.parts = m.parts || [];
+      // (the Locker lists the shop entry, so it takes the hero's name too)
+      SHOP_ITEMS.forEach(function (it) { if (it.id === "avatar_intern") it.name = m.name; });
       return;
     }
     AVATARS.push({

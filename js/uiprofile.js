@@ -5,7 +5,8 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
-import { ICON_GROUPS, iconFor, iconId } from './profileicons.js';
+import { ICON_GROUPS, iconFor, iconId, heroPictureId, parseHeroPicture, fillProfilePicture, portraitUrl } from './profileicons.js';
+import { CHARACTER_MODELS } from './game/modelcatalog.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
@@ -159,6 +160,12 @@ export var profileMethods = {
     container.appendChild(weakBox);
   },
 
+  /** Keep the picture chooser open after it redraws (so picking a hero or switching face/whole hero does not close it). */
+  _reopenPicBox() {
+    var box = document.querySelector('.profile-pic-box');
+    if (box) box.open = true;
+  },
+
   renderProfile() {
     var container = document.getElementById('profileContent');
     if (!container) return;
@@ -182,7 +189,8 @@ export var profileMethods = {
 
     // Avatar display
     var avatarSection = createElement('div', { className: 'profile-header' });
-    var avatarEl = createElement('div', { className: 'profile-avatar', text: iconFor(profilePicture) });
+    var avatarEl = createElement('div', { className: 'profile-avatar' });
+    fillProfilePicture(avatarEl, profilePicture);
     avatarSection.appendChild(avatarEl);
 
     // Name input
@@ -196,6 +204,46 @@ export var profileMethods = {
     picBox.appendChild(createElement('summary', { text: '✏️ Change symbol' }));
     avatarSection.appendChild(picBox);
     var current = iconFor(profilePicture);
+    var currentHero = parseHeroPicture(profilePicture);
+
+    // Your heroes: the face or the whole figure of any hero you own (small pictures that come with the app)
+    var owned = CHARACTER_MODELS.filter(function (m) { return storage.ownsItem(m.id); });
+    if (owned.length) {
+      var style = self._picStyle || (currentHero ? currentHero.style : 'face');
+      picBox.appendChild(createElement('div', { className: 'profile-pic-group', text: 'Your heroes' }));
+      var styleRow = createElement('div', { className: 'pp-style', attributes: { role: 'group', 'aria-label': 'Face or whole figure' } });
+      [['face', 'Face'], ['body', 'Whole hero']].forEach(function (st) {
+        var b = createElement('button', {
+          className: 'btn btn-sm ' + (style === st[0] ? 'btn-primary' : 'btn-outline'),
+          text: st[1],
+          attributes: { type: 'button', 'aria-pressed': style === st[0] ? 'true' : 'false' }
+        });
+        b.addEventListener('click', function () { self._picStyle = st[0]; picBox.open = true; self.renderProfile(); self._reopenPicBox(); });
+        styleRow.appendChild(b);
+      });
+      picBox.appendChild(styleRow);
+      var heroSel = createElement('div', { className: 'profile-picture-selector pp-heroes', attributes: { role: 'group', 'aria-label': 'Hero pictures' } });
+      owned.forEach(function (m) {
+        var active = !!currentHero && currentHero.id === m.id && currentHero.style === style;
+        var opt = createElement('button', {
+          className: 'profile-pic-option pp-hero' + (active ? ' active' : ''),
+          attributes: { type: 'button', 'aria-label': 'Use ' + m.name + ' (' + style + ')', 'aria-pressed': active ? 'true' : 'false', title: m.name, 'data-hero': m.id }
+        });
+        var img = createElement('img', { attributes: { src: portraitUrl(m.id, style), alt: '', loading: 'lazy', decoding: 'async' } });
+        img.className = 'pp-img ' + style;
+        img.addEventListener('error', function () { img.remove(); opt.textContent = m.icon || '👤'; });
+        opt.appendChild(img);
+        opt.addEventListener('click', function () {
+          storage.set('profilePicture', heroPictureId(m.id, style));
+          self.renderProfile();
+          self._reopenPicBox();
+          document.dispatchEvent(new CustomEvent('dx:profile-changed'));
+        });
+        heroSel.appendChild(opt);
+      });
+      picBox.appendChild(heroSel);
+      picBox.appendChild(createElement('div', { className: 'profile-pic-group', text: 'Symbols' }));
+    }
     ICON_GROUPS.forEach(function (group) {
       picBox.appendChild(createElement('div', { className: 'profile-pic-group', text: group.name }));
       var picSelector = createElement('div', { className: 'profile-picture-selector', attributes: { role: 'group', 'aria-label': group.name + ' symbols' } });

@@ -22,13 +22,14 @@ test.describe('Personalization', () => {
   test('the Locker lists the characters, with the classic ones and vehicles archived', async ({ page }) => {
     await openApp(page);
     await page.locator('[data-screen="screenShop"]').click();
-    await expect(page.getByRole('tab', { name: /Characters/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /^🎬 Characters/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Heroes/ })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Customize/ })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /^🎬 Heroes/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Classic characters/ })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: /Vehicles/ })).toHaveCount(0);
 
-    await page.getByRole('tab', { name: /Customize/ }).click();
-    await expect(page.getByText(/Equipped: .* · Character/)).toBeVisible();
+    await expect(page.getByText('You are wearing')).toBeVisible();
+    await page.locator('#heroColorsToggle').click();
     await expect(page.getByText(/Pager Pete colors/)).toBeVisible();
     await expect(page.locator('.color-part')).toHaveCount(4);
     await page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]').click();

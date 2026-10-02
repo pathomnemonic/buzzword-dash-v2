@@ -20,23 +20,23 @@ describe('Locker tabs', () => {
     loadPage();
     ({ ui } = await import('../../js/ui.js'));
     ({ storage } = await import('../../js/storage.js'));
-    ui._lockerTab = 'characters';
+    ui._lockerTab = 'heroes';
   });
 
-  it('lists the characters, and keeps the archived classic ones out of sight', () => {
+  it('lists the heroes, and keeps the archived classic ones out of sight', () => {
     ui.renderShop();
-    expect(headings()).toEqual([expect.stringContaining('Characters')]);
+    expect(headings()).toEqual([expect.stringContaining('Heroes')]);
     const text = document.getElementById('shopItems').textContent;
     expect(text).not.toMatch(/classic|blocky|3D/i);
     expect(text).not.toMatch(/vehicle/i);
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
-    expect(groups[0]).toContain('Intern');
+    expect(groups[0]).toContain('Pager Pete');
     ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic', 'Ambulance', 'Race Car', 'Hearse'].forEach((n) => expect(text).not.toContain(n));
   });
 
   it('the old monsters are archived too', () => {
     ui.renderShop();
-    clickTab('Trails');
+    clickTab('Monsters');
     const text = document.getElementById('shopItems').textContent;
     ['Pager Wraith', 'Textbook Golem', 'Caffeine Kraken'].forEach((n) => expect(text).not.toContain(n));
     expect(text).not.toMatch(/Exam Monster(?!s)/);
@@ -45,7 +45,8 @@ describe('Locker tabs', () => {
 
   it('a character gets color pickers for its own parts, but no headwear', () => {
     storage.data.progression.equipped.skin = 'avatar_intern'; // Pager Pete
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     expect(document.getElementById('shopItems').textContent).toMatch(/Pager Pete colors/);
     const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
@@ -58,7 +59,8 @@ describe('Locker tabs', () => {
   it('every part also has a rainbow swatch that opens a full color wheel and saves any color picked on it', () => {
     HTMLCanvasElement.prototype.getContext = () => null;
     storage.data.progression.equipped.skin = 'avatar_intern';
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     const part = document.querySelector('#shopItems .color-part[data-part="top"]');
     const rainbow = part.querySelector('.scrub-custom');
@@ -85,7 +87,8 @@ describe('Locker tabs', () => {
   it('a color that is not in the palette is shown as chosen when the Locker opens', () => {
     storage.data.progression.equipped.skin = 'avatar_intern';
     storage.data.settings.modelColors = { avatar_intern: { top: 0x12ab34 } };
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     const part = document.querySelector('#shopItems .color-part[data-part="top"]');
     expect(part.querySelector('.scrub-custom').classList.contains('on')).toBe(true);
@@ -94,44 +97,49 @@ describe('Locker tabs', () => {
 
   it('a 🎨 beside the characters that can be recolored takes you to their colors (equipping them first)', () => {
     storage.data.progression.ownedItems.push('avatar_m_nurse');
-    ui._lockerTab = 'characters';
+    storage.data.progression.equipped.skin = 'avatar_intern';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = false;
     ui.renderShop();
     const paints = [...document.querySelectorAll('#shopItems [data-paint]')].map((b) => b.getAttribute('data-paint'));
     expect(paints).toContain('avatar_intern');
     expect(paints).toContain('avatar_m_nurse');
     expect(paints).not.toContain('avatar_m_skeleton'); // a single painted texture: nothing to recolor
-    expect(document.getElementById('shopItems').textContent).toMatch(/🎨 beside a character/);
+    expect(document.getElementById('shopItems').textContent).toMatch(/🎨 beside a hero/);
     // one it does not own yet: dimmed, and tapping it only explains
     storage.data.progression.ownedItems = storage.data.progression.ownedItems.filter((i) => i !== 'avatar_m_nurse');
     ui.renderShop();
     document.querySelector('[data-paint="avatar_m_nurse"]').click();
     expect(storage.get('equipped').skin).toBe('avatar_intern');
-    expect(ui._lockerTab).toBe('characters');
-    // an owned one: equip it and open Customize
+    expect(ui._heroColorsOpen).toBeFalsy();
+    // an owned one: equip it and open its colors, on the same tab
     storage.data.progression.ownedItems.push('avatar_m_nurse');
     ui.renderShop();
     document.querySelector('[data-paint="avatar_m_nurse"]').click();
     expect(storage.get('equipped').skin).toBe('avatar_m_nurse');
-    expect(ui._lockerTab).toBe('customize');
+    expect(ui._lockerTab).toBe('heroes');
+    expect(ui._heroColorsOpen).toBe(true);
     expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
   });
 
   it('another character has nothing to customize, and the screen says why', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     expect(headings().join('|')).not.toContain('Headwear');
     expect(headings().join('|')).not.toContain('Clothing');
     expect(headings().join('|')).not.toContain('Gear');
     const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/This character keeps its own look/);
+    expect(text).toMatch(/This hero keeps its own look/);
     expect(text).not.toMatch(/classic|3D/i);
     expect(document.querySelector('#shopItems').textContent).not.toMatch(/Hair\s*Skin\s*Coat/);
   });
 
   it('a classic character gets colors, clothing, headwear and gear', () => {
     storage.data.progression.equipped.skin = 'avatar_classic';
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     const h = headings().join('|');
     ['Colors', 'Clothing', 'Headwear', 'Gear'].forEach((name) => expect(h).toContain(name));
@@ -139,17 +147,58 @@ describe('Locker tabs', () => {
 
   it('vehicles cannot be customized', () => {
     storage.data.progression.equipped.skin = 'avatar_ambulance';
-    ui._lockerTab = 'customize';
+    ui._lockerTab = 'heroes';
+    ui._heroColorsOpen = true;
     ui.renderShop();
     expect(headings().join('|')).not.toContain('Headwear');
     expect(document.getElementById('shopItems').textContent).toMatch(/Vehicles cannot wear anything/);
   });
 
-  it('trails and monsters have their own tab', () => {
+  it('three even tabs on one line: Heroes, Trails and Monsters (the colors belong to the hero, not a tab of their own)', () => {
+    storage.data.progression.equipped.skin = 'avatar_intern';
+    ui._heroColorsOpen = false;
+    ui.renderShop();
+    const tabs = [...document.querySelectorAll('#shopItems [role="tab"]')].map((b) => b.textContent.trim());
+    expect(tabs).toEqual(['🦸 Heroes', '✨ Trails', '👾 Monsters']);
+    expect(document.querySelector('#shopItems .locker-tabs')).not.toBeNull();
+    expect(tabs.join('|')).not.toMatch(/Customize/);
+    // the hero card carries the colors toggle
+    expect(document.getElementById('heroColorsToggle').textContent).toMatch(/Change colors/);
+    expect(document.querySelector('#shopItems .color-part')).toBeNull(); // closed until asked
+    document.getElementById('heroColorsToggle').click();
+    expect(document.querySelectorAll('#shopItems .color-part').length).toBe(4);
+    expect(document.getElementById('heroColorsToggle').textContent).toMatch(/Hide colors/);
+  });
+
+  it('trails and monsters each have their own tab', () => {
     ui.renderShop();
     clickTab('Trails');
     expect(headings().join('|')).toContain('Trails');
+    expect(headings().join('|')).not.toContain('Exam Monsters');
+    clickTab('Monsters');
     expect(headings().join('|')).toContain('Exam Monsters');
-    expect(headings().join('|')).not.toContain('Avatars');
+    expect(headings().join('|')).not.toContain('Trails');
+  });
+
+  it('a hero with no colors to change says so instead of offering a toggle', () => {
+    storage.data.progression.equipped.skin = 'avatar_m_skeleton';
+    ui._lockerTab = 'heroes';
+    ui.renderShop();
+    expect(document.getElementById('heroColorsToggle')).toBeNull();
+    expect(document.getElementById('shopItems').textContent).toMatch(/keeps its own look/);
+  });
+});
+
+describe('the Locker shows every hero under its own name', () => {
+  it('each row in the Heroes list carries the name from the hero catalog (including Pager Pete, the starter)', async () => {
+    localStorage.clear();
+    loadPage();
+    const { ui } = await import('../../js/ui.js');
+    const { CHARACTER_MODELS } = await import('../../js/game/modelcatalog.js');
+    ui._lockerTab = 'heroes';
+    ui.renderShop();
+    const text = document.getElementById('shopItems').textContent;
+    CHARACTER_MODELS.forEach((m) => expect(text, m.name).toContain(m.name));
+    expect(text).not.toMatch(/\bIntern\b/);
   });
 });
