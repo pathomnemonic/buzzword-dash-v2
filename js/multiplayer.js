@@ -755,36 +755,44 @@ export class Multiplayer {
 
     var self = this;
 
-    try {
-      this.peer = new window.Peer(PEER_PREFIX + this.roomCode);
-    } catch (error) {
-      this._emitError('Failed to create room: ' + error.message);
-      return;
-    }
-
-    this.peer.on('open', function () {
-      if (onReady) onReady(self.roomCode);
-    });
-
-    this.peer.on('connection', function (conn) {
-      if (self.conn && self.conn.open) { conn.close(); return; }
-      self.conn = conn;
-      self._setupConnection(conn);
-    });
-
-    this.peer.on('disconnected', function () {
-      self.connected = false;
-      self._stopPing();
-      if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
-    });
-
-    this.peer.on('close', function () {
-      self._handleDisconnected('Room closed.');
-    });
-
-    this.peer.on('error', function (error) {
-      self._emitError((error.type || 'Peer error') + ': ' + (error.message || 'Unknown error'));
-    });
+    var attempts = 0;
+    var openRoom = function () {
+      try {
+        self.peer = new window.Peer(PEER_PREFIX + self.roomCode);
+      } catch (error) {
+        self._emitError('Failed to create room: ' + error.message);
+        return false;
+      }
+      var peer = self.peer;
+      peer.on('open', function () {
+        if (onReady) onReady(self.roomCode);
+      });
+      peer.on('connection', function (conn) {
+        if (self.conn && self.conn.open) { conn.close(); return; }
+        self.conn = conn;
+        self._setupConnection(conn);
+      });
+      peer.on('disconnected', function () {
+        self.connected = false;
+        self._stopPing();
+        if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
+      });
+      peer.on('close', function () {
+        self._handleDisconnected('Room closed.');
+      });
+      peer.on('error', function (error) {
+        // Someone else is already using this code: draw another instead of failing
+        if (error && error.type === 'unavailable-id' && attempts++ < 3) {
+          try { peer.destroy(); } catch (e) { /* cleanup */ }
+          self.roomCode = generateRoomCode();
+          openRoom();
+          return;
+        }
+        self._emitError((error.type || 'Peer error') + ': ' + (error.message || 'Unknown error'));
+      });
+      return true;
+    };
+    openRoom();
   }
 
   async joinGame(roomCode, onReady) {

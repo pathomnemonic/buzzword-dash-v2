@@ -43,6 +43,7 @@ export var RUN_END_REASONS = Object.freeze({
   SUDDEN_DEATH_ELIMINATION: 'sudden_death_elimination',
   RACE_FINISHED: 'race_finished',
   OPPONENT_FORFEIT: 'opponent_forfeit',
+  MATCH_DECIDED: 'match_decided',
   LOCAL_FORFEIT: 'local_forfeit',
   DISCONNECTED: 'disconnected',
   FATAL_ERROR: 'fatal_error'

@@ -171,7 +171,13 @@ function scheduleVersusStart(config) {
   multiplayerResultShown = false;
   var overlay = document.getElementById('multiplayerOverlay');
   if (overlay) overlay.classList.remove('active');
-  var delay = Math.max(0, (config.startAt || Date.now()) - Date.now());
+  // startAt is on the host's clock; the joiner converts it with the offset measured by the clock pings
+  // (a phone with a clock a minute off would otherwise start a minute early or late)
+  var startAt = config.startAt || Date.now();
+  if (multiplayerClient && !multiplayerClient.isHost && multiplayerClient.hostStartToLocalTime) {
+    startAt = multiplayerClient.hostStartToLocalTime(startAt);
+  }
+  var delay = Math.min(10000, Math.max(0, startAt - Date.now()));
   showMultiplayerMessage('Match starting!', 'var(--accent-green)');
   setTimeout(function () {
     startMode(config.mode || 'mp_highscore');
@@ -376,12 +382,20 @@ function configureMultiplayer(client, content) {
     maybeShowMultiplayerResult();
   };
 
+  // The match is decided the moment the rival is eliminated (Sudden Death) or reaches the target (Race), so
+  // stop the local run instead of letting it play on and compare scores
+  function endIfDecided(mode) {
+    if (multiplayerMatchStarted && game.running && game.mode === mode) game.requestEnd('match_decided');
+  }
+
   client.onEliminated = function () {
     showMultiplayerMessage('💀 Rival eliminated!', 'var(--accent-green)');
+    endIfDecided('mp_suddendeath');
   };
 
   client.onRaceFinished = function (data) {
     showMultiplayerMessage('🏁 Rival finished! ' + data.correctCount + ' correct in ' + Math.round(data.totalTime / 1000) + 's', 'var(--accent-gold)');
+    endIfDecided('mp_race');
   };
 
   client.onForfeit = function () {
