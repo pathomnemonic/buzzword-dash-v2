@@ -30,6 +30,7 @@ import { CARDS, SUBJECTS } from '../cardhub.js';
 import { storage } from '../storage.js';
 import { answerKey } from '../cardleaks.js';
 import { customCards } from '../customcards.js';
+import { spreadBySubject } from '../interleave.js';
 
 // --- Helpers ---
 
@@ -189,8 +190,11 @@ function selectCards(pool, count) {
       else if (accuracy > 0.9 && s.seen > 5) w *= 0.3;
     }
 
-    // Spaced repetition: cards not seen recently get priority
-    if (s.lastSeen > 0) {
+    // Spaced repetition (FSRS): a card past its due time comes first, most overdue highest; one not due yet waits
+    if (typeof s.due === 'number' && s.seen > 0) {
+      if (now >= s.due) w *= 3 * (1 + Math.min(7, (now - s.due) / (24 * 60 * 60 * 1000)) * 0.3);
+      else w *= 0.25;
+    } else if (s.lastSeen > 0) {
       var hoursSince = (now - s.lastSeen) / (1000 * 60 * 60);
       if (hoursSince < 1) w *= 0.3;
       else if (hoursSince > 168) w *= 3;
@@ -236,7 +240,8 @@ function selectCards(pool, count) {
     if (weighted.length === 0) break;
   }
 
-  return selected;
+  // Switch subjects between cards (interleaving helps memory more than a block of one subject)
+  return spreadBySubject(selected);
 }
 
 

@@ -8,6 +8,7 @@
 import { createElement, clearElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { firstWeekState } from './firstweek.js';
 
 export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
 
@@ -114,6 +115,44 @@ export var homeMethods = {
     el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards. Open details.');
   },
 
+  /** The first-week checklist: seven small steps, each with a button that takes you there. */
+  _renderFirstWeek(el) {
+    var self = this;
+    var st = firstWeekState({ get: function (k) { return storage.get(k); } });
+    if (!st.show) return;
+    var box = createElement('div', { className: 'first-week', attributes: { id: 'firstWeekBox' } });
+    box.style.cssText = 'background:var(--bg-card);border-radius:12px;padding:10px;margin-bottom:10px;border:var(--border-card)';
+    box.appendChild(createElement('div', { text: '🧭 Your first weeks: ' + st.doneCount + '/' + st.steps.length }));
+    box.lastChild.style.cssText = 'font-size:13px;font-weight:700;margin-bottom:4px';
+    var go = {
+      play: function () { self.closeSheets(); var b = document.querySelector('.btn-play'); if (b) b.scrollIntoView({ block: 'center' }); },
+      flashcards: function () { self.openSheet('flashcardsSheet'); },
+      challenge: function () { self.openSheet('challengeSheet'); },
+      profile: function () { self.closeSheets(); self.show('screenProfile'); },
+      locker: function () { self.closeSheets(); self.show('screenShop'); },
+      friends: function () { self.closeSheets(); var b = document.getElementById('leaderboardBtn'); if (b) b.click(); }
+    };
+    st.steps.forEach(function (step) {
+      var row = createElement('div', { className: 'first-week-step' + (step.done ? ' done' : '') });
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;margin:4px 0;font-size:12px';
+      row.appendChild(createElement('span', { text: step.done ? '✅' : (step.id === st.next ? '👉' : '⬜') }));
+      var label = createElement('span', { text: step.label });
+      label.style.cssText = 'flex:1;' + (step.done ? 'text-decoration:line-through;opacity:.6' : '');
+      row.appendChild(label);
+      if (!step.done && step.action && go[step.action] && step.id === st.next) {
+        var b = createElement('button', { className: 'btn btn-sm btn-primary', text: 'Go', attributes: { type: 'button', 'aria-label': 'Go: ' + step.label } });
+        b.addEventListener('click', go[step.action]);
+        row.appendChild(b);
+      }
+      box.appendChild(row);
+    });
+    var hide = createElement('button', { className: 'btn btn-sm btn-outline', text: 'Hide this', attributes: { type: 'button', id: 'firstWeekHide' } });
+    hide.style.marginTop = '6px';
+    hide.addEventListener('click', function () { storage.set('firstWeekOff', true); self._renderToday(el); });
+    box.appendChild(hide);
+    el.appendChild(box);
+  },
+
   /** The full Today picture: goal, reviews, streak and the weekly reward. */
   _renderToday(el) {
     if (!el) return;
@@ -125,6 +164,7 @@ export var homeMethods = {
     line('🎯 ' + done + ' of ' + goal + ' cards today' + (done >= goal ? ' ✅' : ''));
     var due = storage.getDueCount();
     line(due > 0 ? '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review (Flashcards → Review due cards)' : '🔁 No reviews due');
+    this._renderFirstWeek(el);
     var streak = storage.getStreakStatus();
     line('🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  ·  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : ''));
     var week = storage.getWeeklyProgress();

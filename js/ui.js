@@ -38,6 +38,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
+import { missExplanation } from './explain.js';
 import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
 import { audio } from './audio.js';
@@ -1142,13 +1143,13 @@ class UI {
     }
   }
 
-  showFeedback(card, wasCorrect) {
+  showFeedback(card, wasCorrect, choice) {
     var fb = document.getElementById('feedbackEl');
     setText(fb, (wasCorrect ? '✓ ' : '✗ ') + card.ans);
     fb.className = 'show ' + (wasCorrect ? 'ok' : 'bad');
     if (!wasCorrect) {
       var tb = document.getElementById('teachEl');
-      setText(tb, card.tp);
+      setText(tb, missExplanation(card, choice));
       tb.classList.add('show');
     }
     this.hideAnswerChoices();

@@ -347,7 +347,7 @@ class Game {
         if (this.onEncounterStart) this.onEncounterStart(event.payload.card, event.payload.gates, event.payload);
         break;
       case 'encounter_resolved':
-        if (this.onEncounterResolve) this.onEncounterResolve(event.payload.card, event.payload.correct);
+        if (this.onEncounterResolve) this.onEncounterResolve(event.payload.card, event.payload.correct, event.payload.encounterResult && event.payload.encounterResult.choice);
         break;
       case 'run_ended':
         if (this.onRunEnd) this.onRunEnd();

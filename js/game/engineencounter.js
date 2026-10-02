@@ -10,6 +10,7 @@ import { getNextSkin } from './skins.js';
 import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } from './gates.js';
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
+import { missExplanation, readSeconds } from '../explain.js';
 import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
@@ -381,7 +382,7 @@ card = pickResult ? pickResult.card : null;
       this.waitingForNext = true;
       this.nextEncounterTimer = ok ? 1.5 : 3.5;
     } else if (!ok) {
-      this.teachTimer = 2.0;
+      this.teachTimer = readSeconds(missExplanation(card, gate.label), 2.0);
       this.waitingForNext = true;
       this.nextEncounterTimer = 1.0;
     } else {

@@ -416,7 +416,7 @@ export var studyMethods = {
     box.appendChild(big);
     est.subjects.filter(function (s) { return s.studied > 0; }).slice(0, 6).forEach(function (s) {
       var line = createElement('div', { className: 'readiness-row',
-        text: s.subject + ': ' + (s.memory === null ? 'not enough yet' : Math.round(s.memory * 100) + '%') + '  ·  ' + s.studied + '/' + s.total + ' met' });
+        text: s.subject + ': ' + (s.memory === null ? 'not enough yet' : Math.round(s.memory * 100) + '%') + '  ·  ' + s.studied + '/' + s.total + ' met  ·  ' + s.level });
       line.style.cssText = 'font-size:11px;margin-top:2px;color:' + (s.memory !== null && s.memory < 0.6 ? 'var(--accent-red)' : 'var(--text-secondary)');
       box.appendChild(line);
     });

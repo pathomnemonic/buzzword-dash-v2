@@ -110,7 +110,7 @@ describe('challenges', () => {
   it('round-trips a challenge through its link token', () => {
     const c = { seed: 12345, n: 15, from: 'Dr. Ünïcode', score: 4321, hash: 'abc123' };
     const back = decodeChallenge(encodeChallenge(c));
-    expect(back).toEqual(c);
+    expect(back).toEqual({ ...c, ids: null });
     expect(parseChallengeHash('#c=' + encodeChallenge(c)).seed).toBe(12345);
     expect(buildChallengeUrl('https://x.test/app/', c)).toMatch(/^https:\/\/x\.test\/app\/#c=/);
   });

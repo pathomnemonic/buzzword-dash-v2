@@ -25,7 +25,7 @@ import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage } from './storage.js';
 import { audio, MENU_THEME } from './audio.js';
-import { CARDS, loadCards, areCardsReady } from './cardhub.js';
+import { CARDS, CARD_BY_ID, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { createDailyOrder } from './game/gates.js';
 import { uniqueByAnswer } from './cardleaks.js';
@@ -527,7 +527,8 @@ function shareChallenge(challenge) {
         n: challenge.n,
         from: storage.get('profileName') || 'A friend',
         score: challenge.myScore || 0,
-        hash: mp.hashCardPool(CARDS)
+        hash: mp.hashCardPool(CARDS),
+        ids: challenge.ids || null
       });
       var text = 'Beat my Dx Dash score of ' + (challenge.myScore || 0) + '!';
       if (navigator.share) {
@@ -569,7 +570,7 @@ function showChallengeBanner(challenge) {
   dismiss.addEventListener('click', function () { banner.remove(); });
   accept.addEventListener('click', function () {
     banner.remove();
-    activeChallenge = { seed: challenge.seed, n: challenge.n, from: challenge.from, score: challenge.score };
+    activeChallenge = { seed: challenge.seed, n: challenge.n, from: challenge.from, score: challenge.score, ids: challenge.ids || null };
     startMode('challenge');
   });
 }
@@ -582,7 +583,8 @@ function handleChallengeLink() {
     // Clear the hash so a refresh does not re-open the banner.
     history.replaceState(null, '', window.location.pathname + window.location.search);
     return import('./multiplayer.js').then(function (mp) {
-      if (challenge.hash && challenge.hash !== mp.hashCardPool(CARDS)) {
+      // A link that carries its card ids plays those cards even after the card set has changed
+      if (!challenge.ids && challenge.hash && challenge.hash !== mp.hashCardPool(CARDS)) {
         ui._showToast('This challenge uses a different card set. Ask your friend to update the game.');
         return;
       }
@@ -788,7 +790,7 @@ function attachChallengeResult(finalScore) {
   share.className = 'btn btn-gold btn-block';
   share.style.marginTop = '8px';
   share.textContent = '\uD83D\uDCE4 Share a challenge with your score';
-  var snapshot = { seed: activeChallenge.seed, n: activeChallenge.n, myScore: finalScore };
+  var snapshot = { seed: activeChallenge.seed, n: activeChallenge.n, myScore: finalScore, ids: activeChallenge.ids || null };
   share.addEventListener('click', function () { shareChallenge(snapshot); });
   box.appendChild(share);
   content.insertBefore(box, content.children[1] || null);
@@ -842,9 +844,16 @@ function startMode(mode) {
     if (!activeChallenge) { startNewChallenge(); return; }
     var challengeSeed = activeChallenge.seed;
     var challengeCount = activeChallenge.n;
+    var sharedIds = activeChallenge.ids && activeChallenge.ids.filter(function (id) { return CARD_BY_ID.has(id); });
+    if (sharedIds && sharedIds.length >= Math.min(5, challengeCount) && sharedIds.length === challengeCount) {
+      launchRun('challenge', sharedIds, { challengeCount: challengeCount, allowContinue: false });
+      return;
+    }
     import('./multiplayer.js').then(function (mod) {
       var plan = mod.buildEncounterPlan({ seed: challengeSeed, cards: CARDS, count: challengeCount });
-      launchRun('challenge', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challengeCount, allowContinue: false });
+      var ids = plan.map(function (entry) { return entry.cardId; });
+      if (activeChallenge) activeChallenge.ids = ids; // so the link this player shares carries the same cards
+      launchRun('challenge', ids, { challengeCount: challengeCount, allowContinue: false });
     });
     return;
   }
@@ -1217,9 +1226,9 @@ function init() {
     });
   };
 
-  game.onEncounterResolve = function (card, wasCorrect) {
+  game.onEncounterResolve = function (card, wasCorrect, choice) {
     audio.cancelSpeech(); // the question is over
-    ui.showFeedback(card, wasCorrect);
+    ui.showFeedback(card, wasCorrect, choice);
     ui.flashScreen(wasCorrect);
     if (game.mode === 'study' && wasCorrect && !game._tutorial) {
       ui.showStudyTeaching(card);

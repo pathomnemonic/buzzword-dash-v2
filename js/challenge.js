@@ -30,27 +30,40 @@ export function newChallengeSeed() {
   return Math.floor(Math.random() * 2147483646) + 1;
 }
 
+var CARD_ID = /^[A-Za-z0-9_-]{1,16}$/;
+
+/** A list of card ids as long as the challenge, every one a plain id; otherwise null. */
+function cleanIds(ids, n) {
+  if (!Array.isArray(ids) || ids.length !== n) return null;
+  for (var i = 0; i < ids.length; i++) if (typeof ids[i] !== 'string' || !CARD_ID.test(ids[i])) return null;
+  return ids.slice();
+}
+
 /**
  * Encode a challenge for sharing.
- * @param {{seed: number, n: number, from: string, score: number, hash: string}} challenge
+ * @param {{seed: number, n: number, from: string, score: number, hash: string, ids?: string[]}} challenge
+ *   `ids` are the card ids of the run, so the link still plays the same cards after the card set is updated
  * @returns {string} URL-safe token
  */
 export function encodeChallenge(challenge) {
-  return toBase64Url(JSON.stringify({
+  var body = {
     v: 1,
     s: challenge.seed,
     n: challenge.n || CHALLENGE_SIZE,
     f: String(challenge.from || '').slice(0, MAX_NAME),
     c: Math.max(0, Math.floor(challenge.score || 0)),
     h: String(challenge.hash || '')
-  }));
+  };
+  var ids = cleanIds(challenge.ids, body.n);
+  if (ids) body.i = ids;
+  return toBase64Url(JSON.stringify(body));
 }
 
 /**
  * Decode and validate a token. Never trusts its contents: every field is
  * type- and range-checked, and the name is treated as plain text.
  * @param {string} token
- * @returns {{seed: number, n: number, from: string, score: number, hash: string}|null}
+ * @returns {{seed: number, n: number, from: string, score: number, hash: string, ids: string[]|null}|null}
  */
 export function decodeChallenge(token) {
   try {
@@ -64,7 +77,8 @@ export function decodeChallenge(token) {
       n: o.n,
       from: typeof o.f === 'string' ? o.f.slice(0, MAX_NAME) : '',
       score: o.c,
-      hash: typeof o.h === 'string' ? o.h.slice(0, 16) : ''
+      hash: typeof o.h === 'string' ? o.h.slice(0, 16) : '',
+      ids: cleanIds(o.i, o.n)
     };
   } catch (e) {
     return null;

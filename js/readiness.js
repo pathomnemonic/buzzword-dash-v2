@@ -12,6 +12,17 @@ import { currentRetrievability, DAY_MS } from './fsrs.js';
 export var READINESS_NOTE = 'An estimate of how well you remember what you have studied. It is not a prediction of your exam score.';
 
 /**
+ * A plain level for a subject, from how much of it has been met and how well it is remembered:
+ * New (barely started), Learning, Solid (most of it met and mostly remembered), Mastered.
+ */
+export function masteryLevel(memory, coverage) {
+  if (memory === null || coverage < 0.1) return 'New';
+  if (memory >= 0.9 && coverage >= 0.8) return 'Mastered';
+  if (memory >= 0.8 && coverage >= 0.5) return 'Solid';
+  return 'Learning';
+}
+
+/**
  * @param {object} input
  * @param {object} input.cardStats
  * @param {object[]} input.cards live cards (id, subj)
@@ -38,7 +49,9 @@ export function estimateReadiness(input) {
   });
   var subjects = Object.keys(by).map(function (k) {
     var b = by[k];
-    return { subject: k, total: b.total, studied: b.studied, coverage: b.total ? b.studied / b.total : 0, memory: b.studied >= 5 ? b.sum / b.studied : null };
+    var coverage = b.total ? b.studied / b.total : 0;
+    var memory = b.studied >= 5 ? b.sum / b.studied : null;
+    return { subject: k, total: b.total, studied: b.studied, coverage: coverage, memory: memory, level: masteryLevel(memory, coverage) };
   }).sort(function (a, b) { return (a.memory === null ? 2 : a.memory) - (b.memory === null ? 2 : b.memory); });
   return {
     overall: studied >= 20 ? sum / studied : null,

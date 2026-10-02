@@ -58,6 +58,7 @@ var DEFAULTS = {
     examDate: '',              // YYYY-MM-DD of the player's exam, for the study plan
     examName: '',
     shareRuns: 'friends',      // who sees the player's runs in the feed: 'friends' or 'private'
+    firstWeekOff: false,       // the player hid the first-week checklist
     cardMilestoneSeen: 0,
     dayMilestoneSeen: 0,
     kudosSeenAt: 0,
