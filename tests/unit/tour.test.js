@@ -142,8 +142,8 @@ describe('the tour', () => {
     expect(document.getElementById('tourOverlay')).toBeNull();
 
     startTour({ steps: [{ id: 's1', title: 'One', text: 't' }, { id: 's2', title: 'Two', text: 't' }], onClose: (r) => closes.push(r) });
-    document.getElementById('tourSkipBtn').click();
-    expect(closes[1]).toEqual({ completed: false, skipped: true });
+    document.getElementById('tourCloseBtn').click();
+    expect(closes[1]).toEqual({ completed: false, skipped: true }); // (with no requestClose given, × closes at once)
     startTour({ steps: [{ id: 's1', title: 'One', text: 't' }], onClose: (r) => closes.push(r) });
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(closes[2]).toEqual({ completed: false, skipped: true });

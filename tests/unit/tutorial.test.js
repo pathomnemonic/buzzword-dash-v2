@@ -40,7 +40,8 @@ describe('tutorial overlay', () => {
     expect(overlay.classList.contains('active')).toBe(true);
     expect(overlay.querySelector('.tut-card').getAttribute('data-step')).toBe('welcome');
     expect(isTutorialOpen()).toBe(true);
-    document.getElementById('tutSkipBtn').click();
+    document.getElementById('tutCloseBtn').click();
+    document.getElementById('tutExitYes').click(); // the × asks first
     expect(overlay.classList.contains('active')).toBe(false);
     expect(isTutorialOpen()).toBe(false);
     expect(onClose).toHaveBeenCalledWith({ completed: false, skipped: true });

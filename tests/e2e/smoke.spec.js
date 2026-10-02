@@ -2,7 +2,7 @@
 // Basic E2E smoke tests
 
 import { test, expect } from '@playwright/test';
-import { openApp } from './helpers.js';
+import { openApp, closeTutorial } from './helpers.js';
 
 test.describe('Smoke tests', () => {
   test('home screen loads with title', async ({ page }) => {
@@ -39,14 +39,14 @@ test.describe('Smoke tests', () => {
     await page.locator('#settingsTutorialBtn').click();
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
     await expect(page.locator('#tutorialOverlay .tut-card')).toHaveAttribute('data-step', 'welcome');
-    await page.locator('#tutSkipBtn').click();
+    await closeTutorial(page);
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
 
     await page.locator('[data-screen="screenHome"]').click();
     await page.locator('#howToPlayBtn').click();
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
     await expect(page.locator('#tutorialOverlay .tut-card')).toHaveAttribute('data-step', 'welcome');
-    await page.locator('#tutSkipBtn').click();
+    await closeTutorial(page);
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
   });
 
@@ -124,7 +124,7 @@ test.describe('Smoke tests', () => {
   test('the first run opens the tutorial once; skipping ends the first run', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#tutorialOverlay')).toHaveClass(/active/);
-    await page.locator('#tutSkipBtn').click();
+    await closeTutorial(page);
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     await page.reload();
     await page.waitForTimeout(800);

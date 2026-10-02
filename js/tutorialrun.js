@@ -19,6 +19,7 @@ import { getDashControl } from './dashcontrol.js';
 import { getControlText } from './controlhints.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { startTour, skipTour, isTourOpen } from './tour.js';
+import { confirmExitTutorial, isExitConfirmOpen, dismissExitConfirm } from './tutorialexit.js';
 import { buildTourSteps } from './tourdata.js';
 
 var ADVANCE_MS = 900;        // pause on the "Nice!" before the next step
@@ -36,9 +37,11 @@ export function isGameTutorialOpen() {
   return !!_session;
 }
 
-/** Close the tutorial as skipped (Escape, the Android back button). */
-export function skipGameTutorial() {
-  if (_session) _session.finish('skipped');
+/** The player tried to close the tutorial (Escape, the Android back button): ask first. */
+export function requestCloseGameTutorial() {
+  if (!_session) return;
+  if (isExitConfirmOpen()) { dismissExitConfirm(); return; } // back or Escape on the warning means "keep going"
+  _session.requestClose();
 }
 
 /**
@@ -143,7 +146,7 @@ export function startGameTutorial(env) {
   function onGameEvent(type, data) {
     if (closed) return;
     if (type === 'go') { if (launching) { launching = false; started = true; quietHud(true); next(); } return; }
-    if (type === 'pause') { finish('skipped'); return; }
+    if (type === 'pause') { requestClose(); return; }
     if (type === 'ended') { if (!touring) finish('skipped'); return; }
     var step = steps[index];
     if (!started || !step || locked) return;
@@ -186,6 +189,7 @@ export function startGameTutorial(env) {
       startTour({
         steps: buildTourSteps({ ui: env.ui }),
         ctx: { ui: env.ui },
+        requestClose: requestClose,
         onClose: function (r) {
           touring = false;
           if (closed) return;
@@ -250,15 +254,11 @@ export function startGameTutorial(env) {
       skipStep.addEventListener('click', function () { next(); });
       buttons.appendChild(skipStep);
     }
-    var last = index === steps.length - 1;
-    var skipAll = createElement('button', {
-      className: 'btn btn-outline btn-sm',
-      text: last ? 'Close' : 'Skip tutorial',
-      attributes: { type: 'button', id: 'tutSkipBtn' }
-    });
-    skipAll.addEventListener('click', function () { finish(last ? 'completed' : 'skipped'); });
-    buttons.appendChild(skipAll);
     card.appendChild(buttons);
+    // A small × in the corner (there is no Skip button): it asks "are you sure?" before leaving
+    var closeBtn = createElement('button', { className: 'tut-x', text: '×', attributes: { type: 'button', id: 'tutCloseBtn', 'aria-label': 'Close the tutorial' } });
+    closeBtn.addEventListener('click', function () { requestClose(); });
+    card.appendChild(closeBtn);
 
     target.appendChild(card);
     // Practice steps leave focus alone so keys reach the game, never a button (Space would press it)
@@ -284,6 +284,15 @@ export function startGameTutorial(env) {
     render();
   }
 
+  // The player wants out. On the last page that just finishes; anywhere else they are asked first, because the
+  // tutorial is how a new player learns the game and it is easy to press by accident.
+  function requestClose() {
+    if (closed || isExitConfirmOpen()) return;
+    var onLastPage = index === steps.length - 1 && steps[index].kind === 'info';
+    if (onLastPage) { finish('completed'); return; }
+    confirmExitTutorial({ onExit: function () { finish('skipped'); } });
+  }
+
   function finish(result) {
     if (closed) return;
     closed = true;
@@ -291,6 +300,7 @@ export function startGameTutorial(env) {
     document.removeEventListener('keydown', swallowSpace, true);
     document.removeEventListener('keyup', swallowSpace, true);
     game.tutorialListener = null;
+    if (isExitConfirmOpen()) dismissExitConfirm();
     quietHud(false);
     if (isTourOpen()) skipTour();
     coach.className = 'tutorial-coach';
@@ -307,7 +317,7 @@ export function startGameTutorial(env) {
 
   // Escape on the welcome page (no run yet) skips; once a run is going the game's own pause key does
   function onEscape(e) {
-    if (e.key === 'Escape' && !closed && !started && !launching) finish('skipped');
+    if (e.key === 'Escape' && !closed && !started && !launching && !isExitConfirmOpen()) requestClose();
   }
   document.addEventListener('keydown', onEscape);
 
@@ -319,7 +329,7 @@ export function startGameTutorial(env) {
   document.addEventListener('keydown', swallowSpace, true);
   document.addEventListener('keyup', swallowSpace, true);
 
-  _session = { finish: finish };
+  _session = { finish: finish, requestClose: requestClose };
   game.tutorialListener = onGameEvent;
   render(); // the welcome page; the run starts when it is dismissed
   return true;

@@ -3,7 +3,7 @@
 // that needs it is sent on the real track, and nothing from it is saved.
 
 import { test, expect } from '@playwright/test';
-import { hasWebGL } from './helpers.js';
+import { hasWebGL, closeTutorial } from './helpers.js';
 
 const card = (page) => page.locator('#tutorialCoach .tut-card, #tutorialOverlay .tut-card');
 const step = (page, id, timeout = 30000) => expect(card(page)).toHaveAttribute('data-step', id, { timeout });
@@ -171,18 +171,34 @@ test.describe('Interactive tutorial (on the real track)', () => {
     // clicking anywhere dimmed does nothing
     await page.mouse.click(5, 5);
     await expect(page.locator('.tour-card h2')).toHaveText('Filters');
-    await page.locator('#tourSkipBtn').click();
+    await closeTutorial(page);
     await expect(page.locator('#tourOverlay')).toHaveCount(0);
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/);
     expect(await page.evaluate(() => window.__storage.get('firstRunComplete'))).toBe(true);
   });
 
+  test('there is no Skip button: a small × asks "are you sure?", and Keep going carries on', async ({ page }) => {
+    await openFirstRun(page);
+    await expect(page.getByRole('button', { name: /skip tutorial|skip tour/i })).toHaveCount(0);
+    await page.locator('#tutNextBtn').click();
+    await step(page, 'left');
+    await expect(page.getByRole('button', { name: /skip tutorial|skip tour/i })).toHaveCount(0);
+    await page.locator('#tutCloseBtn').click();
+    await expect(page.locator('#tutExitConfirm')).toContainText(/Exit the tutorial\?/);
+    await expect(page.locator('#tutExitConfirm')).toContainText(/How to play/);
+    await page.locator('#tutExitStay').click();
+    await expect(page.locator('#tutExitConfirm')).toHaveCount(0);
+    await step(page, 'left'); // still there
+    expect(await page.evaluate(() => window.__game._tutorial)).toBe(true);
+    expect(await page.evaluate(() => window.__storage.get('firstRunComplete'))).toBe(false);
+  });
+
   test('skipping the tutorial puts the run away without saving it', async ({ page }) => {
     await openFirstRun(page);
     await page.locator('#tutNextBtn').click();
     await step(page, 'left');
-    await page.locator('#tutSkipBtn').click();
+    await closeTutorial(page);
     await expect(page.locator('#tutorialCoach')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/, { timeout: 10000 });
     expect(await page.evaluate(() => window.__game._state)).toBe('ended');
@@ -192,9 +208,11 @@ test.describe('Interactive tutorial (on the real track)', () => {
     expect(await page.evaluate(() => document.getElementById('hud').classList.contains('off'))).toBe(true);
   });
 
-  test('Escape skips the tutorial, on the welcome page and during practice', async ({ page }) => {
+  test('Escape asks before closing the tutorial, on the welcome page and during practice', async ({ page }) => {
     await openFirstRun(page);
     await page.keyboard.press('Escape');
+    await expect(page.locator('#tutExitConfirm')).toBeVisible(); // asks first
+    await page.locator('#tutExitYes').click();
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     expect(await page.evaluate(() => window.__game._state)).toBe('idle'); // no run was ever started
 
@@ -203,6 +221,12 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await page.locator('#tutNextBtn').click();
     await step(page, 'left');
     await page.keyboard.press('Escape');
+    await expect(page.locator('#tutExitConfirm')).toBeVisible();
+    await page.keyboard.press('Escape'); // Escape on the warning means "keep going"
+    await expect(page.locator('#tutExitConfirm')).toHaveCount(0);
+    await step(page, 'left');
+    await page.keyboard.press('Escape');
+    await page.locator('#tutExitYes').click();
     await expect(page.locator('#tutorialCoach')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/, { timeout: 10000 });
   });

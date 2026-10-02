@@ -31,8 +31,8 @@ import { createDailyOrder } from './game/gates.js';
 import { uniqueByAnswer } from './cardleaks.js';
 import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
-import { isTutorialOpen, skipTutorial } from './tutorial.js';
-import { startGameTutorial, isGameTutorialOpen, skipGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
+import { isTutorialOpen, requestCloseTutorial } from './tutorial.js';
+import { startGameTutorial, isGameTutorialOpen, requestCloseGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
 import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
@@ -1863,8 +1863,8 @@ function handleNativeBack() {
   var result = document.getElementById('rankedResult');
   if (result) { result.remove(); return true; }
   if (document.getElementById('dailyReward')) return true; // claim the reward first
-  if (isGameTutorialOpen()) { skipGameTutorial(); return true; }
-  if (isTutorialOpen()) { skipTutorial(); return true; }
+  if (isGameTutorialOpen()) { requestCloseGameTutorial(); return true; }
+  if (isTutorialOpen()) { requestCloseTutorial(); return true; }
   var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);

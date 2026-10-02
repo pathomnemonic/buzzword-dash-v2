@@ -9,13 +9,18 @@
  */
 export async function openApp(page, path = '/') {
   await page.goto(path);
-  const next = page.locator('#tutSkipBtn');
   for (let i = 0; i < 10; i++) {
-    if (!(await next.isVisible().catch(() => false))) break;
-    await next.click();
+    if (!(await page.locator('#tutCloseBtn').isVisible().catch(() => false))) break;
+    await closeTutorial(page);
   }
   await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDailyReward(page);
+}
+
+/** Close the tutorial the way a player does: the × in the corner, then "Exit tutorial" on the warning. */
+export async function closeTutorial(page) {
+  await page.locator('#tutCloseBtn').click();
+  await page.locator('#tutExitYes').click();
 }
 
 /**

@@ -5,7 +5,7 @@
  * How to Play button. The player practices each move in a small practice track (swipe left, swipe
  * right, jump, slide, rush, then pick the right lane for a sample question) and the tutorial only
  * moves on when the move is done. It uses the same input module as the real game, so swipes, keys
- * and double-tap behave exactly as they will in a run. Skipping is always available.
+ * and double-tap behave exactly as they will in a run. The × in the corner leaves (after a warning).
  *
  * It does not need WebGL, so it also works where the 3D runner cannot start.
  */
@@ -15,6 +15,7 @@ import { setupInput } from './game/input.js';
 import { getControlText } from './controlhints.js';
 import { getDashControl } from './dashcontrol.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { confirmExitTutorial, isExitConfirmOpen, dismissExitConfirm } from './tutorialexit.js';
 
 var MIN_LANE = 0;
 var MAX_LANE = 2;
@@ -49,7 +50,7 @@ export function buildSteps(controls, dashControl) {
   var t = c.touch;
   return [
     { id: 'welcome', kind: 'info', icon: 'Dx', title: 'Welcome to Dx Dash!',
-      text: 'You will see medical buzzwords, then ' + c.intro + '. Let\'s practice each move. It takes about a minute, and you can skip any time.',
+      text: 'You will see medical buzzwords, then ' + c.intro + '. Let\'s practice each move. It takes a couple of minutes, and you can leave any time with the × in the corner.',
       button: 'Start practice' },
     { id: 'left', kind: 'action', action: 'moveLeft', title: 'Move left',
       prompt: t ? '👈 Swipe left' : '⬅ Press ← or A',
@@ -81,9 +82,16 @@ export function isTutorialOpen() {
   return !!_session;
 }
 
-/** Close the tutorial as skipped (Escape, the Android back button). */
+/** Close the tutorial right away, as skipped (no question asked). */
 export function skipTutorial() {
   if (_session) _session.finish('skipped');
+}
+
+/** The player tried to close the tutorial (Escape, the Android back button): ask first. */
+export function requestCloseTutorial() {
+  if (!_session) return;
+  if (isExitConfirmOpen()) { dismissExitConfirm(); return; }
+  _session.requestClose();
 }
 
 /**
@@ -132,11 +140,11 @@ export function startTutorial(opts) {
     jump: function () { act('jump'); },
     slide: function () { act('slide'); },
     rush: function () { act('rush'); },
-    pause: function () { finish('skipped'); }
+    pause: function () { requestClose(); }
   };
 
   function onEscape(e) {
-    if (e.key === 'Escape' && !closed && !disposeInput) finish('skipped'); // info pages (practice steps use the input module's pause)
+    if (e.key === 'Escape' && !closed && !disposeInput && !isExitConfirmOpen()) requestClose(); // info pages (practice steps use the input module's pause)
   }
   document.addEventListener('keydown', onEscape);
 
@@ -309,14 +317,11 @@ export function startTutorial(opts) {
       skipStep.addEventListener('click', next);
       buttons.appendChild(skipStep);
     }
-    var skipAll = createElement('button', {
-      className: 'btn btn-outline btn-sm',
-      text: index === steps.length - 1 ? 'Close' : 'Skip tutorial',
-      attributes: { type: 'button', id: 'tutSkipBtn' }
-    });
-    skipAll.addEventListener('click', function () { finish(index === steps.length - 1 ? 'completed' : 'skipped'); });
-    buttons.appendChild(skipAll);
     card.appendChild(buttons);
+    // A small × in the corner (there is no Skip button): it asks "are you sure?" before leaving
+    var closeBtn = createElement('button', { className: 'tut-x', text: '×', attributes: { type: 'button', id: 'tutCloseBtn', 'aria-label': 'Close the tutorial' } });
+    closeBtn.addEventListener('click', function () { requestClose(); });
+    card.appendChild(closeBtn);
 
     overlay.appendChild(card);
     // Keyboard focus goes to the track on practice steps so keys act on the track, never on a button.
@@ -334,8 +339,16 @@ export function startTutorial(opts) {
     render();
   }
 
+  // Ask before leaving (on the last page it just finishes)
+  function requestClose() {
+    if (closed || isExitConfirmOpen()) return;
+    if (index === steps.length - 1) { finish('completed'); return; }
+    confirmExitTutorial({ onExit: function () { finish('skipped'); } });
+  }
+
   function finish(result) {
     if (closed) return;
+    if (isExitConfirmOpen()) dismissExitConfirm();
     closed = true;
     clearTimers();
     if (disposeInput) { disposeInput(); disposeInput = null; }
@@ -349,7 +362,7 @@ export function startTutorial(opts) {
     if (opts.onClose) opts.onClose({ completed: result === 'completed', skipped: result === 'skipped' });
   }
 
-  _session = { finish: finish };
+  _session = { finish: finish, requestClose: requestClose };
   overlay.classList.add('active');
   trapFocus(overlay);
   render();

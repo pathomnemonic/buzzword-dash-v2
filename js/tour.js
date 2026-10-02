@@ -78,6 +78,8 @@ function isVisible(el) {
  * @param {object} opts
  * @param {object[]} opts.steps
  * @param {object} [opts.ctx] passed to each step's before/after/skipIf
+ * @param {function(): void} [opts.requestClose] called when the player presses × or Escape (to ask before leaving);
+ *   without it the tour just closes
  * @param {function({completed: boolean, skipped: boolean}): void} [opts.onClose]
  * @returns {boolean} false if a tour is already open
  */
@@ -207,14 +209,16 @@ export function startTour(opts) {
       nextBtn.addEventListener('click', function () { advance(); });
       buttons.appendChild(nextBtn);
     }
-    var skip = document.createElement('button');
-    skip.type = 'button';
-    skip.className = 'btn btn-outline btn-sm';
-    skip.id = 'tourSkipBtn';
-    skip.textContent = 'Skip tour';
-    skip.addEventListener('click', function () { finish('skipped'); });
-    buttons.appendChild(skip);
     card.appendChild(buttons);
+    // A small × in the corner (no Skip button); the caller can ask "are you sure?" first
+    var x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'tut-x';
+    x.id = 'tourCloseBtn';
+    x.setAttribute('aria-label', 'Close the tutorial');
+    x.textContent = '×';
+    x.addEventListener('click', function () { requestClose(); });
+    card.appendChild(x);
     if (mode === 'next') { var nb = card.querySelector('#tourNextBtn'); if (nb) nb.focus(); }
     else if (targetEl && typeof targetEl.focus === 'function') { try { targetEl.focus({ preventScroll: true }); } catch (e) { /* best effort */ } }
   }
@@ -264,8 +268,12 @@ export function startTour(opts) {
   var pressEvents = ['pointerdown', 'mousedown', 'touchstart', 'pointerup', 'mouseup', 'touchend', 'click'];
   pressEvents.forEach(function (t) { document.addEventListener(t, onPress, true); });
 
+  function requestClose() {
+    if (closed) return;
+    if (opts.requestClose) opts.requestClose(); else finish('skipped');
+  }
   function onKey(e) {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish('skipped'); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); requestClose(); }
   }
   document.addEventListener('keydown', onKey, true);
   function onResize() { schedule(); }

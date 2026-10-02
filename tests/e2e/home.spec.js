@@ -2,7 +2,7 @@
 // Home fits on one screen (no scrolling), the tab bar has Home in the middle, and the popups explain each mode.
 
 import { test, expect } from '@playwright/test';
-import { openApp } from './helpers.js';
+import { openApp, closeTutorial } from './helpers.js';
 
 const SIZES = [
   { name: 'small phone', width: 360, height: 640 },
@@ -115,7 +115,8 @@ test.describe('Home layout', () => {
     await openApp(page);
     await page.locator('#howToPlayBtn').click();
     await expect(page.locator('#tutorialOverlay')).toBeVisible();
-    await expect(page.locator('#tutSkipBtn')).toBeVisible();
+    await expect(page.locator('#tutCloseBtn')).toBeVisible();
+    await expect(page.getByRole('button', { name: /skip tutorial/i })).toHaveCount(0);
   });
 
   test('every page has a Back button that steps back one level, and the tab screens rely on the bottom bar', async ({ page }) => {
