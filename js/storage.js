@@ -96,7 +96,7 @@ var DEFAULTS = {
 
   // --- Progression ---
   progression: {
-    coins: 100,
+    coins: 2000, // enough for a first trail (the tutorial walks a new player through buying one)
     totalCoinsEarned: 100,
     bestScore: 0,
     bestStreak: 0,

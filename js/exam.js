@@ -333,6 +333,8 @@ function finishExam() {
     })
   };
   storage.finalizeExamSession(summary);
+  // (main.js posts "scored X% on an exam simulation" to friends' feeds when the player has a public profile)
+  document.dispatchEvent(new CustomEvent('dx:exam-finished', { detail: { accuracy: result.accuracy, total: result.total } }));
   renderResults(st, result, durationSec);
 }
 

@@ -1438,3 +1438,21 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .cw-preview { width: 36px; height: 36px; border-radius: 10px; border: 3px solid var(--ink, #1b1030); flex: 0 0 auto; }
 .cw-hex { width: 100%; min-width: 0; padding: 8px; border-radius: 10px; border: 2px solid var(--ink, #1b1030); background: rgba(30, 15, 70, .8); color: #fff; font: 700 14px/1 monospace; text-transform: lowercase; }
 .cw-hex.bad { border-color: var(--accent-red, #ff3355); }
+
+/* The Locker's display stays on screen while the list scrolls, so a trail or monster picked far down the list can be seen */
+#characterPreviewContainer { position: sticky; top: 6px; z-index: 4; height: 210px; }
+@media (max-height: 700px) { #characterPreviewContainer { height: 170px; } }
+
+/* ---------- the spotlight tour (js/tour.js) ---------- */
+.tour { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+.tour-shield { position: fixed; background: rgba(8, 4, 24, 0.82); pointer-events: auto; }
+.tour-ring { position: fixed; border-radius: 16px; border: 3px solid var(--accent-gold, #fbbf24); box-shadow: 0 0 0 4px rgba(251, 191, 36, .28), 0 0 24px rgba(251, 191, 36, .55); pointer-events: none; animation: tourPulse 1.4s ease-in-out infinite; }
+@keyframes tourPulse { 50% { box-shadow: 0 0 0 9px rgba(251, 191, 36, .12), 0 0 34px rgba(251, 191, 36, .8); } }
+.tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); box-sizing: border-box; padding: 14px 16px 12px; border-radius: 20px; text-align: center; pointer-events: auto; background: var(--bg-card-solid); border: var(--border-card); box-shadow: var(--shadow-card); }
+.tour-card h2 { margin: 2px 0 6px; font-size: 19px; font-weight: 900; color: var(--accent-cyan); }
+.tour-card .tut-text { margin: 0 0 8px; font-size: 13px; line-height: 1.45; color: rgba(255, 255, 255, .9); }
+.tour-hint { font-size: 13px; font-weight: 900; color: var(--accent-gold, #fbbf24); margin: 2px 0 8px; }
+.tour-card .tut-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { .tour-ring { animation: none; } }
+/* things scrolled into view (by the tour, or keyboard focus) must not end up under the Locker's sticky display */
+#shopItems .shop-item, #shopItems [role="tab"] { scroll-margin-top: 240px; scroll-margin-bottom: 110px; }

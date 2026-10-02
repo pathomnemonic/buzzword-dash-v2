@@ -70,6 +70,23 @@ var _settingsExtensions = [];
 // UI CLASS
 // ═══════════════════════════════════════════════════════════
 
+/** The secret needs this many taps on the title... */
+export var TITLE_TAPS_NEEDED = 20;
+/** ...all within this many milliseconds (about 2.5 taps a second: deliberate, never accidental). */
+export var TITLE_TAPS_WITHIN_MS = 8000;
+
+/** Remember a tap, keeping only the most recent ones that could still count. */
+export function pushTitleTap(taps, now) {
+  var kept = taps.filter(function (t) { return now - t <= TITLE_TAPS_WITHIN_MS; });
+  kept.push(now);
+  return kept.slice(-TITLE_TAPS_NEEDED);
+}
+
+/** True when the last 20 taps all fell inside the window. */
+export function titleTapsUnlock(taps) {
+  return taps.length >= TITLE_TAPS_NEEDED && taps[taps.length - 1] - taps[taps.length - TITLE_TAPS_NEEDED] <= TITLE_TAPS_WITHIN_MS;
+}
+
 /** The tab a screen belongs to (sub-pages keep their parent's tab lit; Settings and Ranks light none). */
 function NAV_PARENT(screenId) {
   if (screenId === 'screenCardBrowser' || screenId === 'screenMyCards' || screenId === 'screenFlashcard') return 'screenHome';
@@ -516,11 +533,10 @@ class UI {
     if (titleEl) {
       titleEl.style.cursor = 'pointer';
       titleEl.addEventListener('click', function () {
-        self.titleTapCount++;
-        clearTimeout(self.titleTapTimer);
-        self.titleTapTimer = setTimeout(function () { self.titleTapCount = 0; }, 2000);
-        if (self.titleTapCount >= 20) {
-          self.titleTapCount = 0;
+        // 20 taps inside a few seconds: taps minutes (or even a minute) apart never add up
+        self.titleTaps = pushTitleTap(self.titleTaps || [], Date.now());
+        if (titleTapsUnlock(self.titleTaps)) {
+          self.titleTaps = [];
           storage.addCoins(100000);
           audio.play('secret');
           self._showToast('Secret found! +100,000 coins!');
@@ -752,6 +768,37 @@ class UI {
     });
   }
 
+  /**
+   * Chips for one filter. An empty list means "everything", so every chip then shows as on; tapping one narrows
+   * the filter to that choice, tapping more adds to it, and turning the last one off goes back to everything.
+   * @param {HTMLElement} scroll where the chips go
+   * @param {Array<{id: *, label: string}>} items
+   * @param {function(): Array} read the saved list
+   * @param {function(*): void} toggle add or remove one id in the saved list
+   * @param {string} dataKey the data attribute that names the chip (data-exam, data-qtype, data-year)
+   * @param {function(): void} [after]
+   */
+  _filterChips(scroll, items, read, toggle, dataKey, after) {
+    var chips = [];
+    function paint() {
+      var list = read();
+      chips.forEach(function (c) { c.el.classList.toggle('selected', list.length === 0 || list.indexOf(c.id) >= 0); });
+    }
+    items.forEach(function (item) {
+      var data = {};
+      data[dataKey] = String(item.id);
+      var el = createElement('div', { className: 'subject-chip', text: item.label, dataset: data });
+      el.addEventListener('click', function () {
+        toggle(item.id); // (with everything on, the list is empty, so this makes it the only choice)
+        paint();
+        if (after) after();
+      });
+      chips.push({ id: item.id, el: el });
+      scroll.appendChild(el);
+    });
+    paint();
+  }
+
   // ═══════════════════════════════════════════════════════
   // EXAM FILTER
   // ═══════════════════════════════════════════════════════
@@ -759,7 +806,6 @@ class UI {
   renderExamFilter() {
     var container = document.getElementById('examFilterContainer');
     if (!container) return;
-    var selectedExams = storage.get('selectedExams') || [];
     var filters = (typeof EXAM_FILTERS !== 'undefined') ? EXAM_FILTERS : [];
     if (filters.length === 0) {
       clearElement(container);
@@ -797,23 +843,14 @@ class UI {
 
     var scroll = createElement('div', { className: 'subject-scroll' });
 
-    filters.forEach(function (ex) {
-      var sel = selectedExams.indexOf(ex) >= 0;
-      var chip = createElement('div', {
-        className: 'subject-chip' + (sel ? ' selected' : ''),
-        text: ex,
-        dataset: { exam: ex }
-      });
-      chip.addEventListener('click', function () {
-        var exams = storage.get('selectedExams') || [];
+    this._filterChips(scroll, filters.map(function (ex) { return { id: ex, label: ex }; }),
+      function () { return storage.get('selectedExams') || []; },
+      function (ex) {
+        var exams = (storage.get('selectedExams') || []).slice();
         var idx = exams.indexOf(ex);
-        if (idx >= 0) exams.splice(idx, 1);
-        else exams.push(ex);
+        if (idx >= 0) exams.splice(idx, 1); else exams.push(ex);
         storage.set('selectedExams', exams);
-        chip.classList.toggle('selected');
-      });
-      scroll.appendChild(chip);
-    });
+      }, 'exam', function () { self._renderFiltersSummary(); });
 
     body.appendChild(scroll);
     section.appendChild(body);
@@ -890,24 +927,10 @@ class UI {
     body.appendChild(qtHint);
 
     var qtScroll = createElement('div', { className: 'subject-scroll' });
-    QTYPES.forEach(function (qt) {
-      var sel = selectedTypes.indexOf(qt.id) >= 0;
-      var chip = createElement('div', {
-        className: 'subject-chip' + (sel ? ' selected' : ''),
-        text: qt.label,
-        dataset: { qtype: qt.id }
-      });
-      chip.addEventListener('click', function () {
-        if (storage.toggleQuestionTypeFilter) {
-          storage.toggleQuestionTypeFilter(qt.id);
-        } else {
-          storage.toggleArrayItem('selectedQuestionTypes', qt.id);
-        }
-        chip.classList.toggle('selected');
-        self._updateFilterCount();
-      });
-      qtScroll.appendChild(chip);
-    });
+    this._filterChips(qtScroll, QTYPES,
+      function () { return storage.get('selectedQuestionTypes') || []; },
+      function (id) { storage.toggleArrayItem('selectedQuestionTypes', id); },
+      'qtype', function () { self._updateFilterCount(); });
     body.appendChild(qtScroll);
 
     // Year chips
@@ -916,24 +939,10 @@ class UI {
     body.appendChild(yrLabel);
 
     var yrScroll = createElement('div', { className: 'subject-scroll' });
-    YEARS.forEach(function (yr) {
-      var sel = selectedYears.indexOf(yr.id) >= 0;
-      var chip = createElement('div', {
-        className: 'subject-chip' + (sel ? ' selected' : ''),
-        text: yr.label,
-        dataset: { year: String(yr.id) }
-      });
-      chip.addEventListener('click', function () {
-        if (storage.toggleYearFilter) {
-          storage.toggleYearFilter(yr.id);
-        } else {
-          storage.toggleArrayItem('selectedYears', yr.id);
-        }
-        chip.classList.toggle('selected');
-        self._updateFilterCount();
-      });
-      yrScroll.appendChild(chip);
-    });
+    this._filterChips(yrScroll, YEARS,
+      function () { return storage.get('selectedYears') || []; },
+      function (id) { storage.toggleArrayItem('selectedYears', id); },
+      'year', function () { self._updateFilterCount(); });
     body.appendChild(yrScroll);
 
     // High-yield toggle

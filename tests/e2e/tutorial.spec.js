@@ -27,6 +27,27 @@ async function clearObstacle(page, type, key, nextId) {
   await step(page, nextId, 60000);
 }
 
+/** Go through the spotlight tour: press the highlighted spot, or Next where there is nothing to press. */
+async function walkTour(page) {
+  const seen = [];
+  for (let i = 0; i < 40; i++) {
+    if (!(await page.locator('#tourOverlay').count())) break;
+    const title = await page.locator('.tour-card h2').textContent().catch(() => null);
+    if (title === null) break;
+    seen.push(title);
+    const next = page.locator('#tourNextBtn');
+    if (await next.count()) {
+      await next.click();
+    } else {
+      const box = await page.locator('.tour-ring').boundingBox();
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    }
+    await page.waitForTimeout(450);
+  }
+  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Your first trail', 'Wear it', 'Daily quests']));
+  await expect(page.locator('#tourOverlay')).toHaveCount(0);
+}
+
 test.describe('Interactive tutorial (on the real track)', () => {
   test.setTimeout(150000);
 
@@ -74,7 +95,18 @@ test.describe('Interactive tutorial (on the real track)', () => {
       at = await lane();
     }
     await page.evaluate(() => { window.__game.gateZ = -12; });
-    await step(page, 'done', 60000);
+
+    // After the practice the run is put away and a spotlight tour of the real screens begins
+    await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
+    expect(await page.evaluate(() => window.__game._state)).toBe('ended');
+    const coinsBefore = await page.evaluate(() => window.__storage.get('coins'));
+    expect(coinsBefore).toBeGreaterThanOrEqual(1500); // enough for a first trail
+    await walkTour(page);
+    // the tour had them buy and wear a trail
+    expect(await page.evaluate(() => window.__storage.get('coins'))).toBeLessThan(coinsBefore);
+    expect(await page.evaluate(() => window.__storage.get('equipped').trail)).not.toBe('trail_none');
+
+    await step(page, 'done', 20000);
     await page.locator('#tutNextBtn').click(); // Start playing
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/, { timeout: 10000 });
@@ -114,6 +146,36 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect(page.locator('.coach-feedback')).toContainText(/got you/i, { timeout: 40000 });
     await expect.poll(() => page.evaluate(() => window.__game.obstacleMeshes.filter((o) => o.userData.type === 'low' && o.position.z < -5).length), { timeout: 40000 }).toBeGreaterThan(0);
     await step(page, 'jump');
+  });
+
+  test('the tour can be skipped, and pressing PLAY in it does not start a run', async ({ page }) => {
+    await openFirstRun(page);
+    await page.locator('#tutNextBtn').click();
+    await step(page, 'left');
+    for (const id of ['left', 'right', 'jump', 'slide']) { await step(page, id); await page.locator('#tutSkipStepBtn').click(); }
+    await step(page, 'rush');
+    await page.locator('#tutSkipStepBtn').click();
+    await step(page, 'answer');
+    await page.locator('#tutSkipStepBtn').click();
+    await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
+    // Home, then coins, then PLAY: pressing the highlighted PLAY only moves the tour on
+    await page.locator('#tourNextBtn').click();
+    await expect(page.locator('.tour-card h2')).toHaveText('Coins and best score');
+    let box = await page.locator('.tour-ring').boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(page.locator('.tour-card h2')).toHaveText('PLAY');
+    box = await page.locator('.tour-ring').boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(page.locator('.tour-card h2')).toHaveText('Filters');
+    expect(await page.evaluate(() => window.__game._state)).toBe('ended'); // no new run
+    // clicking anywhere dimmed does nothing
+    await page.mouse.click(5, 5);
+    await expect(page.locator('.tour-card h2')).toHaveText('Filters');
+    await page.locator('#tourSkipBtn').click();
+    await expect(page.locator('#tourOverlay')).toHaveCount(0);
+    await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
+    await expect(page.locator('#screenHome')).toHaveClass(/active/);
+    expect(await page.evaluate(() => window.__storage.get('firstRunComplete'))).toBe(true);
   });
 
   test('skipping the tutorial puts the run away without saving it', async ({ page }) => {

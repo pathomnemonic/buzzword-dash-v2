@@ -14,9 +14,12 @@ beforeEach(async () => {
   storage.load();
 });
 
+// A new player starts with enough coins for a first trail (the tutorial walks them through buying one)
+const START = 2000;
+
 describe('Storage — fresh defaults', () => {
   it('loads with default coin balance', () => {
-    expect(storage.get('coins')).toBe(100);
+    expect(storage.get('coins')).toBe(START);
   });
 
   it('loads with empty card stats', () => {
@@ -45,7 +48,7 @@ describe('Storage — corrupt JSON recovery', () => {
   it('recovers from corrupt localStorage data', () => {
     localStorage.setItem('buzzword_dash_v1', '{{{invalid json');
     storage.load();
-    expect(storage.get('coins')).toBe(100);
+    expect(storage.get('coins')).toBe(START);
   });
 });
 
@@ -103,18 +106,18 @@ describe('Storage — coins', () => {
   it('adds coins and tracks total', () => {
     const initialTotal = storage.get('totalCoins');
     storage.addCoins(50);
-    expect(storage.get('coins')).toBe(150);
+    expect(storage.get('coins')).toBe(START + 50);
     expect(storage.get('totalCoins')).toBe(initialTotal + 50);
   });
 
   it('spendCoins returns false when insufficient', () => {
-    expect(storage.spendCoins(9999)).toBe(false);
-    expect(storage.get('coins')).toBe(100);
+    expect(storage.spendCoins(START + 9999)).toBe(false);
+    expect(storage.get('coins')).toBe(START);
   });
 
   it('spendCoins deducts correctly', () => {
     expect(storage.spendCoins(30)).toBe(true);
-    expect(storage.get('coins')).toBe(70);
+    expect(storage.get('coins')).toBe(START - 30);
   });
 });
 
@@ -171,7 +174,7 @@ describe('Storage — reset', () => {
     storage.addCoins(500);
     storage.unlockAchievement('ach_first_run');
     storage.reset();
-    expect(storage.get('coins')).toBe(100);
+    expect(storage.get('coins')).toBe(START);
     expect(storage.hasAchievement('ach_first_run')).toBe(false);
   });
 });
@@ -182,7 +185,7 @@ describe('Storage — backup and restore', () => {
     const backup = storage.exportBackup();
     localStorage.clear();
     storage.load();
-    expect(storage.get('coins')).toBe(100);
+    expect(storage.get('coins')).toBe(START);
     expect(storage.importBackup(backup).ok).toBe(true);
     expect(storage.get('coins')).toBe(4321);
   });

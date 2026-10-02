@@ -73,6 +73,7 @@ export function nativeHaptic(pattern) {
  * @param {object} handlers
  * @param {function(): boolean} handlers.onBack return true if the press was handled
  * @param {function(): void} handlers.onBackground called when the app goes to the background
+ * @param {function(): void} [handlers.onForeground] called when it comes back
  * @param {function(string): void} handlers.onDeepLink called with a URL that opened the app
  */
 export function initNative(handlers) {
@@ -96,6 +97,7 @@ export function initNative(handlers) {
     });
     App.addListener('appStateChange', function (state) {
       if (!state.isActive) handlers.onBackground();
+      else if (handlers.onForeground) handlers.onForeground();
     });
     App.addListener('appUrlOpen', function (event) {
       if (event && event.url) handlers.onDeepLink(event.url);

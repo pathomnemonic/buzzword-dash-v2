@@ -4,7 +4,9 @@
  * The tutorial is an ordinary run on the real track with the real top bar, clue and answer gates, but
  * nothing arrives on its own: a coach card at the bottom of the screen asks for one move at a time, and
  * only then sends the obstacle or the question that needs it. The welcome and finish pages are full
- * pages over the screen; the run starts when "Start practice" is pressed. Swipes, keys and the Dash button are the
+ * pages over the screen; the run starts when "Start practice" is pressed. After the last practice step the run is
+ * put away and a spotlight tour of the real screens follows (tour.js, tourdata.js): Home, Stats, the Locker (where
+ * the starting coins buy a first trail), Quests and Profile. Swipes, keys and the Dash button are the
  * game's own, so what is practised is exactly what a run needs. Nothing from it is saved (no score,
  * coins, stats or history), and it can be skipped at any time.
  *
@@ -16,6 +18,8 @@ import { buildSteps, REFERENCE } from './tutorial.js';
 import { getDashControl } from './dashcontrol.js';
 import { getControlText } from './controlhints.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { startTour, skipTour, isTourOpen } from './tour.js';
+import { buildTourSteps } from './tourdata.js';
 
 var ADVANCE_MS = 900;        // pause on the "Nice!" before the next step
 var RETRY_MS = 1400;         // pause before a missed obstacle or question is sent again
@@ -43,6 +47,7 @@ export function skipGameTutorial() {
  * @param {object} env.game the engine
  * @param {function(string[]): void} env.begin starts the tutorial run, given the card ids to use
  * @param {string[]} env.cardIds [dash question, answer question]
+ * @param {object} env.ui the interface (the tour opens Home and reads the Locker)
  * @param {function({completed: boolean, skipped: boolean}): void} [env.onClose]
  */
 export function startGameTutorial(env) {
@@ -55,9 +60,13 @@ export function startGameTutorial(env) {
   var steps = buildSteps(undefined, dashControl).filter(function (s) {
     return !(s.id === 'rush' && getControlText().touch && dashControl === 'off');
   });
+  // the spotlight tour comes after the practice, before the closing page
+  var doneAt = steps.map(function (s) { return s.id; }).indexOf('done');
+  steps.splice(doneAt < 0 ? steps.length : doneAt, 0, { id: 'tour', kind: 'tour', title: 'App tour' });
   var index = 0;
   var closed = false;
   var locked = false;
+  var touring = false;     // the practice run was put away and the spotlight tour is open
   var started = false;     // the run is going and practice steps can be sent
   var launching = false;   // "Start practice" was pressed and the run is counting down
   var timers = [];
@@ -135,7 +144,7 @@ export function startGameTutorial(env) {
     if (closed) return;
     if (type === 'go') { if (launching) { launching = false; started = true; quietHud(true); next(); } return; }
     if (type === 'pause') { finish('skipped'); return; }
-    if (type === 'ended') { finish('skipped'); return; }
+    if (type === 'ended') { if (!touring) finish('skipped'); return; }
     var step = steps[index];
     if (!started || !step || locked) return;
 
@@ -161,9 +170,35 @@ export function startGameTutorial(env) {
   }
 
   // ---- the coach card ------------------------------------------------------------------------
+  // The practice is over: put the run away (silently) and walk through the real screens with a spotlight
+  function startTourStep() {
+    touring = true;
+    clearTimers();
+    clearElement(coach);
+    coach.className = 'tutorial-coach';
+    page.classList.remove('active');
+    releaseFocusTrap();
+    quietHud(false);
+    if (game.running || game.paused) game.requestEnd('tutorial_tour');
+    // (a moment for the run's put-away to land on Home before the first spotlight)
+    later(function () {
+      if (closed) return;
+      startTour({
+        steps: buildTourSteps({ ui: env.ui }),
+        ctx: { ui: env.ui },
+        onClose: function (r) {
+          touring = false;
+          if (closed) return;
+          if (r.completed) next(); else finish('skipped');
+        }
+      });
+    }, 120);
+  }
+
   function render() {
     clearTimers();
     var step = steps[index];
+    if (step.kind === 'tour') { startTourStep(); return; }
     var isPage = step.kind === 'info';
     var target = isPage ? page : coach;
     clearElement(coach);
@@ -257,6 +292,7 @@ export function startGameTutorial(env) {
     document.removeEventListener('keyup', swallowSpace, true);
     game.tutorialListener = null;
     quietHud(false);
+    if (isTourOpen()) skipTour();
     coach.className = 'tutorial-coach';
     clearElement(coach);
     clearElement(page);

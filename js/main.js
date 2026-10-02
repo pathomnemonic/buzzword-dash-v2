@@ -24,7 +24,7 @@
 import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage } from './storage.js';
-import { audio } from './audio.js';
+import { audio, MENU_THEME } from './audio.js';
 import { CARDS, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { createDailyOrder } from './game/gates.js';
@@ -469,6 +469,15 @@ function postActivities(summary, result) {
     throttledActivity('streak', { name: name, streak: summary.bestStreak });
   }
 }
+
+// A finished exam simulation goes to friends' feeds (only for a signed-in player with a public, named profile)
+document.addEventListener('dx:exam-finished', function (e) {
+  if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
+  if (!storage.get('profileVisible') || !storage.get('profileName')) return;
+  var d = (e && e.detail) || {};
+  if (!(d.total >= 10)) return; // a quick handful of questions is not worth announcing
+  throttledActivity('exam', { name: storage.get('profileName'), accuracy: Math.round(Number(d.accuracy) || 0) });
+});
 
 var _lastStudySync = -1;
 
@@ -1137,6 +1146,7 @@ function init() {
     }
     return startGameTutorial({
       game: game,
+      ui: ui,
       cardIds: ids,
       onClose: opts && opts.onClose,
       begin: function (cardIds) { launchRun('study', cardIds, { tutorial: true, allowContinue: false }); }
@@ -1181,23 +1191,28 @@ function init() {
     ui.showNotice('⚡ Faster! Speed ' + dial + '×', { color: 'var(--accent-gold)', ms: 1800 });
   };
 
-  game.onEncounterStart = function (card, gates) {
+  game.onEncounterStart = function (card, gates, info) {
     ui.showBuzzwords(card);
     ui.showAnswerChoices(gates);
+    // Read the question aloud (when switched on), planned to be finished before the answer locks
+    audio.speakQuestion({
+      clues: card.bw || [],
+      answers: gates.map(function (g) { return g.label; }),
+      secondsToLock: info && typeof info.secondsToLock === 'number' ? info.secondsToLock : 0
+    });
   };
 
   game.onEncounterResolve = function (card, wasCorrect) {
+    audio.cancelSpeech(); // the question is over
     ui.showFeedback(card, wasCorrect);
     ui.flashScreen(wasCorrect);
     if (game.mode === 'study' && wasCorrect && !game._tutorial) {
       ui.showStudyTeaching(card);
     }
-    // Route to audio (once)
-    if (wasCorrect) {
-      audio.play('correct');
-    }
-    // The runner cheers or groans in their own voice (a vocal sound, not speech)
-    if (storage.get('characterVoices') !== false && game.mode !== 'exam') {
+    // Route to audio (once): a musical chime for a right answer, a soft falling sigh for a wrong one
+    audio.play(wasCorrect ? 'correct' : 'wrong');
+    // (The runner's own voice is switched off for now, see FEATURES.characterVoices)
+    if (FEATURES.characterVoices && storage.get('characterVoices') !== false && game.mode !== 'exam') {
       audio.playCharacter((storage.get('equipped') || {}).skin || 'avatar_intern', wasCorrect ? 'cheer' : 'sad');
     }
     // Route to multiplayer (once)
@@ -1205,9 +1220,11 @@ function init() {
   };
 
   game.onRunEnd = function () {
+    audio.cancelSpeech();
     ui.hideHud();
     ui.hideAnswerChoices();
     audio.stopAmbient();
+    audio.setMusicTheme(MENU_THEME, 2.0); // back on the menus: the menu track, never the last map's
 
     // The tutorial is not a real run: nothing is saved or shown afterwards, and the player lands on Home
     if (game._tutorial) {
@@ -1300,15 +1317,19 @@ function init() {
 
   // The map's name is not announced when a run starts; only map changes are.
   // Sound effects requested by the engine (monster lunge, impacts, death styles)
-  game.onSfx = function (name) { audio.play(name); };
+  game.onSfx = function (name) {
+    if (name === 'pause') audio.cancelSpeech(); // a question being read stops with the pause
+    audio.play(name);
+  };
 
   game.onSkinSelected = function (skinName) {
     audio.startAmbient(skinName);
+    audio.setMusicTheme(skinName, 1.5); // the run plays its own map's track (nothing happens if it already is)
   };
 
   if (game.onMapTransition !== undefined) {
     game.onMapTransition = function (newSkinName) {
-      audio.changeMusicTheme(newSkinName, 3.0);
+      audio.setMusicTheme(newSkinName, 3.0);
       audio.play('map_transition');
       ui.showTrackName('Now entering ' + newSkinName);
     };
@@ -1549,7 +1570,11 @@ function init() {
   // Inside the store apps: back button, pause when backgrounded, email deep links
   initNative({
     onBack: handleNativeBack,
-    onBackground: function () { if (game.running && !game.paused) game.togglePause(); },
+    onBackground: function () {
+      if (game.running && !game.paused) game.togglePause();
+      audio.pause('background'); // leaving the app: the music stops with it
+    },
+    onForeground: function () { audio.resume('foreground'); },
     onDeepLink: handleDeepLink
   });
 
@@ -1562,12 +1587,15 @@ function init() {
       if (game.running && !game.paused) {
         game.togglePause();
       }
-      // TTS stop
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      // Leaving the tab or the app: nothing may keep playing (music, ambient, a question being read)
+      audio.pause('hidden');
+    } else if (document.visibilityState === 'visible') {
+      audio.resume('visible');
     }
   });
+  // Closing the page or sending it to the back (iOS fires this instead of visibilitychange): same
+  window.addEventListener('pagehide', function () { audio.pause('pagehide'); });
+  window.addEventListener('pageshow', function () { if (document.visibilityState === 'visible') audio.resume('pageshow'); });
 
   // ==========================
   //  PREVENT PULL-TO-REFRESH

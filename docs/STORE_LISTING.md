@@ -37,7 +37,7 @@ Only list a feature once it has been checked end to end. As of the last check:
 
 **Built and tested, but not yet checked against the live online service, so do not list yet:**
 - Ranked matches, trophies and leagues (the database rules and the whole match flow were played end to end against a local copy of the database; run `database/schema.sql` and `policies.sql` on the live project, play one ranked match between two real accounts, then add "Ranked leagues" to the listing).
-- Leaderboards, friends, study groups, weekly tournaments and cloud save (database rules are tested; the account screens need a live Supabase project to check).
+- Friends, the friend feed, study groups, weekly tournaments and cloud save (database rules and the screens are tested against a fake service; they need a live Supabase project to check). The global leaderboard is hidden in the app for now (`FEATURES.globalLeaderboard`), so do not list it.
 - Cohorts and cohort wars (finished and hidden on purpose; see `docs/COHORTS.md`).
 
 Do not list map events (blackouts, tremors) until you have seen them in a real session on the device.

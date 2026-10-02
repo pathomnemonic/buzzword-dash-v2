@@ -10,7 +10,7 @@ import { getNextSkin } from './skins.js';
 import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } from './gates.js';
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
-import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, removeAndDispose } from './enginedefs.js';
+import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
 
@@ -157,11 +157,14 @@ card = pickResult ? pickResult.card : null;
     this.encounterStartTime = performance.now();
 
     var presentedAnswers = [this.gates[0].label, this.gates[1].label, this.gates[2].label];
+    // How long the player has before the answer locks in (used to plan reading the question aloud in time)
+    var secondsToLock = Math.max(0, (Math.abs(this._gateSpawnZ) - Math.abs(ANSWER_LOCK_Z) * VISUAL_SPEED) / (Math.max(this.speed, 0.01) * VISUAL_SPEED));
     this._emit('encounter_started', {
       card: card,
       gates: this.gates,
       presentedAnswers: presentedAnswers,
-      correctLane: correctLane
+      correctLane: correctLane,
+      secondsToLock: secondsToLock
     });
   },
 

@@ -99,6 +99,13 @@ export class TrailSystem {
     this.spawnTimer = 0;
     this.paused = false;
     this.reducedMotion = (options && options.reducedMotion) || false;
+    // +1: the trail streams toward the camera (the game looks at the runner from behind).
+    // -1: it streams away (the Locker looks at the runner from the front).
+    this.direction = options && options.direction === -1 ? -1 : 1;
+    // particles that travel past this z are put away (the Locker's camera is close: nothing should fly through it)
+    this.clipZ = options && typeof options.clipZ === 'number' ? options.clipZ : Infinity;
+    // A trail to show instead of the equipped one (the Locker's preview)
+    this.overrideId = null;
 
     // Quality
     var qualityKey = (options && options.quality) || 'high';
@@ -133,8 +140,15 @@ export class TrailSystem {
 
   getConfig() {
     var equipped = storage.get('equipped');
-    var trailId = (equipped && equipped.trail) || 'trail_none';
+    var trailId = this.overrideId || (equipped && equipped.trail) || 'trail_none';
     return TRAIL_CONFIGS[trailId] || null;
+  }
+
+  /** Show this trail (null: back to the equipped one). Particles already in the air are cleared. */
+  setOverride(trailId) {
+    if (this.overrideId === (trailId || null)) return;
+    this.overrideId = trailId || null;
+    this.reset();
   }
 
   update(dt, playerX, playerY, playerZ, streak) {
@@ -177,7 +191,8 @@ export class TrailSystem {
 
       p.mesh.position.x += p.vx * dt;
       p.mesh.position.y += p.vy * dt;
-      p.mesh.position.z += p.vz * dt;
+      p.mesh.position.z += p.vz * dt * this.direction;
+      if (p.mesh.position.z > this.clipZ) { p.active = false; p.mesh.visible = false; continue; }
 
       var lifeRatio = p.life / p.maxLife;
       p.mesh.material.opacity = lifeRatio * 0.95;
@@ -228,7 +243,7 @@ export class TrailSystem {
     p.mesh.position.set(
       px + (Math.random() - 0.5) * spread,
       (py + 0.5) + (Math.random() - 0.5) * spread * 0.5,
-      pz + 0.5 + Math.random() * 0.3
+      pz + this.direction * (0.5 + Math.random() * 0.3)
     );
 
     // Default velocities

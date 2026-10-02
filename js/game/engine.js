@@ -344,7 +344,7 @@ class Game {
   _bridgeLegacyCallback(event) {
     switch (event.type) {
       case 'encounter_started':
-        if (this.onEncounterStart) this.onEncounterStart(event.payload.card, event.payload.gates);
+        if (this.onEncounterStart) this.onEncounterStart(event.payload.card, event.payload.gates, event.payload);
         break;
       case 'encounter_resolved':
         if (this.onEncounterResolve) this.onEncounterResolve(event.payload.card, event.payload.correct);

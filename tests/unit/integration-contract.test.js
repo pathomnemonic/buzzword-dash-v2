@@ -106,7 +106,7 @@ describe('leaderboard screen', () => {
       getUserId: () => 'me',
       getModeLabel: (m) => m,
       getTopScores: () => Promise.resolve([{ user_id: 'u1', player_name: evil, score: 10, accuracy: 90, best_streak: 3 }]),
-      getFriends: () => Promise.resolve([]),
+      getFriends: () => Promise.resolve([{ user_id: 'u1', player_name: evil, best_score: 10, best_streak: 3 }]),
       getPendingRequests: () => Promise.resolve([])
     };
     mountLeaderboardScreen(root, {

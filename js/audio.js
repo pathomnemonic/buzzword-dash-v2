@@ -26,6 +26,7 @@
 import { storage } from './storage.js';
 import { isNative, nativeHaptic } from './native.js';
 import { say as sayCharacter } from './charactervoices.js';
+import { planReading, updateWps, countWords, DEFAULT_WPS } from './readaloud.js';
 
 // ===== MUSICAL CONSTANTS =====
 
@@ -338,12 +339,24 @@ class MusicGenerator {
     this.playing = true;
     this.nextStepTime = this.ctx.currentTime + 0.05;
     this.currentStep = 0;
+    if (!this._fadingIn) {
+      // (a generator that was stopped had its output brought down to silence; bring it back)
+      var now = this.ctx.currentTime;
+      this.outputGain.gain.cancelScheduledValues(now);
+      this.outputGain.gain.setValueAtTime(1.0, now);
+    }
     this._startScheduler();
   }
 
+  /** Stop playing, and let the notes already sounding die away at once instead of ringing on. */
   stop() {
     this.playing = false;
     this._stopScheduler();
+    try {
+      var now = this.ctx.currentTime;
+      this.outputGain.gain.cancelScheduledValues(now);
+      this.outputGain.gain.setTargetAtTime(0, now, 0.04);
+    } catch (e) { /* the context may already be closed */ }
   }
 
   fadeOut(duration) {
@@ -352,7 +365,7 @@ class MusicGenerator {
     this.outputGain.gain.setValueAtTime(this.outputGain.gain.value, now);
     this.outputGain.gain.linearRampToValueAtTime(0, now + duration);
     var self = this;
-    setTimeout(function () { self.stop(); }, duration * 1000 + 100);
+    this._fadeTimer = setTimeout(function () { self.stop(); }, duration * 1000 + 100);
   }
 
   fadeIn(duration) {
@@ -360,7 +373,9 @@ class MusicGenerator {
     var now = this.ctx.currentTime;
     this.outputGain.gain.setValueAtTime(0, now);
     this.outputGain.gain.linearRampToValueAtTime(1.0, now + duration);
+    this._fadingIn = true;
     this.play();
+    this._fadingIn = false;
   }
 
   setTempoMultiplier(mult) {
@@ -579,12 +594,16 @@ class MusicGenerator {
   _playHiHat() {}
 
   dispose() {
+    clearTimeout(this._fadeTimer);
     this.stop();
     try { this.outputGain.disconnect(); } catch (e) { /* best-effort cleanup */ }
     try { this.melodyFilter.disconnect(); } catch (e) { /* best-effort cleanup */ }
   }
 }
 
+
+/** The track on the Home screen and in menus (a run plays its map's own track). */
+export var MENU_THEME = 'Neural Highway';
 
 // ===== MAIN AUDIO ENGINE =====
 
@@ -615,6 +634,11 @@ class AudioEngine {
     // Music system
     this.musicGenerator = null;
     this.crossfadeGenerator = null;
+    this._allGenerators = [];   // every generator not yet disposed (see _makeGenerator)
+    this._musicTimers = [];     // crossfade bookkeeping that stopMusic must cancel
+    this._retireTimers = [];    // discards of tracks that have faded out
+    this._musicToken = 0;
+    this._musicTheme = null;    // the track playing (or to play) now
     this.musicPlaying = false;
 
     // Ambient system (separate lifecycle)
@@ -1009,15 +1033,20 @@ class AudioEngine {
     o.connect(g); o.start(t); o.stop(t + 0.25);
   }
 
+  /** A soft falling two-note sigh (a minor third down on a mellow tone): clearly "not that one", never harsh. */
   _playWrong(vol) {
     var ctx = this.ctx; var t = ctx.currentTime;
-    var g = ctx.createGain(); g.connect(this._sfxBus);
-    var o = ctx.createOscillator(); o.type = 'sawtooth';
-    o.frequency.setValueAtTime(200, t);
-    o.frequency.setValueAtTime(130, t + 0.1);
-    g.gain.setValueAtTime(vol * 0.12, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-    o.connect(g); o.start(t); o.stop(t + 0.18);
+    [[392, 0], [311, 0.16]].forEach(function (n) {
+      var start = t + n[1];
+      var g = ctx.createGain(); g.connect(this._sfxBus);
+      var o = ctx.createOscillator(); o.type = 'triangle';
+      o.frequency.setValueAtTime(n[0], start);
+      o.frequency.exponentialRampToValueAtTime(n[0] * 0.96, start + 0.3);
+      g.gain.setValueAtTime(0.0001, start);
+      g.gain.linearRampToValueAtTime(vol * 0.11, start + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, start + 0.34);
+      o.connect(g); o.start(start); o.stop(start + 0.36);
+    }, this);
   }
 
   _playCoinVariation(vol, lane) {
@@ -1391,22 +1420,46 @@ class AudioEngine {
 
   // ===== TTS =====
 
-  speak(text, options) {
-    if (!this._settings.ttsEnabled || !window.speechSynthesis) return;
-    if (this._paused) return;
-    var opts = options || {};
-    var gameSpeed = opts.gameSpeed || 10;
-    var arrivalTime = 60 / gameSpeed;
-    var wordCount = text.split(/[\s.]+/).filter(function (w) { return w.length > 0; }).length;
-    var naturalDuration = wordCount * 0.4;
-    var targetDuration = Math.max(0.5, arrivalTime - 0.5);
-    var rate = naturalDuration / targetDuration;
-    rate = Math.max(0.5, Math.min(3.0, rate));
-    var u = new SpeechSynthesisUtterance(text);
-    u.rate = rate;
-    u.volume = this._settings.masterVolume * this._settings.voiceVolume;
-    window.speechSynthesis.cancel();
+  /**
+   * Read a question aloud (Settings -> Sound -> Read questions aloud). The reading is planned from the time left
+   * before the answer locks, so it is always finished in time (see readaloud.js).
+   * @param {{clues: string[], answers: string[], secondsToLock: number}} q
+   * @returns {{text: string, rate: number, withAnswers: boolean}|null} what was said (null: nothing, or off)
+   */
+  speakQuestion(q) {
+    if (!this._settings.ttsEnabled || typeof window === 'undefined' || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return null;
+    if (this._paused) return null;
+    var plan = planReading({ clues: q.clues, answers: q.answers, secondsToLock: q.secondsToLock, wps: this._readWps() });
+    this.cancelSpeech();
+    if (!plan) return null;
+    var self = this;
+    var u = new SpeechSynthesisUtterance(plan.text);
+    u.rate = plan.rate;
+    u.lang = 'en-US';
+    u.volume = Math.min(1, this._settings.masterVolume * Math.max(this._settings.voiceVolume, 0.5) * 1.3);
+    var words = countWords(plan.text);
+    var startedAt = 0;
+    u.onstart = function () { startedAt = Date.now(); };
+    u.onend = function () {
+      if (startedAt) self._saveWps(updateWps(self._readWps(), words, (Date.now() - startedAt) / 1000, plan.rate));
+    };
+    this._speaking = u;
     window.speechSynthesis.speak(u);
+    return plan;
+  }
+
+  /** How fast this device's voice talks (words per second at rate 1), measured from earlier readings. */
+  _readWps() {
+    if (this._wps) return this._wps;
+    var saved = 0;
+    try { saved = Number(localStorage.getItem('dx_tts_wps')) || 0; } catch (e) { saved = 0; }
+    this._wps = saved >= 1.4 && saved <= 4.5 ? saved : DEFAULT_WPS;
+    return this._wps;
+  }
+
+  _saveWps(value) {
+    this._wps = value;
+    try { localStorage.setItem('dx_tts_wps', String(Math.round(value * 100) / 100)); } catch (e) { /* best effort */ }
   }
 
   /**
@@ -1425,7 +1478,8 @@ class AudioEngine {
   }
 
   cancelSpeech() {
-    if (window.speechSynthesis) {
+    this._speaking = null;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
   }
@@ -1437,6 +1491,38 @@ class AudioEngine {
     if (this.musicGenerator) this.musicGenerator.setIntensity(intensity, danger);
   }
 
+  /**
+   * Every generator that has been made and not yet disposed. Whatever happens (a theme change in the middle of
+   * another, stopping during a crossfade, leaving the app), stopMusic() can silence all of them: none can be
+   * left playing out of sight.
+   */
+  _makeGenerator(name) {
+    var self = this;
+    var gen = new MusicGenerator(this.ctx, this._musicBus, name, function () { return self._getSettingsForGenerator(); });
+    this._allGenerators.push(gen);
+    return gen;
+  }
+
+  _discardGenerator(gen) {
+    if (!gen) return;
+    gen.dispose();
+    this._allGenerators = this._allGenerators.filter(function (g) { return g !== gen; });
+  }
+
+  /**
+   * Void pending crossfade bookkeeping. The timers that discard a track which has finished fading out are kept
+   * (they still have to run) unless everything is being torn down.
+   */
+  _clearMusicTimers(everything) {
+    this._musicToken++;
+    for (var i = 0; i < this._musicTimers.length; i++) clearTimeout(this._musicTimers[i]);
+    this._musicTimers = [];
+    if (everything) {
+      for (var j = 0; j < this._retireTimers.length; j++) clearTimeout(this._retireTimers[j]);
+      this._retireTimers = [];
+    }
+  }
+
   startMusic(skinId) {
     if (this.musicPlaying) return;
     if (!this.ctx) this.init();
@@ -1444,63 +1530,59 @@ class AudioEngine {
     this.musicPlaying = true;
     if (!this._musicBus) return;
 
-    var name = skinId || 'Neural Highway';
-    if (this.musicGenerator) {
-      this.musicGenerator.dispose();
-    }
-    var self = this;
-    this.musicGenerator = new MusicGenerator(
-      this.ctx,
-      this._musicBus,
-      name,
-      function () { return self._getSettingsForGenerator(); }
-    );
+    var name = skinId || this._musicTheme || MENU_THEME;
+    this._musicTheme = name;
+    this._clearMusicTimers(true);
+    this._allGenerators.slice().forEach(this._discardGenerator, this);
+    this.crossfadeGenerator = null;
+    this.musicGenerator = this._makeGenerator(name);
     this.musicGenerator.play();
   }
 
-  changeMusicTheme(skinId, durationSeconds) {
-    if (!this.ctx || !this.musicPlaying) return;
+  /**
+   * Play this track from now on, crossfading from the current one. Asking for the track already playing does
+   * nothing, so it is safe to call whenever the screen or the map changes.
+   */
+  setMusicTheme(skinId, durationSeconds) {
+    var name = skinId || MENU_THEME;
+    if (name === this._musicTheme && (this.musicGenerator || this.crossfadeGenerator || !this.musicPlaying)) return;
+    this._musicTheme = name; // (remembered even while music is off, for when it starts)
+    if (!this.ctx || !this.musicPlaying || !this._musicBus) return;
     var duration = durationSeconds ?? 3.0;
-    var name = skinId || 'Neural Highway';
-
-    if (this.musicGenerator) {
-      this.musicGenerator.fadeOut(duration);
-    }
-    if (this.crossfadeGenerator) {
-      this.crossfadeGenerator.stop();
-      this.crossfadeGenerator.dispose();
-    }
-
     var self = this;
-    var newGen = new MusicGenerator(
-      this.ctx,
-      this._musicBus,
-      name,
-      function () { return self._getSettingsForGenerator(); }
-    );
-    newGen.fadeIn(duration);
 
-    setTimeout(function () {
-      if (self.musicGenerator) {
-        self.musicGenerator.dispose();
-      }
-      self.musicGenerator = newGen;
+    // Whatever is playing or arriving now fades away, and a new track fades in
+    var outgoing = [this.musicGenerator, this.crossfadeGenerator].filter(Boolean);
+    this._clearMusicTimers();
+    var token = this._musicToken;
+    this.musicGenerator = null;
+    this.crossfadeGenerator = null;
+    outgoing.forEach(function (g) {
+      g.fadeOut(duration);
+      self._retireTimers.push(setTimeout(function () { self._discardGenerator(g); }, (duration + 0.4) * 1000));
+    });
+
+    var incoming = this._makeGenerator(name);
+    incoming.fadeIn(duration);
+    this.crossfadeGenerator = incoming;
+    this._musicTimers.push(setTimeout(function () {
+      if (token !== self._musicToken) return;
+      self.musicGenerator = incoming;
       self.crossfadeGenerator = null;
-    }, (duration + 0.5) * 1000);
-
-    this.crossfadeGenerator = newGen;
+    }, duration * 1000 + 50));
   }
 
-  stopMusic(options) {
+  /** Kept for callers that change theme mid-run (same as setMusicTheme). */
+  changeMusicTheme(skinId, durationSeconds) {
+    this.setMusicTheme(skinId, durationSeconds);
+  }
+
+  stopMusic() {
     this.musicPlaying = false;
-    if (this.musicGenerator) {
-      this.musicGenerator.stop();
-    }
-    if (this.crossfadeGenerator) {
-      this.crossfadeGenerator.stop();
-      this.crossfadeGenerator.dispose();
-      this.crossfadeGenerator = null;
-    }
+    this._clearMusicTimers(true);
+    this._allGenerators.slice().forEach(this._discardGenerator, this);
+    this.musicGenerator = null;
+    this.crossfadeGenerator = null;
   }
 
   // ===== AMBIENT (separate lifecycle from music) =====
@@ -1543,13 +1625,8 @@ class AudioEngine {
 
   pause(reason) {
     this._paused = true;
-    if (this.musicGenerator) {
-      this.musicGenerator.stop();
-    }
-    if (this.crossfadeGenerator) {
-      this.crossfadeGenerator.stop();
-    }
-    this.cancelSpeech();
+    this._allGenerators.forEach(function (g) { g.stop(); });
+    this.cancelSpeech(); // a question being read aloud stops with the game
     // Pause ambient timers by clearing them
     for (var i = 0; i < this.ambientTimers.length; i++) {
       clearTimeout(this.ambientTimers[i]);
@@ -1571,8 +1648,6 @@ class AudioEngine {
     if (this.musicPlaying && this.crossfadeGenerator) {
       this.crossfadeGenerator.play();
     }
-    // Ambient FX will need to be restarted if they were playing
-    // The caller (main.js) should call startAmbient again if needed
   }
 
   // ===== DISPOSE =====
@@ -1581,14 +1656,7 @@ class AudioEngine {
     this.stopMusic();
     this.stopAmbient();
     this.cancelSpeech();
-    if (this.musicGenerator) {
-      this.musicGenerator.dispose();
-      this.musicGenerator = null;
-    }
-    if (this.crossfadeGenerator) {
-      this.crossfadeGenerator.dispose();
-      this.crossfadeGenerator = null;
-    }
+    this.stopMusic();
     if (this.ctx) {
       try { this.ctx.close(); } catch (e) { /* best-effort cleanup */ }
       this.ctx = null;

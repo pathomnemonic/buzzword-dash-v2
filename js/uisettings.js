@@ -14,6 +14,7 @@ import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_
 import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
+import { FEATURES } from './features.js';
 
 export var settingsMethods = {
 
@@ -57,9 +58,10 @@ export var settingsMethods = {
         { key: 'masterVolume', label: '🔊 Master volume', desc: 'The overall loudness of everything.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'sfxVolume', label: '💥 Sound effects', desc: 'Jumps, coins, answers, menus and rewards.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'musicVolume', label: '🎶 Music volume', desc: 'How loud the background music is.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
-        { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' },
+        { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
+      ].concat(FEATURES.characterVoices ? [
         { key: 'characterVoices', label: '💬 Character voices', desc: 'Your runner cheers when you score and groans when you miss, each with a voice of their own.', type: 'toggle' }
-      ],
+      ] : []),
       look: [
         { key: 'uiTheme', label: '🎨 Colors', desc: 'Surprise me keeps the fun purple arcade look but switches to a different season\'s colors after every run. Seasonal follows the date. Or pick a season by hand, or Classic for the original colors.', type: 'select', options: THEME_CHOICES },
         { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
@@ -544,20 +546,26 @@ export var settingsMethods = {
         var btnWrap = createElement('div');
         btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
 
-        // Try-on button (not for trails)
-        if (type !== 'trail' && type !== 'monster') {
-          var tryBtn = createElement('button', {
-            className: 'btn btn-outline btn-sm',
-            text: '👁',
-            dataset: { preview: item.id, prevslot: type }
+        // Try-on: shows the item in the display at the top (a trail streams behind the character, a monster takes
+        // its place). For trails and monsters, tapping the row does the same.
+        var showItem = function () {
+          if (self.characterPreview) self.characterPreview.previewItem(item.id, type);
+        };
+        var tryBtn = createElement('button', {
+          className: 'btn btn-outline btn-sm',
+          text: '👁',
+          attributes: { 'aria-label': 'Preview ' + item.name },
+          dataset: { preview: item.id, prevslot: type }
+        });
+        tryBtn.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
+        tryBtn.addEventListener('click', showItem);
+        btnWrap.appendChild(tryBtn);
+        if (type === 'trail' || type === 'monster') {
+          row.style.cursor = 'pointer';
+          row.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('button')) return;
+            showItem();
           });
-          tryBtn.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
-          tryBtn.addEventListener('click', function () {
-            if (self.characterPreview) {
-              self.characterPreview.previewItem(item.id, type);
-            }
-          });
-          btnWrap.appendChild(tryBtn);
         }
 
         if (isEquipped) {
@@ -573,7 +581,11 @@ export var settingsMethods = {
             storage.equipItem(item.id, type);
             audio.play('equip');
             self.renderShop();
-            if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+            if (self.characterPreview) {
+              self.characterPreview.clearPreview();
+              // what was just equipped stays on show
+              if (type === 'monster') self.characterPreview.previewItem(item.id, 'monster');
+            }
             if (self.onEquipChange) self.onEquipChange();
           });
           btnWrap.appendChild(equipBtn);
@@ -586,7 +598,10 @@ export var settingsMethods = {
             if (storage.buyItem(item.id, item.price)) {
               audio.play('buy');
               self.renderShop();
-              if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+              if (self.characterPreview) {
+                self.characterPreview.clearPreview();
+                if (type === 'trail' || type === 'monster') self.characterPreview.previewItem(item.id, type);
+              }
             } else {
               self._showToast('Not enough coins!');
             }
@@ -629,7 +644,12 @@ export var settingsMethods = {
         text: t[1],
         attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
       });
-      b.addEventListener('click', function () { self._lockerTab = t[0]; self.renderShop(); });
+      b.addEventListener('click', function () {
+        self._lockerTab = t[0];
+        self.renderShop();
+        // leaving the trails and monsters: the display goes back to the character
+        if (t[0] !== 'extras' && self.characterPreview) self.characterPreview.clearPreview();
+      });
       if (freshTabs[t[0]]) b.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'New items you can afford' } }));
       tabBar.appendChild(b);
     });

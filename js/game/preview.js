@@ -36,6 +36,8 @@ import { storage } from '../storage.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { setupEnvironment } from './materials.js';
+import { TrailSystem } from './trails.js';
+import { buildMonster } from './monsters.js';
 
 // Gesture constants
 var GESTURE_NONE = 0;
@@ -78,6 +80,11 @@ export class CharacterPreview {
 
         // Temporary preview overrides for try-on
         this.previewOverrides = null;
+
+        // A trail streams behind the character (the equipped one, or the one being looked at), and a monster
+        // being looked at takes the character's place in the display
+        this.trailSystem = null;
+        this.previewMonsterId = null;
 
         // Limbs reference
         this.limbs = null;
@@ -155,6 +162,7 @@ export class CharacterPreview {
         groundRing.position.y = -0.19;
         this.scene.add(groundRing);
 
+        this.trailSystem = new TrailSystem(this.scene, { quality: 'medium', direction: 1, clipZ: 2.6 });
         this.rebuildCharacter();
         this.setupInteraction();
 
@@ -199,6 +207,16 @@ export class CharacterPreview {
             this.scene.remove(this.character);
             disposeCharacter(this.character);
             this.character = null;
+        }
+
+        // A monster being looked at replaces the character in the display
+        if (this.previewMonsterId) {
+            this.character = this._buildMonsterDisplay(this.previewMonsterId);
+            this.limbs = null;
+            this.currentGesture = GESTURE_NONE;
+            this.character.rotation.y = this.rotationY;
+            if (this.scene) this.scene.add(this.character);
+            return;
         }
 
         // If we have preview overrides, temporarily swap storage values
@@ -339,7 +357,58 @@ export class CharacterPreview {
         }
     }
 
+    /**
+     * A monster scaled to fit the display, standing on the ground disc and facing the camera.
+     * (Monsters are built for the game's scale and orientation, so the display normalizes them.)
+     */
+    _buildMonsterDisplay(monsterId) {
+        var holder = new THREE.Group();
+        var monster = buildMonster(monsterId);
+        monster.visible = true;
+        monster.position.set(0, 0, 0);
+        monster.rotation.set(0, 0, 0);
+        holder.add(monster);
+        holder.updateMatrixWorld(true);
+        var box = new THREE.Box3().setFromObject(monster);
+        var size = box.getSize(new THREE.Vector3());
+        var tallest = Math.max(size.x, size.y, size.z) || 1;
+        var k = 1.8 / tallest;
+        monster.scale.multiplyScalar(k);
+        holder.updateMatrixWorld(true);
+        box = new THREE.Box3().setFromObject(monster);
+        var center = box.getCenter(new THREE.Vector3());
+        monster.position.x -= center.x;
+        monster.position.z -= center.z;
+        monster.position.y += 0.1 - box.min.y;
+        holder.userData.monsterModel = monster; // (a model monster's own animator lives on it)
+        return holder;
+    }
+
+    /**
+     * With a trail on show the runner is turned to face away, as in the game, so the trail streams out toward the
+     * viewer from behind it; otherwise the runner faces the viewer.
+     */
+    _faceForTrail() {
+        var trail = this.trailSystem && this.trailSystem.getConfig();
+        this.targetRotationY = trail && !this.previewMonsterId ? 0 : Math.PI;
+    }
+
     previewItem(itemId, slot) {
+        if (slot === 'trail') {
+            // the character stays (back to the viewer); the trail streams out behind it
+            if (this.trailSystem) this.trailSystem.setOverride(itemId);
+            if (this.previewMonsterId) { this.previewMonsterId = null; this.rebuildCharacter(); }
+            this._faceForTrail();
+            return;
+        }
+        if (slot === 'monster') {
+            this.previewMonsterId = itemId;
+            if (this.trailSystem) this.trailSystem.setOverride('trail_none');
+            this.targetRotationY = Math.PI; // a monster faces the viewer
+            this.rebuildCharacter();
+            return;
+        }
+        if (this.previewMonsterId) this.previewMonsterId = null;
         if (!this.previewOverrides) {
             this.previewOverrides = {};
         }
@@ -349,6 +418,9 @@ export class CharacterPreview {
 
     clearPreview() {
         this.previewOverrides = null;
+        this.previewMonsterId = null;
+        if (this.trailSystem) this.trailSystem.setOverride(null); // back to the equipped trail
+        this._faceForTrail();
         this.rebuildCharacter();
     }
 
@@ -372,7 +444,15 @@ export class CharacterPreview {
             var rotDiff = self.targetRotationY - self.rotationY;
             self.rotationY += rotDiff * 0.1;
 
-            if (self.character.userData.animator) {
+            if (self.trailSystem) self.trailSystem.update(dt, 0, 0, 0, 5);
+
+            if (self.previewMonsterId) {
+                // a monster: its own idle clip if it has one, otherwise a slow bob
+                var mm = self.character.userData.monsterModel;
+                if (mm && mm.userData && mm.userData.animator) updateModelAnimation(mm, dt, 'idle');
+                self.character.rotation.y = self.rotationY;
+                self.character.position.y = Math.sin(self.time * 1.4) * 0.04;
+            } else if (self.character.userData.animator) {
                 updateModelAnimation(self.character, dt, 'idle');
                 self.character.rotation.y = self.rotationY;
             } else {
@@ -861,6 +941,7 @@ export class CharacterPreview {
      */
     dispose() {
         this.stopAnimation();
+        if (this.trailSystem) { this.trailSystem.dispose(); this.trailSystem = null; }
         if (this.character && this.scene) {
             this.scene.remove(this.character);
             disposeCharacter(this.character);

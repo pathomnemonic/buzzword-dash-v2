@@ -4,15 +4,16 @@
  * Renders into #leaderboardContent with safe DOM APIs only (all remote
  * values go through textContent). Talks to the `leaderboard` service.
  *
- * Tabs: Global | Friends | Requests | Find | Account
+ * Tabs: Global (only when FEATURES.globalLeaderboard is on) | Friends | Feed | Groups | Requests | Find | Account
  */
 
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
+import { FEATURES } from './features.js';
 
 var BOARD_MODES = ['endless', 'weakness', 'study', 'mp_highscore', 'mp_suddendeath', 'mp_race'];
 
-var _state = { tab: 'global', mode: 'endless', period: 'week', groupId: null, requestCount: 0, searchTerm: '', searchResults: null };
+var _state = { tab: FEATURES.globalLeaderboard ? 'global' : 'friends', mode: 'endless', period: 'week', groupId: null, requestCount: 0, searchTerm: '', searchResults: null };
 var _root = null;
 var _deps = null;
 
@@ -115,7 +116,9 @@ function render() {
 
   _root.appendChild(renderIdentity());
 
-  var tabs = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Leaderboard sections' } });
+  // The global board is built but hidden until there are enough players (FEATURES.globalLeaderboard)
+  if (_state.tab === 'global' && !FEATURES.globalLeaderboard) _state.tab = 'friends';
+  var tabs = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Friends sections' } });
   tabs.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:10px 0';
   [
     ['global', '🌍 Global'],
@@ -125,7 +128,7 @@ function render() {
     ['requests', '📨 Requests' + (_state.requestCount ? ' (' + _state.requestCount + ')' : '')],
     ['find', '🔍 Find'],
     ['account', '⚙ Account']
-  ].forEach(function (t) {
+  ].filter(function (t) { return t[0] !== 'global' || FEATURES.globalLeaderboard; }).forEach(function (t) {
     var b = createElement('button', {
       className: 'btn btn-sm ' + (_state.tab === t[0] ? 'btn-primary' : 'btn-outline'),
       text: t[1],
@@ -186,8 +189,8 @@ function renderIdentity() {
   var vis = storage.get('profileVisible');
   var hint = createElement('div', {
     text: vis && storage.get('profileName')
-      ? 'Your scores are public on the leaderboard.'
-      : 'Set a name to appear on the leaderboard and get friend requests.'
+      ? (FEATURES.globalLeaderboard ? 'Your scores are public on the leaderboard.' : 'Friends can find you by name and see your highlights.')
+      : (FEATURES.globalLeaderboard ? 'Set a name to appear on the leaderboard and get friend requests.' : 'Set a name so friends can find you and send requests.')
   });
   hint.style.cssText = 'width:100%;font-size:10px;color:var(--text-muted)';
   wrap.appendChild(hint);
@@ -306,7 +309,7 @@ function renderFriends(body) {
   lb().getFriends().then(function (friends) {
     clearElement(list);
     if (friends.length === 0) {
-      list.appendChild(note('No friends yet. Use Find or tap ＋ Add on the global board.'));
+      list.appendChild(note('No friends yet. Use the Find tab to search for a friend by display name.'));
       return;
     }
     friends.sort(function (a, b) { return (b.best_score || 0) - (a.best_score || 0); });
@@ -398,6 +401,13 @@ function renderFeed(body) {
 
 // ===== Groups =====
 
+/** Tell friends the player joined a study group (only with a public, named profile). */
+function announceGroupJoin() {
+  var storage = _deps.storage;
+  if (!storage.get('profileVisible') || !storage.get('profileName') || typeof lb().postActivity !== 'function') return;
+  lb().postActivity('group_join', { name: storage.get('profileName') });
+}
+
 function renderGroups(body) {
   body.appendChild(note('Private boards for a class or study group. Share the code so classmates can join.'));
 
@@ -419,7 +429,7 @@ function renderGroups(body) {
     if (name.length < 2) { _deps.toast('Give the group a name (2+ characters).'); return null; }
     return lb().createGroup(name).then(function (res) {
       _deps.toast(res.success ? 'Group created! Code: ' + res.data.code : (res.error || 'Could not create group.'));
-      if (res.success) _state.groupId = res.data.id;
+      if (res.success) { _state.groupId = res.data.id; announceGroupJoin(); }
       render();
     });
   }));
@@ -427,7 +437,7 @@ function renderGroups(body) {
     if (!code) return null;
     return lb().joinGroup(code).then(function (res) {
       _deps.toast(res.success ? 'Joined ' + res.data.name + '!' : (res.error || 'Could not join.'));
-      if (res.success) _state.groupId = res.data.id;
+      if (res.success) { _state.groupId = res.data.id; announceGroupJoin(); }
       render();
     });
   }));
