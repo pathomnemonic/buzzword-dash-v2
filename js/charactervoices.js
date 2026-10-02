@@ -31,19 +31,19 @@ export var PROFILES = {
   avatar_intern:       { name: 'Pager Pete',    kit: 'voice',    f0: 125, size: 1.0,  bright: 1.0 },
   avatar_m_nurse:      { name: 'Dr. Dash',      kit: 'voice',    f0: 215, size: 1.17, bright: 1.1 },
   avatar_m_paramedic:  { name: 'Paramedic Pat', kit: 'voice',    f0: 160, size: 1.06, bright: 1.1 },
-  avatar_m_intern:     { name: 'Explorer',      kit: 'voice',    f0: 190, size: 1.12, bright: 1.0 },
-  avatar_m_explorer:   { name: 'Ranger',        kit: 'voice',    f0: 105, size: 0.95, bright: 0.9 },
-  avatar_m_adventurer: { name: 'Adventurer',    kit: 'voice',    f0: 255, size: 1.22, bright: 1.2 },
-  avatar_m_rogue:      { name: 'Hooded Rogue',  kit: 'voice',    f0: 98,  size: 0.92, bright: 0.8 },
-  avatar_m_scout:      { name: 'Scout',         kit: 'voice',    f0: 270, size: 1.25, bright: 1.25 },
+  avatar_m_intern:     { name: 'Field Medic Finn',      kit: 'voice',    f0: 190, size: 1.12, bright: 1.0 },
+  avatar_m_explorer:   { name: 'Rural Rex',        kit: 'voice',    f0: 105, size: 0.95, bright: 0.9 },
+  avatar_m_adventurer: { name: 'Locum Lou',    kit: 'voice',    f0: 255, size: 1.22, bright: 1.2 },
+  avatar_m_rogue:      { name: 'Dark-Room Dex',  kit: 'voice',    f0: 98,  size: 0.92, bright: 0.8 },
+  avatar_m_scout:      { name: 'Stat Sadie',         kit: 'voice',    f0: 270, size: 1.25, bright: 1.25 },
   avatar_m_zombie:     { name: 'Zombie',        kit: 'zombie',   f0: 72,  size: 0.9,  bright: 0.6 },
-  avatar_m_ninja:      { name: 'Ninja',         kit: 'voice',    f0: 142, size: 1.02, bright: 1.1 },
-  avatar_m_skeleton:   { name: 'Bones',         kit: 'skeleton', f0: 235, size: 1.18, bright: 1.3 },
-  avatar_m_orc:        { name: 'Orc',           kit: 'orc',      f0: 62,  size: 0.78, bright: 0.6 },
-  avatar_m_wizard:     { name: 'Archmage',      kit: 'voice',    f0: 112, size: 0.97, bright: 0.9 },
-  avatar_m_alien:      { name: 'Alien',         kit: 'alien',    f0: 520, size: 1.3,  bright: 1.4 },
-  avatar_m_robot:      { name: 'Mecha Bot',     kit: 'robot',    f0: 330, size: 1.0,  bright: 1.0 },
-  avatar_m_king:       { name: 'King',          kit: 'voice',    f0: 118, size: 0.96, bright: 0.9 }
+  avatar_m_ninja:      { name: 'Night-Shift Nico',         kit: 'voice',    f0: 142, size: 1.02, bright: 1.1 },
+  avatar_m_skeleton:   { name: 'Femur Fred',         kit: 'skeleton', f0: 235, size: 1.18, bright: 1.3 },
+  avatar_m_orc:        { name: 'Gurney Grog',           kit: 'orc',      f0: 62,  size: 0.78, bright: 0.6 },
+  avatar_m_wizard:     { name: 'Pharmacist Pip',      kit: 'voice',    f0: 112, size: 0.97, bright: 0.9 },
+  avatar_m_alien:      { name: 'Anatomy Abe',         kit: 'alien',    f0: 520, size: 1.3,  bright: 1.4 },
+  avatar_m_robot:      { name: 'MRI Mo',     kit: 'robot',    f0: 330, size: 1.0,  bright: 1.0 },
+  avatar_m_king:       { name: 'Attending Arthur',          kit: 'voice',    f0: 118, size: 0.96, bright: 0.9 }
 };
 
 export var DEFAULT_PROFILE = PROFILES.avatar_intern;

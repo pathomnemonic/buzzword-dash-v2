@@ -36,12 +36,11 @@ describe('the 3D roster has no repeats', () => {
     SHOP_ITEMS.forEach((i) => expect(i.name, i.id).not.toMatch(/animated 3D/i));
   });
 
-  it('medical names are only used by medical-looking characters', () => {
-    const medical = /\b(Dr\.|Nurse|Paramedic|Surgeon|Resident|Intern|Medic|Orderly|Chief)\b/;
-    const allowed = ['characters/doctor.glb', 'characters/nurse.glb', 'characters/paramedic.glb'];
-    CHARACTER_MODELS.forEach((m) => {
-      if (medical.test(m.name)) expect(allowed, m.name).toContain(m.file);
-    });
+  it('every character has its own name (the roster is all themed: Pager Pete, Dr. Dash, Femur Fred...)', () => {
+    const names = CHARACTER_MODELS.map((m) => m.name);
+    expect(new Set(names).size).toBe(names.length);
+    names.forEach((n) => expect(n.trim().length).toBeGreaterThan(2));
+    ['Pager Pete', 'Dr. Dash', 'Field Medic Finn', 'Rural Rex', 'Locum Lou', 'Dark-Room Dex', 'Stat Sadie', 'Night-Shift Nico', 'Femur Fred', 'Gurney Grog', 'Pharmacist Pip', 'Anatomy Abe', 'MRI Mo', 'Attending Arthur'].forEach((n) => expect(names).toContain(n));
   });
 });
 

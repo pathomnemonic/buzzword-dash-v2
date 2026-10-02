@@ -64,56 +64,56 @@ export var CHARACTER_MODELS = [
       { key: 'pants', label: 'Pants', materials: ['Brown'], palette: DARKS },
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
     ] },
-  { id: 'avatar_m_intern', name: 'Explorer', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 300, icon: '🧭', color: 0x2288dd,
+  { id: 'avatar_m_intern', name: 'Field Medic Finn', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 300, icon: '🧭', color: 0x2288dd,
     parts: [
       { key: 'shirt', label: 'Shirt', materials: ['Shirt'], palette: BRIGHTS },
       { key: 'sleeves', label: 'Sleeves', materials: ['UnderShirt'], palette: EARTH },
       { key: 'pants', label: 'Pants', materials: ['Pants'], palette: EARTH },
       { key: 'boots', label: 'Boots', materials: ['Boots'], palette: DARKS }
     ] },
-  { id: 'avatar_m_explorer', name: 'Ranger', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 800, icon: '🏹', color: 0xc9a06a },
-  { id: 'avatar_m_adventurer', name: 'Adventurer', desc: 'Runs toward the unknown', file: 'characters/adventurer.glb', price: 1200, icon: '🎒', color: 0x8a6a3a,
+  { id: 'avatar_m_explorer', name: 'Rural Rex', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 800, icon: '🏹', color: 0xc9a06a },
+  { id: 'avatar_m_adventurer', name: 'Locum Lou', desc: 'Runs toward the unknown', file: 'characters/adventurer.glb', price: 1200, icon: '🎒', color: 0x8a6a3a,
     parts: [
       { key: 'shirt', label: 'Shirt', materials: ['Green'], palette: BRIGHTS },
       { key: 'pants', label: 'Pants', materials: ['Brown'], palette: EARTH },
       { key: 'pack', label: 'Backpack', materials: ['LightGreen'], palette: HIVIS }
     ] },
-  { id: 'avatar_m_rogue', name: 'Hooded Rogue', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 1500, icon: '🗡️', color: 0x55506a,
+  { id: 'avatar_m_rogue', name: 'Dark-Room Dex', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 1500, icon: '🗡️', color: 0x55506a,
     parts: [
       { key: 'cloak', label: 'Hood & cloak', materials: ['DarkBrown'], palette: ROBES },
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
       { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
     ] },
-  { id: 'avatar_m_scout', name: 'Scout', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 1800, icon: '🏹', color: 0x3fa98a },
+  { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 1800, icon: '🏹', color: 0x3fa98a },
   { id: 'avatar_m_zombie', name: 'Zombie', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 2000, icon: '🧟', color: 0x6a9a5a },
-  { id: 'avatar_m_ninja', name: 'Ninja', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344,
+  { id: 'avatar_m_ninja', name: 'Night-Shift Nico', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 2500, icon: '🥷', color: 0x333344,
     parts: [
       { key: 'outfit', label: 'Outfit', materials: ['Ninja_Main'], palette: NINJA },
       { key: 'sash', label: 'Sash', materials: ['Belt'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_skeleton', name: 'Bones', desc: 'Rattles along with a spring in its step', file: 'characters/skeleton.glb', price: 2500, icon: '💀', color: 0xe8e4d0 },
-  { id: 'avatar_m_orc', name: 'Orc', desc: 'Big, green and unbothered', file: 'characters/orc.glb', price: 2500, icon: '🪓', color: 0x5a7a3a,
+  { id: 'avatar_m_skeleton', name: 'Femur Fred', desc: 'Rattles along with a spring in its step', file: 'characters/skeleton.glb', price: 2500, icon: '💀', color: 0xe8e4d0 },
+  { id: 'avatar_m_orc', name: 'Gurney Grog', desc: 'Big, green and unbothered', file: 'characters/orc.glb', price: 2500, icon: '🪓', color: 0x5a7a3a,
     parts: [
       { key: 'skin', label: 'Skin', materials: ['Orc_Main'], palette: ORC },
       { key: 'belt', label: 'Belt', materials: ['Belt'], palette: EARTH },
       { key: 'mohawk', label: 'Mohawk', materials: ['Orc_Hair'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_wizard', name: 'Archmage', desc: 'Conjures a spell or two', file: 'characters/wizard.glb', price: 3000, icon: '🧙', color: 0x6a3aa8,
+  { id: 'avatar_m_wizard', name: 'Pharmacist Pip', desc: 'Conjures a spell or two', file: 'characters/wizard.glb', price: 3000, icon: '🧙', color: 0x6a3aa8,
     parts: [
       { key: 'robe', label: 'Robe & hat', materials: ['Wizard_Main'], palette: ROBES },
       { key: 'trim', label: 'Trim', materials: ['Wizard_Secondary'], palette: METALS }
     ] },
-  { id: 'avatar_m_alien', name: 'Alien', desc: 'Here to observe the humans', file: 'characters/alien.glb', price: 3500, icon: '👽', color: 0x7ad07a,
+  { id: 'avatar_m_alien', name: 'Anatomy Abe', desc: 'Here to observe the humans', file: 'characters/alien.glb', price: 3500, icon: '👽', color: 0x7ad07a,
     parts: [
       { key: 'skin', label: 'Skin', materials: ['Main'], palette: ALIEN },
       { key: 'stripe', label: 'Stripe', materials: ['Stripe'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_robot', name: 'Mecha Bot', desc: 'Runs on caffeine and coolant', file: 'characters/robot.glb', price: 3500, icon: '🤖', color: 0xaab4c4,
+  { id: 'avatar_m_robot', name: 'MRI Mo', desc: 'Runs on caffeine and coolant', file: 'characters/robot.glb', price: 3500, icon: '🤖', color: 0xaab4c4,
     parts: [
       { key: 'body', label: 'Body', materials: ['Main'], palette: METALS },
       { key: 'trim', label: 'Trim', materials: ['Grey'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_king', name: 'King', desc: 'The crown suits them', file: 'characters/king.glb', price: 5000, icon: '👑', color: 0xd4a83a,
+  { id: 'avatar_m_king', name: 'Attending Arthur', desc: 'The crown suits them', file: 'characters/king.glb', price: 5000, icon: '👑', color: 0xd4a83a,
     parts: [
       { key: 'tunic', label: 'Tunic & boots', materials: ['Metal'], palette: ROYAL },
       { key: 'trousers', label: 'Trousers', materials: ['DarkBrown'], palette: DARKS },
