@@ -31,14 +31,14 @@ export function shouldAskDoubleTap(i) {
 }
 
 /**
- * The card on the results screen. "Turn on double-tap" stores that choice; the other buttons keep the
- * button. Either way the question is never asked again.
+ * The card on the results screen. It stays (on every results screen) until one of its two buttons is pressed:
+ * "Turn on double-tap" stores that choice and "Keep the button" keeps the default. Either answer is final: the
+ * question is never asked again. (Just looking at the card, or leaving the screen, is not an answer.)
  * @returns {boolean} whether the card was added
  */
 export function attachDashPrompt(container, toast) {
   if (!container) return false;
   if (!shouldAskDoubleTap({ setting: storage.get('dashControl'), touchFirst: isTouchFirst(), runs: storage.get('runsFinished') || 0, asked: !!storage.get('dashPromptSeen') })) return false;
-  storage.set('dashPromptSeen', true);
   var box = document.createElement('div');
   box.className = 'prompt-card dash-prompt';
   var text = document.createElement('div');
@@ -52,6 +52,7 @@ export function attachDashPrompt(container, toast) {
   on.className = 'btn btn-sm btn-gold';
   on.textContent = '👆👆 Turn on double-tap';
   on.addEventListener('click', function () {
+    storage.set('dashPromptSeen', true);
     storage.set('dashControl', 'double');
     document.dispatchEvent(new CustomEvent('dx:controls-changed'));
     if (toast) toast('Double-tap to dash is on. Change it in Settings → Look.');
@@ -61,7 +62,10 @@ export function attachDashPrompt(container, toast) {
   keep.type = 'button';
   keep.className = 'btn btn-sm btn-outline';
   keep.textContent = 'Keep the button';
-  keep.addEventListener('click', function () { box.remove(); });
+  keep.addEventListener('click', function () {
+    storage.set('dashPromptSeen', true);
+    box.remove();
+  });
   row.appendChild(on);
   row.appendChild(keep);
   box.appendChild(row);

@@ -27,8 +27,8 @@ var RETRY_MS = 1400;         // pause before a missed obstacle or question is se
 var WATCH_MS = 120;          // how often an obstacle on the way is checked
 var OBSTACLE_GRACE_MS = 1500; // an obstacle is only judged missed once it is this old and gone
 
-/** The two questions: one to dash through, one to answer. Each is a card id looked up at start. */
-export var TUTORIAL_CARD_IDS = ['su022', 'en004'];
+/** The two questions: one to answer (learned first), one to dash through. Each is a card id looked up at start. */
+export var TUTORIAL_CARD_IDS = ['en004', 'su022'];
 
 var _session = null;
 
@@ -138,8 +138,8 @@ export function startGameTutorial(env) {
     var step = steps[index];
     locked = false;
     if (step.kind === 'action' && step.obstacle) sendObstacle(step);
-    else if (step.id === 'rush') sendQuestion(env.cardIds[0]);
-    else if (step.id === 'answer') sendQuestion(env.cardIds[1]);
+    else if (step.id === 'answer') sendQuestion(env.cardIds[0]);
+    else if (step.id === 'rush') sendQuestion(env.cardIds[1]);
   }
 
   // ---- what the game tells us ---------------------------------------------------------------
@@ -160,13 +160,13 @@ export function startGameTutorial(env) {
         if (game.lastResolvedRushed) complete('✓ That is a rush!');
         else {
           say('The gate passed without a rush. ' + step.prompt + ' before it arrives.', 'bad');
-          later(function () { if (!locked && !closed) { say(''); sendQuestion(env.cardIds[0]); } }, RETRY_MS);
+          later(function () { if (!locked && !closed) { say(''); sendQuestion(env.cardIds[1]); } }, RETRY_MS);
         }
       } else if (step.id === 'answer') {
         if (data && data.correct) complete('✓ Correct!');
         else {
           say('Not quite. Read the clue again and try this one.', 'bad');
-          later(function () { if (!locked && !closed) { say(''); sendQuestion(env.cardIds[1]); } }, RETRY_MS);
+          later(function () { if (!locked && !closed) { say(''); sendQuestion(env.cardIds[0]); } }, RETRY_MS);
         }
       }
     }
@@ -207,7 +207,11 @@ export function startGameTutorial(env) {
     var target = isPage ? page : coach;
     clearElement(coach);
     clearElement(page);
-    coach.className = isPage ? 'tutorial-coach' : 'tutorial-coach active docked' + (dashControl === 'button' && getControlText().touch ? ' with-dash' : '');
+    // The card sits out of the way of the swipes: at the top while the track is empty, and just under the answer
+    // boxes once a question is up (never on the lower part of the screen, where the thumb swipes)
+    var withQuestion = step.id === 'answer' || step.id === 'rush';
+    coach.className = isPage ? 'tutorial-coach' : 'tutorial-coach active docked ' + (withQuestion ? 'under-question' : 'at-top');
+    coach.style.paddingTop = '';
     if (isPage) { page.classList.add('active'); trapFocus(page); } else { page.classList.remove('active'); releaseFocusTrap(); }
 
     var card = createElement('div', { className: 'tut-card coach-card', attributes: { 'data-step': step.id } });
@@ -265,6 +269,15 @@ export function startGameTutorial(env) {
     if (primary) primary.focus();
     else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     enterStep();
+    placeUnderQuestion();
+  }
+
+  // With a question showing, the card goes just below the answer boxes (they are taller when the clue runs long)
+  function placeUnderQuestion() {
+    if (!coach.classList.contains('under-question')) return;
+    var row = document.getElementById('answerRow');
+    var bottom = row ? row.getBoundingClientRect().bottom : 0;
+    coach.style.paddingTop = (bottom > 0 ? bottom + 10 : 214) + 'px';
   }
 
   // "Start practice": the real run begins (with its usual countdown); the first move is asked for at GO

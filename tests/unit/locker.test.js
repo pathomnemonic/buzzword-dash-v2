@@ -92,6 +92,30 @@ describe('Locker tabs', () => {
     expect(part.querySelectorAll('.scrub-swatch.on').length).toBe(1);
   });
 
+  it('a 🎨 beside the characters that can be recolored takes you to their colors (equipping them first)', () => {
+    storage.data.progression.ownedItems.push('avatar_m_nurse');
+    ui._lockerTab = 'characters';
+    ui.renderShop();
+    const paints = [...document.querySelectorAll('#shopItems [data-paint]')].map((b) => b.getAttribute('data-paint'));
+    expect(paints).toContain('avatar_intern');
+    expect(paints).toContain('avatar_m_nurse');
+    expect(paints).not.toContain('avatar_m_skeleton'); // a single painted texture: nothing to recolor
+    expect(document.getElementById('shopItems').textContent).toMatch(/🎨 beside a character/);
+    // one it does not own yet: dimmed, and tapping it only explains
+    storage.data.progression.ownedItems = storage.data.progression.ownedItems.filter((i) => i !== 'avatar_m_nurse');
+    ui.renderShop();
+    document.querySelector('[data-paint="avatar_m_nurse"]').click();
+    expect(storage.get('equipped').skin).toBe('avatar_intern');
+    expect(ui._lockerTab).toBe('characters');
+    // an owned one: equip it and open Customize
+    storage.data.progression.ownedItems.push('avatar_m_nurse');
+    ui.renderShop();
+    document.querySelector('[data-paint="avatar_m_nurse"]').click();
+    expect(storage.get('equipped').skin).toBe('avatar_m_nurse');
+    expect(ui._lockerTab).toBe('customize');
+    expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
+  });
+
   it('another character has nothing to customize, and the screen says why', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
     ui._lockerTab = 'customize';

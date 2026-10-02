@@ -560,6 +560,31 @@ export var settingsMethods = {
         tryBtn.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
         tryBtn.addEventListener('click', showItem);
         btnWrap.appendChild(tryBtn);
+        // A paint icon marks the characters whose colors can be changed, and takes you to their colors
+        var avatarDef = type === 'skin' ? AVATARS.filter(function (a) { return a.id === item.id; })[0] : null;
+        if (avatarDef && avatarDef.parts && avatarDef.parts.length) {
+          var paintBtn = createElement('button', {
+            className: 'btn btn-outline btn-sm paint-btn',
+            text: '🎨',
+            attributes: { type: 'button', 'aria-label': owned ? 'Change ' + item.name + '\'s colors' : item.name + ' can be recolored once you own it', title: owned ? 'Change colors' : 'Can be recolored once you own it' },
+            dataset: { paint: item.id }
+          });
+          paintBtn.style.cssText = 'font-size:11px;padding:4px 8px;margin-left:4px';
+          if (!owned) paintBtn.style.opacity = '0.55';
+          paintBtn.addEventListener('click', function () {
+            if (!owned) { self._showToast('Unlock ' + item.name + ' to change its colors.'); return; }
+            if (!isEquipped) {
+              storage.equipItem(item.id, 'skin');
+              audio.play('equip');
+              if (self.onEquipChange) self.onEquipChange();
+            }
+            self._lockerTab = 'customize';
+            self.renderShop();
+            if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
+          });
+          btnWrap.appendChild(paintBtn);
+        }
+
         if (type === 'trail' || type === 'monster') {
           row.style.cursor = 'pointer';
           row.addEventListener('click', function (e) {
@@ -662,7 +687,7 @@ export var settingsMethods = {
 
     if (tab === 'characters') {
       shopItems.appendChild(renderGroup('skin', '🎬 Characters', isKind('model'),
-        'Each one keeps its own look, and some have parts you can recolor.'));
+        'A 🎨 beside a character means you can change its colors. Tap it to start.'));
       if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
       if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),

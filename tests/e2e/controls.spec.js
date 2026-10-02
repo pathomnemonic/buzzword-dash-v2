@@ -111,12 +111,14 @@ test.describe('Phone defaults', () => {
     await page.locator('#tutSkipStepBtn').click();
     await step('slide');
     await page.locator('#tutSkipStepBtn').click();
+    await step('answer');
+    await page.locator('#tutSkipStepBtn').click();
     await step('rush');
     // The game's own on-screen button is there, and the coach points at it
     await expect(page.locator('#dashBtn')).toBeVisible();
     await expect(page.locator('.coach-prompt')).toContainText(/Dash button/);
     await page.waitForFunction(() => window.__game.gatesActive && !window.__game.answerLocked, null, { timeout: 30000 });
     await page.locator('#dashBtn').dispatchEvent('pointerdown');
-    await step('answer');
+    await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 }); // the dash was the last move; the tour follows
   });
 });

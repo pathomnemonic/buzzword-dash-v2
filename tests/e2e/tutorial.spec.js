@@ -44,7 +44,7 @@ async function walkTour(page) {
     }
     await page.waitForTimeout(450);
   }
-  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Your first trail', 'Wear it', 'Daily quests']));
+  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Racing a friend', 'Choose your cards', 'Study', 'Weekly Gauntlet', 'Exam Sim', 'Your first trail', 'Wear it', 'Daily quests']));
   await expect(page.locator('#tourOverlay')).toHaveCount(0);
 }
 
@@ -61,6 +61,9 @@ test.describe('Interactive tutorial (on the real track)', () => {
     // The track is empty until a move asks for something: no obstacles, coins or question yet
     expect(await page.evaluate(() => window.__game.obstacleMeshes.length + window.__game.coinMeshes.length)).toBe(0);
     expect(await page.evaluate(() => window.__game.gatesActive)).toBe(false);
+    // The card for the swipes sits near the top, clear of where the thumb swipes
+    const cardBottom = await page.evaluate(() => document.querySelector('#tutorialCoach .tut-card').getBoundingClientRect().bottom / window.innerHeight);
+    expect(cardBottom).toBeLessThan(0.5);
 
     // The wrong move does not advance
     await page.keyboard.press('ArrowRight');
@@ -75,18 +78,19 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect.poll(() => page.evaluate(() => window.__game.obstacleMeshes.filter((o) => o.userData.type === 'low').length)).toBeGreaterThan(0);
     await clearObstacle(page, 'low', 'ArrowUp', 'slide');
     await expect.poll(() => page.evaluate(() => window.__game.obstacleMeshes.filter((o) => o.userData.type === 'high').length)).toBeGreaterThan(0);
-    await clearObstacle(page, 'high', 'ArrowDown', 'rush');
+    await clearObstacle(page, 'high', 'ArrowDown', 'answer');
 
-    // The rush step sends a real question with real gates, and the clue shows in the game's own top bar
-    await page.waitForFunction(() => window.__game.gatesActive, null, { timeout: 30000 });
-    await page.evaluate(() => { window.__game.gateZ = -15; }); // nearer, so a slow machine does not wait long
+    // Picking the right lane comes first: a real question with real gates, the clue in the game's own top bar,
+    // and the coach card tucked under the answer boxes (never over the lower part, where the swipes are)
+    await page.waitForFunction(() => window.__game.gatesActive && !window.__game.answerLocked, null, { timeout: 30000 });
     await expect(page.locator('#buzzText')).not.toHaveText('GET READY');
     await expect(page.locator('#ansText0')).not.toHaveText('');
-    await page.keyboard.press('Shift');
-    await step(page, 'answer');
-
-    // Answering: moving into the right lane finishes the step
-    await page.waitForFunction(() => window.__game.gatesActive && !window.__game.answerLocked, null, { timeout: 30000 });
+    const under = await page.evaluate(() => {
+      const card = document.querySelector('#tutorialCoach .tut-card').getBoundingClientRect();
+      return { cardTop: card.top, answersBottom: document.getElementById('answerRow').getBoundingClientRect().bottom, cardBottom: card.bottom, height: window.innerHeight };
+    });
+    expect(under.cardTop).toBeGreaterThanOrEqual(under.answersBottom - 1);
+    expect(under.cardBottom).toBeLessThan(under.height * 0.6);
     const { right } = await page.evaluate(() => ({ right: window.__game.gates.findIndex((g) => g.correct) }));
     const lane = () => page.evaluate(() => window.__game.targetLane);
     let at = await lane();
@@ -95,6 +99,12 @@ test.describe('Interactive tutorial (on the real track)', () => {
       at = await lane();
     }
     await page.evaluate(() => { window.__game.gateZ = -12; });
+
+    // ...then the dash, on a second question
+    await step(page, 'rush', 60000);
+    await page.waitForFunction(() => window.__game.gatesActive && !window.__game.answerLocked, null, { timeout: 30000 });
+    await page.evaluate(() => { window.__game.gateZ = -15; }); // nearer, so a slow machine does not wait long
+    await page.keyboard.press('Shift');
 
     // After the practice the run is put away and a spotlight tour of the real screens begins
     await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
@@ -153,9 +163,9 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await page.locator('#tutNextBtn').click();
     await step(page, 'left');
     for (const id of ['left', 'right', 'jump', 'slide']) { await step(page, id); await page.locator('#tutSkipStepBtn').click(); }
-    await step(page, 'rush');
-    await page.locator('#tutSkipStepBtn').click();
     await step(page, 'answer');
+    await page.locator('#tutSkipStepBtn').click();
+    await step(page, 'rush');
     await page.locator('#tutSkipStepBtn').click();
     await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
     // Home, then coins, then PLAY: pressing the highlighted PLAY only moves the tour on
@@ -171,7 +181,9 @@ test.describe('Interactive tutorial (on the real track)', () => {
     // clicking anywhere dimmed does nothing
     await page.mouse.click(5, 5);
     await expect(page.locator('.tour-card h2')).toHaveText('Filters');
-    await closeTutorial(page);
+    await page.locator('#tourCloseBtn').click(); // the tour's × asks first too
+    await expect(page.locator('#tutExitConfirm')).toBeVisible();
+    await page.locator('#tutExitYes').click();
     await expect(page.locator('#tourOverlay')).toHaveCount(0);
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/);

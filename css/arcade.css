@@ -1406,8 +1406,13 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .tutorial-coach { display: none; position: fixed; inset: 0; z-index: 26; pointer-events: none; }
 .tutorial-coach.active { display: flex; }
 /* practice steps: a card docked at the bottom; the track above it stays free for swipes */
-.tutorial-coach.docked { align-items: flex-end; justify-content: center; padding: 0 12px calc(var(--safe-bottom, 0px) + 12px); }
-.tutorial-coach.docked.with-dash { padding-right: 104px; }
+.tutorial-coach.docked { align-items: flex-start; justify-content: center; padding: 0 12px; }
+/* never over the lower part of the screen, where the swipes are: at the top while the track is empty... */
+.tutorial-coach.docked.at-top { padding-top: calc(var(--safe-top, 0px) + 58px); }
+/* ...and just under the answer boxes (the script sets the exact offset) once a question is showing: a compact card */
+.tutorial-coach.docked.under-question { padding-top: 214px; }
+.tutorial-coach.under-question .tut-dots, .tutorial-coach.under-question .tut-count { display: none; }
+.tutorial-coach.under-question .tut-text { font-size: 11px; margin: 0 0 4px; }
 .tutorial-coach .coach-card { pointer-events: auto; padding: 12px 14px 10px; max-width: 420px; }
 .tutorial-coach.docked .coach-card h2 { font-size: 17px; margin: 2px 0 2px; }
 .tutorial-coach.docked .tut-text { font-size: 12px; margin: 0 0 4px; line-height: 1.4; }

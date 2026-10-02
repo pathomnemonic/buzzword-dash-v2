@@ -6,7 +6,7 @@ import { cornerLabel, cornerInitial } from '../../js/profilecorner.js';
 describe('tutorial steps', () => {
   it('teaches every move, then a practice question, with a welcome and a close', () => {
     const ids = buildSteps(getControlText(false)).map((s) => s.id);
-    expect(ids).toEqual(['welcome', 'left', 'right', 'jump', 'slide', 'rush', 'answer', 'done']);
+    expect(ids).toEqual(['welcome', 'left', 'right', 'jump', 'slide', 'answer', 'rush', 'done']);
   });
 
   it('every practice step asks for one action', () => {

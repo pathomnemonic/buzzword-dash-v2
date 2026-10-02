@@ -43,12 +43,31 @@ describe('the question card', () => {
     container = document.getElementById('c');
   });
 
-  it('appears once, explains the risk and how to switch back, and is not asked again', () => {
+  it('explains the risk and how to switch back, and stays on every results screen until one button is pressed', () => {
     expect(attachDashPrompt(container, () => {})).toBe(true);
     const text = container.querySelector('.dash-prompt').textContent;
     expect(text).toMatch(/by accident/);
     expect(text).toMatch(/Settings/);
+    expect(storage.get('dashPromptSeen')).toBe(false); // seeing it is not an answer
+    // the next results screens (the card was left alone, or the app was closed): it is still there
     container.querySelector('.dash-prompt').remove();
+    expect(attachDashPrompt(container, () => {})).toBe(true);
+    container.querySelector('.dash-prompt').remove();
+    expect(attachDashPrompt(container, () => {})).toBe(true);
+  });
+
+  it('after either button it is never shown again', () => {
+    attachDashPrompt(container, () => {});
+    container.querySelector('.btn-outline').click(); // Keep the button
+    expect(container.querySelector('.dash-prompt')).toBeNull();
+    expect(storage.get('dashPromptSeen')).toBe(true);
+    expect(attachDashPrompt(container, () => {})).toBe(false);
+
+    storage.data.settings.dashPromptSeen = false;
+    storage.data.settings.dashControl = 'auto';
+    attachDashPrompt(container, () => {});
+    container.querySelector('.btn-gold').click(); // Turn on double-tap
+    expect(storage.get('dashControl')).toBe('double');
     expect(attachDashPrompt(container, () => {})).toBe(false);
   });
 
