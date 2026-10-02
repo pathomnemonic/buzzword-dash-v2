@@ -1070,30 +1070,121 @@ var leaderboard = {
   // ===== ACTIVITY FEED =====
 
   /**
-   * Post a short activity event (visible to friends).
-   * @param {'new_best'|'streak'|'tournament'|'exam'|'group_join'} kind
+   * Post an activity event. `visibility` is 'friends' (the default) or 'private' (only the poster sees it).
+   * @param {'new_best'|'streak'|'tournament'|'exam'|'group_join'|'run'|'milestone'|'streak_days'} kind
    * @param {object} payload small JSON object (include the display name)
+   * @param {'friends'|'private'} [visibility]
    */
-  postActivity: function (kind, payload) {
+  postActivity: function (kind, payload, visibility) {
     if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
-    return _client.from('activity_events').insert({ user_id: _userId, kind: kind, payload: payload || {} })
-      .then(function (res) {
-        return res.error ? { success: false, error: res.error.message } : { success: true, error: null };
-      }).catch(function (e) { return { success: false, error: e.message }; });
+    var row = { user_id: _userId, kind: kind, payload: payload || {}, visibility: visibility === 'private' ? 'private' : 'friends' };
+    function send(r) {
+      return _client.from('activity_events').insert(r).then(function (res) { return res.error ? { success: false, error: res.error.message } : { success: true, error: null }; });
+    }
+    return send(row).then(function (out) {
+      // A database set up before visibility existed has no such column: never share a private run there
+      if (!out.success && /visibility/i.test(out.error || '')) {
+        return row.visibility === 'private' ? out : send({ user_id: _userId, kind: kind, payload: payload || {} });
+      }
+      return out;
+    }).catch(function (e) { return { success: false, error: e.message }; });
   },
 
-  /** Recent events from the player and their friends (last 14 days). */
-  getFeed: function () {
+  /**
+   * The feed: the player's posts and their friends' (what a friend kept private is never included), newest first,
+   * each with {kudos_count, i_gave, kudos_by}. scope: 'all' | 'friends' | 'mine'.
+   */
+  getFeed: function (opts) {
     if (!_client || !_userId) return Promise.resolve([]);
-    var since = new Date(Date.now() - 14 * 86400000).toISOString();
-    return _client.from('activity_events')
-      .select('id, user_id, kind, payload, created_at')
-      .gt('created_at', since)
-      .order('created_at', { ascending: false })
-      .limit(40)
+    opts = opts || {};
+    return _client.rpc('get_feed', { p_limit: opts.limit || 40, p_before: opts.before || null, p_scope: opts.scope || 'all' })
       .then(function (res) {
-        try { return requireSuccess(res, 'getFeed') || []; } catch (e) { return []; }
+        if (!res.error) return res.data || [];
+        // An older database has no get_feed: fall back to reading the table (no kudos there)
+        var since = new Date(Date.now() - 14 * 86400000).toISOString();
+        return _client.from('activity_events')
+          .select('id, user_id, kind, payload, created_at')
+          .gt('created_at', since)
+          .order('created_at', { ascending: false })
+          .limit(40)
+          .then(function (r2) { try { return requireSuccess(r2, 'getFeed') || []; } catch (e) { return []; } });
       }).catch(function () { return []; });
+  },
+
+  /** Give (or change) kudos on a friend's post. emoji: 'kudos' | 'fire' | 'brain' | 'clap'. */
+  giveKudos: function (eventId, emoji) {
+    return leaderboard._rpc('give_kudos', { p_event: eventId, p_emoji: emoji || 'kudos' });
+  },
+
+  removeKudos: function (eventId) {
+    return leaderboard._rpc('remove_kudos', { p_event: eventId });
+  },
+
+  /** Change who can see one of the player's own posts: 'friends' or 'private'. */
+  setActivityVisibility: function (eventId, visibility) {
+    return leaderboard._rpc('set_activity_visibility', { p_event: eventId, p_visibility: visibility === 'private' ? 'private' : 'friends' });
+  },
+
+  /** Delete one of the player's own posts. */
+  deleteActivity: function (eventId) {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.from('activity_events').delete().eq('id', eventId).eq('user_id', _userId)
+      .then(function (res) { return res.error ? { success: false, error: res.error.message } : { success: true, error: null }; })
+      .catch(function (e) { return { success: false, error: e.message }; });
+  },
+
+  /** Kudos friends gave the player recently: [{event_id, kind, giver_name, emoji, created_at}]. */
+  getRecentKudos: function () {
+    return leaderboard._rpc('my_recent_kudos').then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+
+  // ===== DISCOVERY (study buddies and public groups; hidden until FEATURES.discovery) =====
+
+  getBuddyListing: function () {
+    return leaderboard._rpc('my_buddy_listing').then(function (r) {
+      var row = r.success ? (Array.isArray(r.data) ? r.data[0] : r.data) : null;
+      return row && row.user_id ? row : null;
+    });
+  },
+
+  /** listing: {exam, examDate, subjects, pace, utcOffset, discoverable} */
+  setBuddyListing: function (listing) {
+    return leaderboard._rpc('set_buddy_listing', {
+      p_exam: String(listing.exam || 'Other').slice(0, 30),
+      p_exam_date: listing.examDate || null,
+      p_subjects: (listing.subjects || []).slice(0, 8).map(function (s) { return String(s).slice(0, 40); }),
+      p_pace: ['relaxed', 'steady', 'intense'].indexOf(listing.pace) >= 0 ? listing.pace : 'steady',
+      p_utc_offset: typeof listing.utcOffset === 'number' ? Math.max(-12, Math.min(14, Math.round(listing.utcOffset))) : null,
+      p_discoverable: !!listing.discoverable
+    });
+  },
+
+  removeBuddyListing: function () { return leaderboard._rpc('remove_buddy_listing'); },
+
+  findBuddies: function () {
+    return leaderboard._rpc('find_buddies', { p_limit: 20 });
+  },
+
+  discoverGroups: function (query, exam) {
+    return leaderboard._rpc('discover_groups', { p_query: String(query || '').slice(0, 40), p_exam: exam || null, p_limit: 20 })
+      .then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+
+  /** @returns {Promise<{success: boolean, data?: ('joined'|'requested'), error?: string}>} */
+  joinPublicGroup: function (groupId) { return leaderboard._rpc('join_public_group', { p_group_id: groupId }); },
+  cancelGroupRequest: function (groupId) { return leaderboard._rpc('cancel_group_request', { p_group_id: groupId }); },
+  getGroupRequests: function (groupId) {
+    return leaderboard._rpc('group_requests', { p_group_id: groupId }).then(function (r) { return r.success ? (r.data || []) : []; });
+  },
+  resolveGroupRequest: function (groupId, userId, accept) {
+    return leaderboard._rpc('resolve_group_request', { p_group_id: groupId, p_user: userId, p_accept: !!accept });
+  },
+  setGroupDiscovery: function (groupId, isPublic, exam, joinMode) {
+    return leaderboard._rpc('set_group_discovery', { p_group_id: groupId, p_public: !!isPublic, p_exam: exam || '', p_join_mode: joinMode === 'request' ? 'request' : 'open' });
+  },
+  /** kind: 'buddy' | 'group'; reason: 'spam' | 'harassment' | 'inappropriate_name' | 'other' */
+  reportContent: function (kind, targetId, reason) {
+    return leaderboard._rpc('report_content', { p_kind: kind, p_target: String(targetId), p_reason: reason });
   },
 
   // ===== GROUP WEEKLY GOALS =====

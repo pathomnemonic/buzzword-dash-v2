@@ -32,6 +32,7 @@ function makeService(over) {
     sendFriendRequest: vi.fn(async () => ({ success: true })),
     searchPlayers: vi.fn(async () => [{ user_id: 'p9', player_name: 'Zed', best_score: 50, best_streak: 2 }]),
     removeFriend: vi.fn(async () => ({ success: true })),
+    getRecentKudos: vi.fn(async () => []),
     postActivity: vi.fn(async () => ({ success: true })),
     ensureProfile: vi.fn(async () => ({ success: true }))
   };
@@ -70,13 +71,13 @@ describe('Friends screen', () => {
     await flush();
     const t = text();
     expect(t).toContain('Alice set a new best score: 1,200');
-    expect(t).toContain('Me hit a 12-answer streak');
+    expect(t).toContain('You hit a 12-answer streak');
     expect(t).toContain('just now');
     expect(t).toContain('3h ago');
     expect(t).toContain('2d ago');
     expect(document.querySelector('#root img')).toBeNull(); // a hostile name is text, never markup
     const challenges = [...document.querySelectorAll('#root button')].filter((b) => /Challenge/.test(b.textContent));
-    expect(challenges.length).toBe(2); // Alice's two events, not mine
+    expect(challenges.length).toBe(1); // Alice's best score, not my own post or her mystery one
   });
 
   it('an empty feed says what to do', async () => {

@@ -20,7 +20,7 @@ Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and a
 
 - **Challenge a friend, live.** Head-to-head multiplayer with a room code. No account needed.
 - **3,000+ board-style questions** across 15 subjects, with a quick explanation after every miss.
-- **Learn from your misses.** Spaced repetition brings back the cards you get wrong until they stick.
+- **Learn from your misses.** Spaced repetition (FSRS, the open algorithm Anki offers) brings back each card just before you would forget it.
 - **Flashcards and a timed exam simulator** for when you want to slow down and test yourself.
 - **Daily goals, streaks and a weekly study plan** that keep you consistent.
 - **An exam monster that chases you** when your streak slips, and drifts away when you get back on track.
@@ -39,6 +39,7 @@ Only list a feature once it has been checked end to end. As of the last check:
 - Ranked matches, trophies and leagues (the database rules and the whole match flow were played end to end against a local copy of the database; run `database/schema.sql` and `policies.sql` on the live project, play one ranked match between two real accounts, then add "Ranked leagues" to the listing).
 - Friends, the friend feed, study groups, weekly tournaments and cloud save (database rules and the screens are tested against a fake service; they need a live Supabase project to check). The global leaderboard is hidden in the app for now (`FEATURES.globalLeaderboard`), so do not list it.
 - Cohorts and cohort wars (finished and hidden on purpose; see `docs/COHORTS.md`).
+- Study-buddy and public-group discovery (finished and hidden on purpose; see `docs/DISCOVERY.md`).
 
 Do not list map events (blackouts, tremors) until you have seen them in a real session on the device.
 

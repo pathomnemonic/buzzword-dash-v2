@@ -47,6 +47,7 @@ import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
+import { shareSetting, isShareableRun, runPayload, crossedCardMilestone, crossedDayMilestone } from './sharing.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
@@ -448,26 +449,40 @@ function addPostRunBox(builder) {
   content.insertBefore(box, content.children[1] || null);
 }
 
-/** Post at most one activity event per kind per hour. */
-function throttledActivity(kind, payload) {
+/** Post at most one activity event per kind per window (an hour unless said otherwise). */
+function throttledActivity(kind, payload, windowMs) {
   if (!leaderboardModule) return;
   var key = 'buzzword_activity_throttle';
   var seen = {};
   try { seen = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { seen = {}; }
-  if (Date.now() - (seen[kind] || 0) < 3600000) return;
+  if (Date.now() - (seen[kind] || 0) < (windowMs || 3600000)) return;
   seen[kind] = Date.now();
   try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) { /* storage unavailable; posting is best-effort */ }
-  leaderboardModule.leaderboard.postActivity(kind, payload);
+  // A player who keeps runs private still gets them in their own feed, but nobody else sees them
+  leaderboardModule.leaderboard.postActivity(kind, payload, shareSetting(storage.get('shareRuns')));
+}
+
+/** A first look at a counter only sets the baseline, so players with history are not greeted with old news. */
+function crossedSince(seenKey, now, crossed) {
+  var seen = Number(storage.get(seenKey)) || 0;
+  if (seen === 0 && now > 0) { storage.set(seenKey, now); return null; }
+  storage.set(seenKey, now);
+  return crossed(seen, now);
 }
 
 function postActivities(summary, result) {
   var name = storage.get('profileName');
+  if (isShareableRun(summary)) throttledActivity('run', runPayload(summary, name), 120000);
   if (result && result.newBestScore && summary.score > 0) {
     throttledActivity('new_best', { name: name, score: summary.score });
   }
   if (summary.bestStreak >= 10) {
     throttledActivity('streak', { name: name, streak: summary.bestStreak });
   }
+  var cards = crossedSince('cardMilestoneSeen', Number(storage.get('totalCardsStudied')) || 0, crossedCardMilestone);
+  if (cards) throttledActivity('milestone', { name: name, cards: cards }, 60000);
+  var days = crossedSince('dayMilestoneSeen', Number(storage.get('loginStreak')) || 0, crossedDayMilestone);
+  if (days) throttledActivity('streak_days', { name: name, days: days }, 60000);
 }
 
 // A finished exam simulation goes to friends' feeds (only for a signed-in player with a public, named profile)

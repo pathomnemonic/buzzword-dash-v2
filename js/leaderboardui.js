@@ -4,12 +4,16 @@
  * Renders into #leaderboardContent with safe DOM APIs only (all remote
  * values go through textContent). Talks to the `leaderboard` service.
  *
- * Tabs: Global (only when FEATURES.globalLeaderboard is on) | Friends | Feed | Groups | Requests | Find | Account
+ * Tabs: Global (only when FEATURES.globalLeaderboard is on) | Friends | Feed | Groups | Requests | Find |
+ * Discover (only when FEATURES.discovery is on) | Account
  */
 
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
 import { FEATURES } from './features.js';
+import { btn, note, rowShell, nameBlock } from './friendsdom.js';
+import { renderFeedTab } from './feedui.js';
+import { renderDiscoverTab, renderGroupDiscoverySettings } from './discoveryui.js';
 
 var BOARD_MODES = ['endless', 'weakness', 'study', 'mp_highscore', 'mp_suddendeath', 'mp_race'];
 
@@ -36,50 +40,6 @@ export function mountLeaderboardScreen(container, deps) {
 // ===== helpers =====
 
 function lb() { return _deps.leaderboard; }
-
-function btn(label, onClick, className) {
-  var b = createElement('button', {
-    className: 'btn btn-sm ' + (className || 'btn-outline'),
-    text: label,
-    attributes: { type: 'button' }
-  });
-  b.addEventListener('click', function () {
-    b.disabled = true;
-    Promise.resolve(onClick()).then(function () { b.disabled = false; }, function () { b.disabled = false; });
-  });
-  return b;
-}
-
-function note(text, color) {
-  var el = createElement('div', { className: 'mp-status', text: text });
-  if (color) el.style.color = color;
-  return el;
-}
-
-function rowShell() {
-  var row = createElement('div', { className: 'setting-row' });
-  row.style.gap = '8px';
-  return row;
-}
-
-function nameBlock(name, sub) {
-  var block = createElement('div');
-  block.style.flex = '1';
-  block.style.minWidth = '0';
-  var n = createElement('div', { text: name || 'Anonymous' });
-  n.style.fontSize = '13px';
-  n.style.fontWeight = '700';
-  n.style.overflow = 'hidden';
-  n.style.textOverflow = 'ellipsis';
-  block.appendChild(n);
-  if (sub) {
-    var s = createElement('div', { text: sub });
-    s.style.fontSize = '10px';
-    s.style.color = 'var(--text-muted)';
-    block.appendChild(s);
-  }
-  return block;
-}
 
 function refreshRequestCount() {
   return lb().getPendingRequests().then(function (reqs) {
@@ -118,6 +78,7 @@ function render() {
 
   // The global board is built but hidden until there are enough players (FEATURES.globalLeaderboard)
   if (_state.tab === 'global' && !FEATURES.globalLeaderboard) _state.tab = 'friends';
+  if (_state.tab === 'discover' && !FEATURES.discovery) _state.tab = 'friends';
   var tabs = createElement('div', { attributes: { role: 'tablist', 'aria-label': 'Friends sections' } });
   tabs.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:10px 0';
   [
@@ -127,8 +88,9 @@ function render() {
     ['groups', '👪 Groups'],
     ['requests', '📨 Requests' + (_state.requestCount ? ' (' + _state.requestCount + ')' : '')],
     ['find', '🔍 Find'],
+    ['discover', '🤝 Discover'],
     ['account', '⚙ Account']
-  ].filter(function (t) { return t[0] !== 'global' || FEATURES.globalLeaderboard; }).forEach(function (t) {
+  ].filter(function (t) { return (t[0] !== 'global' || FEATURES.globalLeaderboard) && (t[0] !== 'discover' || FEATURES.discovery); }).forEach(function (t) {
     var b = createElement('button', {
       className: 'btn btn-sm ' + (_state.tab === t[0] ? 'btn-primary' : 'btn-outline'),
       text: t[1],
@@ -149,6 +111,7 @@ function render() {
     groups: renderGroups,
     requests: renderRequests,
     find: renderFind,
+    discover: renderDiscover,
     account: renderAccount
   };
   loaders[_state.tab](body);
@@ -351,52 +314,8 @@ function renderFriends(body) {
 
 // ===== Feed =====
 
-function timeAgo(iso) {
-  var minutes = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return minutes + 'm ago';
-  var hours = Math.round(minutes / 60);
-  if (hours < 24) return hours + 'h ago';
-  return Math.round(hours / 24) + 'd ago';
-}
-
-function describeActivity(e) {
-  var p = e.payload || {};
-  var who = String(p.name || 'A friend').slice(0, 30);
-  switch (e.kind) {
-    case 'new_best': return ['🏅', who + ' set a new best score: ' + Number(p.score || 0).toLocaleString()];
-    case 'streak': return ['🔥', who + ' hit a ' + Number(p.streak || 0) + '-answer streak'];
-    case 'tournament': return ['🏆', who + ' took part in an old weekly tournament (#' + Number(p.rank || 0) + ' of ' + Number(p.total || 0) + ')'];
-    case 'exam': return ['📝', who + ' scored ' + Number(p.accuracy || 0) + '% on an exam simulation'];
-    case 'group_join': return ['👪', who + ' joined a study group'];
-    default: return ['✨', who + ' did something great'];
-  }
-}
-
 function renderFeed(body) {
-  body.appendChild(note('Highlights from you and your friends.'));
-  var list = createElement('div');
-  list.appendChild(note('Loading\u2026'));
-  body.appendChild(list);
-  lb().getFeed().then(function (events) {
-    clearElement(list);
-    if (events.length === 0) {
-      list.appendChild(note('Nothing yet. Play a run, or add friends from the Find tab.'));
-      return;
-    }
-    events.forEach(function (e) {
-      var d = describeActivity(e);
-      var row = rowShell();
-      var icon = createElement('div', { text: d[0] });
-      icon.style.fontSize = '20px';
-      row.appendChild(icon);
-      row.appendChild(nameBlock(d[1], timeAgo(e.created_at)));
-      if (e.user_id !== lb().getUserId() && _deps.startChallenge) {
-        row.appendChild(btn('\u2694 Challenge', function () { _deps.startChallenge(); }));
-      }
-      list.appendChild(row);
-    });
-  });
+  renderFeedTab(body, { lb: lb(), storage: _deps.storage, toast: _deps.toast, rerender: render, startChallenge: _deps.startChallenge });
 }
 
 // ===== Groups =====
@@ -515,6 +434,8 @@ function renderGroups(body) {
       }
     });
 
+    if (FEATURES.discovery && selected) renderGroupDiscoverySettings(list, selected, { lb: lb(), toast: _deps.toast, rerender: render });
+
     // Board for the selected group
     var board = createElement('div');
     board.style.marginTop = '10px';
@@ -610,6 +531,12 @@ function renderFind(body) {
       }));
     });
   }
+}
+
+// ===== Discover (study buddies and public groups; hidden until FEATURES.discovery) =====
+
+function renderDiscover(body) {
+  renderDiscoverTab(body, { lb: lb(), storage: _deps.storage, toast: _deps.toast, rerender: render });
 }
 
 // ===== Account =====

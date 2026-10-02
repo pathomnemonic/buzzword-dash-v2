@@ -183,7 +183,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Study streak calendar** — tracks daily study activity
 - **Continue system** — spend coins to continue after losing all lives
 - **Speed dial** — adjust game speed from 1× to 10× for more points. The run speeds up as you go: by default +0.5 every 20 questions, and Settings → Gameplay lets you turn that off or choose your own (a custom rule makes the run unranked, like the other rule changes). The road, scenery, gates, obstacles and coins all move at the same look-speed as the floor and the runner's legs, and start proportionally farther away, so the time to reach a gate depends only on the speed, not on how fast it looks. Obstacles are checked as they reach the runner, and a jump or slide that is under way (about a second each) clears them.
-- **Spaced repetition** — each card is scheduled (SM-2 style); due cards surface first and the home screen shows how many are due
+- **Spaced repetition** — each card is scheduled with FSRS, the open algorithm Anki offers (`js/fsrs.js`; cards saved with the older schedule are converted the first time they are reviewed). Due cards surface first and the home screen shows how many are due. In the study plan you can set your exam date (for a pace of new cards per day), a target retention, and see a memory estimate by subject (`js/readiness.js`; an estimate of what you remember, not an exam score prediction)
 - **Missed-card remediation** — a card you miss comes back a few encounters later in the same run
 - **Daily study goal** — configurable cards-per-day target with a progress bar, plus a "focus area" (weakest subject) after each run
 - **Weekly leaderboards** — this-week and all-time boards per mode, with friends, requests and match invites
@@ -205,7 +205,8 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
 - **Share image** — save or share a styled picture of your run result
 - **Weekly Gauntlet** — 30 cards, the same all week, only 2 lives; clear it for a weekly badge and bonus coins (not ranked)
-- **Friend activity feed** — see friends' new bests, streaks and Gauntlet clears, with a one-tap challenge
+- **Friend activity feed** — a Strava-style feed (`js/feedui.js`, `js/sharing.js`): your runs, personal bests and milestones with the numbers, kudos from friends (one tap, or pick a reaction), a weekly recap, the kudos you got, and a one-tap challenge. You choose who sees your runs (friends or only you) and can hide or delete any post. Server rules (private posts, blocks, rate limits) are in `database/schema.sql` and tested in `tests/unit/database.test.js`
+- **Study buddies and public groups** (built and tested, hidden behind `FEATURES.discovery` until there are enough players; see `docs/DISCOVERY.md`)
 - **Group weekly goals** — a shared cards-per-week target with a progress bar and contributor list
 - **Offline decks** — decks fetched by code are saved on the device and can be re-added without a connection
 - **Progress backup** — save and restore all progress as a JSON file (Settings)

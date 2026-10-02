@@ -57,6 +57,10 @@ var DEFAULTS = {
     targetRetention: 0.9,      // how likely you want to be to remember a card when it comes back (FSRS)
     examDate: '',              // YYYY-MM-DD of the player's exam, for the study plan
     examName: '',
+    shareRuns: 'friends',      // who sees the player's runs in the feed: 'friends' or 'private'
+    cardMilestoneSeen: 0,
+    dayMilestoneSeen: 0,
+    kudosSeenAt: 0,
     colorblindMode: false,
     glowEffects: false,
     reminders: false,

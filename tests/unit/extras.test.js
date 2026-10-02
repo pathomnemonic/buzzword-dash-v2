@@ -132,7 +132,8 @@ describe('leaderboard screen: feed and group goals', () => {
       getPendingRequests: () => Promise.resolve([]),
       getFriends: () => Promise.resolve([]),
       getTopScores: () => Promise.resolve([]),
-      getFeed: () => Promise.resolve([])
+      getFeed: () => Promise.resolve([]),
+      getRecentKudos: () => Promise.resolve([])
     }, extra);
   }
 
