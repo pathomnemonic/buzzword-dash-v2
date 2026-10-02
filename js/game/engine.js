@@ -37,6 +37,7 @@ import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enable
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
+import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery } from './scenery.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus } from '../rules.js';
@@ -567,6 +568,7 @@ class Game {
   _noteSlowSession() {
     if (this._perfHinted) return;
     this._perfHinted = true;
+    reportPerformance({ tier: getQuality() }); // only sent if the player switched reports on
     if ((storage.get('quality') || 'auto') !== 'auto') return;
     var strikes = (storage.get('perfStrikes') || 0) + 1;
     storage.set('perfStrikes', strikes);

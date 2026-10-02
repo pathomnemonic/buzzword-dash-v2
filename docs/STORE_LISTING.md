@@ -22,7 +22,8 @@ Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and a
 - **3,000+ board-style questions** across 15 subjects, with a quick explanation after every miss.
 - **Learn from your misses.** Spaced repetition (FSRS, the open algorithm Anki offers) brings back each card just before you would forget it.
 - **Flashcards and a timed exam simulator** for when you want to slow down and test yourself.
-- **Daily goals, streaks and a weekly study plan** that keep you consistent.
+- **Daily goals, streaks and a study plan** with your exam date, a memory estimate by subject and a pace for the days you have left.
+- **A friends feed with kudos.** Share your runs with friends or keep them private, cheer each other on, and join private study groups.
 - **An exam monster that chases you** when your streak slips, and drifts away when you get back on track.
 - **Earn coins and unlock** animated characters, monsters, trails and themed tracks.
 - **Solo play needs no internet.** No ads. No tracking.
@@ -53,13 +54,15 @@ Do not list map events (blackouts, tremors) until you have seen them in a real s
 Match these to `public/privacy.html`.
 
 **Google Play → Data safety**
-- Data collected only if the player uses online features: *Email address* (optional account), *User IDs* (account identifier), *Name* (display name), *App activity* (scores, streaks, game progress).
+- Data collected only if the player uses online features: *Email address* (optional account), *User IDs* (account identifier), *Name* (display name), *App activity* (scores, streaks, game progress, shared run summaries and kudos).
+- *Crash logs* and *Diagnostics* only if the player switches on "Help fix problems" in Settings (off by default): anonymous, not linked to the user.
 - Purpose: app functionality and account management. Not used for advertising or analytics. Not sold.
 - Encrypted in transit: yes. Users can request deletion: yes (in-app **Delete my account**).
 - Data shared with third parties: no (Supabase acts as a processor hosting the data).
 
 **Apple → App Privacy ("nutrition label")**
-- Data linked to the user (only with online features): Contact Info (email address), Identifiers (user ID), User Content (display name), Usage Data (scores and progress).
+- Data linked to the user (only with online features): Contact Info (email address), Identifiers (user ID), User Content (display name), Usage Data (scores, progress and the run summaries and kudos shared with friends).
+- Data not linked to the user, only if the player switches it on: Diagnostics (crash and performance reports).
 - Used for: App Functionality. Not used for tracking.
 - Account deletion: available in the app.
 

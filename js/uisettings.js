@@ -72,6 +72,9 @@ export var settingsMethods = {
         { key: 'glowEffects', label: '✨ Glow effects', desc: 'A soft glow around bright things. It looks great but makes the game noticeably more demanding: it can slow older laptops and drain a phone battery faster. Off by default.', type: 'toggle' },
         { key: 'batterySaver', label: '🎞 30 frames per second', desc: 'Keeps the game at a steady 30 fps: cooler, smoother and easier on the battery. Turn off for up to 60 fps on a fast device.', type: 'toggle' }
       ],
+      data: [
+        { key: 'sendDiagnostics', label: '🩹 Help fix problems', desc: 'Sends an anonymous report when the game crashes or runs slowly: a short message, where it happened, the app version and your graphics level. Never your name, scores, cards or account. Off unless you turn it on.', type: 'toggle' }
+      ],
       study: [
         { key: 'dailyGoal', label: '🎯 Daily goal', desc: 'How many cards you aim to study each day. Hitting it keeps your streak going.', type: 'range', min: 5, max: 100, step: 5, unit: ' cards' },
         { key: 'reminders', label: '🔔 Daily reminder', desc: 'A notification at your reminder time, while the app is open or installed.', type: 'toggle' },

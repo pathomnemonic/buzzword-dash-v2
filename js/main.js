@@ -29,7 +29,7 @@ import { CARDS, CARD_BY_ID, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { createDailyOrder } from './game/gates.js';
 import { uniqueByAnswer } from './cardleaks.js';
-import { reportError, showUserError, installGlobalErrorHandlers } from './errors.js';
+import { reportError, showUserError, installGlobalErrorHandlers, setDiagnosticsSink } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, requestCloseTutorial } from './tutorial.js';
 import { startGameTutorial, isGameTutorialOpen, requestCloseGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
@@ -47,6 +47,8 @@ import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
+import { watchBattery } from './battery.js';
+import { watchConnection } from './offline.js';
 import { shareSetting, isShareableRun, runPayload, crossedCardMilestone, crossedDayMilestone } from './sharing.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
 import { newlyAffordable } from './lockerdots.js';
@@ -1136,6 +1138,14 @@ function init() {
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
   installGlobalErrorHandlers();
+  watchBattery(); // a nearly flat phone steps Auto graphics down a tier
+  watchConnection(function (msg) { ui.showNotice(msg, { ms: 4500 }); });
+  // Anonymous crash and slow-frame reports, only for players who switched them on in Settings
+  setDiagnosticsSink(function (report) {
+    if (!storage.get('sendDiagnostics')) return;
+    if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
+    leaderboardModule.leaderboard.reportDiagnostic(report);
+  });
   installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;

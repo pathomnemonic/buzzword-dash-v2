@@ -1,10 +1,27 @@
 import { defineConfig } from 'vitest/config';
+import { loadEnv } from 'vite';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { buildCsp } from './tools/csp.mjs';
 
 // One id per build: the commit when CI provides it, otherwise the build time. It names the service
 // worker cache, so every deploy starts a fresh cache instead of relying on a hand-bumped number.
 const BUILD_ID = (process.env.GITHUB_SHA || '').slice(0, 8) || Date.now().toString(36);
+
+// Puts the Content-Security-Policy (see tools/csp.mjs) in the built page. Not in dev: the dev server needs inline scripts.
+function injectCsp(supabaseUrl) {
+  return {
+    name: 'inject-csp',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const policy = buildCsp({ supabaseUrl, html });
+        return html.replace('<head>', '<head>\n  <meta http-equiv="Content-Security-Policy" content="' + policy + '">');
+      }
+    }
+  };
+}
 
 // Stamps the build id into the copied service worker (public/sw.js ships as-is otherwise).
 function stampServiceWorker() {
@@ -28,7 +45,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base,
-    plugins: [stampServiceWorker()],
+    plugins: [stampServiceWorker(), injectCsp(process.env.VITE_SUPABASE_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL || '')],
     define: { __APP_VERSION__: JSON.stringify(BUILD_ID) },
     build: {
       chunkSizeWarningLimit: 3000, // card data chunk is intentionally large
@@ -42,7 +59,11 @@ export default defineConfig(({ mode }) => {
           assetFileNames: 'assets/[name]-[hash][extname]',
           manualChunks(id) {
             if (id.includes('node_modules/three')) return 'three';
-            if (id.includes('/js/cards/') || id.includes('cardsarchive')) return 'cards';
+            // One chunk per subject (about 175 KB each) instead of one 2.6 MB file: the browser fetches them in
+            // parallel, and after an update only the subjects that changed are downloaded again.
+            var subject = /\/js\/cards\/([a-z]+)\.js$/.exec(id);
+            if (subject) return 'cards-' + subject[1];
+            if (id.includes('cardsarchive')) return 'cards-archive';
           }
         }
       }

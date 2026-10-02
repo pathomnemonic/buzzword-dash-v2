@@ -77,10 +77,30 @@ export function buildRemotePayload(msg, stack, context) {
 /** Reset the per-page-load limits (tests). */
 export function resetRemoteLimits() { remoteSent = 0; remoteSeen = {}; }
 
+var _diagnosticsSink = null;
+
+/**
+ * Where opt-in reports go (a function taking {kind, message, system, operation, version}). The caller decides
+ * whether the player switched reports on; nothing is sent while no sink is set.
+ */
+export function setDiagnosticsSink(fn) { _diagnosticsSink = typeof fn === 'function' ? fn : null; }
+
+/** A report that is not an error: the game ran slowly on this device. */
+export function reportPerformance(info) {
+  if (!_diagnosticsSink) return;
+  var key = 'perf|' + (info && info.tier);
+  if (remoteSeen[key]) return;
+  remoteSeen[key] = true;
+  try { _diagnosticsSink({ kind: 'perf', message: 'slow frames', system: 'render', operation: String((info && info.operation) || 'frame-rate'), tier: info && info.tier, version: (typeof __APP_VERSION__ !== 'undefined') ? __APP_VERSION__ : undefined }); } catch (e) { /* reporting must never throw */ }
+}
+
 function sendRemote(msg, stack, context) {
+  var payload = buildRemotePayload(msg, stack, context);
+  if (_diagnosticsSink && payload) {
+    try { _diagnosticsSink({ kind: 'error', message: payload.message, system: payload.system, operation: payload.operation, version: payload.version }); } catch (e) { /* reporting must never throw */ }
+  }
   var url = remoteEndpoint();
   if (!url) return;
-  var payload = buildRemotePayload(msg, stack, context);
   if (!payload) return;
   try {
     var body = JSON.stringify(payload);

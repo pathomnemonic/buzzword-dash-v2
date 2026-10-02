@@ -367,6 +367,26 @@ describe('tournament standing, activity feed and group goals', () => {
 });
 
 
+describe('opt-in diagnostics', () => {
+  it('accepts a report from a signed-in player but nobody can read the table', async () => {
+    await as(A, () => db.query("SELECT report_diagnostic('error', 'boom', 'audio', 'play', 'abc123', 'medium')"));
+    expect((await db.query('SELECT message, tier FROM client_diagnostics')).rows).toEqual([{ message: 'boom', tier: 'medium' }]);
+    expect((await as(A, () => db.query('SELECT * FROM client_diagnostics'))).rows).toHaveLength(0); // no read policy
+    expect(await rejects(A, "INSERT INTO client_diagnostics (kind, message) VALUES ('error','x')")).toBe(true);
+    expect(await rejects(A, "SELECT report_diagnostic('spam', 'x')")).toBe(true); // unknown kind
+    await db.exec("RESET ROLE; SET app.uid = ''");
+    expect(await rejects('', "SELECT report_diagnostic('error', 'x')")).toBe(true); // signed out
+  });
+
+  it('keeps no user id and limits what is stored', async () => {
+    await as(B, () => db.query("SELECT report_diagnostic('perf', $1, NULL, NULL, NULL, 'huge')", ['x'.repeat(500)]));
+    const row = (await db.query("SELECT * FROM client_diagnostics WHERE kind = 'perf'")).rows[0];
+    expect(row.message.length).toBe(300);
+    expect(row.tier).toBeNull();
+    expect(Object.keys(row)).not.toContain('user_id');
+  });
+});
+
 describe('account deletion', () => {
   it('removes the caller and everything tied to them, and only them', async () => {
     const D = '44444444-4444-4444-4444-444444444444';

@@ -1138,6 +1138,20 @@ var leaderboard = {
     return leaderboard._rpc('my_recent_kudos').then(function (r) { return r.success ? (r.data || []) : []; });
   },
 
+  // ===== DIAGNOSTICS (opt-in) =====
+
+  /** Send one anonymous crash or slow-frame report (only ever called when the player switched reports on). */
+  reportDiagnostic: function (report) {
+    return leaderboard._rpc('report_diagnostic', {
+      p_kind: report.kind === 'perf' ? 'perf' : 'error',
+      p_message: String(report.message || '').slice(0, 300),
+      p_system: report.system ? String(report.system).slice(0, 40) : null,
+      p_operation: report.operation ? String(report.operation).slice(0, 40) : null,
+      p_version: report.version ? String(report.version).slice(0, 20) : null,
+      p_tier: report.tier || null
+    });
+  },
+
   // ===== DISCOVERY (study buddies and public groups; hidden until FEATURES.discovery) =====
 
   getBuddyListing: function () {

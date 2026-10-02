@@ -625,6 +625,36 @@ END;
 $$;
 
 
+-- ==================== DIAGNOSTICS (opt-in) ====================
+-- Anonymous crash and slow-frame reports, sent only by players who switch "Help fix problems" on in Settings.
+-- No user id, no scores, no card or account data: a short message, where it happened, the app version and the
+-- graphics tier. The table cannot be read by players; a global cap keeps it from being flooded.
+
+CREATE TABLE IF NOT EXISTS client_diagnostics (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  kind        text NOT NULL CHECK (kind IN ('error', 'perf')),
+  message     text NOT NULL CHECK (char_length(message) <= 300),
+  system      text CHECK (char_length(system) <= 40),
+  operation   text CHECK (char_length(operation) <= 40),
+  version     text CHECK (char_length(version) <= 20),
+  tier        text CHECK (tier IN ('low', 'medium', 'high')),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION report_diagnostic(p_kind text, p_message text, p_system text DEFAULT NULL, p_operation text DEFAULT NULL,
+                                             p_version text DEFAULT NULL, p_tier text DEFAULT NULL) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  -- one cap for everyone, so a script cannot fill the table
+  IF (SELECT count(*) FROM client_diagnostics WHERE created_at > now() - interval '1 hour') >= 500 THEN RETURN; END IF;
+  INSERT INTO client_diagnostics (kind, message, system, operation, version, tier)
+  VALUES (p_kind, left(coalesce(p_message, ''), 300), left(p_system, 40), left(p_operation, 40), left(p_version, 20),
+          CASE WHEN p_tier IN ('low', 'medium', 'high') THEN p_tier END);
+END;
+$$;
+
+
 -- ==================== CLOUD SAVES ====================
 -- One private save per account, so progress follows the player across devices.
 -- Written only through push_save(), which refuses to overwrite a newer save

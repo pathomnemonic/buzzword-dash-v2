@@ -23,6 +23,7 @@
  */
 
 import { storage } from '../storage.js';
+import { isLowBattery } from '../battery.js';
 
 var ORDER = ['low', 'medium', 'high'];
 
@@ -89,7 +90,7 @@ function touchFirst() {
 export function getQuality() {
   var nav = typeof navigator !== 'undefined' ? navigator : {};
   var setting = storage.get('quality') || 'auto';
-  return resolveQuality(setting, {
+  var tier = resolveQuality(setting, {
     deviceMemory: nav.deviceMemory,
     cores: nav.hardwareConcurrency,
     saveData: !!(nav.connection && nav.connection.saveData),
@@ -97,6 +98,8 @@ export function getQuality() {
     touchFirst: touchFirst(),
     perfHint: storage.get('perfHint')
   });
+  // A nearly flat battery steps "Auto" down one tier (a level picked by hand is left alone)
+  return setting === 'auto' && isLowBattery() ? lowerTier(tier) : tier;
 }
 
 export function isLowQuality() { return getQuality() === 'low'; }

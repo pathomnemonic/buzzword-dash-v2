@@ -264,6 +264,14 @@ GRANT EXECUTE ON FUNCTION set_group_goal(uuid, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION group_goal_status(uuid, text) TO authenticated;
 
 
+-- ==================== DIAGNOSTICS ====================
+
+ALTER TABLE client_diagnostics ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON client_diagnostics FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION report_diagnostic(text, text, text, text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION report_diagnostic(text, text, text, text, text, text) TO authenticated;
+
+
 -- ==================== CLOUD SAVES ====================
 -- A save is private to its owner. Writes go through push_save()/force_save().
 

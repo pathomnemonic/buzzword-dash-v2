@@ -67,6 +67,13 @@ globalThis.AudioContext = class MockAudioContext {
       disconnect() {}
     };
   }
+  createDynamicsCompressor() {
+    return {
+      threshold: { value: 0 }, knee: { value: 0 }, ratio: { value: 1 }, attack: { value: 0 }, release: { value: 0 },
+      connect() {},
+      disconnect() {}
+    };
+  }
   resume() { return Promise.resolve(); }
 };
 

@@ -234,7 +234,10 @@ npm run lint && npm run typecheck && npm test
 npm run validate:cards # validate card data
 npm run build          # production build into dist/
 npm run test:e2e       # Playwright (needs a build)
+npm run soak -- --minutes 30   # a bot plays every mode with random inputs, watching for crashes and leaks (needs a build served on :4173)
 ```
+
+The production build ships a Content-Security-Policy in `index.html` (`tools/csp.mjs`; the Supabase host is read from `VITE_SUPABASE_URL`), and the card database is split into one file per subject (`cards-<subject>-<hash>.js`), so an update only re-downloads the subjects that changed.
 
 ## Deploying
 
@@ -294,7 +297,7 @@ Uncaught errors and unhandled promise rejections are logged to the console. To a
 VITE_ERROR_ENDPOINT=https://example.com/dxdash-errors
 ```
 
-(In GitHub, add it as a repository variable named `VITE_ERROR_ENDPOINT`.) With no URL set, nothing leaves the device. Each report holds only the error message, a trimmed stack, the area it came from and the build id, with no account, score or card data, and a page load sends at most 10 distinct reports.
+(In GitHub, add it as a repository variable named `VITE_ERROR_ENDPOINT`.) With no URL set, nothing leaves the device. Separately, players can switch on **Settings → Data → Help fix problems** to send anonymous crash and slow-frame reports to the `client_diagnostics` table (`database/schema.sql`; nobody but you can read it in the Supabase table editor; no account id is stored). Each report holds only the error message, a trimmed stack, the area it came from and the build id, with no account, score or card data, and a page load sends at most 10 distinct reports.
 
 ## Updates and offline cache
 

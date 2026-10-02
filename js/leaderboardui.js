@@ -12,6 +12,7 @@ import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
 import { FEATURES } from './features.js';
 import { btn, note, rowShell, nameBlock } from './friendsdom.js';
+import { isOnline, NEEDS_CONNECTION } from './offline.js';
 import { renderFeedTab } from './feedui.js';
 import { renderDiscoverTab, renderGroupDiscoverySettings } from './discoveryui.js';
 
@@ -59,6 +60,11 @@ function render() {
 
   if (!status.configured) {
     _root.appendChild(note('The leaderboard is not set up yet. Add your Supabase URL and anon key (see README → Leaderboard Setup) to enable it.'));
+    return;
+  }
+  if (!status.authenticated && !isOnline()) {
+    _root.appendChild(note(NEEDS_CONNECTION));
+    _root.appendChild(btn('Try again', function () { render(); return null; }, 'btn-primary'));
     return;
   }
   if (!status.authenticated) {
