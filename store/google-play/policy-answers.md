@@ -24,11 +24,13 @@ Do you provide a way for users to request that their data be deleted? **Yes.** I
 | Personal info → **Name** (display name) | Yes | No | Yes | App functionality (shown to friends) |
 | Personal info → **User IDs** | Yes | No | Yes | App functionality, account management |
 | App activity → **App interactions** (scores, streaks, runs shared to the feed, kudos, progress) | Yes | No | Yes | App functionality |
+| App activity → **Other user-generated content** (decks a player chooses to share by code) | Yes | No | Yes | App functionality |
+| Device or other IDs (network address seen by the multiplayer connection service and the other player) | Yes | **Yes** (PeerJS connection service and the opponent) | Yes (only in live multiplayer) | App functionality |
 | App info and performance → **Crash logs** | Yes | No | **Yes (off by default; the player switches it on)** | Analytics (bug fixing) |
 | App info and performance → **Diagnostics** | Yes | No | **Yes (same switch)** | Analytics (bug fixing) |
 
-Everything else (location, contacts, photos, files, financial, health, messages, audio, device or other IDs, web browsing, search history): **not collected**.
-"Shared" is **No** for all: Supabase is a service provider that hosts the data for us, which Google does not count as sharing.
+Everything else (location, contacts, photos, files, financial, health, messages, audio, web browsing, search history, installed apps): **not collected**.
+"Shared" is **No** for everything except the live-multiplayer network address: Supabase is a service provider that hosts the data for us, which Google does not count as sharing.
 Crash/diagnostic data is not linked to the user (no ID is stored with it).
 
 ## Content rating (IARC questionnaire)
