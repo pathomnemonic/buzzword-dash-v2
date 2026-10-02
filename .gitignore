@@ -13,3 +13,8 @@ tools/_*.mjs
 dist2/
 dist3/
 dist2/
+
+# Signing keys and their text copies: never commit these
+*.keystore
+*.jks
+*.b64
