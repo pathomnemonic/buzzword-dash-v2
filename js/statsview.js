@@ -6,8 +6,8 @@
  * short labels and numbers are shown by default; explanations live in the section they belong to.
  *
  *   Today card      goal progress, streak, and the next study step (more steps fold under "More ways")
- *   Three tiles     due now, remembered, days to the exam (each opens its section)
- *   Sections        Reviews coming up, Memory by subject, Accuracy, Weakest concepts, Lifetime, Plan settings
+ *   Three tiles     due now, accuracy, days to the exam (each opens its section)
+ *   Sections        Reviews coming up, Subjects (level and accuracy), Weakest concepts, Lifetime, Plan settings
  */
 
 import { createElement, setText } from './dom.js';
@@ -15,7 +15,7 @@ import { storage } from './storage.js';
 import { CARDS, SUBJECTS } from './cardhub.js';
 import { customCards } from './customcards.js';
 import { buildStudyPlan } from './studyplan.js';
-import { estimateReadiness, examPace, READINESS_NOTE } from './readiness.js';
+import { masteryLevel, examPace } from './readiness.js';
 
 var _open = {};            // which sections are open (kept while the app is running)
 var _scrollTo = null;
@@ -154,7 +154,6 @@ export function renderPerformance(container, ui) {
     goal: storage.get('dailyGoal') || 20,
     studiedToday: storage.getStudiedToday()
   });
-  var est = estimateReadiness({ cardStats: storage.get('cardStats') || {}, cards: cards });
   var stats = storage.get('cardStats') || {};
   var unseen = cards.filter(function (c) { return !stats[c.id] || !stats[c.id].seen; }).length;
   var pace = examPace({ examDate: storage.get('examDate') || '', unseen: unseen, due: plan.dueCount, dailyGoal: storage.get('dailyGoal') || 20 });
@@ -202,7 +201,10 @@ export function renderPerformance(container, ui) {
   // ---------- Three numbers ----------
   var tiles = el('div', 'perf-tiles');
   tiles.appendChild(tile('🔁', String(plan.dueCount), 'Due now', function () { openSection('reviews'); }, plan.dueCount > 0 ? 'var(--accent-gold)' : null));
-  tiles.appendChild(tile('🧠', est.overall === null ? '—' : Math.round(est.overall * 100) + '%', 'Remembered', function () { openSection('memory'); }, est.overall === null ? null : pctColor(est.overall)));
+  var tcAll = storage.get('totalCorrect');
+  var twAll = storage.get('totalWrong');
+  var accAll = (tcAll + twAll) > 0 ? tcAll / (tcAll + twAll) : null;
+  tiles.appendChild(tile('🎯', accAll === null ? '—' : Math.round(accAll * 100) + '%', 'Accuracy', function () { openSection('subjects'); }, accAll === null ? null : pctColor(accAll)));
   tiles.appendChild(tile('📅', pace && pace.daysLeft >= 0 ? pace.daysLeft + 'd' : 'Set', 'To exam', function () { openSection('settings'); }));
   container.appendChild(tiles);
 
@@ -227,43 +229,28 @@ export function renderPerformance(container, ui) {
     body.appendChild(chart);
   }));
 
-  container.appendChild(section('memory', '🧠', 'Memory by subject', est.overall === null ? 'Study 20 cards' : Math.round(est.overall * 100) + '% overall', function (body) {
-    var rows = est.subjects.filter(function (s) { return s.studied > 0; });
-    if (rows.length === 0) body.appendChild(el('p', 'perf-empty', 'Study some cards and your subjects show up here.'));
-    rows.forEach(function (s) {
-      var r = el('div', 'perf-row');
-      var left = el('div', 'perf-row-name', s.subject);
-      var lv = LEVEL_STYLE[s.level] || LEVEL_STYLE.New;
-      var chip = el('span', 'perf-chip', lv.icon + ' ' + s.level);
-      chip.style.color = lv.color;
-      var head = el('div', 'perf-row-head');
-      head.appendChild(left);
-      head.appendChild(chip);
-      r.appendChild(head);
-      var m = s.memory === null ? null : s.memory;
-      r.appendChild(bar(m === null ? s.coverage : m, m === null ? 'var(--text-muted)' : pctColor(m), s.subject + (m === null ? ' not enough data yet' : ' ' + Math.round(m * 100) + '% remembered')));
-      r.appendChild(el('div', 'perf-row-sub', (m === null ? 'Not enough yet' : Math.round(m * 100) + '% remembered') + '  ·  ' + s.studied + ' of ' + s.total + ' met'));
-      body.appendChild(r);
-    });
-    body.appendChild(el('div', 'perf-note', 'ⓘ ' + READINESS_NOTE));
-  }));
-
-  container.appendChild(section('accuracy', '📈', 'Accuracy', accuracyHint(), function (body) {
+  container.appendChild(section('subjects', '📚', 'Subjects', accuracyHint(), function (body) {
     var any = false;
-    body.appendChild(el('div', 'perf-subhead', 'By subject'));
     SUBJECTS.forEach(function (s) {
       var ss = storage.getSubjectStat(s);
       var total = ss.correct + ss.wrong;
       if (total === 0) return;
       any = true;
       var a = ss.correct / total;
-      var r = el('div', 'perf-line');
-      r.appendChild(el('span', 'perf-line-name', s));
+      var lv = LEVEL_STYLE[masteryLevel(ss.correct, ss.wrong)];
+      var level = masteryLevel(ss.correct, ss.wrong);
+      var r = el('div', 'perf-row');
+      var head = el('div', 'perf-row-head');
+      head.appendChild(el('div', 'perf-row-name', s));
+      var chip = el('span', 'perf-chip', lv.icon + ' ' + level);
+      chip.style.color = lv.color;
+      head.appendChild(chip);
+      r.appendChild(head);
       r.appendChild(bar(a, pctColor(a), s + ' ' + Math.round(a * 100) + '% correct'));
-      r.appendChild(el('span', 'perf-line-val', Math.round(a * 100) + '%'));
+      r.appendChild(el('div', 'perf-row-sub', Math.round(a * 100) + '% correct  ·  ' + total + ' answered'));
       body.appendChild(r);
     });
-    if (!any) body.appendChild(el('p', 'perf-empty', 'No data yet.'));
+    if (!any) body.appendChild(el('p', 'perf-empty', 'Answer some cards and your subjects show up here.'));
     if (plan.typeAccuracy.length > 0) {
       body.appendChild(el('div', 'perf-subhead', 'By question type'));
       plan.typeAccuracy.slice(0, 5).forEach(function (t) {
@@ -274,6 +261,7 @@ export function renderPerformance(container, ui) {
         body.appendChild(r);
       });
     }
+    body.appendChild(el('div', 'perf-note', 'Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
   }));
 
   var weak = cards.map(function (c) {
@@ -294,7 +282,7 @@ export function renderPerformance(container, ui) {
       mid.appendChild(subj);
       row.appendChild(pct);
       row.appendChild(mid);
-      row.appendChild(el('span', 'perf-weak-go', '→'));
+      row.appendChild(el('span', 'perf-weak-go', 'Review'));
       row.addEventListener('click', function () {
         var ordered = [w].concat(weak.filter(function (x) { return x !== w; }));
         ui.showQuickReview(ordered.map(function (x) { return { card: x.card }; }));

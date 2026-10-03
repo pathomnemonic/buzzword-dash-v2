@@ -22,7 +22,7 @@ STUDY THAT STICKS
 • 3,000+ board-style questions across 15 subjects, for USMLE and COMLEX prep
 • After a miss, see why the answer you picked was wrong and what the right one is
 • Smart reviews: each card comes back just before you would forget it, scheduled with FSRS, the same algorithm Anki uses
-• Set your exam date for a daily pace, and see a memory estimate and mastery level for each subject
+• Set your exam date for a daily pace, and see your accuracy and mastery level for each subject
 • Flashcards, a timed exam simulator, a weekly Gauntlet and a Daily 15 for when you want to slow down and test yourself
 • Make your own cards or import decks
 

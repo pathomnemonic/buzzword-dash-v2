@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fsrs from '../../js/fsrs.js';
-import { estimateReadiness, examPace, daysUntil } from '../../js/readiness.js';
+import { examPace, daysUntil } from '../../js/readiness.js';
 import { storage } from '../../js/storage.js';
 
 const DAY = fsrs.DAY_MS;
@@ -116,24 +116,8 @@ describe('storage uses FSRS', () => {
   });
 });
 
-describe('readiness and exam pace', () => {
-  const cards = Array.from({ length: 40 }, (_, i) => ({ id: 'c' + i, subj: i < 20 ? 'Cardiology' : 'Renal' }));
+describe('exam pace', () => {
   const now = 1_700_000_000_000;
-
-  it('says nothing until enough is studied', () => {
-    expect(estimateReadiness({ cardStats: {}, cards, now }).overall).toBeNull();
-  });
-
-  it('is high right after review and falls as time passes', () => {
-    const stats = {};
-    cards.forEach((c) => { stats[c.id] = { seen: 3, correct: 3, wrong: 0, stability: 10, difficulty: 5, lastReview: now }; });
-    const fresh = estimateReadiness({ cardStats: stats, cards, now });
-    const later = estimateReadiness({ cardStats: stats, cards, now: now + 60 * DAY });
-    expect(fresh.overall).toBeGreaterThan(0.99);
-    expect(later.overall).toBeLessThan(fresh.overall);
-    expect(fresh.coverage).toBe(1);
-    expect(fresh.subjects.map((s) => s.subject).sort()).toEqual(['Cardiology', 'Renal']);
-  });
 
   it('counts days to a date and paces the new cards', () => {
     const d = new Date(now);

@@ -61,7 +61,7 @@ describe('challenge links carry their cards', () => {
 });
 
 import { firstWeekState, FIRST_WEEK_DAYS } from '../../js/firstweek.js';
-import { masteryLevel, estimateReadiness } from '../../js/readiness.js';
+import { masteryLevel } from '../../js/readiness.js';
 
 describe('first-week checklist', () => {
   const day = 86400000;
@@ -91,20 +91,15 @@ describe('first-week checklist', () => {
 });
 
 describe('mastery levels', () => {
-  it('grades a subject by how much is met and how well it is remembered', () => {
-    expect(masteryLevel(null, 0.5)).toBe('New');
-    expect(masteryLevel(0.95, 0.05)).toBe('New');
-    expect(masteryLevel(0.7, 0.4)).toBe('Learning');
-    expect(masteryLevel(0.85, 0.6)).toBe('Solid');
-    expect(masteryLevel(0.95, 0.9)).toBe('Mastered');
-  });
-
-  it('is part of the readiness estimate per subject', () => {
-    const cards = Array.from({ length: 10 }, (_, i) => ({ id: 'k' + i, subj: 'Renal' }));
-    const stats = {};
-    const now = 1e12;
-    cards.forEach((c) => { stats[c.id] = { seen: 3, correct: 3, wrong: 0, stability: 40, difficulty: 4, lastReview: now }; });
-    expect(estimateReadiness({ cardStats: stats, cards, now }).subjects[0].level).toBe('Mastered');
+  it('come from the answers given and the share that was right, so the numbers beside them explain them', () => {
+    expect(masteryLevel(3, 2)).toBe('New'); // under 10 answers
+    expect(masteryLevel(40, 40)).toBe('Learning'); // 50% right
+    expect(masteryLevel(18, 12)).toBe('Learning'); // 60% right
+    expect(masteryLevel(20, 8)).toBe('Solid'); // 28 answers, 71%
+    expect(masteryLevel(30, 10)).toBe('Solid'); // 75%
+    expect(masteryLevel(46, 4)).toBe('Mastered'); // 50 answers, 92%
+    expect(masteryLevel(40, 10)).toBe('Solid'); // 50 answers at 80%: not yet 85%
+    expect(masteryLevel(undefined, undefined)).toBe('New');
   });
 });
 

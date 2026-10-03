@@ -24,7 +24,7 @@ Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and a
 - **3,000+ board-style questions** across 15 subjects, with a quick explanation after every miss.
 - **Learn from your misses.** Spaced repetition (FSRS, the open algorithm Anki offers) brings back each card just before you would forget it.
 - **Flashcards and a timed exam simulator** for when you want to slow down and test yourself.
-- **Daily goals, streaks and a study plan** with your exam date, a memory estimate by subject and a pace for the days you have left.
+- **Daily goals, streaks and a study plan** with your exam date, a mastery level for each subject and a pace for the days you have left.
 - **A friends feed with kudos.** Share your runs with friends or keep them private, cheer each other on, and join private study groups.
 - **An exam monster that chases you** when your streak slips, and drifts away when you get back on track.
 - **Earn coins and unlock** animated characters, monsters, trails and themed tracks.

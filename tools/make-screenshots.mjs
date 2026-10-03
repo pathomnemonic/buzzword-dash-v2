@@ -190,7 +190,7 @@ await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
 await page.waitForTimeout(1500);
 await snap('goals', 'Build a daily streak', 'Short goals that keep you consistent');
 
-// Stats: the study plan with the memory estimate (some FSRS history is filled in for the picture)
+// Stats: the Performance tab (some history is filled in for the picture)
 await page.evaluate(() => {
   const st = window.__storage; const cards = window.__cards || [];
   const now = Date.now(); const DAY = 86400000;
@@ -199,12 +199,13 @@ await page.evaluate(() => {
     st.data.cards.cardStats[c.id] = { seen, correct: seen - wrong, wrong, lastSeen: now - (i % 9) * DAY, stability: 6 + (i % 30), difficulty: 4 + (i % 4), lastReview: now - (i % 9) * DAY, due: now + ((i % 12) - 3) * DAY, interval: 6 };
     st.data.cards.subjectStats[c.subj] = { correct: 40 + (i % 50), wrong: 6 + (i % 9) };
   });
+  st.data.progression.totalCorrect = 820; st.data.progression.totalWrong = 260; st.data.progression.totalEncounters = 1080;
   st.data.settings.examDate = new Date(now + 62 * DAY).toISOString().slice(0, 10);
   st.save();
 });
 await page.locator('[data-screen="screenStats"]').click();
 await page.waitForTimeout(1500);
-await snap('stats', 'Know what you remember', 'Reviews timed by FSRS, the algorithm Anki uses');
+await snap('stats', 'Know where you stand', 'Reviews timed by FSRS, the algorithm Anki uses');
 
 await page.locator('[data-screen="screenShop"]').click();
 await page.waitForTimeout(3500);

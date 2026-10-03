@@ -30,7 +30,7 @@ describe('Performance tab', () => {
     expect(c.querySelector('.perf-hero')).not.toBeNull();
     expect(c.querySelectorAll('.perf-tile')).toHaveLength(3);
     const sections = [...c.querySelectorAll('details.perf-section')];
-    expect(sections.map((s) => s.querySelector('.perf-title').textContent)).toEqual(['Reviews coming up', 'Memory by subject', 'Accuracy', 'Weakest concepts', 'Lifetime', 'Plan settings']);
+    expect(sections.map((s) => s.querySelector('.perf-title').textContent)).toEqual(['Reviews coming up', 'Subjects', 'Weakest concepts', 'Lifetime', 'Plan settings']);
     expect(sections.every((s) => !s.open)).toBe(true);
     // the page shows little text until something is opened
     expect(c.textContent.length).toBeLessThan(700);
@@ -49,26 +49,30 @@ describe('Performance tab', () => {
     expect(u.startFlashcardSession).toHaveBeenCalled();
   });
 
-  it('shows due, remembered and days to the exam as numbers, and a tile opens its section', () => {
+  it('shows due, accuracy and days to the exam as numbers, and a tile opens its section', () => {
     seed();
+    storage.data.progression.totalCorrect = 70;
+    storage.data.progression.totalWrong = 30;
     storage.set('examDate', new Date(Date.now() + 40 * DAY).toISOString().slice(0, 10));
     const c = mount();
     const tiles = [...c.querySelectorAll('.perf-tile')].map((t) => t.getAttribute('aria-label'));
     expect(tiles[0]).toMatch(/^Due now: \d+$/);
-    expect(tiles[1]).toMatch(/^Remembered: \d+%$/);
+    expect(tiles[1]).toBe('Accuracy: 70%');
     expect(tiles[2]).toMatch(/^To exam: (39|40)d$/);
     c.querySelectorAll('.perf-tile')[1].click();
-    expect(c.querySelector('#perf-memory').open).toBe(true);
-    expect(c.querySelector('#perf-memory').textContent).toMatch(/Mastered|Solid|Learning|New/);
+    expect(c.querySelector('#perf-subjects').open).toBe(true);
+    expect(c.querySelector('#perf-subjects').textContent).toMatch(/Solid|Learning|Mastered|New/);
+    expect(c.textContent).not.toMatch(/remembered|memory/i); // no memory estimate: it did not mean anything obvious
   });
 
-  it('memory rows carry a level and a bar; weak concepts open a review; settings save', () => {
+  it('subject rows show the level next to the numbers behind it, and weak concepts open a review; settings save', () => {
     seed();
     const u = ui();
     const c = mount(u);
-    c.querySelector('#perf-memory').open = true; c.querySelector('#perf-memory').dispatchEvent(new Event('toggle'));
-    expect(c.querySelectorAll('#perf-memory .perf-row').length).toBeGreaterThan(0);
-    expect(c.querySelector('#perf-memory .perf-bar')).not.toBeNull();
+    c.querySelector('#perf-subjects').open = true; c.querySelector('#perf-subjects').dispatchEvent(new Event('toggle'));
+    const row = c.querySelector('#perf-subjects .perf-row');
+    expect(row.textContent).toMatch(/\d+% correct\s+·\s+\d+ answered/);
+    expect(row.querySelector('.perf-bar')).not.toBeNull();
     c.querySelector('#perf-weak').open = true; c.querySelector('#perf-weak').dispatchEvent(new Event('toggle'));
     c.querySelector('.perf-weak').click();
     expect(u.showQuickReview).toHaveBeenCalled();

@@ -1565,7 +1565,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .perf-weak-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .perf-weak-ans { font-size: 13px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .perf-weak-subj { font-size: 10px; color: var(--text-muted); }
-.perf-weak-go { font-weight: 900; color: var(--accent-cyan); }
+.perf-weak-go { font-size: 11px; font-weight: 900; color: var(--ink); background: var(--grad-primary); border: 2px solid var(--ink); border-radius: 999px; padding: 3px 10px; box-shadow: 0 2px 0 var(--ink); }
 
 .perf-lifetime { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-top: 10px; }
 .perf-stat { text-align: center; padding: 6px 2px; background: rgba(27, 10, 64, 0.35); border-radius: 10px; }

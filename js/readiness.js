@@ -1,65 +1,26 @@
 /**
- * readiness.js — how well you remember what you have studied, and a pace to an exam date.
+ * readiness.js — mastery levels per subject, and a pace to an exam date.
  *
- * Readiness is an estimate of memory, not a prediction of an exam score. For every card the player has seen it
- * works out the chance of remembering it today (FSRS retrievability, see fsrs.js) and averages that by
- * subject. Cards never seen count as zero for "coverage" but are kept out of the memory figure, so a new
- * player is not told they are doing badly.
+ * Mastery is deliberately plain: it comes from how many cards you have answered in a subject and how often you got
+ * them right, the same numbers shown next to it, so it is always obvious where a level comes from.
  */
 
-import { currentRetrievability, DAY_MS } from './fsrs.js';
-
-export var READINESS_NOTE = 'An estimate of how well you remember what you have studied. It is not a prediction of your exam score.';
+import { DAY_MS } from './fsrs.js';
 
 /**
- * A plain level for a subject, from how much of it has been met and how well it is remembered:
- * New (barely started), Learning, Solid (most of it met and mostly remembered), Mastered.
+ * A plain level for a subject from the cards answered and the share answered correctly.
+ * New (under 10 answers), Learning, Solid (25+ answers, 70%+), Mastered (50+ answers, 85%+).
+ * @param {number} correct
+ * @param {number} wrong
+ * @returns {'New'|'Learning'|'Solid'|'Mastered'}
  */
-export function masteryLevel(memory, coverage) {
-  if (memory === null || coverage < 0.1) return 'New';
-  if (memory >= 0.9 && coverage >= 0.8) return 'Mastered';
-  if (memory >= 0.8 && coverage >= 0.5) return 'Solid';
+export function masteryLevel(correct, wrong) {
+  var total = (correct || 0) + (wrong || 0);
+  if (total < 10) return 'New';
+  var acc = correct / total;
+  if (total >= 50 && acc >= 0.85) return 'Mastered';
+  if (total >= 25 && acc >= 0.7) return 'Solid';
   return 'Learning';
-}
-
-/**
- * @param {object} input
- * @param {object} input.cardStats
- * @param {object[]} input.cards live cards (id, subj)
- * @param {number} [input.now]
- * @returns {{overall: number|null, coverage: number, studied: number, total: number,
- *   subjects: {subject: string, memory: number|null, coverage: number, studied: number, total: number}[]}}
- */
-export function estimateReadiness(input) {
-  var now = input.now || Date.now();
-  var stats = input.cardStats || {};
-  var by = {};
-  var studied = 0;
-  var sum = 0;
-  input.cards.forEach(function (c) {
-    var b = by[c.subj] || (by[c.subj] = { total: 0, studied: 0, sum: 0 });
-    b.total++;
-    var s = stats[c.id];
-    if (!s || !s.seen) return;
-    var r = s.stability > 0 ? currentRetrievability(s, now) : (s.correct >= s.wrong ? 0.7 : 0.3); // an old card not yet converted
-    b.studied++;
-    b.sum += r;
-    studied++;
-    sum += r;
-  });
-  var subjects = Object.keys(by).map(function (k) {
-    var b = by[k];
-    var coverage = b.total ? b.studied / b.total : 0;
-    var memory = b.studied >= 5 ? b.sum / b.studied : null;
-    return { subject: k, total: b.total, studied: b.studied, coverage: coverage, memory: memory, level: masteryLevel(memory, coverage) };
-  }).sort(function (a, b) { return (a.memory === null ? 2 : a.memory) - (b.memory === null ? 2 : b.memory); });
-  return {
-    overall: studied >= 20 ? sum / studied : null,
-    coverage: input.cards.length ? studied / input.cards.length : 0,
-    studied: studied,
-    total: input.cards.length,
-    subjects: subjects
-  };
 }
 
 /** Whole days from `now` to a YYYY-MM-DD date (0 for today, negative if it has passed, null if not a date). */
