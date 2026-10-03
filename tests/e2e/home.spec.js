@@ -83,6 +83,8 @@ test.describe('Home layout', () => {
     await page.locator('#bottomNav [data-screen="screenQuests"]').click();
     await expect(page.locator('#questList')).toBeVisible();
     await page.locator('#bottomNav [data-screen="screenProfile"]').click();
+    await expect(page.locator('#streakBox summary')).toBeVisible();
+    await page.locator('#streakBox summary').click();
     await expect(page.locator('#calendarGrid')).toBeVisible();
   });
 

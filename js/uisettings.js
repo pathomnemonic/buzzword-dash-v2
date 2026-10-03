@@ -821,6 +821,11 @@ export var settingsMethods = {
     var tab = rawTab === 'characters' || rawTab === 'customize' ? 'heroes' : (rawTab === 'extras' ? 'trails' : rawTab);
     if (rawTab === 'customize') this._heroColorsOpen = true;
     this._lockerTab = tab;
+    // The Locker opens as one calm screen (the display, the tabs and what you wear). Tapping a tab opens its list
+    // below, and the page then scrolls; tapping the open tab again folds it away. (Undefined counts as open, for
+    // callers that draw a particular tab directly.)
+    var listOpen = this._lockerOpen === undefined || rawTab === 'customize' ? true : !!this._lockerOpen;
+    if (rawTab === 'customize') this._lockerOpen = true;
     var shopItems = document.getElementById('shopItems');
     clearElement(shopItems);
 
@@ -831,12 +836,17 @@ export var settingsMethods = {
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
     [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters']].forEach(function (t) {
       var b = createElement('button', {
-        className: 'btn btn-sm locker-tab ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
-        attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
+        className: 'btn btn-sm locker-tab ' + (listOpen && tab === t[0] ? 'btn-primary' : 'btn-outline'),
+        attributes: { type: 'button', role: 'tab', 'aria-selected': listOpen && tab === t[0] ? 'true' : 'false', 'aria-expanded': listOpen && tab === t[0] ? 'true' : 'false' }
       });
       b.addEventListener('click', function () {
-        self._lockerTab = t[0];
+        if (listOpen && self._lockerTab === t[0]) self._lockerOpen = false;
+        else { self._lockerTab = t[0]; self._lockerOpen = true; }
         self.renderShop();
+        if (self._lockerOpen) {
+          var bar = document.querySelector('#shopItems .locker-tabs');
+          if (bar && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
+        }
         // changing tab sets the display to what suits it: your hero with the trail you wear, the monster you have
         // equipped, or a map
         self._syncLockerPreview();
@@ -847,6 +857,12 @@ export var settingsMethods = {
       tabBar.appendChild(b);
     });
     shopItems.appendChild(tabBar);
+
+    if (!listOpen) {
+      // folded: just the hero you wear (with its colors), so everything fits on one screen
+      shopItems.appendChild(this._renderHeroCard(avatarOf, kindOf, renderGroup));
+      return;
+    }
 
     if (fresh.length) {
       var why = createElement('div', { className: 'locker-why', text: 'You can now afford ' + (fresh.length === 1 ? 'a new item' : fresh.length + ' new items') + '! Look for the red dots.' });

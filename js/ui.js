@@ -337,6 +337,7 @@ class UI {
     if (screenId === 'screenShop') {
       // What newly became affordable since the last visit wears a red dot until the player leaves
       this._lockerFresh = newlyAffordable(LOCKER_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
+      this._lockerOpen = false; // each visit starts folded: the display, the tabs and what you wear
       this.renderShop();
       this.startPreview();
       this._syncLockerPreview();

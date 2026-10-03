@@ -1811,3 +1811,53 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .review-full-list .review-card { margin: 0 0 10px; padding: 12px 14px; position: relative; }
 .review-full-list .review-card h4 { font-size: 14px; margin: 0 0 6px; padding-right: 26px; }
 .review-full-list .review-card p { font-size: 13px; margin: 5px 0 0; }
+
+/* ---------- Profile: one calm screen. Everything optional is a folded row. ---------- */
+#screenProfile h2 { margin-bottom: 4px; }
+#profileContent { text-align: left; }
+.profile-header { padding: 6px 0 4px; text-align: left; }
+.profile-top { display: flex; align-items: center; gap: 12px; }
+.profile-top .profile-avatar { width: 60px; height: 60px; font-size: 28px; margin: 0; flex: none; border-width: 3px; }
+.profile-top .profile-name-input { flex: 1; width: auto; max-width: none; min-width: 0; text-align: left; font-size: 18px; min-height: 44px; }
+.profile-pic-box { margin-top: 2px; }
+.profile-pic-box > summary { min-height: 40px; justify-content: flex-start; font-size: 13px; }
+.profile-stats-grid { gap: 6px; margin: 8px 0; }
+.profile-stat { padding: 6px 2px; }
+.profile-stat .val { font-size: 16px; }
+.profile-stat .label { font-size: 8px; }
+.profile-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 10px; }
+.profile-vis { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; }
+.profile-actions .btn { padding: 8px 18px; }
+.profile-fold { background: var(--grad-card); border: var(--border-card); border-radius: var(--radius-md); box-shadow: var(--shadow-card); margin-bottom: 8px; overflow: hidden; }
+.profile-fold-sum { display: flex; align-items: center; gap: 8px; padding: 6px 14px; min-height: 44px; cursor: pointer; list-style: none; font-weight: 900; font-size: 14px; }
+.profile-fold-sum::-webkit-details-marker { display: none; }
+.profile-fold-sum::after { content: '▾'; margin-left: auto; font-size: 13px; color: var(--text-muted); transition: transform .15s; }
+.profile-fold[open] > .profile-fold-sum::after { transform: rotate(180deg); }
+.profile-fold-title { flex: none; }
+.profile-fold-state { font-size: 12px; font-weight: 800; color: var(--accent-gold); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-fold-state.good { color: var(--accent-green); }
+.profile-fold-sum:focus-visible { outline: 3px solid var(--accent-cyan); outline-offset: -3px; }
+.profile-fold > :not(summary) { margin-left: 12px; margin-right: 12px; }
+.profile-fold > :last-child { margin-bottom: 12px; }
+.profile-fold .streak-calendar { margin-top: 0; }
+.profile-fold.profile-badges { margin: 0 0 8px; }
+.profile-fold .setting-sublabel { text-align: left; }
+@media (max-height: 700px) {
+  #screenProfile .screen-scroll { padding-top: 8px; }
+  #screenProfile h2 { font-size: 22px; margin-bottom: 0; }
+  .profile-top .profile-avatar { width: 52px; height: 52px; font-size: 24px; }
+  .profile-stats-grid { margin: 6px 0; }
+  .profile-stat { padding: 4px 2px; }
+  .profile-actions { margin: 4px 0 8px; }
+  .profile-fold-sum { min-height: 40px; padding-top: 3px; padding-bottom: 3px; }
+  .profile-fold { margin-bottom: 6px; }
+}
+
+/* ---------- Locker: folded, it is the display, the tabs and the hero you wear, on one screen ---------- */
+#screenShop h2 { margin-bottom: 2px; }
+.locker-tabs .locker-tab[aria-expanded="true"]::after { content: '▴'; font-size: 9px; line-height: 1; }
+.locker-tabs .locker-tab[aria-expanded="false"]::after { content: '▾'; font-size: 9px; line-height: 1; opacity: .7; }
+@media (max-height: 700px) {
+  #screenShop .screen-scroll > .muted { margin: 2px 0; font-size: 11px; }
+  .hero-card { margin: 6px 0 2px; padding: 8px 10px; }
+}

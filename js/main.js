@@ -36,7 +36,7 @@ import { isTutorialOpen, requestCloseTutorial } from './tutorial.js';
 import { startTour } from './tour.js';
 import { startGameTutorial, isGameTutorialOpen, requestCloseGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
 import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
-import { attachPromptCard, attachAccountBanner } from './promptui.js';
+import { attachPromptCard } from './promptui.js';
 import { initTabSwipe } from './tabswipe.js';
 import { beatsBest, recordBest } from './scorebest.js';
 import { getDashControl, attachDashPrompt } from './dashcontrol.js';
@@ -1105,12 +1105,14 @@ function fillProfileAccount() {
     toast: function (msg) { ui._showToast(msg); },
     rerender: function () { fillProfileAccount(); if (profileCorner) profileCorner.refresh(); }
   });
-  attachAccountBanner({
-    container: document.getElementById('profileContent'),
-    signedIn: !!(st && st.email && !st.anonymous),
-    accountsAvailable: !!(st && st.configured),
-    openAccount: function () { if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  });
+  // The one-line state beside the folded Account row
+  var stateEl = document.getElementById('profileAccountState');
+  if (stateEl) {
+    var signedIn = !!(st && st.email && !st.anonymous);
+    stateEl.textContent = !st ? '' : (!st.configured ? 'This device only' : (signedIn ? 'Signed in' : 'Guest: tap to save your progress'));
+    stateEl.classList.toggle('good', signedIn);
+  }
+
 }
 
 function init() {
@@ -1199,7 +1201,7 @@ function init() {
     getLeaderboard: function () { return leaderboardModule ? leaderboardModule.leaderboard : null; },
     getCloudSync: function () { return cloudSync; },
     storage: storage,
-    openProfileScreen: function () { ui.show('screenProfile'); },
+    openProfileScreen: function () { ui.show('screenProfile'); var box = document.getElementById('profileAccountBox'); if (box) box.open = true; },
     onAuthChange: function () { if (document.getElementById('screenProfile').classList.contains('active')) fillProfileAccount(); }
   });
 

@@ -105,7 +105,7 @@ function renderGuest(body, deps, status) {
 
   var tabs = createElement('div');
   tabs.style.cssText = 'display:flex;gap:6px;margin:8px 0';
-  [['signup', 'Create account'], ['signin', 'Sign in']].forEach(function (t) {
+  [['signup', 'I am new'], ['signin', 'I have an account']].forEach(function (t) {
     var b = createElement('button', {
       className: 'btn btn-sm ' + (_mode === t[0] || (_mode === 'reset' && t[0] === 'signin') ? 'btn-primary' : 'btn-outline'),
       text: t[1],

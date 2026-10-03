@@ -52,16 +52,18 @@ export var profileMethods = {
 
     // Avatar display
     var avatarSection = createElement('div', { className: 'profile-header' });
+    var topRow = createElement('div', { className: 'profile-top' });
     var avatarEl = createElement('div', { className: 'profile-avatar' });
     fillProfilePicture(avatarEl, profilePicture);
-    avatarSection.appendChild(avatarEl);
+    topRow.appendChild(avatarEl);
 
     // Name input
     var nameInput = createElement('input', {
       className: 'profile-name-input',
       attributes: { type: 'text', placeholder: 'Enter display name', 'aria-label': 'Display name', value: profileName, maxlength: '30' }
     });
-    avatarSection.appendChild(nameInput);
+    topRow.appendChild(nameInput);
+    avatarSection.appendChild(topRow);
     // Profile picture: any symbol from the groups below
     var picBox = createElement('details', { className: 'profile-pic-box' });
     picBox.appendChild(createElement('summary', { text: '✏️ Change symbol' }));
@@ -129,8 +131,14 @@ export var profileMethods = {
     container.appendChild(avatarSection);
 
     // Account: sign up, sign in, sign out (filled in by main.js once the account service is ready)
+    // (one folded row: the account form only opens when the player wants it, so the page stays one calm screen)
+    var accountBox = createElement('details', { className: 'profile-fold profile-account-box', attributes: { id: 'profileAccountBox' } });
+    var accountSum = createElement('summary', { className: 'profile-fold-sum' });
+    accountSum.appendChild(createElement('span', { className: 'profile-fold-title', text: '☁ Account' }));
+    accountSum.appendChild(createElement('span', { className: 'profile-fold-state', attributes: { id: 'profileAccountState' }, text: 'Guest' }));
+    accountBox.appendChild(accountSum);
     var accountSection = createElement('div', { className: 'profile-account', attributes: { id: 'profileAccount' } });
-    container.appendChild(accountSection);
+    accountBox.appendChild(accountSection);
 
     // Stats grid
     var statsGrid = createElement('div', { className: 'profile-stats-grid' });
@@ -149,44 +157,54 @@ export var profileMethods = {
     });
     container.appendChild(statsGrid);
 
-    // Visibility toggle
-    var visRow = createElement('div', { className: 'setting-row' });
-    visRow.style.marginTop = '14px';
-    visRow.appendChild(createElement('div', { text: '👁 Profile Visible' }));
-    visRow.firstChild.style.fontSize = '13px';
-    var visToggle = createElement('div', { className: 'toggle' + (profileVisible ? ' on' : '') });
-    visToggle.addEventListener('click', function () {
+    // Visibility toggle and Save, on one line
+    var actions = createElement('div', { className: 'profile-actions' });
+    var visRow = createElement('div', { className: 'profile-vis' });
+    visRow.appendChild(createElement('span', { text: '👁 Visible to friends' }));
+    var visToggle = createElement('div', { className: 'toggle' + (profileVisible ? ' on' : ''), attributes: { role: 'switch', tabindex: '0', 'aria-label': 'Profile visible to friends', 'aria-checked': profileVisible ? 'true' : 'false' } });
+    function flipVisible() {
       var newVal = !storage.get('profileVisible');
       storage.set('profileVisible', newVal);
       visToggle.classList.toggle('on');
-    });
+      visToggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
+    }
+    visToggle.addEventListener('click', flipVisible);
+    visToggle.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipVisible(); } });
     visRow.appendChild(visToggle);
-    container.appendChild(visRow);
-
-    // Save button
-    var saveBtn = createElement('button', { className: 'btn btn-primary btn-block', text: '💾 Save Profile' });
-    saveBtn.style.margin = '10px 0 14px';
+    actions.appendChild(visRow);
+    var saveBtn = createElement('button', { className: 'btn btn-primary', text: '💾 Save', attributes: { type: 'button', 'aria-label': 'Save profile' } });
     saveBtn.addEventListener('click', function () {
       var name = nameInput.value.trim();
       storage.set('profileName', name);
       self._showToast('Profile saved!');
     });
-    container.appendChild(saveBtn);
+    actions.appendChild(saveBtn);
+    container.appendChild(actions);
+    container.appendChild(accountBox);
 
     // Badges: every badge, earned or not. Earned ones can be pinned to the profile (up to 6); the ones
     // earned since the profile was last open wear a red dot until the player leaves this screen.
     // Study streak calendar, just above the badges
+    var calendarBox = createElement('details', { className: 'profile-fold', attributes: { id: 'streakBox' } });
+    var calSum = createElement('summary', { className: 'profile-fold-sum' });
+    calSum.appendChild(createElement('span', { className: 'profile-fold-title', text: '📅 Study streak' }));
+    calSum.appendChild(createElement('span', { className: 'profile-fold-state', text: '🔥 ' + dailyStreak + (dailyStreak === 1 ? ' day' : ' days') }));
+    calendarBox.appendChild(calSum);
     var calendar = createElement('div', { className: 'streak-calendar', attributes: { id: 'streakCalendar' } });
-    calendar.appendChild(createElement('h4', { text: '📅 Study Streak' }));
     var dayLabels = createElement('div', { className: 'calendar-day-labels', attributes: { 'aria-hidden': 'true' } });
     ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function (d) { dayLabels.appendChild(createElement('span', { text: d })); });
     calendar.appendChild(dayLabels);
     calendar.appendChild(createElement('div', { className: 'calendar-grid', attributes: { id: 'calendarGrid', role: 'img', 'aria-label': 'Study streak calendar' } }));
-    container.appendChild(calendar);
+    calendarBox.appendChild(calendar);
+    container.appendChild(calendarBox);
 
     var newBadges = storage.getNewAchievementIds();
-    var badgeSection = createElement('div', { className: 'profile-badges', attributes: { id: 'profileBadges' } });
-    var heading = createElement('h4', { text: '🏆 Badges (' + achievements.length + '/' + ACHIEVEMENTS.length + ')' });
+    var badgeSection = createElement('details', { className: 'profile-fold profile-badges', attributes: { id: 'profileBadges' } });
+    // it opens by itself when there is a new badge to see; otherwise it stays folded so the page fits on one screen
+    if (newBadges.length) badgeSection.open = true;
+    var heading = createElement('summary', { className: 'profile-fold-sum' });
+    heading.appendChild(createElement('span', { className: 'profile-fold-title', text: '🏆 Badges (' + achievements.length + '/' + ACHIEVEMENTS.length + ')' }));
+    if (newBadges.length) heading.appendChild(createElement('span', { className: 'nav-dot', attributes: { 'aria-label': 'New badge' } }));
     badgeSection.appendChild(heading);
     badgeSection.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Tap a badge to read it. Earned badges can be pinned to your profile (up to 6).' }));
     // The badge you tapped: its name and what it takes
