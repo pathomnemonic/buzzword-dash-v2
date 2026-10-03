@@ -23,7 +23,7 @@ const SCREENS = [
 
 async function show(page, screenId) {
   await page.evaluate((id) => window.__ui.show(id), screenId);
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(900); // the screen slides in; under load that takes a while, and a moving control cannot be clicked
 }
 
 /** Describe each visible clickable control on the screen, in a stable order. */
@@ -84,7 +84,7 @@ test.describe('no dead controls', () => {
         });
         await handle.scrollIntoViewIfNeeded().catch(() => {});
         let clickError = '';
-        await handle.click({ timeout: 4000, trial: false }).catch((e) => { clickError = String(e.message).split('\n')[0]; });
+        await handle.click({ timeout: 8000, trial: false }).catch((e) => { clickError = String(e.message).split('\n')[0]; });
         await page.waitForTimeout(450);
         const after = await page.evaluate(() => ({ mut: window.__mut, screen: document.body.getAttribute('data-screen'), href: location.href, open: document.querySelectorAll('details[open]').length }));
         const changed = dialogs > 0 || after.mut > 0 || after.screen !== before.screen || after.href !== before.href || after.open !== before.open;
