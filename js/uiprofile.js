@@ -8,162 +8,19 @@
 import { ICON_GROUPS, iconFor, iconId, heroPictureId, parseHeroPicture, fillProfilePicture, portraitUrl } from './profileicons.js';
 import { CHARACTER_MODELS } from './game/modelcatalog.js';
 import { setText, createElement, clearElement } from './dom.js';
-import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
-import { customCards } from './customcards.js';
-import { estimateReadiness } from './readiness.js';
+import { renderPerformance } from './statsview.js';
 import { QUESTS, ACHIEVEMENTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
 export var profileMethods = {
 
   renderStats() {
-    var tc = storage.get('totalCorrect');
-    var tw = storage.get('totalWrong');
-    var te = storage.get('totalEncounters');
-    var acc = (tc + tw) > 0 ? Math.round(tc / (tc + tw) * 100) : 0;
     var container = document.getElementById('statsContent');
     if (!container) return;
     clearElement(container);
-
-    this._renderStudyPlan(container);
-
-    // Summary stats
-    var summaryRow = createElement('div', { className: 'post-stats' });
-    [
-      { val: te, label: 'Cards' },
-      { val: tc, label: 'Correct', color: 'var(--accent-green)' },
-      { val: tw, label: 'Wrong', color: 'var(--accent-red)' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      var valEl = createElement('div', { className: 'val', text: String(s.val) });
-      if (s.color) valEl.style.color = s.color;
-      stat.appendChild(valEl);
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      summaryRow.appendChild(stat);
-    });
-    container.appendChild(summaryRow);
-
-    var row2 = createElement('div', { className: 'post-stats' });
-    row2.style.gridTemplateColumns = '1fr 1fr';
-    [
-      { val: acc + '%', label: 'Accuracy' },
-      { val: String(storage.get('bestScore')), label: 'Best Score' }
-    ].forEach(function (s) {
-      var stat = createElement('div', { className: 'post-stat' });
-      stat.appendChild(createElement('div', { className: 'val', text: s.val }));
-      stat.appendChild(createElement('div', { className: 'label', text: s.label }));
-      row2.appendChild(stat);
-    });
-    container.appendChild(row2);
-
-    // By Subject
-    var subHeading = createElement('h3', { text: '📊 By Subject' });
-    subHeading.style.cssText = 'margin:14px 0 6px;font-size:14px';
-    container.appendChild(subHeading);
-
-    var subjectBox = createElement('div');
-    subjectBox.style.cssText = 'background:var(--bg-card);border-radius:10px;padding:10px';
-    var hasSubjectData = false;
-
-    // Mastery level per subject (New, Learning, Solid, Mastered) from how much is met and how well it is remembered
-    var live = CARDS.concat(customCards.getAll()).filter(function (c) { return (storage.get('disabledCards') || []).indexOf(c.id) < 0; });
-    var levels = {};
-    estimateReadiness({ cardStats: storage.get('cardStats') || {}, cards: live }).subjects.forEach(function (r) { levels[r.subject] = r.level; });
-
-    SUBJECTS.forEach(function (s) {
-      var ss = storage.getSubjectStat(s);
-      var total = ss.correct + ss.wrong;
-      if (total === 0) return;
-      hasSubjectData = true;
-      var a = Math.round(ss.correct / total * 100);
-      var color = a >= 70 ? 'var(--accent-green)' : 'var(--accent-red)';
-      var mastered = total >= 50 && a >= 80;
-
-      var row = createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)';
-
-      var nameEl = createElement('span', { text: s + (mastered ? ' ⭐' : '') + (levels[s] ? '  ·  ' + levels[s] : '') });
-      nameEl.style.fontSize = '12px';
-      row.appendChild(nameEl);
-
-      var accEl = createElement('span', { text: a + '% (' + total + ')' });
-      accEl.style.cssText = 'font-size:12px;font-weight:700;color:' + color;
-      row.appendChild(accEl);
-
-      subjectBox.appendChild(row);
-    });
-
-    if (!hasSubjectData) {
-      subjectBox.appendChild(createElement('p', { text: 'No data yet.' }));
-      subjectBox.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted)';
-    }
-    container.appendChild(subjectBox);
-
-    // Weakest Concepts
-    var weakHeading = createElement('h3', { text: '🎯 Weakest Concepts' });
-    weakHeading.style.cssText = 'margin:14px 0 6px;font-size:14px';
-    container.appendChild(weakHeading);
-
-    var allCards = CARDS.concat(customCards.getAll());
-    var weakCards = allCards.map(function (c) {
-      var s = storage.getCardStat(c.id);
-      if (s.seen < 2) return null;
-      return { card: c, accuracy: s.correct / s.seen, seen: s.seen };
-    }).filter(function (x) { return x !== null; }).sort(function (a, b) { return a.accuracy - b.accuracy; }).slice(0, 5);
-
-    var weakBox = createElement('div');
-    weakBox.style.cssText = 'background:var(--bg-card);border-radius:10px;padding:10px';
-
-    if (weakCards.length > 0) {
-      weakCards.forEach(function (w) {
-        var row = createElement('div', { className: 'weak-concept-item' });
-
-        var info = createElement('span');
-        var accSpan = createElement('span', { text: Math.round(w.accuracy * 100) + '%' });
-        accSpan.style.cssText = 'color:var(--accent-red);font-weight:700';
-        info.appendChild(accSpan);
-
-        // Use setText for the answer (untrusted custom card content)
-        var ansText = document.createTextNode(' — ');
-        info.appendChild(ansText);
-        var ansSpan = createElement('span');
-        setText(ansSpan, w.card.ans);
-        info.appendChild(ansSpan);
-
-        var subjSpan = createElement('span');
-        setText(subjSpan, ' (' + w.card.subj + ')');
-        subjSpan.style.color = 'var(--text-muted)';
-        info.appendChild(subjSpan);
-
-        info.style.fontSize = '11px';
-        row.appendChild(info);
-
-        var arrow = createElement('span', { className: 'review-arrow', text: '→' });
-        row.appendChild(arrow);
-
-        // Tapping a weak concept opens a quick review of it (then the next weakest ones)
-        row.setAttribute('role', 'button');
-        row.setAttribute('tabindex', '0');
-        row.setAttribute('aria-label', 'Review ' + w.card.ans);
-        row.style.cursor = 'pointer';
-        var openReview = function () {
-          var ordered = [w].concat(weakCards.filter(function (x) { return x !== w; }));
-          self.showQuickReview(ordered.map(function (x) { return { card: x.card }; }));
-        };
-        row.addEventListener('click', openReview);
-        row.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReview(); }
-        });
-
-        weakBox.appendChild(row);
-      });
-    } else {
-      weakBox.appendChild(createElement('p', { text: 'Play more to see weak areas.' }));
-      weakBox.lastChild.style.cssText = 'font-size:11px;color:var(--text-muted)';
-    }
-    container.appendChild(weakBox);
+    renderPerformance(container, this);
   },
 
   /** Keep the picture chooser open after it redraws (so picking a hero or switching face/whole hero does not close it). */
