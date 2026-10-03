@@ -5,7 +5,7 @@
 
 import { storage } from './storage.js';
 import { audio } from './audio.js';
-import { levelFromXp, xpForRun, nearMissLine, dailyTrack } from './progress.js';
+import { levelFromXp, xpForRun, nearMissLine, dailyTrack, rankForLevel } from './progress.js';
 
 function el(tag, className, text) {
   var e = document.createElement(tag);
@@ -24,14 +24,15 @@ export function renderLevelChip(box) {
   if (!box) return;
   var lv = levelFromXp(storage.get('xp') || 0);
   box.textContent = '';
-  box.appendChild(el('span', 'lv-badge', 'LV ' + lv.level));
+  var rank = rankForLevel(lv.level);
+  box.appendChild(el('span', 'lv-badge' + (rank.stars > 0 ? ' prestige' : ''), 'LV ' + lv.level));
   var bar = el('span', 'lv-bar');
   var fill = el('span');
   fill.style.width = Math.round(lv.fraction * 100) + '%';
   bar.appendChild(fill);
   box.appendChild(bar);
-  box.title = lv.into + ' / ' + lv.needed + ' XP to level ' + (lv.level + 1);
-  box.setAttribute('aria-label', 'Level ' + lv.level + ', ' + lv.into + ' of ' + lv.needed + ' XP to the next level');
+  box.title = rank.icon + ' ' + rank.label + ': ' + lv.into + ' / ' + lv.needed + ' XP to level ' + (lv.level + 1);
+  box.setAttribute('aria-label', 'Level ' + lv.level + ', ' + rank.label + ', ' + lv.into + ' of ' + lv.needed + ' XP to the next level');
 }
 
 // ---------- after a run ----------
@@ -57,7 +58,10 @@ export function buildRunRewardCard(info, score, best, newBest) {
   var head = el('div', 'xp-head');
   head.appendChild(el('span', 'xp-gain', '+' + info.gain + ' XP'));
   var leveled = info.levelAfter > info.levelBefore;
-  head.appendChild(el('span', 'xp-level', leveled ? 'LEVEL UP! → ' + info.levelAfter : 'Level ' + info.levelAfter));
+  var rankBefore = rankForLevel(info.levelBefore);
+  var rankAfter = rankForLevel(info.levelAfter);
+  var promoted = leveled && rankAfter.label !== rankBefore.label;
+  head.appendChild(el('span', 'xp-level', promoted ? 'PROMOTED! → ' + rankAfter.icon + ' ' + rankAfter.label : (leveled ? 'LEVEL UP! → ' + info.levelAfter : 'Level ' + info.levelAfter + ' · ' + rankAfter.label)));
   card.appendChild(head);
 
   var bar = el('div', 'xp-bar');
@@ -78,7 +82,7 @@ export function buildRunRewardCard(info, score, best, newBest) {
       fill.style.transition = '';
       fill.style.width = Math.round(to.fraction * 100) + '%';
     }, 1100);
-    setTimeout(function () { audio.play('level_up'); celebrate(); }, 700);
+    setTimeout(function () { audio.play(promoted ? 'promotion' : 'level_up'); celebrate(); }, 700);
     card.classList.add('xp-levelup');
   }
 

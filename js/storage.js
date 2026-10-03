@@ -128,6 +128,7 @@ var DEFAULTS = {
     tournamentTop10Weeks: [],
     lastCompletedDailyDate: null,
     lastLoginDate: null,
+    bonusCoins: { date: '', coins: 0 },   // coins paid today for right answers in the subject of the day (see progress.js)
     loginStreak: 0,
     xp: 0,
     // One-time migrations: these must be listed here or they are forgotten on the next load

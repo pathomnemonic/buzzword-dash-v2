@@ -239,7 +239,17 @@ export function renderPerformance(container, ui) {
     body.appendChild(chart);
   }));
 
-  secs.appendChild(section('subjects', '📚', 'Subjects', accuracyHint(), function (body) {
+  // A card counts as mastered once it has been answered at least 3 times and is right 80% of the time or more
+  var masteredBy = {};
+  var totalBy = {};
+  var cardStatsAll = storage.get('cardStats') || {};
+  cards.forEach(function (c) {
+    totalBy[c.subj] = (totalBy[c.subj] || 0) + 1;
+    var st = cardStatsAll[c.id];
+    if (st && st.seen >= 3 && st.correct / st.seen >= 0.8) masteredBy[c.subj] = (masteredBy[c.subj] || 0) + 1;
+  });
+  var masteredTotal = Object.keys(masteredBy).reduce(function (n, k) { return n + masteredBy[k]; }, 0);
+  secs.appendChild(section('subjects', '📚', 'Subjects', masteredTotal ? masteredTotal + ' mastered' : accuracyHint(), function (body) {
     var any = false;
     SUBJECTS.forEach(function (s) {
       var ss = storage.getSubjectStat(s);
@@ -256,8 +266,11 @@ export function renderPerformance(container, ui) {
       chip.style.color = lv.color;
       head.appendChild(chip);
       r.appendChild(head);
-      r.appendChild(bar(a, pctColor(a), s + ' ' + Math.round(a * 100) + '% correct'));
-      r.appendChild(el('div', 'perf-row-sub', Math.round(a * 100) + '% correct  ·  ' + total + ' answered'));
+      // the bar is how much of the subject you have mastered (cards, not answers), so it fills as you learn
+      var m = masteredBy[s] || 0;
+      var all = totalBy[s] || 0;
+      r.appendChild(bar(all ? m / all : 0, 'var(--accent-green)', s + ': ' + m + ' of ' + all + ' cards mastered'));
+      r.appendChild(el('div', 'perf-row-sub', m + ' of ' + all + ' cards mastered  ·  ' + Math.round(a * 100) + '% correct  ·  ' + total + ' answered'));
       body.appendChild(r);
     });
     if (!any) body.appendChild(el('p', 'perf-empty', 'Answer some cards and your subjects show up here.'));
@@ -271,7 +284,7 @@ export function renderPerformance(container, ui) {
         body.appendChild(r);
       });
     }
-    body.appendChild(el('div', 'perf-note', 'Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
+    body.appendChild(el('div', 'perf-note', 'A card is mastered after 3+ answers at 80% or better. Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
   }));
 
   var weak = cards.map(function (c) {

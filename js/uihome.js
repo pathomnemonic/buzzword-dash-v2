@@ -10,6 +10,9 @@ import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { firstWeekState } from './firstweek.js';
 import { getTodayPlan, stepButtons, shortLabel } from './statsview.js';
+import { bonusSubjectFor, BONUS_COINS_PER_CORRECT, BONUS_COINS_CAP } from './progress.js';
+import { SUBJECTS } from './cardmeta.js';
+import { localDateKey } from './uihelpers.js';
 
 export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
 
@@ -101,9 +104,9 @@ export var homeMethods = {
     var done = storage.getStudiedToday();
     var pct = Math.min(100, Math.round(done / goal * 100));
     var streak = storage.getStreakStatus();
-    var text = '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') + (streak.streak > 0 ? '  ·  🔥 ' + streak.streak : '');
+    // One short line that fits half the screen: today's count, the streak, and the shield that protects it
+    var text = '🎯 ' + done + '/' + goal + (done >= goal ? ' ✅' : '') + (streak.streak > 0 ? '  🔥 ' + streak.streak : '') + (streak.shields > 0 ? '  🛡 ' + streak.shields : '');
     var due = storage.getDueCount();
-    if (due > 0) text += '  ·  🔁 ' + due + ' due';
     el.appendChild(createElement('div', { text: text }));
     var bar = createElement('div', {
       className: 'study-goal-bar',
@@ -113,7 +116,10 @@ export var homeMethods = {
     fill.style.width = pct + '%';
     bar.appendChild(fill);
     el.appendChild(bar);
-    el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards. Open details.');
+    el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards.' + (streak.streak > 0 ? ' Streak ' + streak.streak + ' days.' : '') + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
+    // the line under the title: today's bonus subject
+    var tag = document.querySelector('.home-tagline');
+    if (tag) tag.textContent = '⭐ Bonus today: ' + bonusSubjectFor(localDateKey(new Date()), SUBJECTS);
   },
 
   /** The first-week checklist: seven small steps, each with a button that takes you there. */
@@ -176,7 +182,9 @@ export var homeMethods = {
     }
     this._renderFirstWeek(el);
     var streak = storage.getStreakStatus();
-    line('🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  ·  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : ''));
+    line('🔥 Daily streak: ' + streak.streak);
+    line('🛡 Streak shields: ' + streak.shields + ' of 3. A shield covers one missed day so your streak survives; you earn one for every 7 days in a row.');
+    line('⭐ Bonus subject today: ' + bonusSubjectFor(localDateKey(new Date()), SUBJECTS) + '. Each right answer in it pays ' + BONUS_COINS_PER_CORRECT + ' 🪙 extra, up to ' + BONUS_COINS_CAP + ' a day.');
     var week = storage.getWeeklyProgress();
     line('📆 This week: ' + week.daysMet + '/' + week.target + ' goal days' + (week.claimed ? ' ✅' : ''));
     if (week.daysMet >= week.target && !week.claimed) {

@@ -26,7 +26,9 @@ import { ui } from './ui.js';
 import { storage, STORAGE_DEFAULTS } from './storage.js';
 import { checkDataSanity } from './sanity.js';
 import { audio, MENU_THEME } from './audio.js';
-import { CARDS, CARD_BY_ID, loadCards, areCardsReady } from './cardhub.js';
+import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady } from './cardhub.js';
+import { bonusSubjectFor, bonusCoinsFor, nextGoalLine } from './progress.js';
+import { localDateKey } from './uihelpers.js';
 import { customCards } from './customcards.js';
 import { createDailyOrder } from './game/gates.js';
 import { uniqueByAnswer } from './cardleaks.js';
@@ -80,6 +82,7 @@ var multiplayerResultShown = false;
 var runStartTime = 0;
 var currentRunId = null;
 var lastRunReward = null;
+var lastRunBonus = null;   // { subject, coins, got } for the results screen
 var lastRunNewBest = false;
 var GAUNTLET_REWARD = 150;
 var GAUNTLET_LIVES = 1;
@@ -684,6 +687,32 @@ var MODE_LABELS = {
 
 /** Post-run: render the result as an image to share or save. */
 /** The XP card at the top of the results screen. */
+/** Under the review buttons: the subject-of-the-day bonus, if it paid, and the one small goal that is closest. */
+function attachNextGoal() {
+  var content = document.getElementById('postRunContent');
+  var bonus = lastRunBonus;
+  lastRunBonus = null;
+  if (!content) return;
+  var lines = [];
+  if (bonus && bonus.coins > 0) lines.push('⭐ ' + bonus.subject + ' day: +' + bonus.coins + ' 🪙');
+  var owned = storage.get('ownedItems') || [];
+  var wanted = LOCKER_ITEMS.filter(function (i) { return i.price > 0 && !i.hidden && !i.gatedBy && owned.indexOf(i.id) < 0; })
+    .sort(function (a, b) { return a.price - b.price; })[0];
+  var goal = nextGoalLine({
+    score: game.score, best: storage.get('bestScore') || 0, xp: storage.get('xp') || 0, coins: storage.get('coins') || 0,
+    dailyDone: storage.getStudiedToday(), dailyGoal: storage.get('dailyGoal') || 20,
+    cheapestWanted: wanted ? { name: wanted.name, price: wanted.price } : null
+  });
+  if (goal) lines.push(goal);
+  if (!lines.length) return;
+  var box = document.createElement('div');
+  box.className = 'post-next-goal';
+  box.setAttribute('role', 'status');
+  lines.forEach(function (t) { var d = document.createElement('div'); d.textContent = t; box.appendChild(d); });
+  var actions = content.querySelector('.post-actions');
+  content.insertBefore(box, actions);
+}
+
 function attachRewardCard() {
   var content = document.getElementById('postRunContent');
   var reward = lastRunReward;
@@ -693,6 +722,7 @@ function attachRewardCard() {
   var card = buildRunRewardCard(reward.info, reward.score, reward.best, reward.newBest);
   var postHeader = content.querySelector('.post-header');
   if (card) content.insertBefore(card, postHeader ? postHeader.nextSibling : null);
+  if (reward.newBest) audio.haptic('best');
   renderLevelChip(document.getElementById('homeLevel'));
   updateLockerDot();
 }
@@ -1003,6 +1033,22 @@ function finalizeRun(gameRef) {
   lastRunReward = result.applied
     ? { info: awardRunXp(summary), score: summary.score, best: storage.get('bestScore'), newBest: !!result.newBestScore }
     : null;
+
+  // The subject of the day pays a few coins for each right answer in it (up to a daily cap)
+  lastRunBonus = null;
+  if (result.applied && summary.correct > 0) {
+    var todayKey = localDateKey(new Date());
+    var bonusSubject = bonusSubjectFor(todayKey, SUBJECTS);
+    var got = gameRef.runCards.filter(function (r) { return r.ok && r.card && r.card.subj === bonusSubject; }).length;
+    var paid = storage.get('bonusCoins') || {};
+    var already = paid.date === todayKey ? (paid.coins || 0) : 0;
+    var bonusCoins = bonusCoinsFor(got, already);
+    if (bonusCoins > 0) {
+      storage.addCoins(bonusCoins);
+      storage.set('bonusCoins', { date: todayKey, coins: already + bonusCoins });
+    }
+    lastRunBonus = { subject: bonusSubject, coins: bonusCoins, got: got };
+  }
 
   if (result.applied && summary.wrong === 0 && summary.correct >= 20 && !storage.ownsItem('avatar_golden')) {
     var owned = storage.get('ownedItems').slice();
@@ -1323,6 +1369,7 @@ function init() {
 
     ui.showPostRun(game);
     attachRewardCard();
+    attachNextGoal();
     audio.setMusicIntensity(0.5, 0);
     attachShareImage();
     attachTipPrompt();
@@ -1359,6 +1406,7 @@ function init() {
 
   game.onStreakMilestone = function (streak, multiplier) {
     audio.play('streak');
+    audio.haptic('streak', streak); // a bigger streak buzzes bigger
     ui.showStreakMilestone(streak, multiplier);
   };
 

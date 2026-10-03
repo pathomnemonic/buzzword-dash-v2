@@ -743,6 +743,19 @@ class AudioEngine {
     }
   }
 
+  /**
+   * Haptic punctuation: a buzz that says how big the moment is, without a sound (it respects the Vibration setting).
+   * 'streak' grows with the streak (5+, 10+, 20+ each feel different); 'best' is for a new best score.
+   */
+  haptic(kind, n) {
+    if (kind === 'streak') {
+      var tier = n >= 20 ? 2 : (n >= 10 ? 1 : 0);
+      this._vibrate([[20, 25, 40], [30, 25, 30, 25, 60], [40, 30, 40, 30, 40, 30, 140]][tier]);
+    } else if (kind === 'best') {
+      this._vibrate([30, 40, 30, 40, 160]);
+    }
+  }
+
   // ===== DUPLICATE PREVENTION =====
 
   _canPlay(eventName) {
