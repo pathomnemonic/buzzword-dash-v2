@@ -20,6 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
+import { repairData } from './sanity.js';
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
@@ -490,6 +491,27 @@ function repairAchievementIds(oldAchievements) {
 /** A "perfect run" needs at least this many right answers (one lucky answer then quitting is not a perfect run). */
 var PERFECT_RUN_MIN_CORRECT = 5;
 
+/**
+ * A finished run's numbers as the rest of the code may rely on them: finite and never negative, and the list of
+ * answers holding only real entries. (The numbers come from the engine, but a bug or a tampered file must not be
+ * able to put NaN or a negative coin count into the save.)
+ */
+function cleanRunSummary(s) {
+  var out = Object.assign({}, s || {});
+  ['score', 'coinsEarned', 'coinsCollected', 'encountersCompleted', 'correct', 'wrong', 'bestStreak', 'durationMs', 'continuesUsed',
+    'rushesUsed', 'powerupsCollected', 'obstaclesJumped', 'obstaclesSlid'].forEach(function (k) {
+    var v = Number(out[k]);
+    out[k] = isFinite(v) && v > 0 ? v : 0;
+  });
+  if (out.fastestDecisionMs != null) {
+    var f = Number(out.fastestDecisionMs);
+    out.fastestDecisionMs = isFinite(f) && f > 0 ? f : null;
+  }
+  out.encounters = (Array.isArray(out.encounters) ? out.encounters : []).filter(function (e) { return e && typeof e === 'object' && typeof e.cardId === 'string'; });
+  if (!Array.isArray(out.subjectsSeen)) out.subjectsSeen = [];
+  return out;
+}
+
 /** Which badge a subject's mastery earns. */
 var SUBJECT_MASTERY_KEYS = {
   'Neurology': 'MASTER_NEURO', 'Cardiology': 'MASTER_CARDIO', 'Nephrology': 'MASTER_NEPHRO',
@@ -585,6 +607,11 @@ class Storage {
       }
     } catch (e) {
       console.warn('[Storage] Corrupt data, using defaults:', e.message);
+      // Keep what was there, so it could still be recovered by hand rather than being overwritten by the fresh save
+      try {
+        var damaged = localStorage.getItem(STORAGE_KEY);
+        if (damaged) localStorage.setItem(STORAGE_KEY + '_damaged', damaged);
+      } catch (e2) { /* storage full or unavailable */ }
       this.data = deepClone(DEFAULTS);
     }
 
@@ -615,6 +642,11 @@ class Storage {
   _ensureInvariants() {
     var d = this.data;
     if (!d) return;
+
+    // Anything with the wrong type or an impossible value (NaN, a negative count, text where a number belongs) goes
+    // back to its default, so one bad field cannot break a screen later
+    var repaired = repairData(d, DEFAULTS);
+    if (repaired) console.warn('[Storage] Repaired ' + repaired + ' damaged field(s)');
 
     // One-time move of every card from the old schedule to FSRS (see fsrs.js), so nobody loses their history
     if (d.cards && d.cards.cardStats && !d.settings.fsrsMigrated) {
@@ -1395,6 +1427,7 @@ class Storage {
    */
   finalizeRun(summary) {
     if (!this.data) this.load();
+    summary = cleanRunSummary(summary);
 
     var runId = summary.runId;
 

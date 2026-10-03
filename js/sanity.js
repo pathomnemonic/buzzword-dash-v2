@@ -48,3 +48,35 @@ export function checkDataSanity(data, template, path) {
   });
   return out;
 }
+
+function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
+
+/**
+ * Put right anything in the saved data that has the wrong type or an impossible value (a hand-edited save, a damaged
+ * file, an old bug): each such field goes back to its default. Fields that are fine are not touched.
+ * @param {object} data
+ * @param {object} template
+ * @param {string} [path]
+ * @returns {number} how many fields were repaired
+ */
+export function repairData(data, template, path) {
+  var fixed = 0;
+  path = path || '';
+  if (!data || typeof data !== 'object') return 0;
+  Object.keys(template).forEach(function (key) {
+    var p = path ? path + '.' + key : key;
+    var want = template[key];
+    var got = data[key];
+    var wk = kind(want);
+    var gk = kind(got);
+    if (got === undefined) { data[key] = clone(want); fixed++; return; }
+    if (wk === 'object') {
+      if (gk !== 'object') { data[key] = clone(want); fixed++; }
+      else if (Object.keys(want).length) fixed += repairData(got, want, p);
+      return;
+    }
+    if (gk !== wk && !(gk === 'null' && NULLABLE.test(p)) && !(wk === 'null' && gk !== 'undefined')) { data[key] = clone(want); fixed++; return; }
+    if (gk === 'number' && (!isFinite(got) || (got < 0 && want >= 0 && !/Offset|offset/.test(key)))) { data[key] = clone(want); fixed++; }
+  });
+  return fixed;
+}
