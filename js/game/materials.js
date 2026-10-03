@@ -194,3 +194,21 @@ export function upgradeMaterials(root, opts) {
     o.material = lit;
   });
 }
+
+/**
+ * See-through scenery (light cones, glow panels, haze) must never write to the depth buffer. When it does, anything
+ * see-through that is drawn after it and sits inside it (a fading monster, a glowing power-up, a coin) fails the
+ * depth test and vanishes, which showed up as things disappearing under the surgical lamp's light cone.
+ * @param {THREE.Object3D} root
+ * @returns {number} how many materials were changed
+ */
+export function softenTranslucentScenery(root) {
+  var changed = 0;
+  root.traverse(function (obj) {
+    var mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
+    mats.forEach(function (m) {
+      if (m && m.transparent && m.opacity < 1 && m.depthWrite !== false) { m.depthWrite = false; changed++; }
+    });
+  });
+  return changed;
+}

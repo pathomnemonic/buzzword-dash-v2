@@ -11,7 +11,8 @@ import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } f
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
 import { missExplanation, readSeconds } from '../explain.js';
-import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, removeAndDispose } from './enginedefs.js';
+import { chooseCommittedLane } from './lanelock.js';
+import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, LANE_X, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
 
@@ -185,6 +186,8 @@ card = pickResult ? pickResult.card : null;
     var resolvedAt = performance.now();
     this.lastEncounterTime = resolvedAt - this.encounterStartTime;
 
+    // The lane the player last asked for counts, even if they switched after the gates got close
+    this.committedLane = chooseCommittedLane({ targetLane: this.targetLane, playerX: this.playerGroup.position.x, laneX: LANE_X });
     var lane = this.committedLane;
     var gate = this.gates[lane];
     var card = this.card;

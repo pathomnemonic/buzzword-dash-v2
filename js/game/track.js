@@ -30,7 +30,7 @@ import {
   buildWallGlowStrips
 } from './skinbuilders.js';
 import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
-import { upgradeMaterials, mergeStatic, softDotTexture } from './materials.js';
+import { upgradeMaterials, mergeStatic, softDotTexture, softenTranslucentScenery } from './materials.js';
 import { isLowQuality } from './quality.js';
 import { HALL_PERIOD, isHospitalHall } from './hospitalhall.js';
 
@@ -242,8 +242,11 @@ export function buildTrack(trackRoot, skin, options) {
     buildSkyboxElements(trackRoot, skin, trackRefs, qc);
   }
 
+  softenTranslucentScenery(trackRoot);
+
   return trackRefs;
 }
+
 
 // ===== SKY DOME =====
 // A gradient sky with a horizon glow and stars, so the world reads as a place

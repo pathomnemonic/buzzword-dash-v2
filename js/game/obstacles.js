@@ -22,7 +22,7 @@
  */
 
 import * as THREE from 'three';
-import { roundedBox, upgradeMaterials, markShared, mergeStatic } from './materials.js';
+import { roundedBox, upgradeMaterials, markShared, mergeStatic, softenTranslucentScenery } from './materials.js';
 import { buildScenery, buildHanging } from './scenery.js';
 import { buildModelCharacter, loadCharacterModel, isModelReady } from './charactermodel.js';
 import { modelUrl } from './modelcatalog.js';
@@ -621,6 +621,7 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
     obstacleType: isSlide ? 'slide' : 'jump',
     bounds: variant.bounds
   };
+  softenTranslucentScenery(obs);
   scene.add(obs);
   obstacleMeshes.push(obs);
 
@@ -804,6 +805,7 @@ var _lastCoinLane = -1;
 
 function addCoin(scene, coinMeshes, lane, z, y) {
   var c = makeCoinMesh(lane, z, y);
+  softenTranslucentScenery(c);
   scene.add(c);
   coinMeshes.push(c);
 }
@@ -901,6 +903,7 @@ export function spawnCoinsFromPlan(scene, coinMeshes, coinPlan) {
   for (var i = 0; i < coinPlan.length; i++) {
     var cp = coinPlan[i];
     var c = makeCoinMesh(cp.lane, cp.offset, cp.height || 1.2);
+    softenTranslucentScenery(c);
     scene.add(c);
     coinMeshes.push(c);
   }
@@ -1126,6 +1129,7 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
     flatIcon: made.flat
   };
 
+  softenTranslucentScenery(group);
   scene.add(group);
   coinMeshes.push(group);
 }

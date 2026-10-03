@@ -49,6 +49,7 @@ import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
 import { CONTINUE_COST } from './shopdata.js';
+import { chooseCommittedLane } from './lanelock.js';
 import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, VISUAL_SPEED, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
 export { GAME_STATES, GAME_MODES, RUN_END_REASONS } from './enginedefs.js';
 import { visualMethods } from './enginevisuals.js';
@@ -1382,17 +1383,8 @@ class Game {
 
     // ─── Lane commitment (Section 8.3) ───
     if (this.gatesActive && !this.answerLocked && this.gateZ >= ANSWER_LOCK_Z * VISUAL_SPEED) {
-      // Lock the answer based on nearest lane to player position
-      var playerX = this.playerGroup.position.x;
-      var bestLane = 1;
-      var bestDist = Math.abs(playerX - LANE_X[1]);
-      for (var lci = 0; lci < 3; lci++) {
-        var d = Math.abs(playerX - LANE_X[lci]);
-        if (d < bestDist) {
-          bestDist = d;
-          bestLane = lci;
-        }
-      }
+      // The gates are close: no more dashing. The lane that counts is settled when the gate is crossed (see lanelock.js)
+      var bestLane = chooseCommittedLane({ targetLane: this.targetLane, playerX: this.playerGroup.position.x, laneX: LANE_X });
       this.committedLane = bestLane;
       this.answerLocked = true;
       this._emit('answer_locked', { lane: bestLane });
