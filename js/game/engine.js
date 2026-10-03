@@ -760,6 +760,8 @@ class Game {
     this._hideIntroMonster();
     this._introAnim = 'run';
     this._runStartedAt = performance.now();
+    this._pausedTotalMs = 0;
+    this._pausedAt = 0;
     this._emit('run_started', { skinName: this.currentSkin.name });
 
     // Emit skin name for UI
@@ -864,6 +866,7 @@ class Game {
 
   pause(reason) {
     if (this._state === GAME_STATES.PLAYING) {
+      this._pausedAt = performance.now();
       this._transition(GAME_STATES.PAUSED);
       this._showPauseOverlay(true);
       this._sfx('pause');
@@ -872,6 +875,13 @@ class Game {
 
   resume(reason) {
     if (this._state === GAME_STATES.PAUSED) {
+      // Time spent paused is not play time: it must not count towards the run's length or the time to answer
+      if (this._pausedAt) {
+        var away = performance.now() - this._pausedAt;
+        this._pausedTotalMs = (this._pausedTotalMs || 0) + away;
+        if (this.encounterStartTime) this.encounterStartTime += away;
+        this._pausedAt = 0;
+      }
       this._transition(GAME_STATES.PLAYING);
       this._sfx('resume');
     }

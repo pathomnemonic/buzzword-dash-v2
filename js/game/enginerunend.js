@@ -205,7 +205,9 @@ export var runEndMethods = {
 
     // Build canonical run summary (Section 7.1)
     var endedAt = performance.now();
-    var durationMs = endedAt - this._runStartedAt;
+    // A run quit from the pause menu was still paused when it ended
+    var pausedMs = (this._pausedTotalMs || 0) + (this._pausedAt ? endedAt - this._pausedAt : 0);
+    var durationMs = Math.max(0, endedAt - this._runStartedAt - pausedMs);
 
     var encounters = [];
     for (var ri = 0; ri < this.runCards.length; ri++) {
