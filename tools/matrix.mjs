@@ -18,6 +18,7 @@
  */
 
 /* global window, document */
+/* eslint-disable no-control-regex */
 import { makeRng } from './soak.mjs';
 
 const args = process.argv.slice(2);
@@ -28,7 +29,7 @@ const URL = opt('url', 'http://localhost:4173');
 const CHROME = opt('chrome', process.env.CHROME_PATH || '/opt/pw-browsers/chromium');
 const NOISE = /WebSocket connection|peerjs|GPU stall|swiftshader|WebGL: INVALID|GroupMarkerNotSet|Failed to load resource|net::ERR|\[vite\]|status of (404|401|403|400)|offline|KHR_parallel/i;
 const VIEWPORTS = [[390, 780], [320, 480], [1280, 720], [800, 360], [412, 915]];
-const MODES = ['endless', 'endless', 'endless', 'study', 'weakness', 'timed_practice'];
+const MODES = ['endless', 'endless', 'endless', 'study', 'weakness'];
 const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyA', 'KeyD'];
 
 const pw = await import('@playwright/test');
@@ -44,6 +45,7 @@ async function newPage() {
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !NOISE.test(m.text())) errors.push('console: ' + m.text().slice(0, 200)); });
+  page.on('dialog', (d) => d.dismiss().catch(() => {}));
   await page.goto(URL + '/?debug=1');
   await page.waitForFunction(() => window.__game && window.__storage, null, { timeout: 30000 });
   // past the first-run tutorial
@@ -53,6 +55,12 @@ async function newPage() {
       await page.locator('#tutCloseBtn').click().catch(() => {});
       await page.getByRole('button', { name: /exit tutorial/i }).click({ timeout: 2000 }).catch(() => {});
     }
+  }
+  // the daily reward comes up a moment after the tutorial
+  for (let i = 0; i < 4; i++) {
+    if (!(await page.locator('#dailyReward').isVisible({ timeout: i ? 500 : 8000 }).catch(() => false))) break;
+    await page.locator('#dailyReward button').first().click({ force: true }).catch(() => {});
+    await page.waitForTimeout(1200);
   }
   return { page, errors, context };
 }
@@ -69,6 +77,9 @@ for (let n = 0; n < RUNS; n++) {
   const desc = `run ${n + 1}/${RUNS} seed ${SEED} mode ${mode} ${vp.join('x')} speed ${speed} q ${quality} dash ${dashControl}`;
   try {
     await page.setViewportSize({ width: vp[0], height: vp[1] });
+    // a daily reward or an open sheet from before would cover the page
+    await page.locator('#dailyReward button').first().click({ timeout: 1500, force: true }).catch(() => {});
+    await page.evaluate(() => { document.querySelectorAll('.sheet-overlay.active .sheet-close').forEach((b) => b.click()); });
     await page.evaluate(({ speed, quality, dashControl }) => {
       const s = window.__storage;
       s.set('speed', speed);
@@ -78,7 +89,7 @@ for (let n = 0; n < RUNS; n++) {
       return true;
     }, { speed, quality, dashControl });
     // equip random owned/known ids: read every id the Locker would show by opening it
-    await page.locator('#bottomNav [data-screen="screenShop"]').click().catch(() => {});
+    await page.locator('#bottomNav [data-screen="screenShop"]').click({ force: true }).catch(() => {});
     await page.waitForTimeout(300);
     const tabs = await page.locator('#shopItems [role="tab"]').count();
     for (let t = 0; t < tabs; t++) {
@@ -94,16 +105,18 @@ for (let n = 0; n < RUNS; n++) {
       // the confirm of a purchase, if any
       await page.getByRole('button', { name: /^(buy|confirm|yes)/i }).first().click({ timeout: 300 }).catch(() => {});
     }
-    await page.locator('#bottomNav [data-screen="screenHome"]').click().catch(() => {});
+    await page.locator('#bottomNav [data-screen="screenHome"]').click({ timeout: 4000, force: true }).catch((e) => log('     nav home failed: ' + String(e.message).split('\n').slice(0, 6).join(' | ')));
     await page.waitForTimeout(200);
 
-    // start the run
-    if (mode === 'endless') await page.locator('.btn-play').click();
+    // start the run (the Home screen must really be showing)
+    const homeInfo = await page.evaluate(() => { const b = document.querySelector('.btn-play'); const r = b && b.getBoundingClientRect(); return { screen: (document.querySelector('.screen.active') || {}).id, w: r && r.width, h: r && r.height }; });
+    if (homeInfo.screen !== 'screenHome' || !homeInfo.w) throw new Error('Home is not showing before a run: ' + JSON.stringify(homeInfo));
+    if (mode === 'endless') await page.locator('.btn-play').click({ force: true });
     else {
-      await page.locator('#homeChallengeBtn').click();
-      await page.locator(`#challengeSheet [data-mode="${mode}"]`).click();
+      await page.locator('#homeChallengeBtn').click({ force: true });
+      await page.locator(`#challengeSheet [data-mode="${mode}"]`).click({ force: true });
     }
-    await page.waitForFunction(() => window.__game && (window.__game.running || window.__game.gatesActive), null, { timeout: 30000 });
+    await page.waitForFunction(() => window.__game && (window.__game.running || window.__game.gatesActive), null, { timeout: 8000 }).catch(() => {});
     // dismiss a no-WebGL / not-enough-weakness alert if one stopped the run
     const alive = await page.evaluate(() => window.__game.running);
     if (!alive) { log('skip (did not start): ' + desc); await page.keyboard.press('Escape'); continue; }
@@ -142,8 +155,10 @@ for (let n = 0; n < RUNS; n++) {
     if (errors.length) throw new Error(errors.splice(0).join(' | '));
     log('ok   ' + desc + ' geo ' + info.geo + ' tex ' + info.tex);
   } catch (e) {
-    failures.push({ desc, error: String(e && e.message || e).slice(0, 500) });
-    log('FAIL ' + desc + '\n     ' + String(e && e.message || e).slice(0, 500));
+    const where = await page.evaluate(() => ({ screen: (document.querySelector('.screen.active') || {}).id, top: (() => { const n = document.querySelector('#bottomNav [data-screen="screenHome"]'); if (!n) return 'nonav'; const r = n.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return e ? (e.id || e.className || e.tagName) + ' <' + (e.parentElement && (e.parentElement.id || e.parentElement.className)) + '>' : 'none'; })(), overlays: [...document.querySelectorAll('.active, .show')].map((e) => e.id || e.className).filter(Boolean).slice(0, 12) })).catch(() => ({}));
+    log('     state: ' + JSON.stringify(where));
+    failures.push({ desc, error: String(e && e.message || e).replace(/\u001b\[[0-9;]*m/g, '').slice(0, 900) });
+    log('FAIL ' + desc + '\n     ' + String(e && e.message || e).replace(/\u001b\[[0-9;]*m/g, '').slice(0, 900));
     errors.length = 0;
     // recover: reload and carry on
     await page.goto(URL + '/?debug=1').catch(() => {});

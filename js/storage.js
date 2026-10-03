@@ -2212,4 +2212,19 @@ var progression = {
 
 var storageInstance = new Storage();
 
+// Two tabs (or a tab and an installed copy) share one save. When another one saves, take its data instead of
+// keeping the old copy in memory, or the next save from this one would wipe what the other just did.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('storage', function (e) {
+    if (e.key !== STORAGE_KEY || !e.newValue) return;
+    try {
+      var incoming = JSON.parse(e.newValue);
+      if (!incoming || incoming.schemaVersion !== SCHEMA_VERSION) return;
+      storageInstance.data = deepMerge(incoming, DEFAULTS);
+      storageInstance._ensureInvariants();
+      document.dispatchEvent(new CustomEvent('dx:data-refreshed'));
+    } catch (err) { /* a half-written or foreign value: keep what we have */ }
+  });
+}
+
 export { storageInstance as storage, progression, DEFAULTS as STORAGE_DEFAULTS };

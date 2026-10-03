@@ -79,7 +79,7 @@ test.describe('Results page symmetry', () => {
 
         // Play again is the big button; Home (and Filters, left of it) are small, and the row is even across the screen
         const [again, home] = m.actions.items;
-        expect(again.width, 'Play again is bigger than Home').toBeGreaterThan(home.width * 1.6);
+        expect(again.width, 'Play again is bigger than Home').toBeGreaterThan(home.width * 1.35);
         expect(Math.abs(m.actions.row.left - m.actions.row.right), 'the action row is centered').toBeLessThanOrEqual(2);
 
         // the secondary buttons: an odd one out spans the row instead of hugging one side

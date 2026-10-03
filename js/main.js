@@ -1498,6 +1498,11 @@ function init() {
   renderLevelChip(document.getElementById('homeLevel'));
   updateLockerDot();
   document.addEventListener('dx:coins-changed', updateLockerDot);
+  // another tab saved: show its numbers (coins, level) if Home is up
+  document.addEventListener('dx:data-refreshed', function () {
+    var home = document.getElementById('screenHome');
+    if (home && home.classList.contains('active') && !game.running) { ui.renderHome(); document.dispatchEvent(new CustomEvent('dx:coins-changed')); }
+  });
   // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
   updateAttentionDots(storage, storage.getDailyQuests());
   document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, storage.getDailyQuests()); });

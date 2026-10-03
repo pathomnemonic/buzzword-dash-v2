@@ -1518,6 +1518,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* ---------- the Locker: three even tabs on one line, and the hero card ---------- */
 .locker-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 6px; }
 .locker-tabs .locker-tab { width: 100%; white-space: nowrap; padding: 8px 2px; font-size: 11px; letter-spacing: 0; justify-content: center; position: relative; min-width: 0; }
+.locker-tabs .locker-tab { flex-direction: column; gap: 1px; line-height: 1.1; overflow: hidden; }
 .locker-tabs .locker-tab .tab-icon { display: block; font-size: 16px; line-height: 1.1; }
 .hero-card { margin: 8px 0 4px; padding: 10px 12px; border-radius: 16px; background: rgba(0, 0, 0, .18); border: 2px solid var(--ink, #1b1030); }
 .hero-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1697,3 +1698,33 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .review-flag:hover, .review-flag:focus-visible { opacity: 1; background: rgba(255,255,255,.12); }
 .post-review-list .review-card h4 { padding-right: 22px; }
 #postRunContent .post-secondary .btn { padding: 5px 6px; font-size: 11px; }
+
+/* ---------- landscape phones: Home squeezed to fit above the tab bar (it used to slide underneath it) ---------- */
+@media (max-height: 460px) {
+  .home-header { display: none; }
+  .home-layout { padding-bottom: calc(var(--safe-bottom) + 82px); gap: 4px; }
+  .play-section .btn-play { width: 70px; height: 70px; margin-bottom: 2px; }
+  .play-section .play-icon { font-size: 24px; }
+  .play-section .play-label { font-size: 14px; }
+  .side-btn { min-height: 62px; padding: 4px 6px; }
+  .side-icon { font-size: 20px; }
+  .play-sub { margin-top: 0; font-size: 11px; }
+  .home-layout .mode-btn { height: 46px; flex-direction: row; gap: 6px; }
+  .home-progress .study-goal { padding: 3px 12px; }
+  .dr-card { max-height: 100%; overflow-y: auto; }
+}
+
+/* ---------- very narrow screens (large display size or 200% zoom): wrap instead of running off the edge ---------- */
+@media (max-width: 400px) {
+  .locker-tabs .locker-tab { font-size: 10px; }
+  #screenMyCards .btn, #screenFlashcard .btn, #screenStats .btn { white-space: normal; line-height: 1.15; }
+}
+@media (max-width: 260px) {
+  .home-topbar { flex-wrap: wrap; justify-content: center; }
+  .home-topbar .home-coins { flex: 1 1 100%; order: 3; }
+  .home-layout .mode-row { grid-template-columns: 1fr; }
+  .home-layout .mode-btn { flex-direction: row; height: 44px; }
+  .play-row { flex-wrap: wrap; justify-content: center; }
+  .side-btn { max-width: none; min-height: 52px; }
+  .locker-tabs { grid-template-columns: repeat(2, 1fr); }
+}
