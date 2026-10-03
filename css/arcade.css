@@ -1870,3 +1870,25 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .profile-actions { margin: 2px 0 6px; }
   .profile-fold-sum { min-height: 38px; }
 }
+
+/* ---------- Home, top half: one status card for level and today, tidy top bar ---------- */
+.home-topbar { min-height: 44px; }
+.home-topbar .home-coins { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.home-header h1 { font-size: clamp(28px, 6vh, 42px); }
+.home-header .home-tagline { margin-top: 3px; }
+.home-progress {
+  display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 4px;
+  padding: 8px 12px 6px; background: var(--panel); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 3px 0 var(--ink);
+}
+.home-progress .home-level { display: flex; align-items: center; gap: 10px; width: 100%; }
+.home-progress .home-level .lv-bar { flex: 1 1 auto; width: auto; height: 12px; }
+.home-progress .home-league { align-self: flex-start; }
+.home-progress .study-goal {
+  flex: none; width: 100%; min-height: 44px; padding: 2px 0 0; display: flex; flex-direction: column; justify-content: center;
+  background: none; border: 0; border-top: 2px solid rgba(255, 255, 255, .10); border-radius: 0; box-shadow: none;
+}
+.home-progress .study-goal:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; border-radius: 10px; }
+@media (max-height: 460px) {
+  .home-progress { padding: 4px 10px 2px; }
+  .home-progress .study-goal { min-height: 36px; }
+}
