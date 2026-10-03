@@ -1950,3 +1950,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .home-progress .home-level { display: flex; }
   .home-progress .study-goal { min-height: 44px; }
 }
+@media (max-width: 360px) {
+  .home-topbar .top-btn-text { display: none; }
+  .home-topbar .home-coins { font-size: 13px; padding-left: 6px; padding-right: 6px; min-width: 0; }
+}
