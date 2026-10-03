@@ -1870,10 +1870,3 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .profile-actions { margin: 2px 0 6px; }
   .profile-fold-sum { min-height: 38px; }
 }
-
-/* Stats: the page never scrolls. The Today card and the three numbers stay put; the folded sections below them are
-   their own scrolling area, so opening one scrolls inside it instead of moving the page. */
-#screenStats .screen-scroll { display: flex; flex-direction: column; overflow: hidden; }
-#screenStats #statsContent { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-#screenStats #statsContent > * { flex: 0 0 auto; }
-#screenStats #statsContent > .perf-sections { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 2px 4px; }
