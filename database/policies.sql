@@ -281,6 +281,15 @@ REVOKE ALL ON FUNCTION report_diagnostic(text, text, text, text, text, text) FRO
 GRANT EXECUTE ON FUNCTION report_diagnostic(text, text, text, text, text, text) TO authenticated;
 
 
+-- ==================== PLAYER FEEDBACK ====================
+
+ALTER TABLE app_feedback ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON app_feedback FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON feedback_inbox FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION submit_feedback(text, text, text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION submit_feedback(text, text, text, text, text) TO authenticated;
+
+
 -- ==================== CLOUD SAVES ====================
 -- A save is private to its owner. Writes go through push_save()/force_save().
 

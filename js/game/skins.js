@@ -369,6 +369,16 @@ export function isIndoorSkin(skin) {
   return !!skin && INDOOR_IDS.indexOf(skin.id) >= 0;
 }
 
+/** The Locker item that unlocks a map ("skin_cardiac_pulse" -> "map_cardiac_pulse"). */
+export function mapItemId(skin) {
+  return 'map_' + String(skin && skin.id || '').replace(/^skin_/, '');
+}
+
+/** Indoor maps are free for everyone; every other map has to be bought in the Locker. */
+export function isMapUnlocked(skin, ownsItem) {
+  return isIndoorSkin(skin) || !!(ownsItem && ownsItem(mapItemId(skin)));
+}
+
 function pickFrom(list, rand) {
   var r = rand || Math.random;
   return list[Math.floor(r() * list.length) % list.length];
@@ -385,11 +395,15 @@ export function getStartSkin(rand) {
  * @param {object} current the map being left
  * @param {number} changesSoFar how many map changes this run has already made (0 for the first)
  * @param {function(): number} [rand]
+ * @param {function(string): boolean} [ownsItem] which Locker items the player owns (omit to allow every map)
  */
-export function getNextSkin(current, changesSoFar, rand) {
-  var pool = changesSoFar < 1 ? SKINS.filter(function (s) { return !isIndoorSkin(s); }) : SKINS;
-  pool = pool.filter(function (s) { return !current || s.id !== current.id; });
-  return pickFrom(pool, rand);
+export function getNextSkin(current, changesSoFar, rand, ownsItem) {
+  var open = SKINS.filter(function (s) { return isMapUnlocked(s, ownsItem || function () { return true; }); });
+  // The first change of a run goes outdoors, if the player has any outdoor map; otherwise it stays among the indoor ones
+  var outdoor = open.filter(function (s) { return !isIndoorSkin(s); });
+  var pool = changesSoFar < 1 && outdoor.length ? outdoor : open;
+  var others = pool.filter(function (s) { return !current || s.id !== current.id; });
+  return pickFrom(others.length ? others : pool, rand);
 }
 
 /**

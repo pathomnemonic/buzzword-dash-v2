@@ -424,3 +424,22 @@ To add new cards, create or edit files in `js/cards/` following the existing car
 - `ww` — object mapping each distractor to a "why wrong" explanation
 
 Cards are automatically validated and cleaned at import time. Duplicate IDs, missing fields, and answer-leaking buzzwords are caught and reported in the console.
+
+
+## Rating and feedback
+
+After a good run, once the player has played a while, the results screen asks "Are you enjoying Dx Dash?". Yes leads to
+"Would you rate it?" and then the store's own rating box (Google Play's in-app review, or the iPhone's rating sheet),
+with the store page as a back-up (`market://` or `itms-apps://`, then the web page, then a copied link). "Not really"
+leads to a feedback form instead, never the store. Feedback goes to the `app_feedback` table (read it in
+`feedback_inbox`); if the server cannot be reached the player is offered an email, then a copied message, so nothing is
+lost. Settings > About & help has the same Send feedback and Rate buttons.
+
+Build-time settings (repository variables on GitHub, environment variables in Codemagic or `.env.production` for the
+Android build):
+
+| Variable | What it does |
+|---|---|
+| `VITE_SUPPORT_EMAIL` | where feedback emails go when the server cannot be reached |
+| `VITE_APPSTORE_ID` | the numeric App Store id, so Rate can open the App Store page (the in-app rating sheet works without it) |
+| `VITE_REVIEW_URL` | an `https` page to rate on, as a last back-up (and the only option on the plain web) |

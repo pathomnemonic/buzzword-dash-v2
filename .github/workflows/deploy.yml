@@ -41,6 +41,8 @@ jobs:
           VITE_FEATURE_COHORTS: ${{ vars.VITE_FEATURE_COHORTS }}
           # Optional: your tip page (Ko-fi, Buy Me a Coffee, GitHub Sponsors, Stripe link)
           VITE_TIP_URL: ${{ vars.VITE_TIP_URL }}
+          VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
+          VITE_REVIEW_URL: ${{ vars.VITE_REVIEW_URL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

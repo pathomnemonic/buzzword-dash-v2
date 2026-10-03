@@ -241,7 +241,7 @@ card = pickResult ? pickResult.card : null;
       this.encountersUntilTransition = 10;
     } else if (this.encountersUntilTransition <= 0) {
       this.encountersUntilTransition = 10;
-      var newSkin = getNextSkin(this.currentSkin, this._mapChanges || 0);
+      var newSkin = getNextSkin(this.currentSkin, this._mapChanges || 0, null, function (id) { return storage.ownsItem(id); });
       if (newSkin.name !== this.currentSkin.name) {
         this._mapChanges = (this._mapChanges || 0) + 1;
         this._transitionSkin(newSkin);

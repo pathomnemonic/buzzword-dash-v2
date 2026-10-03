@@ -27,7 +27,7 @@ import * as THREE from 'three';
 // === Imports from other agents (current signatures used as bridge) ===
 import { storage } from '../storage.js';
 import { getTheme } from './themes.js';
-import { getStartSkin, SKINS } from './skins.js';
+import { getStartSkin, SKINS, isMapUnlocked } from './skins.js';
 import { buildTrack, spawnEnvProp, calculateTargetFOV, updateCameraFOV, calculateCameraLean, getStreakVisualIntensity } from './track.js';
 import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
@@ -691,7 +691,8 @@ class Game {
     var wantedMap = options.skinId || storage.get('preferredMap');
     if (wantedMap) {
       for (var si = 0; si < SKINS.length; si++) {
-        if (SKINS[si].name === wantedMap) {
+        // A map the player has not bought is never chosen as a favorite (a shared multiplayer map always is)
+        if (SKINS[si].name === wantedMap && (options.skinId || isMapUnlocked(SKINS[si], function (id) { return storage.ownsItem(id); }))) {
           this.currentSkin = SKINS[si];
           this._mapPinned = !options.skinId;
           break;

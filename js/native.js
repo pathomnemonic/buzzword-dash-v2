@@ -16,6 +16,16 @@ export function isNative() {
   }
 }
 
+/** Which store build this is: 'android', 'ios', or 'web' (a browser). */
+export function getNativePlatform() {
+  try {
+    var p = Capacitor && Capacitor.getPlatform && Capacitor.getPlatform();
+    return p === 'android' || p === 'ios' ? p : 'web';
+  } catch (e) {
+    return 'web';
+  }
+}
+
 /** The custom URL scheme email links use to reopen the app (see AndroidManifest.xml). */
 export var APP_SCHEME = 'com.pathomnemonic.dxdash';
 

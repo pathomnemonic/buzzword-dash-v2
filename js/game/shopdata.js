@@ -445,6 +445,16 @@ export var SHOP_ITEMS = [
   { id: "avatar_surgeon", name: "Surgeon", price: 3500, type: "skin", color: 0x338855, icon: "🔪", compatibility: COMPAT_ALL },
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
 
+  // --- Maps (the open and body-interior worlds; the indoor hospital maps are free for everyone) ---
+  { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2500, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
+  { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2500, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
+  { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 3000, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
+  { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 3000, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },
+  { id: "map_dna_helix_tunnel", name: "DNA Helix Tunnel", desc: "Spiral through the double helix", price: 3500, type: "map", skinId: "skin_dna_helix_tunnel", color: 0x66aaff, icon: "🧬", compatibility: COMPAT_ALL },
+  { id: "map_cardiac_pulse", name: "Cardiac Pulse", desc: "Inside a beating heart", price: 3500, type: "map", skinId: "skin_cardiac_pulse", color: 0xff5588, icon: "❤️", compatibility: COMPAT_ALL },
+  { id: "map_xray_vision", name: "X-Ray Vision", desc: "See through everything", price: 4000, type: "map", skinId: "skin_xray_vision", color: 0x44eeff, icon: "☢️", compatibility: COMPAT_ALL },
+  { id: "map_defibrillator_shock", name: "Defibrillator Shock", desc: "Electric urgency", price: 4000, type: "map", skinId: "skin_defibrillator_shock", color: 0xffee66, icon: "⚡", compatibility: COMPAT_ALL },
+
   // --- Exam monsters ---
   { id: "monster_classic", name: "Exam Monster", price: 0, type: "monster", color: 0x220044, icon: "👾", compatibility: COMPAT_ALL },
   { id: "monster_wraith", name: "Pager Wraith", price: 3000, type: "monster", color: 0x33ccff, icon: "👻", compatibility: COMPAT_ALL },

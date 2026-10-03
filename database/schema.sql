@@ -704,6 +704,45 @@ END;
 $$;
 
 
+-- ==================== PLAYER FEEDBACK ====================
+-- "Are you enjoying Dx Dash?" -> "Not really" lands here, as does Settings -> Send feedback. The owner reads the
+-- inbox in the Supabase table editor (feedback_inbox) or: SELECT * FROM feedback_inbox LIMIT 50;
+-- Players can send but never read; five a day per player.
+
+CREATE TABLE IF NOT EXISTS app_feedback (
+  id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  mood        text NOT NULL CHECK (mood IN ('unhappy', 'idea', 'bug')),
+  message     text NOT NULL CHECK (char_length(message) BETWEEN 1 AND 1000),
+  contact     text CHECK (char_length(contact) <= 120),
+  version     text CHECK (char_length(version) <= 20),
+  platform    text CHECK (platform IN ('android', 'ios', 'web')),
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE OR REPLACE FUNCTION submit_feedback(p_mood text, p_message text, p_contact text DEFAULT NULL,
+                                           p_version text DEFAULT NULL, p_platform text DEFAULT NULL) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  IF coalesce(btrim(p_message), '') = '' THEN RAISE EXCEPTION 'Please write a few words first'; END IF;
+  IF (SELECT count(*) FROM app_feedback WHERE user_id = auth.uid() AND created_at > now() - interval '1 day') >= 5 THEN
+    RAISE EXCEPTION 'You have sent a lot of feedback today. Thank you! Please try again tomorrow';
+  END IF;
+  INSERT INTO app_feedback (user_id, mood, message, contact, version, platform)
+  VALUES (auth.uid(), CASE WHEN p_mood IN ('unhappy', 'idea', 'bug') THEN p_mood ELSE 'unhappy' END,
+          left(btrim(p_message), 1000), nullif(left(btrim(coalesce(p_contact, '')), 120), ''), left(p_version, 20),
+          CASE WHEN p_platform IN ('android', 'ios', 'web') THEN p_platform END);
+END;
+$$;
+
+CREATE OR REPLACE VIEW feedback_inbox AS
+  SELECT f.created_at, f.mood, f.message, f.contact, f.platform, f.version, p.player_name
+  FROM app_feedback f
+  LEFT JOIN player_profiles p ON p.user_id = f.user_id
+  ORDER BY f.created_at DESC;
+
+
 -- ==================== CLOUD SAVES ====================
 -- One private save per account, so progress follows the player across devices.
 -- Written only through push_save(), which refuses to overwrite a newer save

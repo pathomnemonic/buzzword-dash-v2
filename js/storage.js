@@ -20,7 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
+import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
@@ -744,6 +744,13 @@ class Storage {
 
     // Ensure arrays
     if (!Array.isArray(d.progression.achievements)) d.progression.achievements = [];
+    // Maps went into the Locker: someone who had already chosen one as their favorite keeps it
+    var fav = d.settings.preferredMap;
+    if (fav) {
+      var favItem = LOCKER_ITEMS.filter(function (i) { return i.type === 'map' && i.name === fav; })[0];
+      if (favItem && d.progression.ownedItems.indexOf(favItem.id) < 0) d.progression.ownedItems.push(favItem.id);
+    }
+
     // Two badges were once stored under ids that are not in the badge list; move them to the real ids
     d.progression.achievements = d.progression.achievements.map(function (id) {
       return id === 'ach_endurance_30min' ? 'ach_playtime_30min' : id === 'ach_endurance_1hr' ? 'ach_playtime_1hr' : id;

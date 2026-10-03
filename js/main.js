@@ -622,6 +622,7 @@ function attachTipPrompt() {
     signedIn: !!(lbStatus && lbStatus.email && !lbStatus.anonymous),
     accountsAvailable: !!(lbStatus && lbStatus.configured),
     openAccount: function () { if (profileCorner) profileCorner.open(); },
+    sendFeedback: lb ? function (fb) { return lb.submitFeedback(fb); } : null,
     toast: function (m) { ui._showToast(m); }
   });
   if (asked) return;
@@ -1157,6 +1158,10 @@ function init() {
   installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;
+  ui.submitFeedback = function (fb) {
+    var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
+    return lb ? lb.submitFeedback(fb) : Promise.resolve({ success: false });
+  };
 
   // Home is a plain menu (no 3D scene), so there is only a notice to show when WebGL is missing
   if (!webglOk) showWebGLNotice();

@@ -1152,6 +1152,17 @@ var leaderboard = {
     });
   },
 
+  /** Send a player's feedback to the owner's inbox. mood: 'unhappy' | 'idea' | 'bug'. */
+  submitFeedback: function (feedback) {
+    return leaderboard._rpc('submit_feedback', {
+      p_mood: ['unhappy', 'idea', 'bug'].indexOf(feedback.mood) >= 0 ? feedback.mood : 'unhappy',
+      p_message: String(feedback.message || '').slice(0, 1000),
+      p_contact: feedback.contact ? String(feedback.contact).slice(0, 120) : null,
+      p_version: feedback.version ? String(feedback.version).slice(0, 20) : null,
+      p_platform: feedback.platform || null
+    });
+  },
+
   // ===== DISCOVERY (study buddies and public groups; hidden until FEATURES.discovery) =====
 
   getBuddyListing: function () {

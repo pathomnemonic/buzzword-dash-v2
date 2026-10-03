@@ -11,11 +11,19 @@ import { audio } from './audio.js';
 import { LOCKER_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_RAMP_EVERY_OPTIONS, SPEED_RAMP_STEP_OPTIONS } from './rules.js';
-import { SKINS } from './game/skins.js';
+import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
 import { canRemind, requestReminderPermission } from './reminders.js';
+import { isNative } from './native.js';
+import { canRate, rateTheApp, openStorePage } from './review.js';
+import { buildFeedbackForm } from './feedback.js';
+
+/** Can this device buzz? (Phones in the app, and browsers that offer vibration; not iPhones in Safari or most computers.) */
+export function canVibrate() {
+  return isNative() || (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function');
+}
 
 export var settingsMethods = {
 
@@ -60,7 +68,9 @@ export var settingsMethods = {
         { key: 'sfxVolume', label: '💥 Sound effects', desc: 'Jumps, coins, answers, menus and rewards.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'musicVolume', label: '🎶 Music volume', desc: 'How loud the background music is.', type: 'range', min: 0, max: 1, step: 0.1, pct: true },
         { key: 'ttsEnabled', label: '🗣 Read questions aloud', desc: 'Your device reads the clues and answers out loud.', type: 'toggle' }
-      ].concat(FEATURES.characterVoices ? [
+      ].concat(canVibrate() ? [
+        { key: 'hapticsEnabled', label: '📳 Vibration', desc: 'A short buzz when you answer, collect a power-up or get caught. Turn off if you prefer your phone still.', type: 'toggle' }
+      ] : []).concat(FEATURES.characterVoices ? [
         { key: 'characterVoices', label: '💬 Character voices', desc: 'Your runner cheers when you score and groans when you miss, each with a voice of their own.', type: 'toggle' }
       ] : []),
       look: [
@@ -128,6 +138,10 @@ export var settingsMethods = {
           }
           if (s.key === 'musicOn') {
             if (newVal) audio.startMusic(); else audio.stopMusic();
+          }
+          if (s.key === 'hapticsEnabled') {
+            audio.updateSettings();
+            if (newVal) audio._vibrate(40); // a taste of what it feels like
           }
         });
         row.appendChild(toggle);
@@ -266,10 +280,56 @@ export var settingsMethods = {
       tutRow.appendChild(tutBtn);
       content.appendChild(tutRow);
 
+      // Feedback: always available (the same form as "Not really" in the rating question)
+      var fbRow = createElement('div', { className: 'setting-row' });
+      var fbLabel = createElement('div');
+      fbLabel.style.flex = '1';
+      fbLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '💬 Send feedback' }));
+      fbLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Found a bug, or have an idea? Tell the developer. We read every message.' }));
+      fbRow.appendChild(fbLabel);
+      var fbBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Write', attributes: { type: 'button', id: 'settingsFeedbackBtn' } });
+      fbRow.appendChild(fbBtn);
+      content.appendChild(fbRow);
+      var fbSlot = createElement('div');
+      content.appendChild(fbSlot);
+      fbBtn.addEventListener('click', function () {
+        if (fbSlot.firstChild) { clearElement(fbSlot); return; }
+        fbSlot.appendChild(buildFeedbackForm({
+          mood: 'idea',
+          prompt: 'What would you like to tell us?',
+          submit: self.submitFeedback || null,
+          toast: function (m) { self._showToast(m); },
+          onDone: function () { clearElement(fbSlot); }
+        }));
+      });
+
+      if (canRate()) {
+        var rateRow = createElement('div', { className: 'setting-row' });
+        var rateLabel = createElement('div');
+        rateLabel.style.flex = '1';
+        rateLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '⭐ Rate Dx Dash' }));
+        rateLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Enjoying it? A rating on the store helps other students find the game.' }));
+        rateRow.appendChild(rateLabel);
+        var rateBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Rate', attributes: { type: 'button', id: 'settingsRateBtn' } });
+        rateBtn.addEventListener('click', function () {
+          rateTheApp().then(function (res) {
+            if (res.how === 'copied') self._showToast('Link copied. Paste it into your browser to rate.');
+            else if (res.how === 'failed') self._showToast('Could not open the store from here.');
+            else if (res.how === 'in-app') {
+              // the store decides whether its rating box appears; the page is the back-up
+              rateBtn.textContent = 'Open store page';
+              rateBtn.onclick = function () { openStorePage(); };
+            }
+          });
+        });
+        rateRow.appendChild(rateBtn);
+        content.appendChild(rateRow);
+      }
+
       var aboutRow = createElement('div', { className: 'setting-row' });
       var aboutLinks = createElement('div');
       aboutLinks.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;font-size:13px';
-      [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html'], ['Report a problem', 'https://github.com/pathomnemonic/buzzword-dash-v2/issues']].forEach(function (l) {
+      [['Privacy Policy', 'privacy.html'], ['Terms of Use', 'terms.html']].forEach(function (l) {
         var a = createElement('a', { text: l[0], attributes: { href: l[1], target: '_blank', rel: 'noopener noreferrer' } });
         a.style.color = 'var(--accent-cyan)';
         aboutLinks.appendChild(a);
@@ -421,7 +481,7 @@ export var settingsMethods = {
     var mapSelect = createElement('select', { attributes: { 'aria-label': 'Favorite map' } });
     mapSelect.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);max-width:160px';
     mapSelect.appendChild(createElement('option', { text: 'Rotate maps', attributes: { value: '' } }));
-    SKINS.forEach(function (sk) {
+    SKINS.filter(function (sk) { return isMapUnlocked(sk, function (id) { return storage.ownsItem(id); }); }).forEach(function (sk) {
       var o = createElement('option', { text: sk.name, attributes: { value: sk.name } });
       if (storage.get('preferredMap') === sk.name) o.selected = true;
       mapSelect.appendChild(o);
@@ -679,10 +739,10 @@ export var settingsMethods = {
 
     var tabBar = createElement('div', { className: 'locker-tabs', attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
     var fresh = this._lockerFresh || [];
-    var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : 'heroes'; };
+    var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : item.type === 'map' ? 'maps' : 'heroes'; };
     var freshTabs = {};
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['heroes', '🦸 Heroes'], ['trails', '✨ Trails'], ['monsters', '👾 Monsters']].forEach(function (t) {
+    [['heroes', '🦸 Heroes'], ['trails', '✨ Trails'], ['maps', '🗺️ Maps'], ['monsters', '👾 Monsters']].forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm locker-tab ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
         text: t[1],
@@ -714,9 +774,83 @@ export var settingsMethods = {
         'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
     } else if (tab === 'trails') {
       shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every hero. Tap one to see it in the display above.'));
+    } else if (tab === 'maps') {
+      shopItems.appendChild(this._renderMapsTab());
     } else {
       shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Tap one to see it in the display above.'));
     }
+  },
+
+  /**
+   * The Maps tab: the indoor hospital maps are free for everyone; the rest are bought here. Every map you own
+   * joins the rotation, and one can be made your favorite (a run then stays on it).
+   */
+  _renderMapsTab() {
+    var self = this;
+    var wrap = createElement('div');
+    var free = SKINS.filter(isIndoorSkin);
+    var heading = createElement('h3', { text: '🗺️ Maps' });
+    heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
+    wrap.appendChild(heading);
+    var intro = createElement('div', { className: 'setting-sublabel', text: 'Every run rotates through the maps you own. You start with the ' + free.length + ' hospital maps (' + free.map(function (s) { return s.name; }).join(', ') + '). Buy more below, then pick a favorite if you want to stay on one.' });
+    intro.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
+    wrap.appendChild(intro);
+
+    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).forEach(function (item) {
+      var owned = storage.ownsItem(item.id);
+      var skin = SKINS.filter(function (s) { return s.id === item.skinId; })[0];
+      var isFavorite = !!skin && storage.get('preferredMap') === skin.name;
+      var row = createElement('div', { className: 'shop-item' + (isFavorite ? ' equipped' : ''), attributes: { 'data-map': item.id } });
+
+      var swatch = createElement('div', { text: item.icon || '' });
+      swatch.style.cssText = 'width:36px;height:36px;border-radius:8px;background:#' + item.color.toString(16).padStart(6, '0') + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px';
+      row.appendChild(swatch);
+
+      var nameWrap = createElement('div');
+      nameWrap.style.flex = '1';
+      nameWrap.appendChild(createElement('div', { text: item.name }));
+      nameWrap.firstChild.style.cssText = 'font-size:13px;font-weight:700';
+      var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc });
+      descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
+      nameWrap.appendChild(descLine);
+      if ((self._lockerFresh || []).indexOf(item.id) >= 0) {
+        nameWrap.firstChild.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } }));
+      }
+      row.appendChild(nameWrap);
+
+      var btnWrap = createElement('div');
+      btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
+      if (owned) {
+        var fav = createElement('button', {
+          className: 'btn btn-outline btn-sm',
+          text: isFavorite ? '★ Favorite' : '☆ Favorite',
+          attributes: { type: 'button', 'aria-pressed': isFavorite ? 'true' : 'false', 'aria-label': (isFavorite ? 'Stop using ' : 'Always run on ') + item.name }
+        });
+        fav.addEventListener('click', function () {
+          storage.set('preferredMap', isFavorite ? '' : skin.name);
+          audio.play('equip');
+          self.renderShop();
+        });
+        btnWrap.appendChild(fav);
+      } else {
+        var buy = createElement('button', { className: 'btn btn-gold btn-sm', text: '🪙 ' + item.price, attributes: { type: 'button', 'aria-label': 'Buy ' + item.name + ' for ' + item.price + ' coins' } });
+        buy.addEventListener('click', function () {
+          if (storage.buyItem(item.id, item.price)) {
+            audio.play('buy');
+            var earned = storage.afterPurchase();
+            if (earned.length) self.showAchievementNotification(earned);
+            self._showToast(item.name + ' unlocked. It is now in your map rotation.');
+            self.renderShop();
+          } else {
+            self._showToast('Not enough coins!');
+          }
+        });
+        btnWrap.appendChild(buy);
+      }
+      row.appendChild(btnWrap);
+      wrap.appendChild(row);
+    });
+    return wrap;
   },
 
   /**

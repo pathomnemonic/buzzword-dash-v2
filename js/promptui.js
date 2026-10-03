@@ -4,17 +4,14 @@
  */
 
 import { choosePrompt, recordPrompt } from './prompts.js';
-import { isNative, APP_SCHEME } from './native.js';
+import { canRate, rateTheApp, openStorePage, storeLinks } from './review.js';
+import { buildFeedbackForm } from './feedback.js';
 import { appPublicUrl } from './publicurl.js';
-import { shareText, canShareNatively, openExternal } from './platform.js';
+import { shareText, canShareNatively } from './platform.js';
 
-/** Where to rate the app: a build-time link, or the Play Store page inside the Android app. '' means nowhere (the web). */
+/** The first page the app could send a rating to ('' when there is nowhere to: the plain web with no link set). Kept for the checks in prompts.js. */
 export function getReviewUrl() {
-  /** @type {Record<string, any>} */
-  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
-  var url = env.VITE_REVIEW_URL || '';
-  if (/^https:\/\//.test(url)) return url;
-  return isNative() ? 'https://play.google.com/store/apps/details?id=' + APP_SCHEME : '';
+  return storeLinks()[0] || (canRate() ? 'in-app' : '');
 }
 
 /** The link to send friends to: always an address a friend can open (see publicurl.js). */
@@ -69,6 +66,10 @@ export function attachAccountBanner(deps) {
   return true;
 }
 
+function isIosBuild() {
+  return storeLinks().some(function (u) { return /apple\.com/.test(u); });
+}
+
 var COPY = {
   account: {
     text: 'Your progress is saved on this device only. Make a free account to keep it safe and to appear on the leaderboards.',
@@ -79,8 +80,8 @@ var COPY = {
     action: '📣 Share with a friend'
   },
   review: {
-    text: 'If Dx Dash is helping, a quick rating on the store helps other students find it.',
-    action: '⭐ Rate Dx Dash'
+    text: 'Are you enjoying Dx Dash?',
+    action: '😀 Yes, loving it'
   }
 };
 
@@ -94,6 +95,7 @@ var COPY = {
  * @param {boolean} deps.accountsAvailable
  * @param {function(): void} deps.openAccount
  * @param {function(string): void} deps.toast
+ * @param {function(object): Promise<{success: boolean}>} [deps.sendFeedback] sends feedback to the backend (the form falls back to email, then copy)
  * @returns {string|null} the kind that was shown
  */
 export function attachPromptCard(deps) {
@@ -112,7 +114,7 @@ export function attachPromptCard(deps) {
     signedIn: deps.signedIn,
     accountsAvailable: deps.accountsAvailable,
     canShare: canShareGame(),
-    reviewUrl: getReviewUrl(),
+    reviewUrl: canRate() ? getReviewUrl() || 'in-app' : '',
     state: state
   });
   if (!kind) return null;
@@ -142,20 +144,59 @@ export function attachPromptCard(deps) {
   }
   button(copy.action, 'btn-gold', function () {
     if (kind === 'account') { finish('done'); deps.openAccount(); return; }
-    if (kind === 'review') {
-      openExternal(getReviewUrl());
-      finish('done');
-      return;
-    }
+    if (kind === 'review') { askToRate(); return; }
     shareGame().then(function (result) {
       if (result === 'copied') deps.toast('Link copied. Paste it to a friend!');
       if (result === 'failed') { deps.toast('Could not share from here.'); return; }
       finish('done');
     });
   });
+  if (kind === 'review') button('😕 Not really', 'btn-outline', function () { askWhatWentWrong(); });
   button('Not now', 'btn-outline', function () { finish(null); });
   button('Don’t ask again', 'btn-outline', function () { finish('never'); });
   box.appendChild(row);
+
+  /** Step two for a happy player: would they rate it? (The store's own rating box first, then the store page.) */
+  function askToRate() {
+    text.textContent = 'Great to hear! Would you rate Dx Dash on the ' + (isIosBuild() ? 'App Store' : 'Play Store') + '? It takes a few seconds and helps other students find it.';
+    while (row.firstChild) row.removeChild(row.firstChild);
+    button('⭐ Sure, rate it', 'btn-gold', function () {
+      rateTheApp().then(function (res) {
+        storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'done', Date.now()));
+        if (res.how === 'failed') { deps.toast('Could not open the store from here.'); finish(null); return; }
+        if (res.how === 'copied') deps.toast('Link copied. Paste it into your browser to rate.');
+        // The store decides whether its rating box appears, and does not tell us. Offer the page as a back-up.
+        if (res.how === 'in-app') offerStorePage(); else finish(null);
+      });
+    });
+    button('Maybe later', 'btn-outline', function () { finish(null); });
+    button('Don’t ask again', 'btn-outline', function () { finish('never'); });
+  }
+
+  function offerStorePage() {
+    text.textContent = 'Thank you! If the rating box did not appear, you can rate from the store page instead.';
+    while (row.firstChild) row.removeChild(row.firstChild);
+    button('Open the store page', 'btn-gold', function () {
+      openStorePage().then(function (how) {
+        if (how === 'copied') deps.toast('Link copied. Paste it into your browser to rate.');
+        if (how === 'failed') deps.toast('Could not open the store from here.');
+        finish(null);
+      });
+    });
+    button('Done', 'btn-outline', function () { finish(null); });
+  }
+
+  /** Step two for an unhappy player: a place to say what went wrong, never the store. */
+  function askWhatWentWrong() {
+    while (box.firstChild) box.removeChild(box.firstChild);
+    box.appendChild(buildFeedbackForm({
+      mood: 'unhappy',
+      prompt: 'Sorry about that. What went wrong, or what would make Dx Dash better?',
+      submit: deps.sendFeedback,
+      toast: deps.toast,
+      onDone: function () { finish(null); }
+    }));
+  }
   deps.container.appendChild(box);
   return kind;
 }

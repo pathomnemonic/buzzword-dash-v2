@@ -473,3 +473,26 @@ describe('cloud saves', () => {
     expect(failed).toBe(true);
   });
 });
+
+
+describe('player feedback', () => {
+  it('lets a signed-in player send feedback, nobody read it, and caps five a day', async () => {
+    await as(A, () => db.query("SELECT submit_feedback('unhappy', 'Too hard', 'me@example.com', '1.0.1', 'android')"));
+    const row = (await db.query('SELECT mood, message, contact, platform FROM app_feedback')).rows[0];
+    expect(row).toEqual({ mood: 'unhappy', message: 'Too hard', contact: 'me@example.com', platform: 'android' });
+    expect((await db.query('SELECT message, player_name FROM feedback_inbox')).rows.length).toBe(1);
+    expect((await as(A, () => db.query('SELECT * FROM app_feedback'))).rows).toHaveLength(0); // no read policy
+    expect(await rejects(A, "INSERT INTO app_feedback (user_id, mood, message) VALUES (auth.uid(), 'bug', 'x')")).toBe(true);
+    for (let i = 0; i < 4; i++) await as(A, () => db.query("SELECT submit_feedback('idea', 'more ' || $1::text)", [i]));
+    expect(await rejects(A, "SELECT submit_feedback('idea', 'too many')")).toBe(true);
+  });
+
+  it('refuses empty messages and signed-out senders, and cleans unknown values', async () => {
+    expect(await rejects(B, "SELECT submit_feedback('bug', '   ')")).toBe(true);
+    await db.exec("RESET ROLE; SET app.uid = ''");
+    expect(await rejects('', "SELECT submit_feedback('bug', 'hello')")).toBe(true);
+    await as(B, () => db.query("SELECT submit_feedback('weird', 'hi', '', NULL, 'toaster')"));
+    const row = (await db.query("SELECT mood, contact, platform FROM app_feedback WHERE message = 'hi'")).rows[0];
+    expect(row).toEqual({ mood: 'unhappy', contact: null, platform: null });
+  });
+});

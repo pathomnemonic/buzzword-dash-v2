@@ -128,7 +128,28 @@ export function saveFile(blob, filename) {
   });
 }
 
-/** Open a web page. In the app this hands the link to the system browser instead of replacing the game. */
+function loadLauncher() {
+  if (_testPlugins && _testPlugins.AppLauncher) return Promise.resolve(_testPlugins.AppLauncher);
+  if (!isNative()) return Promise.resolve(null);
+  return import('@capacitor/app-launcher').then(function (m) { return m.AppLauncher || null; }).catch(function () { return null; });
+}
+
+/**
+ * Open a link outside the game: a web page in the browser, or a store page (market://, itms-apps://) in the store
+ * app. In the phone app the system is asked to open it, so it never replaces the game itself.
+ * @returns {Promise<boolean>} true when something was opened
+ */
+export function openUrl(url) {
+  return loadLauncher().then(function (launcher) {
+    if (launcher) {
+      return launcher.openUrl({ url: url }).then(function (res) { return !res || res.completed !== false; }, function () { return false; });
+    }
+    try { return !!window.open(url, '_blank', 'noopener,noreferrer') || true; } catch (e) { return false; }
+  });
+}
+
+/** Open a web page. (Fire and forget; use openUrl when you need to know whether it worked.) */
 export function openExternal(url) {
-  try { window.open(url, '_blank', 'noopener,noreferrer'); return true; } catch (e) { return false; }
+  openUrl(url);
+  return true;
 }

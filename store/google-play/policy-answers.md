@@ -24,7 +24,7 @@ Do you provide a way for users to request that their data be deleted? **Yes.** I
 | Personal info → **Name** (display name) | Yes | No | Yes | App functionality (shown to friends) |
 | Personal info → **User IDs** | Yes | No | Yes | App functionality, account management |
 | App activity → **App interactions** (scores, streaks, runs shared to the feed, kudos, progress) | Yes | No | Yes | App functionality |
-| App activity → **Other user-generated content** (decks a player chooses to share by code) | Yes | No | Yes | App functionality |
+| App activity → **Other user-generated content** (decks a player chooses to share by code; feedback a player chooses to write, with an optional reply email) | Yes | No | Yes | App functionality (feedback: developer communications) |
 | Device or other IDs (network address seen by the multiplayer connection service and the other player) | Yes | **Yes** (PeerJS connection service and the opponent) | Yes (only in live multiplayer) | App functionality |
 | App info and performance → **Crash logs** | Yes | No | **Yes (off by default; the player switches it on)** | Analytics (bug fixing) |
 | App info and performance → **Diagnostics** | Yes | No | **Yes (same switch)** | Analytics (bug fixing) |

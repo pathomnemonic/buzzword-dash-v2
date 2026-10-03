@@ -17,6 +17,8 @@ workflows:
       vars:
         VITE_BASE_PATH: /
         # Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as secure variables in Codemagic (same values as on GitHub)
+        # Add VITE_SUPPORT_EMAIL (where feedback emails go if the in-app form cannot reach the server)
+        # Add VITE_APPSTORE_ID (the numeric id from App Store Connect, once the app exists) so "Rate" can open the App Store page
     scripts:
       - name: Build the web game
         script: |

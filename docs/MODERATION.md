@@ -12,6 +12,12 @@ SELECT * FROM moderation_queue LIMIT 50;
 
 (or open `moderation_queue` in the Table editor). Columns: `source` (player, card, buddy or group), `created_at`, who reported (`reporter_name`), what was reported (`target_id`, `target_name`), and the reason. Players cannot read this list.
 
+**Player feedback** (from "Not really" in the rating question and Settings > Send feedback) is separate from reports: open `feedback_inbox` in the Table editor, or
+
+```sql
+SELECT * FROM feedback_inbox LIMIT 50;
+```
+
 Set a reminder to look once a week at first. Supabase can also email you: Database → Webhooks is not needed for this scale.
 
 ## What to do

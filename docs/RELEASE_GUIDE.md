@@ -66,7 +66,7 @@ You do not need a Mac: `codemagic.yaml` builds and signs the app on Codemagic's 
 ### B. Cloud build (about 20 minutes, mostly waiting)
 - [ ] 4. Sign up at https://codemagic.io with your GitHub account (free tier is enough) and add the repository. It finds `codemagic.yaml`.
 - [ ] 5. Codemagic → Teams → **Integrations → App Store Connect** → add the key from step 3; name the integration exactly `Dx Dash App Store Connect` (or change the name in `codemagic.yaml`).
-- [ ] 6. Codemagic → the app → Environment variables: add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (secure, same values as GitHub).
+- [ ] 6. Codemagic → the app → Environment variables: add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (secure, same values as GitHub). Also add `VITE_SUPPORT_EMAIL` (your support address: the back-up for the in-app feedback form) and, once the app exists in App Store Connect, `VITE_APPSTORE_ID` (its numeric Apple ID, so "Rate Dx Dash" can open the App Store page).
 - [ ] 7. Start the **ios-release** workflow. It builds, signs (automatic) and uploads to TestFlight. This file has not been run before: if a step fails, the log says which; send me the error and the fix is usually one line.
 
 ### C. App Store Connect listing (about 60 minutes, copy and paste)
