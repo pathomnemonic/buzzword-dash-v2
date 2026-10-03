@@ -9,6 +9,7 @@ import { createElement, clearElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { firstWeekState } from './firstweek.js';
+import { getTodayPlan, stepButtons, shortLabel } from './statsview.js';
 
 export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
 
@@ -163,7 +164,16 @@ export var homeMethods = {
     var done = storage.getStudiedToday();
     line('🎯 ' + done + ' of ' + goal + ' cards today' + (done >= goal ? ' ✅' : ''));
     var due = storage.getDueCount();
-    line(due > 0 ? '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review (Flashcards → Review due cards)' : '🔁 No reviews due');
+    line(due > 0 ? '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review' : '🔁 No reviews due');
+    // The next study step, right here: no trip to the Performance tab
+    var today = getTodayPlan();
+    if (today.plan.steps.length > 0) {
+      var next = today.plan.steps[0];
+      var box = createElement('div', { className: 'today-next', attributes: { id: 'todayNext' } });
+      box.appendChild(createElement('div', { className: 'today-next-title', text: 'Next up: ' + shortLabel(next) }));
+      box.appendChild(stepButtons(self, next, today.plan, today.cards, false, function () { self.closeSheets(); }));
+      el.appendChild(box);
+    }
     this._renderFirstWeek(el);
     var streak = storage.getStreakStatus();
     line('🔥 Daily streak: ' + streak.streak + (streak.shields > 0 ? '  ·  🛡 ' + streak.shields + ' shield' + (streak.shields === 1 ? '' : 's') : ''));

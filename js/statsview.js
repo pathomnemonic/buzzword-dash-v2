@@ -84,7 +84,7 @@ function tile(icon, value, label, onTap, accent) {
   return t;
 }
 
-function liveCards() {
+export function liveCards() {
   var disabled = storage.get('disabledCards') || [];
   return CARDS.concat(customCards.getAll()).filter(function (c) { return disabled.indexOf(c.id) < 0; });
 }
@@ -106,21 +106,23 @@ function stepCards(step, plan, cards) {
 }
 
 /** Short labels for plan steps (the plan's own labels are sentences). */
-function shortLabel(step) {
+export function shortLabel(step) {
   if (step.kind === 'due') return 'Review ' + step.count + ' due';
   if (step.kind === 'weak') return 'Drill ' + step.subject;
   return step.count + ' new cards';
 }
 
-function stepButtons(ui, step, plan, cards, small) {
+export function stepButtons(ui, step, plan, cards, small, before) {
   var row = el('div', 'perf-step-buttons');
   var run = createElement('button', { className: 'btn btn-green ' + (small ? 'btn-sm' : ''), text: '🏃 Run it', attributes: { type: 'button', 'aria-label': 'Run ' + shortLabel(step) } });
   run.addEventListener('click', function () {
+    if (before) before();
     var ids = stepCards(step, plan, cards);
     if (ui.onStudyPlanRun && ids.length) ui.onStudyPlanRun(ids); else ui._showToast('No cards to study for this step yet.');
   });
   var flash = createElement('button', { className: 'btn btn-outline ' + (small ? 'btn-sm' : ''), text: '🗂 Cards', attributes: { type: 'button', 'aria-label': 'Flashcards: ' + shortLabel(step) } });
   flash.addEventListener('click', function () {
+    if (before) before();
     if (step.kind === 'due') ui.startFlashcardSession(null, plan.dueIds.slice(0, 20));
     else if (step.kind === 'weak') ui.startFlashcardSession([step.subject]);
     else ui.startFlashcardSession();
@@ -128,6 +130,19 @@ function stepButtons(ui, step, plan, cards, small) {
   row.appendChild(run);
   row.appendChild(flash);
   return row;
+}
+
+/** Today's study plan and the cards it is drawn from (shared with the Today popup on Home). */
+export function getTodayPlan() {
+  var cards = liveCards();
+  var plan = buildStudyPlan({
+    cardStats: storage.get('cardStats') || {},
+    cards: cards,
+    subjectStats: storage.get('subjectStats') || {},
+    goal: storage.get('dailyGoal') || 20,
+    studiedToday: storage.getStudiedToday()
+  });
+  return { plan: plan, cards: cards };
 }
 
 function openSection(id) {
