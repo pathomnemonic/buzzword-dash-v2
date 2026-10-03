@@ -1,0 +1,12 @@
+Sure! Here are your cards as a JSON array:
+
+```json
+[
+  {"subj":"Cardiology","bw":["Fever","New murmur","Janeway lesions","Osler nodes","IV drug user"],"ans":"Infective Endocarditis","d":["Rheumatic Fever","Atrial Myxoma"],"tp":"S. aureus is the most common cause in IV drug users. Janeway lesions are painless, Osler nodes painful.","ww":{"Rheumatic Fever":"Migratory arthritis and carditis after strep, not embolic skin lesions in an IV drug user.","Atrial Myxoma":"Positional dyspnea and a tumor plop; constitutional symptoms but no Janeway lesions."}},
+  {"subj":"Emergency Medicine","bw":["Acetaminophen overdose","Antidote needed"],"ans":"N-acetylcysteine","d":["Flumazenil","Naloxone"],"tp":"NAC replenishes glutathione; give within 8 hours of ingestion for best effect.","ww":{"Flumazenil":"Reverses benzodiazepines.","Naloxone":"Reverses opioids."}},
+  {"subj":"Endocrinology","bw":["First-line drug for type 2 diabetes","Decreases hepatic gluconeogenesis"],"ans":"Metformin","d":["Glipizide","Pioglitazone"],"tp":"Metformin lowers hepatic glucose output; main risk is lactic acidosis.","ww":{"Glipizide":"Sulfonylurea that increases insulin secretion.","Pioglitazone":"Thiazolidinedione that increases insulin sensitivity via PPAR-gamma."}},
+  {"subj":"Neurology","bw":["Unilateral facial droop","Forehead spared"],"ans":"Contralateral upper motor neuron lesion","d":["Ipsilateral Bell palsy","Ipsilateral lower motor neuron lesion"],"tp":"The forehead receives bilateral cortical input, so a central lesion spares it.","ww":{"Ipsilateral Bell palsy":"Lower motor neuron; forehead is involved.","Ipsilateral lower motor neuron lesion":"Forehead is involved."}},
+  {"subj":"Hematology/Oncology","bw":["Drug of choice for HIT"],"ans":"Argatroban","d":["N/A","Argatroban"],"tp":"Stop all heparin and start a direct thrombin inhibitor.","ww":{}},
+  {"subject":"Hematology","buzzwords":["Platelets fall 5 to 10 days after heparin"],"answer":"Heparin-induced thrombocytopenia","distractors":["Immune thrombocytopenia","TTP"],"teachingPoint":"Test PF4 antibodies; 4T score."}
+]
+```

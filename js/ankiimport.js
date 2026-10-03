@@ -23,6 +23,9 @@
  * - All untrusted content rendered with textContent / safe DOM
  */
 
+import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply } from './importguide.js';
+import { copyText } from './platform.js';
+
 // ===== LIMITS =====
 var MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
 var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB
@@ -72,7 +75,7 @@ function stripBOM(text) {
  */
 function stripHtml(html) {
   if (!html) return '';
-  var text = html.replace(/<[^>]*>/g, ' ');
+  var text = html.replace(/\[sound:[^\]]*\]/gi, ' ').replace(/<[^>]*>/g, ' ');
   text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
   text = text.replace(/&gt;/g, '>');
@@ -82,6 +85,12 @@ function stripHtml(html) {
   text = text.replace(/&#x27;|&apos;/g, "'");
   text = text.replace(/\s+/g, ' ');
   return text.trim();
+}
+
+/** A side that is only a picture or sound placeholder ("[image]", empty after tags are removed) cannot be studied as text. */
+function isMediaOnly(text) {
+  var t = String(text || '').trim();
+  return t === '' || /^\[?\s*(image|img|picture|photo|audio|sound|video)[^\]a-z]*\]?$/i.test(t);
 }
 
 // ===== CLOZE NOTES ({{c1::answer::hint}}) =====
@@ -152,8 +161,28 @@ function parseDelimitedText(text, options) {
 
   text = stripBOM(text);
 
+  // Anki's "Notes in Plain Text" export starts with lines like "#separator:tab", "#html:true", "#guid column:1".
+  var directives = {};
+  var lines = text.split(/\r\n|\n|\r/);
+  var skip = 0;
+  while (skip < lines.length && /^#[a-z ]+:/i.test(lines[skip])) {
+    var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
+    directives[dm[1].trim().toLowerCase()] = dm[2].trim();
+    skip++;
+  }
+  if (skip > 0) text = lines.slice(skip).join('\n');
+  var sep = directives.separator;
+  var sepMap = { tab: '\t', comma: ',', semicolon: ';', space: ' ', pipe: '|' };
+  var delimiter = options.delimiter || (sep && sepMap[sep.toLowerCase()]) || null;
+  var stripTags = directives.html === 'true' || /<(br|div|b|i|u|span|p|sub|sup|img|ul|ol|li)\b[^>]*>/i.test(text.slice(0, 20000));
+  // Columns Anki adds that are not card content (1-based in the file).
+  var metaCols = {};
+  ['guid column', 'notetype column', 'deck column', 'tags column'].forEach(function (k) {
+    var n = parseInt(directives[k], 10);
+    if (n > 0) metaCols[n - 1] = true;
+  });
+
   // Auto-detect delimiter if not specified
-  var delimiter = options.delimiter || null;
   if (!delimiter) {
     var firstChunk = text.substring(0, Math.min(text.length, 2000));
     var tabCount = 0;
@@ -171,8 +200,18 @@ function parseDelimitedText(text, options) {
   // Parse into rows of fields using RFC 4180-style state machine
   var rows = _parseCSVRows(text, delimiter, warnings);
 
-  // Skip header row if configured
+  // Drop Anki's GUID / note type / deck / tags columns so only the card fields are left
+  if (Object.keys(metaCols).length) {
+    rows = rows.map(function (r) { return r.filter(function (_, idx) { return !metaCols[idx]; }); });
+  }
+
+  // Skip a header row when asked, or when it plainly is one ("Front,Back", "Question,Answer"...)
   var startRow = options.hasHeaders ? 1 : 0;
+  if (!options.hasHeaders && rows.length > 1 && rows[0].length >= 2 &&
+      /^(front|question|prompt|term|q|clue|clues|buzzwords?)$/i.test(rows[0][0].trim()) &&
+      /^(back|answer|a|definition|response|diagnosis)$/i.test(rows[0][1].trim())) {
+    startRow = 1;
+  }
 
   var cards = [];
   var minCols = Math.max(frontCol, backCol) + 1;
@@ -197,8 +236,21 @@ function parseDelimitedText(text, options) {
       back = row.slice(1).join(', ').trim();
     }
 
-    if (front && back) {
+    if (stripTags) {
+      front = stripHtml(front.replace(/<br\s*\/?>/gi, ' / '));
+      back = stripHtml(back.replace(/<br\s*\/?>/gi, ' / '));
+    }
+
+    // Cloze text ({{c1::answer}}) in a plain export: one card per cloze, like the .apkg importer
+    if (/\{\{c\d+::/.test(front)) {
+      var cz = clozeCards([front, back]);
+      if (cz && cz.length) { cz.forEach(function (c) { cards.push(c); }); continue; }
+    }
+
+    if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) {
       cards.push({ front: front, back: back });
+    } else if (front || back) {
+      warnings.push('Row ' + (ri + 1) + ': one side is empty or only a picture/sound. Skipped.');
     }
   }
 
@@ -406,8 +458,10 @@ async function parseApkg(file, options) {
           } else if (fields.length >= 2) {
             var front = stripHtml(fields[0]).trim();
             var back = stripHtml(fields[1]).trim();
-            if (front && back) {
+            if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) {
               results.push({ front: front, back: back });
+            } else {
+              warnings.push('A note with only a picture or sound was skipped.');
             }
           }
         }
@@ -813,105 +867,82 @@ function unmount() {
 function _renderUI() {
   if (!_containerEl || !_mounted) return;
 
-  // Clear existing
-  while (_containerEl.firstChild) {
-    _containerEl.removeChild(_containerEl.firstChild);
-  }
+  while (_containerEl.firstChild) _containerEl.removeChild(_containerEl.firstChild);
 
-  // Section container
+  var muted = { fontSize: '12px', color: 'var(--text-secondary, #aaa)', lineHeight: '1.5' };
+  var fieldStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '8px',
+    background: 'rgba(20,10,50,.6)', color: 'var(--text-primary, #fff)',
+    border: '1px solid rgba(187,102,255,.2)', fontSize: '12px', resize: 'vertical', fontFamily: 'inherit'
+  };
+
   var section = _el('div', { className: 'anki-import-section' });
+  section.appendChild(_el('h4', { text: '📥 Bring in your own cards' }));
+  section.appendChild(_el('p', { text: 'Two ways in. Pick one; both take a minute.', style: muted }));
 
-  // Title
-  var title = _el('h4', { text: '📥 Import Anki / CSV Cards' });
-  section.appendChild(title);
-
-  // File input
-  var fileLabel = _el('label', {
-    text: 'Upload file (.apkg, .csv, .tsv, .txt)',
-    style: { fontSize: '11px', color: 'var(--text-secondary, #aaa)', display: 'block', marginBottom: '4px' }
+  // ----- How-to (always visible; the first path is open) -----
+  IMPORT_PATHS.forEach(function (path, idx) {
+    var details = _el('details', { className: 'import-howto', style: { margin: '8px 0' } });
+    if (idx === 0) details.open = true;
+    details.appendChild(_el('summary', { text: path.title, style: { cursor: 'pointer', fontWeight: '600', fontSize: '13px' } }));
+    var ol = _el('ol', { style: { margin: '6px 0 0', paddingLeft: '20px', fontSize: '12px', lineHeight: '1.6' } });
+    path.steps.forEach(function (st) { ol.appendChild(_el('li', { text: st })); });
+    details.appendChild(ol);
+    section.appendChild(details);
   });
-  section.appendChild(fileLabel);
 
+  // ----- Path 1: flashcards -----
+  section.appendChild(_el('h5', { text: 'Anki or spreadsheet cards', style: { margin: '14px 0 4px' } }));
   var fileInput = _el('input', {
-    type: 'file',
-    accept: '.apkg,.csv,.tsv,.txt',
-    style: { width: '100%', marginBottom: '10px', fontSize: '12px', color: 'var(--text-primary, #fff)' }
+    type: 'file', accept: '.apkg,.csv,.tsv,.txt',
+    style: { width: '100%', marginBottom: '8px', fontSize: '12px', color: 'var(--text-primary, #fff)' }
   });
+  fileInput.setAttribute('aria-label', 'Upload an Anki export or spreadsheet (.apkg, .txt, .csv, .tsv)');
   section.appendChild(fileInput);
 
-  // Textarea for paste
-  var pasteLabel = _el('label', {
-    text: 'Or paste tab-separated cards',
-    style: { fontSize: '11px', color: 'var(--text-secondary, #aaa)', display: 'block', marginBottom: '4px' }
-  });
-  section.appendChild(pasteLabel);
-
   var pasteArea = _el('textarea', {
-    rows: 6,
-    placeholder: 'Paste tab-separated cards (front\tback per line)...',
-    style: {
-      width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '8px',
-      background: 'rgba(20,10,50,.6)', color: 'var(--text-primary, #fff)',
-      border: '1px solid rgba(187,102,255,.2)', fontSize: '12px', resize: 'vertical',
-      fontFamily: 'inherit'
-    }
+    rows: 5, placeholder: 'Or paste cards here: front, a tab or comma, then back. One card per line.', style: fieldStyle
   });
+  pasteArea.setAttribute('aria-label', 'Paste cards, one per line');
   section.appendChild(pasteArea);
 
-  // Backend URL input (optional, for AI conversion)
-  var backendLabel = _el('label', {
-    text: 'AI Conversion Backend URL (optional)',
-    style: { fontSize: '11px', color: 'var(--text-secondary, #aaa)', display: 'block', margin: '8px 0 4px' }
-  });
-  section.appendChild(backendLabel);
+  var help = _el('ul', { style: { margin: '6px 0', paddingLeft: '18px', fontSize: '11px', lineHeight: '1.5', color: 'var(--text-secondary, #aaa)' } });
+  FORMAT_HELP.forEach(function (h) { help.appendChild(_el('li', { text: h })); });
+  section.appendChild(help);
 
-  var backendInput = _el('input', {
-    type: 'text',
-    placeholder: 'https://your-server.com/api/cards/convert',
-    className: 'anki-api-key-input',
-    style: {
-      width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '8px',
-      background: 'rgba(20,10,50,.6)', color: 'var(--text-primary, #fff)',
-      border: '1px solid rgba(187,102,255,.2)', fontSize: '12px', marginBottom: '12px'
-    }
-  });
-  section.appendChild(backendInput);
+  var exampleBtn = _el('button', { className: 'btn btn-outline btn-sm', text: 'Fill in an example', style: { marginBottom: '8px' } });
+  exampleBtn.type = 'button';
+  section.appendChild(exampleBtn);
 
-  // Buttons
-  var convertBtn = _el('button', {
-    className: 'btn btn-primary btn-block',
-    text: '🤖 Convert & Import with AI',
-    style: { marginBottom: '6px' }
-  });
-  section.appendChild(convertBtn);
+  var previewEl = _el('div', { className: 'anki-import-preview', style: { fontSize: '12px', margin: '4px 0 8px', lineHeight: '1.5' } });
+  previewEl.setAttribute('aria-live', 'polite');
+  section.appendChild(previewEl);
 
-  var rawImportBtn = _el('button', {
-    className: 'btn btn-outline btn-block',
-    text: '📋 Import Without AI (Flashcard-Only)'
-  });
+  var rawImportBtn = _el('button', { className: 'btn btn-primary btn-block', text: 'Import as flashcards' });
+  rawImportBtn.type = 'button';
   section.appendChild(rawImportBtn);
+  section.appendChild(_el('p', { text: 'Flashcards show up in Flashcard mode. They do not appear as runner questions because they have no wrong answers; use the AI route below for that.', style: Object.assign({}, muted, { marginTop: '6px', fontSize: '11px' }) }));
 
-  // Progress bar
-  var progressContainer = _el('div', {
-    className: 'anki-import-progress',
-    style: { marginTop: '10px', display: 'none', height: '8px', background: 'rgba(255,255,255,.1)', borderRadius: '4px', overflow: 'hidden' }
-  });
-  var progressFill = _el('div', {
-    className: 'anki-import-progress-fill',
-    style: {
-      height: '100%', width: '0%',
-      background: 'linear-gradient(90deg, var(--accent-cyan, #18ffff), var(--accent-purple, #bb66ff))',
-      transition: 'width 0.3s ease', borderRadius: '4px'
-    }
-  });
-  progressContainer.appendChild(progressFill);
-  section.appendChild(progressContainer);
+  // ----- Path 2: quiz cards through an AI chat -----
+  section.appendChild(_el('h5', { text: 'Make runner questions with an AI chat', style: { margin: '16px 0 4px' } }));
+  var copyPromptBtn = _el('button', { className: 'btn btn-outline btn-block', text: '1. Copy AI prompt' });
+  copyPromptBtn.type = 'button';
+  section.appendChild(copyPromptBtn);
+  section.appendChild(_el('p', { text: '2. Paste it into ChatGPT, Claude or Gemini, then paste your cards below it and send. 3. Copy the reply and paste it here:', style: Object.assign({}, muted, { margin: '6px 0' }) }));
 
-  // Status text
+  var aiArea = _el('textarea', { rows: 5, placeholder: 'Paste the AI’s reply here (the JSON).', style: fieldStyle });
+  aiArea.setAttribute('aria-label', 'Paste the AI reply');
+  section.appendChild(aiArea);
+  var aiImportBtn = _el('button', { className: 'btn btn-primary btn-block', text: '4. Import quiz cards', style: { marginTop: '6px' } });
+  aiImportBtn.type = 'button';
+  section.appendChild(aiImportBtn);
+
   var statusEl = _el('div', {
     className: 'anki-import-status',
-    style: { marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary, #aaa)', textAlign: 'center', minHeight: '16px' }
+    style: { marginTop: '10px', fontSize: '12px', color: 'var(--text-secondary, #aaa)', textAlign: 'center', minHeight: '16px', lineHeight: '1.5' }
   });
+  statusEl.setAttribute('role', 'status');
+  statusEl.setAttribute('aria-live', 'polite');
   section.appendChild(statusEl);
 
   _containerEl.appendChild(section);
@@ -922,181 +953,133 @@ function _renderUI() {
     statusEl.textContent = msg;
     statusEl.style.color = color || 'var(--text-secondary, #aaa)';
   }
+  var RED = 'var(--accent-red, #ff4466)';
+  var GREEN = 'var(--accent-green, #44ff88)';
 
-  function showProgress(show) {
-    progressContainer.style.display = show ? 'block' : 'none';
-    progressFill.style.width = '0%';
-  }
-
-  function updateProgress(current, total) {
-    if (total > 0) {
-      progressFill.style.width = Math.round((current / total) * 100) + '%';
+  function showPreview(result) {
+    while (previewEl.firstChild) previewEl.removeChild(previewEl.firstChild);
+    if (!result || !result.cards || !result.cards.length) return;
+    previewEl.appendChild(_el('div', { text: 'Found ' + result.cards.length + ' card' + (result.cards.length === 1 ? '' : 's') + '. First few:', style: { fontWeight: '600' } }));
+    result.cards.slice(0, 3).forEach(function (c) {
+      previewEl.appendChild(_el('div', { text: '• ' + c.front.slice(0, 70) + '  →  ' + c.back.slice(0, 50), style: { color: 'var(--text-secondary, #aaa)' } }));
+    });
+    if (result.warnings && result.warnings.length) {
+      previewEl.appendChild(_el('div', { text: result.warnings.length + ' line' + (result.warnings.length === 1 ? ' was' : 's were') + ' skipped: ' + result.warnings[0], style: { color: 'var(--accent-gold, #ffd54f)' } }));
     }
-    setStatus('Processing card ' + current + ' of ' + total + '...');
   }
 
-  /**
-   * Get cards from either the file input or the textarea.
-   */
   async function getCards() {
-    if (_parsedCards && _parsedCards.length > 0) {
+    if (_parsedCards && _parsedCards.length > 0 && !pasteArea.value.trim()) {
       return { cards: _parsedCards, warnings: [] };
     }
-
     var pasteText = pasteArea.value.trim();
-    if (pasteText) {
-      return parseDelimitedText(pasteText);
-    }
-
-    if (fileInput.files && fileInput.files.length > 0) {
-      return await parseFileInput(fileInput.files[0]);
-    }
-
-    return { cards: [], warnings: ['No cards found. Upload a file or paste cards above.'] };
+    if (pasteText) return parseDelimitedText(pasteText);
+    if (fileInput.files && fileInput.files.length > 0) return await parseFileInput(fileInput.files[0]);
+    return { cards: [], warnings: ['Nothing to import yet. Upload a file or paste your cards first.'] };
   }
 
-  /**
-   * Parse a file input based on extension.
-   */
   async function parseFileInput(file) {
     var name = file.name.toLowerCase();
-
     if (name.endsWith('.apkg')) {
-      setStatus('Parsing .apkg file (loading libraries)...');
+      setStatus('Reading the Anki deck…');
       return await parseApkg(file);
-    } else {
-      var text = await file.text();
-      return parseDelimitedText(text);
     }
+    return parseDelimitedText(await file.text());
   }
 
-  // File change handler
+  exampleBtn.addEventListener('click', function () {
+    pasteArea.value = FORMAT_EXAMPLE;
+    pasteArea.dispatchEvent(new Event('input'));
+  });
+
+  var previewTimer = null;
+  pasteArea.addEventListener('input', function () {
+    _parsedCards = null;
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(function () {
+      var t = pasteArea.value.trim();
+      if (!t) { showPreview(null); return; }
+      var r = parseDelimitedText(t);
+      showPreview(r);
+      if (!r.cards.length) setStatus('No cards found yet. Each line needs a front, a tab or comma, then a back.', RED);
+      else setStatus('');
+    }, 250);
+  });
+
   fileInput.addEventListener('change', async function () {
     if (!fileInput.files || fileInput.files.length === 0) return;
-
-    var file = fileInput.files[0];
     try {
-      setStatus('Reading file...');
-      var result = await parseFileInput(file);
+      setStatus('Reading file…');
+      var result = await parseFileInput(fileInput.files[0]);
       _parsedCards = result.cards;
-      setStatus(
-        'Parsed ' + result.cards.length + ' cards from file.' +
-        (result.warnings.length > 0 ? ' (' + result.warnings.length + ' warnings)' : ''),
-        'var(--accent-green, #44ff88)'
-      );
-      if (result.warnings.length > 0) {
-        console.warn('[Anki Import] Parse warnings:', result.warnings);
-      }
+      showPreview(result);
+      if (result.cards.length) setStatus('Ready. Tap "Import as flashcards".', GREEN);
+      else setStatus(result.warnings[0] || 'No cards found in that file.', RED);
     } catch (e) {
       _parsedCards = null;
-      setStatus('Error reading file: ' + (e.message || String(e)), 'var(--accent-red, #ff4466)');
-      if (_dependencies && _dependencies.reportError) {
-        _dependencies.reportError(e, { system: 'ankiimport', operation: 'parseFile' });
-      }
+      setStatus('Could not read that file: ' + (e.message || String(e)), RED);
+      if (_dependencies && _dependencies.reportError) _dependencies.reportError(e, { system: 'ankiimport', operation: 'parseFile' });
     }
   });
 
-  // Convert & Import button
-  convertBtn.addEventListener('click', async function () {
-    try {
-      var backendUrl = backendInput.value.trim();
-      if (!backendUrl) {
-        setStatus(
-          'No backend URL configured. AI conversion requires a server endpoint. Use "Import Without AI" for raw import.',
-          'var(--accent-red, #ff4466)'
-        );
-        return;
-      }
-
-      setStatus('Loading cards...');
-      var cardResult = await getCards();
-
-      if (!cardResult.cards || cardResult.cards.length === 0) {
-        setStatus(
-          cardResult.warnings.length > 0 ? cardResult.warnings[0] : 'No cards found.',
-          'var(--accent-red, #ff4466)'
-        );
-        return;
-      }
-
-      convertBtn.disabled = true;
-      showProgress(true);
-      setStatus('Converting ' + cardResult.cards.length + ' cards with AI...');
-
-      var convertResult = await convertWithBackend(cardResult.cards, {
-        backendUrl: backendUrl,
-        onProgress: updateProgress
-      });
-
-      if (convertResult.converted.length === 0) {
-        setStatus(
-          'No cards were successfully converted.' +
-          (convertResult.warnings.length > 0 ? ' ' + convertResult.warnings[0] : ''),
-          'var(--accent-red, #ff4466)'
-        );
-        convertBtn.disabled = false;
-        showProgress(false);
-        return;
-      }
-
-      var saveResult = _saveConvertedCards(convertResult.converted);
-
-      showProgress(false);
-      setStatus(
-        '✅ Imported ' + saveResult.imported + ' AI-converted cards!' +
-        (saveResult.rejected > 0 ? ' (' + saveResult.rejected + ' failed)' : ''),
-        'var(--accent-green, #44ff88)'
-      );
-      convertBtn.disabled = false;
-      _parsedCards = null;
-
-    } catch (e) {
-      setStatus('Error: ' + (e.message || String(e)), 'var(--accent-red, #ff4466)');
-      convertBtn.disabled = false;
-      showProgress(false);
-      if (_dependencies && _dependencies.reportError) {
-        _dependencies.reportError(e, { system: 'ankiimport', operation: 'convertWithBackend' });
-      }
-    }
-  });
-
-  // Raw Import button
   rawImportBtn.addEventListener('click', async function () {
     try {
-      setStatus('Loading cards...');
+      setStatus('Importing…');
       var cardResult = await getCards();
-
       if (!cardResult.cards || cardResult.cards.length === 0) {
-        setStatus(
-          cardResult.warnings.length > 0 ? cardResult.warnings[0] : 'No cards found.',
-          'var(--accent-red, #ff4466)'
-        );
+        setStatus(cardResult.warnings.length > 0 ? cardResult.warnings[0] : 'No cards found.', RED);
         return;
       }
-
       rawImportBtn.disabled = true;
-
       var result = importRaw(cardResult.cards);
-
       setStatus(
-        '✅ Imported ' + result.imported + ' flashcard-only cards!' +
-        (result.rejected > 0 ? ' (' + result.rejected + ' skipped)' : '') +
-        ' These cards are available in Flashcard mode.',
-        'var(--accent-green, #44ff88)'
+        'Imported ' + result.imported + ' flashcard' + (result.imported === 1 ? '' : 's') + '.' +
+        (result.rejected > 0 ? ' ' + result.rejected + ' skipped.' : '') + ' Find them in Flashcard mode.',
+        result.imported > 0 ? GREEN : RED
       );
       rawImportBtn.disabled = false;
       _parsedCards = null;
-
-      if (result.warnings.length > 0) {
-        console.warn('[Anki Import] Import warnings:', result.warnings);
-      }
-
+      showPreview(null);
+      if (result.imported > 0 && _dependencies && _dependencies.toast) _dependencies.toast('Imported ' + result.imported + ' flashcards.');
     } catch (e) {
-      setStatus('Error: ' + (e.message || String(e)), 'var(--accent-red, #ff4466)');
+      setStatus('Something went wrong: ' + (e.message || String(e)), RED);
       rawImportBtn.disabled = false;
-      if (_dependencies && _dependencies.reportError) {
-        _dependencies.reportError(e, { system: 'ankiimport', operation: 'importRaw' });
+      if (_dependencies && _dependencies.reportError) _dependencies.reportError(e, { system: 'ankiimport', operation: 'importRaw' });
+    }
+  });
+
+  copyPromptBtn.addEventListener('click', async function () {
+    var ok = await copyText(buildAiPrompt());
+    if (ok) {
+      setStatus('Prompt copied. Open your AI chat, paste it, then paste your cards underneath.', GREEN);
+    } else {
+      aiArea.value = buildAiPrompt();
+      aiArea.select();
+      setStatus('Could not copy automatically. The prompt is in the box below: select all, copy, then clear the box.', RED);
+    }
+  });
+
+  aiImportBtn.addEventListener('click', function () {
+    try {
+      var parsed = parseAiReply(aiArea.value);
+      if (parsed.error) { setStatus(parsed.error, RED); return; }
+      if (!_dependencies || !_dependencies.customCards) { setStatus('Cards are not available right now.', RED); return; }
+      var res = _dependencies.customCards.importJSON(JSON.stringify(parsed.cards));
+      var skipped = parsed.skipped + res.rejectedCount;
+      var firstErr = res.rejected[0] && res.rejected[0].errors && res.rejected[0].errors[0];
+      setStatus(
+        'Imported ' + res.importedCount + ' quiz card' + (res.importedCount === 1 ? '' : 's') + '.' +
+        (skipped ? ' ' + skipped + ' skipped' + (firstErr ? ' (' + firstErr.message + ')' : '') + '.' : '') +
+        (res.importedCount ? ' They are in your runs now. Skim them in My Cards.' : ''),
+        res.importedCount > 0 ? GREEN : RED
+      );
+      if (res.importedCount > 0) {
+        aiArea.value = '';
+        if (_dependencies.toast) _dependencies.toast('Imported ' + res.importedCount + ' quiz cards.');
       }
+    } catch (e) {
+      setStatus('Something went wrong: ' + (e.message || String(e)), RED);
+      if (_dependencies && _dependencies.reportError) _dependencies.reportError(e, { system: 'ankiimport', operation: 'importAiCards' });
     }
   });
 }

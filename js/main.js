@@ -1872,6 +1872,7 @@ function mountAnkiImport() {
   ankiImportModule.ankiImport.mount(container, {
     customCards: customCards,
     storage: storage,
+    toast: function (m) { ui._showToast(m); },
     reportError: reportError
   });
 }

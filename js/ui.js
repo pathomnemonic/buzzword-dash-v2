@@ -1642,6 +1642,14 @@ class UI {
     if (cancelBtn) cancelBtn.addEventListener('click', function () { self.show('screenMyCards'); self.renderCustomCardList(); });
     var exportBtn = document.getElementById('exportCardsBtn');
     if (exportBtn) exportBtn.addEventListener('click', function () { self.showExport(); });
+    var bringBtn = document.getElementById('bringCardsBtn');
+    if (bringBtn) bringBtn.addEventListener('click', function () {
+      self.show('screenSettings');
+      self._settingsSection = 'study';
+      self.renderSettings();
+      var box = document.getElementById('ankiImportContainer');
+      if (box && box.scrollIntoView) box.scrollIntoView({ block: 'start' });
+    });
     var importBtn = document.getElementById('importCardsBtn');
     if (importBtn) importBtn.addEventListener('click', function () { self.showImport(); });
     var shareDeckBtn = document.getElementById('shareDeckBtn');
@@ -1852,7 +1860,7 @@ class UI {
     setText(document.getElementById('importExportTitle'), '📥 Import Cards');
     document.getElementById('importExportArea').value = '';
     document.getElementById('importExportArea').readOnly = false;
-    setText(document.getElementById('importExportMsg'), 'Paste JSON from someone who shared their cards.');
+    setText(document.getElementById('importExportMsg'), 'Paste a card list here. This takes JSON: either from a friend who exported their cards, or from an AI chat. For the step-by-step (and a copy-paste AI prompt), open Settings \u203A Bring in your own cards.');
     var actionBtn = document.getElementById('importExportAction');
     setText(actionBtn, '📥 Import');
     var newBtn = actionBtn.cloneNode(true);

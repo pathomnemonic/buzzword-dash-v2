@@ -1,0 +1,12 @@
+#separator:tab
+#html:true
+#guid column:1
+#notetype column:2
+#deck column:3
+#tags column:6
+gT3k_x1	Basic	Step 1::Cardio	Fever, new murmur, Janeway lesions, Osler nodes<br>in an IV drug user	<b>Infective endocarditis</b><br>S. aureus is the most common cause	cardio endocarditis
+hQ9m_y2	Basic	Step 1::Pharm	Antidote for acetaminophen overdose?	N-acetylcysteine&nbsp;(replenishes glutathione)	pharm toxicology
+kL2p_z3	Cloze	Step 1::Endo	First-line drug for type 2 diabetes is {{c1::metformin}}, which works by {{c2::decreasing hepatic gluconeogenesis}}.	Risk: lactic acidosis	endo
+mN8q_w4	Basic	Step 1::Neuro	"Pt w/ unilateral facial droop sparing the forehead, lesion is where?"	Contralateral upper motor neuron (cortex / internal capsule); LMN lesions affect the forehead too	neuro
+pR5s_v5	Basic	Step 1::Heme	Drug of choice for HIT?	Argatroban (direct thrombin inhibitor). Stop heparin.	heme
+qS7t_u6	Basic	Step 1::Micro	Image occlusion: identify the organism	[image]	micro
