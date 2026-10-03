@@ -11,7 +11,7 @@
  *   offscreen   something that runs off the left or right edge
  *   hscroll     the page scrolls sideways
  *   unlabeled   a control with no text, label or title (invisible to a screen reader)
- *   tiny        a tap target under 36 px (a suggestion, not a failure)
+ *   tiny        a tap target under 44 px (a suggestion, not a failure)
  *   clipped     text cut off by its own box
  * Failures (covered, offscreen, hscroll, unlabeled) exit 1; suggestions are listed.
  */
@@ -78,7 +78,7 @@ const audit = () => page.evaluate(() => {
     if (r.left < -1 || r.right > vw + 1) out.push({ kind: 'offscreen', el: label(el), at: Math.round(r.left) + '..' + Math.round(r.right) });
     const named = (el.textContent || '').trim() || el.getAttribute('aria-label') || el.getAttribute('title') || (el.labels && el.labels.length) || el.getAttribute('placeholder') || el.getAttribute('aria-labelledby');
     if (!named) out.push({ kind: 'unlabeled', el: label(el) });
-    if ((r.width < 36 || r.height < 36) && el.tagName !== 'INPUT' && !(el.type === 'checkbox' || el.type === 'radio')) out.push({ kind: 'tiny', el: label(el), size: Math.round(r.width) + 'x' + Math.round(r.height) });
+    if ((r.width < 44 || r.height < 44) && el.tagName !== 'INPUT' && !(el.type === 'checkbox' || el.type === 'radio')) out.push({ kind: 'tiny', el: label(el), size: Math.round(r.width) + 'x' + Math.round(r.height) });
   });
   const hs = document.documentElement.scrollWidth - vw;
   if (hs > 1) out.push({ kind: 'hscroll', el: 'page', by: hs });

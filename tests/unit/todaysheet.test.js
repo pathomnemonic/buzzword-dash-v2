@@ -30,7 +30,7 @@ describe('the Today popup on Home', () => {
     expect(ui.closeSheets).toHaveBeenCalled();
     expect(ui.onStudyPlanRun).toHaveBeenCalledTimes(1);
     expect(ui.onStudyPlanRun.mock.calls[0][0]).toHaveLength(20);
-    [...el.querySelectorAll('.today-next button')].find((b) => /Cards/.test(b.textContent)).click();
+    [...el.querySelectorAll('.today-next button')].find((b) => /Flashcards/.test(b.textContent)).click();
     expect(ui.startFlashcardSession).toHaveBeenCalledWith(null, expect.any(Array));
   });
 

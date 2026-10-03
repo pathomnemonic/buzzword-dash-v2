@@ -391,6 +391,7 @@ export var profileMethods = {
             self.renderHome();
             document.dispatchEvent(new CustomEvent('dx:attention-changed'));
           });
+          questEl.classList.add('has-claim');
           rewardRow.appendChild(claimBtn);
         } else {
           var claimedLabel = createElement('div', { text: '✅ Claimed' });

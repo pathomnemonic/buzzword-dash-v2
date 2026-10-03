@@ -1892,3 +1892,39 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .home-progress { padding: 4px 10px 2px; }
   .home-progress .study-goal { min-height: 36px; }
 }
+.home-progress .study-goal-bar { width: 100%; max-width: none; align-self: stretch; height: 10px; margin: 5px 0 4px; }
+@media (max-height: 460px) {
+  /* landscape phones: only today's goal, so Home still fits above the tab bar */
+  .home-progress .home-level { display: none; }
+  .home-progress .study-goal { border-top: 0; min-height: 40px; }
+}
+
+/* ---------- every control is at least 44 x 44 px (Apple's guideline; Google asks for 48 dp, which this nearly meets) ---------- */
+.btn, .btn-sm, .top-btn, .collapsible-toggle, .perf-summary, .profile-fold-sum, .home-profile-btn, .back-btn, .setup-btn, .sheet-entry {
+  min-height: 44px;
+}
+.btn, .btn-sm, .top-btn, .collapsible-toggle { min-width: 44px; }
+.home-profile-btn { min-width: 44px; }
+.nav-item { min-width: 44px; }
+.review-flag { overflow: visible; }
+.review-flag::after { content: ''; position: absolute; inset: -11px; }   /* the flag looks small, its tap area is not */
+@media (max-height: 640px) {
+  #screenStats .perf-summary { min-height: 44px; }
+  .profile-fold-sum { min-height: 44px; }
+}
+@media (max-height: 460px) { .home-progress .study-goal { min-height: 44px; } }
+/* Quests must all fit on one screen: the Claim button looks compact but keeps a full 44 px tap area */
+.quest-item .btn, .quest-item .btn-sm { min-height: 32px; position: relative; }
+.quest-item .btn::after, .quest-item .btn-sm::after { content: ''; position: absolute; inset: -6px -4px; }
+/* the Claim button sits at the right of the quest, centred on it, so a finished quest is no taller than an unfinished one */
+#questList .quest-item { position: relative; }
+#questList .quest-item.has-claim > .quest-title, #questList .quest-item.has-claim > .quest-bar, #questList .quest-item.has-claim > .quest-claim-row { margin-right: 104px; }
+#questList .quest-item.has-claim .quest-claim-row .btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); min-height: 34px; min-width: 92px; padding: 4px 8px; }
+@media (max-height: 700px) {
+  #questList .quest-item { padding: 5px 10px; margin: 3px 0; }
+  #questList .quest-title { font-size: 11px; line-height: 1.2; }
+  #questList .quest-bar { height: 7px; margin: 3px 0 1px; }
+  #questList .quest-reward { font-size: 10px; }
+  #screenQuests h2 { font-size: 22px; }
+  #screenQuests .quest-intro { margin: 2px 0 4px; font-size: 11px; }
+}

@@ -1,5 +1,202 @@
 [
  {
+  "kind": "tiny",
+  "el": "#profileCornerBtn.home-profile-btn \"👤 Sign in\"",
+  "size": "44x40",
+  "where": [
+   "screenHome @320x568",
+   "screenHome @360x640",
+   "screenHome @390x844",
+   "screenHome @430x932",
+   "screenHome @768x1024",
+   "screenHome @1280x800",
+   "screenHome @800x360",
+   "screenHome @667x375",
+   "screenHome @844x390",
+   "screenHome @195x390",
+   "screenHome @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-green \"🏃 Run it\"",
+  "size": "127x42",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800",
+   "screenStats @800x360",
+   "screenStats @667x375",
+   "screenStats @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "size": "127x42",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800",
+   "screenStats @800x360",
+   "screenStats @667x375",
+   "screenStats @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".perf-summary \"📅Reviews coming up0 due\"",
+  "size": "282x38",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800",
+   "screenStats @800x360",
+   "screenStats @667x375",
+   "screenStats @844x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".perf-summary \"📚Subjects\"",
+  "size": "282x38",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800",
+   "screenStats @800x360",
+   "screenStats @667x375",
+   "screenStats @844x390",
+   "screenStats @195x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".perf-summary \"🎯Weakest concepts\"",
+  "size": "282x38",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800",
+   "screenStats @844x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".perf-summary \"🏅Lifetime0 cards\"",
+  "size": "282x38",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".perf-summary \"⚙Plan settingsNo exam da\"",
+  "size": "282x38",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "clipped",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "where": [
+   "screenStats @320x568",
+   "screenStats @360x640",
+   "screenStats @390x844",
+   "screenStats @195x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🌱 Getting started0/7\"",
+  "by": "#bottomNav.bottom-nav \"📊Stats 🧥Locker 🏠Home \"",
+  "where": [
+   "screenProfile @320x568"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-outline \"← Back\"",
+  "size": "93x40",
+  "where": [
+   "screenSettings @320x568",
+   "screenMyCards @320x568",
+   "screenCardBrowser @320x568",
+   "screenFlashcard @320x568",
+   "screenExam @320x568",
+   "screenLeaderboard @320x568",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
+   "screenSettings @430x932",
+   "screenMyCards @430x932",
+   "screenCardBrowser @430x932",
+   "screenFlashcard @430x932",
+   "screenExam @430x932",
+   "screenLeaderboard @430x932",
+   "screenSettings @768x1024",
+   "screenMyCards @768x1024",
+   "screenCardBrowser @768x1024",
+   "screenFlashcard @768x1024",
+   "screenExam @768x1024",
+   "screenLeaderboard @768x1024",
+   "screenSettings @1280x800",
+   "screenMyCards @1280x800",
+   "screenCardBrowser @1280x800",
+   "screenFlashcard @1280x800",
+   "screenExam @1280x800",
+   "screenLeaderboard @1280x800",
+   "screenSettings @800x360",
+   "screenMyCards @800x360",
+   "screenCardBrowser @800x360",
+   "screenFlashcard @800x360",
+   "screenExam @800x360",
+   "screenLeaderboard @800x360",
+   "screenSettings @667x375",
+   "screenMyCards @667x375",
+   "screenCardBrowser @667x375",
+   "screenFlashcard @667x375",
+   "screenExam @667x375",
+   "screenLeaderboard @667x375",
+   "screenSettings @844x390",
+   "screenMyCards @844x390",
+   "screenCardBrowser @844x390",
+   "screenFlashcard @844x390",
+   "screenExam @844x390",
+   "screenLeaderboard @844x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390",
+   "screenSettings @250x440",
+   "screenMyCards @250x440",
+   "screenCardBrowser @250x440",
+   "screenFlashcard @250x440",
+   "screenExam @250x440",
+   "screenLeaderboard @250x440"
+  ]
+ },
+ {
   "kind": "clipped",
   "el": "#exportCardsBtn.btn.btn-outline \"📤 Export\"",
   "where": [
@@ -39,10 +236,196 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"10\"",
+  "size": "55x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390",
+   "screenExam @195x390",
+   "screenExam @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"20\"",
+  "size": "55x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390",
+   "screenExam @195x390",
+   "screenExam @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"40 (full block)\"",
+  "size": "165x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390",
+   "screenExam @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"60 s (hard)\"",
+  "size": "130x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"90 s (exam pace)\"",
+  "size": "174x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"120 s\"",
+  "size": "79x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"Untimed\"",
+  "size": "106x40",
+  "where": [
+   "screenExam @320x568",
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#subjectToggle.collapsible-toggle \"📚 Subjects ▸\"",
+  "size": "254x41",
+  "where": [
+   "filtersSheet @320x568",
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @195x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#examFilterToggle.collapsible-toggle \"🎯 Exam Filter ▸\"",
+  "size": "254x41",
+  "where": [
+   "filtersSheet @320x568",
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".collapsible-toggle \"🔍 Filters ▸\"",
+  "size": "254x41",
+  "where": [
+   "filtersSheet @320x568",
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @195x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-sm \"Go\"",
+  "size": "58x40",
+  "where": [
+   "todaySheet @320x568",
+   "todaySheet @360x640",
+   "todaySheet @390x844",
+   "todaySheet @430x932",
+   "todaySheet @768x1024",
+   "todaySheet @1280x800",
+   "todaySheet @667x375",
+   "todaySheet @844x390",
+   "todaySheet @250x440"
+  ]
+ },
+ {
   "kind": "covered",
   "el": "#settingsBtn.top-btn \"⚙\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800",
@@ -57,6 +440,8 @@
   "el": "#leaderboardBtn.top-btn.top-btn-label \"👥Friends\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800",
@@ -71,6 +456,8 @@
   "el": "#profileCornerBtn.home-profile-btn \"👤 Sign in\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800",
@@ -85,7 +472,8 @@
   "el": "#studyGoal.study-goal \"🎯 Today 0/20\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenHome @430x932"
+   "screenHome @360x640",
+   "screenHome @768x1024"
   ]
  },
  {
@@ -93,7 +481,7 @@
   "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenHome @430x932",
+   "screenHome @360x640",
    "screenHome @768x1024",
    "screenHome @1280x800",
    "screenHome @800x360",
@@ -104,9 +492,9 @@
  {
   "kind": "covered",
   "el": ".btn-play \"▶ PLAY\"",
-  "by": ".dr-day \"DAY 6🪙100\"",
+  "by": ".dr-day \"DAY 3🪙30\"",
   "where": [
-   "screenHome @430x932"
+   "screenHome @360x640"
   ]
  },
  {
@@ -114,7 +502,7 @@
   "el": "#speedBtn.side-btn \"🏎 Speed 1×\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenHome @430x932",
+   "screenHome @360x640",
    "screenHome @768x1024",
    "screenHome @1280x800",
    "screenHome @800x360",
@@ -127,8 +515,11 @@
   "el": "#howToPlayBtn.link-btn \"❓ How to play\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
-   "screenHome @768x1024"
+   "screenHome @768x1024",
+   "screenHome @1280x800"
   ]
  },
  {
@@ -136,6 +527,8 @@
   "el": "#multiplayerBtn.mode-btn \"🎮 Versus\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800"
@@ -146,6 +539,8 @@
   "el": "#homeFlashcardsBtn.mode-btn \"🃏 Flashcards\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800"
@@ -156,6 +551,8 @@
   "el": "#homeChallengeBtn.mode-btn \"🏁 Challenge\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenHome @390x844",
    "screenHome @430x932",
    "screenHome @768x1024",
    "screenHome @1280x800"
@@ -166,6 +563,26 @@
   "el": ".nav-item \"📊Stats\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenShop @360x640",
+   "screenQuests @360x640",
+   "screenProfile @360x640",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenHome @390x844",
+   "screenShop @390x844",
+   "screenQuests @390x844",
+   "screenProfile @390x844",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenHome @430x932",
    "screenShop @430x932",
    "screenQuests @430x932",
@@ -243,6 +660,26 @@
   "el": ".nav-item \"🧥Locker\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenStats @360x640",
+   "screenQuests @360x640",
+   "screenProfile @360x640",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenHome @390x844",
+   "screenStats @390x844",
+   "screenQuests @390x844",
+   "screenProfile @390x844",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenHome @430x932",
    "screenStats @430x932",
    "screenQuests @430x932",
@@ -310,6 +747,28 @@
   "el": ".nav-item.nav-home \"🏠Home\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenStats @360x640",
+   "screenShop @360x640",
+   "screenQuests @360x640",
+   "screenProfile @360x640",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenHome @390x844",
+   "screenStats @390x844",
+   "screenShop @390x844",
+   "screenQuests @390x844",
+   "screenProfile @390x844",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenHome @430x932",
    "screenStats @430x932",
    "screenShop @430x932",
@@ -368,6 +827,26 @@
   "el": ".nav-item \"📋Quests\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenStats @360x640",
+   "screenShop @360x640",
+   "screenProfile @360x640",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenHome @390x844",
+   "screenStats @390x844",
+   "screenShop @390x844",
+   "screenProfile @390x844",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenHome @430x932",
    "screenStats @430x932",
    "screenShop @430x932",
@@ -435,6 +914,26 @@
   "el": ".nav-item \"👤Profile\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenHome @360x640",
+   "screenStats @360x640",
+   "screenShop @360x640",
+   "screenQuests @360x640",
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenHome @390x844",
+   "screenStats @390x844",
+   "screenShop @390x844",
+   "screenQuests @390x844",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenHome @430x932",
    "screenStats @430x932",
    "screenShop @430x932",
@@ -510,9 +1009,9 @@
  {
   "kind": "tiny",
   "el": ".btn.btn-green \"CLAIM +10 🪙\"",
-  "size": "95x28",
+  "size": "88x27",
   "where": [
-   "screenHome @430x932"
+   "screenHome @360x640"
   ]
  },
  {
@@ -520,6 +1019,8 @@
   "el": ".btn.btn-green \"🏃 Run it\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenStats @360x640",
+   "screenStats @390x844",
    "screenStats @430x932",
    "screenStats @768x1024",
    "screenStats @1280x800"
@@ -527,9 +1028,11 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenStats @360x640",
+   "screenStats @390x844",
    "screenStats @430x932",
    "screenStats @768x1024",
    "screenStats @1280x800"
@@ -538,38 +1041,37 @@
  {
   "kind": "covered",
   "el": ".perf-tile \"🔁0Due now\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenStats @430x932",
-   "screenStats @768x1024",
-   "screenStats @1280x800"
+   "screenStats @360x640",
+   "screenStats @390x844"
   ]
  },
  {
   "kind": "covered",
   "el": ".perf-tile \"🎯—Accuracy\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenStats @430x932",
-   "screenStats @768x1024"
+   "screenStats @360x640",
+   "screenStats @390x844"
   ]
  },
  {
   "kind": "covered",
   "el": ".perf-tile \"📅SetTo exam\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenStats @430x932",
-   "screenStats @768x1024",
-   "screenStats @1280x800"
+   "screenStats @360x640",
+   "screenStats @390x844"
   ]
  },
  {
   "kind": "covered",
   "el": ".perf-summary \"📅Reviews coming up0 due\"",
-  "by": ".dr-title \"DAILY REWARD\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
   "where": [
-   "screenStats @430x932"
+   "screenStats @360x640",
+   "screenStats @390x844"
   ]
  },
  {
@@ -577,8 +1079,9 @@
   "el": ".perf-summary \"📚Subjects\"",
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
-   "screenStats @430x932",
-   "screenStats @1280x800"
+   "screenStats @360x640",
+   "screenStats @390x844",
+   "screenStats @430x932"
   ]
  },
  {
@@ -586,15 +1089,18 @@
   "el": ".perf-summary \"🎯Weakest concepts\"",
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
+   "screenStats @360x640",
    "screenStats @430x932",
-   "screenStats @768x1024"
+   "screenStats @768x1024",
+   "screenStats @1280x800"
   ]
  },
  {
   "kind": "covered",
   "el": ".perf-summary \"🏅Lifetime0 cards\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
+   "screenStats @360x640",
    "screenStats @430x932"
   ]
  },
@@ -603,6 +1109,7 @@
   "el": ".perf-summary \"⚙Plan settingsNo exam da\"",
   "by": ".btn.btn-green \"CLAIM +10 🪙\"",
   "where": [
+   "screenStats @360x640",
    "screenStats @430x932"
   ]
  },
@@ -611,6 +1118,8 @@
   "el": ".nav-item.active \"📊Stats\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenStats @360x640",
+   "screenStats @390x844",
    "screenStats @430x932",
    "screenStats @768x1024",
    "screenStats @1280x800",
@@ -622,96 +1131,41 @@
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"🦸Heroes\"",
-  "by": ".dr-streak \"🔥 1-day streak\"",
+  "by": ".dr-day \"DAY 5🪙75\"",
   "where": [
-   "screenShop @430x932"
+   "screenShop @360x640"
   ]
  },
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"✨Trails\"",
-  "by": ".dr-streak \"🔥 1-day streak\"",
+  "by": ".dr-day \"DAY 6🪙100\"",
   "where": [
-   "screenShop @430x932"
+   "screenShop @360x640"
   ]
  },
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"🗺️Maps\"",
-  "by": ".dr-streak \"🔥 1-day streak\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
   "where": [
-   "screenShop @430x932"
+   "screenShop @360x640"
   ]
  },
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"👾Monsters\"",
-  "by": ".dr-streak \"🔥 1-day streak\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
   "where": [
-   "screenShop @430x932"
+   "screenShop @360x640"
   ]
  },
  {
   "kind": "covered",
   "el": "#heroColorsToggle.btn.btn-sm \"🎨 Change colors\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
-   "screenShop @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"👁\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🎨\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"👁\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932",
-   "screenShop @768x1024",
-   "screenShop @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🎨\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932",
-   "screenShop @768x1024",
-   "screenShop @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-gold \"🪙 600\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932",
-   "screenShop @768x1024",
-   "screenShop @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-gold \"🪙 800\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @430x932",
-   "screenShop @768x1024"
+   "screenShop @360x640"
   ]
  },
  {
@@ -719,6 +1173,8 @@
   "el": ".nav-item.active \"🧥Locker\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenShop @360x640",
+   "screenShop @390x844",
    "screenShop @430x932",
    "screenShop @768x1024",
    "screenShop @1280x800",
@@ -731,6 +1187,8 @@
   "el": ".nav-item.active \"📋Quests\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenQuests @360x640",
+   "screenQuests @390x844",
    "screenQuests @430x932",
    "screenQuests @768x1024",
    "screenQuests @1280x800",
@@ -742,6 +1200,8 @@
   "el": ".profile-name-input \"\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
    "screenProfile @430x932",
    "screenProfile @768x1024",
    "screenProfile @1280x800"
@@ -752,6 +1212,8 @@
   "el": " \"✏️ Change symbol\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
    "screenProfile @430x932",
    "screenProfile @768x1024",
    "screenProfile @1280x800"
@@ -759,10 +1221,60 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-primary \"💾 Save Profile\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "by": ".dr-v \"🪙50\"",
   "where": [
-   "screenProfile @430x932"
+   "screenProfile @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"☁ AccountThis device onl\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"📅 Study streak🔥 0 days\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"🏆 Badges (0/57)\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🌱 Getting started0/7\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
+   "screenProfile @430x932",
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🔥 Streaks and perfect r\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
+   "screenProfile @430x932",
+   "screenProfile @768x1024",
+   "screenProfile @1280x800"
   ]
  },
  {
@@ -770,6 +1282,8 @@
   "el": ".nav-item.active \"👤Profile\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenProfile @360x640",
+   "screenProfile @390x844",
    "screenProfile @430x932",
    "screenProfile @768x1024",
    "screenProfile @1280x800",
@@ -784,6 +1298,18 @@
   "el": ".btn.btn-outline \"← Back\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenSettings @360x640",
+   "screenMyCards @360x640",
+   "screenCardBrowser @360x640",
+   "screenFlashcard @360x640",
+   "screenExam @360x640",
+   "screenLeaderboard @360x640",
+   "screenSettings @390x844",
+   "screenMyCards @390x844",
+   "screenCardBrowser @390x844",
+   "screenFlashcard @390x844",
+   "screenExam @390x844",
+   "screenLeaderboard @390x844",
    "screenSettings @430x932",
    "screenMyCards @430x932",
    "screenCardBrowser @430x932",
@@ -827,6 +1353,8 @@
   "el": ".settings-card \"🔊SoundMusic, effects, v\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenSettings @360x640",
+   "screenSettings @390x844",
    "screenSettings @430x932",
    "screenSettings @768x1024",
    "screenSettings @1280x800"
@@ -835,8 +1363,696 @@
  {
   "kind": "covered",
   "el": ".settings-card \"🎨Look & performanceColo\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenSettings @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"⌨️KeyboardChoose the key\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenSettings @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"📚StudyDaily goal, remin\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenSettings @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"🎛️Your rulesTurn power-\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
+   "screenSettings @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#addCardBtn.btn.btn-green \"+ Create New Card\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenMyCards @360x640",
+   "screenMyCards @390x844",
+   "screenMyCards @430x932",
+   "screenMyCards @768x1024",
+   "screenMyCards @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#bringCardsBtn.btn.btn-primary \"📥 Bring in Anki, spread\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenMyCards @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#exportCardsBtn.btn.btn-outline \"📤 Export\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenMyCards @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#shareDeckBtn.btn.btn-outline \"🌐 Share Deck\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenMyCards @360x640",
+   "screenMyCards @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#importDeckBtn.btn.btn-outline \"🔑 Get Deck\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenMyCards @360x640",
+   "screenMyCards @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#importCardsBtn.btn.btn-outline \"📥 Paste JSON\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenMyCards @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cbSearch.card-browser-search \"\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenCardBrowser @360x640",
+   "screenCardBrowser @390x844",
+   "screenCardBrowser @430x932",
+   "screenCardBrowser @768x1024",
+   "screenCardBrowser @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cbSubjectFilter \"All SubjectsNeurologyCar\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenCardBrowser @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cbStatusFilter \"All CardsSeenUnseenDisab\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenCardBrowser @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source.on \"🎯 My subjects15 subject\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @360x640",
+   "screenFlashcard @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"⏰ Due for review0 cards \"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenFlashcard @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"🩹 Cards I miss0 cards y\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "screenFlashcard @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"🆕 New cards3010 cards y\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenFlashcard @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"📚 Pick subjectsChoose e\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"10\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"20\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"40 (full block)\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"60 s (hard)\"",
+  "by": ".dr-day \"DAY 5🪙75\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"90 s (exam pace)\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"120 s\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @1280x800",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"Untimed\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @360x640",
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"▶ Start exam\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🏠 Back\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"📖 StudyRelaxed practice\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @390x844",
+   "challengeSheet @430x932",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"🎯 WeaknessDrill the car\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"📅 Daily 15A quick habit\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @390x844",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800",
+   "challengeSheet @667x375",
+   "challengeSheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#tournamentBtn.sheet-entry \"🛡️ Weekly GauntletA rea\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @430x932",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#challengeBtn.sheet-entry \"🤝 Friend challengePlay \"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#examBtn.sheet-entry \"📝 Exam SimA timed block\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @360x640",
+   "challengeSheet @390x844",
+   "challengeSheet @430x932",
+   "challengeSheet @768x1024",
+   "challengeSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#flashcardBtn.sheet-entry \"📖 Study my subjectsA ra\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @390x844",
+   "flashcardsSheet @430x932",
+   "flashcardsSheet @768x1024",
+   "flashcardsSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"⏰ Review due cardsNothin\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @430x932",
+   "flashcardsSheet @768x1024",
+   "flashcardsSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"🩹 Cards I missCards you\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @390x844",
+   "flashcardsSheet @430x932",
+   "flashcardsSheet @768x1024",
+   "flashcardsSheet @1280x800",
+   "flashcardsSheet @800x360",
+   "flashcardsSheet @667x375",
+   "flashcardsSheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"🆕 New cards3010 cards i\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cardBrowserBtn.sheet-entry \"🔎 Browse cardsSearch ev\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "flashcardsSheet @360x640"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#myCardsBtn.sheet-entry \"📝 My cardsWrite your ow\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @390x844",
+   "flashcardsSheet @430x932",
+   "flashcardsSheet @768x1024",
+   "flashcardsSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"✕ Close\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "flashcardsSheet @360x640",
+   "flashcardsSheet @390x844",
+   "todaySheet @390x844",
+   "challengeSheet @430x932",
+   "flashcardsSheet @430x932",
+   "todaySheet @430x932",
+   "challengeSheet @768x1024",
+   "flashcardsSheet @768x1024",
+   "todaySheet @768x1024",
+   "challengeSheet @1280x800",
+   "flashcardsSheet @1280x800",
+   "todaySheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#subjectToggle.collapsible-toggle \"📚 Subjects ▸\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#examFilterToggle.collapsible-toggle \"🎯 Exam Filter ▸\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @195x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".collapsible-toggle \"🔍 Filters ▸\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-primary \"Done\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "filtersSheet @360x640",
+   "filtersSheet @390x844",
+   "filtersSheet @430x932",
+   "filtersSheet @768x1024",
+   "filtersSheet @1280x800",
+   "filtersSheet @800x360",
+   "filtersSheet @667x375",
+   "filtersSheet @844x390",
+   "filtersSheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#speedDial \"\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "speedSheet @360x640",
+   "speedSheet @800x360",
+   "speedSheet @667x375",
+   "speedSheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-primary \"Done\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "speedSheet @360x640",
+   "speedSheet @390x844",
+   "speedSheet @430x932",
+   "speedSheet @768x1024",
+   "speedSheet @1280x800",
+   "speedSheet @800x360",
+   "speedSheet @667x375",
+   "speedSheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"🏃 Run it\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "todaySheet @360x640",
+   "todaySheet @390x844",
+   "todaySheet @430x932",
+   "todaySheet @768x1024",
+   "todaySheet @1280x800",
+   "screenStats @800x360"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "todaySheet @360x640",
+   "todaySheet @390x844",
+   "todaySheet @430x932",
+   "todaySheet @768x1024",
+   "todaySheet @1280x800",
+   "screenStats @800x360"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"Go\"",
+  "by": ".dr-day \"DAY 4🪙50\"",
+  "where": [
+   "todaySheet @360x640",
+   "todaySheet @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#firstWeekHide.btn.btn-sm \"Hide this\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "todaySheet @360x640"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#firstWeekHide.btn.btn-sm \"Hide this\"",
+  "size": "113x40",
+  "where": [
+   "todaySheet @360x640",
+   "todaySheet @390x844",
+   "todaySheet @430x932",
+   "todaySheet @768x1024",
+   "todaySheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#studyGoal.study-goal \"🎯 Today 0/20\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenHome @390x844",
+   "screenHome @430x932",
+   "screenHome @800x360"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
+  "by": ".dr-v \"🪙75\"",
+  "where": [
+   "screenHome @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn-play \"▶ PLAY\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenHome @390x844",
+   "screenHome @430x932",
+   "screenHome @768x1024",
+   "screenHome @1280x800",
+   "screenHome @800x360",
+   "screenHome @667x375",
+   "screenHome @844x390",
+   "screenHome @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#speedBtn.side-btn \"🏎 Speed 1×\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "screenHome @390x844",
+   "screenHome @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"🎯Weakest concepts\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenStats @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"🏅Lifetime0 cards\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenStats @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"⚙Plan settingsNo exam da\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenStats @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"🦸Heroes\"",
+  "by": ".dr-v \"🪙10\"",
+  "where": [
+   "screenShop @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"✨Trails\"",
+  "by": ".dr-v \"🪙20\"",
+  "where": [
+   "screenShop @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"🗺️Maps\"",
+  "by": ".dr-v \"🪙30\"",
+  "where": [
+   "screenShop @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"👾Monsters\"",
+  "by": ".dr-v \"🪙50\"",
+  "where": [
+   "screenShop @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#heroColorsToggle.btn.btn-sm \"🎨 Change colors\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "screenShop @390x844"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#heroColorsToggle.btn.btn-sm \"🎨 Change colors\"",
+  "size": "181x43",
+  "where": [
+   "screenShop @390x844",
+   "screenShop @430x932",
+   "screenShop @768x1024",
+   "screenShop @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenProfile @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"📅 Study streak🔥 0 days\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenProfile @390x844",
+   "screenProfile @430x932",
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🏆 Scores and coins0/5\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @390x844",
+   "screenProfile @430x932",
+   "screenProfile @768x1024",
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"📚 Cards answered0/6\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @390x844",
+   "screenProfile @430x932",
+   "screenProfile @768x1024",
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"🎨Look & performanceColo\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenSettings @390x844",
    "screenSettings @430x932",
    "screenSettings @768x1024",
    "screenSettings @1280x800"
@@ -845,9 +2061,9 @@
  {
   "kind": "covered",
   "el": ".settings-card \"⌨️KeyboardChoose the key\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-title \"DAILY REWARD\"",
   "where": [
-   "screenSettings @430x932"
+   "screenSettings @390x844"
   ]
  },
  {
@@ -855,8 +2071,502 @@
   "el": ".settings-card \"📚StudyDaily goal, remin\"",
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
+   "screenSettings @390x844",
    "screenSettings @430x932",
    "screenSettings @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"🎛️Your rulesTurn power-\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenSettings @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"💾Backup & dataSave, res\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenSettings @390x844",
+   "screenSettings @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"ℹ️About & helpHow to pla\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenSettings @390x844",
+   "screenSettings @430x932",
+   "screenSettings @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#bringCardsBtn.btn.btn-primary \"📥 Bring in Anki, spread\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenMyCards @390x844",
+   "screenMyCards @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#exportCardsBtn.btn.btn-outline \"📤 Export\"",
+  "by": ".dr-n \"DAY 1\"",
+  "where": [
+   "screenMyCards @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#shareDeckBtn.btn.btn-outline \"🌐 Share Deck\"",
+  "by": ".dr-n \"DAY 2\"",
+  "where": [
+   "screenMyCards @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#importDeckBtn.btn.btn-outline \"🔑 Get Deck\"",
+  "by": ".dr-n \"DAY 3\"",
+  "where": [
+   "screenMyCards @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#importCardsBtn.btn.btn-outline \"📥 Paste JSON\"",
+  "by": ".dr-n \"DAY 4\"",
+  "where": [
+   "screenMyCards @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cbSubjectFilter \"All SubjectsNeurologyCar\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenCardBrowser @390x844",
+   "screenCardBrowser @430x932",
+   "screenCardBrowser @768x1024",
+   "screenCardBrowser @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cbStatusFilter \"All CardsSeenUnseenDisab\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenCardBrowser @390x844",
+   "screenCardBrowser @430x932",
+   "screenCardBrowser @768x1024",
+   "screenCardBrowser @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source.on \"🎯 My subjects15 subject\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @430x932",
+   "screenFlashcard @768x1024",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"⏰ Due for review0 cards \"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"🩹 Cards I miss0 cards y\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"🆕 New cards3010 cards y\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-source \"📚 Pick subjectsChoose e\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @430x932",
+   "screenFlashcard @768x1024",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-chip \"10\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenFlashcard @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-chip.on \"20\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenFlashcard @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-chip \"40\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenFlashcard @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".pick-chip \"80\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenFlashcard @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"📖 Flip cards\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🎧 Listen hands-free\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🏠 Back to Home\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenFlashcard @390x844",
+   "screenFlashcard @430x932",
+   "screenFlashcard @768x1024",
+   "screenFlashcard @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"10\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"20\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"40 (full block)\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"60 s (hard)\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @800x360",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"90 s (exam pace)\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @667x375",
+   "screenExam @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"▶ Start exam\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🏠 Back\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenExam @390x844",
+   "screenExam @430x932",
+   "screenExam @768x1024",
+   "screenExam @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"🎯 WeaknessDrill the car\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @390x844",
+   "challengeSheet @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#tournamentBtn.sheet-entry \"🛡️ Weekly GauntletA rea\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "challengeSheet @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#challengeBtn.sheet-entry \"🤝 Friend challengePlay \"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "challengeSheet @390x844",
+   "challengeSheet @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".sheet-entry \"⏰ Review due cardsNothin\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "flashcardsSheet @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#cardBrowserBtn.sheet-entry \"🔎 Browse cardsSearch ev\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "flashcardsSheet @390x844",
+   "flashcardsSheet @430x932",
+   "flashcardsSheet @768x1024",
+   "flashcardsSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#speedDial \"\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "speedSheet @390x844",
+   "speedSheet @430x932",
+   "speedSheet @768x1024",
+   "speedSheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"Go\"",
+  "by": ".dr-v \"🪙50\"",
+  "where": [
+   "todaySheet @390x844"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#firstWeekHide.btn.btn-sm \"Hide this\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "todaySheet @390x844",
+   "todaySheet @430x932",
+   "todaySheet @768x1024",
+   "todaySheet @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
+  "by": ".dr-day \"DAY 5🪙75\"",
+  "where": [
+   "screenHome @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"🔁0Due now\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenStats @430x932",
+   "screenStats @768x1024",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"🎯—Accuracy\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenStats @430x932",
+   "screenStats @768x1024",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"📅SetTo exam\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenStats @430x932",
+   "screenStats @768x1024",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"📅Reviews coming up0 due\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenStats @430x932",
+   "screenStats @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"🦸Heroes\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenShop @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"✨Trails\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenShop @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"🗺️Maps\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenShop @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"👾Monsters\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenShop @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#heroColorsToggle.btn.btn-sm \"🎨 Change colors\"",
+  "by": ".dr-day \"DAY 4🪙50\"",
+  "where": [
+   "screenShop @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @430x932",
+   "screenProfile @800x360",
+   "screenProfile @667x375",
+   "screenProfile @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"☁ AccountThis device onl\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenProfile @430x932"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"🏆 Badges (0/57)\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenProfile @430x932",
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🎓 Subject mastery0/19\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @430x932",
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"⚡ Speed and stamina0/5\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @430x932",
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".settings-card \"⌨️KeyboardChoose the key\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenSettings @430x932"
   ]
  },
  {
@@ -874,25 +2584,6 @@
   "by": ".btn.btn-green \"CLAIM +10 🪙\"",
   "where": [
    "screenSettings @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".settings-card \"ℹ️About & helpHow to pla\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenSettings @430x932",
-   "screenSettings @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#addCardBtn.btn.btn-green \"+ Create New Card\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenMyCards @430x932",
-   "screenMyCards @768x1024",
-   "screenMyCards @1280x800"
   ]
  },
  {
@@ -938,46 +2629,6 @@
  },
  {
   "kind": "covered",
-  "el": "#cbSearch.card-browser-search \"\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenCardBrowser @430x932",
-   "screenCardBrowser @768x1024",
-   "screenCardBrowser @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#cbSubjectFilter \"All SubjectsNeurologyCar\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenCardBrowser @430x932",
-   "screenCardBrowser @768x1024",
-   "screenCardBrowser @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#cbStatusFilter \"All CardsSeenUnseenDisab\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenCardBrowser @430x932",
-   "screenCardBrowser @768x1024",
-   "screenCardBrowser @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".pick-source.on \"🎯 My subjects15 subject\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenFlashcard @430x932",
-   "screenFlashcard @768x1024",
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".pick-source \"⏰ Due for review0 cards \"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -999,16 +2650,6 @@
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenFlashcard @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".pick-source \"📚 Pick subjectsChoose e\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenFlashcard @430x932",
-   "screenFlashcard @768x1024",
-   "screenFlashcard @1280x800"
   ]
  },
  {
@@ -1061,49 +2702,6 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🏠 Back to Home\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenFlashcard @430x932",
-   "screenFlashcard @768x1024",
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"10\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @430x932",
-   "screenExam @768x1024",
-   "screenExam @1280x800",
-   "screenExam @800x360",
-   "screenExam @667x375",
-   "screenExam @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"20\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @430x932",
-   "screenExam @768x1024",
-   "screenExam @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"40 (full block)\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @430x932",
-   "screenExam @768x1024",
-   "screenExam @1280x800"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".btn.btn-sm \"60 s (hard)\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -1133,15 +2731,6 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-sm \"Untimed\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @430x932",
-   "screenExam @1280x800"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".btn.btn-green \"▶ Start exam\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -1150,115 +2739,10 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🏠 Back\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenExam @430x932",
-   "screenExam @768x1024",
-   "screenExam @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".sheet-entry \"📖 StudyRelaxed practice\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932",
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".sheet-entry \"🎯 WeaknessDrill the car\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".sheet-entry \"📅 Daily 15A quick habit\"",
   "by": ".dr-streak \"🔥 1-day streak\"",
   "where": [
    "challengeSheet @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#tournamentBtn.sheet-entry \"🛡️ Weekly GauntletA rea\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932",
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#challengeBtn.sheet-entry \"🤝 Friend challengePlay \"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#examBtn.sheet-entry \"📝 Exam SimA timed block\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932",
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"✕ Close\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @430x932",
-   "flashcardsSheet @430x932",
-   "todaySheet @430x932",
-   "challengeSheet @768x1024",
-   "flashcardsSheet @768x1024",
-   "todaySheet @768x1024",
-   "challengeSheet @1280x800",
-   "flashcardsSheet @1280x800",
-   "todaySheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#flashcardBtn.sheet-entry \"📖 Study my subjectsA ra\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "flashcardsSheet @430x932",
-   "flashcardsSheet @768x1024",
-   "flashcardsSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".sheet-entry \"⏰ Review due cardsNothin\"",
-  "by": ".dr-title \"DAILY REWARD\"",
-  "where": [
-   "flashcardsSheet @430x932",
-   "flashcardsSheet @768x1024",
-   "flashcardsSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".sheet-entry \"🩹 Cards I missCards you\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "flashcardsSheet @430x932",
-   "flashcardsSheet @768x1024",
-   "flashcardsSheet @1280x800",
-   "flashcardsSheet @800x360",
-   "flashcardsSheet @667x375",
-   "flashcardsSheet @844x390"
   ]
  },
  {
@@ -1273,55 +2757,6 @@
  },
  {
   "kind": "covered",
-  "el": "#cardBrowserBtn.sheet-entry \"🔎 Browse cardsSearch ev\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "flashcardsSheet @430x932",
-   "flashcardsSheet @768x1024",
-   "flashcardsSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#myCardsBtn.sheet-entry \"📝 My cardsWrite your ow\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "flashcardsSheet @430x932",
-   "flashcardsSheet @768x1024",
-   "flashcardsSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#subjectToggle.collapsible-toggle \"📚 Subjects ▸\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "filtersSheet @430x932",
-   "filtersSheet @768x1024",
-   "filtersSheet @1280x800",
-   "filtersSheet @800x360",
-   "filtersSheet @667x375",
-   "filtersSheet @844x390",
-   "filtersSheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#examFilterToggle.collapsible-toggle \"🎯 Exam Filter ▸\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "filtersSheet @430x932",
-   "filtersSheet @768x1024",
-   "filtersSheet @1280x800",
-   "filtersSheet @800x360",
-   "filtersSheet @667x375",
-   "filtersSheet @844x390",
-   "filtersSheet @195x390",
-   "filtersSheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".collapsible-toggle \"🔍 Filters ▸\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -1329,102 +2764,6 @@
    "filtersSheet @768x1024",
    "filtersSheet @1280x800",
    "filtersSheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-primary \"Done\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
-  "where": [
-   "filtersSheet @430x932",
-   "filtersSheet @768x1024",
-   "filtersSheet @1280x800",
-   "filtersSheet @800x360",
-   "filtersSheet @667x375",
-   "filtersSheet @844x390",
-   "filtersSheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#speedDial \"\"",
-  "by": ".dr-day.chest \"DAY 7🎁\"",
-  "where": [
-   "speedSheet @430x932",
-   "speedSheet @768x1024",
-   "speedSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-primary \"Done\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
-  "where": [
-   "speedSheet @430x932",
-   "speedSheet @768x1024",
-   "speedSheet @1280x800",
-   "speedSheet @800x360",
-   "speedSheet @667x375",
-   "speedSheet @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-green \"🏃 Run it\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "todaySheet @430x932",
-   "todaySheet @768x1024",
-   "todaySheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "todaySheet @430x932",
-   "todaySheet @768x1024",
-   "todaySheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"Go\"",
-  "by": ".dr-v \"🪙50\"",
-  "where": [
-   "todaySheet @430x932"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#firstWeekHide.btn.btn-sm \"Hide this\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "todaySheet @430x932",
-   "todaySheet @768x1024",
-   "todaySheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#studyGoal.study-goal \"🎯 Today 0/20\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenHome @768x1024"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn-play \"▶ PLAY\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenHome @768x1024",
-   "screenHome @1280x800",
-   "screenHome @800x360",
-   "screenHome @667x375",
-   "screenHome @844x390",
-   "screenHome @250x440"
   ]
  },
  {
@@ -1448,7 +2787,8 @@
   "el": ".perf-summary \"🏅Lifetime0 cards\"",
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
-   "screenStats @768x1024"
+   "screenStats @768x1024",
+   "screenStats @1280x800"
   ]
  },
  {
@@ -1464,13 +2804,14 @@
   "el": ".btn.btn-sm \"🦸Heroes\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenShop @768x1024"
+   "screenShop @768x1024",
+   "screenShop @844x390"
   ]
  },
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"✨Trails\"",
-  "by": ".dr-title \"DAILY REWARD\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenShop @768x1024"
   ]
@@ -1478,7 +2819,7 @@
  {
   "kind": "covered",
   "el": ".btn.btn-sm \"🗺️Maps\"",
-  "by": ".dr-title \"DAILY REWARD\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenShop @768x1024"
   ]
@@ -1488,48 +2829,57 @@
   "el": ".btn.btn-sm \"👾Monsters\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenShop @768x1024"
+   "screenShop @768x1024",
+   "screenShop @844x390"
   ]
  },
  {
   "kind": "covered",
   "el": "#heroColorsToggle.btn.btn-sm \"🎨 Change colors\"",
-  "by": ".dr-day \"DAY 4🪙50\"",
-  "where": [
-   "screenShop @768x1024"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"👁\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
-  "where": [
-   "screenShop @768x1024"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🎨\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
-  "where": [
-   "screenShop @768x1024"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-gold \"🪙 300\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenShop @768x1024"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-primary \"💾 Save Profile\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenShop @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenProfile @768x1024",
    "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"☁ AccountThis device onl\"",
+  "by": ".dr-title \"DAILY REWARD\"",
+  "where": [
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"📅 Study streak🔥 0 days\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🌱 Getting started0/7\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenProfile @768x1024"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".badge-group-title \"🎒 Locker and versus0/6\"",
+  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @768x1024"
   ]
  },
  {
@@ -1602,6 +2952,14 @@
   "kind": "covered",
   "el": ".btn.btn-outline \"Next →\"",
   "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenCardBrowser @768x1024"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-outline \"Next →\"",
+  "size": "92x40",
   "where": [
    "screenCardBrowser @768x1024"
   ]
@@ -1690,37 +3048,8 @@
  },
  {
   "kind": "covered",
-  "el": ".sheet-entry \"🎯 WeaknessDrill the car\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".sheet-entry \"📅 Daily 15A quick habit\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800",
-   "challengeSheet @667x375",
-   "challengeSheet @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#challengeBtn.sheet-entry \"🤝 Friend challengePlay \"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "challengeSheet @768x1024",
-   "challengeSheet @1280x800"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".btn.btn-sm \"Go\"",
-  "by": ".dr-day \"DAY 4🪙50\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
    "todaySheet @768x1024",
    "todaySheet @1280x800"
@@ -1731,47 +3060,17 @@
   "el": "#studyGoal.study-goal \"🎯 Today 0/20\"",
   "by": ".dr-title \"DAILY REWARD\"",
   "where": [
-   "screenHome @1280x800"
+   "screenHome @1280x800",
+   "screenHome @667x375",
+   "screenHome @844x390",
+   "screenHome @195x390",
+   "screenHome @250x440"
   ]
  },
  {
   "kind": "covered",
-  "el": "#howToPlayBtn.link-btn \"❓ How to play\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenHome @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-tile \"🎯—Accuracy\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenStats @1280x800",
-   "screenStats @667x375",
-   "screenStats @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-summary \"📅Reviews coming up0 due\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenStats @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-summary \"🎯Weakest concepts\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
-  "where": [
-   "screenStats @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-summary \"🏅Lifetime0 cards\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "el": ".perf-summary \"📚Subjects\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
   "where": [
    "screenStats @1280x800"
   ]
@@ -1779,7 +3078,7 @@
  {
   "kind": "covered",
   "el": ".perf-summary \"⚙Plan settingsNo exam da\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenStats @1280x800"
   ]
@@ -1826,6 +3125,14 @@
  },
  {
   "kind": "covered",
+  "el": ".profile-fold-sum \"🏆 Badges (0/57)\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenProfile @1280x800"
+  ]
+ },
+ {
+  "kind": "covered",
   "el": ".settings-card \"⌨️KeyboardChoose the key\"",
   "by": ".dr-streak \"🔥 1-day streak\"",
   "where": [
@@ -1841,59 +3148,35 @@
   ]
  },
  {
-  "kind": "covered",
-  "el": ".settings-card \"💾Backup & dataSave, res\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenSettings @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#bringCardsBtn.btn.btn-primary \"📥 Bring in Anki, spread\"",
-  "by": ".dr-title \"DAILY REWARD\"",
+  "kind": "tiny",
+  "el": "#exportCardsBtn.btn.btn-outline \"📤 Export\"",
+  "size": "198x40",
   "where": [
    "screenMyCards @1280x800"
   ]
  },
  {
-  "kind": "covered",
+  "kind": "tiny",
   "el": "#shareDeckBtn.btn.btn-outline \"🌐 Share Deck\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "size": "198x40",
   "where": [
    "screenMyCards @1280x800"
   ]
  },
  {
-  "kind": "covered",
+  "kind": "tiny",
   "el": "#importDeckBtn.btn.btn-outline \"🔑 Get Deck\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "size": "198x40",
   "where": [
    "screenMyCards @1280x800"
   ]
  },
  {
-  "kind": "covered",
-  "el": ".pick-source \"⏰ Due for review0 cards \"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "kind": "tiny",
+  "el": "#importCardsBtn.btn.btn-outline \"📥 Paste JSON\"",
+  "size": "198x40",
   "where": [
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".pick-source \"🩹 Cards I miss0 cards y\"",
-  "by": ".dr-streak \"🔥 1-day streak\"",
-  "where": [
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".pick-source \"🆕 New cards3010 cards y\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenFlashcard @1280x800"
+   "screenMyCards @1280x800"
   ]
  },
  {
@@ -1921,37 +3204,15 @@
   ]
  },
  {
-  "kind": "covered",
-  "el": ".btn.btn-green \"📖 Flip cards\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
+  "kind": "tiny",
+  "el": "#studyGoal.study-goal \"🎯 Today 0/20\"",
+  "size": "470x40",
   "where": [
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🎧 Listen hands-free\"",
-  "by": "#dailyReward.dr-overlay \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenFlashcard @1280x800"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"120 s\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @1280x800",
-   "screenExam @667x375",
-   "screenExam @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-green \"▶ Start exam\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenExam @1280x800"
+   "screenHome @800x360",
+   "screenHome @667x375",
+   "screenHome @844x390",
+   "screenHome @195x390",
+   "screenHome @250x440"
   ]
  },
  {
@@ -1972,16 +3233,17 @@
   "where": [
    "screenHome @800x360",
    "screenHome @667x375",
-   "screenHome @844x390",
-   "screenHome @195x390"
+   "screenHome @844x390"
   ]
  },
  {
   "kind": "covered",
   "el": "#homeFlashcardsBtn.mode-btn \"🃏 Flashcards\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
   "where": [
-   "screenHome @800x360"
+   "screenHome @800x360",
+   "screenHome @667x375",
+   "screenHome @844x390"
   ]
  },
  {
@@ -2029,28 +3291,8 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-green \"🏃 Run it\"",
-  "by": ".dr-day \"DAY 5🪙75\"",
-  "where": [
-   "screenStats @800x360",
-   "todaySheet @800x360",
-   "todaySheet @667x375"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-day.chest \"DAY 7🎁\"",
-  "where": [
-   "screenStats @800x360",
-   "todaySheet @800x360",
-   "todaySheet @667x375"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".perf-tile \"🔁0Due now\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "by": ".dr-day \"DAY 5🪙75\"",
   "where": [
    "screenStats @800x360"
   ]
@@ -2058,17 +3300,37 @@
  {
   "kind": "covered",
   "el": ".perf-tile \"🎯—Accuracy\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenStats @800x360",
+   "screenStats @667x375",
+   "screenStats @844x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"📅SetTo exam\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
   "where": [
    "screenStats @800x360"
   ]
  },
  {
   "kind": "covered",
-  "el": ".perf-tile \"📅SetTo exam\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "el": ".perf-summary \"📅Reviews coming up0 due\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenStats @800x360"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"📚Subjects\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenStats @800x360",
+   "screenStats @667x375"
   ]
  },
  {
@@ -2093,11 +3355,10 @@
  {
   "kind": "covered",
   "el": ".profile-name-input \"\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "by": ".dr-title \"DAILY REWARD\"",
   "where": [
    "screenProfile @800x360",
    "screenProfile @667x375",
-   "screenProfile @844x390",
    "screenProfile @195x390",
    "screenProfile @250x440"
   ]
@@ -2105,10 +3366,9 @@
  {
   "kind": "covered",
   "el": " \"✏️ Change symbol\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
-   "screenProfile @800x360",
-   "screenProfile @667x375"
+   "screenProfile @800x360"
   ]
  },
  {
@@ -2209,16 +3469,6 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-sm \"60 s (hard)\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @800x360",
-   "screenExam @667x375",
-   "screenExam @844x390"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".btn.btn-sm \"90 s (exam pace)\"",
   "by": ".btn.btn-green \"CLAIM +10 🪙\"",
   "where": [
@@ -2293,68 +3543,50 @@
  },
  {
   "kind": "covered",
-  "el": ".collapsible-toggle \"🔍 Filters ▸\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
-  "where": [
-   "filtersSheet @800x360",
-   "filtersSheet @667x375",
-   "filtersSheet @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#speedDial \"\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "speedSheet @800x360",
-   "speedSheet @667x375",
-   "speedSheet @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-sm \"Go\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "el": ".btn.btn-green \"🏃 Run it\"",
+  "by": ".dr-day \"DAY 5🪙75\"",
   "where": [
    "todaySheet @800x360",
    "todaySheet @667x375",
-   "todaySheet @844x390",
-   "todaySheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#homeFlashcardsBtn.mode-btn \"🃏 Flashcards\"",
-  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
-  "where": [
-   "screenHome @667x375",
-   "screenHome @844x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-green \"🏃 Run it\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenStats @667x375",
-   "todaySheet @844x390",
-   "screenStats @250x440",
-   "todaySheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-day \"DAY 4🪙50\"",
-  "where": [
-   "screenStats @667x375",
    "todaySheet @844x390"
   ]
  },
  {
   "kind": "covered",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "by": ".dr-n \"DAY 7\"",
+  "where": [
+   "todaySheet @800x360",
+   "todaySheet @667x375",
+   "todaySheet @195x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"🏃 Run it\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenStats @667x375",
+   "screenStats @844x390",
+   "screenStats @195x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenStats @667x375",
+   "screenStats @844x390",
+   "screenStats @195x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
   "el": ".perf-tile \"🔁0Due now\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-day.today \"DAY 1🪙10\"",
   "where": [
    "screenStats @667x375",
    "screenStats @844x390"
@@ -2363,10 +3595,27 @@
  {
   "kind": "covered",
   "el": ".perf-tile \"📅SetTo exam\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenStats @667x375"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"📅Reviews coming up0 due\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
    "screenStats @667x375",
-   "screenStats @844x390"
+   "screenStats @844x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": " \"✏️ Change symbol\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @667x375"
   ]
  },
  {
@@ -2413,15 +3662,6 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-sm \"90 s (exam pace)\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenExam @667x375",
-   "screenExam @844x390"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".sheet-entry \"📖 StudyRelaxed practice\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -2447,8 +3687,18 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-green \"🏃 Run it\"",
-  "by": ".dr-day.today \"DAY 1🪙10\"",
+  "el": ".btn.btn-sm \"Go\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "todaySheet @667x375",
+   "todaySheet @844x390",
+   "todaySheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"📅SetTo exam\"",
+  "by": ".dr-day \"DAY 4🪙50\"",
   "where": [
    "screenStats @844x390",
    "screenStats @195x390"
@@ -2456,16 +3706,61 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-v \"🪙50\"",
+  "el": ".perf-summary \"📚Subjects\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
-   "screenStats @844x390"
+   "screenStats @844x390",
+   "screenStats @195x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"🎯Weakest concepts\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenStats @844x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"✨Trails\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenShop @844x390",
+   "screenShop @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-sm \"🗺️Maps\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenShop @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-name-input \"\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenProfile @844x390"
   ]
  },
  {
   "kind": "covered",
   "el": " \"✏️ Change symbol\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "by": ".dr-streak \"🔥 1-day streak\"",
+  "where": [
+   "screenProfile @844x390",
+   "screenProfile @195x390",
+   "screenProfile @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"☁ AccountThis device onl\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
   "where": [
    "screenProfile @844x390"
   ]
@@ -2521,6 +3816,14 @@
  },
  {
   "kind": "covered",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "todaySheet @844x390"
+  ]
+ },
+ {
+  "kind": "covered",
   "el": "#settingsBtn.top-btn \"⚙\"",
   "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
@@ -2548,13 +3851,22 @@
   "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
   "by": ".dr-day.today \"DAY 1🪙10\"",
   "where": [
+   "screenHome @195x390",
+   "screenHome @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
+  "size": "43x62",
+  "where": [
    "screenHome @195x390"
   ]
  },
  {
   "kind": "covered",
   "el": ".btn-play \"▶ PLAY\"",
-  "by": ".dr-v \"🪙20\"",
+  "by": ".dr-day \"DAY 2🪙20\"",
   "where": [
    "screenHome @195x390"
   ]
@@ -2562,7 +3874,16 @@
  {
   "kind": "covered",
   "el": "#speedBtn.side-btn \"🏎 Speed 1×\"",
-  "by": ".dr-v \"🪙50\"",
+  "by": ".dr-day \"DAY 4🪙50\"",
+  "where": [
+   "screenHome @195x390",
+   "screenHome @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": "#speedBtn.side-btn \"🏎 Speed 1×\"",
+  "size": "43x62",
   "where": [
    "screenHome @195x390"
   ]
@@ -2570,7 +3891,15 @@
  {
   "kind": "covered",
   "el": "#howToPlayBtn.link-btn \"❓ How to play\"",
-  "by": ".dr-v \"🪙100\"",
+  "by": ".dr-v \"🪙20\"",
+  "where": [
+   "screenHome @195x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#multiplayerBtn.mode-btn \"🎮 Versus\"",
+  "by": ".dr-n \"DAY 6\"",
   "where": [
    "screenHome @195x390"
   ]
@@ -2578,10 +3907,17 @@
  {
   "kind": "covered",
   "el": "#homeFlashcardsBtn.mode-btn \"🃏 Flashcards\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
+  "where": [
+   "screenHome @195x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#homeChallengeBtn.mode-btn \"🏁 Challenge\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
-   "screenHome @195x390",
-   "screenHome @250x440"
+   "screenHome @195x390"
   ]
  },
  {
@@ -2602,9 +3938,43 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item \"📊Stats\"",
+  "size": "36x56",
+  "where": [
+   "screenHome @195x390",
+   "screenShop @195x390",
+   "screenQuests @195x390",
+   "screenProfile @195x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390"
+  ]
+ },
+ {
   "kind": "covered",
   "el": ".nav-item \"🧥Locker\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "screenHome @195x390",
+   "screenStats @195x390",
+   "screenQuests @195x390",
+   "screenProfile @195x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".nav-item \"🧥Locker\"",
+  "size": "36x56",
   "where": [
    "screenHome @195x390",
    "screenStats @195x390",
@@ -2637,9 +4007,44 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item.nav-home \"🏠Home\"",
+  "size": "43x56",
+  "where": [
+   "screenHome @195x390",
+   "screenStats @195x390",
+   "screenShop @195x390",
+   "screenQuests @195x390",
+   "screenProfile @195x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390"
+  ]
+ },
+ {
   "kind": "covered",
   "el": ".nav-item \"📋Quests\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "screenHome @195x390",
+   "screenStats @195x390",
+   "screenShop @195x390",
+   "screenProfile @195x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".nav-item \"📋Quests\"",
+  "size": "36x56",
   "where": [
    "screenHome @195x390",
    "screenStats @195x390",
@@ -2671,9 +4076,43 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item \"👤Profile\"",
+  "size": "36x56",
+  "where": [
+   "screenHome @195x390",
+   "screenStats @195x390",
+   "screenShop @195x390",
+   "screenQuests @195x390",
+   "screenSettings @195x390",
+   "screenMyCards @195x390",
+   "screenCardBrowser @195x390",
+   "screenFlashcard @195x390",
+   "screenExam @195x390",
+   "screenLeaderboard @195x390"
+  ]
+ },
+ {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-v \"🪙30\"",
+  "el": ".perf-tile \"🔁0Due now\"",
+  "by": ".dr-v \"🪙10\"",
+  "where": [
+   "screenStats @195x390",
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-tile \"🎯—Accuracy\"",
+  "by": ".dr-v \"🪙20\"",
+  "where": [
+   "screenStats @195x390"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"📅Reviews coming up0 due\"",
+  "by": ".dr-n \"DAY 6\"",
   "where": [
    "screenStats @195x390"
   ]
@@ -2688,6 +4127,14 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item.active \"📊Stats\"",
+  "size": "36x56",
+  "where": [
+   "screenStats @195x390"
+  ]
+ },
+ {
   "kind": "clipped",
   "el": ".btn.btn-green \"🏃 Run it\"",
   "where": [
@@ -2695,17 +4142,17 @@
   ]
  },
  {
-  "kind": "clipped",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "where": [
-   "screenStats @195x390",
-   "screenStats @250x440"
-  ]
- },
- {
   "kind": "covered",
   "el": ".nav-item.active \"🧥Locker\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
+  "where": [
+   "screenShop @195x390"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".nav-item.active \"🧥Locker\"",
+  "size": "36x56",
   "where": [
    "screenShop @195x390"
   ]
@@ -2726,9 +4173,26 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item.active \"📋Quests\"",
+  "size": "36x56",
+  "where": [
+   "screenQuests @195x390"
+  ]
+ },
+ {
   "kind": "covered",
-  "el": " \"✏️ Change symbol\"",
-  "by": ".dr-v \"🪙100\"",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "by": ".dr-day.chest \"DAY 7🎁\"",
+  "where": [
+   "screenProfile @195x390",
+   "screenProfile @250x440"
+  ]
+ },
+ {
+  "kind": "tiny",
+  "el": ".btn.btn-primary \"💾 Save\"",
+  "size": "42x54",
   "where": [
    "screenProfile @195x390"
   ]
@@ -2742,8 +4206,23 @@
   ]
  },
  {
+  "kind": "tiny",
+  "el": ".nav-item.active \"👤Profile\"",
+  "size": "36x56",
+  "where": [
+   "screenProfile @195x390"
+  ]
+ },
+ {
   "kind": "clipped",
   "el": ".btn.btn-sm \"Face\"",
+  "where": [
+   "screenProfile @195x390"
+  ]
+ },
+ {
+  "kind": "clipped",
+  "el": ".btn.btn-primary \"💾 Save\"",
   "where": [
    "screenProfile @195x390"
   ]
@@ -2901,32 +4380,16 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-n \"DAY 7\"",
-  "where": [
-   "todaySheet @195x390"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#filtersBtn.side-btn \"🎛 Filters All subjects\"",
-  "by": ".dr-n \"DAY 1\"",
-  "where": [
-   "screenHome @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": "#speedBtn.side-btn \"🏎 Speed 1×\"",
-  "by": ".dr-n \"DAY 4\"",
-  "where": [
-   "screenHome @250x440"
-  ]
- },
- {
-  "kind": "covered",
   "el": "#multiplayerBtn.mode-btn \"🎮 Versus\"",
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "screenHome @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": "#homeFlashcardsBtn.mode-btn \"🃏 Flashcards\"",
+  "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
    "screenHome @250x440"
   ]
@@ -2975,32 +4438,15 @@
  },
  {
   "kind": "covered",
-  "el": ".btn.btn-outline \"🗂 Cards\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
-  "where": [
-   "screenStats @250x440",
-   "todaySheet @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-tile \"🔁0Due now\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
-  "where": [
-   "screenStats @250x440"
-  ]
- },
- {
-  "kind": "covered",
-  "el": ".perf-tile \"🎯—Accuracy\"",
-  "by": ".dr-message \"Come back tomorrow for m\"",
-  "where": [
-   "screenStats @250x440"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".perf-tile \"📅SetTo exam\"",
+  "by": ".dr-v \"🪙50\"",
+  "where": [
+   "screenStats @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".perf-summary \"📚Subjects\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
    "screenStats @250x440"
@@ -3008,8 +4454,16 @@
  },
  {
   "kind": "covered",
-  "el": " \"✏️ Change symbol\"",
-  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "el": ".btn.btn-sm \"🦸Heroes\"",
+  "by": ".btn.btn-green \"CLAIM +10 🪙\"",
+  "where": [
+   "screenShop @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".profile-fold-sum \"☁ AccountThis device onl\"",
+  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
   "where": [
    "screenProfile @250x440"
   ]
@@ -3045,14 +4499,6 @@
  },
  {
   "kind": "covered",
-  "el": ".pick-source.on \"🎯 My subjects15 subject\"",
-  "by": ".dr-card \"DAILY REWARD🔥 1-day str\"",
-  "where": [
-   "screenFlashcard @250x440"
-  ]
- },
- {
-  "kind": "covered",
   "el": ".btn.btn-sm \"40 (full block)\"",
   "by": ".dr-message \"Come back tomorrow for m\"",
   "where": [
@@ -3081,6 +4527,22 @@
   "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
   "where": [
    "speedSheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-green \"🏃 Run it\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "todaySheet @250x440"
+  ]
+ },
+ {
+  "kind": "covered",
+  "el": ".btn.btn-outline \"🗂 Flashcards\"",
+  "by": ".dr-track \"DAY 1🪙10DAY 2🪙20DAY 3\ud83e\"",
+  "where": [
+   "todaySheet @250x440"
   ]
  }
 ]

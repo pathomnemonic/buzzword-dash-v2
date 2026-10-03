@@ -3,7 +3,7 @@
 // that needs it is sent on the real track, and nothing from it is saved.
 
 import { test, expect } from '@playwright/test';
-import { hasWebGL, closeTutorial } from './helpers.js';
+import { hasWebGL, closeTutorial, dismissDailyReward } from './helpers.js';
 
 const card = (page) => page.locator('#tutorialCoach .tut-card, #tutorialOverlay .tut-card');
 const step = (page, id, timeout = 30000) => expect(card(page)).toHaveAttribute('data-step', id, { timeout });
@@ -228,6 +228,7 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/active/);
     expect(await page.evaluate(() => window.__game._state)).toBe('idle'); // no run was ever started
 
+    await dismissDailyReward(page); // (the daily reward comes up once the player is back on Home)
     await page.locator('#howToPlayBtn').click();
     await step(page, 'welcome');
     await page.locator('#tutNextBtn').click();
