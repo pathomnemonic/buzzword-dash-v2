@@ -46,7 +46,7 @@ import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
 import { audio } from './audio.js';
 import { customCards } from './customcards.js';
-import { LOCKER_ITEMS, ACHIEVEMENTS } from './game/shopdata.js';
+import { LOCKER_ITEMS, ACHIEVEMENTS, QUESTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
@@ -1998,6 +1998,10 @@ class UI {
     var result = storage.finalizeFlashcardSession(summary);
     if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
       this.showAchievementNotification(result.newlyUnlockedAchievementIds);
+    }
+    if (result.completedQuestIds && result.completedQuestIds.length > 0) {
+      var titles = result.completedQuestIds.map(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; return q ? q.title : ''; }).filter(Boolean);
+      if (titles.length) this.showNotice('\u2705 Quest complete: ' + titles.join(', ') + '. Claim your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
     }
   }
 

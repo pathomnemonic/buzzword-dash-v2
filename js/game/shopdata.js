@@ -115,6 +115,7 @@ export var ACHIEVEMENT_IDS = Object.freeze({
 });
 
 export var QUEST_IDS = Object.freeze({
+  // The first twelve (the original daily set)
   STREAK_8: 'q_streak8',
   ENCOUNTERS_25: 'q_25enc',
   DAILY: 'q_daily',
@@ -126,7 +127,56 @@ export var QUEST_IDS = Object.freeze({
   ALL_SUBJECTS_5: 'q_allsubjects',
   JUMP_5: 'q_jump5',
   SLIDE_5: 'q_slide5',
-  RUSH_3: 'q_rush3'
+  RUSH_3: 'q_rush3',
+
+  // Accuracy and streaks
+  STREAK_12: 'q_streak12',
+  STREAK_20: 'q_streak20',
+  CLEAN_10: 'q_clean10',
+  CLEAN_15: 'q_clean15',
+  ACCURACY_80: 'q_acc80',
+  ACCURACY_90: 'q_acc90',
+
+  // Volume
+  CORRECT_25: 'q_25correct',
+  CORRECT_50: 'q_50correct',
+  ENCOUNTERS_10: 'q_10enc',
+  ENCOUNTERS_50: 'q_50enc',
+  RUNS_3: 'q_3runs',
+  RUNS_5: 'q_5runs',
+  SCORE_1500: 'q_score1500',
+  SCORE_3000: 'q_score3000',
+
+  // Skill and collecting
+  COINS_200: 'q_200coins',
+  POWERUPS_5: 'q_5powerups',
+  JUMP_12: 'q_jump12',
+  SLIDE_12: 'q_slide12',
+  RUSH_6: 'q_rush6',
+  DODGE_20: 'q_dodge20',
+  COINS_DAY_400: 'q_400coinsday',
+
+  // Explore (subjects and flashcards)
+  SUBJECTS_3: 'q_subjects3',
+  SUBJECTS_8: 'q_subjects8',
+  FLASH_10: 'q_flash10',
+  FLASH_30: 'q_flash30',
+  FLASH_RECALL_15: 'q_flashrecall15',
+  FLASH_SESSIONS_2: 'q_flash2sessions',
+
+  // Modes
+  MODE_STUDY: 'q_modestudy',
+  MODE_WEAKNESS: 'q_modeweakness',
+  MODE_ENDLESS: 'q_modeendless',
+  MODE_GAUNTLET: 'q_modegauntlet',
+  MODE_CHALLENGE: 'q_modechallenge',
+
+  // Speed and nerve
+  SPEED_8: 'q_speed8',
+  SPEED_15: 'q_speed15',
+  BLINK_3: 'q_blink3',
+  NO_CONTINUE_15: 'q_nocontinue15',
+  QUICK_STREAK: 'q_quickstreak'
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -551,104 +601,103 @@ export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedIte
 // evaluate progress without the engine referencing quest IDs.
 // ═══════════════════════════════════════════════════════════
 
+/**
+ * The daily quest pool. Each day a handful are picked from it (see pickDailyQuests), one per category, so the
+ * list changes every day and every kind of play gets a quest.
+ *
+ *   metric: what is measured (storage.js _questMetrics turns a finished run into these numbers)
+ *   agg:    'sum' adds up across the day's runs, 'max' keeps the best single run, 'distinct' counts different things
+ */
 export var QUESTS = [
-  {
-    id: QUEST_IDS.STREAK_8,
-    title: "Hot Streak",
-    desc: "8 correct in one run",
-    target: 8,
-    reward: 500,
-    eventMapping: { event: 'streak_reached', filter: { minStreak: 8 } }
-  },
-  {
-    id: QUEST_IDS.ENCOUNTERS_25,
-    title: "Marathon",
-    desc: "25 total encounters in one day",
-    target: 25,
-    reward: 600,
-    eventMapping: { event: 'encounter_resolved', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.DAILY,
-    title: "Daily Rounds",
-    desc: "Complete a daily round",
-    target: 1,
-    reward: 800,
-    eventMapping: { event: 'daily_completed' }
-  },
-  {
-    id: QUEST_IDS.CORRECT_10,
-    title: "Sharp Mind",
-    desc: "10 correct answers in one day",
-    target: 10,
-    reward: 400,
-    eventMapping: { event: 'correct_answer', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.COINS_50,
-    title: "Coin Collector",
-    desc: "Collect 100 coins in one run",
-    target: 100,
-    reward: 500,
-    eventMapping: { event: 'coin_collected', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.POWERUPS_3,
-    title: "Powered Up",
-    desc: "Collect 3 power-ups in one run",
-    target: 3,
-    reward: 700,
-    eventMapping: { event: 'powerup_collected', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.PERFECT_5,
-    title: "Perfect Five",
-    desc: "Get 5 correct in a row without mistakes",
-    target: 5,
-    reward: 400,
-    eventMapping: { event: 'streak_reached', filter: { minStreak: 5 } }
-  },
-  {
-    id: QUEST_IDS.SPEED_3,
-    title: "Speed Round",
-    desc: "Answer 3 cards in under 2 seconds each",
-    target: 3,
-    reward: 600,
-    eventMapping: { event: 'correct_answer', filter: { maxDecisionMs: 2000 }, accumulate: true }
-  },
-  {
-    id: QUEST_IDS.ALL_SUBJECTS_5,
-    title: "Well-Rounded",
-    desc: "Answer cards from 5 different subjects",
-    target: 5,
-    reward: 800,
-    eventMapping: { event: 'encounter_resolved', countDistinct: 'subject' }
-  },
-  {
-    id: QUEST_IDS.JUMP_5,
-    title: "Parkour Pro",
-    desc: "Jump over 5 obstacles in one run",
-    target: 5,
-    reward: 300,
-    eventMapping: { event: 'obstacle_jumped', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.SLIDE_5,
-    title: "Limbo Master",
-    desc: "Slide under 5 obstacles in one run",
-    target: 5,
-    reward: 300,
-    eventMapping: { event: 'obstacle_slid', accumulate: true }
-  },
-  {
-    id: QUEST_IDS.RUSH_3,
-    title: "Rush Hour",
-    desc: "Rush through 3 gates in one run",
-    target: 3,
-    reward: 500,
-    eventMapping: { event: 'rush_used', accumulate: true }
-  }
+  { id: QUEST_IDS.STREAK_8, title: 'Hot Streak', desc: '8 correct in a row in one run', target: 8, reward: 500, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.PERFECT_5, title: 'Perfect Five', desc: '5 correct in a row without a mistake', target: 5, reward: 400, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.STREAK_12, title: 'On a Roll', desc: '12 correct in a row in one run', target: 12, reward: 700, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.STREAK_20, title: 'Unstoppable', desc: '20 correct in a row in one run', target: 20, reward: 1000, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.CLEAN_10, title: 'Clean Sheet', desc: 'Finish a run with 10+ correct and no mistakes', target: 10, reward: 800, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
+  { id: QUEST_IDS.CLEAN_15, title: 'Spotless', desc: 'Finish a run with 15+ correct and no mistakes', target: 15, reward: 1100, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
+  { id: QUEST_IDS.ACCURACY_80, title: 'Sharpshooter', desc: 'Finish a run of 10+ answers at 80% accuracy or better', target: 80, reward: 600, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
+  { id: QUEST_IDS.ACCURACY_90, title: 'Marksman', desc: 'Finish a run of 10+ answers at 90% accuracy or better', target: 90, reward: 900, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
+  { id: QUEST_IDS.ENCOUNTERS_10, title: 'Warm-Up', desc: 'Answer 10 cards today', target: 10, reward: 250, category: 'volume', metric: 'encountersCompleted', agg: 'sum' },
+  { id: QUEST_IDS.ENCOUNTERS_25, title: 'Marathon', desc: 'Answer 25 cards today', target: 25, reward: 600, category: 'volume', metric: 'encountersCompleted', agg: 'sum' },
+  { id: QUEST_IDS.ENCOUNTERS_50, title: 'Long Haul', desc: 'Answer 50 cards today', target: 50, reward: 1000, category: 'volume', metric: 'encountersCompleted', agg: 'sum' },
+  { id: QUEST_IDS.CORRECT_10, title: 'Sharp Mind', desc: '10 correct answers today', target: 10, reward: 400, category: 'volume', metric: 'correct', agg: 'sum' },
+  { id: QUEST_IDS.CORRECT_25, title: 'Quick Study', desc: '25 correct answers today', target: 25, reward: 700, category: 'volume', metric: 'correct', agg: 'sum' },
+  { id: QUEST_IDS.CORRECT_50, title: 'Knowledge Bank', desc: '50 correct answers today', target: 50, reward: 1100, category: 'volume', metric: 'correct', agg: 'sum' },
+  { id: QUEST_IDS.RUNS_3, title: 'Hat Trick', desc: 'Finish 3 runs today', target: 3, reward: 500, category: 'volume', metric: 'runs', agg: 'sum' },
+  { id: QUEST_IDS.RUNS_5, title: 'Grinder', desc: 'Finish 5 runs today', target: 5, reward: 800, category: 'volume', metric: 'runs', agg: 'sum' },
+  { id: QUEST_IDS.SCORE_1500, title: 'High Scorer', desc: 'Score 1,500 points in one run', target: 1500, reward: 600, category: 'volume', metric: 'score', agg: 'max' },
+  { id: QUEST_IDS.SCORE_3000, title: 'Big Score', desc: 'Score 3,000 points in one run', target: 3000, reward: 900, category: 'volume', metric: 'score', agg: 'max' },
+  { id: QUEST_IDS.COINS_50, title: 'Coin Collector', desc: 'Collect 100 coins in one run', target: 100, reward: 500, category: 'skill', metric: 'coinsCollected', agg: 'max' },
+  { id: QUEST_IDS.COINS_200, title: 'Treasure Hunter', desc: 'Collect 200 coins in one run', target: 200, reward: 800, category: 'skill', metric: 'coinsCollected', agg: 'max' },
+  { id: QUEST_IDS.COINS_DAY_400, title: 'Gold Rush', desc: 'Collect 400 coins today', target: 400, reward: 700, category: 'skill', metric: 'coinsCollected', agg: 'sum' },
+  { id: QUEST_IDS.POWERUPS_3, title: 'Powered Up', desc: 'Collect 3 power-ups in one run', target: 3, reward: 700, category: 'skill', metric: 'powerupsCollected', agg: 'max' },
+  { id: QUEST_IDS.POWERUPS_5, title: 'Power Hungry', desc: 'Collect 5 power-ups in one run', target: 5, reward: 900, category: 'skill', metric: 'powerupsCollected', agg: 'max' },
+  { id: QUEST_IDS.JUMP_5, title: 'Parkour Pro', desc: 'Jump over 5 obstacles in one run', target: 5, reward: 300, category: 'skill', metric: 'obstaclesJumped', agg: 'max' },
+  { id: QUEST_IDS.JUMP_12, title: 'Hurdler', desc: 'Jump over 12 obstacles in one run', target: 12, reward: 600, category: 'skill', metric: 'obstaclesJumped', agg: 'max' },
+  { id: QUEST_IDS.SLIDE_5, title: 'Limbo Master', desc: 'Slide under 5 obstacles in one run', target: 5, reward: 300, category: 'skill', metric: 'obstaclesSlid', agg: 'max' },
+  { id: QUEST_IDS.SLIDE_12, title: 'Limbo King', desc: 'Slide under 12 obstacles in one run', target: 12, reward: 600, category: 'skill', metric: 'obstaclesSlid', agg: 'max' },
+  { id: QUEST_IDS.RUSH_3, title: 'Rush Hour', desc: 'Rush through 3 gates in one run', target: 3, reward: 500, category: 'skill', metric: 'rushesUsed', agg: 'max' },
+  { id: QUEST_IDS.RUSH_6, title: 'Rush Master', desc: 'Rush through 6 gates in one run', target: 6, reward: 800, category: 'skill', metric: 'rushesUsed', agg: 'max' },
+  { id: QUEST_IDS.DODGE_20, title: 'Acrobat', desc: 'Jump or slide past 20 obstacles in one run', target: 20, reward: 700, category: 'skill', metric: 'dodges', agg: 'max' },
+  { id: QUEST_IDS.SUBJECTS_3, title: 'Triple Threat', desc: 'Answer cards from 3 different subjects today', target: 3, reward: 300, category: 'explore', metric: 'subjects', agg: 'distinct' },
+  { id: QUEST_IDS.ALL_SUBJECTS_5, title: 'Well-Rounded', desc: 'Answer cards from 5 different subjects today', target: 5, reward: 800, category: 'explore', metric: 'subjects', agg: 'distinct' },
+  { id: QUEST_IDS.SUBJECTS_8, title: 'Polymath', desc: 'Answer cards from 8 different subjects today', target: 8, reward: 1100, category: 'explore', metric: 'subjects', agg: 'distinct' },
+  { id: QUEST_IDS.FLASH_10, title: 'Flashcard Warm-Up', desc: 'Go through 10 flashcards today', target: 10, reward: 400, category: 'explore', metric: 'flashcards', agg: 'sum' },
+  { id: QUEST_IDS.FLASH_30, title: 'Flashcard Marathon', desc: 'Go through 30 flashcards today', target: 30, reward: 800, category: 'explore', metric: 'flashcards', agg: 'sum' },
+  { id: QUEST_IDS.FLASH_RECALL_15, title: 'Total Recall', desc: 'Know 15 flashcards today', target: 15, reward: 600, category: 'explore', metric: 'flashcardsKnown', agg: 'sum' },
+  { id: QUEST_IDS.FLASH_SESSIONS_2, title: 'Two Sessions', desc: 'Finish 2 flashcard sessions today', target: 2, reward: 500, category: 'explore', metric: 'flashcardSessions', agg: 'sum' },
+  { id: QUEST_IDS.DAILY, title: 'Daily Rounds', desc: 'Complete a daily round', target: 1, reward: 800, category: 'mode', metric: 'dailyCompleted', agg: 'sum' },
+  { id: QUEST_IDS.MODE_STUDY, title: 'Study Session', desc: 'Finish a run in Study mode', target: 1, reward: 500, category: 'mode', metric: 'mode_study', agg: 'sum' },
+  { id: QUEST_IDS.MODE_WEAKNESS, title: 'Face Your Fears', desc: 'Finish a run in Weakness mode', target: 1, reward: 600, category: 'mode', metric: 'mode_weakness', agg: 'sum' },
+  { id: QUEST_IDS.MODE_ENDLESS, title: 'Endless Runner', desc: 'Finish an Endless run', target: 1, reward: 300, category: 'mode', metric: 'mode_endless', agg: 'sum' },
+  { id: QUEST_IDS.MODE_GAUNTLET, title: 'Brave the Gauntlet', desc: 'Finish a Weekly Gauntlet run', target: 1, reward: 900, category: 'mode', metric: 'mode_tournament', agg: 'sum' },
+  { id: QUEST_IDS.MODE_CHALLENGE, title: 'Take a Challenge', desc: 'Finish a friend challenge run', target: 1, reward: 600, category: 'mode', metric: 'mode_challenge', agg: 'sum' },
+  { id: QUEST_IDS.SPEED_3, title: 'Speed Round', desc: 'Answer 3 cards correctly in under 2 seconds each', target: 3, reward: 600, category: 'speed', metric: 'quick', agg: 'sum' },
+  { id: QUEST_IDS.SPEED_8, title: 'Quick Draw', desc: 'Answer 8 cards correctly in under 2 seconds each', target: 8, reward: 800, category: 'speed', metric: 'quick', agg: 'sum' },
+  { id: QUEST_IDS.SPEED_15, title: 'Lightning', desc: 'Answer 15 cards correctly in under 2 seconds each', target: 15, reward: 1000, category: 'speed', metric: 'quick', agg: 'sum' },
+  { id: QUEST_IDS.BLINK_3, title: 'Blink', desc: 'Answer 3 cards correctly in under 1 second each', target: 3, reward: 800, category: 'speed', metric: 'blink', agg: 'sum' },
+  { id: QUEST_IDS.NO_CONTINUE_15, title: 'No Second Chances', desc: 'Answer 15 cards in one run without using a continue', target: 15, reward: 600, category: 'speed', metric: 'noContinue', agg: 'max' },
+  { id: QUEST_IDS.QUICK_STREAK, title: 'Fast and Right', desc: 'Get 5 quick correct answers (under 2 s) in one run', target: 5, reward: 700, category: 'speed', metric: 'quickInRun', agg: 'max' }
 ];
+
+export var QUEST_CATEGORIES = Object.freeze(['accuracy', 'volume', 'skill', 'explore', 'mode', 'speed']);
+
+/** How many quests are on offer each day. */
+export var DAILY_QUEST_COUNT = QUEST_CATEGORIES.length;
+
+function hashString(str) {
+  var h = 2166136261;
+  for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+function seededRandom(seed) {
+  var a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    var t = Math.imul(a ^ (a >>> 15), a | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Which quests are on offer on a given day: one from each category, chosen by the date so every player sees the
+ * same list, and never one that was on offer the day before.
+ * @param {string} dateKey e.g. '2026-10-03'
+ * @param {string[]} [avoidIds] ids to skip (yesterday's quests)
+ * @returns {string[]} quest ids
+ */
+export function pickDailyQuests(dateKey, avoidIds) {
+  var avoid = avoidIds || [];
+  var rand = seededRandom(hashString('dx-quests:' + dateKey));
+  return QUEST_CATEGORIES.map(function (cat) {
+    var all = QUESTS.filter(function (q) { return q.category === cat; });
+    var fresh = all.filter(function (q) { return avoid.indexOf(q.id) < 0; });
+    var from = fresh.length ? fresh : all;
+    return from[Math.floor(rand() * from.length)].id;
+  });
+}
 
 // ═══════════════════════════════════════════════════════════
 // ACHIEVEMENTS
@@ -752,3 +801,35 @@ export var ACHIEVEMENTS = [
 // ═══════════════════════════════════════════════════════════
 
 export var CONTINUE_COST = 50;
+
+
+function previousDateKey(dateKey) {
+  var d = new Date(dateKey + 'T12:00:00');
+  d.setDate(d.getDate() - 1);
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
+}
+
+var QUEST_EPOCH = '2026-01-01';
+var _questDayCache = {};
+
+/**
+ * The quest ids on offer on a date. Same for every player and every device. The chain runs day by day from a
+ * fixed start date, so a day never repeats the quests of the day before.
+ * @param {string} dateKey
+ * @returns {string[]}
+ */
+export function questIdsForDate(dateKey) {
+  if (_questDayCache[dateKey]) return _questDayCache[dateKey].slice();
+  if (dateKey <= QUEST_EPOCH) return pickDailyQuests(dateKey);
+  var chain = [];
+  var d = dateKey;
+  var guard = 0;
+  while (d > QUEST_EPOCH && !_questDayCache[d] && guard++ < 4000) { chain.push(d); d = previousDateKey(d); }
+  var prev = _questDayCache[d] || (_questDayCache[d] = pickDailyQuests(d));
+  for (var i = chain.length - 1; i >= 0; i--) {
+    prev = _questDayCache[chain[i]] = pickDailyQuests(chain[i], prev);
+  }
+  return _questDayCache[dateKey].slice();
+}

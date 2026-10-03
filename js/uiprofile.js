@@ -11,7 +11,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
-import { QUESTS, ACHIEVEMENTS } from './game/shopdata.js';
+import { ACHIEVEMENTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
 export var profileMethods = {
@@ -292,7 +292,15 @@ export var profileMethods = {
     var today = localDateKey(new Date());
     var allComplete = true;
 
-    QUESTS.forEach(function (q) {
+    var todays = storage.getDailyQuests();
+    var doneCount = todays.filter(function (q) { return storage.getQuestProgress(q.id) >= q.target; }).length;
+    container.appendChild(createElement('p', {
+      className: 'quest-intro',
+      text: 'A fresh set every day \u00B7 ' + doneCount + ' of ' + todays.length + ' done. Finish them all for a gold calendar day.'
+    }));
+    var CATEGORY_ICON = { accuracy: '\uD83C\uDFAF', volume: '\uD83D\uDCDA', skill: '\uD83C\uDFC3', explore: '\uD83E\uDDED', mode: '\uD83C\uDFAE', speed: '\u26A1' };
+
+    todays.forEach(function (q) {
       var progress = Math.min(storage.getQuestProgress(q.id), q.target);
       var pct = Math.round(progress / q.target * 100);
       var isComplete = progress >= q.target;
@@ -300,7 +308,7 @@ export var profileMethods = {
 
       var questEl = createElement('div', { className: 'quest-item' });
 
-      var titleEl = createElement('div', { className: 'quest-title', text: q.title + ': ' + q.desc });
+      var titleEl = createElement('div', { className: 'quest-title', text: (CATEGORY_ICON[q.category] || '') + ' ' + q.title + ': ' + q.desc });
       questEl.appendChild(titleEl);
 
       var barEl = createElement('div', { className: 'quest-bar' });

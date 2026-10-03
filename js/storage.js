@@ -20,7 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, isArchivedItem } from './game/shopdata.js';
+import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
@@ -142,6 +142,7 @@ var DEFAULTS = {
     },
 
     questState: {},
+    questPicks: {},
 
     // Multiplayer stats
     multiplayerGamesPlayed: 0,
@@ -756,6 +757,7 @@ class Storage {
     if (typeof d.cards.cardStats !== 'object' || d.cards.cardStats === null) d.cards.cardStats = {};
     if (typeof d.cards.subjectStats !== 'object' || d.cards.subjectStats === null) d.cards.subjectStats = {};
     if (typeof d.progression.questState !== 'object' || d.progression.questState === null) d.progression.questState = {};
+    if (typeof d.progression.questPicks !== 'object' || d.progression.questPicks === null) d.progression.questPicks = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
     if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
     if (typeof d.history.weeklyClaims !== 'object' || d.history.weeklyClaims === null) d.history.weeklyClaims = {};
@@ -1019,25 +1021,17 @@ class Storage {
   }
 
   _getQuestCompletionDates() {
-    // Derive from quest state: dates where all quests were completed
+    // Dates on which every quest on offer that day was completed
     var result = {};
     var qs = this.data.progression.questState;
+    var picks = this.data.progression.questPicks || {};
     for (var dateKey in qs) {
       if (!Object.prototype.hasOwnProperty.call(qs, dateKey)) continue;
-      var allComplete = true;
-      var hasQuests = false;
-      for (var qId in qs[dateKey]) {
-        if (Object.prototype.hasOwnProperty.call(qs[dateKey], qId)) {
-          hasQuests = true;
-          if (!qs[dateKey][qId].completed) {
-            allComplete = false;
-            break;
-          }
-        }
-      }
-      if (hasQuests && allComplete) {
-        result[dateKey] = true;
-      }
+      var day = qs[dateKey];
+      var ids = Array.isArray(picks[dateKey]) ? picks[dateKey] : Object.keys(day); // days before rotation: every quest tracked
+      if (!ids.length) continue;
+      var all = ids.every(function (id) { return day[id] && day[id].completed; });
+      if (all) result[dateKey] = true;
     }
     return result;
   }
@@ -1533,43 +1527,92 @@ class Storage {
     if (!this.data.progression.questState[today]) {
       this.data.progression.questState[today] = {};
     }
-    var Q = QUEST_IDS;
+    this._applyQuestMetrics(this._questMetrics(summary));
+  }
+
+  /** Turn a finished run into the numbers quests are measured by (see QUESTS in shopdata.js). */
+  _questMetrics(summary) {
     var encounters = Array.isArray(summary.encounters) ? summary.encounters : [];
-
-    // "In one day" quests add up across the day's runs
-    if (summary.encountersCompleted > 0) this.incrementQuest(Q.ENCOUNTERS_25, summary.encountersCompleted);
-    if (summary.correct > 0) this.incrementQuest(Q.CORRECT_10, summary.correct);
-    if (summary.dailyCompleted) this.incrementQuest(Q.DAILY, 1);
-
-    // Quick answers: a right answer in under two seconds
+    var correct = summary.correct || 0;
+    var wrong = summary.wrong || 0;
+    var answered = correct + wrong;
     var quick = 0;
-    for (var i = 0; i < encounters.length; i++) {
-      var e = encounters[i];
-      if (e && e.correct && typeof e.decisionMs === 'number' && e.decisionMs > 0 && e.decisionMs < 2000) quick++;
-    }
-    if (quick > 0) this.incrementQuest(Q.SPEED_3, quick);
-
-    // Different subjects answered today (the set is kept with the quest, so the same subject is not counted twice)
+    var blink = 0;
+    encounters.forEach(function (e) {
+      if (e && e.correct && typeof e.decisionMs === 'number' && e.decisionMs > 0) {
+        if (e.decisionMs < 2000) quick++;
+        if (e.decisionMs < 1000) blink++;
+      }
+    });
     var subjects = {};
     encounters.forEach(function (en) { if (en && en.subject) subjects[en.subject] = true; });
-    (summary.subjectsSeen || []).forEach(function (s) { if (s) subjects[s] = true; });
-    var names = Object.keys(subjects);
-    if (names.length > 0) this._addQuestDistinct(Q.ALL_SUBJECTS_5, names);
+    (summary.subjectsSeen || []).forEach(function (sub) { if (sub) subjects[sub] = true; });
+    var finished = (summary.encountersCompleted || 0) > 0;
+    var m = {
+      encountersCompleted: summary.encountersCompleted || 0,
+      correct: correct,
+      runs: finished ? 1 : 0,
+      score: summary.score || 0,
+      bestStreak: summary.bestStreak || 0,
+      cleanCorrect: wrong === 0 ? correct : 0,
+      accuracyOf10: answered >= 10 ? Math.floor(100 * correct / answered) : 0,
+      coinsCollected: summary.coinsCollected || 0,
+      powerupsCollected: summary.powerupsCollected || 0,
+      rushesUsed: summary.rushesUsed || 0,
+      obstaclesJumped: summary.obstaclesJumped || 0,
+      obstaclesSlid: summary.obstaclesSlid || 0,
+      dodges: (summary.obstaclesJumped || 0) + (summary.obstaclesSlid || 0),
+      dailyCompleted: summary.dailyCompleted ? 1 : 0,
+      quick: quick,
+      blink: blink,
+      quickInRun: quick,
+      noContinue: summary.continued ? 0 : (summary.encountersCompleted || 0),
+      subjects: Object.keys(subjects)
+    };
+    ['study', 'weakness', 'endless', 'tournament', 'challenge'].forEach(function (mode) {
+      m['mode_' + mode] = finished && summary.mode === mode ? 1 : 0;
+    });
+    return m;
+  }
 
-    // "In one run" quests: the best single run of the day counts (they do not add up across runs)
-    this._raiseQuest(Q.STREAK_8, summary.bestStreak);
-    this._raiseQuest(Q.PERFECT_5, summary.bestStreak);
-    this._raiseQuest(Q.COINS_50, summary.coinsCollected);
-    this._raiseQuest(Q.POWERUPS_3, summary.powerupsCollected);
-    this._raiseQuest(Q.RUSH_3, summary.rushesUsed);
-    this._raiseQuest(Q.JUMP_5, summary.obstaclesJumped);
-    this._raiseQuest(Q.SLIDE_5, summary.obstaclesSlid);
+  /** Add measured numbers to every quest in the pool, by how each quest counts them. */
+  _applyQuestMetrics(metrics) {
+    var self = this;
+    QUESTS.forEach(function (q) {
+      var v = metrics[q.metric];
+      if (q.agg === 'distinct') {
+        if (Array.isArray(v) && v.length) self._addQuestDistinct(q.id, v);
+      } else if (q.agg === 'max') {
+        self._raiseQuest(q.id, v);
+      } else if (Number(v) > 0) {
+        self.incrementQuest(q.id, Number(v));
+      }
+    });
+  }
+
+  /** The ids of the quests on offer today (kept for the day, so a later update to the pool does not change them). */
+  getDailyQuestIds(dateKey) {
+    var key = dateKey || todayKey();
+    var picks = this.data.progression.questPicks || (this.data.progression.questPicks = {});
+    if (!Array.isArray(picks[key])) {
+      picks[key] = questIdsForDate(key);
+      var keys = Object.keys(picks).sort();
+      while (keys.length > 45) delete picks[keys.shift()];
+    }
+    return picks[key].slice();
+  }
+
+  /** Quest definitions on offer today. */
+  getDailyQuests(dateKey) {
+    var ids = this.getDailyQuestIds(dateKey);
+    return ids.map(function (id) { return QUESTS.filter(function (q) { return q.id === id; })[0]; }).filter(Boolean);
   }
 
   /** Ids of today's quests that are complete (claimed or not). */
   _completedQuestIds() {
     var day = this.data.progression.questState[todayKey()] || {};
-    return Object.keys(day).filter(function (id) { return day[id] && day[id].completed; });
+    var offered = this.getDailyQuestIds();
+    return Object.keys(day).filter(function (id) { return day[id] && day[id].completed && offered.indexOf(id) >= 0; });
   }
 
   /** Set a quest's progress to a value if it is higher than what is there (for "in one run" quests). */
@@ -1643,6 +1686,11 @@ class Storage {
 
     this.addStudiedToday(summary.total || 0);
 
+    // Quests: flashcards seen and known today
+    var questsBefore = this._completedQuestIds();
+    this._applyQuestMetrics({ flashcards: summary.total || 0, flashcardsKnown: summary.correct || 0, flashcardSessions: (summary.total || 0) > 0 ? 1 : 0 });
+    var flashQuests = this._completedQuestIds().filter(function (id) { return questsBefore.indexOf(id) < 0; });
+
     // Achievements
     var newAchievements = this._evaluateAchievements(null);
 
@@ -1652,7 +1700,7 @@ class Storage {
       applied: true,
       duplicate: false,
       newlyUnlockedAchievementIds: newAchievements,
-      completedQuestIds: []
+      completedQuestIds: flashQuests
     };
   }
 

@@ -1466,8 +1466,8 @@ function init() {
   updateLockerDot();
   document.addEventListener('dx:coins-changed', updateLockerDot);
   // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
-  updateAttentionDots(storage, QUESTS);
-  document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, QUESTS); });
+  updateAttentionDots(storage, storage.getDailyQuests());
+  document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, storage.getDailyQuests()); });
   document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {
     refreshHomeBadge(homeLeague);
