@@ -11,7 +11,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
-import { ACHIEVEMENTS, questGoTarget } from './game/shopdata.js';
+import { ACHIEVEMENTS, QUESTS, questGoTarget } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
 export var profileMethods = {
@@ -291,6 +291,28 @@ export var profileMethods = {
     var self = this;
     var today = localDateKey(new Date());
     var allComplete = true;
+
+    // Rewards earned on a recent day that were never collected
+    var missed = storage.getUnclaimedPastQuests();
+    if (missed.length) {
+      var missedBox = createElement('div', { className: 'quest-item' });
+      missedBox.appendChild(createElement('div', { className: 'quest-title', text: '\uD83C\uDF81 Rewards waiting from earlier days' }));
+      missed.forEach(function (m) {
+        var def = QUESTS.filter(function (x) { return x.id === m.id; })[0];
+        if (!def) return;
+        var b = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Claim ' + def.reward + ' coins \u00B7 ' + def.title, attributes: { type: 'button' } });
+        b.style.cssText = 'display:block;margin-top:4px';
+        b.addEventListener('click', function () {
+          var claim = storage.claimQuest(m.id, m.dateKey);
+          if (claim.success) { audio.play('coin'); self._showToast('\uD83E\uDE99 +' + claim.reward + ' coins!'); }
+          self.renderQuests();
+          self.renderHome();
+          document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+        });
+        missedBox.appendChild(b);
+      });
+      container.appendChild(missedBox);
+    }
 
     var todays = storage.getDailyQuests();
     var doneCount = todays.filter(function (q) { return storage.getQuestProgress(q.id) >= q.target; }).length;

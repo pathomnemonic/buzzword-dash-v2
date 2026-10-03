@@ -38,6 +38,8 @@ import { updateModelAnimation } from './charactermodel.js';
 import { setupEnvironment } from './materials.js';
 import { TrailSystem } from './trails.js';
 import { buildMonster } from './monsters.js';
+import { buildTrack, updateScrollers, updateRunningLights } from './track.js';
+import { SKINS } from './skins.js';
 
 // Gesture constants
 var GESTURE_NONE = 0;
@@ -85,6 +87,10 @@ export class CharacterPreview {
         // being looked at takes the character's place in the display
         this.trailSystem = null;
         this.previewMonsterId = null;
+        // A map being looked at is built behind the character (see previewMap)
+        this.mapRefs = null;
+        this.mapGroup = null;
+        this.previewMapId = null;
 
         // Limbs reference
         this.limbs = null;
@@ -162,7 +168,10 @@ export class CharacterPreview {
         groundRing.position.y = -0.19;
         this.scene.add(groundRing);
 
-        this.trailSystem = new TrailSystem(this.scene, { quality: 'medium', direction: 1, clipZ: 2.6 });
+        // The trail lives in its own group that turns with the character, so it always streams out from behind it
+        this.trailRoot = new THREE.Group();
+        this.scene.add(this.trailRoot);
+        this.trailSystem = new TrailSystem(this.trailRoot, { quality: 'medium', direction: 1, clipZ: 2.6 });
         this.rebuildCharacter();
         this.setupInteraction();
 
@@ -416,7 +425,45 @@ export class CharacterPreview {
         this.rebuildCharacter();
     }
 
+    /**
+     * Show a map: the track is built behind the runner with the map's own colours, lights and walls, and slowly
+     * scrolls past, so the player can see what they are buying. Cleared by clearPreview().
+     * @param {string} skinId e.g. 'skin_cardiac_pulse'
+     */
+    previewMap(skinId) {
+        var skin = SKINS.filter(function (s) { return s.id === skinId; })[0];
+        if (!skin || !this.scene) return;
+        this._removeMap();
+        // the runner and nothing else from the other previews
+        this.previewMonsterId = null;
+        if (this.trailSystem) this.trailSystem.setOverride('trail_none');
+        this.mapGroup = new THREE.Group();
+        this.mapGroup.position.z = 1.5; // the start of the track is just behind the camera's focus
+        this.scene.add(this.mapGroup);
+        this.mapRefs = buildTrack(this.mapGroup, skin, { quality: 'low', ambientParticles: false });
+        this.previewMapId = skinId;
+        this.scene.background = new THREE.Color(skin.colors.bg);
+        this.scene.fog = new THREE.Fog(skin.colors.bg, 12, 40);
+        this.renderer.setClearColor(skin.colors.bg, 1);
+        this.targetRotationY = 0; // back to the viewer, running down the track
+        this.rebuildCharacter();
+    }
+
+    _removeMap() {
+        if (this.mapRefs && this.mapRefs.dispose) this.mapRefs.dispose();
+        if (this.mapGroup) this.scene.remove(this.mapGroup);
+        this.mapRefs = null;
+        this.mapGroup = null;
+        if (this.previewMapId) {
+            this.previewMapId = null;
+            this.scene.background = new THREE.Color(0x0a0e27);
+            this.scene.fog = null;
+            if (this.renderer) this.renderer.setClearColor(0x0a0e27, 1);
+        }
+    }
+
     clearPreview() {
+        this._removeMap();
         this.previewOverrides = null;
         this.previewMonsterId = null;
         if (this.trailSystem) this.trailSystem.setOverride(null); // back to the equipped trail
@@ -444,6 +491,11 @@ export class CharacterPreview {
             var rotDiff = self.targetRotationY - self.rotationY;
             self.rotationY += rotDiff * 0.1;
 
+            if (self.mapRefs && !self._reducedMotion) {
+                updateScrollers(self.mapRefs.scrollers, dt * 6);
+                if (self.mapRefs.runningLights) updateRunningLights(self.mapRefs.runningLights, self.time, 1);
+            }
+            if (self.trailRoot) self.trailRoot.rotation.y = self.rotationY;
             if (self.trailSystem) self.trailSystem.update(dt, 0, 0, 0, 5);
 
             if (self.previewMonsterId) {

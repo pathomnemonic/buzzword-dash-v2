@@ -66,6 +66,7 @@ var DEFAULTS = {
     kudosSeenAt: 0,
     colorblindMode: false,
     glowEffects: false,
+    ambientParticles: false,  // the soft glowing specks floating across the track (off unless switched on)
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
@@ -1213,6 +1214,28 @@ class Storage {
     }).map(function (q) { return q.id; });
   }
 
+  /**
+   * Rewards from the last few days that were earned but never claimed (the day ended first). They can still be
+   * collected: finishing a quest just before midnight must not cost the coins.
+   * @returns {Array<{dateKey: string, id: string}>}
+   */
+  getUnclaimedPastQuests(daysBack) {
+    var out = [];
+    var picks = this.data.progression.questPicks || {};
+    var state = this.data.progression.questState || {};
+    for (var back = 1; back <= (daysBack || 3); back++) {
+      var key = dayKeyOffset(-back);
+      var ids = Array.isArray(picks[key]) ? picks[key] : [];
+      var day = state[key] || {};
+      for (var i = 0; i < ids.length; i++) {
+        var qs = day[ids[i]];
+        var def = this._getQuestDef(ids[i]);
+        if (qs && def && !qs.claimed && (qs.completed || (qs.progress || 0) >= def.target)) out.push({ dateKey: key, id: ids[i] });
+      }
+    }
+    return out;
+  }
+
   getAchievementCount() {
     return this.data.progression.achievements.length;
   }
@@ -1282,13 +1305,20 @@ class Storage {
       return { success: false, alreadyClaimed: true, reward: 0, newCoinBalance: this.data.progression.coins, error: null };
     }
 
+    var questDef = this._getQuestDef(questId);
+
+    // A quest whose progress reached its target is complete, even if the flag was never set (an older save)
+    if (!qs.completed && questDef && (qs.progress || 0) >= questDef.target) {
+      qs.completed = true;
+      qs.completedAt = qs.completedAt || Date.now();
+    }
+
     // Not completed
     if (!qs.completed) {
       return { success: false, alreadyClaimed: false, reward: 0, newCoinBalance: this.data.progression.coins, error: 'Quest not completed' };
     }
 
     // Find reward
-    var questDef = this._getQuestDef(questId);
     var reward = questDef ? questDef.reward : 0;
 
     // Atomic claim

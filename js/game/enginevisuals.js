@@ -175,7 +175,7 @@ export var visualMethods = {
       this.transitionNewSkin = null;
 
       this._cleanupTrack();
-      this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
+      this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
 
       if (this.playerGroup && !this.scene.children.includes(this.playerGroup)) this.scene.add(this.playerGroup);
       if (this.playerShadow && !this.scene.children.includes(this.playerShadow)) this.scene.add(this.playerShadow);

@@ -275,7 +275,7 @@ card = pickResult ? pickResult.card : null;
       this.score += pointsEarned;
 
       var coinMult = this.powerups.scoreFrenzy > 0 ? 5 : 1;
-      coinsEarned = (1 + Math.floor(this.streak / 3)) * coinMult;
+      coinsEarned = (2 + Math.floor(this.streak / 3)) * coinMult; // (2 a right answer, +1 for every 3 in the streak)
       this.coins += coinsEarned;
 
       if (this.streak % 5 === 0) {

@@ -159,7 +159,7 @@ describe('Locker tabs', () => {
     ui._heroColorsOpen = false;
     ui.renderShop();
     const tabs = [...document.querySelectorAll('#shopItems [role="tab"]')].map((b) => b.textContent.trim());
-    expect(tabs).toEqual(['🦸 Heroes', '✨ Trails', '🗺️ Maps', '👾 Monsters']);
+    expect(tabs).toEqual(['🦸Heroes', '✨Trails', '🗺️Maps', '👾Monsters']);
     expect(document.querySelector('#shopItems .locker-tabs')).not.toBeNull();
     expect(tabs.join('|')).not.toMatch(/Customize/);
     // the hero card carries the colors toggle

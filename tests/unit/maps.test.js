@@ -72,7 +72,7 @@ describe('buying and choosing maps', () => {
     row.querySelector('.btn-gold').click();
     expect(storage.ownsItem('map_cardiac_pulse')).toBe(true);
     expect(storage.get('coins')).toBe(20000 - 3500);
-    const fav = document.querySelector('[data-map="map_cardiac_pulse"] button');
+    const fav = document.querySelector('[data-map="map_cardiac_pulse"] button[aria-pressed]');
     expect(fav.textContent).toMatch(/Favorite/);
     fav.click();
     expect(storage.get('preferredMap')).toBe('Cardiac Pulse');

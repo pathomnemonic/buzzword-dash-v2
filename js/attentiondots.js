@@ -18,7 +18,7 @@ export function computeAttention(storage, quests) {
   var week = storage.getWeeklyProgress();
   return {
     profile: storage.getNewAchievementIds().length,
-    quests: storage.getClaimableQuestIds(quests).length,
+    quests: storage.getClaimableQuestIds(quests).length + (storage.getUnclaimedPastQuests ? storage.getUnclaimedPastQuests().length : 0),
     weekly: week.daysMet >= week.target && !week.claimed
   };
 }

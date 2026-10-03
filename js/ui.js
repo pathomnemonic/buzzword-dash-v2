@@ -339,6 +339,7 @@ class UI {
       this._lockerFresh = newlyAffordable(LOCKER_ITEMS, storage.get('coins') || 0, storage.get('ownedItems') || [], storage.get('lockerSeen') || []);
       this.renderShop();
       this.startPreview();
+      this._syncLockerPreview();
     }
     if (screenId === 'screenSettings') { this._settingsSection = null; this.renderSettings(); }
     if (screenId === 'screenMyCards') { this.renderCustomCardList(); this._renderSavedDecks(); }

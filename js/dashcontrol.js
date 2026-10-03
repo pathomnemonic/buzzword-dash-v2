@@ -43,7 +43,7 @@ export function attachDashPrompt(container, toast) {
   box.className = 'prompt-card dash-prompt';
   var text = document.createElement('div');
   text.className = 'prompt-text';
-  text.textContent = 'Want to dash by double-tapping the screen instead of using the Dash button? It can trigger by accident while you swipe. You can switch back any time in Settings → Look → Dash control.';
+  text.textContent = 'Prefer to dash by double-tapping the screen instead of tapping the Dash button? Heads up: a double tap can be triggered by accident while you swipe, which is why the button is the default. You can switch back any time in Settings → Look → Dash control.';
   box.appendChild(text);
   var row = document.createElement('div');
   row.className = 'prompt-row';

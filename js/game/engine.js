@@ -433,7 +433,7 @@ class Game {
     this.trackRoot.name = 'trackRoot';
     this.scene.add(this.trackRoot);
 
-    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
+    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
     this._rebuildPlayer();
     this._createPlayerShadow();
     this.trailSystem = new TrailSystem(this.scene);
@@ -700,7 +700,7 @@ class Game {
       }
     }
 
-    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium' });
+    this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
 
     this.camera.position.copy(this.cameraBasePos);
     this.camera.fov = this.baseFOV;

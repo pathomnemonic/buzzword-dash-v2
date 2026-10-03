@@ -218,8 +218,8 @@ export function buildTrack(trackRoot, skin, options) {
   // Running lights
   buildRunningLights(trackRoot, skin, trackRefs);
 
-  // Atmospheric particles (skip if reduced motion)
-  if (!reducedMotion) {
+  // The floating glow particles are off unless the player turns them on (Settings -> Look); never with reduced motion
+  if (!reducedMotion && options.ambientParticles) {
     createParticlePool(trackRoot, skin, trackRefs, qc);
   }
 

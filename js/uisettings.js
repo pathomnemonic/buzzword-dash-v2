@@ -80,6 +80,7 @@ export var settingsMethods = {
         { key: 'dashControl', label: '⚡ Dash control', desc: 'How you dash toward the answer gates. Double-tap the screen, use an on-screen Dash button (handy if double-taps trigger by accident), or turn dashing off. The keyboard Space and Shift keys always dash on a computer.', type: 'select', options: [['auto', 'Automatic (button on phones, double-tap on computers)'], ['double', 'Double-tap the screen'], ['button', 'On-screen Dash button'], ['off', 'Off']] },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
         { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
+        { key: 'ambientParticles', label: '🌟 Floating glow particles', desc: 'Soft glowing specks drifting across the track. Pretty, but they can be distracting while you read. Off by default.', type: 'toggle' },
         { key: 'glowEffects', label: '✨ Glow effects', desc: 'A soft glow around bright things. It looks great but makes the game noticeably more demanding: it can slow older laptops and drain a phone battery faster. Off by default.', type: 'toggle' },
         { key: 'batterySaver', label: '🎞 30 frames per second', desc: 'Keeps the game at a steady 30 fps: cooler, smoother and easier on the battery. Turn off for up to 60 fps on a fast device.', type: 'toggle' }
       ],
@@ -742,18 +743,20 @@ export var settingsMethods = {
     var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : item.type === 'map' ? 'maps' : 'heroes'; };
     var freshTabs = {};
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['heroes', '🦸 Heroes'], ['trails', '✨ Trails'], ['maps', '🗺️ Maps'], ['monsters', '👾 Monsters']].forEach(function (t) {
+    [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters']].forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm locker-tab ' + (tab === t[0] ? 'btn-primary' : 'btn-outline'),
-        text: t[1],
         attributes: { type: 'button', role: 'tab', 'aria-selected': tab === t[0] ? 'true' : 'false' }
       });
       b.addEventListener('click', function () {
         self._lockerTab = t[0];
         self.renderShop();
-        // changing tab puts the display back to your hero (with the trail you wear)
-        if (self.characterPreview) self.characterPreview.clearPreview();
+        // changing tab sets the display to what suits it: your hero with the trail you wear, the monster you have
+        // equipped, or a map
+        self._syncLockerPreview();
       });
+      b.appendChild(createElement('span', { className: 'tab-icon', text: t[1], attributes: { 'aria-hidden': 'true' } }));
+      b.appendChild(document.createTextNode(t[2]));
       if (freshTabs[t[0]]) b.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'New items you can afford' } }));
       tabBar.appendChild(b);
     });
@@ -781,6 +784,23 @@ export var settingsMethods = {
     }
   },
 
+  /** Put the display at the top of the Locker in step with the tab: hero + trail, the equipped monster, or a map. */
+  _syncLockerPreview() {
+    var cp = this.characterPreview;
+    if (!cp) return;
+    cp.clearPreview();
+    var tab = this._lockerTab;
+    if (tab === 'monsters') {
+      var monster = (storage.get('equipped') || {}).monster;
+      if (monster) cp.previewItem(monster, 'monster');
+    } else if (tab === 'maps') {
+      var fav = SKINS.filter(function (s) { return s.name === storage.get('preferredMap'); })[0];
+      var first = LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; })[0];
+      var id = fav ? fav.id : (first && first.skinId);
+      if (id && cp.previewMap) cp.previewMap(id);
+    }
+  },
+
   /**
    * The Maps tab: the indoor hospital maps are free for everyone; the rest are bought here. Every map you own
    * joins the rotation, and one can be made your favorite (a run then stays on it).
@@ -792,7 +812,7 @@ export var settingsMethods = {
     var heading = createElement('h3', { text: '🗺️ Maps' });
     heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
     wrap.appendChild(heading);
-    var intro = createElement('div', { className: 'setting-sublabel', text: 'Every run rotates through the maps you own. You start with the ' + free.length + ' hospital maps (' + free.map(function (s) { return s.name; }).join(', ') + '). Buy more below, then pick a favorite if you want to stay on one.' });
+    var intro = createElement('div', { className: 'setting-sublabel', text: 'Runs rotate through the maps you own. All ' + free.length + ' hospital maps are free; buy the rest below. Tap one to see it above.' });
     intro.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
     wrap.appendChild(intro);
 
@@ -820,6 +840,13 @@ export var settingsMethods = {
 
       var btnWrap = createElement('div');
       btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
+      var seeMap = function () { if (self.characterPreview && self.characterPreview.previewMap) self.characterPreview.previewMap(item.skinId); };
+      var eye = createElement('button', { className: 'btn btn-outline btn-sm', text: '\uD83D\uDC41', attributes: { type: 'button', 'aria-label': 'Preview ' + item.name } });
+      eye.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
+      eye.addEventListener('click', seeMap);
+      btnWrap.appendChild(eye);
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('button')) return; seeMap(); });
       if (owned) {
         var fav = createElement('button', {
           className: 'btn btn-outline btn-sm',

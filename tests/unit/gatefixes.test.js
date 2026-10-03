@@ -36,3 +36,20 @@ describe('see-through scenery', () => {
     }
   });
 });
+
+describe('floating glow particles', () => {
+  it('are off unless asked for', () => {
+    const off = buildTrack(new THREE.Scene(), SKINS[0], { quality: 'medium' });
+    expect(off.particlePool.length).toBe(0);
+    off.dispose();
+    const on = buildTrack(new THREE.Scene(), SKINS[0], { quality: 'medium', ambientParticles: true });
+    expect(on.particlePool.length).toBeGreaterThan(0);
+    on.dispose();
+  });
+  it('the setting defaults to off for everyone', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    expect(storage.get('ambientParticles')).toBe(false);
+  });
+});

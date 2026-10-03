@@ -36,9 +36,27 @@ export var runEndMethods = {
       this._monsterDeathFromZ = Math.min(this.examMonster.position.z, 12);
     }
 
+    // Nothing from the run may stay on the runner while the death plays: the magnet and shield rings, the dash
+    // ghosts and the trail are put away (their update only runs while playing, so they would otherwise freeze in place)
+    this._clearRunEffects();
+
     this.faceplanting = true;
     this.faceplantTimer = DEATH_DURATION;
     this._emit('death_started', {});
+  },
+
+  /** Hide every effect that decorates the runner during a run: power-up rings, dash ghosts, the trail, speed lines. */
+  _clearRunEffects() {
+    if (this.powerupFX) this.powerupFX.hideAll();
+    if (this.trailSystem) this.trailSystem.reset();
+    if (this.speedLines) {
+      for (var i = 0; i < this.speedLines.length; i++) {
+        this.scene.remove(this.speedLines[i]);
+        this.speedLines[i].geometry.dispose();
+        this.speedLines[i].material.dispose();
+      }
+      this.speedLines.length = 0;
+    }
   },
 
   _updateDying(dt) {
