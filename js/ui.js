@@ -1858,7 +1858,7 @@ class UI {
     setText(document.getElementById('importExportTitle'), '📥 Import Cards');
     document.getElementById('importExportArea').value = '';
     document.getElementById('importExportArea').readOnly = false;
-    setText(document.getElementById('importExportMsg'), 'Paste a card list here. This takes JSON: either from a friend who exported their cards, or from an AI chat. For the step-by-step (and a copy-paste AI prompt), open Settings \u203A Bring in your own cards.');
+    setText(document.getElementById('importExportMsg'), 'Paste a card list here. This takes JSON: either from a friend who exported their cards, or from an AI chat. For the step-by-step (and a copy-paste AI prompt), go back to My Cards and tap "Bring in Anki, spreadsheet or AI cards".');
     var actionBtn = document.getElementById('importExportAction');
     setText(actionBtn, '📥 Import');
     var newBtn = actionBtn.cloneNode(true);
