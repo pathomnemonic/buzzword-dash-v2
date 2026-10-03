@@ -12,6 +12,11 @@ bug, not just the one instance. When you find a new bug, first ask which theme i
 | **Rendering order / transparency** | Coins, monster and power-ups vanished under the lamp's light cone | `gatefixes.test.js` builds every track and fails if a see-through material writes depth |
 | **A number whose meaning is not obvious** | "Memory 99%" next to 60% accuracy | Removed; every number on Stats is derived from the same stats and labelled in plain words (`statsview.test.js`) |
 | **Built but not wired, or not explained** | Importer with no instructions and a server box that did nothing | `importflow.test.js` simulates a real Anki export and an AI chat's reply end to end |
+| **Words that promise something the picture does not deliver** | Hearts trail drew pink circles | `trailshapes.test.js`: every trail has its own real shape, and its description must name that shape |
+| **Locked content that is not locked** | Every map was free | `maps.test.js`: a new player never rotates into, or can pick as a favorite, a map they have not bought |
+| **A feature that works at demo size and falls over at real size** | My Cards drew every card at once; imports capped at 500 and took a minute | `mycards.test.js`, `importflow.test.js` (4,000-card deck in under 3 seconds, paging, search, bulk delete) |
+| **Progress or data that does not survive a move** | Backups and cloud saves left out the player's own cards | `backup.test.js`, `cloudsync.test.js`, `sanity.test.js` (saved data keeps its shape, and reloads identically) |
+| **A flow with only one way through** | Rating prompt that depended on a single link | `review.test.js` and `promptui.test.js`: every step has a back-up (in-app box, store app, web page, copied link; server, email, copied message) |
 | **One rotating set is too small** | Same quests every day | `quests.test.js` checks the pool size, one per category, no repeat of yesterday, wide coverage over two months |
 
 ## Running everything

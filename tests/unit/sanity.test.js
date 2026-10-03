@@ -39,3 +39,34 @@ describe('saved data stays the right shape', () => {
     expect(problems).toMatch(/settings\.selectedSubjects should be array/);
   });
 });
+
+describe('nothing is lost between saving and loading', () => {
+  it('data written during play comes back identical after a reload', () => {
+    localStorage.clear();
+    storage.load();
+    for (let i = 0; i < 6; i++) storage.finalizeRun(run({ mode: i % 2 ? 'daily' : 'endless', dailyCompleted: i % 2 === 1 }));
+    storage.finalizeFlashcardSession({ sessionId: 'rt1', total: 12, correct: 9, wrong: 3, durationMs: 1000, cardResults: [{ cardId: 'c001', rating: 'correct' }] });
+    storage.set('coins', 9000);
+    storage.buyItem('hat_headlamp', 1200);
+    storage.afterPurchase();
+    storage.set('preferredMap', 'Hospital Hallway');
+    storage.set('examDate', '2031-05-01');
+    storage.set('hapticsEnabled', false);
+    storage.getDailyQuests();
+    storage.checkAchievements(null);
+    const before = JSON.parse(JSON.stringify(storage.data));
+    storage.load(); // read it back from localStorage
+    const after = JSON.parse(JSON.stringify(storage.data));
+    const lost = [];
+    const walk = (a, b, path) => {
+      if (a && typeof a === 'object') {
+        Object.keys(a).forEach((k) => {
+          if (!b || !(k in b)) lost.push(path + '.' + k);
+          else walk(a[k], b[k], path + '.' + k);
+        });
+      } else if (JSON.stringify(a) !== JSON.stringify(b)) lost.push(path + ' changed');
+    };
+    walk(before, after, 'data');
+    expect(lost).toEqual([]);
+  });
+});
