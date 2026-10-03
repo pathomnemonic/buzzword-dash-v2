@@ -68,7 +68,7 @@ Rush can be stacked up to 3 times while an encounter is active. Each stack incre
 | **Study** | Infinite lives. Teaching points shown after every answer. |
 | **Weakness** | Focuses on cards you have previously missed. |
 | **Daily 15** | A quick habit: today's 15 cards, one try a day, the same for everyone. Keeps your login streak going. Not ranked. |
-| **Weekly Gauntlet** | A real test: 30 cards (the same all week) and only 2 lives. Clear it for a weekly badge and 150 bonus coins; retry as often as you like. Not ranked. |
+| **Weekly Gauntlet** | A real test: 30 cards (the same all week) and just one life. Clear it for a weekly badge and 150 bonus coins; retry as often as you like. Not ranked. |
 | **Friend challenge** | Play 15 fresh cards, then send a link; friends play the same cards and compare. Any time, no sign-up. |
 | **Versus** | Multiplayer via peer-to-peer WebRTC. |
 
@@ -204,7 +204,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Per-map hazards** — each track has a signature hazard (blackout, fog, tremor, pulse, glitch, flare, speed surge) in solo runs; never in seeded or competitive modes and skipped for reduced motion
 - **Adaptive music** — layers build with your streak and a tense drone rises as the monster closes in
 - **Share image** — save or share a styled picture of your run result
-- **Weekly Gauntlet** — 30 cards, the same all week, only 2 lives; clear it for a weekly badge and bonus coins (not ranked)
+- **Weekly Gauntlet** — 30 cards, the same all week, just one life; clear it for a weekly badge and bonus coins (not ranked)
 - **Why not that one?** — after a miss the teaching line also says why the answer you ran into is wrong (from the card's per-answer reasons, `js/explain.js`), and stays up long enough to read
 - **Interleaving** — flashcard sessions never put the same subject twice in a row when another is available (`js/interleave.js`), and cards past their FSRS due date come first
 - **First weeks checklist** — seven small steps in the Today popup (a run, flashcards, the Daily 15, your exam date, a trail, a three-day streak, a visible profile), hidden when finished, after two weeks, or on request (`js/firstweek.js`)

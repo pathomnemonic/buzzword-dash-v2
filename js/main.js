@@ -48,6 +48,7 @@ import { isRankedRun } from './rules.js';
 import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { watchBattery } from './battery.js';
+import { appPublicUrl } from './publicurl.js';
 import { watchConnection } from './offline.js';
 import { shareSetting, isShareableRun, runPayload, crossedCardMilestone, crossedDayMilestone } from './sharing.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
@@ -77,7 +78,7 @@ var currentRunId = null;
 var lastRunReward = null;
 var lastRunNewBest = false;
 var GAUNTLET_REWARD = 150;
-var GAUNTLET_LIVES = 2;
+var GAUNTLET_LIVES = 1;
 var runFinalized = false;
 
 // =========================================================================
@@ -429,7 +430,7 @@ function configureMultiplayer(client, content) {
 // =========================================================================
 //  MODE STARTER  —  Canonical game.start(options) [2] §6.2
 // =========================================================================
-/** Start this week's Gauntlet: the same 30 seeded cards for everyone, with 2 lives. */
+/** Start this week's Gauntlet: the same 30 seeded cards for everyone, with one life. */
 function startTournament() {
   Promise.all([import('./challenge.js'), import('./multiplayer.js')]).then(function (mods) {
     var challenge = mods[0];
@@ -510,7 +511,7 @@ function syncWeeklyStudy() {
 var activeChallenge = null;
 
 function challengeBase() {
-  return window.location.origin + window.location.pathname;
+  return appPublicUrl(); // (inside the phone app the page is https://localhost, which a friend cannot open)
 }
 
 function copyText(text) {
@@ -767,7 +768,7 @@ function attachGauntletResult() {
       hint.textContent = firstClear ? '\uD83C\uDFC5 Badge earned and +' + GAUNTLET_REWARD + ' coins. A new Gauntlet starts next week.' : 'Already cleared this week. Nice run. A new Gauntlet starts next week.';
     } else {
       head.textContent = '\uD83D\uDEE1\uFE0F Weekly Gauntlet: ' + game.encountersDone + ' of ' + size + ' cards';
-      hint.textContent = 'The same ' + size + ' cards all week, and you can retry as often as you like. Clear them with your 2 lives.';
+      hint.textContent = 'The same ' + size + ' cards all week, and you can retry as often as you like. Clear them on a single life.';
     }
     box.appendChild(head);
     box.appendChild(hint);

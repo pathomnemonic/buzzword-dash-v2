@@ -39,6 +39,7 @@ import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { missExplanation } from './explain.js';
+import { appPublicUrl } from './publicurl.js';
 import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
 import { audio } from './audio.js';
@@ -2132,7 +2133,7 @@ class UI {
     var total = game.correct + game.wrong;
     var acc = total > 0 ? Math.round(game.correct / total * 100) : 0;
     var skinName = game.currentSkin ? game.currentSkin.name : 'Unknown';
-    var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + window.location.href;
+    var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + appPublicUrl();
 
     if (navigator.share) {
       navigator.share({ title: 'Dx Dash Score', text: text }).catch(function () {

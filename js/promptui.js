@@ -5,6 +5,7 @@
 
 import { choosePrompt, recordPrompt } from './prompts.js';
 import { isNative, APP_SCHEME } from './native.js';
+import { appPublicUrl } from './publicurl.js';
 
 /** Where to rate the app: a build-time link, or the Play Store page inside the Android app. '' means nowhere (the web). */
 export function getReviewUrl() {
@@ -15,13 +16,9 @@ export function getReviewUrl() {
   return isNative() ? 'https://play.google.com/store/apps/details?id=' + APP_SCHEME : '';
 }
 
-/** The link to send friends to: a build-time link, or the page the app is served from. */
+/** The link to send friends to: always an address a friend can open (see publicurl.js). */
 export function getShareUrl() {
-  /** @type {Record<string, any>} */
-  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
-  var url = env.VITE_SHARE_URL || '';
-  if (/^https:\/\//.test(url)) return url;
-  return /^https?:/.test(window.location.protocol) ? window.location.origin + window.location.pathname : '';
+  return appPublicUrl();
 }
 
 var SHARE_TEXT = 'I have been studying with Dx Dash, a free endless runner for USMLE and COMLEX questions. Come run the list with me.';

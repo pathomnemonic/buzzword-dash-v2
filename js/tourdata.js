@@ -114,7 +114,7 @@ export function buildTourSteps(ctx) {
     { id: 'ch-daily', title: 'Daily 15', target: '#challengeSheet [data-mode="daily"]', press: 'next',
       text: 'Today\'s 15 cards, one try a day, the same for everyone. It keeps your login streak alive.' },
     { id: 'ch-gauntlet', title: 'Weekly Gauntlet', target: '#tournamentBtn', press: 'next',
-      text: 'A real test: 30 cards and only 2 lives, the same all week. Clear it for a weekly badge and bonus coins.' },
+      text: 'A real test: 30 cards and just one life, the same all week. Clear it for a weekly badge and bonus coins.' },
     { id: 'ch-friend', title: 'Friend challenge', target: '#challengeBtn', press: 'next',
       text: 'Play 15 fresh cards, then send a link. Your friends play the same cards and compare scores. No sign-up needed.' },
     { id: 'ch-exam', title: 'Exam Sim', target: '#examBtn', press: 'next',
