@@ -49,3 +49,37 @@ test('the results page has Filters, a big Play again and a small flag on missed 
   await page.locator('#postFiltersBtn').click();
   await expect(page.locator('#filtersSheet')).toHaveClass(/active/);
 });
+
+test('Ctrl uses the Auto-Pilot on a computer', async ({ page }) => {
+  await openApp(page, '/?debug=1');
+  test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
+  await startRun(page);
+  await page.evaluate(() => window.__game._collectPowerup('autoPilot'));
+  await page.keyboard.press('Control');
+  const s = await page.evaluate(() => ({ held: window.__game.autoPilotHeld, left: window.__game.autoPilotGatesLeft }));
+  expect(s).toEqual({ held: false, left: 1 });
+});
+
+test('Settings → Keyboard: change a key, see it in use, and go back to the standard keys', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openApp(page, '/?debug=1');
+  await page.locator('#settingsBtn').click();
+  await page.locator('.settings-card[data-section="keys"]').click();
+  const row = page.locator('.key-row[data-action="autoPilot"]');
+  await expect(row.locator('.key-btn').first()).toHaveText('Ctrl');
+  await row.locator('.key-btn').first().click();
+  await expect(row.locator('.key-btn').first()).toHaveText(/Press a key/);
+  await page.keyboard.press('e');
+  await expect(row.locator('.key-btn').first()).toHaveText('E');
+  // giving it to another action takes it from the first
+  await page.locator('.key-row[data-action="jump"] .key-btn').first().click();
+  await page.keyboard.press('e');
+  await expect(page.locator('.key-row[data-action="jump"] .key-btn').first()).toHaveText('E');
+  await expect(row.locator('.key-btn').first()).toHaveText('—');
+  // Escape cancels a change
+  await row.locator('.key-btn').first().click();
+  await page.keyboard.press('Escape');
+  await expect(row.locator('.key-btn').first()).toHaveText('—');
+  await page.locator('#resetKeysBtn').click();
+  await expect(row.locator('.key-btn').first()).toHaveText('Ctrl');
+});

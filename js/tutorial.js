@@ -13,6 +13,7 @@
 import { createElement, clearElement } from './dom.js';
 import { setupInput } from './game/input.js';
 import { getControlText } from './controlhints.js';
+import { getKeyBindings, keysPhrase } from './keybindings.js';
 import { getDashControl } from './dashcontrol.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { confirmExitTutorial, isExitConfirmOpen, dismissExitConfirm } from './tutorialexit.js';
@@ -54,21 +55,21 @@ export function buildSteps(controls, dashControl) {
       text: 'You will see medical buzzwords, then ' + c.intro + '. Let\'s practice each move. It takes a couple of minutes, and you can leave any time with the × in the corner.',
       button: 'Start practice' },
     { id: 'left', kind: 'action', action: 'moveLeft', title: 'Move left',
-      prompt: t ? '👈 Swipe left' : '⬅ Press ← or A',
+      prompt: t ? '👈 Swipe left' : '⬅ Press ' + keysPhrase('moveLeft'),
       text: 'Every lane holds a different diagnosis. Switch lanes to pick yours.' },
     { id: 'right', kind: 'action', action: 'moveRight', title: 'Move right',
-      prompt: t ? 'Swipe right 👉' : 'Press → or D ➡',
+      prompt: t ? 'Swipe right 👉' : 'Press ' + keysPhrase('moveRight') + ' ➡',
       text: 'Now the other way.' },
     { id: 'jump', kind: 'action', action: 'jump', obstacle: 'ground', title: 'Jump',
-      prompt: t ? '👆 Swipe up' : '⬆ Press ↑ or W',
+      prompt: t ? '👆 Swipe up' : '⬆ Press ' + keysPhrase('jump'),
       text: 'Jump over beds, crates and cones on the ground.' },
     { id: 'slide', kind: 'action', action: 'slide', obstacle: 'overhead', title: 'Slide',
-      prompt: t ? '👇 Swipe down' : '⬇ Press ↓ or S',
+      prompt: t ? '👇 Swipe down' : '⬇ Press ' + keysPhrase('slide'),
       text: 'Slide under hanging lights and signs.' },
     { id: 'answer', kind: 'answer', title: 'Pick the diagnosis',
       text: 'Read the clue, then ' + c.intro + '. Stay in a lane for a moment to lock it in.' },
     { id: 'rush', kind: 'action', action: 'rush', title: 'Rush', dashButton: t && dashControl === 'button',
-      prompt: t ? (dashControl === 'button' ? '⚡ Tap the Dash button' : '👆👆 Double-tap') : 'Press Shift or Space',
+      prompt: t ? (dashControl === 'button' ? '⚡ Tap the Dash button' : '👆👆 Double-tap') : 'Press ' + keysPhrase('rush'),
       text: 'Now that you can pick a lane: sure of the answer? Dash through the gate for bonus points. Obstacles cannot hurt you while you dash.' },
     { id: 'done', kind: 'info', icon: '🎉', title: 'You are ready!',
       text: 'A few last things to know. You can replay this any time from Settings → About → How to play, or the How to Play button on Home.',
@@ -327,7 +328,7 @@ export function startTutorial(opts) {
     overlay.appendChild(card);
     // Keyboard focus goes to the track on practice steps so keys act on the track, never on a button.
     if (arena) {
-      disposeInput = setupInput(arena, inputHandlers, { enabled: function () { return !closed && !locked; }, doubleTap: function () { return !(steps[index] && steps[index].dashButton); } });
+      disposeInput = setupInput(arena, inputHandlers, { keyBindings: getKeyBindings, enabled: function () { return !closed && !locked; }, doubleTap: function () { return !(steps[index] && steps[index].dashButton); } });
       try { arena.focus({ preventScroll: true }); } catch (e) { /* best effort */ }
     }
     else if (primary) primary.focus();

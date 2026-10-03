@@ -26,6 +26,7 @@ import * as THREE from 'three';
 
 // === Imports from other agents (current signatures used as bridge) ===
 import { storage } from '../storage.js';
+import { getKeyBindings } from '../keybindings.js';
 import { getTheme } from './themes.js';
 import { getStartSkin, SKINS, isMapUnlocked } from './skins.js';
 import { buildTrack, spawnEnvProp, calculateTargetFOV, updateCameraFOV, calculateCameraLean, getStreakVisualIntensity } from './track.js';
@@ -446,8 +447,10 @@ class Game {
         jump: function() { self.jump(); },
         slide: function() { self.slide(); },
         rush: function() { self.addRushStack(); },
+        autoPilot: function() { self.useAutoPilot(); },
         pause: function() { if (self._tutorial) self._tut('pause'); else self.togglePause(); }
     }, {
+        keyBindings: getKeyBindings,
         enabled: function() { return self._state === GAME_STATES.PLAYING; },
         doubleTap: function() { return getDashControl() === 'double'; }
     });

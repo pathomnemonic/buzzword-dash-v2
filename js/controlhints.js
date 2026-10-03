@@ -7,6 +7,8 @@
  * pointer is still the trackpad or mouse) get the keyboard wording.
  */
 
+import { isDefaultBindings, keysPhrase } from './keybindings.js';
+
 /**
  * @param {{coarse?: boolean, fine?: boolean, touchPoints?: number}} [env] override for tests
  * @returns {boolean}
@@ -46,13 +48,25 @@ export function getControlText(touchFirst, dashControl) {
       intro: 'swipe into the correct diagnosis gate'
     };
   }
+  // (worded from the keys now in force, so a player's own choices in Settings show up in the instructions)
+  if (isDefaultBindings()) {
+    return {
+      touch: false,
+      move: 'Press the left or right arrow key (or A / D) to switch lanes.',
+      jump: 'Press the up arrow (or W) to jump',
+      slide: 'Press the down arrow (or S) to slide',
+      rush: 'Press Shift or Space to rush',
+      rushVerb: 'Press Shift or Space',
+      intro: 'move into the correct diagnosis gate'
+    };
+  }
   return {
     touch: false,
-    move: 'Press the left or right arrow key (or A / D) to switch lanes.',
-    jump: 'Press the up arrow (or W) to jump',
-    slide: 'Press the down arrow (or S) to slide',
-    rush: 'Press Shift or Space to rush',
-    rushVerb: 'Press Shift or Space',
+    move: 'Press ' + keysPhrase('moveLeft') + ' or ' + keysPhrase('moveRight') + ' to switch lanes.',
+    jump: 'Press ' + keysPhrase('jump') + ' to jump',
+    slide: 'Press ' + keysPhrase('slide') + ' to slide',
+    rush: 'Press ' + keysPhrase('rush') + ' to rush',
+    rushVerb: 'Press ' + keysPhrase('rush'),
     intro: 'move into the correct diagnosis gate'
   };
 }

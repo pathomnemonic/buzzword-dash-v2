@@ -1256,7 +1256,7 @@ class UI {
       shield: '🛡️ Shield!',
       magnet: '🧲 Coin Magnet!',
       double: '2× Score!',
-      autoPilot: '🤖 Auto-Pilot ready: tap it when you need it',
+      autoPilot: '🤖 Auto-Pilot ready!',
       scoreFrenzy: '💎 Score Frenzy!'
     };
     this.showNotice(names[type] || type, { color: 'var(--accent-purple)', ms: 1600 });
@@ -1568,6 +1568,7 @@ class UI {
     return [
       { id: 'sound', icon: '🔊', title: 'Sound', desc: 'Music, effects, volume and reading aloud' },
       { id: 'look', icon: '🎨', title: 'Look & performance', desc: 'Colors, camera, graphics and frame rate' },
+      { id: 'keys', icon: '⌨️', title: 'Keyboard', desc: 'Choose the keys for moving, dashing and Auto-Pilot' },
       { id: 'study', icon: '📚', title: 'Study', desc: 'Daily goal, reminders and how cards are picked' },
       { id: 'rules', icon: '🎛️', title: 'Your rules', desc: 'Turn power-ups, hazards and the monster off' },
       { id: 'data', icon: '💾', title: 'Backup & data', desc: 'Save, restore, export or reset your progress' },

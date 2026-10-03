@@ -43,4 +43,10 @@ describe('both store builds', () => {
     const i = lines.findIndex((l) => l.includes("'market://"));
     expect(lines.slice(Math.max(0, i - 3), i).join('\n')).toMatch(/android/);
   });
+
+  it('Android: runs on Chromebooks and tablets (no touch screen or portrait requirement) and can be resized', () => {
+    expect(manifest).toMatch(/android\.hardware\.touchscreen"\s+android:required="false"/);
+    expect(manifest).toMatch(/android\.hardware\.screen\.portrait"\s+android:required="false"/);
+    expect(manifest).toMatch(/android:resizeableActivity="true"/);
+  });
 });

@@ -19,6 +19,7 @@ import { canRemind, requestReminderPermission } from './reminders.js';
 import { isNative } from './native.js';
 import { canRate, rateTheApp, openStorePage } from './review.js';
 import { buildFeedbackForm } from './feedback.js';
+import { KEY_ACTIONS, getKeyBindings, setKey, clearKey, resetKeyBindings, keyLabel, isDefaultBindings } from './keybindings.js';
 
 /** Can this device buzz? (Phones in the app, and browsers that offer vibration; not iPhones in Safari or most computers.) */
 export function canVibrate() {
@@ -26,6 +27,85 @@ export function canVibrate() {
 }
 
 export var settingsMethods = {
+
+  /** The Keyboard page: every action with its two keys. Tap a key, then press the one you want. */
+  _renderKeySettings(content) {
+    var self = this;
+    var NOTES = {
+      moveLeft: 'Switch to the lane on the left.',
+      moveRight: 'Switch to the lane on the right.',
+      jump: 'Jump over things on the ground.',
+      slide: 'Slide under things hanging down.',
+      rush: 'Dash through the gate for bonus points.',
+      autoPilot: 'Use the Auto-Pilot you are holding on the question that is up.',
+      pause: 'Pause the run.'
+    };
+    content.appendChild(createElement('p', { className: 'setting-sublabel', text: 'For a computer, Chromebook or tablet with a keyboard. Tap a key, then press the key you want. Press Backspace to leave a key empty, or Escape to cancel. A key can only do one thing, so giving it to a new action takes it from the old one.' }));
+    var list = createElement('div', { className: 'key-list' });
+    content.appendChild(list);
+    var capturing = null;
+
+    function stopCapture() {
+      if (!capturing) return;
+      document.removeEventListener('keydown', capturing.onKey, true);
+      capturing = null;
+    }
+
+    function draw() {
+      stopCapture();
+      clearElement(list);
+      var now = getKeyBindings();
+      KEY_ACTIONS.forEach(function (a) {
+        var row = createElement('div', { className: 'setting-row key-row', attributes: { 'data-action': a.id } });
+        var label = createElement('div');
+        label.style.flex = '1';
+        label.appendChild(createElement('div', { className: 'setting-label-text', text: a.label }));
+        label.appendChild(createElement('span', { className: 'setting-sublabel', text: NOTES[a.id] }));
+        row.appendChild(label);
+        var slots = createElement('div', { className: 'key-slots' });
+        [0, 1].forEach(function (slot) {
+          var current = now[a.id][slot];
+          var btn = createElement('button', {
+            className: 'key-btn' + (current ? '' : ' empty'),
+            text: current ? keyLabel(current) : '—',
+            attributes: { type: 'button', 'data-slot': String(slot), 'aria-label': a.label + ' key ' + (slot + 1) + ': ' + (current ? keyLabel(current) : 'not set') + '. Press to change.' }
+          });
+          btn.addEventListener('click', function () {
+            if (capturing && capturing.btn === btn) { draw(); return; }
+            draw();
+            var b2 = list.querySelector('[data-action="' + a.id + '"] [data-slot="' + slot + '"]');
+            b2.textContent = 'Press a key…';
+            b2.classList.add('capturing');
+            function onKey(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (e.key === 'Escape') { draw(); return; }
+              if (e.key === 'Backspace' || e.key === 'Delete') { clearKey(a.id, slot); draw(); return; }
+              var res = setKey(a.id, slot, e.key);
+              if (!res.ok) { self._showToast(res.message); draw(); return; }
+              if (res.tookFrom) {
+                var from = KEY_ACTIONS.filter(function (x) { return x.id === res.tookFrom; })[0];
+                self._showToast(keyLabel(e.key) + ' now ' + a.label.toLowerCase() + '. ' + (from ? from.label : 'The other action') + ' lost it.');
+              }
+              draw();
+            }
+            document.addEventListener('keydown', onKey, true);
+            capturing = { btn: b2, onKey: onKey };
+            b2.focus();
+          });
+          slots.appendChild(btn);
+        });
+        row.appendChild(slots);
+        list.appendChild(row);
+      });
+      var reset = createElement('button', { className: 'btn btn-outline btn-block', text: '↺ Back to the standard keys', attributes: { type: 'button', id: 'resetKeysBtn' } });
+      reset.disabled = isDefaultBindings();
+      reset.style.marginTop = '12px';
+      reset.addEventListener('click', function () { resetKeyBindings(); self._showToast('Standard keys restored.'); draw(); });
+      list.appendChild(reset);
+    }
+    draw();
+  },
 
   renderSettings() {
     var self = this;
@@ -204,6 +284,10 @@ export var settingsMethods = {
 
     if (ROWS[current.id]) {
       ROWS[current.id].forEach(function (s) { content.appendChild(buildRow(s)); });
+    }
+
+    if (current.id === 'keys') {
+      this._renderKeySettings(content);
     }
 
     if (current.id === 'study') {

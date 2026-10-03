@@ -1729,3 +1729,23 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .locker-tabs { grid-template-columns: repeat(2, 1fr); }
 }
 .perf-more-note { font-size: 11px; line-height: 1.35; color: var(--text-muted); margin: 0 0 6px; }
+
+/* ---------- Settings: Keyboard ---------- */
+.key-slots { display: flex; gap: 6px; flex: none; }
+.key-btn {
+  min-width: 52px; min-height: 44px; padding: 4px 10px; font: inherit; font-weight: 900; font-size: 14px; color: #fff; cursor: pointer;
+  background: var(--panel-2); border: 3px solid var(--ink); border-radius: 12px; box-shadow: 0 3px 0 var(--ink);
+}
+.key-btn.empty { opacity: .55; }
+.key-btn.capturing { background: var(--accent-gold); color: var(--ink); animation: dashPulse 1s ease-in-out infinite; font-size: 11px; }
+.key-btn:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+.key-row { align-items: center; gap: 8px; }
+
+/* ---------- comfortable tap targets (about 44px, what the store guidelines ask for) ---------- */
+#pauseBtn.hud-pill { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.pick-chip { min-height: 44px; min-width: 48px; }
+#howToPlayBtn.link-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.home-progress .study-goal { min-height: 40px; }
+#cbSubjectFilter, #cbStatusFilter, #cbSearch { min-height: 44px; }
+.profile-pic-box > summary, #screenProfile details > summary { min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.shop-item .btn, .shop-item .btn-sm { min-height: 40px; min-width: 40px; }

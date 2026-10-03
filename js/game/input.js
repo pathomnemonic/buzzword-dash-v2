@@ -22,6 +22,7 @@
  *     jump:      () => void,
  *     slide:     () => void,
  *     rush:      () => void,
+ *     autoPilot: () => void,   (optional)
  *     pause:     () => void
  *   }
  *
@@ -36,11 +37,12 @@
 // ===== DEFAULT KEY BINDINGS =====
 
 var DEFAULT_KEY_BINDINGS = {
-  moveLeft:  ['ArrowLeft', 'a', 'A'],
-  moveRight: ['ArrowRight', 'd', 'D'],
-  jump:      ['ArrowUp', 'w', 'W'],
-  slide:     ['ArrowDown', 's', 'S'],
+  moveLeft:  ['ArrowLeft', 'a'],
+  moveRight: ['ArrowRight', 'd'],
+  jump:      ['ArrowUp', 'w'],
+  slide:     ['ArrowDown', 's'],
   rush:      ['Shift', ' '],
+  autoPilot: ['Control'],
   pause:     ['Escape']
 };
 
@@ -114,18 +116,23 @@ var DOUBLE_TAP_INTERVAL = 350; // ms
 export function setupInput(element, handlers, options) {
   if (!options) options = {};
 
-  var keyBindings = options.keyBindings || DEFAULT_KEY_BINDINGS;
   var inputBuffer = createInputBuffer();
 
-  // Build a reverse lookup: key string -> action name
-  var keyActionMap = {};
-  for (var action in keyBindings) {
-    if (!Object.prototype.hasOwnProperty.call(keyBindings, action)) continue;
-    var keys = keyBindings[action];
-    if (!Array.isArray(keys)) keys = [keys];
-    for (var ki = 0; ki < keys.length; ki++) {
-      keyActionMap[keys[ki]] = action;
+  // key string -> action name. `options.keyBindings` may be an object or a function (so the player's changes in
+  // Settings apply at once); it is read on every key press, which is cheap.
+  function lookupAction(key) {
+    var bindings = typeof options.keyBindings === 'function' ? options.keyBindings() : (options.keyBindings || DEFAULT_KEY_BINDINGS);
+    var k = typeof key === 'string' && key.length === 1 ? key.toLowerCase() : key;
+    for (var action in bindings) {
+      if (!Object.prototype.hasOwnProperty.call(bindings, action)) continue;
+      var keys = bindings[action];
+      if (!Array.isArray(keys)) keys = [keys];
+      for (var ki = 0; ki < keys.length; ki++) {
+        var bound = typeof keys[ki] === 'string' && keys[ki].length === 1 ? keys[ki].toLowerCase() : keys[ki];
+        if (bound === k) return action;
+      }
     }
+    return null;
   }
 
   // ===== ENABLED CHECK =====
@@ -230,11 +237,11 @@ export function setupInput(element, handlers, options) {
   function onKeyDown(e) {
     if (!isEnabled()) return;
 
-    var action = keyActionMap[e.key];
+    var action = lookupAction(e.key);
     if (!action) return;
 
     // Rush: ignore keyboard auto-repeat (Section 26 requirement)
-    if (action === 'rush' && e.repeat) return;
+    if ((action === 'rush' || action === 'autoPilot') && e.repeat) return;
 
     switch (action) {
       case 'moveLeft':
@@ -253,6 +260,9 @@ export function setupInput(element, handlers, options) {
         break;
       case 'rush':
         if (handlers.rush) handlers.rush();
+        break;
+      case 'autoPilot':
+        if (handlers.autoPilot) handlers.autoPilot();
         break;
       case 'pause':
         if (handlers.pause) handlers.pause();

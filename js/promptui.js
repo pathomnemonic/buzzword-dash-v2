@@ -8,6 +8,7 @@ import { canRate, rateTheApp, openStorePage, storeLinks } from './review.js';
 import { buildFeedbackForm } from './feedback.js';
 import { appPublicUrl } from './publicurl.js';
 import { shareText, canShareNatively } from './platform.js';
+import { getNativePlatform } from './native.js';
 
 /** The first page the app could send a rating to ('' when there is nowhere to: the plain web with no link set). Kept for the checks in prompts.js. */
 export function getReviewUrl() {
@@ -121,6 +122,10 @@ export function attachPromptCard(deps) {
   storage.set('promptState', recordPrompt(state, kind, 'shown', now));
 
   var copy = COPY[kind];
+  // Apple's rules (5.6.1) ask apps to use the system rating box and not to screen people by mood first, so on iPhone the
+  // rating ask is one plain step, and feedback is a separate, neutral button available to everyone.
+  var plainRating = kind === 'review' && getNativePlatform() === 'ios';
+  if (plainRating) copy = { text: 'If Dx Dash is helping you study, a rating helps other students find it.', action: '⭐ Rate Dx Dash' };
   var box = document.createElement('div');
   box.className = 'prompt-card';
   box.setAttribute('data-prompt', kind);
@@ -144,6 +149,15 @@ export function attachPromptCard(deps) {
   }
   button(copy.action, 'btn-gold', function () {
     if (kind === 'account') { finish('done'); deps.openAccount(); return; }
+    if (plainRating) {
+      rateTheApp().then(function (res) {
+        storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'done', Date.now()));
+        if (res.how === 'copied') deps.toast('Link copied. Paste it into your browser to rate.');
+        if (res.how === 'failed') deps.toast('Could not open the store from here.');
+        finish(null);
+      });
+      return;
+    }
     if (kind === 'review') { askToRate(); return; }
     shareGame().then(function (result) {
       if (result === 'copied') deps.toast('Link copied. Paste it to a friend!');
@@ -151,7 +165,8 @@ export function attachPromptCard(deps) {
       finish('done');
     });
   });
-  if (kind === 'review') button('😕 Not really', 'btn-outline', function () { askWhatWentWrong(); });
+  if (kind === 'review' && !plainRating) button('😕 Not really', 'btn-outline', function () { askWhatWentWrong(); });
+  if (plainRating) button('💬 Send feedback', 'btn-outline', function () { askWhatWentWrong(); });
   button('Not now', 'btn-outline', function () { finish(null); });
   button('Don’t ask again', 'btn-outline', function () { finish('never'); });
   box.appendChild(row);
@@ -188,12 +203,12 @@ export function attachPromptCard(deps) {
 
   /** Step two for an unhappy player: a place to say what went wrong, never the store. */
   function askWhatWentWrong() {
-    // Someone who is not enjoying the game is not asked for a rating again
-    storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'never', Date.now()));
+    // Someone who is not enjoying the game is not asked for a rating again (on iPhone this is plain feedback, with no such rule)
+    if (!plainRating) storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'never', Date.now()));
     while (box.firstChild) box.removeChild(box.firstChild);
     box.appendChild(buildFeedbackForm({
-      mood: 'unhappy',
-      prompt: 'Sorry about that. What went wrong, or what would make Dx Dash better?',
+      mood: plainRating ? 'idea' : 'unhappy',
+      prompt: plainRating ? 'What would you like to tell us?' : 'Sorry about that. What went wrong, or what would make Dx Dash better?',
       submit: deps.sendFeedback,
       toast: deps.toast,
       onDone: function () { finish(null); }

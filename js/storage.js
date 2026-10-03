@@ -71,6 +71,7 @@ var DEFAULTS = {
     reminders: false,
     reminderHour: 19,
     tipPromptOff: false,
+    keyBindings: {},        // keys the player has changed on a computer (see keybindings.js); empty means all defaults
     dashControl: 'auto',    // how to dash: 'auto' (button on phones, double-tap on computers), 'double', 'button' or 'off'
     dashPromptSeen: false,  // asked once, after 3 games, whether to switch the phone default to double-tap
     dashDefaultSeen: false,
