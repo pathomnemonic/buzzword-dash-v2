@@ -49,6 +49,7 @@ import { ranked, useTestClient as useRankedTestClient } from './ranked.js';
 import { FEATURES } from './features.js';
 import { watchBattery } from './battery.js';
 import { appPublicUrl } from './publicurl.js';
+import { syncNativeReminder } from './reminders.js';
 import { watchConnection } from './offline.js';
 import { shareSetting, isShareableRun, runPayload, crossedCardMilestone, crossedDayMilestone } from './sharing.js';
 import { LOCKER_ITEMS, QUESTS } from './game/shopdata.js';
@@ -1719,6 +1720,8 @@ function init() {
 
   // Daily study reminder (fires while the app is open or installed)
   setInterval(checkStudyReminder, 60000);
+  document.addEventListener('dx:reminders-changed', checkStudyReminder);
+  setTimeout(checkStudyReminder, 3000);
 
   // Start home character animation
   if (homeCharacter) homeCharacter.startAnimation();
@@ -1730,6 +1733,11 @@ function init() {
 }
 
 function checkStudyReminder() {
+  // Inside the app the phone itself holds the next reminder (it also arrives when the app is closed)
+  if (isNative()) {
+    syncNativeReminder({ enabled: !!storage.get('reminders'), hour: storage.get('reminderHour') || 19, goalMetToday: storage.getStudiedToday() >= (storage.get('dailyGoal') || 20) });
+    return;
+  }
   if (!storage.get('reminders') || !('Notification' in window) || Notification.permission !== 'granted') return;
   var today = storage.getTodayKey();
   if (storage.get('lastReminderDate') === today) return;

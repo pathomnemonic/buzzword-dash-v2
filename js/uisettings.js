@@ -15,6 +15,7 @@ import { SKINS } from './game/skins.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
+import { canRemind, requestReminderPermission } from './reminders.js';
 
 export var settingsMethods = {
 
@@ -77,7 +78,7 @@ export var settingsMethods = {
       ],
       study: [
         { key: 'dailyGoal', label: '🎯 Daily goal', desc: 'How many cards you aim to study each day. Hitting it keeps your streak going.', type: 'range', min: 5, max: 100, step: 5, unit: ' cards' },
-        { key: 'reminders', label: '🔔 Daily reminder', desc: 'A notification at your reminder time, while the app is open or installed.', type: 'toggle' },
+        { key: 'reminders', label: '🔔 Daily reminder', desc: 'A notification at your reminder time. In the phone app it arrives even when the app is closed, and skips a day when you have already hit your goal.', type: 'toggle' },
         { key: 'reminderHour', label: '⏰ Reminder time', desc: 'The hour of the day for the reminder (0 is midnight, 13 is 1 pm).', type: 'range', min: 0, max: 23, step: 1, unit: ':00' },
         { key: 'cardFreshnessWeight', label: '🆕 New-card priority', desc: 'How much more often you see cards you have never answered. 1 treats every card the same; 10 brings new cards up much more often than ones you already know.', type: 'range', min: 1, max: 10, step: 1 }
       ]
@@ -102,20 +103,22 @@ export var settingsMethods = {
         toggle.addEventListener('click', function () {
           var newVal = !storage.get(s.key);
           if (s.key === 'reminders' && newVal) {
-            // Notifications need explicit permission from the browser.
-            if (!('Notification' in window)) { self._showToast('Notifications are not supported here.'); return; }
-            Notification.requestPermission().then(function (perm) {
-              if (perm !== 'granted') {
-                self._showToast('Notifications were blocked. Enable them in your browser settings.');
+            // Notifications need explicit permission (from the browser, or from the phone inside the app).
+            if (!canRemind()) { self._showToast('This device cannot show notifications.'); return; }
+            requestReminderPermission().then(function (res) {
+              if (!res.ok) {
+                self._showToast(res.reason === 'unsupported' ? 'This device cannot show notifications.' : 'Notifications were blocked. Turn them on for Dx Dash in your phone or browser settings.');
                 return;
               }
               storage.set('reminders', true);
               toggle.classList.add('on');
               toggle.setAttribute('aria-checked', 'true');
+              document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
             });
             return;
           }
           storage.set(s.key, newVal);
+          if (s.key === 'reminders') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
           toggle.classList.toggle('on');
           toggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
           if (s.key === 'colorblindMode') self.applySettings();
@@ -171,6 +174,7 @@ export var settingsMethods = {
           storage.set(s.key, val);
           showValue(val);
           if (s.key === 'dailyGoal') self.renderStudyGoal();
+          if (s.key === 'reminderHour') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
           if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
             audio.updateSettings();
           }

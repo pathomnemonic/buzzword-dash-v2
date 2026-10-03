@@ -55,5 +55,5 @@ Target age: **18 and over** (medical students and professionals). Not designed f
 Provide: in-app path (Friends → Account → Delete my account) and the web link above.
 
 ## Declarations you may be asked for
-- Permissions: the app asks for vibration only (and network). No sensitive permissions.
+- Permissions: network, vibration, and notifications (the optional daily study reminder, which the player turns on; Android 13+ asks them first). No sensitive permissions.
 - Foreground services, exact alarms, photo/video permissions: **not used**.
