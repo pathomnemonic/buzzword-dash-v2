@@ -151,9 +151,9 @@ export function buildTourSteps(ctx) {
     { id: 'locker-tab', title: 'Locker', target: tab('screenShop'), press: 'pass',
       text: 'Next, the Locker, where your coins go.' },
     { id: 'locker', title: 'Your hero', target: '#characterPreviewContainer', press: 'next',
-      text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Heroes with a 🎨 can be recolored.' },
+      text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Under it are the tabs, and what you are wearing, with Change colors for heroes that can be recolored.' },
     { id: 'extras-tab', title: 'Trails', target: lockerTabButton('Trails'), press: 'pass',
-      text: 'Trails stream behind your runner. (The Maps tab is where you buy new worlds to run in, and Monsters is for the monster that chases you when you slip.) Open Trails.' },
+      text: 'The Locker starts folded so it fits one screen: tap a tab to open its list, and tap it again to fold it away. Trails stream behind your runner. (Heroes are the characters, Maps are new worlds to run in, and Monsters chase you when you slip.) Open Trails.' },
     // The tour always uses the EKG Line. It never hands out coins: a new player starts with enough for it, and a
     // player who has done the tour before (or spent the coins) is taken through the same steps in a way that fits.
     { id: 'buy', title: 'Your first trail', target: affordableTrailButton, press: 'pass', hint: 'Tap to buy it',
@@ -177,8 +177,8 @@ export function buildTourSteps(ctx) {
 
     { id: 'profile-tab', title: 'Profile', target: tab('screenProfile'), press: 'pass',
       text: 'And your Profile.' },
-    { id: 'profile', title: 'Your profile', target: '#screenProfile .screen-scroll > *', press: 'next',
-      text: 'Your name and picture, your study streak calendar and your badges. Make your profile visible so friends can find you.' },
+    { id: 'profile', title: 'Your profile', target: '#profileContent', press: 'next',
+      text: 'Your name and picture, and your numbers. Make your profile visible so friends can find you. The rows underneath open when you tap them: Account (to save your progress with a free account), your study streak calendar and your badges.' },
 
     { id: 'back-home', title: 'Back to Home', target: tab('screenHome'), press: 'pass',
       text: 'That is everything. Tap Home to finish.' }
