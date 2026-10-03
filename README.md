@@ -106,7 +106,7 @@ The monster follows the game mode. Study and timed practice have no way to lose,
 
 ## Maps
 
-A run opens on a random indoor map (the hospital rooms, pharmacy and chemistry lab). The first map change goes outdoors (the open and body-interior worlds), and after that the next map is random. A favorite map picked in Settings stays for the whole run.
+Everyone starts with the eight indoor maps (the hospital rooms, pharmacy and chemistry lab). The eight open and body-interior worlds (Neural Highway, Vascular Rush, Skeletal Corridor, Cellular Matrix, DNA Helix Tunnel, Cardiac Pulse, X-Ray Vision, Defibrillator Shock) are bought in the Locker's **Maps** tab (`map_*` items in `js/game/shopdata.js`; which maps are free is `isIndoorSkin` in `js/game/skins.js`). A run opens on a random indoor map. The first map change goes to an outdoor map the player owns (or another indoor map if they own none), and after that the next map is random among the maps they own. A favorite map (Locker -> Maps, or Settings) stays for the whole run, and only maps you own can be chosen. Shared multiplayer maps are the host's choice and ignore ownership. Someone who already had an outdoor map as their favorite keeps it.
 
 ## Look
 
@@ -173,7 +173,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Card browser** — search, filter, enable/disable individual cards
 - **Custom cards** — create, import, and export your own cards
 - **Anki import** — import .apkg, CSV, or TSV files with optional AI conversion
-- **Achievements and quests** — daily quests with coin rewards and 50+ achievement badges
+- **Achievements and quests** — a pool of 48 quests in six categories (accuracy, volume, skill, explore, mode, speed); each day six are on offer, one per category, the same for every player and never repeating yesterday's (`pickDailyQuests` / `questIdsForDate` in `js/game/shopdata.js`), each with a Go button that starts the right kind of run. Finishing all six earns a gold calendar day. Plus 50+ achievement badges, each of which can really be earned (`tests/unit/achievements.test.js`)
 - **Profile** — set a display name, select badges, and track lifetime stats
 - **Leaderboard** — global and friends leaderboard (requires Supabase setup)
 - **Multiplayer** — real-time versus mode via PeerJS WebRTC
@@ -376,7 +376,7 @@ The world is lit with physically based materials, a soft studio reflection map a
 
 **Sound:** the music has no hi-hats and there are no random environmental beeps, which sounded like a constant tapping behind the busier tracks. A right answer plays a rising chime and a wrong one a soft falling two-note sigh. The runner's synthesized voices are switched off (they sounded robotic; `FEATURES.characterVoices` in `js/features.js` brings them back). *Read questions aloud* (Settings -> Sound) reads the clues and then "Left: ..., Middle: ..., Right: ...", planned from the time left before the answer locks (`js/readaloud.js`): natural pace if there is time, faster (up to 2x) if not, only the clues if the answers will not fit, only whole clues if even those will not, and silence if not even the first fits. It measures how fast the device's voice really talks and remembers it, and stops at the answer, on pause, and when the run ends. The music is one track per screen: the menu track on Home and menus, the map's own track during a run (changing as the map changes), and back to the menu track after. Every music generator is tracked, so stopping, changing track in the middle of a crossfade, or leaving the app (tab hidden, page hidden, native background) silences all of them.
 
-**Locker:** three even tabs on one line: 🦸 Heroes, ✨ Trails and 👾 Monsters. The colors belong to the hero, not to a tab of their own: a card at the top of Heroes says who you are wearing and, if that hero can be recolored, has a *Change colors* button that opens the colors right there. A 🎨 beside a hero in the list means its colors can be changed (dimmed until you own it); tapping it equips the hero and opens the colors.
+**Locker:** four even tabs on one line: 🦸 Heroes, ✨ Trails, 🗺️ Maps and 👾 Monsters. The colors belong to the hero, not to a tab of their own: a card at the top of Heroes says who you are wearing and, if that hero can be recolored, has a *Change colors* button that opens the colors right there. A 🎨 beside a hero in the list means its colors can be changed (dimmed until you own it); tapping it equips the hero and opens the colors.
 
 **Hero pictures:** on the Profile screen, *Change symbol* lists the heroes you own, as a face or the whole hero, above the symbols. A hero picture is stored as a short text (`hero:<hero id>:<face|body>`, under 30 characters) in the same field a symbol uses, so it costs no storage and adds nothing to what is sent to other players (the database already allows 64 characters). The images are 32 small portraits that ship with the app (`public/portraits`, about 140 KB in all, made from the hero models in their default colors by `tools/make-portraits.mjs`): nothing is uploaded. Only hero ids the app knows are accepted, and a missing image falls back to the hero's emoji, so a damaged value or an older install can never break a profile.
 
