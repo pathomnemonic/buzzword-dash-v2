@@ -123,7 +123,7 @@ export function stepButtons(ui, step, plan, cards, small, before) {
     var ids = stepCards(step, plan, cards).filter(function (id) { return runnable[id]; });
     if (ui.onStudyPlanRun && ids.length) ui.onStudyPlanRun(ids); else ui._showToast('No cards for the runner in this step. Use Cards to study them as flashcards.');
   });
-  var flash = createElement('button', { className: 'btn btn-outline ' + (small ? 'btn-sm' : ''), text: '🗂 Cards', attributes: { type: 'button', 'aria-label': 'Flashcards: ' + shortLabel(step) } });
+  var flash = createElement('button', { className: 'btn btn-outline ' + (small ? 'btn-sm' : ''), text: '🗂 Flashcards', attributes: { type: 'button', 'aria-label': 'Flashcards: ' + shortLabel(step) } });
   flash.addEventListener('click', function () {
     if (before) before();
     if (step.kind === 'due') ui.startFlashcardSession(null, plan.dueIds.slice(0, 20));
@@ -202,18 +202,6 @@ export function renderPerformance(container, ui) {
     hero.appendChild(el('div', 'perf-next-label', 'NEXT UP'));
     hero.appendChild(el('div', 'perf-next-title', shortLabel(plan.steps[0])));
     hero.appendChild(stepButtons(ui, plan.steps[0], plan, cards, false));
-    if (plan.steps.length > 1) {
-      var more = el('details', 'perf-more');
-      more.appendChild(el('summary', '', 'Also worth doing today (' + (plan.steps.length - 1) + ')'));
-      more.appendChild(el('div', 'perf-more-note', 'Your plan for today, picked from your own stats: cards that are due, your weakest subject and your daily goal. Next Up is the most important one.'));
-      plan.steps.slice(1).forEach(function (s) {
-        var r = el('div', 'perf-more-row');
-        r.appendChild(el('div', 'perf-more-title', shortLabel(s)));
-        r.appendChild(stepButtons(ui, s, plan, cards, true));
-        more.appendChild(r);
-      });
-      hero.appendChild(more);
-    }
   }
   container.appendChild(hero);
 

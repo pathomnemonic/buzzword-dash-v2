@@ -36,16 +36,17 @@ describe('Performance tab', () => {
     expect(c.textContent.length).toBeLessThan(700);
   });
 
-  it('puts the next study step on a big button and folds the others away', () => {
+  it('shows one next study step on a big button, with no list of other suggestions', () => {
     seed();
     const u = ui();
     const c = mount(u);
     expect(c.querySelector('.perf-next-title').textContent).toMatch(/^Review \d+ due$/);
-    expect(c.querySelector('.perf-more summary').textContent).toMatch(/Also worth doing today \(\d\)/);
+    expect(c.querySelector('.perf-more')).toBeNull();
+    expect(c.textContent).not.toMatch(/Also worth doing/);
     [...c.querySelectorAll('.perf-hero > .perf-step-buttons button')].find((b) => /Run it/.test(b.textContent)).click();
     expect(u.onStudyPlanRun).toHaveBeenCalledTimes(1);
     expect(u.onStudyPlanRun.mock.calls[0][0].length).toBeGreaterThan(0);
-    [...c.querySelectorAll('.perf-hero > .perf-step-buttons button')].find((b) => /Cards/.test(b.textContent)).click();
+    [...c.querySelectorAll('.perf-hero > .perf-step-buttons button')].find((b) => /Flashcards/.test(b.textContent)).click();
     expect(u.startFlashcardSession).toHaveBeenCalled();
   });
 
