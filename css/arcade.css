@@ -1728,3 +1728,4 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .side-btn { max-width: none; min-height: 52px; }
   .locker-tabs { grid-template-columns: repeat(2, 1fr); }
 }
+.perf-more-note { font-size: 11px; line-height: 1.35; color: var(--text-muted); margin: 0 0 6px; }

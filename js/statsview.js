@@ -204,7 +204,8 @@ export function renderPerformance(container, ui) {
     hero.appendChild(stepButtons(ui, plan.steps[0], plan, cards, false));
     if (plan.steps.length > 1) {
       var more = el('details', 'perf-more');
-      more.appendChild(el('summary', '', 'More ways to study (' + (plan.steps.length - 1) + ')'));
+      more.appendChild(el('summary', '', 'Also worth doing today (' + (plan.steps.length - 1) + ')'));
+      more.appendChild(el('div', 'perf-more-note', 'Your plan for today, picked from your own stats: cards that are due, your weakest subject and your daily goal. Next Up is the most important one.'));
       plan.steps.slice(1).forEach(function (s) {
         var r = el('div', 'perf-more-row');
         r.appendChild(el('div', 'perf-more-title', shortLabel(s)));

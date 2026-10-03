@@ -41,7 +41,7 @@ describe('Performance tab', () => {
     const u = ui();
     const c = mount(u);
     expect(c.querySelector('.perf-next-title').textContent).toMatch(/^Review \d+ due$/);
-    expect(c.querySelector('.perf-more summary').textContent).toMatch(/More ways to study \(\d\)/);
+    expect(c.querySelector('.perf-more summary').textContent).toMatch(/Also worth doing today \(\d\)/);
     [...c.querySelectorAll('.perf-hero > .perf-step-buttons button')].find((b) => /Run it/.test(b.textContent)).click();
     expect(u.onStudyPlanRun).toHaveBeenCalledTimes(1);
     expect(u.onStudyPlanRun.mock.calls[0][0].length).toBeGreaterThan(0);
