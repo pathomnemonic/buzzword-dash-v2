@@ -29,3 +29,14 @@ describe('storage keys', () => {
     expect(missing).toEqual([]);
   });
 });
+
+describe('settings', () => {
+  it('every setting offered in Settings is read by the game somewhere (a switch that does nothing is a bug)', () => {
+    const ui = readFileSync('js/uisettings.js', 'utf8');
+    const keys = [...new Set([...ui.matchAll(/key:\s*'([A-Za-z0-9_]+)'/g)].map((m) => m[1]))];
+    expect(keys.length).toBeGreaterThan(10);
+    const others = walk('js').filter((p) => !/uisettings\.js$|storage\.js$/.test(p.replace(/\\/g, '/'))).map((p) => readFileSync(p, 'utf8')).join('\n');
+    const unread = keys.filter((k) => !new RegExp("['\"\\.]" + k + "\\b").test(others));
+    expect(unread).toEqual([]);
+  });
+});

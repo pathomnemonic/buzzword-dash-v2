@@ -486,6 +486,9 @@ function repairAchievementIds(oldAchievements) {
   return result;
 }
 
+/** A "perfect run" needs at least this many right answers (one lucky answer then quitting is not a perfect run). */
+var PERFECT_RUN_MIN_CORRECT = 5;
+
 /** Which badge a subject's mastery earns. */
 var SUBJECT_MASTERY_KEYS = {
   'Neurology': 'MASTER_NEURO', 'Cardiology': 'MASTER_CARDIO', 'Nephrology': 'MASTER_NEPHRO',
@@ -1244,7 +1247,7 @@ class Storage {
       qs[questId].completedAt = Date.now();
     }
 
-    this.save();
+    if (!this._deferSave) this.save();
   }
 
   _getQuestDef(questId) {
@@ -1423,7 +1426,7 @@ class Storage {
     }
 
     // Perfect runs
-    if (summary.completed && summary.correct > 0 && summary.wrong === 0) {
+    if (summary.completed && summary.correct >= PERFECT_RUN_MIN_CORRECT && summary.wrong === 0) {
       p.perfectRuns = (p.perfectRuns || 0) + 1;
     }
 
@@ -1578,16 +1581,22 @@ class Storage {
   /** Add measured numbers to every quest in the pool, by how each quest counts them. */
   _applyQuestMetrics(metrics) {
     var self = this;
-    QUESTS.forEach(function (q) {
-      var v = metrics[q.metric];
-      if (q.agg === 'distinct') {
-        if (Array.isArray(v) && v.length) self._addQuestDistinct(q.id, v);
-      } else if (q.agg === 'max') {
-        self._raiseQuest(q.id, v);
-      } else if (Number(v) > 0) {
-        self.incrementQuest(q.id, Number(v));
-      }
-    });
+    this._deferSave = true; // one save at the end instead of one per quest
+    try {
+      QUESTS.forEach(function (q) {
+        var v = metrics[q.metric];
+        if (q.agg === 'distinct') {
+          if (Array.isArray(v) && v.length) self._addQuestDistinct(q.id, v);
+        } else if (q.agg === 'max') {
+          self._raiseQuest(q.id, v);
+        } else if (Number(v) > 0) {
+          self.incrementQuest(q.id, Number(v));
+        }
+      });
+    } finally {
+      this._deferSave = false;
+    }
+    this.save();
   }
 
   /** The ids of the quests on offer today (kept for the day, so a later update to the pool does not change them). */
@@ -1781,7 +1790,7 @@ class Storage {
       award('SCORE_1000', (runData.score || 0) >= 1000);
       award('SCORE_5000', (runData.score || 0) >= 5000);
       award('SCORE_10000', (runData.score || 0) >= 10000);
-      award('PERFECT_RUN', !!runData.completed && runData.correct > 0 && runData.wrong === 0);
+      award('PERFECT_RUN', !!runData.completed && runData.correct >= PERFECT_RUN_MIN_CORRECT && runData.wrong === 0);
       award('GOLDEN_DOCTOR', runData.correct >= 20 && runData.wrong === 0);
       award('SPEED_MAX', !!runData.completed && (runData.userSpeed || 0) >= 10);
       if (runData.fastestDecisionMs != null) {
@@ -2132,4 +2141,4 @@ var progression = {
 
 var storageInstance = new Storage();
 
-export { storageInstance as storage, progression };
+export { storageInstance as storage, progression, DEFAULTS as STORAGE_DEFAULTS };

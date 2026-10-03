@@ -70,3 +70,18 @@ describe('badges are actually awarded by real play', () => {
       .forEach((id) => expect(got).toContain(id));
   });
 });
+
+describe('perfect runs need real play', () => {
+  it('one lucky answer is not a perfect run; five clean answers are', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    const run = (correct, wrong) => ({ runId: 'r' + Math.random(), mode: 'endless', completed: true, score: 100, coinsEarned: 0, encountersCompleted: correct + wrong, correct, wrong, bestStreak: correct, durationMs: 1000, encounters: [], subjectsSeen: [] });
+    const a = storage.finalizeRun(run(1, 0));
+    expect(a.newlyUnlockedAchievementIds).not.toContain(ACHIEVEMENT_IDS.PERFECT_RUN);
+    expect(storage.data.progression.perfectRuns).toBe(0);
+    const b = storage.finalizeRun(run(5, 0));
+    expect(b.newlyUnlockedAchievementIds).toContain(ACHIEVEMENT_IDS.PERFECT_RUN);
+    expect(storage.data.progression.perfectRuns).toBe(1);
+  });
+});

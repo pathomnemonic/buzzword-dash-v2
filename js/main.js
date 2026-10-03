@@ -23,7 +23,8 @@
 
 import { game } from './game/engine.js';
 import { ui } from './ui.js';
-import { storage } from './storage.js';
+import { storage, STORAGE_DEFAULTS } from './storage.js';
+import { checkDataSanity } from './sanity.js';
 import { audio, MENU_THEME } from './audio.js';
 import { CARDS, CARD_BY_ID, loadCards, areCardsReady } from './cardhub.js';
 import { customCards } from './customcards.js';
@@ -1106,6 +1107,7 @@ function init() {
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
     window.__storage = storage;
+    window.__dataProblems = function () { return checkDataSanity(storage.data, STORAGE_DEFAULTS); };
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();

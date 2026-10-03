@@ -18,7 +18,8 @@
  * "continue?" prompt, and goes home after each result. Every 15 seconds it records the JavaScript heap and the
  * number of 3D geometries, textures and shader programs.
  *
- * It fails (exit code 1) when: the page throws an error or logs one, the game stops responding, or the counts
+ * It fails (exit code 1) when: the page throws an error or logs one, the saved data goes the wrong shape (NaN,
+ * wrong types, negative counts), the game stops responding, or the counts
  * of geometries or textures keep climbing across runs (a leak). The heap is reported with its trend; because
  * memory is noisy, only a large, steady rise counts as a failure.
  */
@@ -218,6 +219,8 @@ export async function soak(opts) {
       if (n % MODES.length === 0) { await playFlashcards(page, rng); await goHome(page); }
       await page.waitForTimeout(500);
       await page.evaluate(function () { if (window.gc) window.gc(); });
+      var problems = await page.evaluate(function () { return window.__dataProblems ? window.__dataProblems() : []; });
+      if (problems.length) errors.push('saved data after ' + mode.id + ': ' + problems.slice(0, 5).join('; '));
       await sample('after ' + mode.id);
     } catch (e) {
       result.error = String(e && e.message || e).slice(0, 300);

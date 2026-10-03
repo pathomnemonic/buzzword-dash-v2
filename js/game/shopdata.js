@@ -708,7 +708,7 @@ export function pickDailyQuests(dateKey, avoidIds) {
 export var ACHIEVEMENTS = [
   // --- First steps ---
   { id: ACHIEVEMENT_IDS.FIRST_RUN, name: "First Steps", desc: "Complete your first run (1+ encounters)", icon: "🏃", condition: "totalEncounters >= 1" },
-  { id: ACHIEVEMENT_IDS.PERFECT_RUN, name: "Perfect Run", desc: "Complete a run with 100% accuracy and at least 1 correct", icon: "💯", condition: "completed && correct > 0 && wrong === 0" },
+  { id: ACHIEVEMENT_IDS.PERFECT_RUN, name: "Perfect Run", desc: "Finish a run with no mistakes and at least 5 correct", icon: "💯", condition: "completed && correct >= 5 && wrong === 0" },
 
   // --- Streak milestones ---
   { id: ACHIEVEMENT_IDS.STREAK_10, name: "On Fire", desc: "Reach a 10-card streak", icon: "🔥", condition: "bestStreak >= 10" },
@@ -788,7 +788,7 @@ export var ACHIEVEMENTS = [
   { id: ACHIEVEMENT_IDS.STUDIED_1000, name: "Professor", desc: "Study 1,000 total cards across all modes", icon: "🎓", condition: "totalCardsStudied >= 1000" },
 
   // --- Perfect run count achievements (uses perfectRuns counter, NOT lifetime correct) ---
-  { id: ACHIEVEMENT_IDS.PERFECT_10, name: "Sharpshooter", desc: "Complete 10 perfect runs (0 wrong, 1+ correct each)", icon: "🎯", condition: "perfectRuns >= 10" },
+  { id: ACHIEVEMENT_IDS.PERFECT_10, name: "Sharpshooter", desc: "Complete 10 perfect runs (no mistakes, 5+ correct each)", icon: "🎯", condition: "perfectRuns >= 10" },
   { id: ACHIEVEMENT_IDS.PERFECT_50, name: "Flawless", desc: "Complete 50 perfect runs", icon: "💫", condition: "perfectRuns >= 50" },
 
   // --- Flashcard achievements ---
