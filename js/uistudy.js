@@ -7,6 +7,7 @@
 
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS } from './cardhub.js';
+import { canSpeak, cancelSpeech } from './tts.js';
 import { storage } from './storage.js';
 
 export var studyMethods = {
@@ -326,8 +327,8 @@ export var studyMethods = {
   },
 
   startHandsFree(subjects, cardIds, count) {
-    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
-      this._showToast('Speech is not supported in this browser.');
+    if (!canSpeak()) {
+      this._showToast('This device has no voice to read with. Try another browser, or check the phone\'s text-to-speech settings.');
       return;
     }
     var subjs = subjects || storage.get('selectedSubjects');
@@ -360,7 +361,7 @@ export var studyMethods = {
   stopHandsFree() {
     if (!this._hf) return;
     this._hf.cancel = true;
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    cancelSpeech();
     if (this._hf.wake) this._hf.wake();
   },
 };

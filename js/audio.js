@@ -27,6 +27,7 @@ import { storage } from './storage.js';
 import { isNative, nativeHaptic } from './native.js';
 import { say as sayCharacter } from './charactervoices.js';
 import { planReading, updateWps, countWords, DEFAULT_WPS } from './readaloud.js';
+import { speak, canSpeak, cancelSpeech as stopSpeaking } from './tts.js';
 
 // ===== MUSICAL CONSTANTS =====
 
@@ -1427,24 +1428,24 @@ class AudioEngine {
    * @returns {{text: string, rate: number, withAnswers: boolean}|null} what was said (null: nothing, or off)
    */
   speakQuestion(q) {
-    if (!this._settings.ttsEnabled || typeof window === 'undefined' || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return null;
+    if (!this._settings.ttsEnabled || !canSpeak()) return null;
     if (this._paused) return null;
     var plan = planReading({ clues: q.clues, answers: q.answers, secondsToLock: q.secondsToLock, wps: this._readWps() });
     this.cancelSpeech();
     if (!plan) return null;
     var self = this;
-    var u = new SpeechSynthesisUtterance(plan.text);
-    u.rate = plan.rate;
-    u.lang = 'en-US';
-    u.volume = Math.min(1, this._settings.masterVolume * Math.max(this._settings.voiceVolume, 0.5) * 1.3);
     var words = countWords(plan.text);
     var startedAt = 0;
-    u.onstart = function () { startedAt = Date.now(); };
-    u.onend = function () {
-      if (startedAt) self._saveWps(updateWps(self._readWps(), words, (Date.now() - startedAt) / 1000, plan.rate));
-    };
-    this._speaking = u;
-    window.speechSynthesis.speak(u);
+    this._speaking = true;
+    speak(plan.text, {
+      rate: plan.rate,
+      lang: 'en-US',
+      volume: Math.min(1, this._settings.masterVolume * Math.max(this._settings.voiceVolume, 0.5) * 1.3),
+      onstart: function () { startedAt = Date.now(); },
+      onend: function () {
+        if (startedAt) self._saveWps(updateWps(self._readWps(), words, (Date.now() - startedAt) / 1000, plan.rate));
+      }
+    });
     return plan;
   }
 
@@ -1479,9 +1480,7 @@ class AudioEngine {
 
   cancelSpeech() {
     this._speaking = null;
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
+    stopSpeaking();
   }
 
   // ===== MUSIC (procedural, per-skin) =====

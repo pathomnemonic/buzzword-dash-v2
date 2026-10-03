@@ -37,6 +37,13 @@
         </provider>
     </application>
 
+    <!-- Android 11+ only lets an app see the phone's text-to-speech engine if it asks to (hands-free flashcards, read aloud) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />

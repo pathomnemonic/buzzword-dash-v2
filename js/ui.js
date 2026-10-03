@@ -40,6 +40,7 @@ import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { missExplanation } from './explain.js';
 import { appPublicUrl } from './publicurl.js';
+import { speak, cancelSpeech } from './tts.js';
 import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
 import { audio } from './audio.js';
@@ -1897,17 +1898,7 @@ class UI {
 
 
   _hfSpeak(text) {
-    return new Promise(function (resolve) {
-      var done = false;
-      var finish = function () { if (!done) { done = true; resolve(); } };
-      var u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.95;
-      u.onend = finish;
-      u.onerror = finish;
-      setTimeout(finish, 25000); // some browsers never fire onend
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    });
+    return speak(text, { rate: 0.95 });
   }
 
   _hfSleep(ms) {
@@ -1940,7 +1931,7 @@ class UI {
       }
       hf.active = false;
       hf.finished = true;
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      cancelSpeech();
       if (hf.heard > 0) {
         storage.addStudiedToday(hf.heard);
         storage.save();
