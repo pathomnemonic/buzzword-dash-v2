@@ -29,20 +29,37 @@ function trailRows() {
   return out;
 }
 
-/** The cheapest trail the player can afford to buy right now, as its buy button (or null). */
+/** The one trail the tour teaches with. It is always this one, so nobody spends coins on a different item each time. */
+export var TOUR_TRAIL_ID = 'trail_ekg';
+
+/** The tour trail's row in the Locker, as { row, buy, equip, eye } (any part may be null). */
+function tourTrailRow() {
+  var rows = trailRows();
+  for (var i = 0; i < rows.length; i++) {
+    var eye = rows[i].row.querySelector('[data-preview="' + TOUR_TRAIL_ID + '"]');
+    if (eye) return { row: rows[i].row, buy: rows[i].buy, equip: rows[i].equip, eye: eye, price: rows[i].price };
+  }
+  return null;
+}
+
+function tourTrailOwned() { return storage.ownsItem(TOUR_TRAIL_ID); }
+
+/** The buy button of the tour trail, but only while it is not yet owned and the player can pay for it. */
 export function affordableTrailButton() {
-  var coins = storage.get('coins') || 0;
-  var best = null;
-  trailRows().forEach(function (r) {
-    if (r.buy && r.price > 0 && r.price <= coins && (!best || r.price < best.price)) best = r;
-  });
-  return best ? best.buy : null;
+  if (tourTrailOwned()) return null;
+  var r = tourTrailRow();
+  return r && r.buy && r.price > 0 && r.price <= (storage.get('coins') || 0) ? r.buy : null;
 }
 
 function equipTrailButton() {
-  var rows = trailRows();
-  for (var i = 0; i < rows.length; i++) if (rows[i].equip) return rows[i].equip;
-  return null;
+  var r = tourTrailRow();
+  return r && r.equip ? r.equip : null;
+}
+
+/** The tour trail's preview eye, for a player who cannot (or no longer needs to) buy it. */
+function trailEyeButton() {
+  var r = tourTrailRow();
+  return r ? r.eye : null;
 }
 
 function trailEquipped() {
@@ -85,7 +102,7 @@ export function buildTourSteps(ctx) {
       target: null, press: 'next',
       before: function () { if (ctx && ctx.ui) ctx.ui.show('screenHome'); } },
     { id: 'coins', title: 'Coins and best score', target: '#homeCoinsDisplay', press: 'count',
-      text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score. You have a starting balance to spend in the Locker in a minute.' },
+      text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score. You start with a balance to spend in the Locker in a minute.' },
     { id: 'play', title: 'PLAY', target: '.btn-play', press: 'count',
       text: 'Starts an endless run: read the clue, run into the right gate, jump and slide past obstacles, dash for bonus points. You have three lives. (It will not start now.)' },
     { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'count',
@@ -137,14 +154,20 @@ export function buildTourSteps(ctx) {
       text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Heroes with a 🎨 can be recolored.' },
     { id: 'extras-tab', title: 'Trails', target: lockerTabButton('Trails'), press: 'pass',
       text: 'Trails stream behind your runner. (The Maps tab is where you buy new worlds to run in, and Monsters is for the monster that chases you when you slip.) Open Trails.' },
+    // The tour always uses the EKG Line. It never hands out coins: a new player starts with enough for it, and a
+    // player who has done the tour before (or spent the coins) is taken through the same steps in a way that fits.
     { id: 'buy', title: 'Your first trail', target: affordableTrailButton, press: 'pass', hint: 'Tap to buy it',
       skipIf: function () { return !affordableTrailButton(); },
-      text: 'You started with some coins, so here is one to unlock. Tap its price to buy it. (Tapping a row, or the eye, previews any trail or monster up in the display first.)' },
+      text: 'You started with some coins, so here is a trail to unlock: the EKG Line. Tap its price to buy it. (Tapping a row, or the eye, previews any trail or monster up in the display first.)' },
+    { id: 'preview', title: 'Try a trail', target: trailEyeButton, press: 'pass', hint: 'Tap the eye',
+      skipIf: function () { return tourTrailOwned() || !!affordableTrailButton() || !trailEyeButton(); },
+      after: function (ctx) { ctx.previewedTrail = true; },
+      text: 'Trails cost coins, which you earn by running. Tap the eye to see the EKG Line behind your runner before you save up for it.' },
     { id: 'equip', title: 'Wear it', target: equipTrailButton, press: 'pass', hint: 'Tap Equip',
       skipIf: function () { return !equipTrailButton(); },
       text: 'It is yours. Equip it to run with it.' },
     { id: 'look', title: 'Looking good', target: '#characterPreviewContainer', press: 'next',
-      skipIf: function () { return !trailEquipped(); },
+      skipIf: function (ctx) { return !trailEquipped() && !(ctx && ctx.previewedTrail); },
       text: 'There it is, streaming behind your runner. Monsters and characters work the same way: tap them to see them here.' },
 
     { id: 'quests-tab', title: 'Quests', target: tab('screenQuests'), press: 'pass',

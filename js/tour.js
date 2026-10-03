@@ -253,7 +253,14 @@ export function startTour(opts) {
 
   // A press on the highlighted element: count it (and swallow it) or let it through, then move on
   function onPress(e) {
-    if (closed || !current || !targetEl) return;
+    if (closed || !current) return;
+    // Anything outside the highlighted spot and the card is out of bounds. The dim shields stop taps and clicks;
+    // this also stops a press that arrives by the keyboard (Tab to a button behind the tour, then Enter or Space)
+    if (e.target && !root.contains(e.target) && !(targetEl && targetEl.contains(e.target))) {
+      if (e.type === 'click' || e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+      return;
+    }
+    if (!targetEl) return;
     if (!targetEl.contains(e.target)) return;
     var mode = pressMode();
     if (mode === 'next') return;
@@ -273,7 +280,12 @@ export function startTour(opts) {
     if (opts.requestClose) opts.requestClose(); else finish('skipped');
   }
   function onKey(e) {
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); requestClose(); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); requestClose(); return; }
+    // Enter and Space only act on the highlighted spot or the card's own buttons, never on something behind the tour
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && e.target && e.target !== document.body &&
+        !root.contains(e.target) && !(targetEl && targetEl.contains(e.target))) {
+      e.preventDefault(); e.stopPropagation();
+    }
   }
   document.addEventListener('keydown', onKey, true);
   function onResize() { schedule(); }

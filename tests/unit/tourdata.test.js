@@ -39,10 +39,80 @@ describe('the tour steps', () => {
       return !['extras-tab', 'buy', 'equip'].includes(s.id) && !s.target();
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
-    expect(missing.filter((id) => !['versus', 'profile', 'stats'].includes(id))).toEqual([]);
+    expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview'].includes(id))).toEqual([]);
   });
 
   it('each step says what it is: a title and some text', () => {
     steps.forEach((s) => { expect(s.title.length, s.id).toBeGreaterThan(2); expect(s.text.length, s.id).toBeGreaterThan(8); });
+  });
+});
+
+describe('the tour always teaches with the EKG Line, and never hands out coins', () => {
+  let storage, ui, steps;
+  beforeEach(async () => {
+    localStorage.clear();
+    const html = readFileSync('index.html', 'utf8');
+    document.body.innerHTML = html.slice(html.indexOf('<body'), html.indexOf('</body>')).replace(/<script[\s\S]*?<\/script>/g, '');
+    ({ storage } = await import('../../js/storage.js'));
+    storage.load();
+    ({ ui } = await import('../../js/ui.js'));
+    steps = buildTourSteps({ ui: { show() {} } });
+    ui._lockerTab = 'trails';
+    ui.renderShop();
+  });
+  const step = (id) => steps.find((s) => s.id === id);
+  const applies = (id, ctx = {}) => !(step(id).skipIf && step(id).skipIf(ctx));
+  const rowOf = (el) => el.closest('.shop-item').textContent;
+
+  it('a new player is walked through buying the EKG Line (not the cheapest thing they can afford)', () => {
+    expect(storage.get('coins')).toBe(2000);
+    expect(applies('buy')).toBe(true);
+    expect(rowOf(step('buy').target())).toMatch(/EKG Line/);
+    expect(applies('preview')).toBe(false);
+    // a cheaper trail exists, and is not chosen
+    expect(rowOf(step('buy').target())).not.toMatch(/Pill Trail/);
+  });
+
+  it('having bought it, the tour moves on to wearing it, and a second run buys nothing more', () => {
+    step('buy').target().click();
+    expect(storage.ownsItem('trail_ekg')).toBe(true);
+    const coinsAfter = storage.get('coins');
+    ui.renderShop();
+    expect(applies('buy')).toBe(false);
+    expect(applies('equip')).toBe(true);
+    step('equip').target().click();
+    expect(storage.get('equipped').trail).toBe('trail_ekg');
+    ui.renderShop();
+    // the tour again: nothing to buy, nothing to equip, the display step still makes sense, and no coins appear or go
+    expect(applies('buy')).toBe(false);
+    expect(applies('equip')).toBe(false);
+    expect(applies('preview')).toBe(false);
+    expect(applies('look')).toBe(true);
+    expect(storage.get('coins')).toBe(coinsAfter);
+  });
+
+  it('someone who owns it but wears something else is not pushed to equip or buy again', () => {
+    storage.data.progression.ownedItems.push('trail_ekg');
+    ui.renderShop();
+    expect(applies('buy')).toBe(false);
+    expect(applies('preview')).toBe(false);
+    expect(applies('equip')).toBe(true); // it can be worn, and the step offers exactly that
+    expect(applies('look')).toBe(false);  // but with nothing worn there is nothing to look at
+  });
+
+  it('a player who cannot afford it is shown how to preview it instead, and gets no coins', () => {
+    storage.set('coins', 50);
+    ui.renderShop();
+    expect(applies('buy')).toBe(false);
+    expect(applies('preview')).toBe(true);
+    expect(step('preview').target().getAttribute('aria-label')).toMatch(/EKG Line/);
+    expect(applies('look', {})).toBe(false);
+    expect(applies('look', { previewedTrail: true })).toBe(true);
+    expect(storage.get('coins')).toBe(50);
+  });
+
+  it('the tour code never adds coins', () => {
+    const src = readFileSync('js/tourdata.js', 'utf8') + readFileSync('js/tour.js', 'utf8') + readFileSync('js/tutorialrun.js', 'utf8');
+    expect(src).not.toMatch(/addCoins|\.coins\s*\+=|set\('coins'/);
   });
 });
