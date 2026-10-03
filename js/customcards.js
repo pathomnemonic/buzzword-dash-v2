@@ -25,7 +25,7 @@ import {
 } from './cardschema.js';
 
 var CUSTOM_CARDS_KEY = 'buzzword_dash_custom_cards';
-var MAX_CUSTOM_CARDS = 500;
+var MAX_CUSTOM_CARDS = 5000; // (an Anki deck is often a few thousand cards)
 
 // Subscription listeners
 var _listeners = [];
@@ -56,6 +56,24 @@ export var customCards = {
     } catch (e) {
       return [];
     }
+  },
+
+  /**
+   * Replace every custom card (used when restoring a backup). Cards that are not usable are dropped.
+   * @param {object[]} cards
+   * @returns {number} how many were kept
+   */
+  replaceAll: function(cards) {
+    var seen = {};
+    var kept = (Array.isArray(cards) ? cards : []).filter(function(c) {
+      if (!c || typeof c !== 'object' || typeof c.id !== 'string' || seen[c.id]) return false;
+      if (!Array.isArray(c.bw) || !c.bw.length || typeof c.ans !== 'string' || !c.ans) return false;
+      seen[c.id] = true;
+      return true;
+    }).slice(0, MAX_CUSTOM_CARDS);
+    this._saveAll(kept);
+    _notifyListeners();
+    return kept.length;
   },
 
   /**
@@ -136,6 +154,60 @@ export var customCards = {
       errors: [],
       warnings: allWarnings
     };
+  },
+
+  /**
+   * Remove every card the test says yes to (a whole imported deck at once). One write.
+   * @param {function(object): boolean} shouldRemove
+   * @returns {number} how many were removed
+   */
+  removeWhere: function(shouldRemove) {
+    var cards = this.getAll();
+    var kept = cards.filter(function(c) { return !shouldRemove(c); });
+    var removed = cards.length - kept.length;
+    if (removed > 0) {
+      this._saveAll(kept);
+      _notifyListeners();
+    }
+    return removed;
+  },
+
+  /**
+   * Add many cards at once (an import). One read and one write, instead of one of each per card, which is what
+   * made a large import slow, and every card gets its own id.
+   *
+   * @param {object[]} inputs - the same shape add() takes
+   * @returns {{ added: number, rejected: number, warnings: string[], limitReached: boolean }}
+   */
+  addMany: function(inputs) {
+    var cards = this.getAll();
+    var out = { added: 0, rejected: 0, warnings: [], limitReached: false };
+    var stamp = Date.now();
+    for (var i = 0; i < inputs.length; i++) {
+      if (cards.length >= MAX_CUSTOM_CARDS) {
+        out.limitReached = true;
+        out.rejected += inputs.length - i;
+        out.warnings.push('Stopped at ' + MAX_CUSTOM_CARDS + ' custom cards, the most the app keeps. Delete some in My Cards to add more.');
+        break;
+      }
+      var card = _buildCardFromInput(inputs[i]);
+      card.id = 'custom_' + stamp + '_' + cards.length + '_' + i;
+      var placeholders = _hasPlaceholderDistractors(card);
+      if (placeholders) card.enabledModes = ['flashcard'];
+      var result = validateCard(card, { strict: false, requireDistractors: !placeholders });
+      if (!result.success) {
+        out.rejected++;
+        out.warnings.push('Card ' + (i + 1) + ': ' + ((result.errors[0] && result.errors[0].message) || 'not valid') + '. Skipped.');
+        continue;
+      }
+      cards.push(card);
+      out.added++;
+    }
+    if (out.added > 0) {
+      this._saveAll(cards);
+      _notifyListeners();
+    }
+    return out;
   },
 
   /**

@@ -41,6 +41,7 @@ import { startTutorial } from './tutorial.js';
 import { missExplanation } from './explain.js';
 import { appPublicUrl } from './publicurl.js';
 import { shareText, copyText, saveFile } from './platform.js';
+import { buildBackup, restoreBackup } from './backup.js';
 import { speak, cancelSpeech } from './tts.js';
 import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
@@ -1587,7 +1588,7 @@ class UI {
   }
 
   downloadBackup() {
-    var blob = new Blob([storage.exportBackup()], { type: 'application/json' });
+    var blob = new Blob([buildBackup(storage, customCards)], { type: 'application/json' });
     var self = this;
     saveFile(blob, 'dx-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json').then(function (how) {
       self._showToast(how === 'failed' ? 'Could not save the backup.' : (how === 'shared' ? 'Choose where to save your backup.' : 'Backup saved.'));
@@ -1599,7 +1600,7 @@ class UI {
     if (!file) return;
     if (!confirm('Replace ALL current progress with this backup?')) return;
     file.text().then(function (text) {
-      var result = storage.importBackup(text);
+      var result = restoreBackup(text, storage, customCards);
       if (result.ok) {
         window.location.reload();
       } else {

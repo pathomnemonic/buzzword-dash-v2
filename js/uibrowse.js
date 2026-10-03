@@ -214,24 +214,82 @@ export var browseMethods = {
   },
 
   renderCustomCardList() {
-    var cards = customCards.getAll();
+    var all = customCards.getAll();
     var container = document.getElementById('customCardList');
     if (!container) return;
     clearElement(container);
     var self = this;
 
-    if (cards.length === 0) {
-      var empty = createElement('div', { text: 'No custom cards yet. Tap "Create New Card" to add your own!' });
+    if (all.length === 0) {
+      var empty = createElement('div', { text: 'No custom cards yet. Tap "Create New Card" to add your own, or bring in cards from Anki below.' });
       empty.style.cssText = 'text-align:center;padding:20px;color:var(--text-muted);font-size:13px';
       container.appendChild(empty);
       return;
     }
 
-    var countLabel = createElement('p', { text: cards.length + ' custom card' + (cards.length === 1 ? '' : 's') });
+    var PAGE = 50;
+    var query = (this._myCardsQuery || '').trim().toLowerCase();
+    var page = Math.max(0, this._myCardsPage || 0);
+    var cards = query ? all.filter(function (c) {
+      return (c.bw.join(' ') + ' ' + c.ans + ' ' + (c.tp || '')).toLowerCase().indexOf(query) >= 0;
+    }) : all;
+    var pages = Math.max(1, Math.ceil(cards.length / PAGE));
+    if (page >= pages) page = pages - 1;
+    this._myCardsPage = page;
+
+    var flashOnly = all.filter(function (c) { return Array.isArray(c.enabledModes) && c.enabledModes.length === 1 && c.enabledModes[0] === 'flashcard'; });
+
+    var countLabel = createElement('p', { text: all.length + ' custom card' + (all.length === 1 ? '' : 's') + (flashOnly.length ? ' (' + flashOnly.length + ' flashcard-only)' : '') });
     countLabel.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:8px';
     container.appendChild(countLabel);
 
-    cards.forEach(function (card) {
+    // Search (only worth showing once there are enough cards to lose things in)
+    if (all.length > 8) {
+      var search = createElement('input', { className: 'card-browser-search', attributes: { type: 'search', placeholder: '🔍 Search your cards', 'aria-label': 'Search your cards' } });
+      search.value = this._myCardsQuery || '';
+      search.addEventListener('input', debounce(function () {
+        self._myCardsQuery = search.value;
+        self._myCardsPage = 0;
+        self.renderCustomCardList();
+        var again = document.querySelector('#customCardList input[type="search"]');
+        if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+      }, 250));
+      container.appendChild(search);
+    }
+
+    // Bulk removal: an imported deck can be thousands of cards, which cannot be deleted one by one
+    if (all.length > 1) {
+      var bulk = createElement('div');
+      bulk.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin:6px 0';
+      if (flashOnly.length) {
+        var delFlash = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑 Delete imported flashcards (' + flashOnly.length + ')', attributes: { type: 'button' } });
+        delFlash.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
+        delFlash.addEventListener('click', function () {
+          if (!confirm('Delete all ' + flashOnly.length + ' flashcard-only cards (the ones imported from Anki or a spreadsheet)? This cannot be undone.')) return;
+          var n = customCards.removeWhere(function (c) { return Array.isArray(c.enabledModes) && c.enabledModes.length === 1 && c.enabledModes[0] === 'flashcard'; });
+          self._showToast('Deleted ' + n + ' cards.');
+          self.renderCustomCardList();
+        });
+        bulk.appendChild(delFlash);
+      }
+      var delAll = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑 Delete all my cards', attributes: { type: 'button' } });
+      delAll.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
+      delAll.addEventListener('click', function () {
+        if (!confirm('Delete ALL ' + all.length + ' of your custom cards? This cannot be undone. (Save a backup first if unsure.)')) return;
+        var n = customCards.removeWhere(function () { return true; });
+        self._showToast('Deleted ' + n + ' cards.');
+        self.renderCustomCardList();
+      });
+      bulk.appendChild(delAll);
+      container.appendChild(bulk);
+    }
+
+    if (query && cards.length === 0) {
+      container.appendChild(createElement('p', { text: 'No card matches "' + query + '".' }));
+      return;
+    }
+
+    cards.slice(page * PAGE, page * PAGE + PAGE).forEach(function (card) {
       var cardEl = createElement('div', { className: 'review-card' });
       cardEl.style.borderLeftColor = 'var(--accent-blue)';
 
@@ -256,7 +314,7 @@ export var browseMethods = {
       tp.style.marginTop = '4px';
       cardEl.appendChild(tp);
 
-      // Action buttons (event delegation instead of global callbacks)
+      // Action buttons
       var btnRow = createElement('div');
       btnRow.style.cssText = 'display:flex;gap:6px;margin-top:6px';
 
@@ -277,5 +335,20 @@ export var browseMethods = {
       cardEl.appendChild(btnRow);
       container.appendChild(cardEl);
     });
+
+    if (pages > 1) {
+      var nav = createElement('div');
+      nav.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0';
+      var prev = createElement('button', { className: 'btn btn-outline btn-sm', text: '‹ Prev', attributes: { type: 'button' } });
+      prev.disabled = page === 0;
+      prev.addEventListener('click', function () { self._myCardsPage = page - 1; self.renderCustomCardList(); });
+      var next = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Next ›', attributes: { type: 'button' } });
+      next.disabled = page >= pages - 1;
+      next.addEventListener('click', function () { self._myCardsPage = page + 1; self.renderCustomCardList(); });
+      nav.appendChild(prev);
+      nav.appendChild(createElement('span', { text: 'Page ' + (page + 1) + ' of ' + pages }));
+      nav.appendChild(next);
+      container.appendChild(nav);
+    }
   },
 };

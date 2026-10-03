@@ -1941,6 +1941,7 @@ function startCloudSync(lbService) {
   Promise.all([import('./cloudsync.js'), import('./accountui.js')]).then(function (mods) {
     cloudSync = new mods[0].CloudSync({
       storage: storage,
+      customCards: customCards,
       leaderboard: lbService,
       toast: function (msg) { ui._showToast(msg); },
       askConflict: mods[1].askWhichSave,

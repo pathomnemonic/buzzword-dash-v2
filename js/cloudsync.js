@@ -75,6 +75,9 @@ function writeMeta(meta) {
   try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch (e) { /* storage unavailable */ }
 }
 
+/** Own cards ride along with the cloud save up to this size (about 1,500 short cards). */
+var MAX_CARDS_SYNC_BYTES = 450000;
+
 export class CloudSync {
   /**
    * @param {object} deps
@@ -84,6 +87,7 @@ export class CloudSync {
    * @param {function(object, object): Promise<'cloud'|'local'|null>} deps.askConflict
    *   receives (localSummary, cloudSummary)
    * @param {function(): void} deps.onPulled - called after cloud data replaced local data
+   * @param {object} [deps.customCards] the player's own cards; they ride along with the save when they are small enough
    */
   constructor(deps) {
     this.deps = deps;
@@ -111,6 +115,13 @@ export class CloudSync {
       self.dirty = true;
       self._schedulePush();
     };
+    if (this.deps.customCards && typeof this.deps.customCards.subscribe === 'function') {
+      this.deps.customCards.subscribe(function () {
+        if (self._applyingCards) return;
+        self.dirty = true;
+        self._schedulePush();
+      });
+    }
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'hidden' && self.dirty) self.sync();
@@ -182,7 +193,14 @@ export class CloudSync {
 
   _snapshot() {
     var data = this.deps.storage.data;
-    return { data: JSON.parse(JSON.stringify(data)), runs: summarize(data).answered };
+    var copy = JSON.parse(JSON.stringify(data));
+    // The player's own cards (typed in or imported) travel with the save, unless a huge deck would make every
+    // sync heavy; that deck stays on this device and goes in a backup file instead.
+    if (this.deps.customCards) {
+      var cards = this.deps.customCards.getAll();
+      if (cards.length && JSON.stringify(cards).length <= MAX_CARDS_SYNC_BYTES) copy.customCards = cards;
+    }
+    return { data: copy, runs: summarize(data).answered };
   }
 
   _push(remote, userId) {
@@ -205,8 +223,15 @@ export class CloudSync {
   }
 
   _pull(remote, userId) {
-    var result = this.deps.storage.applyRemoteData(remote.data);
+    var cards = remote.data && remote.data.customCards;
+    var rest = Object.assign({}, remote.data);
+    delete rest.customCards;
+    var result = this.deps.storage.applyRemoteData(rest);
     if (!result.ok) throw new Error(result.error || 'Cloud save could not be applied');
+    if (Array.isArray(cards) && this.deps.customCards) {
+      this._applyingCards = true;
+      try { this.deps.customCards.replaceAll(cards); } finally { this._applyingCards = false; }
+    }
     writeMeta({ userId: userId, remoteUpdatedAt: remote.updatedAt });
     this.dirty = false;
     this.state = 'idle';

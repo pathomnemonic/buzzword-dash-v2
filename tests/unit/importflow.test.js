@@ -142,3 +142,27 @@ describe('using the importer screen like a person', () => {
     ankiImport.unmount();
   });
 });
+
+describe('big decks', () => {
+  it('imports thousands of cards quickly, each with its own id, and says when the limit is hit', async () => {
+    localStorage.clear();
+    const { customCards } = await import('../../js/customcards.js');
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    ankiImport.mount(document.createElement('div'), { customCards, storage, toast() {}, reportError() {} });
+    const deck = Array.from({ length: 4000 }, (_, i) => ({ front: 'Question ' + i + '?', back: 'Answer ' + i }));
+    const t0 = performance.now();
+    const r = ankiImport.importRaw(deck);
+    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(r.imported).toBe(4000);
+    const all = customCards.getAll();
+    expect(all.length).toBe(4000);
+    expect(new Set(all.map((c) => c.id)).size).toBe(4000);
+    // a second deck pushes past the 5000 limit: the part that fits is kept, the rest is reported
+    const r2 = ankiImport.importRaw(Array.from({ length: 2000 }, (_, i) => ({ front: 'More ' + i, back: 'Ans ' + i })));
+    expect(r2.imported).toBe(1000);
+    expect(r2.rejected).toBe(1000);
+    expect(r2.warnings.join(' ')).toMatch(/5000 custom cards/);
+    ankiImport.unmount();
+  });
+});

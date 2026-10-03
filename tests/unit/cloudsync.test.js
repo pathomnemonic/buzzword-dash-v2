@@ -50,7 +50,7 @@ describe('decideSync', () => {
   });
 });
 
-function makeDeps({ local, cloud, anonymous = false, choice = 'cloud' }) {
+function makeDeps({ local, cloud, anonymous = false, choice = 'cloud', cards = null }) {
   const calls = { push: [], force: [], applied: null, pulled: 0, asked: null };
   const store = { data: local, onChange: null, applyRemoteData(d) { calls.applied = d; this.data = d; return { ok: true }; } };
   const state = { cloud };
@@ -75,7 +75,8 @@ function makeDeps({ local, cloud, anonymous = false, choice = 'cloud' }) {
     leaderboard,
     toast: () => {},
     askConflict: async (l, c) => { calls.asked = [l, c]; return choice; },
-    onPulled: () => { calls.pulled++; }
+    onPulled: () => { calls.pulled++; },
+    customCards: cards
   });
   return { sync, store, calls, state };
 }
@@ -129,5 +130,51 @@ describe('CloudSync', () => {
     const c = makeDeps({ local: played(6), cloud: remote(played(9)), choice: null });
     expect(await c.sync.sync()).toBe('deferred');
     expect(c.calls.force).toHaveLength(0);
+  });
+});
+
+
+describe('CloudSync carries the player\'s own cards', () => {
+  const fakeCards = (initial) => {
+    let list = initial.slice();
+    const subs = [];
+    return {
+      getAll: () => list.slice(),
+      replaceAll: (c) => { list = c.slice(); return list.length; },
+      subscribe: (fn) => { subs.push(fn); return () => {}; },
+      fire: () => subs.forEach((f) => f())
+    };
+  };
+  const card = (n) => ({ id: 'custom_' + n, subj: 'Cardiology', bw: ['clue ' + n], ans: 'answer ' + n });
+  beforeEach(() => localStorage.clear());
+
+  it('uploads them with the save, and a new device gets them back', async () => {
+    const mine = fakeCards([card(1), card(2)]);
+    const a = makeDeps({ local: played(5), cloud: null, cards: mine });
+    await a.sync.sync();
+    expect(a.calls.push[0].data.customCards.length).toBe(2);
+
+    const theirs = fakeCards([]);
+    const b = makeDeps({ local: fresh(), cloud: remote(a.calls.push[0].data), cards: theirs });
+    expect(await b.sync.sync()).toBe('pulled');
+    expect(theirs.getAll().map((c) => c.ans)).toEqual(['answer 1', 'answer 2']);
+    expect(b.store.data.customCards).toBeUndefined(); // the cards are not left inside the progress data
+  });
+
+  it('a change to the cards alone marks the save dirty so it syncs', async () => {
+    const mine = fakeCards([card(1)]);
+    const a = makeDeps({ local: played(5), cloud: null, cards: mine });
+    a.sync.start();
+    await a.sync.sync();
+    a.sync.dirty = false;
+    mine.fire();
+    expect(a.sync.dirty).toBe(true);
+  });
+
+  it('a very large deck stays on the device instead of making every sync heavy', async () => {
+    const big = fakeCards(Array.from({ length: 4000 }, (_, i) => ({ ...card(i), tp: 'x'.repeat(200) })));
+    const a = makeDeps({ local: played(5), cloud: null, cards: big });
+    await a.sync.sync();
+    expect(a.calls.push[0].data.customCards).toBeUndefined();
   });
 });

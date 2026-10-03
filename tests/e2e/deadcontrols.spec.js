@@ -95,3 +95,57 @@ test.describe('no dead controls', () => {
     });
   }
 });
+
+
+// The Home pop-ups (filters, speed, challenge, flashcards, today) are not screens, so they get their own pass.
+const SHEETS = ['filtersSheet', 'speedSheet', 'challengeSheet', 'flashcardsSheet', 'todaySheet'];
+
+test.describe('no dead controls in the Home pop-ups', () => {
+  for (const sheet of SHEETS) {
+    test(sheet + ': every control does something', async ({ page }) => {
+      test.setTimeout(120000);
+      await openApp(page, '/?debug=1');
+      await page.waitForFunction(() => window.__ui);
+      const names = await (async () => {
+        await page.evaluate((id) => window.__ui.openSheet(id), sheet);
+        await page.waitForTimeout(400);
+        return controls(page, sheet);
+      })();
+      const dead = [];
+      let dialogs = 0;
+      page.on('dialog', (d) => { dialogs++; d.dismiss().catch(() => {}); });
+      for (let i = 0; i < names.length; i++) {
+        const c = names[i];
+        if (SKIP.test(c.text) || /close|\u00D7|back|got it|ok$/i.test(c.text)) continue;
+        await page.evaluate((id) => window.__ui.openSheet(id), sheet);
+        await page.waitForTimeout(300);
+        dialogs = 0;
+        const handle = (await page.evaluateHandle(({ id, idx }) => {
+          const root = document.getElementById(id);
+          const els = [...root.querySelectorAll('button, summary, [role="button"], [role="tab"], a[href], .clickable, [tabindex="0"]')].filter((el) => {
+            if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
+            const r = el.getBoundingClientRect();
+            if (r.width < 4 || r.height < 4) return false;
+            return !(el.disabled || el.getAttribute('aria-disabled') === 'true');
+          });
+          return els[idx];
+        }, { id: sheet, idx: i })).asElement();
+        if (!handle) continue;
+        await page.evaluate(() => {
+          window.__mut = 0;
+          window.__obs && window.__obs.disconnect();
+          window.__obs = new MutationObserver((m) => { window.__mut += m.length; });
+          window.__obs.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+        });
+        const before = await page.evaluate((id) => document.getElementById(id).className, sheet);
+        let err = '';
+        await handle.click({ timeout: 4000 }).catch((e) => { err = String(e.message).split('\n')[0]; });
+        await page.waitForTimeout(400);
+        const after = await page.evaluate(() => ({ mut: window.__mut }));
+        if (!(dialogs > 0 || after.mut > 0)) dead.push(`${c.tag} "${c.text}"${err ? ' CLICK FAILED: ' + err : ''} (was ${before})`);
+        await page.keyboard.press('Escape').catch(() => {});
+      }
+      expect(dead, sheet + ': controls that did nothing').toEqual([]);
+    });
+  }
+});

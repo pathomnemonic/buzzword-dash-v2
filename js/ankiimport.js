@@ -526,10 +526,8 @@ function importRaw(cards, options) {
 
   var customCards = _dependencies.customCards;
 
-  // Attempt to use cardschema validation if available
-  var validateCard = _dependencies.validateCard || null;
-
   var limit = Math.min(cards.length, MAX_CARDS_PER_IMPORT);
+  var batch = [];
 
   for (var i = 0; i < limit; i++) {
     var card = cards[i];
@@ -542,45 +540,34 @@ function importRaw(cards, options) {
       continue;
     }
 
-    // Build a raw flashcard-only card (Section 9.4)
-    // No distractors — enabledModes restricted to flashcard
-    var cardData = {
+    // A raw flashcard-only card (Section 9.4): no distractors, so it is only offered in Flashcard mode
+    batch.push({
       subject: 'Multisystem / Mixed',
       buzzwords: [front],
       answer: back,
-      distractors: [], // No placeholder distractors per Section 9.4
+      distractors: [],
       teachingPoint: back,
       enabledModes: ['flashcard']
-    };
+    });
+  }
 
-    // Validate if validator is available
-    if (validateCard) {
-      var validation = validateCard(cardData);
-      if (validation && !validation.success && validation.errors && validation.errors.length > 0) {
-        // For raw imports, we are lenient — only reject truly broken cards
-        var hasBlockingError = false;
-        for (var ve = 0; ve < validation.errors.length; ve++) {
-          var err = validation.errors[ve];
-          // Distractor errors are expected for raw imports
-          if (err.path && err.path.indexOf('distractor') >= 0) continue;
-          if (err.path && err.path.indexOf('enabledModes') >= 0) continue;
-          hasBlockingError = true;
-        }
-        if (hasBlockingError) {
-          rejected++;
-          warnings.push('Card ' + (i + 1) + ': validation failed. Skipped.');
-          continue;
-        }
+  if (typeof customCards.addMany === 'function') {
+    // One read and one write for the whole import (adding one at a time made big decks very slow)
+    var many = customCards.addMany(batch);
+    imported += many.added;
+    rejected += many.rejected;
+    many.warnings.forEach(function (w) { warnings.push(w); });
+  } else {
+    batch.forEach(function (cardData, idx) {
+      try {
+        var res = customCards.add(cardData);
+        if (res && res.success === false) { rejected++; warnings.push('Card ' + (idx + 1) + ': not valid. Skipped.'); }
+        else imported++;
+      } catch (e) {
+        rejected++;
+        warnings.push('Card ' + (idx + 1) + ': failed to save \u2014 ' + (e.message || String(e)));
       }
-    }
-
-    try {
-      customCards.add(cardData);
-      imported++;
-    } catch (e) {
-      rejected++;
-      warnings.push('Card ' + (i + 1) + ': failed to save — ' + (e.message || String(e)));
-    }
+    });
   }
 
   if (cards.length > MAX_CARDS_PER_IMPORT) {

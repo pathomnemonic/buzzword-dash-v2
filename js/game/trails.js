@@ -14,13 +14,13 @@
  * - Supports quality levels: low, medium, high
  * - Supports reduced motion preference
  *
- * Trail types:
- *   line, spark, sphere, helix, burst, hearts, electric,
- *   bubbles, notes, pills
+ * Each trail has a shape that matches its name (see trailshapes.js): hearts are hearts, notes are music notes,
+ * pills are capsules, and so on, instead of coloured circles.
  */
 
 import * as THREE from 'three';
 import { storage } from '../storage.js';
+import { getTrailGeometry } from './trailshapes.js';
 
 // ===== QUALITY PRESETS =====
 var QUALITY_PRESETS = {
@@ -33,54 +33,59 @@ var QUALITY_PRESETS = {
 var TRAIL_CONFIGS = {
   trail_none: null,
   trail_ekg: {
-    color1: 0x00ff44, color2: 0x00aa22,
+    color1: 0x00ff44, color2: 0x00cc33, shape: 'ekg',
     size: 0.35, spread: 0.12, type: 'line'
   },
   trail_neural: {
-    color1: 0xaa44ff, color2: 0x6622cc,
+    color1: 0xcc77ff, color2: 0x8844ee, shape: 'star', glow: true,
     size: 0.45, spread: 0.45, type: 'spark'
   },
   trail_blood: {
-    color1: 0xff2222, color2: 0xaa0000,
-    size: 0.40, spread: 0.30, type: 'sphere'
+    color1: 0xff2222, color2: 0xbb0000, shape: 'cell',
+    size: 0.40, spread: 0.30, type: 'cell'
   },
   trail_dna: {
-    color1: 0x4488ff, color2: 0xff4488,
+    color1: 0x4488ff, color2: 0xff4488, shape: 'bead',
     size: 0.30, spread: 0.40, type: 'helix'
   },
   trail_fire: {
-    color1: 0xff8800, color2: 0xff2200,
-    size: 0.50, spread: 0.35, type: 'sphere'
+    color1: 0xffaa00, color2: 0xff2200, shape: 'flame', glow: true,
+    size: 0.50, spread: 0.35, type: 'flame'
   },
   trail_rainbow: {
-    color1: 0xff44ff, color2: 0x44ffff,
-    size: 0.40, spread: 0.40, type: 'sphere'
+    color1: 0xff44ff, color2: 0x44ffff, shape: 'ribbon', rainbow: true,
+    size: 0.40, spread: 0.40, type: 'ribbon'
   },
   trail_confetti: {
-    color1: 0xff4444, color2: 0x44ff44,
+    color1: 0xff4444, color2: 0x44ff44, shape: 'confetti', confetti: true,
     size: 0.40, spread: 0.50, type: 'burst'
   },
   trail_hearts: {
-    color1: 0xff4488, color2: 0xff88aa,
+    color1: 0xff4488, color2: 0xff88aa, shape: 'heart',
     size: 0.35, spread: 0.30, type: 'hearts'
   },
   trail_lightning: {
-    color1: 0xffff44, color2: 0x44aaff,
+    color1: 0xffff44, color2: 0x44aaff, shape: 'bolt', glow: true,
     size: 0.30, spread: 0.25, type: 'electric'
   },
   trail_bubbles: {
-    color1: 0x88ddff, color2: 0xaaeeff,
+    color1: 0x88ddff, color2: 0xcceeff, shape: 'bubble', see: true,
     size: 0.40, spread: 0.35, type: 'bubbles'
   },
   trail_music: {
-    color1: 0xff88ff, color2: 0x88ff88,
+    color1: 0xff88ff, color2: 0x88ff88, shape: 'note',
     size: 0.30, spread: 0.30, type: 'notes'
   },
   trail_pills: {
-    color1: 0xff4444, color2: 0xffffff,
+    color1: 0xff4444, color2: 0xffffff, shape: 'pill', pills: true,
     size: 0.30, spread: 0.25, type: 'pills'
   }
 };
+
+/** The trail settings (exported so tests can check every trail draws what its description says). */
+export var TRAIL_SETTINGS = TRAIL_CONFIGS;
+
+var CONFETTI_COLORS = [0xff4466, 0xffd23f, 0x3ddc84, 0x4aa8ff, 0xc77dff];
 
 // ===== SHARED GEOMETRY (created once, reused by all particles) =====
 var _sharedSphereGeo = null;
@@ -115,7 +120,7 @@ export class TrailSystem {
 
     // Pool
     this.pool = [];
-    var geo = getSharedSphereGeo();
+    var geo = getSharedSphereGeo(); // replaced by the trail's own shape when a particle is launched
 
     for (var i = 0; i < this.maxParticles; i++) {
       var mesh = new THREE.Mesh(
@@ -123,7 +128,9 @@ export class TrailSystem {
         new THREE.MeshBasicMaterial({
           color: 0xffffff,
           transparent: true,
-          opacity: 1.0
+          opacity: 1.0,
+          side: THREE.DoubleSide,
+          depthWrite: false
         })
       );
       mesh.visible = false;
@@ -133,6 +140,7 @@ export class TrailSystem {
         life: 0,
         maxLife: 0,
         vx: 0, vy: 0, vz: 0,
+        spin: 0, phase: 0, baseX: 0, baseY: 0, strand: 0, sx: 1, sy: 1,
         active: false
       });
     }
@@ -195,18 +203,22 @@ export class TrailSystem {
       if (p.mesh.position.z > this.clipZ) { p.active = false; p.mesh.visible = false; continue; }
 
       var lifeRatio = p.life / p.maxLife;
-      p.mesh.material.opacity = lifeRatio * 0.95;
+      p.mesh.material.opacity = lifeRatio * 0.95 * (p.opacityScale || 1);
 
       // Scale: size * 4 (reduced from previous 15x to fix excessive scaling)
       var scale = lifeRatio * config.size * 4;
-      p.mesh.scale.set(scale, scale, scale);
+      p.mesh.scale.set(scale * p.sx, scale * p.sy, scale);
+
+      // Flat shapes turn as they fly
+      if (p.spin) p.mesh.rotation.z += p.spin * dt;
 
       // Type-specific animation
       switch (config.type) {
         case 'helix':
-          var angle = this.time * 8 + i * 0.5;
-          p.mesh.position.x += Math.sin(angle) * 0.04;
-          p.mesh.position.y += Math.cos(angle) * 0.04;
+          // two strands that wind around each other, with the beads of each strand opposite one another
+          var ang = p.phase + (p.maxLife - p.life) * 7;
+          p.mesh.position.x = p.baseX + Math.cos(ang) * 0.22;
+          p.mesh.position.y = p.baseY + Math.sin(ang) * 0.22;
           break;
         case 'electric':
           p.mesh.position.x += Math.sin(this.time * 20 + i) * 0.06;
@@ -219,6 +231,12 @@ export class TrailSystem {
         case 'burst':
           p.vx *= 1.01;
           p.vz *= 1.01;
+          break;
+        case 'hearts':
+          p.mesh.rotation.z = Math.sin(this.time * 4 + i) * 0.35; // a gentle sway
+          break;
+        case 'flame':
+          p.mesh.scale.set(scale * (0.7 + lifeRatio * 0.3), scale * (1.1 + (1 - lifeRatio) * 0.3), scale);
           break;
       }
     }
@@ -290,24 +308,69 @@ export class TrailSystem {
         p.vy = 0;
         p.vx = 0;
         break;
+      case 'helix':
+        p.vx = 0;
+        p.vy = 0;
+        p.vz = 2.5;
+        break;
+      case 'flame':
+        p.vx *= 0.4;
+        p.vy = 1.0 + Math.random() * 1.5;
+        p.vz = 1.5 + Math.random() * 1.5;
+        break;
     }
+
+    // The shape this trail is made of
+    p.mesh.geometry = getTrailGeometry(config.shape);
+    p.mesh.rotation.set(0, 0, 0);
+    p.spin = 0;
+    p.mesh.material.blending = config.glow ? THREE.AdditiveBlending : THREE.NormalBlending;
 
     // Color
     var t = Math.random();
     var c1 = new THREE.Color(config.color1);
     var c2 = new THREE.Color(config.color2);
-    c1.lerp(c2, t);
+    if (config.rainbow) {
+      c1.setHSL((this.time * 0.9) % 1, 1, 0.55); // the ribbon cycles through every colour
+    } else if (config.confetti) {
+      c1.setHex(CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]);
+    } else if (config.pills) {
+      c1.setHex(Math.random() < 0.5 ? config.color1 : config.color2); // red and white pills
+    } else if (config.type === 'helix') {
+      p.strand = this._strand = (this._strand || 0) ^ 1;
+      c1.setHex(p.strand ? config.color2 : config.color1);
+    } else {
+      c1.lerp(c2, t);
+    }
     p.mesh.material.color.copy(c1);
-    p.mesh.material.opacity = 0.95;
+    p.mesh.material.opacity = config.see ? 0.55 : 0.95;
+    p.opacityScale = config.see ? 0.55 / 0.95 : 1;
 
     // Scale: size * 4 (reduced from 15x)
     var s = config.size * (0.8 + Math.random() * 0.4) * intensity * 4;
     p.mesh.scale.set(s, s, s);
 
+    p.sx = 1;
+    p.sy = 1;
     if (config.type === 'line') {
-      p.mesh.scale.set(s * 0.3, s * 0.3, s * 3.0);
+      p.sx = 1.4; p.sy = 1.4;
     } else if (config.type === 'pills') {
-      p.mesh.scale.set(s * 0.5, s * 0.5, s * 1.5);
+      p.sx = 0.9; p.sy = 0.9;
+      p.mesh.rotation.z = Math.random() * Math.PI;
+      p.spin = (Math.random() - 0.5) * 3;
+    } else if (config.type === 'burst') {
+      p.mesh.rotation.z = Math.random() * Math.PI;
+      p.spin = (Math.random() - 0.5) * 12; // confetti tumbles
+    } else if (config.type === 'cell') {
+      p.spin = (Math.random() - 0.5) * 2;
+    } else if (config.type === 'ribbon') {
+      p.sx = 1.8; p.sy = 1.8;
+    } else if (config.type === 'helix') {
+      p.baseX = p.mesh.position.x;
+      p.baseY = p.mesh.position.y;
+      p.phase = p.strand ? Math.PI : 0;
+    } else if (config.type === 'spark') {
+      p.spin = (Math.random() - 0.5) * 8;
     }
   }
 

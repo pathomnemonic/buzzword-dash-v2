@@ -547,6 +547,11 @@ export var settingsMethods = {
           var itemDot = createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } });
           nameWrap.firstChild.appendChild(itemDot);
         }
+        if (item.desc) {
+          var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc });
+          descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
+          nameWrap.appendChild(descLine);
+        }
         row.appendChild(nameWrap);
 
         // Buttons
