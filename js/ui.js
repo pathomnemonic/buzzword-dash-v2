@@ -1931,7 +1931,7 @@ class UI {
         if (hf.cancel) break;
         hf.phase = 'answer';
         self.renderFlashcardScreen();
-        await self._hfSpeak('Answer. ' + card.ans + '. ' + (card.tp || ''));
+        await self._hfSpeak('Answer. ' + card.ans + '. ' + (card.tp && card.tp.trim() !== String(card.ans || '').trim() ? card.tp : ''));
         hf.heard++;
         if (hf.cancel) break;
         await self._hfSleep(1500);
@@ -1977,7 +1977,7 @@ class UI {
     });
     if (hf.phase === 'answer') {
       box.appendChild(this._flashcardText('div', '\u2713 ' + card.ans, 'font-size:18px;font-weight:800;color:var(--accent-green);margin-top:12px'));
-      if (card.tp) box.appendChild(this._flashcardText('p', card.tp, 'font-size:12px;color:var(--text-secondary);margin-top:6px'));
+      if (card.tp && card.tp.trim() !== String(card.ans || '').trim()) box.appendChild(this._flashcardText('p', card.tp, 'font-size:12px;color:var(--text-secondary);margin-top:6px'));
     } else {
       box.appendChild(this._flashcardText('div', 'Think of the diagnosis\u2026', 'font-size:12px;color:var(--text-muted);margin-top:12px'));
     }

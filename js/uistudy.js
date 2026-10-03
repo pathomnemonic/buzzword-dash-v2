@@ -77,7 +77,8 @@ export var studyMethods = {
       var answerArea = createElement('div');
       answerArea.style.marginTop = '12px';
       answerArea.appendChild(this._flashcardText('div', '✓ ' + ans.answer, 'font-size:18px;font-weight:800;color:var(--accent-green);margin-bottom:6px'));
-      if (ans.teachingPoint) {
+      // (an imported flashcard's explanation is its answer: do not show the same text twice)
+      if (ans.teachingPoint && ans.teachingPoint.trim() !== String(ans.answer || '').trim()) {
         answerArea.appendChild(this._flashcardText('p', ans.teachingPoint, 'font-size:12px;color:var(--text-secondary);margin:6px 0'));
       }
       (ans.whyWrong || []).forEach(function (w) {
