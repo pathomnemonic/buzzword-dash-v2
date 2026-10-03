@@ -18,3 +18,8 @@ dist2/
 *.keystore
 *.jks
 *.b64
+
+# reports written by the stress tools
+beta-report.json
+chaos-report.json
+soak-report.json
