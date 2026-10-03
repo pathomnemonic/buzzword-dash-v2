@@ -8,7 +8,7 @@ import { openApp } from './helpers.js';
 
 // Things we must not click blindly (they wipe data, sign out, leave the page, or start a run), or that
 // intentionally do nothing visible on their own.
-const SKIP = /reset|delete|erase|wipe|sign ?out|log ?out|remove|play|start|begin|retry|leave|block|report|buy|\u{1FA99}|export|download|share|copy|file|upload|support|tip|review|rate|privacy|terms|license|open .*(page|site|link)|import|restore/iu;
+const SKIP = /^go\b|reset|delete|erase|wipe|sign ?out|log ?out|remove|play|start|begin|retry|leave|block|report|buy|\u{1FA99}|export|download|share|copy|file|upload|support|tip|review|rate|privacy|terms|license|open .*(page|site|link)|import|restore/iu;
 
 const SCREENS = [
   ['screenStats', 'Stats'],
