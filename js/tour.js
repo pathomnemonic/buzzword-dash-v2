@@ -93,6 +93,7 @@ export function startTour(opts) {
   var advanceTimer = null;
   var current = null;
   var targetEl = null;
+  var internal = false;   // true while a step's own before/after hook runs (they click things on the tour's behalf)
 
   var root = document.createElement('div');
   root.id = 'tourOverlay';
@@ -230,7 +231,7 @@ export function startTour(opts) {
     index = i;
     current = steps[i];
     targetEl = null;
-    if (current.before) current.before(ctx);
+    if (current.before) { internal = true; try { current.before(ctx); } finally { internal = false; } }
     // give the screen a moment to draw whatever the step just opened, then find the element
     if (frame !== null) { window.cancelAnimationFrame(frame); frame = null; }
     targetEl = resolveTarget(current);
@@ -246,17 +247,23 @@ export function startTour(opts) {
     advanceTimer = setTimeout(function () {
       advanceTimer = null;
       if (closed) return;
-      if (leaving.after) leaving.after(ctx);
+      if (leaving.after) { internal = true; try { leaving.after(ctx); } finally { internal = false; } }
       show(index + 1);
     }, leaving.press === 'pass' && targetEl ? ADVANCE_MS : 0);
   }
 
+  // What the player may press: the card, the highlighted spot, and the "Exit the tutorial?" question that the × opens
+  function inBounds(el) {
+    if (root.contains(el) || (targetEl && targetEl.contains(el))) return true;
+    return !!(el.closest && el.closest('#tutExitConfirm'));
+  }
+
   // A press on the highlighted element: count it (and swallow it) or let it through, then move on
   function onPress(e) {
-    if (closed || !current) return;
+    if (closed || !current || internal) return;
     // Anything outside the highlighted spot and the card is out of bounds. The dim shields stop taps and clicks;
     // this also stops a press that arrives by the keyboard (Tab to a button behind the tour, then Enter or Space)
-    if (e.target && !root.contains(e.target) && !(targetEl && targetEl.contains(e.target))) {
+    if (e.target && !inBounds(e.target)) {
       if (e.type === 'click' || e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
       return;
     }
@@ -282,8 +289,7 @@ export function startTour(opts) {
   function onKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); requestClose(); return; }
     // Enter and Space only act on the highlighted spot or the card's own buttons, never on something behind the tour
-    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && e.target && e.target !== document.body &&
-        !root.contains(e.target) && !(targetEl && targetEl.contains(e.target))) {
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && e.target && e.target !== document.body && !inBounds(e.target)) {
       e.preventDefault(); e.stopPropagation();
     }
   }

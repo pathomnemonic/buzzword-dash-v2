@@ -161,3 +161,34 @@ describe('the tour', () => {
     expect(ring.style.height).toBe('62px');
   });
 });
+
+describe('the tour cannot be driven from behind', () => {
+  beforeEach(() => {
+    window.requestAnimationFrame = (cb) => setTimeout(cb, 16);
+    window.cancelAnimationFrame = (id) => clearTimeout(id);
+  });
+  afterEach(() => { skipTour(); document.body.innerHTML = ''; });
+
+  it('a keyboard press on a control behind the tour does nothing, but the tour\'s own hooks and exit question still work', () => {
+    document.body.innerHTML = '<button id="behind">Reset</button><button id="spot">Spot</button><div id="tutExitConfirm"><button id="yes">Yes</button></div><button id="hooked">Hooked</button>';
+    const behind = vi.fn(); const yes = vi.fn(); const hooked = vi.fn();
+    document.getElementById('behind').addEventListener('click', behind);
+    document.getElementById('yes').addEventListener('click', yes);
+    document.getElementById('hooked').addEventListener('click', hooked);
+    const spot = document.getElementById('spot');
+    spot.getBoundingClientRect = () => ({ left: 10, top: 10, width: 50, height: 20, right: 60, bottom: 30 });
+    startTour({ steps: [
+      { id: 'a', title: 'A', text: 'text text text', target: '#spot', press: 'count', after: () => document.getElementById('hooked').click() },
+      { id: 'b', title: 'B', text: 'text text text' }
+    ] });
+    // what Enter on a focused control does: a click arrives at it
+    document.getElementById('behind').click();
+    expect(behind).not.toHaveBeenCalled();
+    // the question that the tour's × opens works
+    document.getElementById('yes').click();
+    expect(yes).toHaveBeenCalled();
+    // the highlighted press moves on, and the step's own hook may click what it needs
+    spot.click();
+    return new Promise((resolve) => setTimeout(() => { expect(hooked).toHaveBeenCalled(); resolve(); }, 400));
+  });
+});
