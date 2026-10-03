@@ -41,8 +41,15 @@ for (const [w, h] of [[320, 568], [360, 640], [375, 667], [390, 780], [412, 915]
     await openApp(page, '/?debug=1');
     await page.evaluate(() => window.__ui.show('screenStats'));
     await page.waitForTimeout(600);
-    const over = await page.evaluate(() => { const sc = document.querySelector('#screenStats .screen-scroll'); return sc.scrollHeight - sc.clientHeight; });
-    expect(over).toBeLessThanOrEqual(1);
+    const over = () => page.evaluate(() => { const sc = document.querySelector('#screenStats .screen-scroll'); return sc.scrollHeight - sc.clientHeight; });
+    expect(await over()).toBeLessThanOrEqual(1);
+    // opening a section scrolls inside the sections area, never the page
+    await page.locator('#perf-lifetime > summary').click();
+    await page.locator('#perf-subjects > summary').click();
+    await page.waitForTimeout(300);
+    expect(await over()).toBeLessThanOrEqual(1);
+    const inner = await page.evaluate(() => { const a = document.querySelector('#screenStats .perf-sections'); return a.scrollHeight >= a.clientHeight; });
+    expect(inner).toBe(true);
   });
 }
 

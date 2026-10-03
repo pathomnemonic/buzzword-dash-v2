@@ -216,7 +216,10 @@ export function renderPerformance(container, ui) {
   container.appendChild(tiles);
 
   // ---------- Folded sections ----------
-  container.appendChild(section('reviews', '📅', 'Reviews coming up', plan.dueCount + ' due', function (body) {
+  // The sections live in their own area: the page itself never scrolls, and an open section scrolls inside it
+  var secs = el('div', 'perf-sections');
+  container.appendChild(secs);
+  secs.appendChild(section('reviews', '📅', 'Reviews coming up', plan.dueCount + ' due', function (body) {
     var counts = [plan.dueCount].concat(plan.forecast);
     var max = Math.max(1, Math.max.apply(null, counts));
     var chart = el('div', 'perf-chart');
@@ -236,7 +239,7 @@ export function renderPerformance(container, ui) {
     body.appendChild(chart);
   }));
 
-  container.appendChild(section('subjects', '📚', 'Subjects', accuracyHint(), function (body) {
+  secs.appendChild(section('subjects', '📚', 'Subjects', accuracyHint(), function (body) {
     var any = false;
     SUBJECTS.forEach(function (s) {
       var ss = storage.getSubjectStat(s);
@@ -275,7 +278,7 @@ export function renderPerformance(container, ui) {
     var s = storage.getCardStat(c.id);
     return s.seen < 2 ? null : { card: c, accuracy: s.correct / s.seen, seen: s.seen };
   }).filter(Boolean).sort(function (a, b) { return a.accuracy - b.accuracy; }).slice(0, 5);
-  container.appendChild(section('weak', '🎯', 'Weakest concepts', weak.length ? String(weak.length) : '', function (body) {
+  secs.appendChild(section('weak', '🎯', 'Weakest concepts', weak.length ? String(weak.length) : '', function (body) {
     if (weak.length === 0) { body.appendChild(el('p', 'perf-empty', 'Play more to see weak areas.')); return; }
     weak.forEach(function (w) {
       var row = createElement('button', { className: 'perf-weak', attributes: { type: 'button', 'aria-label': 'Review ' + w.card.ans } });
@@ -298,7 +301,7 @@ export function renderPerformance(container, ui) {
     });
   }));
 
-  container.appendChild(section('lifetime', '🏅', 'Lifetime', storage.get('totalEncounters') + ' cards', function (body) {
+  secs.appendChild(section('lifetime', '🏅', 'Lifetime', storage.get('totalEncounters') + ' cards', function (body) {
     var tc = storage.get('totalCorrect');
     var tw = storage.get('totalWrong');
     var acc = (tc + tw) > 0 ? Math.round(tc / (tc + tw) * 100) : 0;
@@ -314,7 +317,7 @@ export function renderPerformance(container, ui) {
     body.appendChild(grid);
   }));
 
-  container.appendChild(section('settings', '⚙', 'Plan settings', pace ? (pace.daysLeft >= 0 ? pace.daysLeft + ' days to exam' : 'Date passed') : 'No exam date', function (body) {
+  secs.appendChild(section('settings', '⚙', 'Plan settings', pace ? (pace.daysLeft >= 0 ? pace.daysLeft + ' days to exam' : 'Date passed') : 'No exam date', function (body) {
     var paceLine = el('div', 'perf-pace');
     paceLine.id = 'examPaceLine';
     function refreshPace() {
