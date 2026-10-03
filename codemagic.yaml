@@ -30,7 +30,7 @@ workflows:
           npx cap add ios
           npx cap sync ios
           npx capacitor-assets generate --ios
-      - name: Portrait only, export compliance, build number
+      - name: Portrait only, export compliance, email-link scheme, build number
         script: |
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" $PLIST || true
@@ -38,6 +38,14 @@ workflows:
           /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" $PLIST
           /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" $PLIST || true
           /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" $PLIST || true
+          # The email links (confirm account, reset password) reopen the app through this web-address-like scheme;
+          # without it they do nothing on an iPhone (the same scheme is in the Android manifest and js/native.js)
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleURLTypes" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes array" $PLIST
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0 dict" $PLIST
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLName string com.pathomnemonic.dxdash" $PLIST
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" $PLIST
+          /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string com.pathomnemonic.dxdash" $PLIST
           cd ios/App && agvtool new-version -all $BUILD_NUMBER
       - name: Set up code signing
         script: |
