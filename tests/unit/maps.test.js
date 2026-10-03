@@ -71,7 +71,7 @@ describe('buying and choosing maps', () => {
     const row = document.querySelector('[data-map="map_cardiac_pulse"]');
     row.querySelector('.btn-gold').click();
     expect(storage.ownsItem('map_cardiac_pulse')).toBe(true);
-    expect(storage.get('coins')).toBe(20000 - 3500);
+    expect(storage.get('coins')).toBe(20000 - 3000);
     const fav = document.querySelector('[data-map="map_cardiac_pulse"] button[aria-pressed]');
     expect(fav.textContent).toMatch(/Favorite/);
     fav.click();
@@ -98,5 +98,23 @@ describe('buying and choosing maps', () => {
     storage.data.settings.preferredMap = 'Neural Highway';
     storage._ensureInvariants();
     expect(storage.ownsItem('map_neural_highway')).toBe(true);
+  });
+
+  it('every Locker list runs from the cheapest to the dearest', () => {
+    storage.set('coins', 0);
+    const price = (id) => LOCKER_ITEMS.find((i) => i.id === id).price;
+    ['heroes', 'trails', 'maps', 'monsters'].forEach((tab) => {
+      ui._lockerTab = tab;
+      ui.renderShop();
+      const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement);
+      const rows = [...document.querySelectorAll('#shopItems .shop-item')];
+      expect(rows.length, tab).toBeGreaterThan(3);
+      const idsOf = (root) => [...root.querySelectorAll('.shop-item')].map((r) => (r.querySelector('[data-preview]') && r.querySelector('[data-preview]').dataset.preview) || r.dataset.map);
+      const lists = groups.length > 1 && groups.some((g) => g.querySelectorAll('.shop-item').length) ? groups : [document.getElementById('shopItems')];
+      lists.forEach((g) => {
+        const prices = idsOf(g).filter(Boolean).map(price);
+        expect(prices, tab).toEqual([...prices].sort((a, b) => a - b));
+      });
+    });
   });
 });

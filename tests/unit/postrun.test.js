@@ -46,29 +46,45 @@ describe('post-run screen', () => {
     expect(() => quick.click()).not.toThrow();
   });
 
-  it('shows the missed and correct cards as two big tabs over one list, missed first', async () => {
+  it('shows two big buttons for the missed and correct cards, with nothing expanded until asked', async () => {
     const { ui } = await import('../../js/ui.js');
     ui.showPostRun(fakeGame());
     const content = document.getElementById('postRunContent');
-    const tabs = [...content.querySelectorAll('.post-review-tab')];
-    expect(tabs.map((t) => t.dataset.tab)).toEqual(['missed', 'correct']);
-    expect(tabs[0].querySelector('.post-review-count').textContent).toBe('2');
-    expect(tabs[1].querySelector('.post-review-count').textContent).toBe('3');
-    // the missed cards are on show to begin with; the other tab swaps the list
-    expect(tabs[0].classList.contains('active')).toBe(true);
-    expect(content.querySelectorAll('.post-review-list .review-card').length).toBe(2);
-    tabs[1].click();
-    expect(content.querySelectorAll('.post-review-list .review-card').length).toBe(3);
-    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
+    const buttons = [...content.querySelectorAll('.post-review-open')];
+    expect(buttons.map((t) => t.dataset.tab)).toEqual(['missed', 'correct']);
+    expect(buttons[0].querySelector('.post-review-count').textContent).toBe('2');
+    expect(buttons[1].querySelector('.post-review-count').textContent).toBe('3');
+    // no cards on the page itself, and the pop-up is closed
+    expect(content.querySelectorAll('.review-card').length).toBe(0);
+    expect(document.getElementById('reviewOverlay').classList.contains('active')).toBe(false);
   });
 
-  it('a perfect run opens on the correct cards and says so', async () => {
+  it('a button opens the full-screen pop-up on its own cards; the tabs inside swap the list; close puts it away', async () => {
+    const { ui } = await import('../../js/ui.js');
+    ui.showPostRun(fakeGame());
+    const content = document.getElementById('postRunContent');
+    const overlay = document.getElementById('reviewOverlay');
+    content.querySelector('.post-review-open[data-tab="missed"]').click();
+    expect(overlay.classList.contains('active')).toBe(true);
+    expect(overlay.querySelectorAll('.review-card').length).toBe(2);
+    expect(document.getElementById('reviewFullTitle').textContent).toMatch(/missed/i);
+    expect(overlay.querySelector('.review-flag')).toBeTruthy();
+    overlay.querySelector('[role="tab"][data-tab="correct"]').click();
+    expect(overlay.querySelectorAll('.review-card').length).toBe(3);
+    expect(overlay.querySelector('[data-tab="correct"]').getAttribute('aria-selected')).toBe('true');
+    document.getElementById('reviewFullClose').click();
+    expect(overlay.classList.contains('active')).toBe(false);
+    // the other button opens straight onto the correct cards
+    content.querySelector('.post-review-open[data-tab="correct"]').click();
+    expect(overlay.querySelectorAll('.review-card').length).toBe(3);
+  });
+
+  it('a perfect run says so in the missed pop-up', async () => {
     const { ui } = await import('../../js/ui.js');
     ui.showPostRun(fakeGame({ wrong: 0, runCards: fakeGame().runCards.filter((r) => r.ok) }));
     const content = document.getElementById('postRunContent');
-    expect(content.querySelector('.post-review-tab.active').dataset.tab).toBe('correct');
-    content.querySelector('[data-tab="missed"]').click();
-    expect(content.querySelector('.post-review-empty').textContent).toMatch(/perfect/i);
+    content.querySelector('.post-review-open[data-tab="missed"]').click();
+    expect(document.getElementById('reviewOverlay').querySelector('.post-review-empty').textContent).toMatch(/perfect/i);
   });
 
   it('Share is a small button in the top left corner, with room for the image button on the right', async () => {

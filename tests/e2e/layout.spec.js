@@ -34,3 +34,14 @@ test('the four Locker tabs each show their icon above their label', async ({ pag
     expect(t.iconInside).toBe(true);
   }
 });
+
+for (const [w, h] of [[320, 568], [360, 640], [375, 667], [390, 780], [412, 915]]) {
+  test(`the Stats page fits without scrolling at ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await openApp(page, '/?debug=1');
+    await page.evaluate(() => window.__ui.show('screenStats'));
+    await page.waitForTimeout(600);
+    const over = await page.evaluate(() => { const sc = document.querySelector('#screenStats .screen-scroll'); return sc.scrollHeight - sc.clientHeight; });
+    expect(over).toBeLessThanOrEqual(1);
+  });
+}

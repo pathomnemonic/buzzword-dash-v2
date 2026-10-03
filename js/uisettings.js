@@ -651,6 +651,8 @@ export var settingsMethods = {
     var renderGroup = function (type, title, filter, note) {
       var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
       if (filter) items = items.filter(filter);
+      // cheapest first (free ones on top), so what you can afford is always at the top of the list
+      items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return (a.it.price - b.it.price) || (a.idx - b.idx); }).map(function (x) { return x.it; });
       if (type === 'skin') {
         items = items.filter(function (i) {
           if (i.id === 'avatar_golden' && !storage.hasAchievement('ach_golden_doctor')) return false;
@@ -900,7 +902,8 @@ export var settingsMethods = {
     intro.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
     wrap.appendChild(intro);
 
-    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).forEach(function (item) {
+    // cheapest first
+    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return (a.it.price - b.it.price) || (a.idx - b.idx); }).map(function (x) { return x.it; }).forEach(function (item) {
       var owned = storage.ownsItem(item.id);
       var skin = SKINS.filter(function (s) { return s.id === item.skinId; })[0];
       var isFavorite = !!skin && storage.get('preferredMap') === skin.name;

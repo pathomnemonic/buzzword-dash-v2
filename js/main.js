@@ -1946,7 +1946,7 @@ function handleNativeBack() {
   if (document.getElementById('dailyReward')) return true; // claim the reward first
   if (isGameTutorialOpen()) { requestCloseGameTutorial(); return true; }
   if (isTutorialOpen()) { requestCloseTutorial(); return true; }
-  var popups = ['quickReviewOverlay', 'multiplayerOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
+  var popups = ['reviewOverlay', 'quickReviewOverlay', 'multiplayerOverlay', 'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
   for (var pi = 0; pi < popups.length; pi++) {
     var pop = document.getElementById(popups[pi]);
     if (pop && pop.classList.contains('active')) {

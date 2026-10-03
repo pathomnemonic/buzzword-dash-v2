@@ -506,6 +506,7 @@ class UI {
 
       // Close modals in priority order
       var overlays = [
+        'reviewOverlay',
         'quickReviewOverlay',
         'continueOverlay',
         'multiplayerOverlay',
@@ -624,7 +625,7 @@ class UI {
       if ((tutorial && tutorial.classList.contains('active')) || (coach && coach.classList.contains('active')) || isGameTutorialOpen()) { setTimeout(show, 1000); return; }
       // ...and for the player to be on Home: never on top of a run, its results, a tour or another pop-up
       var home = document.getElementById('screenHome');
-      if (!(home && home.classList.contains('active')) || document.getElementById('tourOverlay') || document.querySelector('.sheet-overlay.active, #multiplayerOverlay.active, #quickReviewOverlay.active')) { setTimeout(show, 1000); return; }
+      if (!(home && home.classList.contains('active')) || document.getElementById('tourOverlay') || document.querySelector('.sheet-overlay.active, #multiplayerOverlay.active, #quickReviewOverlay.active, #reviewOverlay.active')) { setTimeout(show, 1000); return; }
       audio.play('coin');
       showDailyRewardModal({
         streak: loginStreak,

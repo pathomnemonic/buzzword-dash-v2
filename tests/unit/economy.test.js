@@ -59,10 +59,20 @@ describe('prices against earnings', () => {
     expect(dearest / (dayOfPlay + 150)).toBeLessThanOrEqual(10);
   });
 
-  it('maps cost about the same as trails, and more than a cap', () => {
+  it('trails are the cheapest things in the Locker and heroes the dearest, with maps and monsters between', () => {
     const avg = (type) => { const l = paid.filter((i) => i.type === type); return l.reduce((s, i) => s + i.price, 0) / l.length; };
-    expect(avg('map')).toBeGreaterThan(avg('hat'));
-    expect(avg('map')).toBeLessThanOrEqual(avg('trail') * 1.5);
+    expect(avg('trail')).toBeLessThan(avg('map'));
+    expect(avg('map')).toBeLessThan(avg('monster'));
+    expect(avg('monster')).toBeLessThan(avg('skin'));
+    // and no trail costs more than the cheapest hero that is meant to be a showpiece
+    const maxTrail = Math.max(...paid.filter((i) => i.type === 'trail').map((i) => i.price));
+    const maxHero = Math.max(...paid.filter((i) => i.type === 'skin').map((i) => i.price));
+    expect(maxTrail).toBeLessThan(maxHero);
+  });
+
+  it('the trail the tour teaches with (the EKG Line) is affordable from the starting coins with plenty left over', () => {
+    const ekg = paid.find((i) => i.id === 'trail_ekg');
+    expect(ekg.price).toBeLessThanOrEqual(1000);
   });
 
   it('a continue is cheap next to a run\'s earnings, so it is a real choice but never a trap', () => {

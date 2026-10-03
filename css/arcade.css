@@ -1749,3 +1749,65 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 #cbSubjectFilter, #cbStatusFilter, #cbSearch { min-height: 44px; }
 .profile-pic-box > summary, #screenProfile details > summary { min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .shop-item .btn, .shop-item .btn-sm { min-height: 40px; min-width: 40px; }
+
+/* ---------- Stats: everything fits on one screen with the sections folded (no scrolling) ---------- */
+#screenStats .screen-scroll { padding-top: 10px; padding-bottom: calc(var(--safe-bottom) + 82px); }
+@media (max-height: 800px) {
+  #screenStats .perf-hero { padding: 9px 12px 10px; margin-bottom: 8px; }
+  #screenStats .perf-goal-line { margin: 4px 0 3px; font-size: 12px; }
+  #screenStats .perf-bar-big { height: 10px; }
+  #screenStats .perf-next-label { margin-top: 6px; font-size: 9px; }
+  #screenStats .perf-next-title { font-size: 17px; margin: 0 0 6px; }
+  #screenStats .perf-step-buttons .btn { padding-top: 7px; padding-bottom: 7px; min-height: 40px; }
+  #screenStats .perf-more { margin-top: 4px; }
+  #screenStats .perf-more > summary { padding: 3px 0; }
+  #screenStats .perf-tiles { gap: 6px; margin-bottom: 8px; }
+  #screenStats .perf-tile { padding: 4px 4px 5px; }
+  #screenStats .perf-tile-icon { font-size: 13px; }
+  #screenStats .perf-tile-value { font-size: 18px; }
+  #screenStats .perf-section { margin-bottom: 6px; }
+  #screenStats .perf-summary { padding: 4px 12px; min-height: 40px; }
+}
+@media (max-height: 640px) {
+  #screenStats .screen-scroll { padding-top: 6px; }
+  #screenStats .perf-hero { padding: 7px 10px 8px; margin-bottom: 6px; }
+  #screenStats .perf-hero-label, #screenStats .perf-next-label { display: none; }
+  #screenStats .perf-next-title { font-size: 15px; margin: 4px 0 5px; }
+  #screenStats .perf-step-buttons .btn { min-height: 36px; padding-top: 4px; padding-bottom: 4px; font-size: 12px; }
+  #screenStats .perf-tile-icon { display: none; }
+  #screenStats .perf-tiles { margin-bottom: 6px; }
+  #screenStats .perf-section { margin-bottom: 4px; }
+  #screenStats .perf-summary { min-height: 38px; padding-top: 2px; padding-bottom: 2px; }
+}
+
+/* ---------- results: the review is two big buttons that open a full-screen pop-up ---------- */
+.post-review { flex: 0 0 auto !important; min-height: 0; }
+.post-review-open { flex-direction: column; gap: 2px; padding: 10px 6px 8px !important; border-width: 3px !important; opacity: 1; min-height: 96px; }
+.post-review-open .post-review-count { font-size: 38px !important; }
+.post-review-open .post-review-label { font-size: 15px !important; }
+.post-review-open.is-missed { background: linear-gradient(180deg, rgba(255, 70, 100, 0.45), rgba(60, 20, 70, 0.9)); border-color: var(--accent-red); }
+.post-review-open.is-correct { background: linear-gradient(180deg, rgba(60, 255, 150, 0.35), rgba(20, 60, 70, 0.9)); border-color: var(--accent-green); }
+.post-review-open:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.post-review-cta { font-size: 11px; font-weight: 900; letter-spacing: .5px; opacity: .9; text-transform: uppercase; }
+.post-review-open:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+@media (max-height: 640px) { .post-review-open { min-height: 78px; } .post-review-open .post-review-count { font-size: 30px !important; } }
+
+#reviewOverlay {
+  position: fixed; inset: 0; z-index: 26; display: none; flex-direction: column;
+  background: linear-gradient(180deg, var(--screen-top), var(--screen-bottom)); overflow: hidden;
+}
+#reviewOverlay.active { display: flex; }
+.review-full { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 760px; height: 100%; margin: 0 auto; padding: calc(var(--safe-top) + 10px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 10px) calc(var(--safe-left) + 12px); box-sizing: border-box; }
+.review-full-head { display: flex; align-items: center; gap: 10px; }
+.review-full-head h2 { flex: 1; margin: 0; font-size: 20px; line-height: 1.15; text-shadow: 0 2px 0 var(--ink); }
+.review-full-close {
+  width: 44px; height: 44px; flex: none; font: inherit; font-size: 20px; font-weight: 900; color: #fff; cursor: pointer;
+  background: var(--panel); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink);
+}
+.review-full-close:focus-visible { outline: 3px solid var(--accent-gold); outline-offset: 2px; }
+.review-full-tabs .post-review-tab { min-height: 56px; opacity: .75; }
+.review-full-tabs .post-review-tab.active { opacity: 1; }
+.review-full-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; text-align: left; padding: 2px 2px 12px; }
+.review-full-list .review-card { margin: 0 0 10px; padding: 12px 14px; position: relative; }
+.review-full-list .review-card h4 { font-size: 14px; margin: 0 0 6px; padding-right: 26px; }
+.review-full-list .review-card p { font-size: 13px; margin: 5px 0 0; }

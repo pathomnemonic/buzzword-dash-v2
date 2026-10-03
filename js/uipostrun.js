@@ -103,96 +103,22 @@ export var postRunMethods = {
     });
     content.appendChild(statsRow);
 
-    // The review: the missed and the correct cards, as two big tabs over one list that scrolls on its own, so the
-    // page itself never has to
+    // The review: two big buttons under the numbers. Each opens the cards in a full-screen pop-up, so the page
+    // itself stays one calm screen (nothing is expanded until the player asks)
     var review = createElement('div', { className: 'post-review' });
-    var tabs = createElement('div', { className: 'post-review-tabs', attributes: { role: 'tablist', 'aria-label': 'Review your answers' } });
-    var list = createElement('div', { className: 'post-review-list', attributes: { role: 'tabpanel' } });
-    var tabBtns = {};
-    function addTab(key, icon, label, count, tone) {
-      var b = createElement('button', { className: 'post-review-tab ' + tone, attributes: { type: 'button', role: 'tab', 'aria-selected': 'false', 'data-tab': key } });
+    var tabs = createElement('div', { className: 'post-review-tabs', attributes: { 'aria-label': 'Review your answers' } });
+    function addOpen(key, icon, label, count, tone) {
+      var b = createElement('button', { className: 'post-review-tab post-review-open ' + tone, attributes: { type: 'button', 'data-tab': key, 'aria-haspopup': 'dialog', 'aria-label': label + ': ' + count + '. Open to review in full screen.' } });
       b.appendChild(createElement('span', { className: 'post-review-count', text: String(count) }));
       b.appendChild(createElement('span', { className: 'post-review-label', text: icon + ' ' + label }));
-      b.addEventListener('click', function () { select(key); });
+      b.appendChild(createElement('span', { className: 'post-review-cta', text: count ? 'Tap to review ›' : (key === 'missed' ? 'Perfect!' : 'None yet') }));
+      b.addEventListener('click', function () { self.openReviewPopup(key, missed, correctAll, total); });
       tabs.appendChild(b);
-      tabBtns[key] = b;
     }
-    addTab('missed', '❌', 'Missed', missed.length, 'is-missed');
-    addTab('correct', '✅', 'Correct', correctAll.length, 'is-correct');
+    addOpen('missed', '❌', 'Missed', missed.length, 'is-missed');
+    addOpen('correct', '✅', 'Correct', correctAll.length, 'is-correct');
     review.appendChild(tabs);
-    review.appendChild(list);
     content.appendChild(review);
-
-    function reviewCard(r, ok) {
-      var c = r.card;
-      var card = createElement('div', { className: 'review-card' });
-      if (ok) card.style.borderLeftColor = 'var(--accent-green)';
-      var h4 = createElement('h4');
-      setText(h4, (ok ? '✓ ' : '❌ ') + c.bw.join(' • '));
-      card.appendChild(h4);
-      var tagRow = createElement('div');
-      if (!ok) {
-        var wrongTag = createElement('span', { className: 'tag tag-wrong' });
-        setText(wrongTag, 'You: ' + r.choice);
-        tagRow.appendChild(wrongTag);
-      }
-      var ansTag = createElement('span', { className: 'tag tag-correct' });
-      setText(ansTag, (ok ? '' : '✓ ') + c.ans);
-      tagRow.appendChild(ansTag);
-      var subjTag = createElement('span', { className: 'tag tag-subject' });
-      setText(subjTag, c.subj);
-      tagRow.appendChild(subjTag);
-      card.appendChild(tagRow);
-      var tpEl = createElement('p');
-      setText(tpEl, ok ? c.tp : '📖 Rule: ' + c.tp);
-      tpEl.style.marginTop = '5px';
-      if (ok) tpEl.style.cssText = 'margin-top:4px;font-size:11px;color:var(--text-muted)';
-      card.appendChild(tpEl);
-      if (!ok) {
-        var whyWrong = (c.ww && c.ww[r.choice]) || '';
-        if (whyWrong) {
-          var wwEl = createElement('p');
-          setText(wwEl, 'Why "' + r.choice + '" is wrong: ' + whyWrong);
-          wwEl.style.marginTop = '4px';
-          card.appendChild(wwEl);
-        }
-        // A small flag in the corner of the card, so reports stay rare and deliberate
-        var reportBtn = createElement('button', { className: 'review-flag', text: '🚩', attributes: { type: 'button', 'aria-label': 'Report a problem with this card', title: 'Report a problem with this card' } });
-        reportBtn.addEventListener('click', function () {
-          var reason = prompt('Why are you reporting this card?\n\nOptions:\n- incorrect info\n- ambiguous\n- poor distractor\n- outdated\n- other');
-          if (reason) {
-            var text = prompt('Additional details (optional):') || '';
-            if (storage.addCardReport) {
-              storage.addCardReport(c.id, reason, text);
-            }
-            // Also send to the server when the leaderboard/account is available.
-            import('./leaderboard.js').then(function (mod) {
-              if (mod.leaderboard.isAuthenticated()) mod.leaderboard.reportCard(c.id, reason, text);
-            }).catch(function () { /* offline: the local report is still saved and exportable */ });
-            alert('Card reported — thank you for helping improve the game!');
-          }
-        });
-        card.appendChild(reportBtn);
-      }
-      return card;
-    }
-
-    function select(key) {
-      Object.keys(tabBtns).forEach(function (k) {
-        var on = k === key;
-        tabBtns[k].classList.toggle('active', on);
-        tabBtns[k].setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      clearElement(list);
-      var rows = key === 'missed' ? missed : correctAll;
-      if (!rows.length) {
-        list.appendChild(createElement('div', { className: 'post-review-empty', text: key === 'missed' ? (total > 0 ? '🎉 Nothing missed. A perfect run!' : 'No answers this run.') : 'No correct answers this run.' }));
-      } else {
-        rows.forEach(function (r) { list.appendChild(reviewCard(r, key === 'correct')); });
-      }
-      list.scrollTop = 0;
-    }
-    select(missed.length > 0 ? 'missed' : 'correct');
 
     // Actions: the two main ones, and the follow-ups beside them
     var actionRow = createElement('div', { className: 'post-actions' });
@@ -241,6 +167,112 @@ export var postRunMethods = {
     }
 
     this.updateRushVignette(0);
+  },
+
+  /** One card of the review: what was asked, what the player chose, the right answer, and why. */
+  _reviewCard(r, ok) {
+    var c = r.card;
+    var card = createElement('div', { className: 'review-card' });
+    if (ok) card.style.borderLeftColor = 'var(--accent-green)';
+    var h4 = createElement('h4');
+    setText(h4, (ok ? '✓ ' : '❌ ') + c.bw.join(' • '));
+    card.appendChild(h4);
+    var tagRow = createElement('div');
+    if (!ok) {
+      var wrongTag = createElement('span', { className: 'tag tag-wrong' });
+      setText(wrongTag, 'You: ' + r.choice);
+      tagRow.appendChild(wrongTag);
+    }
+    var ansTag = createElement('span', { className: 'tag tag-correct' });
+    setText(ansTag, (ok ? '' : '✓ ') + c.ans);
+    tagRow.appendChild(ansTag);
+    var subjTag = createElement('span', { className: 'tag tag-subject' });
+    setText(subjTag, c.subj);
+    tagRow.appendChild(subjTag);
+    card.appendChild(tagRow);
+    var tpEl = createElement('p');
+    setText(tpEl, ok ? c.tp : '📖 Rule: ' + c.tp);
+    tpEl.style.marginTop = '5px';
+    if (ok) tpEl.style.cssText = 'margin-top:4px;font-size:11px;color:var(--text-muted)';
+    card.appendChild(tpEl);
+    if (!ok) {
+      var whyWrong = (c.ww && c.ww[r.choice]) || '';
+      if (whyWrong) {
+        var wwEl = createElement('p');
+        setText(wwEl, 'Why "' + r.choice + '" is wrong: ' + whyWrong);
+        wwEl.style.marginTop = '4px';
+        card.appendChild(wwEl);
+      }
+      // A small flag in the corner of the card, so reports stay rare and deliberate
+      var reportBtn = createElement('button', { className: 'review-flag', text: '🚩', attributes: { type: 'button', 'aria-label': 'Report a problem with this card', title: 'Report a problem with this card' } });
+      reportBtn.addEventListener('click', function () {
+        var reason = prompt('Why are you reporting this card?\n\nOptions:\n- incorrect info\n- ambiguous\n- poor distractor\n- outdated\n- other');
+        if (reason) {
+          var text = prompt('Additional details (optional):') || '';
+          if (storage.addCardReport) storage.addCardReport(c.id, reason, text);
+          // Also send to the server when the leaderboard/account is available.
+          import('./leaderboard.js').then(function (mod) {
+            if (mod.leaderboard.isAuthenticated()) mod.leaderboard.reportCard(c.id, reason, text);
+          }).catch(function () { /* offline: the local report is still saved and exportable */ });
+          alert('Card reported — thank you for helping improve the game!');
+        }
+      });
+      card.appendChild(reportBtn);
+    }
+    return card;
+  },
+
+  /**
+   * The full-screen review: the missed cards and the correct cards, a tab each, one list that scrolls.
+   * @param {string} start 'missed' or 'correct'
+   */
+  openReviewPopup(start, missed, correctAll, total) {
+    var self = this;
+    var overlay = document.getElementById('reviewOverlay');
+    if (!overlay) return;
+    var tabs = document.getElementById('reviewFullTabs');
+    var list = document.getElementById('reviewFullList');
+    var title = document.getElementById('reviewFullTitle');
+    var closeBtn = document.getElementById('reviewFullClose');
+    var opener = document.activeElement;
+    clearElement(tabs);
+    var tabBtns = {};
+    function addTab(key, icon, label, count, tone) {
+      var b = createElement('button', { className: 'post-review-tab ' + tone, attributes: { type: 'button', role: 'tab', 'aria-selected': 'false', 'data-tab': key } });
+      b.appendChild(createElement('span', { className: 'post-review-count', text: String(count) }));
+      b.appendChild(createElement('span', { className: 'post-review-label', text: icon + ' ' + label }));
+      b.addEventListener('click', function () { select(key); });
+      tabs.appendChild(b);
+      tabBtns[key] = b;
+    }
+    addTab('missed', '❌', 'Missed', missed.length, 'is-missed');
+    addTab('correct', '✅', 'Correct', correctAll.length, 'is-correct');
+    function select(key) {
+      Object.keys(tabBtns).forEach(function (k) {
+        var on = k === key;
+        tabBtns[k].classList.toggle('active', on);
+        tabBtns[k].setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      setText(title, key === 'missed' ? 'Questions you missed' : 'Questions you got right');
+      clearElement(list);
+      var rows = key === 'missed' ? missed : correctAll;
+      if (!rows.length) {
+        list.appendChild(createElement('div', { className: 'post-review-empty', text: key === 'missed' ? (total > 0 ? '🎉 Nothing missed. A perfect run!' : 'No answers this run.') : 'No correct answers this run.' }));
+      } else {
+        rows.forEach(function (r) { list.appendChild(self._reviewCard(r, key === 'correct')); });
+      }
+      list.scrollTop = 0;
+    }
+    function close() {
+      overlay.classList.remove('active');
+      releaseFocusTrap();
+      if (opener && opener.focus) { try { opener.focus(); } catch (e) { /* the button may be gone */ } }
+    }
+    closeBtn.onclick = close;
+    select(start === 'correct' ? 'correct' : 'missed');
+    overlay.classList.add('active');
+    trapFocus(overlay);
+    closeBtn.focus();
   },
 
   showQuickReview(missedCards) {

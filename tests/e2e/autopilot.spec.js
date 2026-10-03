@@ -43,9 +43,16 @@ test('the results page has Filters, a big Play again and a small flag on missed 
   const again = await page.locator('#playAgainBtn').boundingBox();
   const home = await page.locator('#goHomeBtn').boundingBox();
   expect(again.width).toBeGreaterThan(home.width * 1.6);
+  await expect(page.locator('.review-card')).toHaveCount(0); // nothing expanded until asked
+  await page.locator('.post-review-open[data-tab="missed"]').click();
+  const overlayBox = await page.locator('#reviewOverlay').boundingBox();
+  expect(overlayBox.width).toBeGreaterThanOrEqual(388);
+  expect(overlayBox.height).toBeGreaterThanOrEqual(840);
   const flag = page.locator('.review-flag').first();
   await expect(flag).toBeVisible();
   expect((await flag.boundingBox()).width).toBeLessThan(30);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#reviewOverlay')).not.toHaveClass(/active/);
   await page.locator('#postFiltersBtn').click();
   await expect(page.locator('#filtersSheet')).toHaveClass(/active/);
 });

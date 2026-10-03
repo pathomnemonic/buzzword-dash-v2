@@ -446,14 +446,14 @@ export var SHOP_ITEMS = [
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
 
   // --- Maps (the open and body-interior worlds; the indoor hospital maps are free for everyone) ---
-  { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2500, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
-  { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2500, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
-  { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 3000, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
-  { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 3000, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },
-  { id: "map_dna_helix_tunnel", name: "DNA Helix Tunnel", desc: "Spiral through the double helix", price: 3500, type: "map", skinId: "skin_dna_helix_tunnel", color: 0x66aaff, icon: "🧬", compatibility: COMPAT_ALL },
-  { id: "map_cardiac_pulse", name: "Cardiac Pulse", desc: "Inside a beating heart", price: 3500, type: "map", skinId: "skin_cardiac_pulse", color: 0xff5588, icon: "❤️", compatibility: COMPAT_ALL },
-  { id: "map_xray_vision", name: "X-Ray Vision", desc: "See through everything", price: 4000, type: "map", skinId: "skin_xray_vision", color: 0x44eeff, icon: "☢️", compatibility: COMPAT_ALL },
-  { id: "map_defibrillator_shock", name: "Defibrillator Shock", desc: "Electric urgency", price: 4000, type: "map", skinId: "skin_defibrillator_shock", color: 0xffee66, icon: "⚡", compatibility: COMPAT_ALL },
+  { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2000, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
+  { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2000, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
+  { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 2500, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
+  { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 2500, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },
+  { id: "map_dna_helix_tunnel", name: "DNA Helix Tunnel", desc: "Spiral through the double helix", price: 3000, type: "map", skinId: "skin_dna_helix_tunnel", color: 0x66aaff, icon: "🧬", compatibility: COMPAT_ALL },
+  { id: "map_cardiac_pulse", name: "Cardiac Pulse", desc: "Inside a beating heart", price: 3000, type: "map", skinId: "skin_cardiac_pulse", color: 0xff5588, icon: "❤️", compatibility: COMPAT_ALL },
+  { id: "map_xray_vision", name: "X-Ray Vision", desc: "See through everything", price: 3500, type: "map", skinId: "skin_xray_vision", color: 0x44eeff, icon: "☢️", compatibility: COMPAT_ALL },
+  { id: "map_defibrillator_shock", name: "Defibrillator Shock", desc: "Electric urgency", price: 3500, type: "map", skinId: "skin_defibrillator_shock", color: 0xffee66, icon: "⚡", compatibility: COMPAT_ALL },
 
   // --- Exam monsters ---
   { id: "monster_classic", name: "Exam Monster", price: 0, type: "monster", color: 0x220044, icon: "👾", compatibility: COMPAT_ALL },
@@ -483,18 +483,18 @@ export var SHOP_ITEMS = [
 
   // --- Trails (all avatars) ---
   { id: "trail_none", name: "No Trail", price: 0, type: "trail", color: null, compatibility: COMPAT_ALL },
-  { id: "trail_ekg", name: "EKG Line", price: 2000, type: "trail", color: 0x00ff44, desc: "A glowing heartbeat line (EKG spikes) behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_neural", name: "Neural Sparks", price: 2500, type: "trail", color: 0xaa44ff, desc: "Bright sparks fizzing like firing neurons.", compatibility: COMPAT_ALL },
-  { id: "trail_blood", name: "Blood Cells", price: 2000, type: "trail", color: 0xff2222, desc: "Red blood cells drifting behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_dna", name: "DNA Helix", price: 3000, type: "trail", color: 0x4488ff, desc: "A twisting double helix of blue and pink beads.", compatibility: COMPAT_ALL },
-  { id: "trail_fire", name: "Fire Trail", price: 3500, type: "trail", color: 0xff8800, desc: "Flames licking up behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_rainbow", name: "Rainbow", price: 4000, type: "trail", color: 0xff44ff, desc: "A ribbon that cycles through every rainbow colour.", compatibility: COMPAT_ALL },
-  { id: "trail_confetti", name: "Confetti", price: 3000, type: "trail", color: 0xff4444, desc: "Tumbling party confetti in bright colours.", compatibility: COMPAT_ALL },
-  { id: "trail_hearts", name: "Hearts", price: 2500, type: "trail", color: 0xff4488, desc: "A stream of little hearts.", compatibility: COMPAT_ALL },
-  { id: "trail_lightning", name: "Lightning", price: 3500, type: "trail", color: 0xffff44, desc: "Crackling lightning bolts.", compatibility: COMPAT_ALL },
-  { id: "trail_bubbles", name: "Bubbles", price: 2000, type: "trail", color: 0x88ddff, desc: "Floating see-through bubbles.", compatibility: COMPAT_ALL },
-  { id: "trail_music", name: "Music Notes", price: 2500, type: "trail", color: 0xff88ff, desc: "Music notes drifting behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_pills", name: "Pill Trail", price: 1500, type: "trail", color: 0xff4444, desc: "Red and white pills rattling behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_ekg", name: "EKG Line", price: 500, type: "trail", color: 0x00ff44, desc: "A glowing heartbeat line (EKG spikes) behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_neural", name: "Neural Sparks", price: 1000, type: "trail", color: 0xaa44ff, desc: "Bright sparks fizzing like firing neurons.", compatibility: COMPAT_ALL },
+  { id: "trail_blood", name: "Blood Cells", price: 700, type: "trail", color: 0xff2222, desc: "Red blood cells drifting behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_dna", name: "DNA Helix", price: 1400, type: "trail", color: 0x4488ff, desc: "A twisting double helix of blue and pink beads.", compatibility: COMPAT_ALL },
+  { id: "trail_fire", name: "Fire Trail", price: 1600, type: "trail", color: 0xff8800, desc: "Flames licking up behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_rainbow", name: "Rainbow", price: 2000, type: "trail", color: 0xff44ff, desc: "A ribbon that cycles through every rainbow colour.", compatibility: COMPAT_ALL },
+  { id: "trail_confetti", name: "Confetti", price: 1200, type: "trail", color: 0xff4444, desc: "Tumbling party confetti in bright colours.", compatibility: COMPAT_ALL },
+  { id: "trail_hearts", name: "Hearts", price: 800, type: "trail", color: 0xff4488, desc: "A stream of little hearts.", compatibility: COMPAT_ALL },
+  { id: "trail_lightning", name: "Lightning", price: 1800, type: "trail", color: 0xffff44, desc: "Crackling lightning bolts.", compatibility: COMPAT_ALL },
+  { id: "trail_bubbles", name: "Bubbles", price: 600, type: "trail", color: 0x88ddff, desc: "Floating see-through bubbles.", compatibility: COMPAT_ALL },
+  { id: "trail_music", name: "Music Notes", price: 900, type: "trail", color: 0xff88ff, desc: "Music notes drifting behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_pills", name: "Pill Trail", price: 300, type: "trail", color: 0xff4444, desc: "Red and white pills rattling behind you.", compatibility: COMPAT_ALL },
 
   // --- Gear (humanoid only) ---
   { id: "gear_none", name: "No Gear", price: 0, type: "gear", color: null, compatibility: COMPAT_HUMANOID_ONLY },
