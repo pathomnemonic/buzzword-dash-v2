@@ -507,15 +507,15 @@ function getQuestEventMap() {
     // Map progression event names to quest IDs and increments
     // These map from semantic event types to the quest they advance
     var mappings = [
-      { event: 'encounter_resolved', questId: QUEST_IDS.MARATHON, increment: 1 },
-      { event: 'correct_answer', questId: QUEST_IDS.SHARP_MIND, increment: 1 },
-      { event: 'coin_collected', questId: QUEST_IDS.COIN_COLLECTOR, increment: 1 },
-      { event: 'powerup_collected', questId: QUEST_IDS.POWERED_UP, increment: 1 },
-      { event: 'streak_reached', questId: QUEST_IDS.HOT_STREAK, increment: 1 },
-      { event: 'daily_completed', questId: QUEST_IDS.DAILY_ROUNDS, increment: 1 },
-      { event: 'rush_used', questId: QUEST_IDS.RUSH_HOUR, increment: 1 },
-      { event: 'obstacle_jumped', questId: QUEST_IDS.PARKOUR_PRO, increment: 1 },
-      { event: 'obstacle_slid', questId: QUEST_IDS.LIMBO_MASTER, increment: 1 }
+      { event: 'encounter_resolved', questId: QUEST_IDS.ENCOUNTERS_25, increment: 1 },
+      { event: 'correct_answer', questId: QUEST_IDS.CORRECT_10, increment: 1 },
+      { event: 'coin_collected', questId: QUEST_IDS.COINS_50, increment: 1 },
+      { event: 'powerup_collected', questId: QUEST_IDS.POWERUPS_3, increment: 1 },
+      { event: 'streak_reached', questId: QUEST_IDS.STREAK_8, increment: 1 },
+      { event: 'daily_completed', questId: QUEST_IDS.DAILY, increment: 1 },
+      { event: 'rush_used', questId: QUEST_IDS.RUSH_3, increment: 1 },
+      { event: 'obstacle_jumped', questId: QUEST_IDS.JUMP_5, increment: 1 },
+      { event: 'obstacle_slid', questId: QUEST_IDS.SLIDE_5, increment: 1 }
     ];
 
     for (var i = 0; i < mappings.length; i++) {
@@ -1467,7 +1467,9 @@ class Storage {
     this.addStudiedToday(summary.encountersCompleted || 0);
 
     // --- Quest progress from run events ---
+    var questsBefore = this._completedQuestIds();
     this._processRunQuestProgress(summary);
+    result.completedQuestIds = this._completedQuestIds().filter(function (id) { return questsBefore.indexOf(id) < 0; });
 
     // --- Achievements ---
     result.newlyUnlockedAchievementIds = this._evaluateAchievements(summary);
@@ -1510,49 +1512,63 @@ class Storage {
     if (!this.data.progression.questState[today]) {
       this.data.progression.questState[today] = {};
     }
+    var Q = QUEST_IDS;
+    var encounters = Array.isArray(summary.encounters) ? summary.encounters : [];
 
-    // Encounters
-    if (summary.encountersCompleted > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.MARATHON : 'q_25enc', summary.encountersCompleted);
-    }
+    // "In one day" quests add up across the day's runs
+    if (summary.encountersCompleted > 0) this.incrementQuest(Q.ENCOUNTERS_25, summary.encountersCompleted);
+    if (summary.correct > 0) this.incrementQuest(Q.CORRECT_10, summary.correct);
+    if (summary.dailyCompleted) this.incrementQuest(Q.DAILY, 1);
 
-    // Correct answers
-    if (summary.correct > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.SHARP_MIND : 'q_10correct', summary.correct);
+    // Quick answers: a right answer in under two seconds
+    var quick = 0;
+    for (var i = 0; i < encounters.length; i++) {
+      var e = encounters[i];
+      if (e && e.correct && typeof e.decisionMs === 'number' && e.decisionMs > 0 && e.decisionMs < 2000) quick++;
     }
+    if (quick > 0) this.incrementQuest(Q.SPEED_3, quick);
 
-    // Best streak in this run
-    if (summary.bestStreak >= 8) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.HOT_STREAK : 'q_streak8', 1);
-    }
+    // Different subjects answered today (the set is kept with the quest, so the same subject is not counted twice)
+    var subjects = {};
+    encounters.forEach(function (en) { if (en && en.subject) subjects[en.subject] = true; });
+    (summary.subjectsSeen || []).forEach(function (s) { if (s) subjects[s] = true; });
+    var names = Object.keys(subjects);
+    if (names.length > 0) this._addQuestDistinct(Q.ALL_SUBJECTS_5, names);
 
-    // Coins collected
-    if (summary.coinsCollected > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.COIN_COLLECTOR : 'q_50coins', summary.coinsCollected);
-    }
+    // "In one run" quests: the best single run of the day counts (they do not add up across runs)
+    this._raiseQuest(Q.STREAK_8, summary.bestStreak);
+    this._raiseQuest(Q.PERFECT_5, summary.bestStreak);
+    this._raiseQuest(Q.COINS_50, summary.coinsCollected);
+    this._raiseQuest(Q.POWERUPS_3, summary.powerupsCollected);
+    this._raiseQuest(Q.RUSH_3, summary.rushesUsed);
+    this._raiseQuest(Q.JUMP_5, summary.obstaclesJumped);
+    this._raiseQuest(Q.SLIDE_5, summary.obstaclesSlid);
+  }
 
-    // Power-ups collected
-    if (summary.powerupsCollected > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.POWERED_UP : 'q_3powerups', summary.powerupsCollected);
-    }
+  /** Ids of today's quests that are complete (claimed or not). */
+  _completedQuestIds() {
+    var day = this.data.progression.questState[todayKey()] || {};
+    return Object.keys(day).filter(function (id) { return day[id] && day[id].completed; });
+  }
 
-    // Rushes used
-    if (summary.rushesUsed > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.RUSH_HOUR : 'q_rush3', summary.rushesUsed);
-    }
+  /** Set a quest's progress to a value if it is higher than what is there (for "in one run" quests). */
+  _raiseQuest(questId, value) {
+    var v = Number(value) || 0;
+    if (!(v > 0)) return;
+    var today = todayKey();
+    var day = this.data.progression.questState[today] || (this.data.progression.questState[today] = {});
+    var qs = day[questId] || (day[questId] = { progress: 0, completed: false, claimed: false, completedAt: null, claimedAt: null });
+    if (v > qs.progress) this.incrementQuest(questId, v - qs.progress);
+  }
 
-    // Obstacles jumped/slid
-    if (summary.obstaclesJumped > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.PARKOUR_PRO : 'q_jump5', summary.obstaclesJumped);
-    }
-    if (summary.obstaclesSlid > 0) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.LIMBO_MASTER : 'q_slide5', summary.obstaclesSlid);
-    }
-
-    // Daily completed
-    if (summary.dailyCompleted) {
-      this.incrementQuest(QUEST_IDS ? QUEST_IDS.DAILY_ROUNDS : 'q_daily', 1);
-    }
+  /** Add names to a quest's set of distinct things seen today; progress is the size of the set. */
+  _addQuestDistinct(questId, names) {
+    var today = todayKey();
+    var day = this.data.progression.questState[today] || (this.data.progression.questState[today] = {});
+    var qs = day[questId] || (day[questId] = { progress: 0, completed: false, claimed: false, completedAt: null, claimedAt: null });
+    var seen = Array.isArray(qs.seen) ? qs.seen : (qs.seen = []);
+    names.forEach(function (n) { if (seen.indexOf(n) < 0) seen.push(n); });
+    if (seen.length > qs.progress) this.incrementQuest(questId, seen.length - qs.progress);
   }
 
   // ===== FLASHCARD FINALIZATION (idempotent by sessionId) =====

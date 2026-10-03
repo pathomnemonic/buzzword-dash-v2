@@ -999,6 +999,10 @@ function finalizeRun(gameRef) {
   if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
     ui.showAchievementNotification(result.newlyUnlockedAchievementIds);
   }
+  if (result.completedQuestIds && result.completedQuestIds.length > 0) {
+    var titles = result.completedQuestIds.map(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; return q ? q.title : ''; }).filter(Boolean);
+    if (titles.length) ui.showNotice('✅ Quest complete: ' + titles.join(', ') + '. Claim your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
+  }
 
   // --- Leaderboard submission ---
   // Custom-rule runs (power-ups, hazards or monster turned off) are never ranked
