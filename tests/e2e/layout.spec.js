@@ -45,3 +45,33 @@ for (const [w, h] of [[320, 568], [360, 640], [375, 667], [390, 780], [412, 915]
     expect(over).toBeLessThanOrEqual(1);
   });
 }
+
+for (const [w, h] of [[320, 568], [360, 640], [390, 780], [412, 915]]) {
+  test(`Profile and the folded Locker each fit on one screen at ${w}x${h}`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await openApp(page, '/?debug=1');
+    for (const s of ['screenProfile', 'screenShop']) {
+      await page.evaluate((id) => window.__ui.show(id), s);
+      await page.waitForTimeout(700);
+      const over = await page.evaluate((id) => { const sc = document.querySelector('#' + id + ' .screen-scroll'); return sc.scrollHeight - sc.clientHeight; }, s);
+      expect(over, s).toBeLessThanOrEqual(1);
+    }
+  });
+}
+
+test('Profile has one place to create an account, folded until wanted', async ({ page }) => {
+  await openApp(page, '/?debug=1');
+  await page.evaluate(() => window.__ui.show('screenProfile'));
+  await expect(page.locator('#profileAccountBox')).not.toHaveAttribute('open', '');
+  await expect(page.getByRole('button', { name: /create account/i })).toHaveCount(0);
+});
+
+test('the Locker opens folded, a tab opens its list, and tapping it again folds it', async ({ page }) => {
+  await openApp(page, '/?debug=1');
+  await page.evaluate(() => window.__ui.show('screenShop'));
+  await expect(page.locator('#shopItems .shop-item')).toHaveCount(0);
+  await page.locator('#shopItems [role="tab"]').nth(1).click();
+  expect(await page.locator('#shopItems .shop-item').count()).toBeGreaterThan(3);
+  await page.locator('#shopItems [role="tab"]').nth(1).click();
+  await expect(page.locator('#shopItems .shop-item')).toHaveCount(0);
+});

@@ -24,6 +24,9 @@ test.describe('Personalization', () => {
     await page.locator('[data-screen="screenShop"]').click();
     await expect(page.getByRole('tab', { name: /Heroes/ })).toBeVisible();
     await expect(page.getByRole('tab', { name: /Customize/ })).toHaveCount(0);
+    // the Locker opens folded; the Heroes tab opens its list
+    await expect(page.getByRole('heading', { name: /^🎬 Heroes/ })).toHaveCount(0);
+    await page.getByRole('tab', { name: /Heroes/ }).click();
     await expect(page.getByRole('heading', { name: /^🎬 Heroes/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Classic characters/ })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: /Vehicles/ })).toHaveCount(0);

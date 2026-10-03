@@ -1861,3 +1861,12 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   #screenShop .screen-scroll > .muted { margin: 2px 0; font-size: 11px; }
   .hero-card { margin: 6px 0 2px; padding: 8px 10px; }
 }
+@media (max-height: 600px) {
+  #screenProfile .screen-scroll { padding-top: 4px; }
+  .profile-header { padding: 2px 0; }
+  .profile-pic-box > summary { min-height: 36px; }
+  .profile-stats-grid { gap: 4px; margin: 4px 0; }
+  .profile-stat .val { font-size: 14px; }
+  .profile-actions { margin: 2px 0 6px; }
+  .profile-fold-sum { min-height: 38px; }
+}

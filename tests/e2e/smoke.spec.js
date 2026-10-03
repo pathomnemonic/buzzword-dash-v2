@@ -25,11 +25,11 @@ test.describe('Smoke tests', () => {
   test('settings are grouped into sections, each explained', async ({ page }) => {
     await openApp(page);
     await page.locator('#settingsBtn').click();
-    await expect(page.locator('.settings-card')).toHaveCount(6);
+    await expect(page.locator('.settings-card')).toHaveCount(7);
     await page.locator('.settings-card[data-section="study"]').click();
     await expect(page.getByText(/How much more often you see cards you have never answered/)).toBeVisible();
     await page.locator('#screenSettings .back-btn').click();
-    await expect(page.locator('.settings-card')).toHaveCount(6);
+    await expect(page.locator('.settings-card')).toHaveCount(7);
   });
 
   test('Settings and Home open the same tutorial, and it can be skipped', async ({ page }) => {
