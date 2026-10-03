@@ -117,8 +117,11 @@ export function stepButtons(ui, step, plan, cards, small, before) {
   var run = createElement('button', { className: 'btn btn-green ' + (small ? 'btn-sm' : ''), text: '🏃 Run it', attributes: { type: 'button', 'aria-label': 'Run ' + shortLabel(step) } });
   run.addEventListener('click', function () {
     if (before) before();
-    var ids = stepCards(step, plan, cards);
-    if (ui.onStudyPlanRun && ids.length) ui.onStudyPlanRun(ids); else ui._showToast('No cards to study for this step yet.');
+    // Flashcard-only cards (imported from Anki) have no wrong answers, so the runner cannot use them: only the others go
+    var runnable = {};
+    cards.forEach(function (c) { if (!Array.isArray(c.enabledModes) || c.enabledModes.length === 0 || c.enabledModes.indexOf('study') >= 0) runnable[c.id] = true; });
+    var ids = stepCards(step, plan, cards).filter(function (id) { return runnable[id]; });
+    if (ui.onStudyPlanRun && ids.length) ui.onStudyPlanRun(ids); else ui._showToast('No cards for the runner in this step. Use Cards to study them as flashcards.');
   });
   var flash = createElement('button', { className: 'btn btn-outline ' + (small ? 'btn-sm' : ''), text: '🗂 Cards', attributes: { type: 'button', 'aria-label': 'Flashcards: ' + shortLabel(step) } });
   flash.addEventListener('click', function () {

@@ -97,3 +97,26 @@ describe('Performance tab', () => {
     expect(c.querySelector('.perf-next-title')).not.toBeNull();
   });
 });
+
+describe('plan buttons and imported flashcards', () => {
+  it('"Run it" never sends flashcard-only cards to the runner', async () => {
+    const { stepButtons } = await import('../../js/statsview.js');
+    const onStudyPlanRun = vi.fn();
+    const ui = { onStudyPlanRun, _showToast: vi.fn(), startFlashcardSession: vi.fn() };
+    const cards = [
+      { id: 'f1', subj: 'Cardiology', enabledModes: ['flashcard'] },
+      { id: 'q1', subj: 'Cardiology' },
+      { id: 'q2', subj: 'Cardiology', enabledModes: ['study', 'endless'] }
+    ];
+    const plan = { dueIds: ['f1', 'q1', 'q2'], dueCount: 3 };
+    const row = stepButtons(ui, { kind: 'due', count: 3 }, plan, cards, false);
+    row.querySelector('.btn-green').click();
+    expect(onStudyPlanRun).toHaveBeenCalledWith(['q1', 'q2']);
+    // only flashcard-only cards: nothing for the runner, and the player is told where to go
+    onStudyPlanRun.mockClear();
+    const only = stepButtons(ui, { kind: 'due', count: 1 }, { dueIds: ['f1'], dueCount: 1 }, cards, false);
+    only.querySelector('.btn-green').click();
+    expect(onStudyPlanRun).not.toHaveBeenCalled();
+    expect(ui._showToast).toHaveBeenCalledWith(expect.stringMatching(/flashcards/i));
+  });
+});

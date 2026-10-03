@@ -825,6 +825,7 @@ function startMode(mode) {
     var subjects = storage.get('selectedSubjects');
     var allCards = CARDS.concat(customCards.getAll());
     var weakCards = allCards.filter(function (c) {
+      if (Array.isArray(c.enabledModes) && c.enabledModes.length && c.enabledModes.indexOf('weakness') < 0) return false; // (imported flashcards cannot be played in the runner)
       if (subjects.length > 0 && subjects.indexOf(c.subj) < 0) return false;
       var s = storage.getCardStat(c.id);
       return s.wrong > 0 || (s.seen > 0 && s.correct / s.seen < 0.7);
