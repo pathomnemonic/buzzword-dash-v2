@@ -237,6 +237,7 @@ export var runEndMethods = {
       wrong: this.wrong,
       bestStreak: this.bestStreak,
       fastestDecisionMs: this.fastestDecisionMs,
+      userSpeed: this.userSpeed,
 
       continued: this.continued,
       continuesUsed: this.continuesUsed,

@@ -443,14 +443,12 @@ function repairAchievementIds(oldAchievements) {
     'ach_speed_300ms': 'ach_fast_300ms',
     'ach_collector_10': 'ach_collect_10',
     'ach_collector_25': 'ach_collect_25',
-    'ach_collector_50': 'ach_collect_all',
+    'ach_collector_50': 'ach_collect_50',
     'ach_mp_first_game': 'ach_mp_first',
     'ach_mp_first_win': 'ach_mp_win',
     'ach_mp_10_wins': 'ach_mp_win5',
-    'ach_playtime_30min': 'ach_endurance_30min',
-    'ach_playtime_1hr': 'ach_endurance_1hr',
-    'ach_studied_500': 'ach_encounters_500',
-    'ach_studied_1000': 'ach_encounters_1000',
+    'ach_endurance_30min': 'ach_playtime_30min',
+    'ach_endurance_1hr': 'ach_playtime_1hr',
     'ach_flashcard_first': 'ach_flashcard_first',
     'ach_flashcard_10': 'ach_flashcard_10',
     'ach_perfect_10': 'ach_perfect_10',
@@ -486,6 +484,15 @@ function repairAchievementIds(oldAchievements) {
 
   return result;
 }
+
+/** Which badge a subject's mastery earns. */
+var SUBJECT_MASTERY_KEYS = {
+  'Neurology': 'MASTER_NEURO', 'Cardiology': 'MASTER_CARDIO', 'Nephrology': 'MASTER_NEPHRO',
+  'Psychiatry': 'MASTER_PSYCH', 'Gastroenterology': 'MASTER_GI', 'Pulmonology': 'MASTER_PULM',
+  'Infectious Disease': 'MASTER_ID', 'Endocrinology': 'MASTER_ENDO', 'Hematology/Oncology': 'MASTER_HEME',
+  'Rheumatology': 'MASTER_RHEUM', 'Obstetrics/Gynecology': 'MASTER_OBGYN', 'Pediatrics': 'MASTER_PEDS',
+  'Surgery': 'MASTER_SURG', 'Emergency Medicine': 'MASTER_EM', 'Multisystem / Mixed': 'MASTER_MULTI'
+};
 
 // ===== QUEST EVENT MAPPING =====
 
@@ -733,6 +740,10 @@ class Storage {
 
     // Ensure arrays
     if (!Array.isArray(d.progression.achievements)) d.progression.achievements = [];
+    // Two badges were once stored under ids that are not in the badge list; move them to the real ids
+    d.progression.achievements = d.progression.achievements.map(function (id) {
+      return id === 'ach_endurance_30min' ? 'ach_playtime_30min' : id === 'ach_endurance_1hr' ? 'ach_playtime_1hr' : id;
+    }).filter(function (id, i, arr) { return arr.indexOf(id) === i; });
     if (!Array.isArray(d.progression.ownedItems)) d.progression.ownedItems = [];
     if (!Array.isArray(d.cards.disabledCardIds)) d.cards.disabledCardIds = [];
     if (!Array.isArray(d.cards.cardReports)) d.cards.cardReports = [];
@@ -1127,6 +1138,16 @@ class Storage {
     }
     this.save();
     return true;
+  }
+
+  /** Call after a successful purchase: returns any badges it earned (first purchase, collection sizes). */
+  afterPurchase() {
+    return this.checkAchievements({ purchased: true });
+  }
+
+  /** Call after a custom card is created: returns any badges it earned. */
+  afterCustomCardCreated() {
+    return this.checkAchievements({ customCardCreated: true });
   }
 
   equipItem(itemId, slot) {
@@ -1645,90 +1666,79 @@ class Storage {
   _evaluateAchievements(runData) {
     var newlyUnlocked = [];
     var p = this.data.progression;
-
-    // Helper
     var self = this;
-    function tryUnlock(achId) {
-      if (self.unlockAchievement(achId)) {
-        newlyUnlocked.push(achId);
+    var A = ACHIEVEMENT_IDS;
+
+    // Every id is read from ACHIEVEMENT_IDS (no string fallbacks: a misspelt name must fail loudly in the
+    // achievements test rather than quietly award nothing).
+    function award(key, earned) {
+      if (earned && self.unlockAchievement(A[key])) newlyUnlocked.push(A[key]);
+    }
+
+    // Lifetime totals
+    award('FIRST_RUN', p.totalEncounters >= 1);
+    award('ENCOUNTERS_100', p.totalEncounters >= 100);
+    award('ENCOUNTERS_500', p.totalEncounters >= 500);
+    award('ENCOUNTERS_1000', p.totalEncounters >= 1000);
+    award('STUDIED_500', p.totalCardsStudied >= 500);
+    award('STUDIED_1000', p.totalCardsStudied >= 1000);
+    award('DAILY_3', p.dailyStreak >= 3);
+    award('DAILY_7', p.dailyStreak >= 7);
+    award('DAILY_30', p.dailyStreak >= 30);
+    award('STREAK_10', p.bestStreak >= 10);
+    award('STREAK_25', p.bestStreak >= 25);
+    award('STREAK_50', p.bestStreak >= 50);
+    award('STREAK_100', p.bestStreak >= 100);
+    award('COINS_500', p.totalCoinsEarned >= 500);
+    award('COINS_5000', p.totalCoinsEarned >= 5000);
+    award('MP_FIRST', p.multiplayerGamesPlayed >= 1);
+    award('MP_WIN', p.multiplayerWins >= 1);
+    award('MP_WIN_5', p.multiplayerWins >= 5);
+    award('PLAYTIME_30MIN', p.totalPlayTimeMs >= 1800000);
+    award('PLAYTIME_1HR', p.totalPlayTimeMs >= 3600000);
+    award('PERFECT_10', p.perfectRuns >= 10);
+    award('PERFECT_50', p.perfectRuns >= 50);
+    award('COLLECT_10', p.ownedItems.length >= 10);
+    award('COLLECT_25', p.ownedItems.length >= 25);
+    award('COLLECT_50', p.ownedItems.length >= 50);
+    award('FLASHCARD_FIRST', (p.flashcardSessions || 0) >= 1);
+    award('FLASHCARD_10', (p.flashcardSessions || 0) >= 10);
+    award('FAST_500MS', p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 500);
+    award('FAST_300MS', p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 300);
+
+    // Subject mastery: 50+ answers and 80%+ correct in a subject
+    var ss = this.data.cards.subjectStats || {};
+    var touched = 0;
+    var mastered = 0;
+    Object.keys(ss).forEach(function (subj) {
+      var total = (ss[subj].correct || 0) + (ss[subj].wrong || 0);
+      if (total > 0) touched++;
+      if (total >= 50 && ss[subj].correct / total >= 0.8) {
+        mastered++;
+        if (SUBJECT_MASTERY_KEYS[subj]) award(SUBJECT_MASTERY_KEYS[subj], true);
       }
-    }
+    });
+    award('ALL_SUBJECTS', touched >= 15);
+    award('MASTER_1_SUBJECT', mastered >= 1);
+    award('MASTER_5_SUBJECTS', mastered >= 5);
+    award('MASTER_10_SUBJECTS', mastered >= 10);
+    award('MASTER_ALL_SUBJECTS', mastered >= 15);
 
-    // Use ACHIEVEMENT_IDS if available, fall back to string literals
-    var A = ACHIEVEMENT_IDS || {};
-
-    // Total encounters
-    if (p.totalEncounters >= 1) tryUnlock(A.FIRST_RUN || 'ach_first_run');
-    if (p.totalEncounters >= 100) tryUnlock(A.ENCOUNTERS_100 || 'ach_encounters_100');
-    if (p.totalEncounters >= 500) tryUnlock(A.ENCOUNTERS_500 || 'ach_encounters_500');
-    if (p.totalEncounters >= 1000) tryUnlock(A.ENCOUNTERS_1000 || 'ach_encounters_1000');
-
-    // Daily streak
-    if (p.dailyStreak >= 3) tryUnlock(A.DAILY_3 || 'ach_daily_3');
-    if (p.dailyStreak >= 7) tryUnlock(A.DAILY_7 || 'ach_daily_7');
-    if (p.dailyStreak >= 30) tryUnlock(A.DAILY_30 || 'ach_daily_30');
-
-    // Best streak
-    if (p.bestStreak >= 10) tryUnlock(A.STREAK_10 || 'ach_streak_10');
-    if (p.bestStreak >= 25) tryUnlock(A.STREAK_25 || 'ach_streak_25');
-    if (p.bestStreak >= 50) tryUnlock(A.STREAK_50 || 'ach_streak_50');
-    if (p.bestStreak >= 100) tryUnlock(A.STREAK_100 || 'ach_streak_100');
-
-    // Coins
-    if (p.totalCoinsEarned >= 500) tryUnlock(A.COINS_500 || 'ach_coins_500');
-    if (p.totalCoinsEarned >= 5000) tryUnlock(A.COINS_5000 || 'ach_coins_5000');
-
-    // Multiplayer
-    if (p.multiplayerGamesPlayed >= 1) tryUnlock(A.MP_FIRST || 'ach_mp_first');
-    if (p.multiplayerWins >= 1) tryUnlock(A.MP_WIN || 'ach_mp_win');
-    if (p.multiplayerWins >= 5) tryUnlock(A.MP_WIN5 || 'ach_mp_win5');
-
-    // Play time
-    if (p.totalPlayTimeMs >= 1800000) tryUnlock(A.ENDURANCE_30MIN || 'ach_endurance_30min');
-    if (p.totalPlayTimeMs >= 3600000) tryUnlock(A.ENDURANCE_1HR || 'ach_endurance_1hr');
-
-    // Perfect runs
-    if (p.perfectRuns >= 10) tryUnlock(A.PERFECT_10 || 'ach_perfect_10');
-    if (p.perfectRuns >= 50) tryUnlock(A.PERFECT_50 || 'ach_perfect_50');
-
-    // Collection
-    if (p.ownedItems.length >= 10) tryUnlock(A.COLLECT_10 || 'ach_collect_10');
-    if (p.ownedItems.length >= 25) tryUnlock(A.COLLECT_25 || 'ach_collect_25');
-
-    // Speed achievements
-    if (p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 500) tryUnlock(A.FAST_500MS || 'ach_fast_500ms');
-    if (p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 300) tryUnlock(A.FAST_300MS || 'ach_fast_300ms');
-
-    // Subject mastery: 50+ answers, 80%+ accuracy
-    var ss = this.data.cards.subjectStats;
-    var subjectCount = 0;
-    for (var subjKey in ss) {
-      if (!Object.prototype.hasOwnProperty.call(ss, subjKey)) continue;
-      var subjStat = ss[subjKey];
-      var subjTotal = subjStat.correct + subjStat.wrong;
-      if (subjTotal > 0) subjectCount++;
-    }
-
-    if (subjectCount >= 15) tryUnlock(A.ALL_SUBJECTS || 'ach_all_subjects');
+    // Things that happen at one moment (a purchase, a new custom card)
+    if (runData && runData.purchased) award('BUY_FIRST', true);
+    if (runData && runData.customCardCreated) award('CUSTOM_CARD', true);
 
     // Run-specific checks
-    if (runData) {
-      if ((runData.score || 0) >= 1000) tryUnlock(A.SCORE_1000 || 'ach_score_1000');
-      if ((runData.score || 0) >= 5000) tryUnlock(A.SCORE_5000 || 'ach_score_5000');
-      if ((runData.score || 0) >= 10000) tryUnlock(A.SCORE_10000 || 'ach_score_10000');
-
-      if (runData.completed && runData.correct > 0 && runData.wrong === 0) {
-        tryUnlock(A.PERFECT_RUN || 'ach_perfect_run');
-      }
-
-      if (runData.correct >= 20 && runData.wrong === 0) {
-        tryUnlock(A.GOLDEN_DOCTOR || 'ach_golden_doctor');
-      }
-
-      // Speed achievements from run data
+    if (runData && runData.score !== undefined) {
+      award('SCORE_1000', (runData.score || 0) >= 1000);
+      award('SCORE_5000', (runData.score || 0) >= 5000);
+      award('SCORE_10000', (runData.score || 0) >= 10000);
+      award('PERFECT_RUN', !!runData.completed && runData.correct > 0 && runData.wrong === 0);
+      award('GOLDEN_DOCTOR', runData.correct >= 20 && runData.wrong === 0);
+      award('SPEED_MAX', !!runData.completed && (runData.userSpeed || 0) >= 10);
       if (runData.fastestDecisionMs != null) {
-        if (runData.fastestDecisionMs <= 500) tryUnlock(A.FAST_500MS || 'ach_fast_500ms');
-        if (runData.fastestDecisionMs <= 300) tryUnlock(A.FAST_300MS || 'ach_fast_300ms');
+        award('FAST_500MS', runData.fastestDecisionMs <= 500);
+        award('FAST_300MS', runData.fastestDecisionMs <= 300);
       }
     }
 

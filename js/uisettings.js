@@ -630,6 +630,8 @@ export var settingsMethods = {
           buyBtn.addEventListener('click', function () {
             if (storage.buyItem(item.id, item.price)) {
               audio.play('buy');
+              var earned = storage.afterPurchase();
+              if (earned.length) self.showAchievementNotification(earned);
               self.renderShop();
               if (self.characterPreview) {
                 self.characterPreview.clearPreview();

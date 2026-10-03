@@ -48,9 +48,8 @@ describe('the ask on the results screen', () => {
     deps.signedIn = true;
     expect(attachPromptCard(deps)).toBe('share');
     container.querySelector('.btn-gold').click();
-    await Promise.resolve(); await Promise.resolve();
+    await vi.waitFor(() => expect(deps.toast).toHaveBeenCalledWith(expect.stringMatching(/copied/i)));
     expect(navigator.clipboard.writeText).toHaveBeenCalled();
-    expect(deps.toast).toHaveBeenCalledWith(expect.stringMatching(/copied/i));
   });
 });
 

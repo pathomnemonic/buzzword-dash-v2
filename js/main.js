@@ -1109,6 +1109,13 @@ function init() {
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();
+  // Badges added or fixed in an update are awarded to anyone who already qualifies, shown a little after launch
+  setTimeout(function () {
+    try {
+      var late = storage.checkAchievements(null);
+      if (late.length) ui.showAchievementNotification(late);
+    } catch (e) { reportError(e, { system: 'achievements', operation: 'catchUp', recoverable: true }); }
+  }, 4000);
   storage.checkDailyReset();
   // Colors follow the time of day and the season (Settings -> Colors can turn that off)
   refreshTheme();

@@ -1710,7 +1710,10 @@ class UI {
       });
       return;
     }
-    if (!editId) storage.unlockAchievement('ach_custom_card');
+    if (!editId) {
+      var earned = storage.afterCustomCardCreated();
+      if (earned.length) this.showAchievementNotification(earned);
+    }
     if (result.warnings && result.warnings.length > 0) {
       this._showToast('Saved with ' + result.warnings.length + ' warning(s): ' + (result.warnings[0].message || ''));
     }
