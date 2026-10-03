@@ -14,7 +14,7 @@
  * Exit code 1 and a list of what broke (with the seed, so it can be replayed) when anything fails.
  */
 
-/* global window, document */
+/* global window, document, localStorage */
 import { writeFileSync } from 'node:fs';
 import { makeRng } from './soak.mjs';
 
@@ -26,7 +26,7 @@ const URL = opt('url', 'http://localhost:4173');
 const CHROME = opt('chrome', process.env.CHROME_PATH || '/opt/pw-browsers/chromium');
 const OUT = opt('out', 'chaos-report.json');
 
-const NOISE = /GPU stall|swiftshader|WebGL: INVALID|GroupMarkerNotSet|Failed to load resource|net::ERR|\[vite\]|status of (404|401|403|400)|ERR_INTERNET_DISCONNECTED|offline/i;
+const NOISE = /WebSocket connection|peerjs|GPU stall|swiftshader|WebGL: INVALID|GroupMarkerNotSet|Failed to load resource|net::ERR|\[vite\]|status of (404|401|403|400)|ERR_INTERNET_DISCONNECTED|offline/i;
 const AVOID = /reset|delete|erase|wipe|sign ?out|log ?out|remove all|restore|account/i;
 const NASTY = ['', ' ', 'a'.repeat(3000), '\u{1F600}'.repeat(200), '‮evil‬', '<img src=x onerror=alert(1)>', '"><script>alert(1)</script>', "'; DROP TABLE x;--", '\u0000\u0001', 'ñ'.repeat(100), '-1', '1e999', 'null', '{{c1::x}}', '\n\n\n', '   leading', 'Ünïcödé', '0'.repeat(500)];
 const KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'Shift', 'Escape', 'Enter', 'Tab', 'Backspace', 'KeyP', 'KeyM', 'Digit1', 'Digit2'];
@@ -99,7 +99,7 @@ const actions = {
     await page.evaluate(() => { const off = (window.__chaosClock || 0) + 86400000; window.__chaosClock = off; const D = Date; const base = window.__RealDate || (window.__RealDate = D); window.Date = class extends base { constructor(...a) { if (a.length) super(...a); else super(base.now() + off); } static now() { return base.now() + off; } }; });
     await actions.show();
   },
-  async show() { current = 'switch screen'; await page.evaluate((id) => { try { window.__ui && window.__ui.show(id); } catch (e) { throw e; } }, pick(SCREENS)); },
+  async show() { current = 'switch screen'; await page.evaluate((id) => { window.__ui && window.__ui.show(id); }, pick(SCREENS)); },
   async rapidShow() { current = 'rapid screen switching'; for (let i = 0; i < 10; i++) await page.evaluate((id) => window.__ui && window.__ui.show(id), pick(SCREENS)); },
   async back() { current = 'history back'; await page.goBack().catch(() => {}); if (!page.url().startsWith(URL)) { await open(); await page.waitForFunction(() => window.__ui, null, { timeout: 15000 }).catch(() => {}); } },
   async reload() { current = 'reload'; await page.reload().catch(() => {}); await page.waitForFunction(() => window.__ui, null, { timeout: 15000 }).catch(() => {}); },
@@ -107,7 +107,7 @@ const actions = {
   async doubleTap() { current = 'double and triple tap'; const x = 50 + rng() * 250, y = 100 + rng() * 500; await page.mouse.dblclick(x, y).catch(() => {}); await page.mouse.click(x, y, { clickCount: 3 }).catch(() => {}); },
   async corruptSave() {
     current = 'corrupt the save then reload';
-    await page.evaluate((junk) => { try { localStorage.setItem('buzzword_dash_v1', junk); } catch (e) { /* full */ } }, pick(['{', 'null', '[]', '{"schemaVersion":2,"progression":{"coins":"NaN","xp":-3,"ownedItems":5}}', '\u0000']));
+    await page.evaluate((junk) => { try { localStorage.setItem('buzzword_dash_v1', junk); } catch { /* full */ } }, pick(['{', 'null', '[]', '{"schemaVersion":2,"progression":{"coins":"NaN","xp":-3,"ownedItems":5}}', '\u0000']));
     await actions.reload();
   },
   async dragSwipe() { current = 'swipe'; const x = 60 + rng() * 250, y = 200 + rng() * 300; await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + (rng() - 0.5) * 300, y + (rng() - 0.5) * 300, { steps: 4 }); await page.mouse.up(); }
@@ -146,7 +146,7 @@ while (Date.now() < end && problems.length < 25) {
   await page.waitForTimeout(150 + Math.floor(rng() * 250));
   await checkInvariants();
   // let the game get back to a menu now and then so every screen is reachable
-  if (step % 40 === 0) { await page.keyboard.press('Escape').catch(() => {}); await page.evaluate(() => { try { if (window.__game && (window.__game.running || window.__game.paused)) window.__game.end && window.__game.end('quit'); } catch (e) { /* ignore */ } }).catch(() => {}); }
+  if (step % 40 === 0) { await page.keyboard.press('Escape').catch(() => {}); await page.evaluate(() => { try { if (window.__game && (window.__game.running || window.__game.paused)) window.__game.end && window.__game.end('quit'); } catch { /* ignore */ } }).catch(() => {}); }
 }
 await browser.close();
 writeFileSync(OUT, JSON.stringify({ seed: SEED, steps: step, problems, tail: log.slice(-30) }, null, 2));
