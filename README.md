@@ -443,3 +443,10 @@ Android build):
 | `VITE_SUPPORT_EMAIL` | where feedback emails go when the server cannot be reached |
 | `VITE_APPSTORE_ID` | the numeric App Store id, so Rate can open the App Store page (the in-app rating sheet works without it) |
 | `VITE_REVIEW_URL` | an `https` page to rate on, as a last back-up (and the only option on the plain web) |
+
+
+## Coins: what you earn and what things cost
+
+Earning (about 50 coins for each minute on the track): a right answer pays 2 coins plus 1 for every 3 in your streak, and each coin picked up on the track is 1 (5 under Score Frenzy). Daily quests are a bonus on top: 20 to 70 coins each, so a full day of six is worth roughly 150 to 350 coins, a few minutes of play. The daily login reward, weekly goal (250) and Weekly Gauntlet clear (150) are small thank-yous. Prices run from 300 (caps) to 8,000 (the dearest heroes), so a first trail or map is a few days of casual play and the dearest items about a week. `tests/unit/economy.test.js` keeps these in proportion: change a price or a reward and it tells you if the balance has drifted.
+
+The soft glowing specks that float across the track are off by default (Settings > Look > Floating glow particles).
