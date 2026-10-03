@@ -154,12 +154,12 @@ describe('Locker tabs', () => {
     expect(document.getElementById('shopItems').textContent).toMatch(/Vehicles cannot wear anything/);
   });
 
-  it('three even tabs on one line: Heroes, Trails and Monsters (the colors belong to the hero, not a tab of their own)', () => {
+  it('four even tabs on one line: Heroes, Trails, Maps and Monsters (the colors belong to the hero, not a tab of their own)', () => {
     storage.data.progression.equipped.skin = 'avatar_intern';
     ui._heroColorsOpen = false;
     ui.renderShop();
     const tabs = [...document.querySelectorAll('#shopItems [role="tab"]')].map((b) => b.textContent.trim());
-    expect(tabs).toEqual(['🦸 Heroes', '✨ Trails', '👾 Monsters']);
+    expect(tabs).toEqual(['🦸 Heroes', '✨ Trails', '🗺️ Maps', '👾 Monsters']);
     expect(document.querySelector('#shopItems .locker-tabs')).not.toBeNull();
     expect(tabs.join('|')).not.toMatch(/Customize/);
     // the hero card carries the colors toggle
