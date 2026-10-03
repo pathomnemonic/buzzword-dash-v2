@@ -148,3 +148,13 @@ describe('a different set of quests every day', () => {
     expect(Object.keys(storage.get('questCompletionDates'))).toEqual([]);
   });
 });
+
+describe('every quest has somewhere to go', () => {
+  it('maps quests to a run mode or flashcards', async () => {
+    const { questGoTarget } = await import('../../js/game/shopdata.js');
+    const targets = new Set(QUESTS.map(questGoTarget));
+    ['endless', 'study', 'weakness', 'daily', 'tournament', 'challenge', 'flashcards'].forEach((t) => expect(targets.has(t), t).toBe(true));
+    expect(questGoTarget(QUESTS.find((q) => q.id === 'q_flash10'))).toBe('flashcards');
+    expect(questGoTarget(QUESTS.find((q) => q.id === 'q_modegauntlet'))).toBe('tournament');
+  });
+});

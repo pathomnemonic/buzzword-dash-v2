@@ -1415,6 +1415,13 @@ function init() {
     });
   }
 
+  // The "Go" button on a quest
+  document.addEventListener('dx:start-quest', function (e) {
+    var target = e.detail && e.detail.target;
+    if (target === 'flashcards') { ui.show('screenHome'); ui.startFlashcardSession(); return; }
+    if (target) { ui.show('screenHome'); startMode(target); }
+  });
+
   // Secondary mode buttons
   document.querySelectorAll('.mode-btn[data-mode], .sheet-entry[data-mode]').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -1643,11 +1650,6 @@ function init() {
   document.addEventListener('touchmove', function (e) {
     if (game.running) e.preventDefault();
   }, { passive: false });
-
-  // ==========================
-  //  RETROACTIVE ACHIEVEMENT CHECK
-  // ==========================
-  storage.checkAchievements(null);
 
   // Challenge links and the Challenge button
   handleChallengeLink();

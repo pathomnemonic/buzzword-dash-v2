@@ -833,3 +833,18 @@ export function questIdsForDate(dateKey) {
   }
   return _questDayCache[dateKey].slice();
 }
+
+var QUEST_GO_BY_ID = {};
+QUEST_GO_BY_ID[QUEST_IDS.MODE_STUDY] = 'study';
+QUEST_GO_BY_ID[QUEST_IDS.MODE_WEAKNESS] = 'weakness';
+QUEST_GO_BY_ID[QUEST_IDS.MODE_ENDLESS] = 'endless';
+QUEST_GO_BY_ID[QUEST_IDS.MODE_GAUNTLET] = 'tournament';
+QUEST_GO_BY_ID[QUEST_IDS.MODE_CHALLENGE] = 'challenge';
+QUEST_GO_BY_ID[QUEST_IDS.DAILY] = 'daily';
+
+/** Where the "Go" button on a quest takes the player: a run mode, or 'flashcards'. */
+export function questGoTarget(quest) {
+  if (QUEST_GO_BY_ID[quest.id]) return QUEST_GO_BY_ID[quest.id];
+  if (/^flashcard/.test(quest.metric)) return 'flashcards';
+  return 'endless';
+}

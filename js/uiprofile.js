@@ -11,7 +11,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
-import { ACHIEVEMENTS } from './game/shopdata.js';
+import { ACHIEVEMENTS, questGoTarget } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
 export var profileMethods = {
@@ -319,6 +319,16 @@ export var profileMethods = {
 
       var rewardEl = createElement('div', { className: 'quest-reward', text: progress + '/' + q.target + ' — 🪙 ' + q.reward });
       questEl.appendChild(rewardEl);
+
+      // A way in: start the kind of run this quest needs
+      if (!isComplete) {
+        var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Go \u203A', attributes: { type: 'button', 'aria-label': 'Start: ' + q.title } });
+        goBtn.style.marginTop = '4px';
+        goBtn.addEventListener('click', function () {
+          document.dispatchEvent(new CustomEvent('dx:start-quest', { detail: { target: questGoTarget(q) } }));
+        });
+        questEl.appendChild(goBtn);
+      }
 
       // Quest claiming button (Section 14.6) [2]
       if (isComplete) {

@@ -55,3 +55,41 @@ describe('constant tables are only used with members that exist', () => {
     expect(problems).toEqual([]);
   });
 });
+
+describe('sounds and screens that the code asks for exist', () => {
+  it('every audio.play("name") has a sound defined for it', () => {
+    const audioSrc = sources['js/audio.js'];
+    const defined = new Set([...audioSrc.matchAll(/case '([a-z_0-9]+)':/g)].map((m) => m[1]));
+    const asked = new Map();
+    for (const [file, src] of Object.entries(sources)) {
+      for (const m of src.matchAll(/audio\.play\('([a-zA-Z_0-9]+)'/g)) asked.set(m[1], file);
+    }
+    const missing = [...asked].filter(([n]) => !defined.has(n)).map(([n, f]) => n + ' (' + f + ')');
+    expect(missing).toEqual([]);
+  });
+
+  it('every screen id passed to show() exists in index.html', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+    const missing = [];
+    for (const [file, src] of Object.entries(sources)) {
+      for (const m of src.matchAll(/\.show\('(screen[A-Za-z]+)'\)/g)) if (!ids.has(m[1])) missing.push(m[1] + ' (' + file + ')');
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('every data-screen tab points at a real screen', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+    const tabs = [...html.matchAll(/data-screen="([^"]+)"/g)].map((m) => m[1]);
+    expect(tabs.filter((t) => !ids.has(t))).toEqual([]);
+  });
+
+  it('every #id the tour points at exists on the page (or is built by the app)', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const all = Object.values(sources).join('\n') + html;
+    const tour = sources['js/tourdata.js'];
+    const missing = [...tour.matchAll(/target: '#([A-Za-z0-9_-]+)/g)].map((m) => m[1]).filter((id) => !new RegExp("id=\"" + id + "\"|id: '" + id + "'|id:'" + id + "'|'id', '" + id + "'|\\.id = '" + id + "'").test(all));
+    expect(missing).toEqual([]);
+  });
+});
