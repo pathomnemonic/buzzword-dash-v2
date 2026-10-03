@@ -15,6 +15,8 @@ export async function openApp(page, path = '/') {
   }
   await page.locator('#tutorialOverlay').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   await dismissDailyReward(page);
+  // (the one-time pointer at the review section on the first results screen would otherwise cover it)
+  if (!/noReviewTipSkip/.test(path)) await page.evaluate(() => { try { if (window.__storage) window.__storage.set('reviewTipSeen', true); } catch (e) { /* not a debug page */ } });
 }
 
 /** Close the tutorial the way a player does: the × in the corner, then "Exit tutorial" on the warning. */

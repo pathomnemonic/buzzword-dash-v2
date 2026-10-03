@@ -33,6 +33,7 @@ import { uniqueByAnswer } from './cardleaks.js';
 import { reportError, showUserError, installGlobalErrorHandlers, setDiagnosticsSink } from './errors.js';
 import { registerServiceWorker } from './swregister.js';
 import { isTutorialOpen, requestCloseTutorial } from './tutorial.js';
+import { startTour } from './tour.js';
 import { startGameTutorial, isGameTutorialOpen, requestCloseGameTutorial, TUTORIAL_CARD_IDS } from './tutorialrun.js';
 import { mountProfileCorner, renderAccountSection } from './profilecorner.js';
 import { attachPromptCard, attachAccountBanner } from './promptui.js';
@@ -606,6 +607,20 @@ function startNewChallenge() {
  * A rare, polite tip note after a good run (never during a run or exam).
  * It appears at most once a week and can be turned off for good.
  */
+/** The first results screen a player sees points out the review: that is where missed cards are explained. */
+function attachReviewTip() {
+  if (storage.get('reviewTipSeen') || game._tutorial || game.correct + game.wrong === 0) return;
+  storage.set('reviewTipSeen', true);
+  setTimeout(function () {
+    var target = function () { return document.querySelector('#postRunContent .post-review'); };
+    if (!document.getElementById('screenPostRun') || !document.getElementById('screenPostRun').classList.contains('active')) return;
+    startTour({
+      steps: [{ id: 'review', title: 'Learn from every miss', target: target, press: 'next',
+        text: 'Tap Missed to see each question you got wrong, the right answer and why. Tap Correct to revisit the ones you got right. Review is where the learning happens.' }]
+    });
+  }, 2200);
+}
+
 function attachTipPrompt() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
@@ -1131,6 +1146,11 @@ function init() {
   document.addEventListener('dx:theme-changed', refreshTheme);
   document.addEventListener('dx:home-shown', maybeRerollTheme);
   // Dash: double-tap, an on-screen button, or off (Settings -> Look -> Dash control)
+  var autoBtn = document.getElementById('autoBtn');
+  if (autoBtn) {
+    autoBtn.addEventListener('pointerdown', function (e) { e.preventDefault(); game.useAutoPilot(); });
+    autoBtn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); game.useAutoPilot(); } });
+  }
   var dashBtn = document.getElementById('dashBtn');
   function applyDashControl() { if (dashBtn) dashBtn.hidden = getDashControl() !== 'button'; }
   if (dashBtn) {
@@ -1256,7 +1276,7 @@ function init() {
 
   game.onEncounterResolve = function (card, wasCorrect, choice) {
     audio.cancelSpeech(); // the question is over
-    ui.showFeedback(card, wasCorrect, choice);
+    ui.showFeedback(card, wasCorrect, choice, game.mode === 'study' || !!game._tutorial);
     ui.flashScreen(wasCorrect);
     if (game.mode === 'study' && wasCorrect && !game._tutorial) {
       ui.showStudyTeaching(card);
@@ -1304,6 +1324,7 @@ function init() {
     audio.setMusicIntensity(0.5, 0);
     attachShareImage();
     attachTipPrompt();
+    attachReviewTip();
     if (game.mode === 'challenge') attachChallengeResult(game.score);
     if (game.mode === 'tournament') attachGauntletResult();
 

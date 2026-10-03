@@ -45,7 +45,7 @@ async function measure(page) {
       outOfView: everything.filter((r) => r.left < -1 || r.right > vw + 1).length,
       blocks,
       stats: group('.post-stat'),
-      actions: { items: buttonRows },
+      actions: { items: buttonRows, row: box(root.querySelector('.post-actions')) },
       secondary
     };
   });
@@ -77,10 +77,10 @@ test.describe('Results page symmetry', () => {
         expect(Math.max(...w) - Math.min(...w), 'stat tiles are the same width').toBeLessThanOrEqual(1.5);
         expect(Math.abs(m.stats.first.left - m.stats.last.right), 'stat row mirrors').toBeLessThanOrEqual(2);
 
-        // Again / Home share the row evenly and mirror each other
+        // Play again is the big button; Home (and Filters, left of it) are small, and the row is even across the screen
         const [again, home] = m.actions.items;
-        expect(Math.abs(again.width - home.width)).toBeLessThanOrEqual(1.5);
-        expect(Math.abs(again.left - home.right)).toBeLessThanOrEqual(2);
+        expect(again.width, 'Play again is bigger than Home').toBeGreaterThan(home.width * 1.6);
+        expect(Math.abs(m.actions.row.left - m.actions.row.right), 'the action row is centered').toBeLessThanOrEqual(2);
 
         // the secondary buttons: an odd one out spans the row instead of hugging one side
         if (m.secondary.length % 2 === 1) {

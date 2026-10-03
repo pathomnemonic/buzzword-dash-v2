@@ -1397,14 +1397,41 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* ---------- on-screen Dash button (Settings -> Look -> Dash control) ---------- */
 .dash-btn {
   position: fixed; right: calc(var(--safe-right) + 14px); bottom: calc(var(--safe-bottom) + 28px); z-index: 6;
-  width: 76px; height: 76px; border-radius: 50%; pointer-events: all; touch-action: manipulation; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
-  font-size: 28px; line-height: 1; color: var(--ink); font-family: var(--font-display);
-  background: radial-gradient(circle at 35% 28%, #fff3a0, #ffd23f 45%, #f59e0b); border: 4px solid var(--ink); box-shadow: 0 6px 0 var(--ink);
+  width: 78px; height: 78px; border-radius: 50%; pointer-events: all; touch-action: manipulation; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; overflow: hidden;
+  color: #fff; font-family: var(--font-display);
+  background: conic-gradient(from 210deg, #ff3d81, #ffb02e, #ffe14d, #ff7a1a, #ff3d81);
+  border: 4px solid var(--ink);
+  box-shadow: 0 6px 0 var(--ink), 0 0 0 3px rgba(255, 225, 77, .55), 0 0 22px rgba(255, 140, 40, .75);
+  animation: dashPulse 1.6s ease-in-out infinite;
 }
+.dash-btn::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #5b2bd9, #2a0f6b 70%); z-index: 0; }
+.dash-btn > * { position: relative; z-index: 1; }
 .dash-btn[hidden] { display: none; }
-.dash-btn span { font-size: 11px; font-weight: 900; letter-spacing: .5px; }
-.dash-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
+.dash-ic { width: 34px; height: 34px; fill: #ffe14d; stroke: #fff; stroke-width: 1.5; stroke-linejoin: round; filter: drop-shadow(0 0 5px #ffb02e); }
+.dash-btn span { font-size: 10px; font-weight: 900; letter-spacing: 1.5px; color: #fff; text-shadow: 0 1px 0 var(--ink), 0 0 6px rgba(255, 140, 40, .9); }
+.dash-btn:active { transform: translateY(4px) scale(.97); box-shadow: 0 2px 0 var(--ink), 0 0 12px rgba(255, 140, 40, .8); animation: none; }
+@keyframes dashPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+@media (prefers-reduced-motion: reduce) { .dash-btn { animation: none; } }
+/* The Auto-Pilot in hand: a button just above Dash (or where Dash would be when the double tap is on) */
+.auto-btn {
+  position: fixed; right: calc(var(--safe-right) + 18px); bottom: calc(var(--safe-bottom) + 28px); z-index: 6;
+  width: 70px; height: 70px; border-radius: 50%; pointer-events: all; touch-action: manipulation; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 0;
+  font-family: var(--font-display); color: #fff;
+  background: radial-gradient(circle at 35% 28%, #6bffb0, #00c860 55%, #007a44);
+  border: 4px solid var(--ink); box-shadow: 0 6px 0 var(--ink), 0 0 20px rgba(0, 238, 102, .7);
+  animation: autoReady 1.2s ease-in-out infinite;
+}
+.auto-btn[hidden] { display: none; }
+.auto-btn .auto-ic { font-size: 26px; line-height: 1; }
+.auto-btn .auto-lbl { font-size: 10px; font-weight: 900; letter-spacing: 1.5px; text-shadow: 0 1px 0 var(--ink); }
+.auto-btn:active { transform: translateY(4px) scale(.97); box-shadow: 0 2px 0 var(--ink); animation: none; }
+.auto-btn:disabled { filter: grayscale(.8) brightness(.8); animation: none; box-shadow: 0 4px 0 var(--ink); }
+.dash-btn:not([hidden]) ~ .auto-btn { bottom: calc(var(--safe-bottom) + 28px + 78px + 14px); }
+@keyframes autoReady { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@media (prefers-reduced-motion: reduce) { .auto-btn { animation: none; } }
+#hud.off .auto-btn { pointer-events: none; }
 #hud.off .dash-btn { pointer-events: none; }
 .tut-dash { position: absolute; right: 8px; bottom: 8px; z-index: 3; padding: 8px 14px; border-radius: 999px; border: 3px solid var(--ink); background: linear-gradient(180deg, #fff3a0, #f59e0b); color: var(--ink); font-weight: 900; box-shadow: 0 3px 0 var(--ink); cursor: pointer; touch-action: manipulation; }
 
@@ -1637,7 +1664,10 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .post-review-list .review-card { margin: 0 0 6px; }
 .post-review-empty { text-align: center; padding: 22px 10px; font-weight: 800; color: var(--text-secondary); }
 
-.post-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.post-actions { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.post-actions.no-filters { grid-template-columns: minmax(0, 1fr) auto; }
+.post-actions .post-again { font-size: 17px; letter-spacing: .5px; }
+.post-actions .post-small-btn { width: auto; font-size: 10px; letter-spacing: 0; white-space: nowrap; flex-direction: row; gap: 3px; padding-left: 4px; padding-right: 4px; opacity: .85; }
 .post-actions .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
 #postRunContent .post-secondary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
 #postRunContent .post-secondary > * { grid-column: auto !important; }
@@ -1660,4 +1690,10 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .post-review-list .review-card p { font-size: 11px; margin: 3px 0 0; }
 .post-review-list .review-card .btn { padding: 3px 8px; font-size: 10px; margin-top: 4px; width: auto; }
 .post-actions .btn { padding-top: 7px; padding-bottom: 7px; }
+.post-actions .post-again { padding-top: 11px; padding-bottom: 11px; }
+.post-actions .post-small-btn { padding-top: 5px; padding-bottom: 5px; padding-left: 9px; padding-right: 9px; width: auto; }
+.post-review-list .review-card { position: relative; }
+.review-flag { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: transparent; font-size: 12px; line-height: 22px; opacity: .55; cursor: pointer; }
+.review-flag:hover, .review-flag:focus-visible { opacity: 1; background: rgba(255,255,255,.12); }
+.post-review-list .review-card h4 { padding-right: 22px; }
 #postRunContent .post-secondary .btn { padding: 5px 6px; font-size: 11px; }

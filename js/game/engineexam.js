@@ -54,7 +54,7 @@ export var examMonsterMethods = {
 
   /**
    * The look-back opening: while the camera is in front of the runner the monster is seen behind them,
-   * then it drops back past the camera and fades out as the camera swings round, so by the time the run
+   * then it charges in at them and fades out as the camera swings round, so by the time the run
    * starts it is out of the field of view. Every other start keeps the monster hidden.
    */
   _updateIntroMonster() {
@@ -71,7 +71,11 @@ export var examMonsterMethods = {
     var ground = model && !m.userData.flying;
     var s = 0.9 * (m.userData.displayScale || 1);
     m.visible = alpha > 0.01;
-    m.position.set(0, ground ? 0 : 1.8 + Math.sin(t * 2) * 0.15, 7 + leave * 9);
+    // It charges at the runner: it starts well behind them, closes in while the camera holds on it, and keeps
+    // coming (fading out) as the camera swings round to the chase view.
+    var charge = Math.min(1, Math.max(0, t / LOOKBACK_HOLD));
+    var z = 18 - charge * 11 - leave * 3.5;
+    m.position.set(0, ground ? 0 : 1.8 + Math.sin(t * 2) * 0.15, z);
     m.rotation.set(0, Math.PI, 0); // facing the runner
     m.scale.set(s, s, s);
     if (model) updateModelAnimation(m, 1 / 60, ground ? 'run' : 'idle');

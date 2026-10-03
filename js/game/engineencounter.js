@@ -10,7 +10,6 @@ import { getNextSkin } from './skins.js';
 import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } from './gates.js';
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
-import { missExplanation, readSeconds } from '../explain.js';
 import { chooseCommittedLane } from './lanelock.js';
 import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, LANE_X, removeAndDispose } from './enginedefs.js';
 
@@ -385,7 +384,7 @@ card = pickResult ? pickResult.card : null;
       this.waitingForNext = true;
       this.nextEncounterTimer = ok ? 1.5 : 3.5;
     } else if (!ok) {
-      this.teachTimer = readSeconds(missExplanation(card, gate.label), 2.0);
+      this.teachTimer = 0; // no explanation on screen mid-run: the end-of-run review has it
       this.waitingForNext = true;
       this.nextEncounterTimer = 1.0;
     } else {

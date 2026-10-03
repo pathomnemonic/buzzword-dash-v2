@@ -1102,6 +1102,13 @@ class UI {
       document.getElementById('ans' + i).classList.toggle('active', i === game.currentLane);
     }
 
+    var autoBtn = document.getElementById('autoBtn');
+    if (autoBtn) {
+      var showAuto = !!game.autoPilotHeld;
+      autoBtn.hidden = !showAuto;
+      autoBtn.disabled = !(game.gatesActive && !game.answerLocked);
+    }
+
     var puRow = document.getElementById('powerupRow');
     clearElement(puRow);
     if (game.powerups.shield > 0) puRow.appendChild(createElement('div', { className: 'powerup-tag', text: '🛡️ Shield' }));
@@ -1148,11 +1155,14 @@ class UI {
     }
   }
 
-  showFeedback(card, wasCorrect, choice) {
+  showFeedback(card, wasCorrect, choice, teachOnMiss) {
+    this._teachOnMiss = teachOnMiss !== false;
     var fb = document.getElementById('feedbackEl');
     setText(fb, (wasCorrect ? '✓ ' : '✗ ') + card.ans);
     fb.className = 'show ' + (wasCorrect ? 'ok' : 'bad');
-    if (!wasCorrect) {
+    // Only Study (which waits for you) and the tutorial show the explanation as it happens; in a scored run
+    // there is no time to read it, and the end-of-run review has it.
+    if (!wasCorrect && (this._teachOnMiss || this._teachOnMiss === undefined)) {
       var tb = document.getElementById('teachEl');
       setText(tb, missExplanation(card, choice));
       tb.classList.add('show');
@@ -1243,7 +1253,7 @@ class UI {
       shield: '🛡️ Shield!',
       magnet: '🧲 Coin Magnet!',
       double: '2× Score!',
-      autoPilot: '🤖 Auto-Pilot!',
+      autoPilot: '🤖 Auto-Pilot ready: tap it when you need it',
       scoreFrenzy: '💎 Score Frenzy!'
     };
     this.showNotice(names[type] || type, { color: 'var(--accent-purple)', ms: 1600 });

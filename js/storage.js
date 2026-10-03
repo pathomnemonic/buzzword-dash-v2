@@ -86,6 +86,7 @@ var DEFAULTS = {
     quality: 'auto',
     uiTheme: 'surprise',
     themeSurpriseSeen: false,
+    reviewTipSeen: false,   // the first results screen after the tutorial points out the review section
     lockerSeen: [],
     fps30Seen: false,
     glowDefaultSeen: false,

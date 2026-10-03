@@ -156,8 +156,8 @@ export var postRunMethods = {
           wwEl.style.marginTop = '4px';
           card.appendChild(wwEl);
         }
-        var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '📋 Report Card Issue' });
-        reportBtn.style.marginTop = '6px';
+        // A small flag in the corner of the card, so reports stay rare and deliberate
+        var reportBtn = createElement('button', { className: 'review-flag', text: '🚩', attributes: { type: 'button', 'aria-label': 'Report a problem with this card', title: 'Report a problem with this card' } });
         reportBtn.addEventListener('click', function () {
           var reason = prompt('Why are you reporting this card?\n\nOptions:\n- incorrect info\n- ambiguous\n- poor distractor\n- outdated\n- other');
           if (reason) {
@@ -196,9 +196,18 @@ export var postRunMethods = {
 
     // Actions: the two main ones, and the follow-ups beside them
     var actionRow = createElement('div', { className: 'post-actions' });
-    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
+    // Playing again is the big, obvious button; Home is small and quiet, and the filters can be changed right here
+    var FIXED_CARDS = ['daily', 'challenge', 'tournament', 'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race', 'exam'];
+    if (FIXED_CARDS.indexOf(game.mode) < 0) {
+      var filtersBtn = createElement('button', { className: 'btn btn-outline btn-sm post-small-btn', text: '🎚 Filters', attributes: { id: 'postFiltersBtn', type: 'button', 'aria-haspopup': 'dialog', 'aria-controls': 'filtersSheet' } });
+      filtersBtn.addEventListener('click', function () { self.openSheet('filtersSheet'); });
+      actionRow.appendChild(filtersBtn);
+    } else {
+      actionRow.classList.add('no-filters');
+    }
+    var againBtn = createElement('button', { className: 'btn btn-green post-again', text: '▶ Play again', attributes: { id: 'playAgainBtn' } });
     actionRow.appendChild(againBtn);
-    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
+    var homeBtn = createElement('button', { className: 'btn btn-outline btn-sm post-small-btn', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
     homeBtn.addEventListener('click', function () { self.show('screenHome'); });
     actionRow.appendChild(homeBtn);
     content.appendChild(actionRow);

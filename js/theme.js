@@ -2,7 +2,7 @@
  * theme.js — the look of the menus: a fun, campy arcade (grape purple, candy pink, bright accents) that
  * picks up a light tint from the season and the time of day.
  *
- * The playful look is always there. The season only nudges the colors (winter is a cooler indigo with
+ * The playful look is always there (the bolder worlds, Ocean to Rose, change the whole color of the room). The season only nudges the colors (winter is a cooler indigo with
  * ice-blue accents, spring an orchid with blossom pink and lime, summer a magenta with coral and
  * sunshine, autumn a plum with pumpkin and berry) and the time of day makes it lighter or darker and a
  * touch warmer or cooler (dawn, day, dusk, night). There are no falling leaves or snowflakes: it is a
@@ -81,7 +81,13 @@ var WORLDS = {
   winter: { name: 'Winter', base: 248, a1: 335, a2: 195, a3: 275 },
   spring: { name: 'Spring', base: 282, a1: 340, a2: 120, a3: 300 },
   summer: { name: 'Summer', base: 296, a1: 12, a2: 48, a3: 175 },
-  autumn: { name: 'Autumn', base: 262, a1: 28, a2: 45, a3: 350 }
+  autumn: { name: 'Autumn', base: 262, a1: 28, a2: 45, a3: 350 },
+  // The bolder looks, only for Surprise me and for picking by hand: a different color of room altogether
+  ocean:  { name: 'Ocean',  base: 205, a1: 18,  a2: 52,  a3: 275 },
+  forest: { name: 'Forest', base: 150, a1: 322, a2: 48,  a3: 275 },
+  ember:  { name: 'Ember',  base: 6,   a1: 46,  a2: 190, a3: 300 },
+  amber:  { name: 'Amber',  base: 36,  a1: 350, a2: 195, a3: 275 },
+  rose:   { name: 'Rose',   base: 330, a1: 52,  a2: 172, a3: 265 }
 };
 
 /** How bright and warm each time of day makes a world (the warm tint is gentle: the playful look stays). */
@@ -166,7 +172,12 @@ export var THEME_CHOICES = [
   ['winter', 'Winter'],
   ['spring', 'Spring'],
   ['summer', 'Summer'],
-  ['autumn', 'Autumn']
+  ['autumn', 'Autumn'],
+  ['ocean', 'Ocean'],
+  ['forest', 'Forest'],
+  ['ember', 'Ember'],
+  ['amber', 'Amber'],
+  ['rose', 'Rose']
 ];
 
 /** A random world other than `exclude` (so a reroll always looks different). */
@@ -176,9 +187,9 @@ export function rollWorld(exclude, rand) {
   return ids[Math.min(ids.length - 1, Math.floor(r() * ids.length))];
 }
 
-/** A new look after every run (or after the app has been open a while). */
+/** A new look after every run (or whenever Home is shown after a few minutes). */
 export var REROLL_EVERY_RUNS = 1;
-export var REROLL_EVERY_MS = 20 * 60 * 1000;
+export var REROLL_EVERY_MS = 4 * 60 * 1000;
 export function rerollDue(runsSinceRoll, lastRollAt, now) {
   return runsSinceRoll >= REROLL_EVERY_RUNS || (now - lastRollAt) >= REROLL_EVERY_MS;
 }

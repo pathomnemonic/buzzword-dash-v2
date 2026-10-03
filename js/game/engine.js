@@ -222,6 +222,7 @@ class Game {
     // Powerups
     this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0 };
     this.autoPilotGatesLeft = 0;
+    this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
     // Map transition system
     this.encountersUntilTransition = 10;
@@ -823,6 +824,7 @@ class Game {
     this.feedbackTimer = 0; this.teachTimer = 0;
     this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0 };
     this.autoPilotGatesLeft = 0;
+    this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
     this.celebrateTimer = 0; this.stumbleTimer = 0;
     this.landingTimer = 0; this.wasJumping = false;
@@ -1440,7 +1442,10 @@ class Game {
     // Power-up spawning
     this.powerupSpawnTimer -= dt;
     if (this.powerupSpawnTimer <= 0 && !this._tutorial) {
-      spawnPowerup(this.scene, this.coinMeshes, undefined, this._rules && this._rules.disabledPowerups);
+      // (no second Auto-Pilot while one is in hand or working)
+      var noSpawn = (this._rules && this._rules.disabledPowerups) || [];
+      if (this.autoPilotHeld || this.autoPilotGatesLeft > 0) noSpawn = noSpawn.concat(['autoPilot']);
+      spawnPowerup(this.scene, this.coinMeshes, undefined, noSpawn);
       this.powerupSpawnTimer = 15 + Math.random() * 10;
     }
 
@@ -1633,19 +1638,32 @@ class Game {
       case 'magnet': this.powerups.magnet = 10; break;
       case 'double': this.powerups.double = 15; break;
       case 'autoPilot':
-        this.autoPilotGatesLeft = 1;
-        this.powerups.autoPilot = 999;
-        if (this.gatesActive) {
-          for (var ap = 0; ap < this.gates.length; ap++) {
-            if (this.gates[ap].correct) { this.targetLane = ap; break; }
-          }
-          this.addRushStack();
-        }
+        // Picked up, not used: it waits in hand until the player taps its button on a question they do not know.
+        // Only one at a time.
+        if (this.autoPilotHeld || this.autoPilotGatesLeft > 0) return;
+        this.autoPilotHeld = true;
         break;
       case 'scoreFrenzy': this.powerups.scoreFrenzy = 8; break;
     }
     this.runPowerupsCollected++;
     this._emit('powerup_collected', { type: type });
+  }
+
+  /**
+   * Use the Auto-Pilot in hand on the question that is up now: the runner steers to the right gate.
+   * @returns {boolean} whether it was used
+   */
+  useAutoPilot() {
+    if (!this.autoPilotHeld || !this.running || this.paused || !this.gatesActive || this.answerLocked) return false;
+    this.autoPilotHeld = false;
+    this.autoPilotGatesLeft = 1;
+    this.powerups.autoPilot = 999;
+    for (var ap = 0; ap < this.gates.length; ap++) {
+      if (this.gates[ap].correct) { this.targetLane = ap; break; }
+    }
+    this.addRushStack();
+    this._emit('autopilot_used', {});
+    return true;
   }
 
   _triggerShake() { this.shakeTimer = 0.15; }

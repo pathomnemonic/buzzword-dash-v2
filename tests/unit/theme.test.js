@@ -25,7 +25,7 @@ describe('theme by time and season', () => {
     expect(pickTheme(new Date(2026, 9, 23, 12), 'auto').world).toBe('autumn');
     expect(pickTheme(new Date(2026, 11, 20, 12), 'auto').world).toBe('winter');
     expect(pickTheme(new Date(2026, 6, 10, 12), 'auto').name).toBe('Summer day');
-    expect(worldIds()).toEqual(['winter', 'spring', 'summer', 'autumn']);
+    expect(worldIds()).toEqual(['winter', 'spring', 'summer', 'autumn', 'ocean', 'forest', 'ember', 'amber', 'rose']);
     // a stored choice from the removed holiday looks just means Auto
     expect(pickTheme(new Date(2026, 9, 31, 21), 'halloween').mode).toBe('auto');
   });
@@ -84,7 +84,7 @@ describe('the palettes are tints of one playful look, and stay readable', () => 
     expect(failures).toEqual([]);
   });
 
-  it('every season and time of day stays in the fun grape-purple family, with the season showing in the accents', () => {
+  it('the four seasons stay in the grape-purple family, the bold worlds are clearly other colors, and every world shows in its accents', () => {
     const hue = (hex) => {
       const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
       const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
@@ -92,7 +92,7 @@ describe('the palettes are tints of one playful look, and stay readable', () => 
       const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
       return (h * 60 + 360) % 360;
     };
-    worldIds().forEach((w) => DAYPARTS.forEach((d) => {
+    ['winter', 'spring', 'summer', 'autumn'].forEach((w) => DAYPARTS.forEach((d) => {
       const p = paletteFor(w, d);
       ['--panel', '--screen-top', '--screen-bottom', '--nav-top'].forEach((k) => {
         const h = hue(p[k]);
@@ -100,6 +100,11 @@ describe('the palettes are tints of one playful look, and stay readable', () => 
         expect(h, w + ' ' + d + ' ' + k + ' hue ' + Math.round(h)).toBeLessThanOrEqual(330);
       });
     }));
+    // the bold worlds are not purple at all
+    ['ocean', 'forest', 'ember', 'amber'].forEach((w) => {
+      const h = hue(paletteFor(w, 'day')['--screen-top']);
+      expect(h < 235 || h > 330, w + ' hue ' + Math.round(h)).toBe(true);
+    });
     // the seasons show in the accents: they are not the same color from one season to the next
     const pinks = new Set(worldIds().map((w) => paletteFor(w, 'day')['--accent-pink']));
     expect(pinks.size).toBe(worldIds().length);
@@ -136,7 +141,9 @@ describe('Surprise me', () => {
       for (let i = 0; i < 20; i++) expect(rollWorld(w)).not.toBe(w);
     }
     expect(worldIds()).toContain(rollWorld(null));
-    expect(rollWorld('winter', () => 0.999)).toBe('autumn');
+    const others = worldIds().filter((w) => w !== 'winter');
+    expect(rollWorld('winter', () => 0.999)).toBe(others[others.length - 1]);
+    expect(rollWorld('winter', () => 0)).toBe(others[0]);
   });
 
   it('a reroll is due after each run, or after a good while', () => {
