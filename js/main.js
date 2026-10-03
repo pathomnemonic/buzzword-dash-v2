@@ -676,7 +676,8 @@ function attachRewardCard() {
   lastRunNewBest = !!(reward && reward.newBest);
   if (!content || !reward) return;
   var card = buildRunRewardCard(reward.info, reward.score, reward.best, reward.newBest);
-  if (card) content.insertBefore(card, content.children[1] || null);
+  var postHeader = content.querySelector('.post-header');
+  if (card) content.insertBefore(card, postHeader ? postHeader.nextSibling : null);
   renderLevelChip(document.getElementById('homeLevel'));
   updateLockerDot();
 }
@@ -706,9 +707,11 @@ function attachShareImage() {
   var content = document.getElementById('postRunContent');
   if (!content) return;
   var shareBtn = document.createElement('button');
-  shareBtn.className = 'btn btn-outline btn-block';
-  shareBtn.style.marginTop = '10px';
-  shareBtn.textContent = '\uD83D\uDDBC Save share image';
+  shareBtn.className = 'btn btn-outline btn-sm post-corner-btn';
+  shareBtn.type = 'button';
+  shareBtn.id = 'saveShareImageBtn';
+  shareBtn.setAttribute('aria-label', 'Save a share image');
+  shareBtn.textContent = '\uD83D\uDDBC Image';
   var snapshot = {
     name: storage.get('profileName') || '',
     score: game.score,
@@ -733,7 +736,8 @@ function attachShareImage() {
       ui._showToast('Could not create the image.');
     }).then(function () { shareBtn.disabled = false; });
   });
-  content.appendChild(shareBtn);
+  var slot = document.getElementById('postImageSlot');
+  (slot || content).appendChild(shareBtn);
 }
 
 /** Fixed-set modes are not ranked: lots of players finish them perfectly, so a board would only show ties. */

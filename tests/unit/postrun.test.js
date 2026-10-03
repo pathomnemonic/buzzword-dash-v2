@@ -46,33 +46,48 @@ describe('post-run screen', () => {
     expect(() => quick.click()).not.toThrow();
   });
 
-  it('keeps the review lists collapsed so the screen stays short', async () => {
+  it('shows the missed and correct cards as two big tabs over one list, missed first', async () => {
     const { ui } = await import('../../js/ui.js');
     ui.showPostRun(fakeGame());
     const content = document.getElementById('postRunContent');
-
-    const toggles = [...content.querySelectorAll('.collapsible-toggle')];
-    expect(toggles.length).toBe(2); // missed + correct
-    toggles.forEach((t) => {
-      expect(t.parentElement.querySelector('div').style.display).toBe('none');
-    });
-
-    // Opening one reveals its cards
-    const missed = toggles.find((t) => /Missed/.test(t.textContent));
-    missed.click();
-    const body = missed.parentElement.querySelector('div');
-    expect(body.style.display).toBe('block');
-    expect(body.querySelectorAll('.review-card').length).toBe(2);
+    const tabs = [...content.querySelectorAll('.post-review-tab')];
+    expect(tabs.map((t) => t.dataset.tab)).toEqual(['missed', 'correct']);
+    expect(tabs[0].querySelector('.post-review-count').textContent).toBe('2');
+    expect(tabs[1].querySelector('.post-review-count').textContent).toBe('3');
+    // the missed cards are on show to begin with; the other tab swaps the list
+    expect(tabs[0].classList.contains('active')).toBe(true);
+    expect(content.querySelectorAll('.post-review-list .review-card').length).toBe(2);
+    tabs[1].click();
+    expect(content.querySelectorAll('.post-review-list .review-card').length).toBe(3);
+    expect(tabs[1].getAttribute('aria-selected')).toBe('true');
   });
 
-  it('shows the action buttons before the review lists', async () => {
+  it('a perfect run opens on the correct cards and says so', async () => {
+    const { ui } = await import('../../js/ui.js');
+    ui.showPostRun(fakeGame({ wrong: 0, runCards: fakeGame().runCards.filter((r) => r.ok) }));
+    const content = document.getElementById('postRunContent');
+    expect(content.querySelector('.post-review-tab.active').dataset.tab).toBe('correct');
+    content.querySelector('[data-tab="missed"]').click();
+    expect(content.querySelector('.post-review-empty').textContent).toMatch(/perfect/i);
+  });
+
+  it('Share is a small button in the top left corner, with room for the image button on the right', async () => {
+    const { ui } = await import('../../js/ui.js');
+    ui.showPostRun(fakeGame());
+    const corners = document.querySelector('#postRunContent .post-corners');
+    expect(corners.firstElementChild.id).toBe('shareScoreBtn');
+    expect(corners.querySelector('#postImageSlot')).toBeTruthy();
+    expect(corners.firstElementChild.className).toMatch(/btn-sm/);
+  });
+
+  it('shows the action buttons below the review', async () => {
     const { ui } = await import('../../js/ui.js');
     ui.showPostRun(fakeGame());
     const content = document.getElementById('postRunContent');
-    const all = [...content.querySelectorAll('button')];
-    const home = all.findIndex((b) => b.id === 'goHomeBtn');
-    const firstToggle = all.findIndex((b) => b.classList.contains('collapsible-toggle'));
-    expect(home).toBeGreaterThan(-1);
-    expect(home).toBeLessThan(firstToggle);
+    const kids = [...content.children];
+    const review = kids.findIndex((el) => el.classList.contains('post-review'));
+    const actions = kids.findIndex((el) => el.classList.contains('post-actions'));
+    expect(review).toBeGreaterThan(-1);
+    expect(actions).toBeGreaterThan(review);
   });
 });

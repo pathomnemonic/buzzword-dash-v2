@@ -23,9 +23,18 @@ export var postRunMethods = {
     var content = document.getElementById('postRunContent');
     clearElement(content);
 
+    // Two small buttons, one in each top corner: share the score as text (left), save it as an image (right,
+    // added by main.js into #postImageSlot)
+    var corners = createElement('div', { className: 'post-corners' });
+    var shareBtn = createElement('button', { className: 'btn btn-outline btn-sm post-corner-btn', text: '📤 Share', attributes: { type: 'button', id: 'shareScoreBtn', 'aria-label': 'Share your score' } });
+    shareBtn.addEventListener('click', function () { self.shareScore(game); });
+    corners.appendChild(shareBtn);
+    corners.appendChild(createElement('span', { attributes: { id: 'postImageSlot' } }));
+    content.appendChild(corners);
+
     // Header
     var header = createElement('div', { className: 'post-header' });
-    header.appendChild(createElement('h2', { text: '📋 Case Review' }));
+    header.appendChild(createElement('h2', { className: 'post-title', text: '📋 Case Review' }));
     var scoreBig = createElement('div', { className: 'score-big', text: String(game.score) });
     header.appendChild(scoreBig);
     var verdict = createElement('p', { className: 'post-verdict', text: runVerdict(game.correct, game.wrong) });
@@ -56,7 +65,7 @@ export var postRunMethods = {
       if (!weakest || a < weakest.acc) weakest = { subj: subj, acc: a, n: st.n, ok: st.ok };
     });
     if (weakest) {
-      var weakEl = createElement('div', { text: '🎯 Focus area: ' + weakest.subj + ' (' + weakest.ok + '/' + weakest.n + ' correct)' });
+      var weakEl = createElement('div', { className: 'focus-area', text: '🎯 Focus area: ' + weakest.subj + ' (' + weakest.ok + '/' + weakest.n + ' correct)' });
       weakEl.style.cssText = 'text-align:center;font-size:12px;font-weight:700;color:var(--accent-gold);margin:6px 0';
       content.appendChild(weakEl);
     }
@@ -94,68 +103,52 @@ export var postRunMethods = {
     });
     content.appendChild(statsRow);
 
-    // Action buttons
-    var actionRow = createElement('div');
-    actionRow.style.cssText = 'display:flex;gap:6px;margin:12px 0 0';
-
-    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
-    againBtn.style.flex = '1';
-    actionRow.appendChild(againBtn);
-
-    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
-    homeBtn.style.flex = '1';
-    homeBtn.addEventListener('click', function () { self.show('screenHome'); });
-    actionRow.appendChild(homeBtn);
-    content.appendChild(actionRow);
-
-    var secRow = createElement('div', { className: 'post-secondary' });
-    secRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px';
-    content.appendChild(secRow);
-
-    if (missed.length > 0) {
-      var weakBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '🎯 Weakness Mode', attributes: { id: 'weaknessBtn' } });
-            secRow.appendChild(weakBtn);
-
-      var qrBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📝 Quick Review' });
-            qrBtn.addEventListener('click', function () { self.showQuickReview(missed); });
-      secRow.appendChild(qrBtn);
+    // The review: the missed and the correct cards, as two big tabs over one list that scrolls on its own, so the
+    // page itself never has to
+    var review = createElement('div', { className: 'post-review' });
+    var tabs = createElement('div', { className: 'post-review-tabs', attributes: { role: 'tablist', 'aria-label': 'Review your answers' } });
+    var list = createElement('div', { className: 'post-review-list', attributes: { role: 'tabpanel' } });
+    var tabBtns = {};
+    function addTab(key, icon, label, count, tone) {
+      var b = createElement('button', { className: 'post-review-tab ' + tone, attributes: { type: 'button', role: 'tab', 'aria-selected': 'false', 'data-tab': key } });
+      b.appendChild(createElement('span', { className: 'post-review-count', text: String(count) }));
+      b.appendChild(createElement('span', { className: 'post-review-label', text: icon + ' ' + label }));
+      b.addEventListener('click', function () { select(key); });
+      tabs.appendChild(b);
+      tabBtns[key] = b;
     }
+    addTab('missed', '❌', 'Missed', missed.length, 'is-missed');
+    addTab('correct', '✅', 'Correct', correctAll.length, 'is-correct');
+    review.appendChild(tabs);
+    review.appendChild(list);
+    content.appendChild(review);
 
-    var shareBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '📤 Share Score' });
-        shareBtn.addEventListener('click', function () { self.shareScore(game); });
-    secRow.appendChild(shareBtn);
-
-    // Review sections (collapsed by default so the screen stays short)
-    // Missed cards
-    if (missed.length > 0) {
-      var missedBody = self._collapsible(content, '❌ Missed Cards (' + missed.length + ')', false);
-
-      missed.forEach(function (r) {
-        var c = r.card;
-        var card = createElement('div', { className: 'review-card' });
-
-        var h4 = createElement('h4');
-        setText(h4, '❌ ' + c.bw.join(' • '));
-        card.appendChild(h4);
-
-        var tagRow = createElement('div');
+    function reviewCard(r, ok) {
+      var c = r.card;
+      var card = createElement('div', { className: 'review-card' });
+      if (ok) card.style.borderLeftColor = 'var(--accent-green)';
+      var h4 = createElement('h4');
+      setText(h4, (ok ? '✓ ' : '❌ ') + c.bw.join(' • '));
+      card.appendChild(h4);
+      var tagRow = createElement('div');
+      if (!ok) {
         var wrongTag = createElement('span', { className: 'tag tag-wrong' });
         setText(wrongTag, 'You: ' + r.choice);
         tagRow.appendChild(wrongTag);
-        var correctTag = createElement('span', { className: 'tag tag-correct' });
-        setText(correctTag, '✓ ' + c.ans);
-        tagRow.appendChild(correctTag);
-        var subjTag = createElement('span', { className: 'tag tag-subject' });
-        setText(subjTag, c.subj);
-        tagRow.appendChild(subjTag);
-        card.appendChild(tagRow);
-
-        var tpEl = createElement('p');
-        setText(tpEl, '📖 Rule: ' + c.tp);
-        tpEl.style.marginTop = '5px';
-        card.appendChild(tpEl);
-
-        // Why wrong (safe text)
+      }
+      var ansTag = createElement('span', { className: 'tag tag-correct' });
+      setText(ansTag, (ok ? '' : '✓ ') + c.ans);
+      tagRow.appendChild(ansTag);
+      var subjTag = createElement('span', { className: 'tag tag-subject' });
+      setText(subjTag, c.subj);
+      tagRow.appendChild(subjTag);
+      card.appendChild(tagRow);
+      var tpEl = createElement('p');
+      setText(tpEl, ok ? c.tp : '📖 Rule: ' + c.tp);
+      tpEl.style.marginTop = '5px';
+      if (ok) tpEl.style.cssText = 'margin-top:4px;font-size:11px;color:var(--text-muted)';
+      card.appendChild(tpEl);
+      if (!ok) {
         var whyWrong = (c.ww && c.ww[r.choice]) || '';
         if (whyWrong) {
           var wwEl = createElement('p');
@@ -163,8 +156,6 @@ export var postRunMethods = {
           wwEl.style.marginTop = '4px';
           card.appendChild(wwEl);
         }
-
-        // Report button (replaces global window.UI_reportCard)
         var reportBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '📋 Report Card Issue' });
         reportBtn.style.marginTop = '6px';
         reportBtn.addEventListener('click', function () {
@@ -182,62 +173,44 @@ export var postRunMethods = {
           }
         });
         card.appendChild(reportBtn);
-
-        missedBody.appendChild(card);
-      });
-    } else if (total > 0) {
-      content.appendChild(createElement('h3', { text: '🎉 Perfect Run!' }));
-      content.lastChild.style.cssText = 'margin:14px 0 6px;color:var(--accent-green)';
+      }
+      return card;
     }
 
-    // Correct answers (collapsible, showing ALL) [2]
-    if (correctAll.length > 0) {
-      var correctSection = createElement('div', { className: 'collapsible-section' });
-      correctSection.style.margin = '14px 0 6px';
-
-      var correctToggle = createElement('button', { className: 'collapsible-toggle' });
-      setText(correctToggle, '✅ Correct Answers (' + correctAll.length + ') ');
-      var correctArrow = createElement('span', { className: 'collapse-arrow', text: '▸' });
-      correctToggle.appendChild(correctArrow);
-      correctSection.appendChild(correctToggle);
-
-      var correctBody = createElement('div');
-      correctBody.style.display = 'none';
-
-      correctAll.forEach(function (r) {
-        var c = r.card;
-        var card = createElement('div', { className: 'review-card' });
-        card.style.borderLeftColor = 'var(--accent-green)';
-
-        var h4 = createElement('h4');
-        setText(h4, '✓ ' + c.bw.join(' • '));
-        card.appendChild(h4);
-
-        var tagRow = createElement('div');
-        var ansTag = createElement('span', { className: 'tag tag-correct' });
-        setText(ansTag, c.ans);
-        tagRow.appendChild(ansTag);
-        var subjTag = createElement('span', { className: 'tag tag-subject' });
-        setText(subjTag, c.subj);
-        tagRow.appendChild(subjTag);
-        card.appendChild(tagRow);
-
-        var tp = createElement('p');
-        setText(tp, c.tp);
-        tp.style.cssText = 'margin-top:4px;font-size:10px;color:var(--text-muted)';
-        card.appendChild(tp);
-
-        correctBody.appendChild(card);
+    function select(key) {
+      Object.keys(tabBtns).forEach(function (k) {
+        var on = k === key;
+        tabBtns[k].classList.toggle('active', on);
+        tabBtns[k].setAttribute('aria-selected', on ? 'true' : 'false');
       });
+      clearElement(list);
+      var rows = key === 'missed' ? missed : correctAll;
+      if (!rows.length) {
+        list.appendChild(createElement('div', { className: 'post-review-empty', text: key === 'missed' ? (total > 0 ? '🎉 Nothing missed. A perfect run!' : 'No answers this run.') : 'No correct answers this run.' }));
+      } else {
+        rows.forEach(function (r) { list.appendChild(reviewCard(r, key === 'correct')); });
+      }
+      list.scrollTop = 0;
+    }
+    select(missed.length > 0 ? 'missed' : 'correct');
 
-      correctSection.appendChild(correctBody);
-      content.appendChild(correctSection);
+    // Actions: the two main ones, and the follow-ups beside them
+    var actionRow = createElement('div', { className: 'post-actions' });
+    var againBtn = createElement('button', { className: 'btn btn-green', text: '▶ Again', attributes: { id: 'playAgainBtn' } });
+    actionRow.appendChild(againBtn);
+    var homeBtn = createElement('button', { className: 'btn btn-primary', text: '🏠 Home', attributes: { id: 'goHomeBtn' } });
+    homeBtn.addEventListener('click', function () { self.show('screenHome'); });
+    actionRow.appendChild(homeBtn);
+    content.appendChild(actionRow);
 
-      correctToggle.addEventListener('click', function () {
-        var isOpen = correctBody.style.display !== 'none';
-        correctBody.style.display = isOpen ? 'none' : 'block';
-        correctArrow.classList.toggle('open', !isOpen);
-      });
+    if (missed.length > 0) {
+      var secRow = createElement('div', { className: 'post-secondary' });
+      var weakBtn = createElement('button', { className: 'btn btn-outline btn-sm btn-block', text: '🎯 Weakness', attributes: { id: 'weaknessBtn' } });
+      secRow.appendChild(weakBtn);
+      var qrBtn = createElement('button', { className: 'btn btn-outline btn-sm btn-block', text: '📝 Quick Review' });
+      qrBtn.addEventListener('click', function () { self.showQuickReview(missed); });
+      secRow.appendChild(qrBtn);
+      content.appendChild(secRow);
     }
 
     this.show('screenPostRun');

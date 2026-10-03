@@ -1603,3 +1603,61 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .today-next-title { font-size: 15px; font-weight: 900; margin-bottom: 8px; }
 .today-next .perf-step-buttons { display: flex; gap: 8px; }
 .today-next .perf-step-buttons .btn { flex: 1; }
+
+
+/* ---------- results page: one screen, no scrolling. The review list scrolls inside itself. ---------- */
+#screenPostRun .screen-scroll { display: flex; flex-direction: column; overflow: hidden; }
+#postRunContent { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+#postRunContent > * { flex: 0 0 auto; margin-top: 0; margin-bottom: 0; }
+.post-corners { display: flex; justify-content: space-between; align-items: center; min-height: 30px; }
+.post-corner-btn { padding: 4px 10px; font-size: 11px; width: auto; min-width: 0; }
+#postRunContent .post-header { text-align: center; }
+#postRunContent .post-title { font-size: 15px; margin: 0; }
+#postRunContent .post-header .score-big { font-size: 48px; line-height: 1.05; margin: 0; -webkit-text-stroke-width: 3px; }
+#postRunContent .post-verdict { font-size: 12px !important; margin: 2px 0 !important; padding: 1px 10px; }
+#postRunContent .post-header > p:last-child { font-size: 10px !important; margin: 2px 0 0; }
+#postRunContent .xp-card { margin: 0; padding: 6px 10px; }
+#postRunContent .prompt-card, #postRunContent .dash-prompt { margin: 0; padding: 8px 10px; font-size: 11px; }
+
+.post-review { flex: 1 1 auto !important; min-height: 130px; display: flex; flex-direction: column; gap: 6px; }
+.post-review-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.post-review-tab {
+  font-family: inherit; color: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 6px; border-radius: 16px; border: 3px solid var(--ink); background: rgba(40, 20, 80, 0.85);
+  box-shadow: 0 4px 0 var(--ink); opacity: 0.7; transition: transform 0.1s;
+}
+.post-review-tab .post-review-count { font-family: var(--font-display); font-size: 30px; line-height: 1; }
+.post-review-tab .post-review-label { font-size: 13px; font-weight: 900; }
+.post-review-tab.is-missed .post-review-count { color: var(--accent-red); }
+.post-review-tab.is-correct .post-review-count { color: var(--accent-green); }
+.post-review-tab.active { opacity: 1; transform: translateY(-2px); }
+.post-review-tab.is-missed.active { background: linear-gradient(180deg, rgba(255, 70, 100, 0.45), rgba(60, 20, 70, 0.9)); border-color: var(--accent-red); }
+.post-review-tab.is-correct.active { background: linear-gradient(180deg, rgba(60, 255, 150, 0.35), rgba(20, 60, 70, 0.9)); border-color: var(--accent-green); }
+.post-review-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; padding: 2px 2px 6px; text-align: left; }
+.post-review-list .review-card { margin: 0 0 6px; }
+.post-review-empty { text-align: center; padding: 22px 10px; font-weight: 800; color: var(--text-secondary); }
+
+.post-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.post-actions .btn { width: 100%; padding-top: 10px; padding-bottom: 10px; }
+#postRunContent .post-secondary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+#postRunContent .post-secondary > * { grid-column: auto !important; }
+#postRunContent .xp-gain { font-size: 20px; }
+#postRunContent .xp-level { font-size: 12px; }
+#postRunContent .xp-bar { height: 10px; margin: 4px 0 2px; border-width: 2px; }
+#postRunContent .xp-next { font-size: 10px; }
+#postRunContent .post-stats { margin: 0; }
+/* more room for the review list */
+#postRunContent .post-header > p:last-child { display: none; }
+#postRunContent .post-header .score-big { font-size: 40px; text-shadow: 0 4px 0 var(--accent-pink), 0 7px 0 var(--ink); }
+#postRunContent .post-header { margin: 0; }
+#postRunContent > div[style*="Focus area"], #postRunContent .focus-area { margin: 0 !important; font-size: 11px !important; }
+#postRunContent .post-stat { padding: 4px 2px; }
+#postRunContent .post-stat .val { font-size: 14px; }
+.post-review-tab { padding: 6px 6px; border-width: 2px; }
+.post-review-tab .post-review-count { font-size: 24px; }
+.post-review-list .review-card { padding: 8px 10px; }
+.post-review-list .review-card h4 { font-size: 12px; margin: 0 0 4px; }
+.post-review-list .review-card p { font-size: 11px; margin: 3px 0 0; }
+.post-review-list .review-card .btn { padding: 3px 8px; font-size: 10px; margin-top: 4px; width: auto; }
+.post-actions .btn { padding-top: 7px; padding-bottom: 7px; }
+#postRunContent .post-secondary .btn { padding: 5px 6px; font-size: 11px; }

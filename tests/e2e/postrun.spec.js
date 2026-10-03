@@ -40,6 +40,8 @@ async function measure(page) {
     return {
       vw,
       hscroll: document.documentElement.scrollWidth - vw,
+      vscroll: (() => { const sc = document.querySelector('#screenPostRun .screen-scroll'); return sc.scrollHeight - sc.clientHeight; })(),
+      corners: (() => { const a = document.getElementById('shareScoreBtn'); const b = document.getElementById('saveShareImageBtn'); if (!a || !b) return false; const ra = a.getBoundingClientRect(); const rb = b.getBoundingClientRect(); return ra.left < vw / 2 && rb.right > vw / 2 && ra.top < 120 && rb.top < 120; })(),
       outOfView: everything.filter((r) => r.left < -1 || r.right > vw + 1).length,
       blocks,
       stats: group('.post-stat'),
@@ -62,6 +64,8 @@ test.describe('Results page symmetry', () => {
         const m = await measure(page);
 
         expect(m.hscroll, 'no sideways scrolling').toBeLessThanOrEqual(0);
+        expect(m.vscroll, 'the whole results page fits on one screen (only the review list scrolls)').toBeLessThanOrEqual(2);
+        expect(m.corners, 'Share is in the left corner and Save image in the right').toBe(true);
         expect(m.outOfView, 'nothing runs off either edge').toBe(0);
 
         // every block is centered: equal space on the left and right
