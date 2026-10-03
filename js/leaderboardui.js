@@ -11,6 +11,7 @@
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
 import { FEATURES } from './features.js';
+import { copyText } from './platform.js';
 import { btn, note, rowShell, nameBlock } from './friendsdom.js';
 import { isOnline, NEEDS_CONNECTION } from './offline.js';
 import { renderFeedTab } from './feedui.js';
@@ -385,9 +386,7 @@ function renderGroups(body) {
       row.appendChild(nameBlock(g.name, 'Code ' + g.code + ' \u00B7 ' + g.member_count + ' member' + (Number(g.member_count) === 1 ? '' : 's')));
       row.appendChild(btn(g.id === _state.groupId ? 'Viewing' : 'View', function () { _state.groupId = g.id; render(); }));
       row.appendChild(btn('Copy code', function () {
-        if (navigator.clipboard) return navigator.clipboard.writeText(g.code).then(function () { _deps.toast('Code copied.'); });
-        _deps.toast('Code: ' + g.code);
-        return null;
+        return copyText(g.code).then(function (ok) { _deps.toast(ok ? 'Code copied.' : 'Code: ' + g.code); });
       }));
       row.appendChild(btn('Leave', function () {
         if (!window.confirm('Leave ' + g.name + '?')) return null;

@@ -57,6 +57,7 @@ import { newlyAffordable } from './lockerdots.js';
 import { pickTheme, applyTheme, rollWorld, rerollDue } from './theme.js';
 import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js';
 import { leagueRules } from './leagues.js';
+import { shareText } from './platform.js';
 import { installChunkRecovery } from './chunkrecovery.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
@@ -515,13 +516,6 @@ function challengeBase() {
   return appPublicUrl(); // (inside the phone app the page is https://localhost, which a friend cannot open)
 }
 
-function copyText(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    return navigator.clipboard.writeText(text);
-  }
-  return Promise.reject(new Error('Clipboard unavailable'));
-}
-
 /** Share a challenge link: native share sheet if present, else clipboard. */
 function shareChallenge(challenge) {
   return import('./challenge.js').then(function (mod) {
@@ -535,13 +529,9 @@ function shareChallenge(challenge) {
         ids: challenge.ids || null
       });
       var text = 'Beat my Dx Dash score of ' + (challenge.myScore || 0) + '!';
-      if (navigator.share) {
-        return navigator.share({ title: 'Dx Dash challenge', text: text, url: url }).catch(function () {});
-      }
-      return copyText(url).then(function () {
-        ui._showToast('Challenge link copied \u2014 send it to a friend!');
-      }, function () {
-        window.prompt('Copy this challenge link:', url);
+      return shareText({ title: 'Dx Dash challenge', text: text, url: url }).then(function (res) {
+        if (res === 'copied') ui._showToast('Challenge link copied \u2014 send it to a friend!');
+        else if (res === 'failed') window.prompt('Copy this challenge link:', url);
       });
     });
   });

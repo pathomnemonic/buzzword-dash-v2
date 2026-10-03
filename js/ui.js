@@ -40,6 +40,7 @@ import { storage } from './storage.js';
 import { startTutorial } from './tutorial.js';
 import { missExplanation } from './explain.js';
 import { appPublicUrl } from './publicurl.js';
+import { shareText, copyText, saveFile } from './platform.js';
 import { speak, cancelSpeech } from './tts.js';
 import { isGameTutorialOpen } from './tutorialrun.js';
 import { createColorWheel } from './colorwheel.js';
@@ -61,7 +62,7 @@ import { studyMethods } from './uistudy.js';
 import { browseMethods } from './uibrowse.js';
 import { profileMethods } from './uiprofile.js';
 import { homeMethods } from './uihome.js';
-import { prefersReducedMotion, trapFocus, releaseFocusTrap, _copyToClipboard } from './uihelpers.js';
+import { prefersReducedMotion, trapFocus, releaseFocusTrap } from './uihelpers.js';
 
 // ═══════════════════════════════════════════════════════════
 // SETTINGS EXTENSIONS REGISTRY (Section 21.1) [2]
@@ -1582,25 +1583,15 @@ class UI {
     });
     var json = JSON.stringify(enriched, null, 2);
     var blob = new Blob([json], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = createElement('a', { attributes: { href: url, download: 'dx-dash-card-reports.json' } });
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    saveFile(blob, 'dx-dash-card-reports.json');
   }
 
   downloadBackup() {
     var blob = new Blob([storage.exportBackup()], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = createElement('a', {
-      attributes: { href: url, download: 'dx-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json' }
+    var self = this;
+    saveFile(blob, 'dx-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json').then(function (how) {
+      self._showToast(how === 'failed' ? 'Could not save the backup.' : (how === 'shared' ? 'Choose where to save your backup.' : 'Backup saved.'));
     });
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    this._showToast('Backup saved.');
   }
 
   restoreBackup(file) {
@@ -1760,8 +1751,9 @@ class UI {
       return lb.publishDeck(name.trim(), payload.slice(0, 200)).then(function (res) {
         if (!res.success) { self._showToast(res.error || 'Could not share the deck.'); return; }
         var code = res.data;
-        if (navigator.clipboard) navigator.clipboard.writeText(code).catch(function () {});
-        window.alert('Deck shared! Give this code to friends:\n\n' + code + '\n\n(It was copied to your clipboard.)');
+        copyText(code).then(function (ok) {
+          window.alert('Deck shared! Give this code to friends:\n\n' + code + (ok ? '\n\n(It was copied to your clipboard.)' : ''));
+        });
       });
     });
   }
@@ -1849,9 +1841,11 @@ class UI {
     var newBtn = actionBtn.cloneNode(true);
     actionBtn.parentNode.replaceChild(newBtn, actionBtn);
     newBtn.addEventListener('click', function () {
-      document.getElementById('importExportArea').select();
-      document.execCommand('copy');
-      setText(document.getElementById('importExportMsg'), '✅ Copied!');
+      var area = document.getElementById('importExportArea');
+      copyText(area.value).then(function (ok) {
+        if (!ok) area.select();
+        setText(document.getElementById('importExportMsg'), ok ? '✅ Copied!' : 'Could not copy automatically. The text is selected: copy it yourself.');
+      });
     });
     this.show('screenImportExport');
   }
@@ -2134,13 +2128,11 @@ class UI {
     var skinName = game.currentSkin ? game.currentSkin.name : 'Unknown';
     var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + appPublicUrl();
 
-    if (navigator.share) {
-      navigator.share({ title: 'Dx Dash Score', text: text }).catch(function () {
-        _copyToClipboard(text);
-      });
-    } else {
-      _copyToClipboard(text);
-    }
+    var self = this;
+    shareText({ title: 'Dx Dash Score', text: text }).then(function (how) {
+      if (how === 'copied') self._showToast('Score copied \u2014 paste it anywhere to share.');
+      else if (how === 'failed') window.alert('Could not share. Your score:\n\n' + text);
+    });
   }
 
 } // end class UI

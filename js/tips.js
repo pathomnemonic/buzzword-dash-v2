@@ -11,6 +11,7 @@
  * turned off for good.
  */
 
+import { openExternal } from './platform.js';
 import { isNative } from './native.js';
 
 var MIN_RUNS = 5;
@@ -64,6 +65,6 @@ export function shouldShowTipPrompt(input) {
 export function openTipPage() {
   var url = getTipUrl();
   if (!url) return false;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  openExternal(url);
   return true;
 }

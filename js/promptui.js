@@ -6,6 +6,7 @@
 import { choosePrompt, recordPrompt } from './prompts.js';
 import { isNative, APP_SCHEME } from './native.js';
 import { appPublicUrl } from './publicurl.js';
+import { shareText, canShareNatively, copyText, openExternal } from './platform.js';
 
 /** Where to rate the app: a build-time link, or the Play Store page inside the Android app. '' means nowhere (the web). */
 export function getReviewUrl() {
@@ -26,21 +27,11 @@ var SHARE_TEXT = 'I have been studying with Dx Dash, a free endless runner for U
 /** Share the game: the system share sheet if there is one, otherwise copy the link. @returns {Promise<'shared'|'copied'|'failed'>} */
 export function shareGame() {
   var url = getShareUrl();
-  if (typeof navigator !== 'undefined' && navigator.share) {
-    return navigator.share({ title: 'Dx Dash', text: SHARE_TEXT, url: url || undefined }).then(
-      function () { return 'shared'; },
-      function () { return 'failed'; }
-    );
-  }
-  if (url && typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-    return navigator.clipboard.writeText(SHARE_TEXT + ' ' + url).then(function () { return 'copied'; }, function () { return 'failed'; });
-  }
-  return Promise.resolve('failed');
+  return shareText({ title: 'Dx Dash', text: SHARE_TEXT, url: url || undefined });
 }
 
 export function canShareGame() {
-  if (typeof navigator !== 'undefined' && navigator.share) return true;
-  return !!getShareUrl() && typeof navigator !== 'undefined' && !!(navigator.clipboard && navigator.clipboard.writeText);
+  return canShareNatively() || !!getShareUrl();
 }
 
 var _bannerDismissed = false;
@@ -152,7 +143,7 @@ export function attachPromptCard(deps) {
   button(copy.action, 'btn-gold', function () {
     if (kind === 'account') { finish('done'); deps.openAccount(); return; }
     if (kind === 'review') {
-      window.open(getReviewUrl(), '_blank', 'noopener,noreferrer');
+      openExternal(getReviewUrl());
       finish('done');
       return;
     }

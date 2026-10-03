@@ -7,6 +7,7 @@
  */
 
 import { getSubjectStyle, getSubjectCssColor } from './game/subjectstyle.js';
+import { saveFile } from './platform.js';
 
 var W = 1080;
 var H = 1350;
@@ -168,20 +169,18 @@ export function renderShareCard(data) {
  * @returns {Promise<'shared'|'downloaded'>}
  */
 export function shareOrDownload(blob) {
-  var file = new File([blob], 'dx-dash-result.png', { type: 'image/png' });
-  if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+  var file = null;
+  try { file = new File([blob], 'dx-dash-result.png', { type: 'image/png' }); } catch (e) { file = null; }
+  // Browsers that can share a file get the share sheet; everywhere else (including the phone app) saveFile
+  // writes it out and opens the system share sheet or downloads it.
+  if (file && typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
     return navigator.share({ files: [file], title: 'Dx Dash result' }).then(function () { return 'shared'; }, function (e) {
       if (e && e.name === 'AbortError') return 'shared';
       throw e;
     });
   }
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'dx-dash-result.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-  return Promise.resolve('downloaded');
+  return saveFile(blob, 'dx-dash-result.png').then(function (how) {
+    if (how === 'failed') throw new Error('Could not save the image');
+    return how;
+  });
 }

@@ -104,34 +104,3 @@ export function releaseFocusTrap() {
   }
   _previousFocusElement = null;
 }
-
-// ═══════════════════════════════════════════════════════
-// CLIPBOARD HELPER
-// ═══════════════════════════════════════════════════════
-
-export function _copyToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function () {
-      alert('Score copied to clipboard! Paste it anywhere to share.');
-    }).catch(function () { _fallbackCopy(text); });
-  } else {
-    _fallbackCopy(text);
-  }
-}
-
-export function _fallbackCopy(text) {
-  var textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.left = '-9999px';
-  document.body.appendChild(textarea);
-  textarea.select();
-  try {
-    document.execCommand('copy');
-    alert('Score copied to clipboard!');
-  } catch (e) {
-    alert('Could not copy. Your score:\n\n' + text);
-  }
-  document.body.removeChild(textarea);
-}
-
