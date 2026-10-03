@@ -6,7 +6,7 @@
 import { choosePrompt, recordPrompt } from './prompts.js';
 import { isNative, APP_SCHEME } from './native.js';
 import { appPublicUrl } from './publicurl.js';
-import { shareText, canShareNatively, copyText, openExternal } from './platform.js';
+import { shareText, canShareNatively, openExternal } from './platform.js';
 
 /** Where to rate the app: a build-time link, or the Play Store page inside the Android app. '' means nowhere (the web). */
 export function getReviewUrl() {
