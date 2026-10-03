@@ -188,6 +188,8 @@ export function attachPromptCard(deps) {
 
   /** Step two for an unhappy player: a place to say what went wrong, never the store. */
   function askWhatWentWrong() {
+    // Someone who is not enjoying the game is not asked for a rating again
+    storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'never', Date.now()));
     while (box.firstChild) box.removeChild(box.firstChild);
     box.appendChild(buildFeedbackForm({
       mood: 'unhappy',

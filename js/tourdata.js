@@ -136,7 +136,7 @@ export function buildTourSteps(ctx) {
     { id: 'locker', title: 'Your hero', target: '#characterPreviewContainer', press: 'next',
       text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Heroes with a 🎨 can be recolored.' },
     { id: 'extras-tab', title: 'Trails', target: lockerTabButton('Trails'), press: 'pass',
-      text: 'Trails stream behind your runner. (The Monsters tab beside it is for the monster that chases you when you slip.) Open Trails.' },
+      text: 'Trails stream behind your runner. (The Maps tab is where you buy new worlds to run in, and Monsters is for the monster that chases you when you slip.) Open Trails.' },
     { id: 'buy', title: 'Your first trail', target: affordableTrailButton, press: 'pass', hint: 'Tap to buy it',
       skipIf: function () { return !affordableTrailButton(); },
       text: 'You started with some coins, so here is one to unlock. Tap its price to buy it. (Tapping a row, or the eye, previews any trail or monster up in the display first.)' },
@@ -150,7 +150,7 @@ export function buildTourSteps(ctx) {
     { id: 'quests-tab', title: 'Quests', target: tab('screenQuests'), press: 'pass',
       text: 'Now Quests.' },
     { id: 'quests', title: 'Daily quests', target: '#screenQuests h2', press: 'next',
-      text: 'Small goals that reset every day. Finish them and claim the coins here.' },
+      text: 'Six small goals, new every day. Tap Go to start the right kind of run, finish them and claim the coins here.' },
 
     { id: 'profile-tab', title: 'Profile', target: tab('screenProfile'), press: 'pass',
       text: 'And your Profile.' },

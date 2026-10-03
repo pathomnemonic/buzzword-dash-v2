@@ -111,6 +111,7 @@ describe('the rating question: enjoying it? then rate; not enjoying it? then fee
     buttonWith(/Send feedback/).click();
     await vi.waitFor(() => expect(deps.toast).toHaveBeenCalledWith(expect.stringMatching(/Thank you/)));
     expect(deps.sendFeedback.mock.calls[0][0]).toMatchObject({ mood: 'unhappy', message: 'Too many obstacles' });
+    expect(deps.storage.get('promptState').kinds.review.off).toBe(true); // an unhappy player is not asked to rate later
     expect(AppLauncher.openUrl).not.toHaveBeenCalled();
     expect(container.querySelector('.prompt-card')).toBeNull();
     setPlatformPluginsForTest(null);
