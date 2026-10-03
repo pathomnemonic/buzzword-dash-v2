@@ -11,7 +11,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
-import { ACHIEVEMENTS, QUESTS, questGoTarget } from './game/shopdata.js';
+import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 
 export var profileMethods = {
@@ -188,42 +188,52 @@ export var profileMethods = {
     var badgeSection = createElement('div', { className: 'profile-badges', attributes: { id: 'profileBadges' } });
     var heading = createElement('h4', { text: '🏆 Badges (' + achievements.length + '/' + ACHIEVEMENTS.length + ')' });
     badgeSection.appendChild(heading);
-    badgeSection.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Tap a badge you have earned to pin it to your profile (up to 6).' }));
-    var badgeList = createElement('div', { className: 'profile-badge-list' });
+    badgeSection.appendChild(createElement('div', { className: 'setting-sublabel', text: 'Tap a badge to read it. Earned badges can be pinned to your profile (up to 6).' }));
+    // The badge you tapped: its name and what it takes
+    var detail = createElement('div', { className: 'badge-detail', attributes: { role: 'status', 'aria-live': 'polite' } });
+    detail.textContent = 'Tap a badge to see what it is for.';
+    badgeSection.appendChild(detail);
 
-    ACHIEVEMENTS.forEach(function (ach) {
-      var earned = achievements.indexOf(ach.id) >= 0;
-      var isNew = newBadges.indexOf(ach.id) >= 0;
-      var pinned = selectedBadges.indexOf(ach.id) >= 0;
-      var item = createElement('div', {
-        className: 'achievement-item ' + (earned ? 'unlocked' : 'locked') + (pinned ? ' pinned' : '') + (isNew ? ' is-new' : ''),
-        dataset: { badge: ach.id }
-      });
-      item.appendChild(createElement('div', { className: 'achievement-icon', text: earned ? ach.icon : '🔒' }));
-      var info = createElement('div', { className: 'achievement-info' });
-      info.appendChild(createElement('div', { className: 'achievement-name', text: ach.name }));
-      info.appendChild(createElement('div', { className: 'achievement-desc', text: ach.desc }));
-      item.appendChild(info);
-      if (isNew) {
-        var dot = createElement('span', { className: 'nav-dot', attributes: { 'aria-label': 'New badge' } });
-        item.appendChild(dot);
-      }
-      if (earned) {
+    var byId = {};
+    ACHIEVEMENTS.forEach(function (a) { byId[a.id] = a; });
+    ACHIEVEMENT_GROUPS.forEach(function (group) {
+      var list = group.keys.map(function (k) { return byId[ACHIEVEMENT_IDS[k]]; }).filter(Boolean);
+      if (!list.length) return;
+      var earnedHere = list.filter(function (a) { return achievements.indexOf(a.id) >= 0; }).length;
+      var hasNew = list.some(function (a) { return newBadges.indexOf(a.id) >= 0; });
+      var section = createElement('details', { className: 'badge-group', attributes: { 'data-group': group.id } });
+      // groups with something new open on their own; the rest stay folded so the whole list fits on a screen
+      if (hasNew) section.open = true;
+      var sum = createElement('summary', { className: 'badge-group-title' });
+      sum.appendChild(createElement('span', { text: group.icon + ' ' + group.title }));
+      sum.appendChild(createElement('span', { className: 'badge-group-count', text: earnedHere + '/' + list.length }));
+      if (hasNew) sum.appendChild(createElement('span', { className: 'nav-dot', attributes: { 'aria-label': 'New badge' } }));
+      section.appendChild(sum);
+      var badgeList = createElement('div', { className: 'profile-badge-list' });
+
+      list.forEach(function (ach) {
+        var earned = achievements.indexOf(ach.id) >= 0;
+        var isNew = newBadges.indexOf(ach.id) >= 0;
+        var pinned = selectedBadges.indexOf(ach.id) >= 0;
+        var item = createElement('div', {
+          className: 'achievement-item ' + (earned ? 'unlocked' : 'locked') + (pinned ? ' pinned' : '') + (isNew ? ' is-new' : ''),
+          dataset: { badge: ach.id },
+          attributes: { role: 'button', tabindex: '0', 'aria-label': ach.name + (earned ? ', earned' : ', not yet earned') + ': ' + ach.desc, 'aria-pressed': pinned ? 'true' : 'false' }
+        });
+        item.appendChild(createElement('div', { className: 'achievement-icon', text: earned ? ach.icon : '🔒' }));
+        item.appendChild(createElement('div', { className: 'achievement-name', text: ach.name }));
+        if (isNew) item.appendChild(createElement('span', { className: 'nav-dot', attributes: { 'aria-label': 'New badge' } }));
         var pin = createElement('div', { className: 'badge-pin', text: pinned ? '📌' : '' });
         item.appendChild(pin);
-        item.setAttribute('role', 'button');
-        item.setAttribute('tabindex', '0');
-        item.setAttribute('aria-pressed', pinned ? 'true' : 'false');
-        var toggle = function () {
+        var activate = function () {
+          detail.textContent = (earned ? ach.icon : '🔒') + ' ' + ach.name + ': ' + ach.desc + (earned ? '' : ' (not yet earned)');
+          if (!earned) return;
           var badges = storage.get('selectedBadges') || [];
           var idx = badges.indexOf(ach.id);
           if (idx >= 0) {
             badges.splice(idx, 1);
           } else {
-            if (badges.length >= 6) {
-              self._showToast('You can pin up to 6 badges. Unpin one first.');
-              return;
-            }
+            if (badges.length >= 6) { self._showToast('You can pin up to 6 badges. Unpin one first.'); return; }
             badges.push(ach.id);
           }
           storage.set('selectedBadges', badges);
@@ -232,12 +242,13 @@ export var profileMethods = {
           item.setAttribute('aria-pressed', on ? 'true' : 'false');
           pin.textContent = on ? '📌' : '';
         };
-        item.addEventListener('click', toggle);
-        item.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-      }
-      badgeList.appendChild(item);
+        item.addEventListener('click', activate);
+        item.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+        badgeList.appendChild(item);
+      });
+      section.appendChild(badgeList);
+      badgeSection.appendChild(section);
     });
-    badgeSection.appendChild(badgeList);
     container.appendChild(badgeSection);
 
     this.renderCalendar();
@@ -318,7 +329,7 @@ export var profileMethods = {
     var doneCount = todays.filter(function (q) { return storage.getQuestProgress(q.id) >= q.target; }).length;
     container.appendChild(createElement('p', {
       className: 'quest-intro',
-      text: 'A fresh set every day \u00B7 ' + doneCount + ' of ' + todays.length + ' done. Finish them all for a gold calendar day.'
+      text: 'New every day \u00B7 ' + doneCount + ' of ' + todays.length + ' done \u00B7 all six earn a gold calendar day'
     }));
     var CATEGORY_ICON = { accuracy: '\uD83C\uDFAF', volume: '\uD83D\uDCDA', skill: '\uD83C\uDFC3', explore: '\uD83E\uDDED', mode: '\uD83C\uDFAE', speed: '\u26A1' };
 
@@ -340,28 +351,14 @@ export var profileMethods = {
       questEl.appendChild(barEl);
 
       var rewardEl = createElement('div', { className: 'quest-reward', text: progress + '/' + q.target + ' — 🪙 ' + q.reward });
-      questEl.appendChild(rewardEl);
 
-      // A way in: start the kind of run this quest needs
-      if (!isComplete) {
-        var goBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Go \u203A', attributes: { type: 'button', 'aria-label': 'Start: ' + q.title } });
-        goBtn.style.marginTop = '4px';
-        goBtn.addEventListener('click', function () {
-          document.dispatchEvent(new CustomEvent('dx:start-quest', { detail: { target: questGoTarget(q) } }));
-        });
-        questEl.appendChild(goBtn);
-      }
-
-      // Quest claiming button (Section 14.6) [2]
+      // Reward line: progress and coins, and the Claim button (or "Claimed") at its end once the quest is done
+      var rewardRow = createElement('div', { className: 'quest-claim-row' });
+      rewardRow.appendChild(rewardEl);
       if (isComplete) {
         var claimed = storage.isQuestClaimed(q.id, today);
-
         if (!claimed) {
-          var claimBtn = createElement('button', {
-            className: 'btn btn-gold btn-sm',
-            text: '🎁 Claim ' + q.reward + ' coins'
-          });
-          claimBtn.style.marginTop = '4px';
+          var claimBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: '🎁 Claim ' + q.reward, attributes: { type: 'button', 'aria-label': 'Claim ' + q.reward + ' coins for ' + q.title } });
           claimBtn.addEventListener('click', function () {
             var claim = storage.claimQuest(q.id, today);
             if (claim.success) {
@@ -376,13 +373,14 @@ export var profileMethods = {
             self.renderHome();
             document.dispatchEvent(new CustomEvent('dx:attention-changed'));
           });
-          questEl.appendChild(claimBtn);
+          rewardRow.appendChild(claimBtn);
         } else {
           var claimedLabel = createElement('div', { text: '✅ Claimed' });
-          claimedLabel.style.cssText = 'font-size:10px;color:var(--accent-green);margin-top:4px;font-weight:700';
-          questEl.appendChild(claimedLabel);
+          claimedLabel.style.cssText = 'font-size:10px;color:var(--accent-green);font-weight:700';
+          rewardRow.appendChild(claimedLabel);
         }
       }
+      questEl.appendChild(rewardRow);
 
       container.appendChild(questEl);
     });

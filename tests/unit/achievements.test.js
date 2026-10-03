@@ -85,3 +85,35 @@ describe('perfect runs need real play', () => {
     expect(storage.data.progression.perfectRuns).toBe(1);
   });
 });
+
+describe('badges are organised so the profile is short', () => {
+  it('every badge is in exactly one group', async () => {
+    const { ACHIEVEMENT_GROUPS } = await import('../../js/game/shopdata.js');
+    const placed = ACHIEVEMENT_GROUPS.flatMap((g) => g.keys.map((k) => ACHIEVEMENT_IDS[k]));
+    expect(placed.every(Boolean)).toBe(true);
+    expect(new Set(placed).size).toBe(placed.length);
+    expect([...placed].sort()).toEqual(ACHIEVEMENTS.map((a) => a.id).sort());
+  });
+  it('the Profile shows folded groups with counts, and a tapped badge is read and pinned', async () => {
+    const { readFileSync } = await import('node:fs');
+    const html = readFileSync('index.html', 'utf8');
+    document.body.innerHTML = html.slice(html.indexOf('<body'), html.indexOf('</body>')).replace(/<script[\s\S]*?<\/script>/g, '');
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    storage.unlockAchievement('ach_first_run');
+    const { ui } = await import('../../js/ui.js');
+    ui.renderProfile();
+    const groups = document.querySelectorAll('#profileBadges details.badge-group');
+    expect(groups.length).toBe(7);
+    // only a group with something new is open; folded, the whole list is seven short rows
+    expect([...groups].filter((g) => g.open).length).toBe(1);
+    expect(groups[0].querySelector('.badge-group-count').textContent).toBe('1/7');
+    const item = document.querySelector('[data-badge="ach_first_run"]');
+    item.click();
+    expect(document.querySelector('.badge-detail').textContent).toMatch(/First Steps/);
+    expect(storage.get('selectedBadges')).toContain('ach_first_run');
+    document.querySelector('[data-badge="ach_streak_100"]').click();
+    expect(document.querySelector('.badge-detail').textContent).toMatch(/not yet earned/);
+  });
+});

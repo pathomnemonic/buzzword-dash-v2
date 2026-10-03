@@ -844,17 +844,13 @@ export function questIdsForDate(dateKey) {
   return _questDayCache[dateKey].slice();
 }
 
-var QUEST_GO_BY_ID = {};
-QUEST_GO_BY_ID[QUEST_IDS.MODE_STUDY] = 'study';
-QUEST_GO_BY_ID[QUEST_IDS.MODE_WEAKNESS] = 'weakness';
-QUEST_GO_BY_ID[QUEST_IDS.MODE_ENDLESS] = 'endless';
-QUEST_GO_BY_ID[QUEST_IDS.MODE_GAUNTLET] = 'tournament';
-QUEST_GO_BY_ID[QUEST_IDS.MODE_CHALLENGE] = 'challenge';
-QUEST_GO_BY_ID[QUEST_IDS.DAILY] = 'daily';
-
-/** Where the "Go" button on a quest takes the player: a run mode, or 'flashcards'. */
-export function questGoTarget(quest) {
-  if (QUEST_GO_BY_ID[quest.id]) return QUEST_GO_BY_ID[quest.id];
-  if (/^flashcard/.test(quest.metric)) return 'flashcards';
-  return 'endless';
-}
+/** How the badges are grouped on the Profile (every badge is in exactly one group; a test checks that). */
+export var ACHIEVEMENT_GROUPS = [
+  { id: 'start', title: 'Getting started', icon: '🌱', keys: ['FIRST_RUN', 'PERFECT_RUN', 'GOLDEN_DOCTOR', 'CUSTOM_CARD', 'BUY_FIRST', 'FLASHCARD_FIRST', 'FLASHCARD_10'] },
+  { id: 'streaks', title: 'Streaks and perfect runs', icon: '🔥', keys: ['STREAK_10', 'STREAK_25', 'STREAK_50', 'STREAK_100', 'PERFECT_10', 'PERFECT_50', 'DAILY_3', 'DAILY_7', 'DAILY_30'] },
+  { id: 'scores', title: 'Scores and coins', icon: '🏆', keys: ['SCORE_1000', 'SCORE_5000', 'SCORE_10000', 'COINS_500', 'COINS_5000'] },
+  { id: 'cards', title: 'Cards answered', icon: '📚', keys: ['ENCOUNTERS_100', 'ENCOUNTERS_500', 'ENCOUNTERS_1000', 'STUDIED_500', 'STUDIED_1000', 'ALL_SUBJECTS'] },
+  { id: 'mastery', title: 'Subject mastery', icon: '🎓', keys: ['MASTER_NEURO', 'MASTER_CARDIO', 'MASTER_NEPHRO', 'MASTER_PSYCH', 'MASTER_GI', 'MASTER_PULM', 'MASTER_ID', 'MASTER_ENDO', 'MASTER_HEME', 'MASTER_RHEUM', 'MASTER_OBGYN', 'MASTER_PEDS', 'MASTER_SURG', 'MASTER_EM', 'MASTER_MULTI', 'MASTER_1_SUBJECT', 'MASTER_5_SUBJECTS', 'MASTER_10_SUBJECTS', 'MASTER_ALL_SUBJECTS'] },
+  { id: 'speed', title: 'Speed and stamina', icon: '⚡', keys: ['FAST_500MS', 'FAST_300MS', 'SPEED_MAX', 'PLAYTIME_30MIN', 'PLAYTIME_1HR'] },
+  { id: 'collect', title: 'Locker and versus', icon: '🎒', keys: ['COLLECT_10', 'COLLECT_25', 'COLLECT_50', 'MP_FIRST', 'MP_WIN', 'MP_WIN_5'] }
+];

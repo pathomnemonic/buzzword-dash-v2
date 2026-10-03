@@ -128,7 +128,7 @@ export function buildTourSteps(ctx) {
 
     { id: 'stats-tab', title: 'Stats', target: tab('screenStats'), press: 'pass',
       text: 'Now the tabs along the bottom. Open Stats.' },
-    { id: 'stats', title: 'How you are doing', target: '#screenStats h2', press: 'next',
+    { id: 'stats', title: 'How you are doing', target: '#screenStats .perf-hero', press: 'next',
       text: 'Your accuracy by subject, your weakest topics and your recent runs. Use it to decide what to drill next.' },
 
     { id: 'locker-tab', title: 'Locker', target: tab('screenShop'), press: 'pass',
@@ -150,7 +150,7 @@ export function buildTourSteps(ctx) {
     { id: 'quests-tab', title: 'Quests', target: tab('screenQuests'), press: 'pass',
       text: 'Now Quests.' },
     { id: 'quests', title: 'Daily quests', target: '#screenQuests h2', press: 'next',
-      text: 'Six small goals, new every day. Tap Go to start the right kind of run, finish them and claim the coins here.' },
+      text: 'Six small goals, new every day. Finish them as you play, then claim the coins here.' },
 
     { id: 'profile-tab', title: 'Profile', target: tab('screenProfile'), press: 'pass',
       text: 'And your Profile.' },

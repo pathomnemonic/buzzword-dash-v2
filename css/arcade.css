@@ -395,8 +395,16 @@ html, body {
   border-radius: 999px;
   background: repeating-linear-gradient(-45deg, #ffe566 0 8px, #ffbf2a 8px 16px);
 }
-.quest-title { font-size: 13px; }
+.quest-title { font-size: 12px; line-height: 1.25; }
 .quest-reward { font-weight: 900; font-size: 11px; }
+/* Quests: all six fit on one screen. The bar and the reward share a line, the claim button sits at the end of it. */
+#questList .quest-item { padding: 8px 12px; margin: 5px 0; }
+#questList .quest-bar { height: 10px; border-width: 2px; margin: 4px 0 2px; }
+#questList .quest-reward { margin: 0; }
+#questList .quest-claim-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+#questList .quest-claim-row .btn { margin: 0; padding: 4px 10px; }
+.quest-intro { font-size: 12px; margin: 4px 0 6px; }
+#screenQuests h2 { margin-bottom: 4px; }
 
 /* ---------- post-run ---------- */
 
@@ -1165,7 +1173,17 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* Profile -> Badges */
 .profile-badges { margin: 14px 0; }
 .profile-badges h4 { margin: 0 0 2px; }
-.profile-badge-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.profile-badge-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.profile-badge-list .achievement-item { flex-direction: column; justify-content: flex-start; gap: 2px; padding: 8px 2px 6px; margin: 0; text-align: center; min-width: 0; }
+.profile-badge-list .achievement-icon { width: 34px; height: 34px; font-size: 22px; }
+.profile-badge-list .achievement-name { font-size: 10px; line-height: 1.15; font-weight: 800; overflow-wrap: anywhere; }
+.profile-badge-list .badge-pin { position: absolute; top: 1px; right: 2px; margin: 0; font-size: 11px; min-width: 0; }
+.badge-detail { margin: 6px 0 4px; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.25); font-size: 12px; line-height: 1.35; min-height: 2.7em; }
+.badge-group { margin: 6px 0; border-radius: 14px; background: rgba(40, 20, 80, 0.6); border: 2px solid rgba(187, 102, 255, 0.25); padding: 0 8px 8px; }
+.badge-group > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 4px; font-size: 13px; font-weight: 800; position: relative; }
+.badge-group > summary::-webkit-details-marker { display: none; }
+.badge-group-count { font-size: 11px; color: var(--accent-gold); font-weight: 900; }
+.badge-group > summary > .nav-dot { top: 6px; right: 40px; }
 .profile-badge-list .achievement-item { position: relative; cursor: default; }
 .profile-badge-list .achievement-item.unlocked { cursor: pointer; }
 .profile-badge-list .achievement-item.pinned { outline: 3px solid var(--accent-gold); outline-offset: -3px; }

@@ -39,7 +39,7 @@ describe('the tour steps', () => {
       return !['extras-tab', 'buy', 'equip'].includes(s.id) && !s.target();
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
-    expect(missing.filter((id) => !['versus', 'profile'].includes(id))).toEqual([]);
+    expect(missing.filter((id) => !['versus', 'profile', 'stats'].includes(id))).toEqual([]);
   });
 
   it('each step says what it is: a title and some text', () => {

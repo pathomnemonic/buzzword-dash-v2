@@ -173,7 +173,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Card browser** — search, filter, enable/disable individual cards
 - **Custom cards** — create, import, and export your own cards
 - **Anki import** — import .apkg, CSV, or TSV files with optional AI conversion
-- **Achievements and quests** — a pool of 48 quests in six categories (accuracy, volume, skill, explore, mode, speed); each day six are on offer, one per category, the same for every player and never repeating yesterday's (`pickDailyQuests` / `questIdsForDate` in `js/game/shopdata.js`), each with a Go button that starts the right kind of run. Finishing all six earns a gold calendar day. Plus 50+ achievement badges, each of which can really be earned (`tests/unit/achievements.test.js`)
+- **Achievements and quests** — a pool of 48 quests in six categories (accuracy, volume, skill, explore, mode, speed); each day six are on offer, one per category, the same for every player and never repeating yesterday's (`pickDailyQuests` / `questIdsForDate` in `js/game/shopdata.js`). Finishing all six earns a gold calendar day. Plus 50+ achievement badges, each of which can really be earned (`tests/unit/achievements.test.js`)
 - **Profile** — set a display name, select badges, and track lifetime stats
 - **Leaderboard** — global and friends leaderboard (requires Supabase setup)
 - **Multiplayer** — real-time versus mode via PeerJS WebRTC
