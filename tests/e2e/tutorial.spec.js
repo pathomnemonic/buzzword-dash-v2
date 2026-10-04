@@ -110,7 +110,7 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
     expect(await page.evaluate(() => window.__game._state)).toBe('ended');
     const coinsBefore = await page.evaluate(() => window.__storage.get('coins'));
-    expect(coinsBefore).toBeGreaterThanOrEqual(1500); // enough for a first trail
+    expect(coinsBefore).toBeGreaterThanOrEqual(500); // exactly enough for the first trail the tour buys
     await walkTour(page);
     // the tour had them buy and wear a trail
     expect(await page.evaluate(() => window.__storage.get('coins'))).toBeLessThan(coinsBefore);
