@@ -120,4 +120,23 @@ describe('plan buttons and imported flashcards', () => {
     expect(onStudyPlanRun).not.toHaveBeenCalled();
     expect(ui._showToast).toHaveBeenCalledWith(expect.stringMatching(/flashcards/i));
   });
+
+  it('never shows an accuracy from a handful of answers (one answer is not "100%")', () => {
+    localStorage.clear(); storage.data = null; storage.load();
+    const c0 = CARDS[0];
+    storage.data.cards.cardStats[c0.id] = { seen: 1, correct: 1, wrong: 0, lastSeen: Date.now(), stability: 1, difficulty: 5, lastReview: Date.now(), due: Date.now() + DAY, interval: 1 };
+    storage.data.cards.subjectStats[c0.subj] = { correct: 1, wrong: 0 };
+    storage.data.progression.totalCorrect = 1;
+    storage.data.progression.totalWrong = 0;
+    const c = mount();
+    // the Accuracy tile waits for 10 answers
+    const acc = [...c.querySelectorAll('.perf-tile')].find((t) => /Accuracy/i.test(t.textContent));
+    expect(acc.textContent).not.toMatch(/100%/);
+    // the question-type list shows no percentage and says how to get one
+    c.querySelector('#perf-subjects').open = true;
+    c.querySelector('#perf-subjects').dispatchEvent(new Event('toggle'));
+    expect(c.querySelector('#perf-subjects').textContent).not.toMatch(/100%/);
+    expect(c.querySelector('#perf-subjects').textContent).toMatch(/Answer 10 questions of a type/);
+    expect(c.querySelector('#perf-subjects').textContent).toMatch(/accuracy after 10/);
+  });
 });

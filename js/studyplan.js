@@ -17,6 +17,9 @@ var DAY = 24 * 60 * 60 * 1000;
  * @param {number} input.studiedToday
  * @param {number} [input.now]
  */
+/** Percentages are only shown once there are at least this many answers behind them (one lucky answer is not 100%). */
+export var MIN_ANSWERS_FOR_STATS = 10;
+
 export function buildStudyPlan(input) {
   var now = input.now || Date.now();
   var byId = {};
@@ -59,7 +62,7 @@ export function buildStudyPlan(input) {
   Object.keys(input.subjectStats || {}).forEach(function (subj) {
     var s = input.subjectStats[subj];
     var total = (s.correct || 0) + (s.wrong || 0);
-    if (total < 5) return;
+    if (total < MIN_ANSWERS_FOR_STATS) return;
     var acc = (s.correct || 0) / total;
     if (!weakest || acc < weakest.accuracy) weakest = { subject: subj, accuracy: acc, total: total };
   });

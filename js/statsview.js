@@ -14,7 +14,7 @@ import { createElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { CARDS, SUBJECTS } from './cardhub.js';
 import { customCards } from './customcards.js';
-import { buildStudyPlan } from './studyplan.js';
+import { buildStudyPlan, MIN_ANSWERS_FOR_STATS } from './studyplan.js';
 import { masteryLevel, examPace } from './readiness.js';
 
 var _open = {};            // which sections are open (kept while the app is running)
@@ -210,7 +210,7 @@ export function renderPerformance(container, ui) {
   tiles.appendChild(tile('🔁', String(plan.dueCount), 'Due now', function () { openSection('reviews'); }, plan.dueCount > 0 ? 'var(--accent-gold)' : null));
   var tcAll = storage.get('totalCorrect');
   var twAll = storage.get('totalWrong');
-  var accAll = (tcAll + twAll) > 0 ? tcAll / (tcAll + twAll) : null;
+  var accAll = (tcAll + twAll) >= MIN_ANSWERS_FOR_STATS ? tcAll / (tcAll + twAll) : null;
   tiles.appendChild(tile('🎯', accAll === null ? '—' : Math.round(accAll * 100) + '%', 'Accuracy', function () { openSection('subjects'); }, accAll === null ? null : pctColor(accAll)));
   tiles.appendChild(tile('📅', pace && pace.daysLeft >= 0 ? pace.daysLeft + 'd' : 'Set', 'To exam', function () { openSection('settings'); }));
   container.appendChild(tiles);
@@ -270,13 +270,18 @@ export function renderPerformance(container, ui) {
       var m = masteredBy[s] || 0;
       var all = totalBy[s] || 0;
       r.appendChild(bar(all ? m / all : 0, 'var(--accent-green)', s + ': ' + m + ' of ' + all + ' cards mastered'));
-      r.appendChild(el('div', 'perf-row-sub', m + ' of ' + all + ' cards mastered  ·  ' + Math.round(a * 100) + '% correct  ·  ' + total + ' answered'));
+      var enough = total >= MIN_ANSWERS_FOR_STATS;
+      r.appendChild(el('div', 'perf-row-sub', m + ' of ' + all + ' cards mastered  ·  ' + (enough ? Math.round(a * 100) + '% correct  ·  ' : '') + total + ' answered' + (enough ? '' : ' (accuracy after ' + MIN_ANSWERS_FOR_STATS + ')')));
       body.appendChild(r);
     });
     if (!any) body.appendChild(el('p', 'perf-empty', 'Answer some cards and your subjects show up here.'));
+    // A percentage from a handful of answers is misleading (one answer is "100%"), so a type only shows once it has
+    // at least MIN_ANSWERS_FOR_STATS answers behind it
+    var typesShown = plan.typeAccuracy.filter(function (t) { return t.seen >= MIN_ANSWERS_FOR_STATS; });
     if (plan.typeAccuracy.length > 0) {
       body.appendChild(el('div', 'perf-subhead', 'By question type'));
-      plan.typeAccuracy.slice(0, 5).forEach(function (t) {
+      if (!typesShown.length) body.appendChild(el('p', 'perf-empty', 'Answer ' + MIN_ANSWERS_FOR_STATS + ' questions of a type and its accuracy shows up here.'));
+      typesShown.slice(0, 5).forEach(function (t) {
         var r = el('div', 'perf-line');
         r.appendChild(el('span', 'perf-line-name', t.type.replace(/_/g, ' ')));
         r.appendChild(bar(t.accuracy / 100, pctColor(t.accuracy / 100), t.type.replace(/_/g, ' ') + ' ' + t.accuracy + '% correct'));
@@ -376,6 +381,6 @@ export function renderPerformance(container, ui) {
   function accuracyHint() {
     var tc = storage.get('totalCorrect');
     var tw = storage.get('totalWrong');
-    return (tc + tw) > 0 ? Math.round(tc / (tc + tw) * 100) + '%' : '';
+    return (tc + tw) >= MIN_ANSWERS_FOR_STATS ? Math.round(tc / (tc + tw) * 100) + '%' : '';
   }
 }
