@@ -36,7 +36,7 @@ import { MULTI_CARDS } from './cards/multisystem.js';
 // Canonical enums
 // ═══════════════════════════════════════════════════════════
 
-import { clueLeaksAnswer, genericWords } from './cardleaks.js';
+import { clueLeaksAnswer, genericWords, deckGenericWords, strictClueLeak } from './cardleaks.js';
 import { SUBJECTS, EXAM_FILTERS, QUESTION_TYPES, SOURCE_DISCIPLINES, CONTENT_VERSION } from './cardmeta.js';
 export { SUBJECTS, EXAM_FILTERS, QUESTION_TYPES, SOURCE_DISCIPLINES, CONTENT_VERSION };
 
@@ -244,6 +244,14 @@ function validateCard(c) {
       }
       c.bw = safeBuzzwords;
     }
+
+    // Second, stricter pass (initials, acronym spelled out, short words like "Rai" or "CLL"). It only trims
+    // while at least three clues survive, so a card is never starved; the CI test keeps built-in cards clean.
+    var strictSafe = c.bw.filter(function (bw) { return !strictClueLeak(bw, c, _strictGeneric); });
+    if (strictSafe.length >= 3 && strictSafe.length < c.bw.length) {
+      warnings.push(c.id + ': removed ' + (c.bw.length - strictSafe.length) + ' clue(s) that still give the answer away');
+      c.bw = strictSafe;
+    }
   }
 
   // Only absurdly long clues are split, so ordinary clues are never cut mid-sentence
@@ -287,6 +295,10 @@ var RAW_SOURCES = [
 
 // Words common across the deck's answers ("syndrome", "acute"...) name a category, so a clue may use them
 var _genericWords = genericWords(RAW_SOURCES.reduce(function (all, src) {
+  return all.concat(Array.isArray(src) ? src.map(function (r) { return r && r.ans || ''; }) : []);
+}, []));
+
+var _strictGeneric = deckGenericWords(RAW_SOURCES.reduce(function (all, src) {
   return all.concat(Array.isArray(src) ? src.map(function (r) { return r && r.ans || ''; }) : []);
 }, []));
 
