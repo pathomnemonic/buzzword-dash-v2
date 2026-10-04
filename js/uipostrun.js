@@ -10,6 +10,7 @@ import { storage } from './storage.js';
 import { describeRules } from './rules.js';
 import { runVerdict } from './flavor.js';
 import { localDateKey, trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { openCardReport } from './cardreport.js';
 
 export var postRunMethods = {
 
@@ -205,18 +206,7 @@ export var postRunMethods = {
       }
       // A small flag in the corner of the card, so reports stay rare and deliberate
       var reportBtn = createElement('button', { className: 'review-flag', text: '🚩', attributes: { type: 'button', 'aria-label': 'Report a problem with this card', title: 'Report a problem with this card' } });
-      reportBtn.addEventListener('click', function () {
-        var reason = prompt('Why are you reporting this card?\n\nOptions:\n- incorrect info\n- ambiguous\n- poor distractor\n- outdated\n- other');
-        if (reason) {
-          var text = prompt('Additional details (optional):') || '';
-          if (storage.addCardReport) storage.addCardReport(c.id, reason, text);
-          // Also send to the server when the leaderboard/account is available.
-          import('./leaderboard.js').then(function (mod) {
-            if (mod.leaderboard.isAuthenticated()) mod.leaderboard.reportCard(c.id, reason, text);
-          }).catch(function () { /* offline: the local report is still saved and exportable */ });
-          alert('Card reported — thank you for helping improve the game!');
-        }
-      });
+      reportBtn.addEventListener('click', function () { openCardReport(c, function (m) { self._showToast(m); }); });
       card.appendChild(reportBtn);
     }
     return card;

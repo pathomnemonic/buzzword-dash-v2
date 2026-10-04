@@ -6,6 +6,7 @@
  */
 
 import { setText, createElement, clearElement } from './dom.js';
+import { openCardReport } from './cardreport.js';
 import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
 import { customCards } from './customcards.js';
@@ -182,6 +183,11 @@ export var browseMethods = {
         self._renderCardBrowserResults();
       });
       meta.appendChild(toggleBtn);
+
+      // A small flag to report a problem with this card (a clue that gives the answer away, a mistake, ...)
+      var flagBtn = createElement('button', { className: 'cb-flag', text: '🚩', attributes: { type: 'button', 'aria-label': 'Report a problem with this card', title: 'Report a problem with this card' } });
+      flagBtn.addEventListener('click', function (e) { e.stopPropagation(); openCardReport(c, function (m) { self._showToast(m); }); });
+      meta.appendChild(flagBtn);
 
       item.appendChild(meta);
       list.appendChild(item);
