@@ -362,7 +362,7 @@ export var SKINS = [
  */
 var INDOOR_IDS = [
   'skin_hospital_hallway', 'skin_operating_room', 'skin_research_lab',
-  'skin_ambulance_bay', 'skin_surgical_theater', 'skin_candy_lab'
+  'skin_ambulance_bay'
 ];
 
 export function isIndoorSkin(skin) {

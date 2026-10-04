@@ -449,6 +449,8 @@ export var SHOP_ITEMS = [
   { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2000, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
   { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2000, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
   { id: "map_neon_er", name: "Neon ER", desc: "Emergency room at midnight", price: 2000, type: "map", skinId: "skin_neon_er", color: 0xff4488, icon: "🚨", compatibility: COMPAT_ALL },
+  { id: "map_surgical_theater", name: "Surgical Theater", desc: "Under the operating lights", price: 2000, type: "map", skinId: "skin_surgical_theater", color: 0x88ddff, icon: "🔬", compatibility: COMPAT_ALL },
+  { id: "map_candy_lab", name: "Candy Lab", desc: "A sweet-shop laboratory", price: 2000, type: "map", skinId: "skin_candy_lab", color: 0xff88cc, icon: "🍬", compatibility: COMPAT_ALL },
   { id: "map_prescription_sunset", name: "Prescription Sunset", desc: "Warm pharmacy vibes", price: 2500, type: "map", skinId: "skin_prescription_sunset", color: 0xffaa55, icon: "💊", compatibility: COMPAT_ALL },
   { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 2500, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
   { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 2500, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },

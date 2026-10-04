@@ -4,7 +4,7 @@ import { SKINS, isIndoorSkin, getStartSkin, getNextSkin } from '../../js/game/sk
 describe('map order within a run', () => {
   it('splits the maps into indoor and outdoor, with both kinds present', () => {
     const indoor = SKINS.filter(isIndoorSkin);
-    expect(indoor.length).toBeGreaterThanOrEqual(5);
+    expect(indoor.length).toBeGreaterThanOrEqual(4);
     expect(indoor.length).toBeLessThan(SKINS.length);
     ['Hospital Hallway', 'Operating Room', 'Research Lab', 'Ambulance Bay'].forEach((n) => {
       expect(indoor.map((s) => s.name)).toContain(n);

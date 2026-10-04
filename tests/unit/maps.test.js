@@ -14,13 +14,13 @@ describe('maps in the Locker', () => {
       expect(m.price).toBeGreaterThan(0);
       expect(m.name).toBe(SKINS.find((s) => s.id === m.skinId).name);
     });
-    expect(SKINS.filter(isIndoorSkin).length).toBeGreaterThanOrEqual(5);
+    expect(SKINS.filter(isIndoorSkin).length).toBeGreaterThanOrEqual(4);
   });
 
-  it('exactly the six new indoor hospital maps are free; every older map has to be bought', () => {
+  it('exactly four indoor hospital maps are free; every other map has to be bought', () => {
     const free = SKINS.filter(isIndoorSkin).map((s) => s.name).sort();
-    expect(free).toEqual(['Ambulance Bay', 'Candy Lab', 'Hospital Hallway', 'Operating Room', 'Research Lab', 'Surgical Theater']);
-    ['Neon ER', 'Prescription Sunset'].forEach((name) => {
+    expect(free).toEqual(['Ambulance Bay', 'Hospital Hallway', 'Operating Room', 'Research Lab']);
+    ['Neon ER', 'Prescription Sunset', 'Surgical Theater', 'Candy Lab'].forEach((name) => {
       const skin = SKINS.find((s) => s.name === name);
       expect(isMapUnlocked(skin, () => false), name).toBe(false);
       expect(maps.some((m) => m.skinId === skin.id), name + ' is for sale').toBe(true);
@@ -79,7 +79,7 @@ describe('buying and choosing maps', () => {
     ui._lockerTab = 'maps';
     ui.renderShop();
     const rows = document.querySelectorAll('#shopItems [data-map]');
-    expect(rows.length).toBe(10);
+    expect(rows.length).toBe(12);
     const row = document.querySelector('[data-map="map_cardiac_pulse"]');
     row.querySelector('.btn-gold').click();
     expect(storage.ownsItem('map_cardiac_pulse')).toBe(true);
