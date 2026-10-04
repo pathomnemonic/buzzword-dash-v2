@@ -37,3 +37,4 @@ Do not rebuild `dist/` while Playwright is running; the preview server serves fi
 - Look things up through the exported tables (`QUEST_IDS`, `ACHIEVEMENT_IDS`, `GAME_MODES`...) and never hard-code the string next to `||` as a fallback: a wrong fallback hides the bug.
 - If a screen shows a count, name or warning, give it a button that does the obvious next thing, or make it plainly non-interactive.
 - A new setting must be read somewhere (the settings audit fails otherwise).
+- Card content is data, so it is tested like code: `cardquality.test.js` fails if any built-in card has a clue that gives the answer away (initials, acronym expansions, short words like "Rai", bracketed aliases) or fewer than three clues, and `node tools/audit-leaks.mjs` lists offenders by subject. See `docs/CARD-QUALITY.md` for why the old filter missed them.
