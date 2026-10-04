@@ -842,6 +842,9 @@ class Game {
 
     this.encountersUntilTransition = 10;
     this.transitionActive = false; this.transitionTimer = 0;
+    if (this._removeMapGateway) this._removeMapGateway();
+    var mapFlash = typeof document !== 'undefined' ? document.getElementById('mapFlash') : null;
+    if (mapFlash) mapFlash.classList.remove('on');
 
     this.monsterZ = MONSTER_START_DIST; this.monsterTargetZ = MONSTER_START_DIST; this._monsterY = undefined;
     this.monsterVisible = false; this.monsterWarningPlayed = false;

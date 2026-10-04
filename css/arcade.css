@@ -2154,3 +2154,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .shop-item.stacked > div:last-of-type:not(.story-long) { flex: 0 0 100%; order: 1; justify-content: flex-start; gap: 6px; }
 .shop-item.stacked .btn { margin-left: 0 !important; }
 .shop-item.stacked .story-long { order: 2; }
+
+/* Running through the doorway into the next map: a soft wash of the new map's colour hides the swap */
+.map-flash { position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .7s ease-out; mix-blend-mode: screen; }
+.map-flash.on { opacity: .55; transition: opacity .35s ease-in; }
+@media (prefers-reduced-motion: reduce) { .map-flash { display: none; } }

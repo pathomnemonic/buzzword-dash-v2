@@ -168,7 +168,23 @@ export var visualMethods = {
     this.scene.background = blendedBg;
     if (this.scene.fog) this.scene.fog.color.copy(blendedBg);
 
+    // The doorway to the next map comes running toward us, and we run through it
+    var gateway = this._mapGateway;
+    if (gateway) {
+      gateway.position.z = -80 + this.transitionProgress * 86;
+      gateway.rotation.z = Math.sin(this.transitionTimer * 1.5) * 0.02;
+      var glow = 0.8 + 0.2 * Math.sin(this.transitionTimer * 6);
+      gateway.userData.mats.forEach(function (m) { m.opacity = glow; });
+    }
+    var flash = typeof document !== 'undefined' ? document.getElementById('mapFlash') : null;
+    if (flash) {
+      flash.style.background = this._mapGatewayColor || '#ffffff';
+      if (this.transitionProgress >= 0.9) flash.classList.add('on');
+    }
+
     if (this.transitionProgress >= 1.0) {
+      this._removeMapGateway();
+      if (flash) flash.classList.remove('on'); // (it fades out over the first moments of the new map)
       this.transitionActive = false;
       this.currentSkin = this.transitionNewSkin;
       this.transitionOldSkin = null;
@@ -187,7 +203,45 @@ export var visualMethods = {
     }
   },
 
+  /** A glowing doorway in the next map's colours, built ahead of the runner. */
+  _buildMapGateway(skin) {
+    this._removeMapGateway();
+    var hex = skin.colors.archGlow || skin.colors.wallGlow || 0xffffff;
+    var group = new THREE.Group();
+    var mats = [];
+    function mat() {
+      var m = new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.8, fog: false });
+      mats.push(m);
+      return m;
+    }
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(5.2, 0.8, 10, 40, Math.PI), mat());
+    ring.position.set(0, 0, 0);
+    group.add(ring);
+    [-5.2, 5.2].forEach(function (x) {
+      var pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 5.2, 10), mat());
+      pillar.position.set(x, -2.6, 0);
+      group.add(pillar);
+    });
+    var veil = new THREE.Mesh(new THREE.PlaneGeometry(10.4, 5.2), new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.3, side: THREE.DoubleSide, fog: false, depthWrite: false }));
+    veil.position.set(0, -0.0, 0);
+    group.add(veil);
+    group.position.set(0, 2.6, -80);
+    group.userData.mats = mats;
+    this.scene.add(group);
+    this._mapGateway = group;
+    this._mapGatewayColor = '#' + ('000000' + hex.toString(16)).slice(-6);
+  },
+
+  _removeMapGateway() {
+    var g = this._mapGateway;
+    if (!g) return;
+    this.scene.remove(g);
+    g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    this._mapGateway = null;
+  },
+
   _transitionSkin(newSkin) {
+    this._buildMapGateway(newSkin);
     this.transitionActive = true;
     this.transitionTimer = 0;
     this.transitionOldSkin = this.currentSkin;
