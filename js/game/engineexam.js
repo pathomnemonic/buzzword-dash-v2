@@ -76,7 +76,7 @@ export var examMonsterMethods = {
     var charge = Math.min(1, Math.max(0, t / LOOKBACK_HOLD));
     var z = 18 - charge * 11 - leave * 3.5;
     m.position.set(0, ground ? 0 : 1.8 + Math.sin(t * 2) * 0.15, z);
-    m.rotation.set(0, Math.PI, 0); // facing the runner
+    m.rotation.set(0, 0, 0); // facing the runner (the model's own front, the same as when it chases)
     m.scale.set(s, s, s);
     if (model) updateModelAnimation(m, 1 / 60, ground ? 'run' : 'idle');
     if (this._monsterFade) {
