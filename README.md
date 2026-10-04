@@ -191,7 +191,7 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - **Card reports** — flag a card from the post-run review; reports are saved locally and sent to Supabase when signed in
 - **Exam simulation** — timed blocks (10/20/40 questions) with no instant feedback, flagging, a question map, and a report by subject with a practice readiness band
 - **Weak-spot dashboard** — today's study plan, 7-day review forecast, and accuracy by question type, with one-tap review of due cards
-- **Streak shields and weekly goal** — earn a shield every 7-day daily streak; hit your daily goal on 5 days a week for a coin reward; optional daily reminder notification
+- **Study streak, shields and weekly goal** — the streak counts every day you answer at least one card (one number on Home, the Today sheet, the Profile and the calendar); earn a shield every 7 days, and a shield covers one missed day; hit your daily goal on 5 days a week for a coin reward; optional daily reminder notification
 - **Async challenges** — play 15 seeded questions, share a link with your score, and a friend plays the same cards to beat it (no server needed)
 - **Study groups** — private class leaderboards joined by code (needs Supabase)
 - **Deck sharing** — publish your custom cards and share a code; import by code (needs Supabase)

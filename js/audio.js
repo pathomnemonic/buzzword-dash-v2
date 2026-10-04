@@ -693,11 +693,23 @@ class AudioEngine {
     this.updateSettings();
   }
 
+  /**
+   * True when the audio context is not producing sound but could be woken. Safari reports "interrupted" (a phone call,
+   * Siri, unplugged headphones) as well as "suspended", and both need resume() to bring the sound back.
+   */
+  _asleep() {
+    return !!this.ctx && this.ctx.state !== 'running' && this.ctx.state !== 'closed';
+  }
+
+  _wake() {
+    var p;
+    try { p = this.ctx.resume(); } catch (e) { return; }
+    if (p && typeof p.catch === 'function') p.catch(function () { /* not allowed yet: the next tap tries again */ });
+  }
+
   unlock() {
     if (!this.ctx) this.init();
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
+    if (this._asleep()) this._wake();
   }
 
   // ===== SETTINGS =====
@@ -773,7 +785,7 @@ class AudioEngine {
   // ===== SEMANTIC PLAY API =====
 
   play(eventName, options) {
-    if (!this.ctx || this.ctx.state === 'suspended') {
+    if (!this.ctx || this._asleep()) {
       this.unlock();
     }
     if (!this.ctx) return;
@@ -1484,7 +1496,7 @@ class AudioEngine {
    * @param {'cheer'|'sad'} kind
    */
   playCharacter(avatarId, kind) {
-    if (!this.ctx || this.ctx.state === 'suspended') this.unlock();
+    if (!this.ctx || this._asleep()) this.unlock();
     if (!this.ctx || this._paused) return;
     var vol = this._settings.masterVolume * this._settings.voiceVolume;
     if (vol <= 0) return;
@@ -1653,9 +1665,7 @@ class AudioEngine {
 
   resume(reason) {
     this._paused = false;
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
+    if (this._asleep()) this._wake();
     if (this.musicPlaying && this.musicGenerator) {
       this.musicGenerator.play();
     }

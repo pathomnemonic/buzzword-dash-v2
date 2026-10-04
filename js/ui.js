@@ -53,7 +53,7 @@ import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
 import { getDashControl } from './dashcontrol.js';
 import { streakCallout } from './flavor.js';
-import { dailyReward } from './progress.js';
+import { dailyReward, loginStep } from './progress.js';
 import { newlyAffordable, markSeen } from './lockerdots.js';
 import { showDailyRewardModal } from './rewardsui.js';
 import { listDecks, getDeck, saveDeck, removeDeck } from './deckcache.js';
@@ -62,7 +62,7 @@ import { settingsMethods } from './uisettings.js';
 import { studyMethods } from './uistudy.js';
 import { browseMethods } from './uibrowse.js';
 import { profileMethods } from './uiprofile.js';
-import { homeMethods } from './uihome.js';
+import { homeMethods, SHEETS } from './uihome.js';
 import { prefersReducedMotion, trapFocus, releaseFocusTrap } from './uihelpers.js';
 
 // ═══════════════════════════════════════════════════════════
@@ -506,13 +506,8 @@ class UI {
       if (rankedCard) { rankedCard.remove(); return; }
 
       // Close modals in priority order
-      var overlays = [
-        'reviewOverlay',
-        'quickReviewOverlay',
-        'continueOverlay',
-        'multiplayerOverlay',
-        'challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'
-      ];
+      // (the Home pop-ups come from the one list in uihome.js, so a new one cannot be forgotten here)
+      var overlays = ['reviewOverlay', 'quickReviewOverlay', 'continueOverlay', 'multiplayerOverlay'].concat(SHEETS);
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
         if (ov && ov.classList.contains('active')) {
@@ -579,23 +574,26 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   /**
-   * Show a brief toast notification.
-   * Uses safe text rendering. Honors reduced motion.
+   * A short message that floats up and fades (safe text rendering; honours reduced motion). Screen readers announce
+   * it (role=status). `holdMs` keeps it fully visible for that long first, for a sentence the player has to read.
    */
-  _showToast(message) {
+  _showToast(message, holdMs) {
     audio.play('achievement');
-    var popup = createElement('div', { text: message });
+    var popup = createElement('div', { className: 'toast', text: message, attributes: { role: 'status', 'aria-live': 'polite' } });
     popup.style.cssText = 'position:fixed;top:40%;left:50%;transform:translateX(-50%) rotate(-1.5deg);font-size:18px;font-weight:900;color:#1b0a40;pointer-events:none;z-index:30;transition:all 1.2s ease-out;opacity:1;background:#fff6dc;padding:12px 22px;border-radius:16px;border:4px solid #1b0a40;box-shadow:0 5px 0 #1b0a40;text-align:center;max-width:86vw;';
     document.body.appendChild(popup);
-    if (!prefersReducedMotion()) {
-      requestAnimationFrame(function () {
-        popup.style.top = '25%';
-        popup.style.opacity = '0';
-      });
-    } else {
-      setTimeout(function () { popup.style.opacity = '0'; }, 800);
-    }
-    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 1200);
+    var hold = Math.max(0, Number(holdMs) || 0);
+    setTimeout(function () {
+      if (!prefersReducedMotion()) {
+        requestAnimationFrame(function () {
+          popup.style.top = '25%';
+          popup.style.opacity = '0';
+        });
+      } else {
+        setTimeout(function () { popup.style.opacity = '0'; }, 800);
+      }
+    }, hold);
+    setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, hold + 1200);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -603,18 +601,13 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   checkDailyLoginReward() {
-    var today = new Date().toDateString();
-    var lastLogin = storage.get('lastLoginDate');
-    if (lastLogin === today) return;
-    storage.set('lastLoginDate', today);
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    var loginStreak = storage.get('loginStreak') || 0;
-    if (lastLogin === yesterday.toDateString()) {
-      loginStreak++;
-    } else if (lastLogin !== today) {
-      loginStreak = 1;
+    var step = loginStep(storage.get('lastLoginDate'), storage.get('loginStreak'), storage.getTodayKey());
+    if (!step.claim) {
+      if (storage.get('lastLoginDate') !== step.last) storage.set('lastLoginDate', step.last); // an old-format date, now a key
+      return;
     }
+    storage.set('lastLoginDate', step.last);
+    var loginStreak = step.streak;
     storage.set('loginStreak', loginStreak);
     var reward = dailyReward(loginStreak);
     storage.addCoins(reward.coins);

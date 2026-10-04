@@ -11,7 +11,14 @@ var MAX_DECKS = 10;
 function read() {
   try {
     var parsed = JSON.parse(localStorage.getItem(KEY) || '{}');
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    // keep only decks that are shaped like decks (a damaged entry must not break the list of the good ones)
+    Object.keys(parsed).forEach(function (code) {
+      var d = parsed[code];
+      if (code === '__proto__' || !d || typeof d !== 'object' || Array.isArray(d) || !Array.isArray(d.cards)) delete parsed[code];
+      else if (typeof d.savedAt !== 'number' || !isFinite(d.savedAt)) d.savedAt = 0;
+    });
+    return parsed;
   } catch (e) {
     return {};
   }

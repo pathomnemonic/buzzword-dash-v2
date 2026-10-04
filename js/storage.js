@@ -20,7 +20,8 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { repairData } from './sanity.js';
+import { repairData, sanitizeCollections } from './sanity.js';
+import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetween } from './studystreak.js';
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
@@ -124,8 +125,11 @@ var DEFAULTS = {
     perfectRuns: 0,
     continuesUsed: 0,
 
-    dailyStreak: 0,
-    streakShields: 0,
+    dailyStreak: 0,          // consecutive days the Daily 15 was completed (the Consistent / Dedicated / Committed badges)
+    streakShields: 0,        // protect the study streak: one covers a missed day (earned at every 7th day, 3 at most)
+    studyStreak: 0,          // consecutive days with at least one card answered: the flame everywhere (see studystreak.js)
+    lastStudyDate: null,     // the last day counted in studyStreak, as YYYY-MM-DD
+    bestStudyStreak: 0,
     tournamentTop10Weeks: [],
     lastCompletedDailyDate: null,
     lastLoginDate: null,
@@ -282,12 +286,6 @@ function currentWeekKeys() {
   var keys = [];
   for (var i = 0; i < 7; i++) keys.push(dayKeyOffset(mondayOffset + i));
   return keys;
-}
-
-function yesterdayKey() {
-  var d = new Date();
-  d.setDate(d.getDate() - 1);
-  return localDateKey(d);
 }
 
 // ===== LEGACY MIGRATION =====
@@ -650,8 +648,20 @@ class Storage {
 
     // Anything with the wrong type or an impossible value (NaN, a negative count, text where a number belongs) goes
     // back to its default, so one bad field cannot break a screen later
-    var repaired = repairData(d, DEFAULTS);
+    var repaired = repairData(d, DEFAULTS) + sanitizeCollections(d);
     if (repaired) console.warn('[Storage] Repaired ' + repaired + ' damaged field(s)');
+
+    // The study streak is stored now. A save from before that (or one whose streak date was damaged) starts from the
+    // days the calendar already shows, so the flame and the calendar agree from the first launch
+    var counts = d.history && d.history.dailyCounts;
+    if (counts && typeof counts === 'object') {
+      var seed = deriveStreakFromCounts(counts, todayKey());
+      if (!d.progression.lastStudyDate && !d.progression.studyStreak && seed.streak > 0) {
+        d.progression.studyStreak = seed.streak;
+        d.progression.lastStudyDate = seed.last;
+      }
+      d.progression.bestStudyStreak = Math.max(d.progression.bestStudyStreak || 0, d.progression.studyStreak || 0, seed.best);
+    }
 
     // One-time move of every card from the old schedule to FSRS (see fsrs.js), so nobody loses their history
     if (d.cards && d.cards.cardStats && !d.settings.fsrsMigrated) {
@@ -976,19 +986,18 @@ class Storage {
   // ===== STREAK STATUS & WEEKLY GOAL =====
 
   /**
-   * Current daily-challenge streak as the player should see it: a streak that
-   * lapsed (no shield available) reads as 0.
+   * The study streak as the player should see it: consecutive days with at least one card answered. A streak that
+   * lapsed (and no shield can cover the gap) reads as 0.
    */
   getStreakStatus() {
     var p = this.data.progression;
-    var last = p.lastCompletedDailyDate;
-    var streak = p.dailyStreak || 0;
-    var live = last === todayKey() || last === yesterdayKey() ||
-      (last === dayKeyOffset(-2) && (p.streakShields || 0) > 0);
+    var live = liveStudyStreak({ streak: p.studyStreak, last: p.lastStudyDate, shields: p.streakShields }, todayKey());
     return {
-      streak: live ? streak : 0,
+      streak: live.streak,
       shields: p.streakShields || 0,
-      playedToday: last === todayKey()
+      playedToday: live.playedToday,
+      atRisk: live.atRisk,
+      best: Math.max(p.bestStudyStreak || 0, live.streak)
     };
   }
 
@@ -1043,9 +1052,13 @@ class Storage {
 
   // ===== DAILY STUDY GOAL =====
 
-  /** Count `count` cards answered today; `correct` (optional) is how many of them were right, for the streak calendar. */
+  /**
+   * Count `count` cards answered today; `correct` (optional) is how many of them were right, for the streak calendar.
+   * Answering any card makes today a study day, so the streak and the calendar are one thing.
+   * @returns {object|null} what the streak did (see advanceStudyStreak), or null when nothing was counted
+   */
   addStudiedToday(count, correct) {
-    if (!count) return;
+    if (!(count > 0)) return null;
     var counts = this.data.history.dailyCounts;
     var key = todayKey();
     counts[key] = (counts[key] || 0) + count;
@@ -1058,6 +1071,17 @@ class Storage {
     while (keys.length > 90) delete counts[keys.shift()];
     var rkeys = Object.keys(this.data.history.dailyCorrect || {}).sort();
     while (rkeys.length > 90) delete this.data.history.dailyCorrect[rkeys.shift()];
+    return this._advanceStudyStreak(key);
+  }
+
+  _advanceStudyStreak(today) {
+    var p = this.data.progression;
+    var r = advanceStudyStreak({ streak: p.studyStreak, last: p.lastStudyDate, shields: p.streakShields, best: p.bestStudyStreak }, today);
+    p.studyStreak = r.streak;
+    p.lastStudyDate = r.last;
+    p.streakShields = r.shields;
+    p.bestStudyStreak = r.best;
+    return r;
   }
 
   getStudiedToday() {
@@ -1513,29 +1537,20 @@ class Storage {
       p.perfectRuns = (p.perfectRuns || 0) + 1;
     }
 
-    // --- Daily ---
+    // --- Daily 15 ---
+    // Its own streak (the Consistent / Dedicated / Committed badges): the Daily 15 on consecutive days. The study
+    // streak that shows on Home is separate and is counted in addStudiedToday.
     if (summary.dailyCompleted) {
       var today = todayKey();
-      var yesterday = yesterdayKey();
-
       if (p.lastCompletedDailyDate !== today) {
-        if (p.lastCompletedDailyDate === yesterday) {
-          p.dailyStreak++;
-        } else if (p.lastCompletedDailyDate === dayKeyOffset(-2) && (p.streakShields || 0) > 0 && p.dailyStreak > 0) {
-          // Missed exactly one day: a streak shield keeps the streak alive.
-          p.streakShields--;
-          p.dailyStreak++;
-          result.shieldUsed = true;
-        } else {
-          p.dailyStreak = 1;
+        var gap = daysBetween(p.lastCompletedDailyDate, today);
+        // A last date in the future means the clock is behind it (a trip west, a wrong clock): the streak is kept
+        // and nothing more is counted until the calendar catches up
+        if (!(gap < 0)) {
+          p.dailyStreak = gap === 1 ? (p.dailyStreak || 0) + 1 : 1;
+          p.lastCompletedDailyDate = today;
+          result.dailyCompleted = true;
         }
-        // Earn a shield for every 7-day streak (max 3 banked).
-        if (p.dailyStreak > 0 && p.dailyStreak % 7 === 0) {
-          p.streakShields = Math.min(3, (p.streakShields || 0) + 1);
-          result.shieldEarned = true;
-        }
-        p.lastCompletedDailyDate = today;
-        result.dailyCompleted = true;
       }
     }
 
@@ -1565,7 +1580,11 @@ class Storage {
       var acc = total > 0 ? Math.round(summary.correct / total * 100) : 0;
       this.data.history.calendarData[calKey] = acc;
     }
-    this.addStudiedToday(summary.encountersCompleted || 0, summary.correct || 0);
+    var streakStep = this.addStudiedToday(summary.encountersCompleted || 0, summary.correct || 0);
+    if (streakStep) {
+      if (streakStep.shieldUsed) result.shieldUsed = true;
+      if (streakStep.shieldEarned) result.shieldEarned = true;
+    }
 
     // --- Quest progress from run events ---
     var questsBefore = this._completedQuestIds();
@@ -1913,6 +1932,7 @@ class Storage {
         bestStreak: this.data.progression.bestStreak,
         playTime: Math.round(this.data.progression.totalPlayTimeMs / 1000),
         dailyStreak: this.data.progression.dailyStreak,
+        studyStreak: this.getStreakStatus().streak,
         achievements: this.data.progression.achievements.length,
         coins: this.data.progression.totalCoinsEarned,
         flashcardSessions: this.data.progression.flashcardSessions,

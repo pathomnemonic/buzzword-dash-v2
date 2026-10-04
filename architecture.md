@@ -810,7 +810,7 @@ dailyCompleted =
 A manually abandoned or failed Daily run must not:
 
 - Set `dailyDone`.
-- Increment the Daily streak.
+- Increment the Daily 15 streak (the Consistent / Dedicated / Committed badges). The study streak shown on Home is separate: any answered card counts it (`addStudiedToday`).
 - Increment the Daily completion quest.
 - Award Daily completion achievements.
 

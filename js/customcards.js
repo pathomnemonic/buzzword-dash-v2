@@ -43,6 +43,12 @@ function _notifyListeners() {
   }
 }
 
+/** A card the game can show: an object with an id, a list of clues and an answer. */
+function _usable(c) {
+  return !!c && typeof c === 'object' && !Array.isArray(c) && typeof c.id === 'string' && c.id !== '__proto__' &&
+    Array.isArray(c.bw) && c.bw.length > 0 && typeof c.ans === 'string' && c.ans.length > 0;
+}
+
 export var customCards = {
 
   /**
@@ -52,7 +58,9 @@ export var customCards = {
   getAll: function() {
     try {
       var raw = localStorage.getItem(CUSTOM_CARDS_KEY);
-      return raw ? JSON.parse(raw) : [];
+      var parsed = raw ? JSON.parse(raw) : [];
+      // whatever the stored text turns out to be, the caller gets a list of usable cards (never null, an object or a number)
+      return Array.isArray(parsed) ? parsed.filter(_usable) : [];
     } catch (e) {
       return [];
     }
@@ -66,8 +74,7 @@ export var customCards = {
   replaceAll: function(cards) {
     var seen = {};
     var kept = (Array.isArray(cards) ? cards : []).filter(function(c) {
-      if (!c || typeof c !== 'object' || typeof c.id !== 'string' || seen[c.id]) return false;
-      if (!Array.isArray(c.bw) || !c.bw.length || typeof c.ans !== 'string' || !c.ans) return false;
+      if (!_usable(c) || seen[c.id]) return false;
       seen[c.id] = true;
       return true;
     }).slice(0, MAX_CUSTOM_CARDS);

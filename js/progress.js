@@ -7,6 +7,8 @@
  * and day 7 is a chest with a random payout (never smaller than day 6).
  */
 
+import { dayNumber, daysBetween } from './studystreak.js';
+
 /** XP for one finished run. Answers are worth the most; a long streak adds a bonus. */
 export function xpForRun(summary) {
   var correct = Math.max(0, (summary && summary.correct) || 0);
@@ -49,6 +51,38 @@ export function nearMissLine(score, best) {
 }
 
 // ---------- daily reward track ----------
+
+/**
+ * A saved login date as a 'YYYY-MM-DD' key. Older versions saved the long text (Sun Oct 04 2026); both are read.
+ * @returns {string|null} null when it is empty or not a date
+ */
+export function toDayKey(v) {
+  if (typeof v !== 'string' || !v) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return isNaN(dayNumber(v)) ? null : v;
+  var d = new Date(v);
+  if (isNaN(d.getTime())) return null;
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+/**
+ * Today's login: does the reward pay, and what is the login streak after it? Compares whole calendar days, so a
+ * daylight-saving change cannot split a day, and a clock that was set back (or a trip west) pays nothing twice and
+ * loses nothing: the next reward comes when the date passes the last paid day.
+ * @param {string|null} last the last day a reward was paid (see toDayKey)
+ * @param {number} streak the login streak so far
+ * @param {string} today 'YYYY-MM-DD'
+ * @returns {{claim: boolean, streak: number, last: string}}
+ */
+export function loginStep(last, streak, today) {
+  var lastKey = toDayKey(last);
+  var s = Math.max(0, Math.floor(Number(streak) || 0));
+  if (lastKey) {
+    var gap = daysBetween(lastKey, today);
+    if (gap <= 0) return { claim: false, streak: s, last: lastKey };
+    return { claim: true, streak: gap === 1 ? s + 1 : 1, last: today };
+  }
+  return { claim: true, streak: 1, last: today };
+}
 
 var DAILY_COINS = [10, 20, 30, 50, 75, 100];
 var CHEST_MIN = 150;

@@ -116,3 +116,48 @@ describe('music lifecycle', () => {
     expect(spy).toHaveBeenCalledWith(0, expect.any(Number), expect.any(Number));
   });
 });
+
+describe('audio interruptions (phone call, Siri, headphones unplugged)', () => {
+  beforeEach(() => {
+    audio.stopMusic();
+    audio.ctx = fakeCtx();
+    audio._musicBus = {};
+    audio._paused = false;
+    audio._allGenerators = [];
+    audio._settings = { masterVolume: 1, musicVolume: 1, sfxVolume: 1, voiceVolume: 1, ttsEnabled: false };
+  });
+  afterEach(() => { audio.stopMusic(); });
+
+  it('wakes a context Safari reports as "interrupted", not only a "suspended" one', () => {
+    audio.ctx.state = 'interrupted';
+    audio.resume('visible');
+    expect(audio.ctx.resume).toHaveBeenCalled();
+    expect(audio.ctx.state).toBe('running');
+  });
+
+  it('the next sound after an interruption wakes the audio again', () => {
+    vi.spyOn(audio, '_sweep').mockImplementation(() => {});
+    vi.spyOn(audio, '_vibrate').mockImplementation(() => {});
+    audio.ctx.state = 'interrupted';
+    audio.play('ui_tap');
+    expect(audio.ctx.resume).toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
+  it('a resume that is refused (no tap yet) does not throw or leave an unhandled rejection', async () => {
+    audio.ctx.state = 'suspended';
+    audio.ctx.resume = vi.fn(() => Promise.reject(new Error('NotAllowedError')));
+    expect(() => audio.unlock()).not.toThrow();
+    await Promise.resolve();
+    audio.ctx.resume = vi.fn(() => { throw new Error('InvalidStateError'); });
+    expect(() => audio.unlock()).not.toThrow();
+  });
+
+  it('leaves a running or closed context alone', () => {
+    audio.unlock();
+    expect(audio.ctx.resume).not.toHaveBeenCalled();
+    audio.ctx.state = 'closed';
+    audio.unlock();
+    expect(audio.ctx.resume).not.toHaveBeenCalled();
+  });
+});

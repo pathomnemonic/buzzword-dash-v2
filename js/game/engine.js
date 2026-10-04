@@ -45,6 +45,7 @@ import { getRunRules, normalizeSpeedRamp, speedBonus } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
+import { compileSafely } from './safecompile.js';
 import { isHospitalHall } from './hospitalhall.js';
 import { HazardManager, HAZARDS } from './hazards.js';
 
@@ -727,10 +728,8 @@ class Game {
   // Called by main.js after countdown UI starts
   beginCountdown() {
     // Compile the shaders for everything now on screen, off the main thread when supported
-    try {
-      if (this.renderer.compileAsync) this.renderer.compileAsync(this.scene, this.camera).catch(function () {});
-      else this.renderer.compile(this.scene, this.camera);
-    } catch (e) { /* warm-up is only an optimization */ }
+    // (compileSafely, not renderer.compileAsync: that one throws from a timer when the scene is disposed while it waits)
+    compileSafely(this.renderer, this.scene, this.camera);
     this._flyInT = 0;
     this._flyInStart = performance.now();
     this._introImpactAt = -1;

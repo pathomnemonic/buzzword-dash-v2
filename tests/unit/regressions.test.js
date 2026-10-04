@@ -156,7 +156,7 @@ describe('saved progress survives a reload', () => {
     storage.data.cards.subjectStats.Neurology = { correct: 3, wrong: 1 };
     storage.data.history.calendarData['2026-09-30'] = 80;
     storage.data.history.dailyCounts['2026-09-30'] = 12;
-    storage.data.progression.questState.q1 = { progress: 2 };
+    storage.data.progression.questState['2026-09-30'] = { q1: { progress: 2 } };
     storage.data.settings.avatarColors.shirt = 0xff0000;
     storage.save();
     storage.load();
@@ -164,7 +164,7 @@ describe('saved progress survives a reload', () => {
     expect(storage.data.cards.subjectStats.Neurology).toEqual({ correct: 3, wrong: 1 });
     expect(storage.data.history.calendarData['2026-09-30']).toBe(80);
     expect(storage.data.history.dailyCounts['2026-09-30']).toBe(12);
-    expect(storage.data.progression.questState.q1).toEqual({ progress: 2 });
+    expect(storage.data.progression.questState['2026-09-30'].q1.progress).toBe(2);
     expect(storage.data.settings.avatarColors.shirt).toBe(0xff0000);
   });
 

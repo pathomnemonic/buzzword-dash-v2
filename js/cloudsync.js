@@ -21,7 +21,7 @@ export function summarize(data) {
     answered: Number(p.totalEncounters) || 0,
     coins: Number(p.totalCoinsEarned) || 0,
     best: Number(p.bestScore) || 0,
-    streak: Number(p.dailyStreak) || 0
+    streak: Number(p.studyStreak) || Number(p.dailyStreak) || 0
   };
 }
 

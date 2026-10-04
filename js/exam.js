@@ -320,7 +320,7 @@ function finishExam() {
 
   var summary = {
     examId: st.id,
-    date: new Date().toISOString().slice(0, 10),
+    date: storage.getTodayKey(),
     total: result.total,
     correct: result.correct,
     wrong: result.wrong,

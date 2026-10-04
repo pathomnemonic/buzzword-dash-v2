@@ -25,7 +25,7 @@
  */
 
 /* global window, document */
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export function parseArgs(argv, env) {
@@ -82,7 +82,7 @@ export function keepsClimbing(series, opts) {
 
 var KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'Shift'];
 
-var MODES = [
+export var MODES = [
   { id: 'endless', start: async function (page) { await page.click('.btn-play'); } },
   { id: 'study', start: async function (page) { await page.click('#homeChallengeBtn'); await page.click('[data-mode="study"]'); } },
   { id: 'weakness', start: async function (page) { await page.click('#homeChallengeBtn'); await page.click('[data-mode="weakness"]'); } },
@@ -110,8 +110,8 @@ async function gameState(page) {
 }
 
 /** Get past the first-run tutorial and the daily reward. */
-async function openApp(page, url) {
-  await page.goto(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'debug=1');
+export async function openApp(page, url) {
+  await page.goto(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'debug=1', { timeout: 40000 });
   for (var i = 0; i < 6; i++) {
     if (!(await page.locator('#tutCloseBtn').isVisible().catch(function () { return false; }))) break;
     await page.locator('#tutCloseBtn').click();
@@ -126,7 +126,7 @@ async function openApp(page, url) {
 }
 
 /** Make sure Home is usable: close anything left open, and reload if a control is still covered. */
-async function ensureHome(page, url) {
+export async function ensureHome(page, url) {
   await page.keyboard.press('Escape').catch(function () {});
   var ok = await page.locator('.btn-play').click({ trial: true, timeout: 3000 }).then(function () { return true; }, function () { return false; });
   if (!ok) {
@@ -135,7 +135,7 @@ async function ensureHome(page, url) {
   }
 }
 
-async function goHome(page) {
+export async function goHome(page) {
   var home = page.locator('#goHomeBtn');
   if (await home.isVisible().catch(function () { return false; })) { await home.click().catch(function () {}); return; }
   await page.keyboard.press('Escape').catch(function () {});
@@ -179,7 +179,9 @@ async function playFlashcards(page, rng) {
 export async function soak(opts) {
   var pw = await import('@playwright/test');
   var launch = { args: ['--use-gl=swiftshader', '--ignore-gpu-blocklist', '--no-sandbox', '--enable-precise-memory-info', '--js-flags=--expose-gc'] };
+  // Playwright's own browser if it was installed; otherwise the system Chromium the other QA tools use
   if (opts.chrome) launch.executablePath = opts.chrome;
+  else if (existsSync('/opt/pw-browsers/chromium')) launch.executablePath = '/opt/pw-browsers/chromium';
   var browser = await pw.chromium.launch(launch);
   var page = await browser.newPage({ viewport: { width: 420, height: 800 } });
   var errors = [];
@@ -218,7 +220,12 @@ export async function soak(opts) {
       await goHome(page);
       if (n % MODES.length === 0) { await playFlashcards(page, rng); await goHome(page); }
       await page.waitForTimeout(500);
-      await page.evaluate(function () { if (window.gc) window.gc(); });
+      // Measure what is left after the track and everything on it is thrown away, which is what the next run starts
+      // from. (Measured with the track still built, the counts follow whichever map happened to be showing.)
+      await page.evaluate(function () {
+        try { window.__game._cleanupObjects(); window.__game._cleanupTrack(); } catch { /* the engine may be mid-run */ }
+        if (window.gc) window.gc();
+      });
       var problems = await page.evaluate(function () { return window.__dataProblems ? window.__dataProblems() : []; });
       if (problems.length) errors.push('saved data after ' + mode.id + ': ' + problems.slice(0, 5).join('; '));
       await sample('after ' + mode.id);

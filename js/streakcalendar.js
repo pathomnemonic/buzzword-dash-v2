@@ -81,9 +81,14 @@ export function renderStreakCalendar(container) {
   var history = storage.data && storage.data.history || {};
   var goal = storage.get('dailyGoal') || 20;
   var model = buildCalendarModel({ counts: history.dailyCounts, correct: history.dailyCorrect, goal: goal, today: new Date() });
+  // The flame, the Today sheet and the Profile all read the saved study streak (it counts shield-covered days too), so
+  // the calendar shows the same number rather than recounting the squares
+  var status = storage.getStreakStatus();
+  model.current = status.streak;
+  model.best = Math.max(model.best, status.best);
 
   var stats = createElement('div', { className: 'cal-stats' });
-  [['🔥', model.current, 'current'], ['🏆', model.best, 'best (12 wk)'], ['🎯', model.goalDays, 'goal days'], ['📚', model.total, 'cards']].forEach(function (s) {
+  [['🔥', model.current, 'current'], ['🏆', model.best, 'best'], ['🎯', model.goalDays, 'goal days'], ['📚', model.total, 'cards']].forEach(function (s) {
     var box = createElement('div', { className: 'cal-stat' });
     box.appendChild(createElement('div', { className: 'cal-stat-num', text: s[0] + ' ' + s[1] }));
     box.appendChild(createElement('div', { className: 'cal-stat-label', text: s[2] }));

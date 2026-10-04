@@ -448,6 +448,7 @@ function startTournament() {
     launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false, lives: GAUNTLET_LIVES });
   }).catch(function (e) {
     reportError(e, { system: 'tournament', operation: 'start', recoverable: true });
+    ui._showToast('Could not start the Weekly Gauntlet. Check your connection and try again.', 2200);
   });
 }
 
@@ -467,7 +468,8 @@ function throttledActivity(kind, payload, windowMs) {
   var key = 'buzzword_activity_throttle';
   var seen = {};
   try { seen = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { seen = {}; }
-  if (Date.now() - (seen[kind] || 0) < (windowMs || 3600000)) return;
+  if (!seen || typeof seen !== 'object' || Array.isArray(seen)) seen = {}; // (stored text can be "null" or a list)
+  if (Date.now() - (Number(seen[kind]) || 0) < (windowMs || 3600000)) return;
   seen[kind] = Date.now();
   try { localStorage.setItem(key, JSON.stringify(seen)); } catch (e) { /* storage unavailable; posting is best-effort */ }
   // A player who keeps runs private still gets them in their own feed, but nobody else sees them
@@ -493,7 +495,7 @@ function postActivities(summary, result) {
   }
   var cards = crossedSince('cardMilestoneSeen', Number(storage.get('totalCardsStudied')) || 0, crossedCardMilestone);
   if (cards) throttledActivity('milestone', { name: name, cards: cards }, 60000);
-  var days = crossedSince('dayMilestoneSeen', Number(storage.get('loginStreak')) || 0, crossedDayMilestone);
+  var days = crossedSince('dayMilestoneSeen', storage.getStreakStatus().streak, crossedDayMilestone);
   if (days) throttledActivity('streak_days', { name: name, days: days }, 60000);
 }
 
@@ -767,7 +769,7 @@ function attachShareImage() {
     bestStreak: game.bestStreak,
     modeLabel: MODE_LABELS[game.mode] || 'Runner',
     trackName: game.currentSkin ? game.currentSkin.name : '',
-    streakDays: Number(storage.get('loginStreak')) || 0,
+    streakDays: storage.getStreakStatus().streak,
     cardsMet: Number(storage.get('totalCardsStudied')) || 0,
     runCards: game.runCards ? game.runCards.slice() : []
   };
@@ -868,7 +870,7 @@ function startMode(mode) {
   if (!webglOk) { ui._showToast('The runner needs WebGL, which is not available here. Try Flashcards or the Exam Sim!'); return; }
   if (mode === 'tournament') { startTournament(); return; }
   if (mode === 'daily' && storage.get('dailyDone')) {
-    alert('Daily round already completed today! Come back tomorrow.');
+    ui._showToast('Daily round already completed today! Come back tomorrow.', 2200);
     return;
   }
 
@@ -882,7 +884,7 @@ function startMode(mode) {
       return s.wrong > 0 || (s.seen > 0 && s.correct / s.seen < 0.7);
     });
     if (weakCards.length < 3) {
-      alert('Not enough missed cards yet. Play more rounds first!');
+      ui._showToast('Not enough missed cards yet. Play more rounds first!', 2200);
       return;
     }
   }
@@ -904,6 +906,9 @@ function startMode(mode) {
       var ids = plan.map(function (entry) { return entry.cardId; });
       if (activeChallenge) activeChallenge.ids = ids; // so the link this player shares carries the same cards
       launchRun('challenge', ids, { challengeCount: challengeCount, allowContinue: false });
+    }).catch(function (err) {
+      reportError(err, { system: 'challenge', operation: 'start', recoverable: true });
+      ui._showToast('Could not start the challenge. Check your connection and try again.', 2200);
     });
     return;
   }
@@ -1043,11 +1048,13 @@ function finalizeRun(gameRef) {
     var bonusSubject = bonusSubjectFor(todayKey, SUBJECTS);
     var got = gameRef.runCards.filter(function (r) { return r.ok && r.card && r.card.subj === bonusSubject; }).length;
     var paid = storage.get('bonusCoins') || {};
-    var already = paid.date === todayKey ? (paid.coins || 0) : 0;
+    // a paid date ahead of the clock (it was set back, or the player travelled west) still counts as today's cap
+    var already = paid.date >= todayKey ? (paid.coins || 0) : 0;
+    var capDate = paid.date > todayKey ? paid.date : todayKey;
     var bonusCoins = bonusCoinsFor(got, already);
     if (bonusCoins > 0) {
       storage.addCoins(bonusCoins);
-      storage.set('bonusCoins', { date: todayKey, coins: already + bonusCoins });
+      storage.set('bonusCoins', { date: capDate, coins: already + bonusCoins });
     }
     lastRunBonus = { subject: bonusSubject, coins: bonusCoins, got: got };
   }
@@ -1532,7 +1539,10 @@ function init() {
       cohortsBtn.hidden = false;
       cohortsBtn.addEventListener('click', function () {
         ui.show('screenCohorts');
-        import('./cohortsui.js').then(function (m) { m.mountCohorts(document.getElementById('cohortsRoot')); });
+        import('./cohortsui.js').then(function (m) { m.mountCohorts(document.getElementById('cohortsRoot')); }).catch(function (e) {
+          reportError(e, { system: 'cohorts', operation: 'load', recoverable: true });
+          ui._showToast('Could not open Cohorts. Check your connection and try again.', 2200);
+        });
       });
     }
   }
@@ -1623,7 +1633,7 @@ function init() {
       document.getElementById('mpJoinBtn').addEventListener('click', function () {
         var input = document.getElementById('mpJoinCode');
         var code = input.value.trim().toUpperCase();
-        if (code.length !== 5) { alert('Enter a five-character room code.'); return; }
+        if (code.length !== 5) { ui._showToast('Enter a five-character room code.', 2200); return; }
         configureMultiplayer(module.multiplayer, content);
         content.textContent = '';
         var connecting = document.createElement('div');

@@ -36,7 +36,7 @@ export function firstWeekState(s) {
     daily: !!get('lastDaily'),
     exam: !!get('examDate'),
     trail: !!equipped.trail && equipped.trail !== 'trail_none',
-    streak: (Number(get('loginStreak')) || 0) >= 3 || (Number(get('dailyStreak')) || 0) >= 3,
+    streak: (Number(get('bestStudyStreak')) || 0) >= 3 || (Number(get('studyStreak')) || 0) >= 3,
     profile: !!get('profileVisible') && !!get('profileName')
   };
   var steps = STEPS.map(function (st) { return { id: st.id, label: st.label, action: st.action, done: !!done[st.id] }; });

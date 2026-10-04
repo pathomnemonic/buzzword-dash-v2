@@ -131,43 +131,109 @@ describe('challenges', () => {
   });
 });
 
-describe('streak shields and weekly goal', () => {
+describe('study streak, shields and weekly goal', () => {
+  const answerOne = () => storage.addStudiedToday(1, 1);
+
+  it('answering a card makes today a study day, and the calendar and the flame agree', () => {
+    expect(storage.getStreakStatus().streak).toBe(0);
+    answerOne();
+    expect(storage.getStreakStatus()).toMatchObject({ streak: 1, playedToday: true });
+    answerOne(); // a second card the same day changes nothing
+    expect(storage.getStreakStatus().streak).toBe(1);
+    expect(storage.data.history.dailyCounts[dayKey(0)]).toBe(2);
+  });
+
+  it('counts a day with no cards answered as nothing (no streak from opening the app)', () => {
+    storage.addStudiedToday(0, 0);
+    expect(storage.getStreakStatus().streak).toBe(0);
+    expect(storage.data.progression.lastStudyDate).toBeNull();
+  });
+
   it('a shield saves a streak after one missed day, and is consumed', () => {
     const p = storage.data.progression;
-    p.dailyStreak = 4;
+    p.studyStreak = 4;
     p.streakShields = 1;
-    p.lastCompletedDailyDate = dayKey(-2);
-    storage.finalizeRun({ runId: 'r1', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
-    expect(p.dailyStreak).toBe(5);
+    p.lastStudyDate = dayKey(-2);
+    expect(storage.getStreakStatus().streak).toBe(4); // still alive: the shield will cover yesterday
+    answerOne();
+    expect(p.studyStreak).toBe(5);
     expect(p.streakShields).toBe(0);
   });
 
   it('the streak resets without a shield', () => {
     const p = storage.data.progression;
-    p.dailyStreak = 4;
+    p.studyStreak = 4;
     p.streakShields = 0;
-    p.lastCompletedDailyDate = dayKey(-2);
-    storage.finalizeRun({ runId: 'r2', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
-    expect(p.dailyStreak).toBe(1);
+    p.lastStudyDate = dayKey(-2);
+    expect(storage.getStreakStatus().streak).toBe(0);
+    answerOne();
+    expect(p.studyStreak).toBe(1);
   });
 
   it('earns a shield at a 7-day streak', () => {
     const p = storage.data.progression;
-    p.dailyStreak = 6;
+    p.studyStreak = 6;
     p.streakShields = 0;
-    p.lastCompletedDailyDate = dayKey(-1);
-    storage.finalizeRun({ runId: 'r3', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
-    expect(p.dailyStreak).toBe(7);
+    p.lastStudyDate = dayKey(-1);
+    answerOne();
+    expect(p.studyStreak).toBe(7);
     expect(p.streakShields).toBe(1);
     expect(storage.getStreakStatus().streak).toBe(7);
   });
 
   it('reads a lapsed streak as zero', () => {
     const p = storage.data.progression;
-    p.dailyStreak = 9;
+    p.studyStreak = 9;
     p.streakShields = 0;
-    p.lastCompletedDailyDate = dayKey(-5);
+    p.lastStudyDate = dayKey(-5);
     expect(storage.getStreakStatus().streak).toBe(0);
+  });
+
+  it('a finished run, exam or flashcard session all count as study', () => {
+    storage.finalizeRun({ runId: 'sr1', mode: 'endless', encountersCompleted: 5, correct: 3, wrong: 2, score: 10, completed: true });
+    expect(storage.getStreakStatus().streak).toBe(1);
+    localStorage.clear();
+    storage.load();
+    storage.finalizeFlashcardSession({ sessionId: 'sf1', total: 4, correct: 3 });
+    expect(storage.getStreakStatus().streak).toBe(1);
+  });
+
+  it('a save from before the study streak existed starts from the days the calendar shows', () => {
+    const counts = storage.data.history.dailyCounts;
+    counts[dayKey(-1)] = 3;
+    counts[dayKey(-2)] = 8;
+    counts[dayKey(-3)] = 1;
+    counts[dayKey(-5)] = 4; // the gap at -4 ends the run
+    storage.data.progression.studyStreak = 0;
+    storage.data.progression.lastStudyDate = null;
+    localStorage.setItem('buzzword_dash_v1', JSON.stringify(storage.data));
+    storage.load();
+    expect(storage.getStreakStatus().streak).toBe(3);
+    expect(storage.get('bestStudyStreak')).toBe(3);
+  });
+
+  it('the Daily 15 keeps its own streak for the badges, one day at a time, with no shield', () => {
+    const p = storage.data.progression;
+    p.dailyStreak = 4;
+    p.streakShields = 1;
+    p.lastCompletedDailyDate = dayKey(-1);
+    storage.finalizeRun({ runId: 'd1', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
+    expect(p.dailyStreak).toBe(5);
+    expect(p.lastCompletedDailyDate).toBe(dayKey(0));
+    // a missed day resets it (the shield protects the study streak, not this one)
+    p.lastCompletedDailyDate = dayKey(-3);
+    storage.finalizeRun({ runId: 'd2', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
+    expect(p.dailyStreak).toBe(1);
+  });
+
+  it('a Daily 15 date in the future (the clock went back) keeps the streak and counts nothing twice', () => {
+    const p = storage.data.progression;
+    p.dailyStreak = 6;
+    p.lastCompletedDailyDate = dayKey(1);
+    const r = storage.finalizeRun({ runId: 'd3', mode: 'daily', dailyCompleted: true, encountersCompleted: 15, correct: 10, wrong: 5, score: 100, completed: true });
+    expect(p.dailyStreak).toBe(6);
+    expect(p.lastCompletedDailyDate).toBe(dayKey(1));
+    expect(r.dailyCompleted).toBe(false);
   });
 
   it('pays the weekly reward once after five goal days', () => {

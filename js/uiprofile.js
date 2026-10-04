@@ -49,7 +49,7 @@ export var profileMethods = {
     var bestScore = storage.get('bestScore') || 0;
     var bestStreak = storage.get('bestStreak') || 0;
     var totalPlayTime = storage.get('totalPlayTime') || 0;
-    var dailyStreak = storage.get('dailyStreak') || 0;
+    var studyStreak = storage.getStreakStatus().streak;
     var totalAcc = (totalCorrect + totalWrong) > 0 ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
     var playTimeMin = Math.round(totalPlayTime / 60);
 
@@ -181,7 +181,7 @@ export var profileMethods = {
       { val: bestScore, label: 'Best Score' },
       { val: '🔥 ' + bestStreak, label: 'Best Streak' },
       { val: playTimeMin + 'm', label: 'Play Time' },
-      { val: '📅 ' + dailyStreak, label: 'Daily Streak' }
+      { val: '📅 ' + studyStreak, label: 'Study Streak' }
     ].forEach(function (s) {
       var stat = createElement('div', { className: 'profile-stat' });
       stat.appendChild(createElement('div', { className: 'val', text: String(s.val) }));
@@ -221,7 +221,7 @@ export var profileMethods = {
     var calendarBox = createElement('details', { className: 'profile-fold', attributes: { id: 'streakBox' } });
     var calSum = createElement('summary', { className: 'profile-fold-sum' });
     calSum.appendChild(createElement('span', { className: 'profile-fold-title', text: '📅 Study streak' }));
-    calSum.appendChild(createElement('span', { className: 'profile-fold-state', text: '🔥 ' + dailyStreak + (dailyStreak === 1 ? ' day' : ' days') }));
+    calSum.appendChild(createElement('span', { className: 'profile-fold-state', text: '🔥 ' + studyStreak + (studyStreak === 1 ? ' day' : ' days') }));
     calendarBox.appendChild(calSum);
     var calendar = createElement('div', { className: 'streak-calendar', attributes: { id: 'streakCalendar' } });
     calendarBox.appendChild(calendar);

@@ -199,7 +199,7 @@ export var homeMethods = {
     }
     this._renderFirstWeek(el);
     var streak = storage.getStreakStatus();
-    line('🔥 Daily streak: ' + streak.streak);
+    line('🔥 Study streak: ' + streak.streak + (streak.streak === 1 ? ' day' : ' days') + (streak.atRisk ? '. Answer a card today to keep it.' : ''));
     line('🛡 Streak shields: ' + streak.shields + ' of 3. A shield covers one missed day so your streak survives; you earn one for every 7 days in a row.');
     line('⭐ Bonus subject today: ' + bonusSubjectFor(localDateKey(new Date()), SUBJECTS) + '. Each right answer in it pays ' + BONUS_COINS_PER_CORRECT + ' 🪙 extra, up to ' + BONUS_COINS_CAP + ' a day.');
     var week = storage.getWeeklyProgress();

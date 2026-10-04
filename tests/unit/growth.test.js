@@ -76,7 +76,7 @@ describe('first-week checklist', () => {
   });
 
   it('ticks steps off by doing the things, in any order', () => {
-    const st = firstWeekState({ get: store({ totalEncounters: 12, flashcardSessions: 1, examDate: '2027-03-01', equipped: { trail: 'trail_fire' }, loginStreak: 3, profileVisible: true, profileName: 'Ada', lastDaily: '2026-10-01' }), now: 1e12 });
+    const st = firstWeekState({ get: store({ totalEncounters: 12, flashcardSessions: 1, examDate: '2027-03-01', equipped: { trail: 'trail_fire' }, studyStreak: 3, profileVisible: true, profileName: 'Ada', lastDaily: '2026-10-01' }), now: 1e12 });
     expect(st.steps.filter((s) => s.done).map((s) => s.id)).toEqual(['run', 'flashcards', 'daily', 'exam', 'trail', 'streak', 'profile']);
     expect(st.show).toBe(false); // finished
     expect(firstWeekState({ get: store({ totalEncounters: 1, equipped: { trail: 'trail_none' } }), now: 1e12 }).next).toBe('flashcards');
