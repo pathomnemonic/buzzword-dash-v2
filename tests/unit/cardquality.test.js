@@ -20,6 +20,12 @@ describe('strict clue-leak detector', () => {
     expect(strictClueLeak('Rai staging system', card, generic)).toMatch(/rai/);
     expect(strictClueLeak('Lymphocytosis alone = stage 0', card, generic)).toBe('');
   });
+  it('catches two-letter acronyms spelled out (MG, UC) without chance hits', () => {
+    const mg = { ans: 'Ice Pack Test for MG', d: ['Edrophonium Test'] };
+    expect(strictClueLeak('Myasthenia gravis', mg, generic)).toMatch(/spells out/);
+    const av = { ans: 'Complete AV Canal Defect', d: ['Secundum ASD'] };
+    expect(strictClueLeak('One large valve between atria and ventricles', av, generic)).toBe('');
+  });
   it('catches acronyms spelled out and answer initials', () => {
     const card = { ans: 'SBP Prophylaxis', d: ['Empiric Antibiotics'] };
     expect(strictClueLeak('Spontaneous bacterial peritonitis prevention', card, generic)).toMatch(/spells out/);

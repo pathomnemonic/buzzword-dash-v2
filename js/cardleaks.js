@@ -120,7 +120,7 @@ var MODIFIERS = {};
 
 /** Lowercase alphanumeric tokens, keeping short ones (acronyms and eponyms), without stop words. Brackets are kept as aliases. */
 export function strictTokens(text) {
-  return String(text || '').toLowerCase().replace(/[()\[\]]/g, ' ').split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 2 && !STOP[w]; });
+  return String(text || '').toLowerCase().replace(/[()[\]]/g, ' ').split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 2 && !STOP[w]; });
 }
 
 /** Words that appear in many answers across the deck (category words), at any length. */
@@ -170,13 +170,21 @@ export function strictClueLeak(clue, card, generic) {
   var ini = initialsOf(ans);
   if (ini && clueStems[ini]) return 'contains the initials "' + ini + '"';
   // an acronym in the answer, spelled out in the clue ("SBP Prophylaxis" / "Spontaneous bacterial peritonitis prophylaxis")
-  var acronyms = (ans.match(/\b[A-Za-z]*[A-Z][A-Za-z]*[A-Z][A-Za-z]*\b/g) || []).map(function (a) { return a.toLowerCase(); }).filter(function (a) { return a.length >= 3 && a.length <= 7; });
+  var acronyms = (ans.match(/\b[A-Za-z]*[A-Z][A-Za-z]*[A-Z][A-Za-z]*\b/g) || []).map(function (a) { return a.toLowerCase(); }).filter(function (a) { return a.length >= 2 && a.length <= 7; });
+  // two-letter acronyms ("MG", "UC") are only matched against two consecutive full words, to avoid chance hits
   if (acronyms.length) {
     var seq = '';
     clueTokens.forEach(function (t) { seq += t.length <= 3 && /^[a-z0-9]+$/.test(t) && t === t.toUpperCase().toLowerCase() && t.length > 1 ? t : t[0]; });
     var plain = '';
     clueTokens.forEach(function (t) { plain += t[0]; });
     for (var a = 0; a < acronyms.length; a++) {
+      if (acronyms[a].length === 2) {
+        var rawWords = String(clue).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+        for (var w = 0; w + 1 < rawWords.length; w++) {
+          if (rawWords[w].length >= 4 && rawWords[w + 1].length >= 4 && rawWords[w][0] + rawWords[w + 1][0] === acronyms[a]) return 'spells out "' + acronyms[a] + '"';
+        }
+        continue;
+      }
       if (seq.indexOf(acronyms[a]) >= 0 || plain.indexOf(acronyms[a]) >= 0) return 'spells out "' + acronyms[a] + '"';
     }
   }
