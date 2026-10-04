@@ -31,7 +31,7 @@
  *   --chrome PATH   a Chromium executable (CHROME_PATH)
  */
 
-/* global window, document, KeyboardEvent, PointerEvent, MutationObserver */
+/* global window, document, KeyboardEvent, PointerEvent, MutationObserver, getComputedStyle */
 import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { makeRng, keepsClimbing, MODES, openApp, ensureHome, goHome } from './soak.mjs';
@@ -461,15 +461,15 @@ export async function botrun(opts) {
             await page.waitForSelector('#continueYesBtn', { state: 'visible', timeout: 6000 }).catch(function () { problem(n, cfg, 'the Continue prompt is not showing'); });
             if (rng() < cfg.continueYes && continues < 2) {
               continues++;
-              await page.locator('#continueYesBtn').click({ timeout: 8000, force: true }).catch(function (e) { problem(n, cfg, 'continue button: ' + e.message.split('\n')[0]); });
+              await page.locator('#continueYesBtn').click({ timeout: 8000, force: true }).catch(async function (e) { problem(n, cfg, 'continue button: ' + e.message.split('\n')[0] + ' ' + (await page.evaluate(function () { var o = document.getElementById('continueOverlay'); var b = document.getElementById('continueYesBtn'); var r = b.getBoundingClientRect(); return 'overlay "' + o.className + '" display ' + getComputedStyle(o).display + ' btn ' + [r.x, r.y, r.width, r.height].map(Math.round) + ' disabled ' + b.disabled + ' state ' + window.__game._state; }).catch(function () { return ''; }))); });
               await page.waitForFunction(function () { return window.__game._state === 'playing'; }, null, { timeout: 15000, polling: 100 }).catch(function () { problem(n, cfg, 'did not go back to playing after Continue'); });
             } else {
               await page.locator('#continueNoBtn').click({ timeout: 8000, force: true }).catch(function (e) { problem(n, cfg, 'end-run button: ' + e.message.split('\n')[0]); });
               done = true;
             }
           } else if (state === 'paused') {
-            const shown = await page.evaluate(function () { return document.getElementById('pauseOverlay').classList.contains('active'); });
-            if (!shown) problem(n, cfg, 'paused but the pause screen is not showing');
+            const shown = await page.evaluate(function () { var o = document.getElementById('pauseOverlay'); return o.classList.contains('active') ? '' : 'class "' + o.className + '", state ' + window.__game._state + ', screen ' + document.body.getAttribute('data-screen') + ', continueOverlay "' + document.getElementById('continueOverlay').className + '"'; });
+            if (shown && /state paused/.test(shown)) problem(n, cfg, 'paused but the pause screen is not showing: ' + shown);
             if (cfg.background) { await page.evaluate(function () { window.__bot.background(true); }); await page.waitForTimeout(150); await page.evaluate(function () { window.__bot.background(false); }); }
             await page.waitForTimeout(100 + Math.floor(rng() * 300));
             await page.keyboard.press('Escape');

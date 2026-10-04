@@ -40,7 +40,7 @@ export var browseMethods = {
       var filterRow = createElement('div', { className: 'card-browser-filters' });
 
       var subjectSelect = createElement('select', {
-        attributes: { id: 'cbSubjectFilter' }
+        attributes: { id: 'cbSubjectFilter', 'aria-label': 'Filter by subject' }
       });
       subjectSelect.style.cssText = 'padding:6px;border-radius:8px;background:rgba(30,15,70,0.6);color:#fff;border:1px solid rgba(187,102,255,0.15);font-size:11px';
       subjectSelect.appendChild(createElement('option', { text: 'All Subjects', attributes: { value: '' } }));
@@ -57,7 +57,7 @@ export var browseMethods = {
       filterRow.appendChild(subjectSelect);
 
       var statusSelect = createElement('select', {
-        attributes: { id: 'cbStatusFilter' }
+        attributes: { id: 'cbStatusFilter', 'aria-label': 'Filter by status' }
       });
       statusSelect.style.cssText = 'padding:6px;border-radius:8px;background:rgba(30,15,70,0.6);color:#fff;border:1px solid rgba(187,102,255,0.15);font-size:11px';
       ['all', 'seen', 'unseen', 'disabled'].forEach(function (val) {

@@ -41,11 +41,12 @@ import { setupEnvironment, softDotTexture } from './materials.js';
 import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
 import { preloadScenery } from './scenery.js';
-import { getRunRules, normalizeSpeedRamp, speedBonus } from '../rules.js';
+import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
 import { compileSafely } from './safecompile.js';
+import { applyKillSwitch } from '../remoteconfig.js';
 import { isHospitalHall } from './hospitalhall.js';
 import { HazardManager, HAZARDS } from './hazards.js';
 
@@ -762,6 +763,10 @@ class Game {
     if (this._leagueRules && Array.isArray(this._leagueRules.disabledPowerups)) {
       this._rules.disabledPowerups = this._leagueRules.disabledPowerups.slice();
     }
+    // The remote kill switch (remoteconfig.js) can turn a mechanic off for everyone without an update
+    var kill = applyKillSwitch(this._rules, POWERUP_OPTIONS.map(function (p) { return p.id; }));
+    if (kill.mapsPinned) this._mapPinned = true;
+    this._rushOff = kill.rushOff;
     this._resetPose();
     this._hideIntroMonster();
     this._introAnim = 'run';
@@ -937,7 +942,7 @@ class Game {
   }
 
   addRushStack() {
-    if (!this.gatesActive || this.answerLocked) return;
+    if (!this.gatesActive || this.answerLocked || this._rushOff) return;
     if (this.rushStacks < this.maxRushStacks) {
       this.rushStacks++;
       this._fovKick = Math.max(this._fovKick, 7);

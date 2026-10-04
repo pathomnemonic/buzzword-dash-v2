@@ -38,3 +38,24 @@ Do not rebuild `dist/` while Playwright is running; the preview server serves fi
 - If a screen shows a count, name or warning, give it a button that does the obvious next thing, or make it plainly non-interactive.
 - A new setting must be read somewhere (the settings audit fails otherwise).
 - Card content is data, so it is tested like code: `cardquality.test.js` fails if any built-in card has a clue that gives the answer away (initials, acronym expansions, short words like "Rai", bracketed aliases) or fewer than three clues, and `node tools/audit-leaks.mjs` lists offenders by subject. See `docs/CARD-QUALITY.md` for why the old filter missed them.
+
+## Section H: the "find what a person would only find in the field" tools
+
+| What | How | What it catches |
+| --- | --- | --- |
+| Time-zone, DST and clock tests | `npx vitest run tests/unit/timezones.test.js tests/unit/studystreak.test.js` | streaks, daily reward, weekly goal, calendar, exam countdown in 24 time zones around every clock change, a clock set back, travel |
+| Save torture | `npx vitest run tests/unit/savetorture.test.js` and `node tools/savefuzz.mjs --count 100` | damaged, old, huge, full-disk, two-tab saves; the whole app on damaged saves, every screen opened |
+| Fast-forward play bot | `node tools/botrun.mjs --runs 200 --seed 1` (needs a built app and `npx vite preview`) | thousands of runs: NaN, stuck runs, scene leaks, bad scores, exceptions, with random heroes, maps, power-ups, pauses, resizes |
+| Real-time soak | `node tools/soak.mjs --minutes 30` | memory and GPU object growth over time |
+| Chaos monkey | `node tools/chaos.mjs --minutes 10` | random taps, text, rotation, offline, clock jumps |
+| Interruption e2e | `npx playwright test tests/e2e/interruptions.spec.js` | background, lock, call audio, rotation, kill and restart |
+| Accessibility | `npx playwright test tests/e2e/axe.spec.js`, `tests/unit/colorblind.test.js` | axe-core on every screen, colour-blind separation |
+| Release preflight | `npm run build && npm run preflight` | missing pages, dead references, secrets, bundle budget, unstamped service worker |
+| Real devices | `docs/DEVICE-TESTING.md` | everything a computer cannot do |
+
+Bots and fuzzers print the seed; re-run with `--seed` to replay. Run them one at a time on a small machine: software graphics make several at once slow enough to fail on timeouts.
+
+## Error budget and the kill switch
+
+- Crash reports are opt-in (`VITE_ERROR_ENDPOINT`, see `js/errors.js`). Count a **crash-free session** as a session (app open to app closed) with no report. Target 99.5% over any week; alert when a single error message makes up more than 10% of reports in a day or the crash-free rate drops 1 point from last week.
+- If a mechanic misbehaves in the field, edit `public/remote-config.json` and redeploy the site: `{ "killed": ["hazards"] }`. Names: hazards, monster, powerups, mapChanges, rush, onlineFeatures (see `js/remoteconfig.js`). The app applies it on its next launch (the last copy is cached for offline). Runs stay ranked. The web build reads its own copy. A native app only sees a change if it is built with `VITE_REMOTE_CONFIG_URL` pointing at the hosted file (and that host allowed in the Content-Security-Policy `connect-src`); otherwise it uses the copy bundled at build time.

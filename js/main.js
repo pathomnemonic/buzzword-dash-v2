@@ -25,6 +25,7 @@ import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage, STORAGE_DEFAULTS } from './storage.js';
 import { checkDataSanity } from './sanity.js';
+import { loadRemoteConfig, isKilled } from './remoteconfig.js';
 import { audio, MENU_THEME } from './audio.js';
 import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady } from './cardhub.js';
 import { bonusSubjectFor, bonusCoinsFor, nextGoalLine } from './progress.js';
@@ -1189,6 +1190,8 @@ function init() {
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();
+  // Switches for mechanics that turn out broken in the field (see remoteconfig.js); the saved copy applies at once
+  loadRemoteConfig().catch(function () { /* the saved copy stays */ });
   // Badges added or fixed in an update are awarded to anyone who already qualifies, shown a little after launch
   setTimeout(function () {
     try {
@@ -1296,7 +1299,7 @@ function init() {
   });
 
   // --- Leaderboard (lazy) ---
-  import('./leaderboard.js').then(function (mod) {
+  if (!isKilled('onlineFeatures')) import('./leaderboard.js').then(function (mod) {
     leaderboardModule = mod;
     mod.leaderboard.init().then(function () {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }

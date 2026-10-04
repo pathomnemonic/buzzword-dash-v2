@@ -2159,3 +2159,6 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .map-flash { position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .7s ease-out; mix-blend-mode: screen; }
 .map-flash.on { opacity: .55; transition: opacity .35s ease-in; }
 @media (prefers-reduced-motion: reduce) { .map-flash { display: none; } }
+
+/* white text on the pink pills needs a deeper pink to reach the 4.5:1 contrast that WCAG asks for */
+.home-header .home-tagline, .lv-badge:not(.prestige) { background: #d10a3a; }
