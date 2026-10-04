@@ -192,6 +192,7 @@ var DEFAULTS = {
     recentRuns: [],
     calendarData: {},
     dailyCounts: {},
+    dailyCorrect: {},
     weeklyClaims: {},
     examResults: [],
     completedExamIds: []
@@ -807,6 +808,7 @@ class Storage {
     if (typeof d.progression.questPicks !== 'object' || d.progression.questPicks === null) d.progression.questPicks = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
     if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
+    if (typeof d.history.dailyCorrect !== 'object' || d.history.dailyCorrect === null) d.history.dailyCorrect = {};
     if (typeof d.history.weeklyClaims !== 'object' || d.history.weeklyClaims === null) d.history.weeklyClaims = {};
     if (!Array.isArray(d.history.examResults)) d.history.examResults = [];
     if (!Array.isArray(d.history.completedExamIds)) d.history.completedExamIds = [];
@@ -966,7 +968,7 @@ class Storage {
     h.completedExamIds.push(summary.examId);
     if (h.completedExamIds.length > 100) h.completedExamIds = h.completedExamIds.slice(-100);
 
-    this.addStudiedToday((summary.correct || 0) + (summary.wrong || 0));
+    this.addStudiedToday((summary.correct || 0) + (summary.wrong || 0), summary.correct || 0);
     this.save();
     return { applied: true, duplicate: false };
   }
@@ -1041,14 +1043,21 @@ class Storage {
 
   // ===== DAILY STUDY GOAL =====
 
-  addStudiedToday(count) {
+  /** Count `count` cards answered today; `correct` (optional) is how many of them were right, for the streak calendar. */
+  addStudiedToday(count, correct) {
     if (!count) return;
     var counts = this.data.history.dailyCounts;
     var key = todayKey();
     counts[key] = (counts[key] || 0) + count;
+    if (correct) {
+      var rights = this.data.history.dailyCorrect;
+      rights[key] = (rights[key] || 0) + Math.min(correct, count);
+    }
     // Keep ~90 days
     var keys = Object.keys(counts).sort();
     while (keys.length > 90) delete counts[keys.shift()];
+    var rkeys = Object.keys(this.data.history.dailyCorrect || {}).sort();
+    while (rkeys.length > 90) delete this.data.history.dailyCorrect[rkeys.shift()];
   }
 
   getStudiedToday() {
@@ -1556,7 +1565,7 @@ class Storage {
       var acc = total > 0 ? Math.round(summary.correct / total * 100) : 0;
       this.data.history.calendarData[calKey] = acc;
     }
-    this.addStudiedToday(summary.encountersCompleted || 0);
+    this.addStudiedToday(summary.encountersCompleted || 0, summary.correct || 0);
 
     // --- Quest progress from run events ---
     var questsBefore = this._completedQuestIds();

@@ -7,12 +7,13 @@
 
 import { ICON_GROUPS, iconFor, iconId, heroPictureId, parseHeroPicture, fillProfilePicture, portraitUrl } from './profileicons.js';
 import { CHARACTER_MODELS } from './game/modelcatalog.js';
-import { setText, createElement, clearElement } from './dom.js';
+import { createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
 import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
+import { renderStreakCalendar } from './streakcalendar.js';
 import { renderLevelChip } from './rewardsui.js';
 import { levelFromXp, rankForLevel } from './progress.js';
 
@@ -223,10 +224,6 @@ export var profileMethods = {
     calSum.appendChild(createElement('span', { className: 'profile-fold-state', text: '🔥 ' + dailyStreak + (dailyStreak === 1 ? ' day' : ' days') }));
     calendarBox.appendChild(calSum);
     var calendar = createElement('div', { className: 'streak-calendar', attributes: { id: 'streakCalendar' } });
-    var dayLabels = createElement('div', { className: 'calendar-day-labels', attributes: { 'aria-hidden': 'true' } });
-    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(function (d) { dayLabels.appendChild(createElement('span', { text: d })); });
-    calendar.appendChild(dayLabels);
-    calendar.appendChild(createElement('div', { className: 'calendar-grid', attributes: { id: 'calendarGrid', role: 'img', 'aria-label': 'Study streak calendar' } }));
     calendarBox.appendChild(calendar);
     container.appendChild(calendarBox);
 
@@ -307,43 +304,7 @@ export var profileMethods = {
   },
 
   renderCalendar() {
-    var grid = document.getElementById('calendarGrid');
-    if (!grid) return;
-    clearElement(grid);
-    var calData = storage.get('calendarData') || {};
-    var questDates = storage.get('questCompletionDates') || {};
-    var today = new Date();
-    var startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - 27);
-
-    // Alignment placeholders
-    var startDayOfWeek = startDate.getDay();
-    for (var p = 0; p < startDayOfWeek; p++) {
-      var placeholder = createElement('div', { className: 'calendar-day' });
-      placeholder.style.cssText = 'opacity:0;pointer-events:none';
-      grid.appendChild(placeholder);
-    }
-
-    for (var i = 0; i < 28; i++) {
-      var d = new Date(startDate);
-      d.setDate(d.getDate() + i);
-      var key = localDateKey(d);
-      var day = createElement('div', { className: 'calendar-day' });
-
-      if (Object.prototype.hasOwnProperty.call(calData, key)) {
-        if (calData[key] >= 70) day.classList.add('played-great');
-        else if (calData[key] >= 40) day.classList.add('played-ok');
-        else day.classList.add('played-bad');
-      }
-
-      if (questDates[key]) {
-        setText(day, '⭐');
-        day.style.cssText = 'font-size:8px;display:flex;align-items:center;justify-content:center';
-      }
-
-      if (localDateKey(d) === localDateKey(today)) day.classList.add('today');
-      grid.appendChild(day);
-    }
+    renderStreakCalendar(document.getElementById('streakCalendar'));
   },
 
   renderQuests() {

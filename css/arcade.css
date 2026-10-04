@@ -2048,7 +2048,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* PLAY: a soft glowing ring that breathes, and a shine that sweeps across the button */
 .play-section .btn-play { position: relative; overflow: visible; animation: playBreathe 2.6s ease-in-out infinite; }
 .play-section .btn-play::before { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .55); opacity: 0; animation: playRing 2.6s ease-out infinite; pointer-events: none; }
-@keyframes playBreathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(110, 255, 170, .45)); } 50% { transform: scale(1.045); filter: drop-shadow(0 0 22px rgba(110, 255, 170, .8)); } }
+/* a glow only: the button itself never moves, so it is easy to hit (and tests can click it) */
+@keyframes playBreathe { 0%, 100% { filter: drop-shadow(0 0 10px rgba(110, 255, 170, .45)); } 50% { filter: drop-shadow(0 0 22px rgba(110, 255, 170, .8)); } }
 @keyframes playRing { 0% { transform: scale(.94); opacity: .7; } 100% { transform: scale(1.22); opacity: 0; } }
 .play-section .btn-play:active { animation: none; transform: scale(.96); }
 
@@ -2100,3 +2101,43 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .report-actions { display: flex; gap: 8px; margin-top: 10px; }
 .report-actions .btn { flex: 1; }
 .report-actions .btn:disabled { opacity: .5; }
+
+/* Streak: the flame and its number sit beside the Today bar; a tap opens the calendar */
+.home-progress { display: grid; grid-template-columns: auto 1fr; align-items: stretch; gap: 6px 8px; }
+.home-progress .home-league { grid-column: 1 / -1; }
+.home-progress .study-goal { flex: none; min-width: 0; }
+.streak-chip {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 58px; min-height: 52px; padding: 4px 10px; cursor: pointer;
+  font: inherit; color: #fff; background: linear-gradient(180deg, #4a3b6b, #2e2347); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 0 3px 0 var(--ink);
+}
+.streak-chip .streak-flame { font-size: 22px; line-height: 1; filter: grayscale(1) brightness(.8); }
+.streak-chip .streak-num { font-size: 18px; font-weight: 900; line-height: 1.1; text-shadow: 0 2px 0 var(--ink); }
+.streak-chip.lit { background: linear-gradient(180deg, #ff9d2e, #e0551b); }
+.streak-chip.lit .streak-flame { filter: none; display: inline-block; transform-origin: 50% 90%; animation: flameFlicker 1.3s ease-in-out infinite; }
+.streak-chip.at-risk { box-shadow: 0 3px 0 var(--ink), 0 0 14px rgba(255, 120, 40, .8); }
+.streak-chip:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+@media (prefers-reduced-motion: reduce) { .streak-chip.lit .streak-flame { animation: none; } }
+@media (max-height: 460px) { .streak-chip { min-height: 40px; } .streak-chip .streak-flame { font-size: 16px; } .streak-chip .streak-num { font-size: 14px; } }
+
+/* The calendar: darker means more cards that day */
+.streak-calendar .cal-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+.cal-stat { background: var(--bg-card, rgba(255, 255, 255, .06)); border-radius: 10px; padding: 6px 2px; text-align: center; }
+.cal-stat-num { font-size: 15px; font-weight: 900; }
+.cal-stat-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+.streak-calendar .calendar-day-labels span { font-size: 10px; }
+.cal-day { border: 0; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; font: inherit; color: #fff; opacity: 1; min-height: 30px; background: rgba(255, 255, 255, .07); }
+.cal-day .cal-n { font-size: 10px; font-weight: 800; text-shadow: 0 1px 0 rgba(0, 0, 0, .6); }
+.cal-day.lvl-1, .cal-swatch.lvl-1 { background: #1d5c3d; }
+.cal-day.lvl-2, .cal-swatch.lvl-2 { background: #1f8f58; }
+.cal-day.lvl-3, .cal-swatch.lvl-3 { background: #2fc277; }
+.cal-day.lvl-4, .cal-swatch.lvl-4 { background: #7dffb3; color: #08301d; }
+.cal-day.lvl-4 .cal-n { text-shadow: none; }
+.cal-swatch.lvl-0 { background: rgba(255, 255, 255, .07); }
+.cal-day.goal-met { box-shadow: inset 0 0 0 2px #ffd45a; }
+.cal-day.future { opacity: .25; pointer-events: none; }
+.cal-day.today { outline: 2px solid var(--accent-cyan); outline-offset: 1px; border: 0; }
+.cal-day.picked { outline: 2px solid #fff; outline-offset: 1px; }
+.cal-info { min-height: 20px; margin-top: 8px; font-size: 12px; font-weight: 700; text-align: center; }
+.cal-legend { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 6px; font-size: 10px; color: var(--text-muted); }
+.cal-swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.cal-day { aspect-ratio: auto; height: 32px; min-height: 0; }

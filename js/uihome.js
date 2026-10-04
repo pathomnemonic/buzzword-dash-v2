@@ -13,8 +13,9 @@ import { getTodayPlan, stepButtons, shortLabel } from './statsview.js';
 import { bonusSubjectFor, BONUS_COINS_PER_CORRECT, BONUS_COINS_CAP } from './progress.js';
 import { SUBJECTS } from './cardmeta.js';
 import { localDateKey } from './uihelpers.js';
+import { renderStreakCalendar } from './streakcalendar.js';
 
-export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet'];
+export var SHEETS = ['challengeSheet', 'flashcardsSheet', 'filtersSheet', 'speedSheet', 'todaySheet', 'streakSheet'];
 
 export var homeMethods = {
 
@@ -34,6 +35,8 @@ export var homeMethods = {
     if (filtersSheet) filtersSheet.addEventListener('click', function () { setTimeout(function () { self._renderFiltersSummary(); }, 0); });
     var goalBtn = document.getElementById('studyGoal');
     if (goalBtn) goalBtn.addEventListener('click', function () { self.openSheet('todaySheet'); });
+    var chip = document.getElementById('streakChip');
+    if (chip) chip.addEventListener('click', function () { renderStreakCalendar(document.getElementById('streakSheetBody')); self.openSheet('streakSheet'); });
 
     SHEETS.forEach(function (id) {
       var sheet = document.getElementById(id);
@@ -108,9 +111,18 @@ export var homeMethods = {
     var due = storage.getDueCount();
     var line = createElement('div', { className: 'goal-line' });
     line.appendChild(createElement('span', { text: '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') }));
-    if (streak.streak > 0) line.appendChild(createElement('span', { className: 'goal-flame', text: '🔥 ' + streak.streak }));
     if (streak.shields > 0) line.appendChild(createElement('span', { text: '🛡 ' + streak.shields }));
     if (due > 0) line.appendChild(createElement('span', { text: '🔁 ' + due + ' due' }));
+    var chipEl = document.getElementById('streakChip');
+    if (chipEl) {
+      clearElement(chipEl);
+      var lit = streak.streak > 0;
+      chipEl.classList.toggle('lit', lit);
+      chipEl.classList.toggle('at-risk', lit && !streak.playedToday);
+      chipEl.appendChild(createElement('span', { className: 'streak-flame', text: '🔥' }));
+      chipEl.appendChild(createElement('span', { className: 'streak-num', text: String(streak.streak) }));
+      chipEl.setAttribute('aria-label', (lit ? streak.streak + '-day study streak' + (streak.playedToday ? '' : ', study today to keep it') : 'No streak yet, study today to start one') + '. Open the streak calendar.');
+    }
     el.classList.toggle('goal-done', done >= goal);
     el.appendChild(line);
     var bar = createElement('div', {
@@ -121,7 +133,7 @@ export var homeMethods = {
     fill.style.width = pct + '%';
     bar.appendChild(fill);
     el.appendChild(bar);
-    el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards.' + (streak.streak > 0 ? ' Streak ' + streak.streak + ' days.' : '') + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
+    el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards.' + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
     // the line under the title: today's bonus subject
     var tag = document.querySelector('.home-tagline');
     if (tag) tag.textContent = '⭐ Bonus today: ' + bonusSubjectFor(localDateKey(new Date()), SUBJECTS);

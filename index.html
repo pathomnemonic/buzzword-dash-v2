@@ -198,6 +198,7 @@
 
       <!-- Today's goal (and the league, when there is one), at the top: the play controls sit low, where the thumb is. Level and rank live on the Profile. -->
       <div class="home-progress">
+        <button class="streak-chip" id="streakChip" type="button" aria-haspopup="dialog" aria-controls="streakSheet"></button>
         <button class="study-goal" id="studyGoal" type="button" aria-haspopup="dialog" aria-controls="todaySheet"></button>
         <button class="home-league" id="homeLeague" type="button" hidden></button>
       </div>
@@ -342,6 +343,15 @@
     <div class="sheet-card">
       <h2>🎯 Today</h2>
       <div id="todayContent"></div>
+      <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Study streak calendar: opened from the flame on Home -->
+  <div class="tutorial-overlay sheet-overlay" id="streakSheet" role="dialog" aria-label="Study streak" aria-modal="true">
+    <div class="sheet-card sheet-tall">
+      <h2>🔥 Study streak</h2>
+      <div id="streakSheetBody" class="streak-calendar"></div>
       <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
     </div>
   </div>
