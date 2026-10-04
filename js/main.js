@@ -1558,6 +1558,10 @@ function init() {
   // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
   updateAttentionDots(storage, storage.getDailyQuests());
   document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, storage.getDailyQuests()); });
+  // A light tick under the thumb for the big Home buttons
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.btn-play, .mode-btn, .side-btn')) audio.haptic('tap');
+  }, true);
   // One-page screens grow to use a bigger screen (Stats, Quests, Profile, the folded Locker)
   mountFitScreens();
   // A red "new" dot goes away for good the first time the player opens that menu, tab or button

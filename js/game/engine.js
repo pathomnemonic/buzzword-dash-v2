@@ -692,13 +692,16 @@ class Game {
     this._mapChanges = 0;
     // A favorite map (Settings) stays for the whole run; it is only cosmetic
     this._mapPinned = false;
-    var wantedMap = options.skinId || storage.get('preferredMap');
+    // A map handed in (a shared multiplayer map) is only used when it is one of the free maps: nobody is shown a map
+    // they have not bought just because another player picked it
+    var sharedMap = options.skinId && SKINS.some(function (k) { return (k.id === options.skinId || k.name === options.skinId) && isMapUnlocked(k, function () { return false; }); }) ? options.skinId : '';
+    var wantedMap = sharedMap || storage.get('preferredMap');
     if (wantedMap) {
       for (var si = 0; si < SKINS.length; si++) {
         // A map the player has not bought is never chosen as a favorite (a shared multiplayer map always is)
-        if (SKINS[si].name === wantedMap && (options.skinId || isMapUnlocked(SKINS[si], function (id) { return storage.ownsItem(id); }))) {
+        if ((SKINS[si].name === wantedMap || SKINS[si].id === wantedMap) && (sharedMap || isMapUnlocked(SKINS[si], function (id) { return storage.ownsItem(id); }))) {
           this.currentSkin = SKINS[si];
-          this._mapPinned = !options.skinId;
+          this._mapPinned = !sharedMap;
           break;
         }
       }

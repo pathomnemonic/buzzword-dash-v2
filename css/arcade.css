@@ -2015,3 +2015,58 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   #screenProfile h2 { font-size: 20px; }
 }
 .nav-dot { width: 15px; height: 15px; border-width: 2px; background: radial-gradient(circle at 35% 30%, #ff8a96, var(--accent-red) 60%); }
+
+/* =====================================================================
+   HOME, take three: the Today bar is the first thing at the top, the logo sits in the space below it, and the play
+   controls sit low, where the thumb is. Plus the game feel: a PLAY button that breathes, a shining logo, a living
+   flame on the streak, shiny bars and buttons with a bit of bounce.
+   ===================================================================== */
+.home-layout { justify-content: flex-start; gap: clamp(8px, 1.6vh, 16px); }
+/* the logo takes the free room between the Today bar and the play controls, and sits in the middle of it */
+.home-header { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.home-progress { margin: 0; }
+.play-row { margin-top: 0; }
+
+/* the Today bar */
+.home-progress .study-goal { min-height: 52px; padding: 7px 14px 8px; background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); }
+.home-progress .study-goal .goal-line { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 14px; font-size: 14px; font-weight: 900; text-shadow: 0 2px 0 var(--ink); }
+.home-progress .study-goal .goal-flame { display: inline-block; transform-origin: 50% 90%; animation: flameFlicker 1.3s ease-in-out infinite; color: #ffd27a; }
+@keyframes flameFlicker { 0%, 100% { transform: scale(1) rotate(-2deg); } 35% { transform: scale(1.12, 1.18) rotate(2deg); } 70% { transform: scale(.96, 1.05) rotate(-1deg); } }
+.home-progress .study-goal.goal-done { background: linear-gradient(180deg, #ffd45a, #ff9d2e); color: #3a2200; border-color: var(--ink); box-shadow: 0 3px 0 var(--ink), 0 0 18px rgba(255, 190, 60, .6); }
+.home-progress .study-goal.goal-done .goal-line { text-shadow: none; }
+.home-progress .study-goal-fill { position: relative; overflow: hidden; }
+.home-progress .study-goal-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .55) 50%, transparent 80%); transform: translateX(-100%); animation: barShine 3.2s ease-in-out infinite; }
+@keyframes barShine { 0%, 55% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+/* the logo: a gentle float, and a glint that crosses it now and then */
+.home-header h1 { position: relative; display: inline-block; animation: logoFloat 4.5s ease-in-out infinite; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, .25)); }
+.home-header h1::after { content: ''; position: absolute; inset: -4px; background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .8) 50%, transparent 62%); background-size: 260% 100%; background-position: 160% 0; mix-blend-mode: overlay; pointer-events: none; animation: logoGlint 5.5s ease-in-out infinite; -webkit-mask: linear-gradient(#000, #000); }
+@keyframes logoFloat { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-5px) rotate(1deg); } }
+@keyframes logoGlint { 0%, 62% { background-position: 160% 0; } 100% { background-position: -60% 0; } }
+.home-header .home-tagline { position: relative; }
+
+/* PLAY: a soft glowing ring that breathes, and a shine that sweeps across the button */
+.play-section .btn-play { position: relative; overflow: visible; animation: playBreathe 2.6s ease-in-out infinite; }
+.play-section .btn-play::before { content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .55); opacity: 0; animation: playRing 2.6s ease-out infinite; pointer-events: none; }
+@keyframes playBreathe { 0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(110, 255, 170, .45)); } 50% { transform: scale(1.045); filter: drop-shadow(0 0 22px rgba(110, 255, 170, .8)); } }
+@keyframes playRing { 0% { transform: scale(.94); opacity: .7; } 100% { transform: scale(1.22); opacity: 0; } }
+.play-section .btn-play:active { animation: none; transform: scale(.96); }
+
+/* the buttons around it: they press down, and the ones with news give a little wiggle now and then */
+.side-btn, .mode-btn, .top-btn { transition: transform .12s ease, filter .12s ease; }
+.mode-btn:active, .side-btn:active { transform: translateY(4px) scale(.97); }
+.mode-btn.has-dot, .side-btn.has-dot { animation: nudge 5s ease-in-out infinite; }
+@keyframes nudge { 0%, 88%, 100% { transform: rotate(0); } 91% { transform: rotate(-2.2deg) translateY(-2px); } 94% { transform: rotate(2.2deg) translateY(-2px); } 97% { transform: rotate(-1deg); } }
+.home-coins.counting #homeCoins, #homeCoins.counting { color: #ffe27a; text-shadow: 0 0 10px rgba(255, 220, 90, .8); }
+.home-coins { background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); }
+.home-tagline { text-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-progress .study-goal .goal-flame, .home-header h1, .home-header h1::after, .play-section .btn-play, .play-section .btn-play::before,
+  .home-progress .study-goal-fill::after, .mode-btn.has-dot, .side-btn.has-dot { animation: none !important; }
+}
+@media (max-height: 460px) {
+  .home-layout { gap: 4px; }
+  .home-header { display: none; }
+  .play-section .btn-play::before { display: none; }
+}

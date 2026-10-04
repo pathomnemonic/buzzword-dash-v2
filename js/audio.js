@@ -753,6 +753,8 @@ class AudioEngine {
       this._vibrate([[20, 25, 40], [30, 25, 30, 25, 60], [40, 30, 40, 30, 40, 30, 140]][tier]);
     } else if (kind === 'best') {
       this._vibrate([30, 40, 30, 40, 160]);
+    } else if (kind === 'tap') {
+      this._vibrate(8); // a light tick under the thumb for the big buttons
     }
   }
 

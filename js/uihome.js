@@ -104,11 +104,15 @@ export var homeMethods = {
     var done = storage.getStudiedToday();
     var pct = Math.min(100, Math.round(done / goal * 100));
     var streak = storage.getStreakStatus();
-    // One short line that fits half the screen: today's count, the streak, and the shield that protects it
-    var text = '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') + (streak.streak > 0 ? '  ·  🔥 ' + streak.streak : '') + (streak.shields > 0 ? '  ·  🛡 ' + streak.shields : '');
+    // One line: today's count, the streak (a flame that moves), the shield that protects it and the reviews due
     var due = storage.getDueCount();
-    if (due > 0) text += '  ·  🔁 ' + due + ' due';
-    el.appendChild(createElement('div', { text: text }));
+    var line = createElement('div', { className: 'goal-line' });
+    line.appendChild(createElement('span', { text: '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') }));
+    if (streak.streak > 0) line.appendChild(createElement('span', { className: 'goal-flame', text: '🔥 ' + streak.streak }));
+    if (streak.shields > 0) line.appendChild(createElement('span', { text: '🛡 ' + streak.shields }));
+    if (due > 0) line.appendChild(createElement('span', { text: '🔁 ' + due + ' due' }));
+    el.classList.toggle('goal-done', done >= goal);
+    el.appendChild(line);
     var bar = createElement('div', {
       className: 'study-goal-bar',
       attributes: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(goal), 'aria-valuenow': String(Math.min(done, goal)), 'aria-label': 'Daily study goal' }

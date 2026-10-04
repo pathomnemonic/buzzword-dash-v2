@@ -361,8 +361,8 @@ export var SKINS = [
  * body-interior worlds are "outdoor". A run starts indoors, then moves outdoors, then is random.
  */
 var INDOOR_IDS = [
-  'skin_neon_er', 'skin_prescription_sunset', 'skin_hospital_hallway', 'skin_operating_room',
-  'skin_research_lab', 'skin_ambulance_bay', 'skin_surgical_theater', 'skin_candy_lab'
+  'skin_hospital_hallway', 'skin_operating_room', 'skin_research_lab',
+  'skin_ambulance_bay', 'skin_surgical_theater', 'skin_candy_lab'
 ];
 
 export function isIndoorSkin(skin) {
