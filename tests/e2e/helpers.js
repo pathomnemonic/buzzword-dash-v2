@@ -8,6 +8,9 @@
  * intercepts every click, so tests must dismiss it before interacting.
  */
 export async function openApp(page, path = '/') {
+  // Home's Play button breathes and glints, and Playwright will not click something that is still moving. The
+  // animations switch off for a player who asks for reduced motion, so the tests ask for it too.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(path);
   for (let i = 0; i < 10; i++) {
     if (!(await page.locator('#tutCloseBtn').isVisible().catch(() => false))) break;
