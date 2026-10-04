@@ -5,6 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { storyFor } from './stories.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
@@ -695,12 +696,19 @@ export var settingsMethods = {
           var itemDot = createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } });
           nameWrap.firstChild.appendChild(itemDot);
         }
-        if (item.desc) {
-          var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc });
+        var story = storyFor(item.id);
+        if (story || item.desc) {
+          var descLine = createElement('div', { className: 'setting-sublabel', text: story ? story.short : item.desc });
           descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
           nameWrap.appendChild(descLine);
         }
+        if (story) {
+          var longLine = createElement('div', { className: 'story-long', text: story.long, attributes: { id: 'story-' + item.id } });
+          longLine.hidden = true;
+        }
         row.appendChild(nameWrap);
+
+        if (story) row.appendChild(longLine);
 
         // Buttons
         var btnWrap = createElement('div');
@@ -711,6 +719,20 @@ export var settingsMethods = {
         var showItem = function () {
           if (self.characterPreview) self.characterPreview.previewItem(item.id, type);
         };
+        if (story) {
+          var storyBtn = createElement('button', {
+            className: 'btn btn-outline btn-sm story-btn',
+            text: '📖',
+            attributes: { type: 'button', 'aria-label': 'Story of ' + item.name, 'aria-expanded': 'false', 'aria-controls': 'story-' + item.id }
+          });
+          storyBtn.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
+          storyBtn.addEventListener('click', function () {
+            var open = longLine.hidden;
+            longLine.hidden = !open;
+            storyBtn.setAttribute('aria-expanded', String(open));
+          });
+          btnWrap.appendChild(storyBtn);
+        }
         var tryBtn = createElement('button', {
           className: 'btn btn-outline btn-sm',
           text: '👁',
