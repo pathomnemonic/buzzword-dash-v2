@@ -65,7 +65,7 @@ describe('the tour always teaches with the EKG Line, and never hands out coins',
   const rowOf = (el) => el.closest('.shop-item').textContent;
 
   it('a new player is walked through buying the EKG Line (not the cheapest thing they can afford)', () => {
-    expect(storage.get('coins')).toBe(2000);
+    expect(storage.get('coins')).toBe(500);
     expect(applies('buy')).toBe(true);
     expect(rowOf(step('buy').target())).toMatch(/EKG Line/);
     expect(applies('preview')).toBe(false);

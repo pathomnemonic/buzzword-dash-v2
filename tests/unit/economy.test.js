@@ -1,3 +1,4 @@
+import { STORAGE_DEFAULTS } from '../../js/storage.js';
 import { describe, it, expect } from 'vitest';
 import { QUESTS, LOCKER_ITEMS, QUEST_CATEGORIES, questIdsForDate, CONTINUE_COST } from '../../js/game/shopdata.js';
 import { dailyReward } from '../../js/progress.js';
@@ -70,9 +71,9 @@ describe('prices against earnings', () => {
     expect(maxTrail).toBeLessThan(maxHero);
   });
 
-  it('the trail the tour teaches with (the EKG Line) is affordable from the starting coins with plenty left over', () => {
+  it('a new player starts with exactly enough coins for the one thing the tutorial has them buy (the EKG Line), and no more', () => {
     const ekg = paid.find((i) => i.id === 'trail_ekg');
-    expect(ekg.price).toBeLessThanOrEqual(1000);
+    expect(STORAGE_DEFAULTS.progression.coins).toBe(ekg.price);
   });
 
   it('a continue is cheap next to a run\'s earnings, so it is a real choice but never a trap', () => {
