@@ -105,8 +105,9 @@ export var homeMethods = {
     var pct = Math.min(100, Math.round(done / goal * 100));
     var streak = storage.getStreakStatus();
     // One short line that fits half the screen: today's count, the streak, and the shield that protects it
-    var text = '🎯 ' + done + '/' + goal + (done >= goal ? ' ✅' : '') + (streak.streak > 0 ? '  🔥 ' + streak.streak : '') + (streak.shields > 0 ? '  🛡 ' + streak.shields : '');
+    var text = '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') + (streak.streak > 0 ? '  ·  🔥 ' + streak.streak : '') + (streak.shields > 0 ? '  ·  🛡 ' + streak.shields : '');
     var due = storage.getDueCount();
+    if (due > 0) text += '  ·  🔁 ' + due + ' due';
     el.appendChild(createElement('div', { text: text }));
     var bar = createElement('div', {
       className: 'study-goal-bar',

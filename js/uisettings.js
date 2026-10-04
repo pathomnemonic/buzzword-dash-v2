@@ -132,6 +132,7 @@ export var settingsMethods = {
         hub.appendChild(card);
       });
       content.appendChild(hub);
+      document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the new sections wear their red dots
       return;
     }
 
@@ -861,6 +862,7 @@ export var settingsMethods = {
     if (!listOpen) {
       // folded: just the hero you wear (with its colors), so everything fits on one screen
       shopItems.appendChild(this._renderHeroCard(avatarOf, kindOf, renderGroup));
+      document.dispatchEvent(new CustomEvent('dx:attention-changed'));
       return;
     }
 
@@ -884,6 +886,7 @@ export var settingsMethods = {
     } else {
       shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Tap one to see it in the display above.'));
     }
+    document.dispatchEvent(new CustomEvent('dx:attention-changed')); // (the tabs wear their red dots)
   },
 
   /** Put the display at the top of the Locker in step with the tab: hero + trail, the equipped monster, or a map. */

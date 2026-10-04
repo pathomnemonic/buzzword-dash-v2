@@ -13,6 +13,8 @@ import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
 import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
+import { renderLevelChip } from './rewardsui.js';
+import { levelFromXp, rankForLevel } from './progress.js';
 
 export var profileMethods = {
 
@@ -62,7 +64,16 @@ export var profileMethods = {
       className: 'profile-name-input',
       attributes: { type: 'text', placeholder: 'Enter display name', 'aria-label': 'Display name', value: profileName, maxlength: '30' }
     });
-    topRow.appendChild(nameInput);
+    // name, and under it the level and rank (these used to sit on Home)
+    var nameCol = createElement('div', { className: 'profile-top-fields' });
+    nameCol.appendChild(nameInput);
+    var levelRow = createElement('div', { className: 'profile-level', attributes: { id: 'profileLevel' } });
+    renderLevelChip(levelRow);
+    var lvNow = levelFromXp(storage.get('xp') || 0);
+    var rankNow = rankForLevel(lvNow.level);
+    levelRow.appendChild(createElement('span', { className: 'profile-rank', text: rankNow.icon + ' ' + rankNow.label }));
+    nameCol.appendChild(levelRow);
+    topRow.appendChild(nameCol);
     avatarSection.appendChild(topRow);
     // Profile picture: any symbol from the groups below
     var picBox = createElement('details', { className: 'profile-pic-box' });

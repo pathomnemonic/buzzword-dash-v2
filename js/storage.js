@@ -78,6 +78,7 @@ var DEFAULTS = {
     scoreBests: {},       // best score already sent to the leaderboard, by "mode|season" (see scorebest.js)
     promptState: {},      // when the share / rate / account asks were last shown (see prompts.js)
     runsFinished: 0,
+    explored: [],   // menus and tabs the player has opened (red "new" dots go away for these; see discoverydots.js)
     firstRunAt: 0,
     lastTipPromptAt: 0,
     lastReminderDate: '',

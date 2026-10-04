@@ -1954,3 +1954,64 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .home-topbar .top-btn-text { display: none; }
   .home-topbar .home-coins { font-size: 13px; padding-left: 6px; padding-right: 6px; min-width: 0; }
 }
+
+/* ---------- Level and rank on the Profile; Today's goal on Home sits under How to play ---------- */
+.profile-top-fields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.profile-level { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+.profile-level .lv-badge { flex: none; }
+.profile-level .lv-bar { flex: 1 1 auto; width: auto; min-width: 24px; height: 12px; }
+.profile-rank { flex: none; font-size: 12px; font-weight: 900; color: var(--accent-gold); white-space: nowrap; }
+.profile-top .profile-name-input { min-height: 40px; }
+.home-progress { justify-content: center; }
+.home-progress .study-goal { flex-direction: row; flex-wrap: wrap; gap: 2px 8px; align-content: center; }
+.home-progress .study-goal > div:first-child { white-space: nowrap; }
+.home-progress .study-goal-bar { flex: 1 1 100%; }
+.fit-zoom { width: 100%; }
+@media (max-height: 660px) { #characterPreviewContainer { height: 150px; } }
+@media (max-height: 600px) { #characterPreviewContainer { height: 136px; } #screenShop h2 { font-size: 22px; } }
+
+/* ---------- polish: a little light on every card, shinier progress bars, friendlier pills ---------- */
+.perf-hero, .perf-tile, .perf-section, .profile-stat, .profile-fold, .quest-item, .hero-card,
+.home-progress .study-goal, .home-progress .home-level, .side-btn, .setting-row, .shop-item {
+  box-shadow: var(--shadow-card), inset 0 2px 0 rgba(255, 255, 255, .13), inset 0 -10px 18px rgba(0, 0, 0, .12);
+}
+.study-goal-fill, .quest-fill, .perf-bar-fill, .lv-bar span {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .45), rgba(255, 255, 255, 0) 55%), linear-gradient(90deg, var(--accent-green), #b6ff6a);
+  box-shadow: 0 0 8px rgba(120, 255, 140, .45);
+}
+.perf-bar-fill { background-image: linear-gradient(180deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 55%); box-shadow: none; }
+.home-progress .study-goal { background: linear-gradient(180deg, var(--alt-a), var(--alt-b)); letter-spacing: .2px; }
+.home-progress .study-goal-bar { border: 2px solid var(--ink); border-radius: 999px; background: rgba(0, 0, 0, .35); overflow: hidden; height: 9px; }
+.home-progress .study-goal-fill { height: 100%; border-radius: 999px; }
+.screen-scroll > h2, .fit-zoom > h2 { text-shadow: 0 3px 0 var(--ink), 0 0 18px rgba(255, 255, 255, .12); }
+.profile-fold-sum, .perf-summary { transition: background .15s; }
+.profile-fold-sum:active, .perf-summary:active { background: rgba(255, 255, 255, .07); }
+.nav-item.active { filter: drop-shadow(0 0 8px rgba(255, 235, 120, .35)); }
+.nav-dot { box-shadow: 0 0 0 2px var(--ink), 0 0 10px rgba(255, 70, 90, .8); animation: dotPulse 1.8s ease-in-out infinite; }
+@keyframes dotPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@media (prefers-reduced-motion: reduce) { .nav-dot { animation: none; } }
+/* the red "new" dot sits on the top-right corner of whatever it marks */
+.mode-btn.has-dot, .top-btn.has-dot, .settings-card.has-dot, .locker-tab.has-dot, .side-btn.has-dot, .home-profile-btn.has-dot { position: relative; overflow: visible; }
+.mode-btn.has-dot > .nav-dot, .top-btn.has-dot > .nav-dot, .settings-card.has-dot > .nav-dot, .locker-tab.has-dot > .nav-dot { top: -6px; right: -5px; z-index: 3; }
+.locker-tabs .locker-tab.has-dot { overflow: visible; }
+
+/* Home, top half, on taller screens: bigger text and controls instead of empty space */
+@media (min-height: 820px) {
+  .home-topbar { min-height: 48px; }
+  .home-topbar .top-btn, .home-topbar .home-profile-btn { height: 48px; min-width: 48px; }
+  .home-topbar .home-coins { font-size: 17px; min-height: 48px; }
+  .home-header .home-tagline { font-size: 14px; }
+  .home-progress .study-goal { font-size: 15px; min-height: 54px; }
+  .home-progress .study-goal-bar { height: 11px; }
+}
+@media (min-height: 940px) {
+  .home-header h1 { font-size: clamp(40px, 5.6vh, 56px); }
+  .home-header .home-tagline { font-size: 16px; }
+}
+@media (max-height: 600px) {
+  .profile-top .profile-name-input { min-height: 36px; font-size: 16px; }
+  .profile-top .profile-avatar { width: 48px; height: 48px; font-size: 22px; }
+  .profile-fold { margin-bottom: 5px; }
+  #screenProfile h2 { font-size: 20px; }
+}
+.nav-dot { width: 15px; height: 15px; border-width: 2px; background: radial-gradient(circle at 35% 30%, #ff8a96, var(--accent-red) 60%); }

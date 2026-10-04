@@ -1,3 +1,5 @@
+import { updateDiscoveryDots } from './discoverydots.js';
+
 /**
  * attentiondots.js — red dots for things that are waiting for the player.
  *
@@ -54,5 +56,16 @@ export function updateAttentionDots(storage, quests, doc) {
   setDot(q('.nav-item[data-screen="screenProfile"]'), a.profile > 0, profileLabel);
   setDot(q('.nav-item[data-screen="screenQuests"]'), a.quests > 0, a.quests === 1 ? 'A quest reward is waiting' : a.quests + ' quest rewards are waiting');
   setDot(q('#studyGoal'), a.weekly, 'Your weekly goal reward is waiting');
+  // Menus the player has never opened (kept apart from the "waiting for you" dots above)
+  updateDiscoveryDots(storage, function (el, on, label) {
+    if (!el) return;
+    var existing = el.querySelector(':scope > .nav-dot');
+    if (on) {
+      // a place that already wears a dot for something waiting keeps that one
+      if (!existing) { setDot(el, true, label); el.querySelector(':scope > .nav-dot').setAttribute('data-discovery', '1'); }
+    } else if (existing && existing.getAttribute('data-discovery') === '1') {
+      setDot(el, false);
+    }
+  }, doc);
   return a;
 }

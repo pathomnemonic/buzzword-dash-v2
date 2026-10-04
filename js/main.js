@@ -28,6 +28,8 @@ import { checkDataSanity } from './sanity.js';
 import { audio, MENU_THEME } from './audio.js';
 import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady } from './cardhub.js';
 import { bonusSubjectFor, bonusCoinsFor, nextGoalLine } from './progress.js';
+import { discoveryIdFor, markExplored } from './discoverydots.js';
+import { mountFitScreens } from './fitscreen.js';
 import { localDateKey } from './uihelpers.js';
 import { customCards } from './customcards.js';
 import { createDailyOrder } from './game/gates.js';
@@ -1556,6 +1558,13 @@ function init() {
   // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
   updateAttentionDots(storage, storage.getDailyQuests());
   document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, storage.getDailyQuests()); });
+  // One-page screens grow to use a bigger screen (Stats, Quests, Profile, the folded Locker)
+  mountFitScreens();
+  // A red "new" dot goes away for good the first time the player opens that menu, tab or button
+  document.addEventListener('click', function (e) {
+    var id = discoveryIdFor(e.target);
+    if (id && markExplored(storage, id)) document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+  }, true);
   document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {
     refreshHomeBadge(homeLeague);

@@ -201,13 +201,6 @@
         <p class="home-tagline">Run the list.</p>
       </header>
 
-      <!-- Level, league and today's progress in one tappable strip -->
-      <div class="home-progress">
-        <div class="home-level" id="homeLevel"></div>
-        <button class="home-league" id="homeLeague" type="button" hidden></button>
-        <button class="study-goal" id="studyGoal" type="button" aria-haspopup="dialog" aria-controls="todaySheet"></button>
-      </div>
-
       <!-- PRIMARY ACTION, with the two things you set before a run on either side -->
       <div class="play-row">
         <button class="side-btn" id="filtersBtn" type="button" aria-haspopup="dialog" aria-controls="filtersSheet">
@@ -228,6 +221,12 @@
         </button>
       </div>
       <div class="play-sub"><button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button></div>
+
+      <!-- Today's goal (and the league, when there is one), right under How to play. Level and rank live on the Profile. -->
+      <div class="home-progress">
+        <button class="study-goal" id="studyGoal" type="button" aria-haspopup="dialog" aria-controls="todaySheet"></button>
+        <button class="home-league" id="homeLeague" type="button" hidden></button>
+      </div>
 
       <!-- Three ways to play, each with its own popup or screen -->
       <div class="mode-row" role="group" aria-label="Ways to play">
