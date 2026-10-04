@@ -678,7 +678,7 @@ export var settingsMethods = {
         var isEquipped = equipped[type] === item.id;
 
         var row = createElement('div', {
-          className: 'shop-item' + (isEquipped ? ' equipped' : '')
+          className: 'shop-item' + (isEquipped ? ' equipped' : '') + (storyFor(item.id) ? ' stacked' : '')
         });
 
         // Color swatch
