@@ -2070,3 +2070,14 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
   .home-header { display: none; }
   .play-section .btn-play::before { display: none; }
 }
+
+/* pinned badges, right under your name */
+.profile-showcase { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.showcase-badge {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 10px 4px 6px; min-height: 34px;
+  background: linear-gradient(180deg, rgba(255, 215, 90, .28), rgba(255, 150, 40, .16)); border: 2px solid var(--accent-gold); border-radius: 999px;
+  box-shadow: 0 2px 0 var(--ink), 0 0 10px rgba(255, 200, 70, .35); font-weight: 900; font-size: 12px;
+}
+.showcase-icon { font-size: 18px; line-height: 1; }
+.showcase-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-height: 640px) { .showcase-badge { min-height: 28px; padding: 2px 8px 2px 4px; font-size: 11px; } .showcase-name { display: none; } .showcase-icon { font-size: 16px; } }

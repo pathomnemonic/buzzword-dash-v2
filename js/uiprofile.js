@@ -141,6 +141,27 @@ export var profileMethods = {
 
     container.appendChild(avatarSection);
 
+    // The badges you have pinned, where people can see them (the full list is in the Badges row below)
+    var showcaseHost = createElement('div', { attributes: { id: 'profileShowcaseHost' } });
+    function fillShowcase() {
+      clearElement(showcaseHost);
+      var pins = storage.get('selectedBadges') || [];
+      var have = storage.get('achievements') || [];
+      var list = pins.map(function (id) { return ACHIEVEMENTS.filter(function (a) { return a.id === id; })[0]; }).filter(function (a) { return a && have.indexOf(a.id) >= 0; });
+      if (!list.length) return;
+      var showcase = createElement('div', { className: 'profile-showcase', attributes: { id: 'profileShowcase', role: 'list', 'aria-label': 'Pinned badges' } });
+      list.forEach(function (a) {
+        var chip = createElement('div', { className: 'showcase-badge', attributes: { role: 'listitem', title: a.name + ': ' + a.desc, 'aria-label': a.name + ': ' + a.desc } });
+        chip.appendChild(createElement('span', { className: 'showcase-icon', text: a.icon }));
+        chip.appendChild(createElement('span', { className: 'showcase-name', text: a.name }));
+        showcase.appendChild(chip);
+      });
+      showcaseHost.appendChild(showcase);
+      document.dispatchEvent(new CustomEvent('dx:attention-changed')); // (the screen refits to its new height)
+    }
+    fillShowcase();
+    container.appendChild(showcaseHost);
+
     // Account: sign up, sign in, sign out (filled in by main.js once the account service is ready)
     // (one folded row: the account form only opens when the player wants it, so the page stays one calm screen)
     var accountBox = createElement('details', { className: 'profile-fold profile-account-box', attributes: { id: 'profileAccountBox' } });
@@ -270,6 +291,7 @@ export var profileMethods = {
           item.classList.toggle('pinned', on);
           item.setAttribute('aria-pressed', on ? 'true' : 'false');
           pin.textContent = on ? '📌' : '';
+          fillShowcase();
         };
         item.addEventListener('click', activate);
         item.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });

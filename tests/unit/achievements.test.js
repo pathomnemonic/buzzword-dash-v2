@@ -113,6 +113,12 @@ describe('badges are organised so the profile is short', () => {
     item.click();
     expect(document.querySelector('.badge-detail').textContent).toMatch(/First Steps/);
     expect(storage.get('selectedBadges')).toContain('ach_first_run');
+    // a pinned badge shows right under the name, at once
+    expect(document.querySelector('#profileShowcase .showcase-badge').textContent).toMatch(/First Steps/);
+    item.click(); // unpin
+    expect(document.querySelector('#profileShowcase')).toBeNull();
+    item.click(); // pin again
+    expect(document.querySelectorAll('#profileShowcase .showcase-badge').length).toBe(1);
     document.querySelector('[data-badge="ach_streak_100"]').click();
     expect(document.querySelector('.badge-detail').textContent).toMatch(/not yet earned/);
   });

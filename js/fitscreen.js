@@ -60,6 +60,12 @@ export function fitScreen(screen) {
   }
   if (f <= 1.01) { wrap.style.zoom = '1'; return 1; }
   wrap.style.zoom = String(Math.round(f * 1000) / 1000);
+  // the real test: the scroll area itself must not overflow (margins, sticky parts and rounding can add a few pixels)
+  for (var k = 0; k < 5 && scroll.scrollHeight > scroll.clientHeight && f > 1; k++) {
+    f = Math.max(1, f * (scroll.clientHeight / scroll.scrollHeight) * 0.99);
+    wrap.style.zoom = String(Math.round(f * 1000) / 1000);
+  }
+  if (f <= 1.01) { wrap.style.zoom = '1'; return 1; }
   return f;
 }
 
