@@ -24,6 +24,28 @@ export var STATE_CLIPS = {
   attack: { match: [/^attack$/i, /^headbutt$/i, /^punch$/i, /^bite_front$/i, /^dragon_attack$/i, /attack/i, /bite|claw|slash|smash/i], loop: false, scale: 1.3, clamp: false, fallback: 'idle' }
 };
 
+/**
+ * Each hero's own way to celebrate a right answer, where its pack has a clip that suits it better than the generic
+ * wave: the king flourishes his sword, the ninja throws a fist, the undead lash out. Keyed by the model's file name
+ * (without .glb); patterns run against the clip's base name. A hero not listed (or whose clip is missing) keeps the wave.
+ */
+export var HERO_CELEBRATE = {
+  king: [/^sword_slash$/i],
+  adventurer: [/^sword_slash$/i],
+  hooded: [/^sword_slash$/i],
+  ninja: [/^punch$/i],
+  orc: [/^punch$/i],
+  explorer: [/^punch$/i],
+  skeleton: [/^attack$/i],
+  zombie: [/^attack$/i]
+};
+
+/** The model file name a catalog path stands for: "characters/king.glb" -> "king". */
+export function heroKeyFor(url) {
+  var m = /([^/]+?)\.glb(\?.*)?$/i.exec(String(url || ''));
+  return m ? m[1].toLowerCase() : '';
+}
+
 var PACK_PREFIX = /^(robot|alien|dragon)_/i;
 
 /** "CharacterArmature|Run" -> "Run"; "RobotArmature|Robot_Running" -> "Running". */
@@ -46,7 +68,13 @@ export function findClipName(clipNames, state) {
 }
 
 /** Resolve a state to a clip name, following fallbacks (never loops). */
-export function resolveClipName(clipNames, state) {
+export function resolveClipName(clipNames, state, heroKey) {
+  if (state === 'celebrate' && heroKey && HERO_CELEBRATE[heroKey]) {
+    var own = HERO_CELEBRATE[heroKey];
+    for (var h = 0; h < own.length; h++) {
+      for (var c = 0; c < clipNames.length; c++) if (own[h].test(baseClipName(clipNames[c]))) return { clip: clipNames[c], state: 'celebrate' };
+    }
+  }
   var seen = {};
   var s = state;
   while (s && !seen[s]) {

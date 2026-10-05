@@ -24,6 +24,8 @@ import { canRemind, requestReminderPermission } from './reminders.js';
 import { isNative } from './native.js';
 import { canDownloadPack, downloadPack, packStatus, formatBytes } from './offlinepack.js';
 import { loadCards } from './cardhub.js';
+import { buildStudyReport, reportToText, reportToCsv } from './studyreport.js';
+import { copyText, saveFile } from './platform.js';
 import { canRate, rateTheApp, openStorePage } from './review.js';
 import { buildFeedbackForm } from './feedback.js';
 import { KEY_ACTIONS, getKeyBindings, setKey, clearKey, resetKeyBindings, keyLabel, isDefaultBindings } from './keybindings.js';
@@ -350,6 +352,29 @@ export var settingsMethods = {
         content.appendChild(packRow);
       }
 
+      var reportRow2 = createElement('div', { className: 'setting-row', attributes: { id: 'studyReportRow' } });
+      var reportLabel2 = createElement('div');
+      reportLabel2.style.flex = '1';
+      reportLabel2.appendChild(createElement('div', { className: 'setting-label-text', text: '📊 Study report' }));
+      reportLabel2.appendChild(createElement('span', { className: 'setting-sublabel', text: 'A summary of your level, streak and accuracy by subject to paste into a message, or a spreadsheet file. It has no name or account details: only what you choose to send.' }));
+      reportRow2.appendChild(reportLabel2);
+      var reportBtns2 = createElement('div');
+      var copyReport = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Copy', attributes: { type: 'button', id: 'copyStudyReport' } });
+      copyReport.addEventListener('click', function () {
+        copyText(reportToText(buildStudyReport(storage.data))).then(function (ok) { self._showToast(ok ? 'Study report copied.' : 'Could not copy. Try the spreadsheet instead.'); });
+      });
+      var csvReport = createElement('button', { className: 'btn btn-outline btn-sm', text: 'CSV', attributes: { type: 'button', id: 'csvStudyReport' } });
+      csvReport.addEventListener('click', function () {
+        var blob = new Blob([reportToCsv(buildStudyReport(storage.data))], { type: 'text/csv' });
+        saveFile(blob, 'dx-dash-study-report-' + new Date().toISOString().slice(0, 10) + '.csv').then(function (how) {
+          self._showToast(how === 'failed' ? 'Could not save the file.' : 'Study report saved.');
+        });
+      });
+      reportBtns2.appendChild(copyReport);
+      reportBtns2.appendChild(csvReport);
+      reportRow2.appendChild(reportBtns2);
+      content.appendChild(reportRow2);
+
       var backupRow = createElement('div', { className: 'setting-row' });
       var backupLabel = createElement('div');
       backupLabel.style.flex = '1';
@@ -478,7 +503,8 @@ export var settingsMethods = {
         'Bright-map props (food, kitchen, furniture, pumpkins, buildings): KayKit Restaurant, Halloween, City Builder and Furniture Bits by Kay Lousberg (CC0).',
         'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
         'Doctor, nurse and paramedic: Quaternius characters (CC0).',
-        'Scout: KayKit Adventurers Rogue by Kay Lousberg (CC0), www.kaylousberg.com.'
+        'Scout: KayKit Adventurers Rogue by Kay Lousberg (CC0), www.kaylousberg.com.',
+        'Dyslexia-friendly font: OpenDyslexic by Abbie Gonzalez (SIL Open Font License 1.1).'
       ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
       credits.appendChild(creditsBody);
       content.appendChild(credits);

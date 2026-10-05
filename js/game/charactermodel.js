@@ -21,7 +21,7 @@ var FADE = 0.2;
 var _cache = {};    // url -> { scene, clips, height, minY }
 var _loading = {};  // url -> Promise
 
-import { STATE_CLIPS, baseClipName, findClipName, resolveClipName } from './clipnames.js';
+import { STATE_CLIPS, baseClipName, findClipName, resolveClipName, heroKeyFor } from './clipnames.js';
 export { baseClipName, findClipName, resolveClipName };
 
 export function isModelReady(url) {
@@ -76,7 +76,8 @@ export function parseCharacterModel(url, buffer) {
 }
 
 class ModelAnimator {
-  constructor(root, clips) {
+  constructor(root, clips, heroKey) {
+    this.heroKey = heroKey || '';
     this.mixer = new THREE.AnimationMixer(root);
     this.actions = {};
     var self = this;
@@ -88,13 +89,13 @@ class ModelAnimator {
 
   /** True when the model has its own clip for this state (not just the run cycle standing in for it). */
   hasClip(state) {
-    var resolved = resolveClipName(this.clipNames, state);
+    var resolved = resolveClipName(this.clipNames, state, this.heroKey);
     return !!resolved && resolved.state === state;
   }
 
   setState(state) {
     if (state === this.state) return;
-    var resolved = resolveClipName(this.clipNames, state);
+    var resolved = resolveClipName(this.clipNames, state, this.heroKey);
     var def = STATE_CLIPS[resolved ? resolved.state : state];
     var next = resolved && this.actions[resolved.clip];
     if (!next) return;
@@ -160,7 +161,7 @@ export function buildModelCharacter(url, scale, height, tint) {
   var pg = new THREE.Group();
   pg.add(root);
   pg.userData.isModel = true;
-  pg.userData.animator = new ModelAnimator(root, entry.clips);
+  pg.userData.animator = new ModelAnimator(root, entry.clips, heroKeyFor(url));
   pg.userData.animator.setState('run');
   return pg;
 }

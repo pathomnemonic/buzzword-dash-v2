@@ -229,6 +229,9 @@ Select any combination of subjects on the home screen. Leaving all subjects dese
 - Safe-area insets are respected for notched devices
 - Modals trap focus and restore it on close
 - No inline event handlers or inline styles are used in the HTML
+- Settings → Look: a dyslexia-friendly font (OpenDyslexic, bundled, nothing is fetched from a font service) and a button side for left-handed play (Dash and Auto-Pilot move to the left)
+- Settings → Your Rules: Relaxed pace runs single-player games at 65% speed with no speed-up. Progress and coins count; the run is marked custom, so it is not posted to leaderboards
+- Settings → Data: Study report (copy a summary or save a CSV with no name or account details) and, on the web version, Play with no connection, which downloads the cards, models and portraits listed in the build's `offline-manifest.json` into the service worker's cache
 
 ## Development
 
@@ -306,6 +309,8 @@ VITE_ERROR_ENDPOINT=https://example.com/dxdash-errors
 
 ## Updates and offline cache
 
+The card chunks and game code are cached as they are first used. Settings → Data → Play with no connection fetches everything else (3D heroes, monsters, maps) in one go; the phone apps already contain it all.
+
 The service worker's cache is named after the build (the commit in CI), so every deploy starts a fresh cache. When a new version finishes installing while the game is open, a notice offers a reload.
 
 ## Tips (Optional)
@@ -351,6 +356,8 @@ Supabase setup for accounts:
 In the app: set a display name on the Leaderboard screen, then use **Find** or **＋ Add** to send friend requests, **Requests** to accept them, and **Invite** on a friend (after hosting a multiplayer room) to send a match invite.
 
 ## Credits
+
+- `css/fonts/opendyslexic-*.woff2` — OpenDyslexic by Abbie Gonzalez ([opendyslexic.org](https://opendyslexic.org/)), SIL Open Font License 1.1 (see `css/fonts/OpenDyslexic-LICENSE.txt`), via the `@fontsource/opendyslexic` package.
 
 - `public/models/characters/scout.glb` — the Rogue from the KayKit Adventurers Character Pack 1.0 by Kay Lousberg ([kaylousberg.com](https://www.kaylousberg.com/), CC0 1.0); the weapons were removed and the animation clips trimmed with `tools/import-character.mjs`.
 
