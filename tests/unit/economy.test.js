@@ -7,14 +7,14 @@ import { dailyReward } from '../../js/progress.js';
  * Do the prices and the earnings make sense together?
  *
  * Earning in play: 2 coins per right answer plus 1 per 3 in the streak (about 3 each, six or seven answers a minute)
- * and the coin pick-ups on the track (denser since the coin overhaul: about 50 a minute at normal speed), which is
- * about 75 coins for each minute. A casual player is on it for
+ * and the coin pick-ups on the track (a stream like a runner game's: about 190 a minute for a casual player, 250 for a sharp one,
+ * measured by stepping the game headlessly), which is about 220 coins for each minute. A casual player is on it for
  * 10 to 20 minutes a day. Quests are a bonus on top of that, not the main income: when they paid 300 to 1,100 each
  * a day's quests were worth over an hour of play. This test keeps the pieces in proportion.
  */
-const COINS_PER_MINUTE = 75;
+const COINS_PER_MINUTE = 220;
 const CASUAL_MINUTES_PER_DAY = 15;
-const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 1,100
+const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 3,300
 
 const dayKeys = Array.from({ length: 90 }, (_, i) => { const d = new Date(2026, 9, 1 + i, 12); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); });
 const paid = LOCKER_ITEMS.filter((i) => i.price > 0);
@@ -30,7 +30,7 @@ describe('quest rewards are a bonus, not the main income', () => {
   it('a full day of quests is worth a fraction of a casual day of play, whichever six come up', () => {
     dayKeys.forEach((k) => {
       const total = questIdsForDate(k).reduce((sum, id) => sum + QUESTS.find((q) => q.id === id).reward, 0);
-      expect(total, k).toBeGreaterThanOrEqual(dayOfPlay * 0.15);
+      expect(total, k).toBeGreaterThanOrEqual(dayOfPlay * 0.05);
       expect(total, k).toBeLessThanOrEqual(dayOfPlay * 0.5);
     });
   });
@@ -50,7 +50,7 @@ describe('prices against earnings', () => {
     expect(paid.length).toBeGreaterThan(40);
     paid.forEach((i) => {
       expect(i.price, i.id).toBeGreaterThanOrEqual(100);
-      expect(i.price, i.id).toBeLessThanOrEqual(8000);
+      expect(i.price, i.id).toBeLessThanOrEqual(20000);
     });
   });
 
@@ -65,12 +65,13 @@ describe('prices against earnings', () => {
     // what is on sale in the Locker (the archived classic heroes, hats and gear, and the shelved study buddies, are not)
     const shown = paid.filter((i) => ['trail', 'monster', 'map'].includes(i.type) || (i.type === 'skin' && i.id.startsWith('avatar_m_')));
     const within = (coins) => shown.filter((i) => i.price <= coins).length;
-    expect(within(300)).toBeGreaterThanOrEqual(3);          // the first run or two
-    expect(within(700)).toBeGreaterThanOrEqual(8);          // the first evening
-    expect(within(dayOfPlay)).toBeGreaterThanOrEqual(18);   // the first day
-    expect(shown.some((i) => i.type === 'skin' && i.price <= 600)).toBe(true);   // a hero is within reach early
-    expect(shown.some((i) => i.type === 'monster' && i.price <= 1000)).toBe(true);
-    expect(shown.some((i) => i.type === 'map' && i.price <= 500)).toBe(true);
+    const run = COINS_PER_MINUTE * 3; // a three-minute run
+    expect(within(run)).toBeGreaterThanOrEqual(2);              // after the first run
+    expect(within(run * 2)).toBeGreaterThanOrEqual(5);          // after a couple of runs
+    expect(within(dayOfPlay)).toBeGreaterThanOrEqual(18);       // the first day
+    expect(shown.some((i) => i.type === 'skin' && i.price <= run * 2)).toBe(true);   // a hero is within reach early
+    expect(shown.some((i) => i.type === 'monster' && i.price <= run * 4)).toBe(true);
+    expect(shown.some((i) => i.type === 'map' && i.price <= run * 2)).toBe(true);
   });
 
   it('prices climb steadily: nothing leaps by more than the step before it in a way that strands a player', () => {

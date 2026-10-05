@@ -39,7 +39,7 @@ describe('xp and levels', () => {
 describe('daily reward track', () => {
   it('pays a known amount on days 1 to 6, rising each day', () => {
     const coins = [1, 2, 3, 4, 5, 6].map((s) => dailyReward(s).coins);
-    expect(coins).toEqual([10, 20, 30, 50, 75, 100]);
+    expect(coins).toEqual([30, 60, 90, 150, 225, 300]);
     expect(dailyReward(3).chest).toBe(false);
   });
 
@@ -47,17 +47,17 @@ describe('daily reward track', () => {
     for (const r of [0, 0.3, 0.999, 1]) {
       const d = dailyReward(7, () => r);
       expect(d).toMatchObject({ day: 7, chest: true });
-      expect(d.coins).toBeGreaterThanOrEqual(150);
-      expect(d.coins).toBeLessThanOrEqual(300);
+      expect(d.coins).toBeGreaterThanOrEqual(450);
+      expect(d.coins).toBeLessThanOrEqual(900);
     }
-    expect(dailyReward(7, () => 0).coins).toBe(150);
-    expect(dailyReward(7, () => 1).coins).toBe(300);
+    expect(dailyReward(7, () => 0).coins).toBe(450);
+    expect(dailyReward(7, () => 1).coins).toBe(900);
   });
 
   it('repeats every seven days and shows the whole track', () => {
     expect(dailyReward(8).day).toBe(1);
     expect(dailyReward(14, () => 0.5).chest).toBe(true);
     expect(dailyReward(0).day).toBe(1);
-    expect(dailyTrack()).toEqual([10, 20, 30, 50, 75, 100, null]);
+    expect(dailyTrack()).toEqual([30, 60, 90, 150, 225, 300, null]);
   });
 });

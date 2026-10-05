@@ -58,13 +58,13 @@ export function coinsForObstacle(kind) {
   var out = [];
   var i;
   if (kind === 'slide') {
-    for (i = -3; i <= 3; i++) out.push({ dz: i * 0.6, y: 0.7, air: false });
+    for (i = -6; i <= 6; i++) out.push({ dz: i * 0.3, y: 0.7, air: false });
     return out;
   }
   // a jump lasts about two pattern units each side of the middle; the arc peaks right over the obstacle
-  for (i = -3; i <= 3; i++) {
-    var t = (i + 3) / 6; // 0 .. 1
-    out.push({ dz: i * 0.55, y: 1.2 + Math.sin(t * Math.PI) * 1.75, air: true });
+  for (i = -6; i <= 6; i++) {
+    var t = (i + 6) / 12; // 0 .. 1
+    out.push({ dz: i * 0.3, y: 1.2 + Math.sin(t * Math.PI) * 1.75, air: true });
   }
   return out;
 }
@@ -84,11 +84,11 @@ export function magnetX(coinX, playerX, coinZ, dt) {
   return coinX + (playerX - coinX) * k;
 }
 
-/** Spacing between neighbouring coins in a line (pattern units): denser than before, so there is nearly always one to grab. */
-export var COIN_GAP = 1.2;
+/** Spacing between neighbouring coins in a line (pattern units): about a coin and a third apart, so a line is a stream you run along, like a runner game's. */
+export var COIN_GAP = 0.45;
 
 /** The breather between batches (seconds): shorter while a coin power-up is on. */
 export function coinBreather(rand, coinPowerUp) {
   var r = typeof rand === 'number' ? rand : Math.random();
-  return coinPowerUp ? 0.15 + r * 0.25 : 0.45 + r * 0.8;
+  return coinPowerUp ? r * 0.1 : 0.15 + r * 0.4;
 }

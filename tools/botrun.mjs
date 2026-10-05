@@ -267,7 +267,7 @@ function installBot() {
       return 'the scene holds ' + g.scene.children.length + ' top-level objects (most: ' + top.join(', ') + '; map changes ' + g._mapChanges + ', encounters ' + g.encountersDone + ')';
     }
     if (g.obstacleMeshes.length > 80) return g.obstacleMeshes.length + ' obstacles alive at once';
-    if (g.coinMeshes.length > 400) return g.coinMeshes.length + ' coins and pick-ups alive at once';
+    if (g.coinMeshes.length > 700) return g.coinMeshes.length + ' coins and pick-ups alive at once';
     if (g.envPropMeshes.length > 400) return g.envPropMeshes.length + ' scenery props alive at once';
     return null;
   };

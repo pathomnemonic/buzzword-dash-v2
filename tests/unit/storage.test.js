@@ -212,10 +212,10 @@ describe('retired duplicate characters', () => {
     expect(storage.data.progression.equipped.skin).toBe('avatar_intern');
     // 400 + 1000 back (they already had Dr. Dash), and 9000 less the price of the robot they are given instead
     const robot = SHOP_ITEMS.find((i) => i.id === 'avatar_m_robot').price;
-    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - robot));
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + Math.max(0, 9000 - robot));
     // running it again changes nothing
     storage._ensureInvariants();
-    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - robot));
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + Math.max(0, 9000 - robot));
   });
 
   it('turns the old shared scrub color into the doctor\'s pants color', () => {

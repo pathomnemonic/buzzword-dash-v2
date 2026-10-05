@@ -84,9 +84,9 @@ export function loginStep(last, streak, today) {
   return { claim: true, streak: 1, last: today };
 }
 
-var DAILY_COINS = [10, 20, 30, 50, 75, 100];
-var CHEST_MIN = 150;
-var CHEST_MAX = 300;
+var DAILY_COINS = [30, 60, 90, 150, 225, 300];
+var CHEST_MIN = 450;
+var CHEST_MAX = 900;
 
 /**
  * The reward for a login streak. The track repeats every 7 days.

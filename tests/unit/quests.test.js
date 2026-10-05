@@ -23,15 +23,15 @@ const done = (id) => storage.getQuestProgress(id) >= QUESTS.find((q) => q.id ===
 
 describe('daily quests', () => {
   it('a strong run completes the per-run quests', () => {
-    storage.finalizeRun(run({ bestStreak: 9, coinsCollected: 120, powerupsCollected: 3, rushesUsed: 4, obstaclesJumped: 6, obstaclesSlid: 5 }));
+    storage.finalizeRun(run({ bestStreak: 9, coinsCollected: 320, powerupsCollected: 3, rushesUsed: 4, obstaclesJumped: 6, obstaclesSlid: 5 }));
     for (const id of ['q_streak8', 'q_perfect5', 'q_50coins', 'q_3powerups', 'q_rush3', 'q_jump5', 'q_slide5']) expect(done(id), id).toBe(true);
   });
 
   it('per-run quests take the best run, not the total of several runs', () => {
-    storage.finalizeRun(run({ coinsCollected: 60 }));
-    storage.finalizeRun(run({ coinsCollected: 60 }));
-    expect(storage.getQuestProgress('q_50coins')).toBe(60); // two 60-coin runs are not one 100-coin run
-    storage.finalizeRun(run({ coinsCollected: 100 }));
+    storage.finalizeRun(run({ coinsCollected: 180 }));
+    storage.finalizeRun(run({ coinsCollected: 180 }));
+    expect(storage.getQuestProgress('q_50coins')).toBe(180); // two 180-coin runs are not one 300-coin run
+    storage.finalizeRun(run({ coinsCollected: 300 }));
     expect(done('q_50coins')).toBe(true);
   });
 
@@ -76,7 +76,7 @@ describe('daily quests', () => {
 
   it('one rich run completes a quest from every run-based category', () => {
     storage.finalizeRun(run({
-      bestStreak: 21, coinsCollected: 250, powerupsCollected: 6, rushesUsed: 7, obstaclesJumped: 14, obstaclesSlid: 14,
+      bestStreak: 21, coinsCollected: 750, powerupsCollected: 6, rushesUsed: 7, obstaclesJumped: 14, obstaclesSlid: 14,
       encountersCompleted: 52, correct: 52, wrong: 0, score: 3500, dailyCompleted: true, mode: 'study',
       encounters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((x) => enc(x, true, 700)).concat(Array.from({ length: 10 }, () => enc('A', true, 1500)))
     }));

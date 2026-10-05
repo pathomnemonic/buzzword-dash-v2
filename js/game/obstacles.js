@@ -659,6 +659,9 @@ export function isImpossibleLayout(entry1, entry2) {
 var _coinTemplate = null;
 
 /** Built once; every coin is a clone that shares its geometry and materials (far fewer GPU buffers). */
+/** A coin is drawn this much bigger than its first model, so it reads from a distance. */
+var COIN_SCALE = 1.3;
+
 function getCoinTemplate() {
   if (_coinTemplate) return _coinTemplate;
   var group = new THREE.Group();
@@ -696,6 +699,7 @@ function getCoinTemplate() {
   // coin costs 3 draw calls instead of 7 (a dozen coins on screen used to cost over 300).
   mergeStatic(group);
   markShared(group);
+  group.children.forEach(function (ch) { ch.position.multiplyScalar(COIN_SCALE); ch.scale.multiplyScalar(COIN_SCALE); });
   _coinTemplate = group;
   return group;
 }
@@ -705,7 +709,7 @@ function getCoinTemplate() {
 // ALL coins, instead of a few per coin). Each coin is still its own light object that the game moves,
 // spins and collects as before; it just has nothing to draw by itself.
 var _instancing = null;
-var MAX_COIN_INSTANCES = 320;
+var MAX_COIN_INSTANCES = 600;
 
 /** Switch coins to instanced drawing. Call once the scene exists; safe to call twice. */
 export function enableCoinInstancing(scene) {
@@ -830,7 +834,7 @@ function neighbourLane(lane) {
 
 function spawnCoinLine(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  var n = 9 + Math.floor(Math.random() * 6);
+  var n = 18 + Math.floor(Math.random() * 12);
   for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, lane, startZ - i * COIN_GAP);
   _lastCoinLane = lane;
   return n * COIN_GAP;
@@ -840,44 +844,44 @@ function spawnCoinLine(scene, coinMeshes, startZ) {
 function spawnCoinSwitch(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 6; i++) addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
-  for (var j = 0; j < 6; j++) addCoin(scene, coinMeshes, b, startZ - (7 + j) * COIN_GAP);
+  for (var i = 0; i < 12; i++) addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
+  for (var j = 0; j < 12; j++) addCoin(scene, coinMeshes, b, startZ - (14 + j) * COIN_GAP);
   _lastCoinLane = b;
-  return 13 * COIN_GAP;
+  return 26 * COIN_GAP;
 }
 
-/** A winding S: three coins in one lane, three in the next, and back again. */
+/** A winding S: a stretch in one lane, a stretch in the next, and back again. */
 function spawnCoinZigzag(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  var n = 12;
-  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, Math.floor(i / 3) % 2 ? b : a, startZ - i * COIN_GAP);
-  _lastCoinLane = Math.floor((n - 1) / 3) % 2 ? b : a;
+  var n = 30;
+  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, Math.floor(i / 8) % 2 ? b : a, startZ - i * COIN_GAP);
+  _lastCoinLane = Math.floor((n - 1) / 8) % 2 ? b : a;
   return n * COIN_GAP;
 }
 
 /** An arc of coins in one lane: jump to collect them all (they are in the air, so it takes a jump). */
 function spawnCoinArc(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  var n = 8;
+  var n = 15;
   for (var i = 0; i < n; i++) {
     var h = Math.sin(i / (n - 1) * Math.PI);
-    addCoin(scene, coinMeshes, lane, startZ - i * 1.0, 1.2 + h * 1.75, h > 0.55);
+    addCoin(scene, coinMeshes, lane, startZ - i * 0.4, 1.2 + h * 1.75, h > 0.55);
   }
   _lastCoinLane = lane;
-  return n * 1.0;
+  return n * 0.4;
 }
 
 /** Pairs of coins side by side in two neighbouring lanes. */
 function spawnCoinPairs(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 6; i++) {
-    addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP * 1.2);
-    addCoin(scene, coinMeshes, b, startZ - i * COIN_GAP * 1.2);
+  for (var i = 0; i < 14; i++) {
+    addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
+    addCoin(scene, coinMeshes, b, startZ - i * COIN_GAP);
   }
   _lastCoinLane = b;
-  return 6 * COIN_GAP * 1.2;
+  return 14 * COIN_GAP;
 }
 
 /**
