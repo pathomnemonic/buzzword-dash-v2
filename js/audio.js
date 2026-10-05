@@ -29,6 +29,23 @@ import { say as sayCharacter } from './charactervoices.js';
 import { planReading, updateWps, countWords, DEFAULT_WPS } from './readaloud.js';
 import { speak, canSpeak, cancelSpeech as stopSpeaking } from './tts.js';
 
+// ===== HAPTIC LANGUAGE =====
+// Every important moment has its own buzz, so the game can be played by feel: a crisp tick when you are right, a heavy
+// double thud when you are wrong, rising pulses for a level, a flutter for a power-up and a long rolling run for a fusion.
+// (Phones can only vary the length of a buzz, so each pattern differs in rhythm, count and length. A test keeps them all apart.)
+export var HAPTIC_PATTERNS = {
+  correct: [30],
+  wrong: [70, 60, 70],
+  coin: [12],
+  powerup: [25, 25, 25],
+  fusion: [20, 15, 20, 15, 20, 15, 90],
+  heart: [40, 30, 40],
+  streak: [[20, 25, 40], [30, 25, 30, 25, 60], [40, 30, 40, 30, 40, 30, 140]],
+  level_up: [20, 30, 30, 30, 50, 30, 90],
+  promotion: [60, 40, 60, 40, 60, 40, 200],
+  best: [30, 40, 30, 40, 160]
+};
+
 // ===== MUSICAL CONSTANTS =====
 
 /** Music is turned down, and every effect up, so effects always cut through the music. */
@@ -418,6 +435,9 @@ class MusicGenerator {
     this.tempoMultiplier = 1.0;
     this.intensity = 0.5; // 0..1: how many layers play
     this.danger = 0;      // 0..1: monster proximity (adds tension)
+    this.layers = { sparkle: false, clap: false, octave: false }; // streak layers (see combo.js)
+    this.duckTarget = 1;  // 0.45 while a question is being read aloud
+    this._duckNow = 1;
     this._getSettings = settingsGetter;
 
     // Output gain for crossfading
@@ -500,6 +520,14 @@ class MusicGenerator {
     this.melodyFilter.frequency.setTargetAtTime(Math.max(300, target), this.ctx.currentTime, 0.4);
   }
 
+  /** Take a whole mood from combo.js musicMood(): intensity, danger, tempo, layers and the read-aloud duck. */
+  setMood(mood) {
+    this.setIntensity(mood.intensity, mood.danger);
+    this.setTempoMultiplier(mood.tempo);
+    this.layers = mood.layers;
+    this.duckTarget = mood.duck;
+  }
+
   _startScheduler() {
     this._stopScheduler();
     var self = this;
@@ -531,9 +559,23 @@ class MusicGenerator {
     var settings = this._getSettings();
     var vol = settings.masterVolume * settings.musicVolume;
     if (vol <= 0) return;
+    // The music steps back while a question is read aloud, and comes back smoothly after
+    this._duckNow += (this.duckTarget - this._duckNow) * 0.35;
+    vol *= this._duckNow;
 
     // Drums
     this._playDrums(step, vol, time);
+
+    // Streak layers: a sparkling arpeggio, a soft clap, then the melody doubled an octave up
+    var L = this.layers;
+    if (L.sparkle && step % 2 === 0) {
+      var arp = [0, 2, 4, 2][(step / 2) % 4];
+      this._playMelody(midiToFreq(scaleNote(this.scale, cfg.key + 12, arp)), vol * 0.45, time);
+    }
+    if (L.clap && (step === 4 || step === 12)) this._playSnare(vol * 0.55, time);
+    if (L.octave && step < cfg.melodyPattern.length && cfg.melodyPattern[step] >= 0) {
+      this._playMelody(midiToFreq(scaleNote(this.scale, cfg.key + 12, cfg.melodyPattern[step])), vol * 0.5, time);
+    }
 
     // Bass (every step)
     if (this.intensity >= 0.15 && step < cfg.bassPattern.length) {
@@ -864,9 +906,11 @@ class AudioEngine {
   haptic(kind, n) {
     if (kind === 'streak') {
       var tier = n >= 20 ? 2 : (n >= 10 ? 1 : 0);
-      this._vibrate([[20, 25, 40], [30, 25, 30, 25, 60], [40, 30, 40, 30, 40, 30, 140]][tier]);
+      this._vibrate(HAPTIC_PATTERNS.streak[tier]);
     } else if (kind === 'best') {
-      this._vibrate([30, 40, 30, 40, 160]);
+      this._vibrate(HAPTIC_PATTERNS.best);
+    } else if (kind === 'fusion') {
+      this._vibrate(HAPTIC_PATTERNS.fusion);
     } else if (kind === 'tap') {
       this._vibrate(8); // a light tick under the thumb for the big buttons
     }
@@ -903,15 +947,15 @@ class AudioEngine {
     switch (eventName) {
       case 'correct':
         this._playCorrectVariation(sfxVol);
-        this._vibrate(50);
+        this._vibrate(HAPTIC_PATTERNS.correct);
         break;
       case 'wrong':
         this._playWrong(sfxVol);
-        this._vibrate([30, 50, 30]);
+        this._vibrate(HAPTIC_PATTERNS.wrong);
         break;
       case 'coin':
         this._playCoinVariation(sfxVol, opts.lane);
-        this._vibrate(15);
+        this._vibrate(HAPTIC_PATTERNS.coin);
         break;
       case 'rush':
         this._playRush(sfxVol);
@@ -925,7 +969,7 @@ class AudioEngine {
         break;
       case 'powerup':
         this._playPowerup(sfxVol);
-        this._vibrate([40, 20, 40]);
+        this._vibrate(HAPTIC_PATTERNS.powerup);
         break;
       case 'continue':
         this._playContinue(sfxVol);
@@ -936,7 +980,7 @@ class AudioEngine {
         break;
       case 'heart':
         this._playHeart(sfxVol);
-        this._vibrate([40, 30, 40]);
+        this._vibrate(HAPTIC_PATTERNS.heart);
         break;
       case 'monster_close':
         this._playMonsterClose(sfxVol);
@@ -1007,11 +1051,11 @@ class AudioEngine {
         break;
       case 'level_up':
         this._playFanfare(sfxVol, false);
-        this._vibrate([40, 30, 40, 30, 90]);
+        this._vibrate(HAPTIC_PATTERNS.level_up);
         break;
       case 'promotion':
         this._playFanfare(sfxVol, true);
-        this._vibrate([60, 40, 60, 40, 120]);
+        this._vibrate(HAPTIC_PATTERNS.promotion);
         break;
       case 'trophy_win':
         [523, 659, 784, 1047].forEach(function (f, i) { this._sweep('triangle', f, f, 0.22, sfxVol * 0.1, 5000, i * 0.1); }, this);
@@ -1570,13 +1614,24 @@ class AudioEngine {
       rate: plan.rate,
       lang: 'en-US',
       volume: Math.min(1, this._settings.masterVolume * Math.max(this._settings.voiceVolume, 0.5) * 1.3),
-      onstart: function () { startedAt = Date.now(); },
+      onstart: function () { startedAt = Date.now(); self._duckMusic(true); },
       onend: function () {
+        self._duckMusic(false);
         if (startedAt) self._saveWps(updateWps(self._readWps(), words, (Date.now() - startedAt) / 1000, plan.rate));
       }
     });
     return plan;
   }
+
+  /** Turn the music down while a question is read (the next mood update would otherwise undo it, so it is remembered). */
+  _duckMusic(on) {
+    this._ducked = !!on;
+    var gen = this.musicGenerator;
+    if (gen) gen.duckTarget = on ? 0.45 : 1;
+  }
+
+  /** Is the music stepping back for the reading voice right now? */
+  isMusicDucked() { return !!this._ducked; }
 
   /** How fast this device's voice talks (words per second at rate 1), measured from earlier readings. */
   _readWps() {
@@ -1609,10 +1664,16 @@ class AudioEngine {
 
   cancelSpeech() {
     this._speaking = null;
+    this._duckMusic(false);
     stopSpeaking();
   }
 
   // ===== MUSIC (procedural, per-skin) =====
+
+  /** Give the running music a whole mood (see combo.js musicMood). */
+  setMusicMood(mood) {
+    if (this.musicGenerator && this.musicGenerator.setMood) this.musicGenerator.setMood(mood);
+  }
 
   /** Adapt the running music to the game state (see MusicGenerator.setIntensity). */
   setMusicIntensity(intensity, danger) {

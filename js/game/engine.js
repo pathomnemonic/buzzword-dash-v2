@@ -49,6 +49,7 @@ import { compileSafely } from './safecompile.js';
 import { applyKillSwitch } from '../remoteconfig.js';
 import { isHospitalHall } from './hospitalhall.js';
 import { isWorld } from './worlds.js';
+import { fuseWith, FUSIBLE } from './powerupfuse.js';
 import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
@@ -203,6 +204,8 @@ class Game {
 
     // Animations
     this.celebrateTimer = 0;
+    this.flourishTimer = 0;  // the hero's spin after 20, 30, 40... in a row
+    this._trackGlow = 0;     // how lit the track is for the current streak (0..1.6)
     this.stumbleTimer = 0;
     this.landingTimer = 0;
     this.wasJumping = false;
@@ -224,7 +227,7 @@ class Game {
     this.obstaclesSlid = 0;
 
     // Powerups
-    this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0 };
+    this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0, goldRush: 0, jackpot: 0 };
     this.autoPilotGatesLeft = 0;
     this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
@@ -283,6 +286,7 @@ class Game {
     this.onRunEnd = null;
     this.onHudUpdate = null;
     this.onStreakMilestone = null;
+    this.onPowerupFused = null;
     this.onScorePopup = null;
     this.onPowerupCollected = null;
     this.onAchievementUnlocked = null;
@@ -372,6 +376,9 @@ class Game {
           else if (pl.type === 'heart') this.onScorePopup('❤️ +1');
           else if (pl.type === 'coin') this.onScorePopup('🪙 +' + (pl.value || 1));
         }
+        break;
+      case 'powerup_fused':
+        if (this.onPowerupFused) this.onPowerupFused(event.payload);
         break;
       case 'powerup_collected':
         if (this.onPowerupCollected) this.onPowerupCollected(event.payload.type);
@@ -833,11 +840,12 @@ class Game {
     this._hazards.reset();
     this._setHazardClass(null);
     this.feedbackTimer = 0; this.teachTimer = 0;
-    this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0 };
+    this.powerups = { shield: 0, double: 0, magnet: 0, autoPilot: 0, scoreFrenzy: 0, goldRush: 0, jackpot: 0 };
+    this._lastPowerup = null; this.fortress = false;
     this.autoPilotGatesLeft = 0;
     this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
-    this.celebrateTimer = 0; this.stumbleTimer = 0;
+    this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this.stumbleTimer = 0;
     this.landingTimer = 0; this.wasJumping = false;
     this.encounterStartTime = 0; this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;
@@ -1316,6 +1324,18 @@ class Game {
       if (this.stumbleTimer <= 0) this.playerGroup.rotation.x = 0;
     }
 
+    // Flourish: a full spin with both arms up (kept off for players who prefer reduced motion)
+    if (this.flourishTimer > 0) {
+      this.flourishTimer -= dt;
+      var fp = Math.max(0, this.flourishTimer) / 1.2;
+      this.playerGroup.rotation.y = storage.get('reducedMotion') ? 0 : (1 - fp) * Math.PI * 2;
+      if (this.limbs) {
+        if (this.limbs.rightArm) this.limbs.rightArm.rotation.x = 2.6;
+        if (this.limbs.leftArm) this.limbs.leftArm.rotation.x = 2.6;
+      }
+      if (this.flourishTimer <= 0) this.playerGroup.rotation.y = 0;
+    }
+
     // Celebration
     if (this.celebrateTimer > 0) {
       this.celebrateTimer -= dt;
@@ -1334,7 +1354,7 @@ class Game {
     // Limb animation. Characters face -Z, so a positive rotation.x swings a
     // hanging limb forward. Every pose is eased toward its target so limbs
     // never freeze mid-swing or pop when jumping, sliding and running switch.
-    if (this.limbs && this.celebrateTimer <= 0) {
+    if (this.limbs && this.celebrateTimer <= 0 && this.flourishTimer <= 0) {
       var lm = this.limbs;
       var tLL = 0, tRL = 0, tLA = 0, tRA = 0;
       if (this.jumping) {
@@ -1361,7 +1381,7 @@ class Game {
 
     // Animated glTF avatars are driven by their own clips.
     if (this.playerGroup.userData.animator) {
-      var modelState = this.celebrateTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
+      var modelState = this.celebrateTimer > 0 || this.flourishTimer > 0 ? 'celebrate' : this.jumping ? 'jump' : this.sliding ? 'slide' : 'run';
       // The run cycle plays faster with the look of the run (cadence follows speed, up to a cap)
       var cadence = modelState === 'run' ? Math.min(3, 1.3 * Math.pow(Math.max(0.5, currentSpeed * rushMult / 1.875), 0.7)) : 1;
       updateModelAnimation(this.playerGroup, dt * cadence, modelState);
@@ -1580,7 +1600,7 @@ class Game {
             if (this.lives < maxLives) this.lives++;
             this._emit('coin_collected', { type: 'heart' });
           } else {
-            var coinValue = this.powerups.scoreFrenzy > 0 ? 5 : 1;
+            var coinValue = (this.powerups.scoreFrenzy > 0 ? 5 : 1) * (this.powerups.goldRush > 0 ? 2 : 1);
             this.coins += coinValue;
             this.runCoinsCollected += coinValue;
             this._spawnSparks(c.position, 0xffd54a);
@@ -1593,7 +1613,7 @@ class Game {
     }
 
     // Power-up timers
-    var timedPowerups = ['double', 'magnet', 'scoreFrenzy'];
+    var timedPowerups = ['double', 'magnet', 'scoreFrenzy', 'goldRush', 'jackpot'];
     for (var pk = 0; pk < timedPowerups.length; pk++) {
       var pkey = timedPowerups[pk];
       if (this.powerups[pkey] > 0) this.powerups[pkey] -= dt;
@@ -1661,6 +1681,17 @@ class Game {
     }
     this.runPowerupsCollected++;
     this._emit('powerup_collected', { type: type });
+    // two different power-ups close together fuse (never in a seeded, competitive run)
+    var now = this.elapsedTime || 0;
+    var fusion = this.seededCardOrder ? null : fuseWith(this._lastPowerup, type, now);
+    if (fusion) {
+      Object.keys(fusion.timers).forEach(function (k) { this.powerups[k] = Math.max(this.powerups[k] || 0, fusion.timers[k]); }, this);
+      if (fusion.fortress) this.fortress = true;
+      this._lastPowerup = null;
+      this._emit('powerup_fused', { id: fusion.id, label: fusion.label, detail: fusion.detail });
+    } else {
+      this._lastPowerup = FUSIBLE.indexOf(type) >= 0 ? { type: type, at: now } : this._lastPowerup;
+    }
   }
 
   /**

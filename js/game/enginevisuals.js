@@ -12,6 +12,7 @@ import { softDotTexture } from './materials.js';
 import { getQuality, isLowQuality, useSceneryModels } from './quality.js';
 import { buildSideScenery, animateSideScenery } from './scenery.js';
 import { updateAnimators } from './mapfx.js';
+import { trackGlow } from './combo.js';
 
 export var visualMethods = {
 
@@ -71,8 +72,35 @@ export var visualMethods = {
     this.trackRefs.scrollers.push({ group: side.group, spacing: side.spacing });
   },
 
+  /**
+   * A streak lights the world: from 10 in a row the lights and exposure rise a little (and flare for a moment when it
+   * is reached), from 20 a little more; a miss lets it fade. Steady for players who prefer reduced motion (no flare).
+   */
+  _updateTrackGlow(dt) {
+    var target = trackGlow(this.streak || 0);
+    var g = this._trackGlow || 0;
+    // approach the target; a flare above it dies away on its own
+    g += (target - g) * Math.min(1, dt * (g > target ? 1.2 : 2.5));
+    if (Math.abs(g - target) < 0.002) g = target;
+    this._trackGlow = g;
+    var shown = storage.get('reducedMotion') ? Math.min(g, target) : g;
+    if (this.renderer) {
+      if (this._exposureBase === undefined) this._exposureBase = this.renderer.toneMappingExposure;
+      this.renderer.toneMappingExposure = this._exposureBase * (1 + 0.14 * shown);
+    }
+    var lights = this.trackRefs && this.trackRefs.lights;
+    if (lights) {
+      for (var i = 0; i < lights.length; i++) {
+        var l = lights[i];
+        if (l.userData.baseI === undefined) l.userData.baseI = l.intensity;
+        l.intensity = l.userData.baseI * (1 + 0.22 * shown);
+      }
+    }
+  },
+
   _updateVisuals(dt, move, currentSpeed, rushMult) {
     if (!move) move = 0;
+    this._updateTrackGlow(dt);
     this._ensureSideScenery();
     animateSideScenery(this._sideGroup, this.elapsedTime, dt);
     this._updateSparks(dt, move);

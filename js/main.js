@@ -66,6 +66,7 @@ import { awardRunXp, buildRunRewardCard, renderLevelChip } from './rewardsui.js'
 import { leagueRules } from './leagues.js';
 import { shareText } from './platform.js';
 import { installChunkRecovery } from './chunkrecovery.js';
+import { ComboTracker, musicMood } from './game/combo.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
@@ -1335,6 +1336,7 @@ function init() {
   };
 
   game.onEncounterResolve = function (card, wasCorrect, choice) {
+    if (!wasCorrect) combo.miss(); // a miss takes one layer off the music, not all of them
     audio.cancelSpeech(); // the question is over
     ui.showFeedback(card, wasCorrect, choice, game.mode === 'study' || !!game._tutorial);
     ui.flashScreen(wasCorrect);
@@ -1420,6 +1422,12 @@ function init() {
     audio.play('streak');
     audio.haptic('streak', streak); // a bigger streak buzzes bigger
     ui.showStreakMilestone(streak, multiplier);
+  };
+
+  game.onPowerupFused = function (fusion) {
+    ui.showNotice(fusion.label + ' ' + fusion.detail, { color: 'var(--accent-gold, #ffcc22)', ms: 2600 });
+    audio.play('achievement');
+    audio.haptic('fusion');
   };
 
   game.onPowerupCollected = function (type) {
@@ -1704,6 +1712,7 @@ function init() {
   // ==========================
   document.addEventListener('click', function startMusicOnce() {
     if (storage.get('musicOn')) {
+      combo.reset();
       audio.startMusic();
     }
     document.removeEventListener('click', startMusicOnce);
@@ -1775,6 +1784,7 @@ function init() {
   // keeps its own renderer per §24.2.
   var lastFrameMs = 0;
   var lastMusicMs = 0;
+  var combo = new ComboTracker();
   var GAME_SCENE_STATES = ['preparing', 'countdown', 'playing', 'paused', 'dying', 'continue_prompt', 'finishing'];
   // A run is capped at 30 fps by default (Settings can switch it to 60): a runner this size
   // does not need more, and half the frames means a cooler, steadier game.
@@ -1806,7 +1816,7 @@ function init() {
       // Adaptive music: layers build with the streak, tension rises with the monster
       lastMusicMs = nowMs;
       var danger = 1 - Math.min(1, Math.max(0, (game.monsterZ - 3) / 13));
-      audio.setMusicIntensity(Math.min(1, 0.3 + game.streak / 14), danger);
+      audio.setMusicMood(musicMood({ tier: combo.update(game.streak), speedRatio: game.baseSpeed ? game.speed / game.baseSpeed : 1, lives: game.lives, ducked: audio.isMusicDucked(), danger: danger }));
     }
     game.update(dt, nowMs);
     game.render();

@@ -11,6 +11,7 @@ import { getCardPool, pickCard, nextSeededIndex, spawnGates, flashGateResult } f
 import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
 import { chooseCommittedLane } from './lanelock.js';
+import { isFlourish } from './combo.js';
 import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, LANE_X, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
@@ -267,19 +268,21 @@ card = pickResult ? pickResult.card : null;
       this.streak++;
       if (this.streak > this.bestStreak) this.bestStreak = this.streak;
 
-      var mult = this.powerups.double > 0 ? 2 : 1;
+      var mult = this.powerups.jackpot > 0 ? 3 : (this.powerups.double > 0 ? 2 : 1);
       pointsEarned = (10 + this.streak * 2) * this.multiplier * mult;
       if (this.rushBonus > 0) pointsEarned += this.rushBonus;
       pointsEarned += Math.floor(this.userSpeed * 3);
       this.score += pointsEarned;
 
-      var coinMult = this.powerups.scoreFrenzy > 0 ? 5 : 1;
+      var coinMult = (this.powerups.scoreFrenzy > 0 ? 5 : 1) * (this.powerups.goldRush > 0 ? 2 : 1);
       coinsEarned = (2 + Math.floor(this.streak / 3)) * coinMult; // (2 a right answer, +1 for every 3 in the streak)
       this.coins += coinsEarned;
 
       if (this.streak % 5 === 0) {
         this.multiplier = Math.min(this.multiplier + 1, 8);
         this._emit('streak_milestone', { streak: this.streak, multiplier: this.multiplier });
+        if (isFlourish(this.streak)) this.flourishTimer = 1.2;
+        if (this.streak === 10) this._trackGlow = 1.6; // the track flares as it lights up
       }
 
       this.celebrateTimer = 0.3;
@@ -347,7 +350,8 @@ card = pickResult ? pickResult.card : null;
       if (this.lives <= 0 && this.mode !== GAME_MODES.STUDY) {
         if (this.powerups.shield > 0) {
           this.powerups.shield = 0;
-          this.lives = 1;
+          this.lives = this.fortress ? 2 : 1; // a Fortress fusion returns a heart with the shield
+          this.fortress = false;
           this._emit('shield_broken', {});
           if (this.powerupFX) this.powerupFX.shatterShield(this.playerGroup.position);
         } else {
