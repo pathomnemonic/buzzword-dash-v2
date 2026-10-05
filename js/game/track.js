@@ -35,6 +35,7 @@ import { isLowQuality } from './quality.js';
 import { HALL_PERIOD, isHospitalHall } from './hospitalhall.js';
 import { worldOf, buildDaySky } from './worlds.js';
 import { beginWorld, endWorld } from './mapkit.js';
+import { addSideMotion } from './sidemotion.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -198,15 +199,13 @@ export function buildTrack(trackRoot, skin, options) {
   // A bright world map records what moves while it is built (see mapkit.js beginWorld)
   var world = worldOf(skin);
   if (world && world.prepare) world.prepare(skin); // e.g. the Holiday Wards pick today's season
-  if (world) beginWorld(skin, trackRoot);
+  beginWorld(skin, trackRoot); // every map records what moves while it is built
   try {
     buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reducedMotion);
   } finally {
-    if (world) {
-      var done = endWorld();
-      trackRefs.animators = done.fx;
-      trackRefs.worldMovers = done.movers;
-    }
+    var done = endWorld();
+    trackRefs.animators = done.fx;
+    trackRefs.worldMovers = done.movers;
   }
   return trackRefs;
 }
@@ -269,6 +268,7 @@ function buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reduced
 
   // The things that move beside the track in a bright world (trains, balloons, fish, ...)
   if (world && world.extras) world.extras(skin, trackRoot);
+  else if (!world) addSideMotion(skin);
 
   softenTranslucentScenery(trackRoot);
 }

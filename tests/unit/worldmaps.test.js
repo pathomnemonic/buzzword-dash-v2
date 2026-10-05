@@ -160,3 +160,16 @@ describe('the KayKit models the maps ask for', () => {
     expect([...used].sort()).toEqual(packed);
   });
 });
+
+describe('every map has something moving at its sides', () => {
+  it('the original sixteen drift something gentle, cheaply, on every tier', () => {
+    SKINS.filter((s) => !s.world).forEach((skin) => {
+      const root = new THREE.Scene();
+      const refs = buildTrack(root, skin, { quality: 'medium' });
+      expect(refs.animators.length, skin.name).toBeGreaterThanOrEqual(2);
+      for (let f = 0; f < 60; f++) updateAnimators(refs.animators, f / 60, 1 / 60, 0.3);
+      root.traverse((o) => { if (o.isInstancedMesh) o.instanceMatrix.array.forEach((v) => expect(Number.isFinite(v), skin.name).toBe(true)); });
+      refs.dispose();
+    });
+  }, 90000);
+});
