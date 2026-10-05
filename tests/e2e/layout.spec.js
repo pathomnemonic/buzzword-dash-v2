@@ -22,13 +22,13 @@ test('Home still fits at 200% zoom (195px wide)', async ({ page }) => {
   expect(off).toEqual([]);
 });
 
-test('the four Locker tabs each show their icon above their label', async ({ page }) => {
+test('the five Locker tabs each show their icon above their label', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 640 });
   await openApp(page, '/?debug=1');
   await page.evaluate(() => window.__ui.show('screenShop'));
   const tabs = page.locator('#shopItems [role="tab"]');
-  await expect(tabs).toHaveCount(4);
-  for (let i = 0; i < 4; i++) {
+  await expect(tabs).toHaveCount(5);
+  for (let i = 0; i < 5; i++) {
     const t = await tabs.nth(i).evaluate((el) => { const icon = el.querySelector('.tab-icon').getBoundingClientRect(); const label = el.getBoundingClientRect(); return { stacked: getComputedStyle(el).flexDirection === 'column', iconInside: icon.left >= label.left - 1 && icon.right <= label.right + 1 }; });
     expect(t.stacked).toBe(true);
     expect(t.iconInside).toBe(true);

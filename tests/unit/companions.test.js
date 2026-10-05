@@ -62,3 +62,22 @@ describe('the reminder in the buddy\'s voice', () => {
     setReminderPluginForTest(null);
   });
 });
+
+describe('a new player and the Collector badges', () => {
+  it('earns nothing on day one: the free study buddy does not count as a collected item', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    expect(storage.checkAchievements(null)).not.toContain('ach_collect_10');
+    expect(storage.get('achievements')).not.toContain('ach_collect_10');
+  });
+
+  it('still awards Collector once ten real items are owned', async () => {
+    localStorage.clear();
+    const { storage } = await import('../../js/storage.js');
+    storage.load();
+    const own = storage.data.progression.ownedItems.filter((id) => id !== 'pal_none' && id !== 'pal_cat');
+    for (let n = 0; own.length + n < 10; n++) storage.data.progression.ownedItems.push('test_item_' + n);
+    expect(storage.checkAchievements(null)).toContain('ach_collect_10');
+  });
+});

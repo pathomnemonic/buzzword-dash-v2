@@ -1910,9 +1910,11 @@ class Storage {
     award('PLAYTIME_1HR', p.totalPlayTimeMs >= 3600000);
     award('PERFECT_10', p.perfectRuns >= 10);
     award('PERFECT_50', p.perfectRuns >= 50);
-    award('COLLECT_10', p.ownedItems.length >= 10);
-    award('COLLECT_25', p.ownedItems.length >= 25);
-    award('COLLECT_50', p.ownedItems.length >= 50);
+    // (the two starter study-buddy entries come with the game, so they do not count towards the Collector badges)
+    var collected = p.ownedItems.filter(function (id) { return id !== 'pal_none' && id !== 'pal_cat'; }).length;
+    award('COLLECT_10', collected >= 10);
+    award('COLLECT_25', collected >= 25);
+    award('COLLECT_50', collected >= 50);
     award('FLASHCARD_FIRST', (p.flashcardSessions || 0) >= 1);
     award('FLASHCARD_10', (p.flashcardSessions || 0) >= 10);
     award('FAST_500MS', p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 500);
