@@ -1516,8 +1516,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .tut-exit-box .tut-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
 /* ---------- the Locker: three even tabs on one line, and the hero card ---------- */
-.locker-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 6px; }
-.locker-tabs .locker-tab { width: 100%; white-space: nowrap; padding: 8px 2px; font-size: 11px; letter-spacing: 0; justify-content: center; position: relative; min-width: 0; }
+.locker-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0 6px; }
+.locker-tabs .locker-tab { width: 100%; white-space: nowrap; padding: 8px 1px; font-size: 10px; letter-spacing: 0; justify-content: center; position: relative; min-width: 0; }
 .locker-tabs .locker-tab { flex-direction: column; gap: 1px; line-height: 1.1; overflow: hidden; }
 .locker-tabs .locker-tab .tab-icon { display: block; font-size: 16px; line-height: 1.1; }
 .hero-card { margin: 8px 0 4px; padding: 10px 12px; border-radius: 16px; background: rgba(0, 0, 0, .18); border: 2px solid var(--ink, #1b1030); }
@@ -2187,3 +2187,20 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .map-mastery-gold { color: #ffd966; font-weight: 700; }
 .map-mastery-gold .map-mastery-bar i { background: linear-gradient(90deg, #ffb800, #fff1a8); }
 .shop-item.map-gold { border: 2px solid #ffc933; box-shadow: 0 0 0 1px rgba(255, 201, 51, 0.35), 0 0 14px rgba(255, 201, 51, 0.35); }
+
+/* ===== Study buddy on the Home screen ===== */
+.play-sub { position: relative; }
+.pal-buddy { position: absolute; left: 6px; bottom: -6px; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06)); border: 3px solid var(--ink); border-radius: 50%; box-shadow: 0 3px 0 var(--ink); cursor: pointer; padding: 0; }
+.pal-buddy[hidden] { display: none; }
+.pal-emoji { font-size: 32px; line-height: 1; display: inline-block; transform-origin: 50% 90%; animation: palIdle 3.2s ease-in-out infinite; }
+.pal-tag { position: absolute; right: -4px; top: -6px; font-size: 14px; }
+.pal-happy .pal-emoji { animation: palHop 1.8s ease-in-out infinite; }
+.pal-cheer .pal-emoji { animation: palCheer 0.7s ease-in-out infinite; }
+.pal-nap .pal-emoji { animation: none; filter: grayscale(0.5) brightness(0.85); transform: rotate(-14deg); }
+.pal-sleepy .pal-emoji { animation: palIdle 5s ease-in-out infinite; filter: brightness(0.92); }
+.pal-bubble { position: absolute; left: 4px; bottom: 54px; max-width: 210px; padding: 7px 11px; font-size: 12px; font-weight: 800; line-height: 1.3; text-align: left; color: var(--ink); background: #fffdf4; border: 3px solid var(--ink); border-radius: 14px 14px 14px 4px; box-shadow: 0 3px 0 var(--ink); opacity: 0; transform: translateY(6px) scale(0.96); pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 5; }
+.pal-bubble.on { opacity: 1; transform: none; }
+@keyframes palIdle { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
+@keyframes palHop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+@keyframes palCheer { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-9px) scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .pal-emoji { animation: none !important; } .pal-bubble { transition: none; } }

@@ -147,14 +147,15 @@ var DEFAULTS = {
     monsterDefaultSeen: false,
 
     achievements: [],
-    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost'],
+    ownedItems: ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost', 'pal_none', 'pal_cat'],
     equipped: {
       monster: 'monster_m_ghost',
       skin: 'avatar_intern',
       hat: 'hat_none',
       trail: 'trail_none',
       gear: 'gear_none',
-      clothing: 'cloth_none'
+      clothing: 'cloth_none',
+      pal: 'pal_cat'      // the study buddy on the Home screen (companions.js)
     },
 
     questState: {},
@@ -796,6 +797,9 @@ class Storage {
     if (!d.progression.equipped.trail) d.progression.equipped.trail = 'trail_none';
     if (!d.progression.equipped.gear) d.progression.equipped.gear = 'gear_none';
     if (!d.progression.equipped.clothing) d.progression.equipped.clothing = 'cloth_none';
+    // The study buddy: everyone owns the free ones, and a player who never chose wears the cat
+    if (!d.progression.equipped.pal) d.progression.equipped.pal = 'pal_cat';
+    if (Array.isArray(d.progression.ownedItems)) ['pal_none', 'pal_cat'].forEach(function (id) { if (d.progression.ownedItems.indexOf(id) < 0) d.progression.ownedItems.push(id); });
 
     // Ensure arrays
     if (!Array.isArray(d.progression.achievements)) d.progression.achievements = [];

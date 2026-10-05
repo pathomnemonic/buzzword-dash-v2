@@ -18,6 +18,7 @@
  */
 
 import { CHARACTER_MODELS, MONSTER_MODELS } from './modelcatalog.js';
+import { PALS, NO_PAL } from '../companions.js';
 
 // ═══════════════════════════════════════════════════════════
 // CANONICAL ID REGISTRIES
@@ -540,6 +541,12 @@ export var SHOP_ITEMS = [
   { id: "cloth_cape_red", name: "Red Cape", price: 2000, type: "clothing", color: 0xdd2222, compatibility: COMPAT_HUMANOID_ONLY },
   { id: "cloth_cape_rainbow", name: "Rainbow Cape", price: 5000, type: "clothing", color: 0xff44ff, compatibility: COMPAT_HUMANOID_ONLY }
 ];
+
+// --- Study buddies (see companions.js): a pet on the Home screen; one free, the rest to buy, and "no buddy" for anyone who prefers none ---
+SHOP_ITEMS.push({ id: NO_PAL, name: "No buddy", desc: "A quiet Home screen", price: 0, type: "pal", color: 0x445566, icon: "🚫", compatibility: COMPAT_ALL });
+PALS.forEach(function (p) {
+  SHOP_ITEMS.push({ id: p.id, name: p.name, desc: p.desc, price: p.price, type: "pal", color: p.color, icon: p.emoji, compatibility: COMPAT_ALL });
+});
 
 
 // ═══════════════════════════════════════════════════════════

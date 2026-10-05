@@ -58,11 +58,12 @@ export function requestReminderPermission() {
 }
 
 var _lastScheduled = 0;
+var _lastBody = '';
 
 /**
  * Inside the app: make sure the phone has the next reminder scheduled (or none, when reminders are off).
  * Safe to call as often as you like; it only talks to the phone when the time changes.
- * @param {{enabled: boolean, hour: number, goalMetToday: boolean, now?: number}} s
+ * @param {{enabled: boolean, hour: number, goalMetToday: boolean, now?: number, body?: string}} s  (`body` is the study buddy's own words, when there is one)
  * @returns {Promise<void>}
  */
 export function syncNativeReminder(s) {
@@ -76,18 +77,19 @@ export function syncNativeReminder(s) {
       return p.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
     }
     var at = nextReminderTime(now, s.hour, s.goalMetToday);
-    if (at.getTime() === _lastScheduled) return null;
+    var body = typeof s.body === 'string' && s.body.trim() ? s.body.trim().slice(0, 140) : REMINDER_BODY;
+    if (at.getTime() === _lastScheduled && body === _lastBody) return null;
     return p.checkPermissions().then(function (perm) {
       if (perm.display !== 'granted') return null;
       return p.schedule({
         notifications: [{
-          id: NOTIFICATION_ID, title: REMINDER_TITLE, body: REMINDER_BODY,
+          id: NOTIFICATION_ID, title: REMINDER_TITLE, body: body,
           schedule: { at: at, allowWhileIdle: true }, isExactNotification: false
         }]
-      }).then(function () { _lastScheduled = at.getTime(); });
+      }).then(function () { _lastScheduled = at.getTime(); _lastBody = body; });
     });
   }).catch(function () { /* a reminder that cannot be scheduled must never break the app */ });
 }
 
 /** For tests. */
-export function setReminderPluginForTest(plugin) { _testPlugin = plugin; _plugin = null; _lastScheduled = 0; }
+export function setReminderPluginForTest(plugin) { _testPlugin = plugin; _plugin = null; _lastScheduled = 0; _lastBody = ''; }

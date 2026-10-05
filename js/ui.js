@@ -34,6 +34,7 @@
  * - Agent 18 (card hub): CARDS, SUBJECTS, EXAM_FILTERS, QUESTION_TYPES
  */
 
+import { renderPal } from './palui.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
 import { storage } from './storage.js';
@@ -700,6 +701,7 @@ class UI {
     if (homeBest) setText(homeBest, storage.get('bestScore'));
     this.renderStudyGoal();
     this._renderFiltersSummary();
+    renderPal();
     document.dispatchEvent(new CustomEvent('dx:attention-changed')); // the weekly claim button was just redrawn
   }
 

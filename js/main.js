@@ -68,6 +68,8 @@ import { shareText } from './platform.js';
 import { installChunkRecovery } from './chunkrecovery.js';
 import { ComboTracker, musicMood } from './game/combo.js';
 import { GOLD_REWARD_COINS } from './game/mapmastery.js';
+import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
+import { palReminder } from './companions.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
@@ -1069,6 +1071,12 @@ function finalizeRun(gameRef) {
     storage.set('ownedItems', owned);
   }
 
+  // the study buddy cheers what deserves it, the next time Home is showing
+  if (result.applied) {
+    if (lastRunReward && lastRunReward.newBest) palCheer('best');
+    else if (lastRunReward && lastRunReward.info && lastRunReward.info.levelAfter > lastRunReward.info.levelBefore) palCheer('levelup');
+    else if (streakDeservesCheer(storage.getStreakStatus().streak) && storage.getStudiedToday() > 0) palCheer('milestone');
+  }
   if (result.newMapMasteries && result.newMapMasteries.length > 0) {
     ui.showNotice('🥇 Map mastered: ' + result.newMapMasteries.join(', ') + '! +' + (result.newMapMasteries.length * GOLD_REWARD_COINS) + ' 🪙', { color: 'var(--accent-gold, #ffcc22)', ms: 4200 });
   }
@@ -1862,7 +1870,8 @@ function init() {
 function checkStudyReminder() {
   // Inside the app the phone itself holds the next reminder (it also arrives when the app is closed)
   if (isNative()) {
-    syncNativeReminder({ enabled: !!storage.get('reminders'), hour: storage.get('reminderHour') || 19, goalMetToday: storage.getStudiedToday() >= (storage.get('dailyGoal') || 20) });
+    var buddy = currentPal();
+    syncNativeReminder({ enabled: !!storage.get('reminders'), hour: storage.get('reminderHour') || 19, goalMetToday: storage.getStudiedToday() >= (storage.get('dailyGoal') || 20), body: buddy ? palReminder(buddy, storage.getStreakStatus().streak) : undefined });
     return;
   }
   if (!storage.get('reminders') || !('Notification' in window) || Notification.permission !== 'granted') return;

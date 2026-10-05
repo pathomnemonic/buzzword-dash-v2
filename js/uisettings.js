@@ -16,6 +16,7 @@ import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
 import { levelFromXp } from './progress.js';
 import { mapUnlockLevel, UNLOCK_EVERY } from './game/mapunlocks.js';
 import { masteryProgress } from './game/mapmastery.js';
+import { getPal, palLine } from './companions.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
@@ -721,6 +722,12 @@ export var settingsMethods = {
         // Try-on: shows the item in the display at the top (a trail streams behind the character, a monster takes
         // its place). For trails and monsters, tapping the row does the same.
         var showItem = function () {
+          if (type === 'pal') {
+            // a buddy has no 3D model: let it say hello in its own voice
+            var palDef = getPal(item.id);
+            self._showToast(palDef ? palDef.emoji + ' ' + palDef.name + ': ' + palLine(palDef, 'greet', storage.getStreakStatus().streak) : 'No buddy on the Home screen');
+            return;
+          }
           if (self.characterPreview) self.characterPreview.previewItem(item.id, type);
         };
         if (story) {
@@ -772,7 +779,7 @@ export var settingsMethods = {
           btnWrap.appendChild(paintBtn);
         }
 
-        if (type === 'trail' || type === 'monster') {
+        if (type === 'trail' || type === 'monster' || type === 'pal') {
           row.style.cursor = 'pointer';
           row.addEventListener('click', function (e) {
             if (e.target && e.target.closest && e.target.closest('button')) return;
@@ -861,10 +868,10 @@ export var settingsMethods = {
 
     var tabBar = createElement('div', { className: 'locker-tabs', attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
     var fresh = this._lockerFresh || [];
-    var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : item.type === 'map' ? 'maps' : 'heroes'; };
+    var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : item.type === 'map' ? 'maps' : item.type === 'pal' ? 'pals' : 'heroes'; };
     var freshTabs = {};
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters']].forEach(function (t) {
+    [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters'], ['pals', '🐾', 'Pals']].forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm locker-tab ' + (listOpen && tab === t[0] ? 'btn-primary' : 'btn-outline'),
         attributes: { type: 'button', role: 'tab', 'aria-selected': listOpen && tab === t[0] ? 'true' : 'false', 'aria-expanded': listOpen && tab === t[0] ? 'true' : 'false' }
@@ -912,6 +919,8 @@ export var settingsMethods = {
       shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every hero. Tap one to see it in the display above.'));
     } else if (tab === 'maps') {
       shopItems.appendChild(this._renderMapsTab());
+    } else if (tab === 'pals') {
+      shopItems.appendChild(renderGroup('pal', '🐾 Study buddies', null, 'A buddy lives on your Home screen. It cheers your streaks, naps when you are away and cheers you on in its own way. Tap one to hear it say hello.'));
     } else {
       shopItems.appendChild(renderGroup('monster', '👾 Exam Monsters', null, 'The monster that chases you. Tap one to see it in the display above.'));
     }
