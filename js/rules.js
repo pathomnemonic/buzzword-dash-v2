@@ -56,8 +56,8 @@ export function isCustomizableMode(mode) {
 
 /**
  * @param {string} mode game mode
- * @param {{disabledPowerups?: string[], hazardsOff?: boolean, monsterOff?: boolean, speedRamp?: {on: boolean, every: number, step: number}}} prefs
- * @returns {{disabledPowerups: string[], hazardsOff: boolean, monsterOff: boolean, custom: boolean}}
+ * @param {{disabledPowerups?: string[], hazardsOff?: boolean, monsterOff?: boolean, relaxedPace?: boolean, speedRamp?: {on: boolean, every: number, step: number}}} prefs
+ * @returns {{disabledPowerups: string[], hazardsOff: boolean, monsterOff: boolean, relaxed: boolean, speedRamp: {on: boolean, every: number, step: number}, custom: boolean}}
  */
 export function getRunRules(mode, prefs) {
   var none = { disabledPowerups: [], hazardsOff: false, monsterOff: false, relaxed: false, speedRamp: normalizeSpeedRamp(null), custom: false };
