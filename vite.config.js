@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildCsp } from './tools/csp.mjs';
 
@@ -38,6 +38,34 @@ function stampServiceWorker() {
   };
 }
 
+// Lists every file the game needs offline (code, card chunks, 3D models, portraits) so Settings can download them once.
+function offlineManifest() {
+  let outDir = 'dist';
+  let base = '/';
+  function walk(dir, rel, out) {
+    for (const name of readdirSync(dir)) {
+      const full = resolve(dir, name);
+      const r = rel ? rel + '/' + name : name;
+      if (statSync(full).isDirectory()) walk(full, r, out);
+      else if (!name.endsWith('.map')) out.push({ url: r, size: statSync(full).size });
+    }
+    return out;
+  }
+  return {
+    name: 'offline-manifest',
+    apply: 'build',
+    configResolved(config) { outDir = config.build.outDir; base = config.base; },
+    closeBundle() {
+      const files = [];
+      for (const dir of ['assets', 'models', 'portraits']) {
+        const full = resolve(outDir, dir);
+        if (existsSync(full)) walk(full, dir, files);
+      }
+      writeFileSync(resolve(outDir, 'offline-manifest.json'), JSON.stringify({ build: BUILD_ID, base, files }));
+    }
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // Support GitHub Pages subpath deployment via env var or default to '/'
   // Set VITE_BASE_PATH=/buzzword-dash/ for project-site deploys
@@ -45,7 +73,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base,
-    plugins: [stampServiceWorker(), injectCsp(process.env.VITE_SUPABASE_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL || '')],
+    plugins: [stampServiceWorker(), offlineManifest(), injectCsp(process.env.VITE_SUPABASE_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL || '')],
     define: { __APP_VERSION__: JSON.stringify(BUILD_ID) },
     build: {
       chunkSizeWarningLimit: 3000, // card data chunk is intentionally large

@@ -2204,3 +2204,15 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 @keyframes palHop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 @keyframes palCheer { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-9px) scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .pal-emoji { animation: none !important; } .pal-bubble { transition: none; } }
+
+
+/* ---------- accessibility: dyslexia-friendly font, left-handed layout ---------- */
+@font-face { font-family: "OpenDyslexic"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/opendyslexic-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "OpenDyslexic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/opendyslexic-latin-700-normal.woff2") format("woff2"); }
+body.dyslexia, body.dyslexia :where(button, input, select, textarea) { --font-display: "OpenDyslexic", "Comic Sans MS", sans-serif; font-family: "OpenDyslexic", "Comic Sans MS", sans-serif; letter-spacing: .03em; word-spacing: .08em; }
+body.dyslexia { line-height: 1.55; }
+/* the font is wide: the tight HUD and buttons get a touch smaller so nothing overflows */
+body.dyslexia #hud .hud-pill { font-size: 12px; }
+body.dyslexia .btn { letter-spacing: .01em; }
+body.lefty .dash-btn { right: auto; left: calc(var(--safe-left, 0px) + 14px); }
+body.lefty .auto-btn { right: auto; left: calc(var(--safe-left, 0px) + 18px); }

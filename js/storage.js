@@ -89,6 +89,10 @@ var DEFAULTS = {
     avatarColors: {},
     modelColors: {},   // per 3D character: { avatarId: { partKey: hex } }
     reducedMotion: false,
+    offlinePackAt: 0,       // when the 'play offline' download last finished (ms)
+    dyslexiaFont: false,    // accessibility: OpenDyslexic everywhere
+    handedness: 'right',    // accessibility: which side the Dash / Auto-Pilot buttons sit on ('right' | 'left')
+    relaxedPace: false,     // accessibility: slower track, no speed-up (single-player runs only; unranked)
     quality: 'auto',
     uiTheme: 'surprise',
     themeSurpriseSeen: false,

@@ -1624,6 +1624,8 @@ class UI {
   applySettings() {
     document.body.classList.toggle('night-mode', storage.get('nightMode'));
     document.body.classList.toggle('colorblind', !!storage.get('colorblindMode'));
+    document.body.classList.toggle('dyslexia', !!storage.get('dyslexiaFont'));
+    document.body.classList.toggle('lefty', storage.get('handedness') === 'left');
   }
 
   // ═══════════════════════════════════════════════════════

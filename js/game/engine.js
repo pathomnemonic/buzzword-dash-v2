@@ -42,7 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
-import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS } from '../rules.js';
+import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
 import { createPostFX } from './postfx.js';
@@ -792,6 +792,7 @@ class Game {
       disabledPowerups: storage.get('disabledPowerups'),
       hazardsOff: storage.get('hazardsOff'),
       monsterOff: storage.get('monsterOff'),
+      relaxedPace: storage.get('relaxedPace'),
       speedRamp: storage.get('speedRamp')
     });
     if (this._leagueRules && Array.isArray(this._leagueRules.disabledPowerups)) {
@@ -835,7 +836,7 @@ class Game {
     this.elapsedTime = 0; this.cameraLeanX = 0; this.playerTilt = 0;
 
     // 1x is a calm 1.875 units/s; higher settings scale linearly from there.
-    var mapped = 1.875 * this.userSpeed;
+    var mapped = 1.875 * this.userSpeed * (this._rules && this._rules.relaxed ? RELAXED_PACE : 1);
     // (the tutorial runs at the normal 1x pace whatever the speed setting)
     this.speed = this._tutorial ? 1.875 : (this.mode === GAME_MODES.STUDY ? 1.5 : mapped);
     this.baseSpeed = this.speed;

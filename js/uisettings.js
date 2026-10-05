@@ -22,6 +22,8 @@ import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
 import { canRemind, requestReminderPermission } from './reminders.js';
 import { isNative } from './native.js';
+import { canDownloadPack, downloadPack, packStatus, formatBytes } from './offlinepack.js';
+import { loadCards } from './cardhub.js';
 import { canRate, rateTheApp, openStorePage } from './review.js';
 import { buildFeedbackForm } from './feedback.js';
 import { KEY_ACTIONS, getKeyBindings, setKey, clearKey, resetKeyBindings, keyLabel, isDefaultBindings } from './keybindings.js';
@@ -163,6 +165,8 @@ export var settingsMethods = {
         { key: 'uiTheme', label: '🎨 Colors', desc: 'Surprise me changes the whole color of the menus after every run: purple, ocean blue, forest green, ember red and more. Seasonal follows the date. Or pick a season by hand, or Classic for the original colors.', type: 'select', options: THEME_CHOICES },
         { key: 'nightMode', label: '🌙 Night Shift', desc: 'Darker, softer colors for studying late at night.', type: 'toggle' },
         { key: 'colorblindMode', label: '👁 Colorblind-safe colors', desc: 'Swaps red and green cues for colors that are easier to tell apart.', type: 'toggle' },
+        { key: 'dyslexiaFont', label: '🔤 Dyslexia-friendly font', desc: 'Switches every word in the game to OpenDyslexic, a typeface with weighted bottoms that keep letters from flipping, with a little more room between letters and lines.', type: 'toggle' },
+        { key: 'handedness', label: '🖐 Button side', desc: 'Moves the Dash and Auto-Pilot buttons to the side your thumb rests on. Swiping to change lane works anywhere on the screen either way.', type: 'select', options: [['right', 'Right hand (buttons on the right)'], ['left', 'Left hand (buttons on the left)']] },
         { key: 'dashControl', label: '⚡ Dash control', desc: 'How you dash toward the answer gates. Double-tap the screen, use an on-screen Dash button (handy if double-taps trigger by accident), or turn dashing off. The keyboard Space and Shift keys always dash on a computer.', type: 'select', options: [['auto', 'Automatic (button on phones, double-tap on computers)'], ['double', 'Double-tap the screen'], ['button', 'On-screen Dash button'], ['off', 'Off']] },
         { key: 'cameraView', label: '🎥 Camera', desc: 'How far behind your runner the camera sits. Close feels faster, Far shows more of the track.', type: 'select', options: [['default', 'Standard'], ['close', 'Close'], ['far', 'Far']] },
         { key: 'quality', label: '🎮 Graphics', desc: 'Auto picks what suits your device. Lower settings run smoother on older devices (the game reloads when you change this).', type: 'select', options: [['auto', 'Auto'], ['high', 'High (all 3D)'], ['medium', 'Medium (3D character)'], ['low', 'Low (fastest)']] },
@@ -218,7 +222,7 @@ export var settingsMethods = {
           if (s.key === 'reminders') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
           toggle.classList.toggle('on');
           toggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
-          if (s.key === 'colorblindMode') self.applySettings();
+          if (s.key === 'colorblindMode' || s.key === 'dyslexiaFont') self.applySettings();
           if (s.key === 'nightMode') {
             self.applySettings();
             if (self.onNightModeChange) self.onNightModeChange();
@@ -249,6 +253,7 @@ export var settingsMethods = {
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
           if (s.key === 'uiTheme') document.dispatchEvent(new CustomEvent('dx:theme-changed'));
+          if (s.key === 'handedness') self.applySettings();
           if (s.key === 'dashControl') document.dispatchEvent(new CustomEvent('dx:controls-changed'));
           if (s.key === 'quality') {
             storage.set('perfHint', '');
@@ -312,6 +317,38 @@ export var settingsMethods = {
         return n;
       };
       content.appendChild(explain('Your progress lives on this device. Save a backup file before switching devices, then restore it on the new one.'));
+
+      if (canDownloadPack({ isNative: isNative() })) {
+        var packRow = createElement('div', { className: 'setting-row', attributes: { id: 'offlinePackRow' } });
+        var packLabel = createElement('div');
+        packLabel.style.flex = '1';
+        packLabel.appendChild(createElement('div', { className: 'setting-label-text', text: '📶 Play with no connection' }));
+        packLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Saves all the questions, heroes, monsters and maps on this device (about 15 MB) so everything works without internet, on a plane or in the library basement.' }));
+        var packState = createElement('span', { className: 'setting-sublabel', text: packStatus(storage.get('offlinePackAt')) });
+        packState.id = 'offlinePackState';
+        packLabel.appendChild(packState);
+        packRow.appendChild(packLabel);
+        var packBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: storage.get('offlinePackAt') ? 'Update' : 'Download', attributes: { type: 'button', id: 'offlinePackBtn' } });
+        packBtn.addEventListener('click', function () {
+          packBtn.disabled = true;
+          setText(packState, 'Downloading… 0%');
+          downloadPack({
+            loadCards: loadCards,
+            onProgress: function (done, total) { setText(packState, 'Downloading… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); }
+          }).then(function (res) {
+            packBtn.disabled = false;
+            if (res.ok) {
+              setText(packState, packStatus(storage.get('offlinePackAt')) + ' (' + formatBytes(res.bytes) + ')');
+              setText(packBtn, 'Update');
+              self._showToast('Saved for offline play.');
+            } else {
+              setText(packState, 'That did not finish. Check your connection and try again.');
+            }
+          });
+        });
+        packRow.appendChild(packBtn);
+        content.appendChild(packRow);
+      }
 
       var backupRow = createElement('div', { className: 'setting-row' });
       var backupLabel = createElement('div');
@@ -512,6 +549,7 @@ export var settingsMethods = {
         disabledPowerups: storage.get('disabledPowerups'),
         hazardsOff: storage.get('hazardsOff'),
         monsterOff: storage.get('monsterOff'),
+        relaxedPace: storage.get('relaxedPace'),
         speedRamp: storage.get('speedRamp')
       });
       setText(badge, rules.custom ? '⚠ Custom rules on: ' + describeRules(rules) + '. Runs will not be ranked.' : '✓ Standard rules: runs are ranked.');
@@ -531,6 +569,9 @@ export var settingsMethods = {
     });
     toggleRow('👾', 'Exam monster', 'The monster that chases you when you slip', !storage.get('monsterOff'), function (on) {
       storage.set('monsterOff', !on);
+    });
+    toggleRow('🐢', 'Relaxed pace', 'Everything moves at about two thirds of the normal speed and never speeds up, so there is time to read every clue. An accessibility mode: your coins, levels and streaks still count, but runs are not posted to leaderboards.', !!storage.get('relaxedPace'), function (on) {
+      storage.set('relaxedPace', on);
     });
     // Speed-up: the run gets a little faster as you go. The standard is +0.5 every 20 questions.
     var ramp = normalizeSpeedRamp(storage.get('speedRamp'));

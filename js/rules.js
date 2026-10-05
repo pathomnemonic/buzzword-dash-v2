@@ -44,6 +44,9 @@ export function speedBonus(ramp, questionsDone) {
   return Math.floor(Math.max(0, questionsDone) / ramp.every) * ramp.step;
 }
 
+/** Relaxed pace (an accessibility mode): the whole run moves at this share of the normal speed and never speeds up. */
+export var RELAXED_PACE = 0.65;
+
 /** Modes where the player's own rules apply. Everything else is standard. */
 export var CUSTOMIZABLE_MODES = ['endless', 'study', 'weakness', 'timed_practice'];
 
@@ -57,7 +60,7 @@ export function isCustomizableMode(mode) {
  * @returns {{disabledPowerups: string[], hazardsOff: boolean, monsterOff: boolean, custom: boolean}}
  */
 export function getRunRules(mode, prefs) {
-  var none = { disabledPowerups: [], hazardsOff: false, monsterOff: false, speedRamp: normalizeSpeedRamp(null), custom: false };
+  var none = { disabledPowerups: [], hazardsOff: false, monsterOff: false, relaxed: false, speedRamp: normalizeSpeedRamp(null), custom: false };
   if (!isCustomizableMode(mode) || !prefs) return none;
   var known = POWERUP_OPTIONS.map(function (p) { return p.id; });
   var disabled = (Array.isArray(prefs.disabledPowerups) ? prefs.disabledPowerups : [])
@@ -66,12 +69,15 @@ export function getRunRules(mode, prefs) {
     disabledPowerups: disabled,
     hazardsOff: !!prefs.hazardsOff,
     monsterOff: !!prefs.monsterOff,
+    relaxed: !!prefs.relaxedPace,
     speedRamp: normalizeSpeedRamp(prefs.speedRamp),
     custom: false
   };
+  // Relaxed pace holds the speed steady, so the speed-up is off whatever it was set to
+  if (rules.relaxed) rules.speedRamp = { on: false, every: DEFAULT_SPEED_RAMP.every, step: DEFAULT_SPEED_RAMP.step };
   var ramp = rules.speedRamp;
   var rampChanged = ramp.on !== DEFAULT_SPEED_RAMP.on || ramp.every !== DEFAULT_SPEED_RAMP.every || ramp.step !== DEFAULT_SPEED_RAMP.step;
-  rules.custom = disabled.length > 0 || rules.hazardsOff || rules.monsterOff || rampChanged;
+  rules.custom = disabled.length > 0 || rules.hazardsOff || rules.monsterOff || rules.relaxed || rampChanged;
   return rules;
 }
 
@@ -93,8 +99,9 @@ export function describeRules(rules) {
   }
   if (rules.hazardsOff) parts.push('no map hazards');
   if (rules.monsterOff) parts.push('no exam monster');
+  if (rules.relaxed) parts.push('relaxed pace');
   var r = rules.speedRamp;
-  if (r && (r.on !== DEFAULT_SPEED_RAMP.on || r.every !== DEFAULT_SPEED_RAMP.every || r.step !== DEFAULT_SPEED_RAMP.step)) {
+  if (!rules.relaxed && r && (r.on !== DEFAULT_SPEED_RAMP.on || r.every !== DEFAULT_SPEED_RAMP.every || r.step !== DEFAULT_SPEED_RAMP.step)) {
     parts.push(r.on ? 'speed +' + r.step + ' every ' + r.every + ' questions' : 'no speed-up');
   }
   return parts.join(' · ');

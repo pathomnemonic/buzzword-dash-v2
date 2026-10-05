@@ -22,7 +22,7 @@ describe('personal rules and ranking', () => {
     ['daily', 'challenge', 'tournament', 'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race'].forEach((mode) => {
       expect(isCustomizableMode(mode), mode).toBe(false);
       const rules = getRunRules(mode, { disabledPowerups: ['shield', 'magnet'], hazardsOff: true, monsterOff: true, speedRamp: { on: false } });
-      expect(rules, mode).toEqual({ disabledPowerups: [], hazardsOff: false, monsterOff: false, speedRamp: { on: true, every: 20, step: 0.5 }, custom: false });
+      expect(rules, mode).toEqual({ disabledPowerups: [], hazardsOff: false, monsterOff: false, relaxed: false, speedRamp: { on: true, every: 20, step: 0.5 }, custom: false });
     });
   });
 

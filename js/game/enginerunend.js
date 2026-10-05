@@ -276,6 +276,7 @@ export var runEndMethods = {
         disabledPowerups: this._rules.disabledPowerups.slice(),
         hazardsOff: this._rules.hazardsOff,
         monsterOff: this._rules.monsterOff,
+        relaxed: !!this._rules.relaxed,
         speedRamp: this._rules.speedRamp
       } : null,
 
