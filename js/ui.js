@@ -1293,6 +1293,28 @@ class UI {
     this.showNotice(names[type] || type, { color: 'var(--accent-purple)', ms: 1600 });
   }
 
+  /**
+   * The first ten times Auto-Pilot is picked up: a line along the bottom says how to use it (the key in force on a
+   * computer, the 🤖 button on a touch screen).
+   */
+  showAutoPilotHint() {
+    if (!storage.takeAutoPilotHint()) return null;
+    var how;
+    if (getControlText().touch) {
+      how = 'Tap the 🤖 button';
+    } else {
+      var keys = (getKeyBindings().autoPilot || []).slice(0, 2).map(keyLabel);
+      how = keys.length ? 'Press ' + keys.join(' or ') : 'Tap the 🤖 button';
+    }
+    var old = document.getElementById('autoPilotHint');
+    if (old) old.remove();
+    var hint = createElement('div', { className: 'bottom-hint', text: '🤖 Auto-Pilot ready: ' + how + ' to answer the next question for you', attributes: { id: 'autoPilotHint', role: 'status', 'aria-live': 'polite' } });
+    document.body.appendChild(hint);
+    setTimeout(function () { hint.classList.add('fade'); }, 4200);
+    setTimeout(function () { if (hint.parentNode) hint.parentNode.removeChild(hint); }, 5000);
+    return hint;
+  }
+
   showPowerupGlow(type) {
     if (prefersReducedMotion()) return;
     var colors = {

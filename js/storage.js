@@ -129,6 +129,7 @@ var DEFAULTS = {
     totalEncounters: 0,
     totalPlayTimeMs: 0,
     totalCardsStudied: 0,
+    autoPilotHints: 0,   // how many times the pick-up tip for Auto-Pilot has been shown (it stops after 10)
     mapStats: {},        // questions answered on each map, by map name (see game/mapmastery.js)
     masteredMaps: [],    // maps that have gone gold (their coin reward is paid once)
     secretsFound: [],    // maps whose hidden secret has been found at least once
@@ -1212,6 +1213,17 @@ class Storage {
   }
 
   // ===== SHOP =====
+
+  /** The first few times Auto-Pilot is picked up, a tip says how to use it. True (and counted) while that is still due. */
+  takeAutoPilotHint() {
+    var p = this.data && this.data.progression;
+    if (!p) return false;
+    var n = Math.max(0, Math.floor(Number(p.autoPilotHints) || 0));
+    if (n >= 10) return false;
+    p.autoPilotHints = n + 1;
+    this.save();
+    return true;
+  }
 
   /** Questions answered on a map, over all runs. */
   mapAnswered(mapName) {

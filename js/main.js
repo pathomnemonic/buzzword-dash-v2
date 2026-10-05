@@ -1451,6 +1451,7 @@ function init() {
 
   game.onPowerupCollected = function (type) {
     ui.showPowerupNotification(type);
+    if (type === 'autoPilot') ui.showAutoPilotHint();
     ui.showPowerupGlow(type);
     audio.play('powerup');
   };
