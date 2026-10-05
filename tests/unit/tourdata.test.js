@@ -11,20 +11,21 @@ describe('the tour steps', () => {
   });
   const ids = () => steps.map((s) => s.id);
 
-  it('walks Home first, with a section each for Versus, Flashcards and Challenge, then the tabs', () => {
+  it('walks Home first, with a section each for Versus and Flashcards, one line on Challenge (no PLAY lesson, no mode-by-mode walk), then the tabs', () => {
     const order = ids();
-    ['coins', 'play', 'filters', 'speed', 'versus-btn', 'versus', 'flashcards-btn', 'flashcards', 'challenge-btn', 'ch-study', 'ch-weakness', 'ch-daily', 'ch-gauntlet', 'ch-friend', 'ch-exam', 'friends', 'settings', 'stats-tab', 'locker-tab', 'quests-tab', 'profile-tab', 'back-home'].forEach((id) => expect(order, id).toContain(id));
+    ['coins', 'filters', 'speed', 'versus-btn', 'versus', 'flashcards-btn', 'flashcards', 'challenge-btn', 'friends', 'settings', 'stats-tab', 'locker-tab', 'quests-tab', 'profile-tab', 'back-home'].forEach((id) => expect(order, id).toContain(id));
     expect(order.indexOf('versus-btn')).toBeLessThan(order.indexOf('flashcards-btn'));
     expect(order.indexOf('flashcards-btn')).toBeLessThan(order.indexOf('challenge-btn'));
-    expect(order.indexOf('ch-exam')).toBeLessThan(order.indexOf('stats-tab'));
+    ['play', 'ch-study', 'ch-weakness', 'ch-daily', 'ch-gauntlet', 'ch-friend', 'ch-exam'].forEach((id) => expect(order, id).not.toContain(id));
+    expect(order.indexOf('challenge-btn')).toBeLessThan(order.indexOf('stats-tab'));
   });
 
   it('every pop-up section is opened by pressing its real button, and closed again when it is left', () => {
     const byId = Object.fromEntries(steps.map((s) => [s.id, s]));
-    ['versus-btn', 'flashcards-btn', 'challenge-btn'].forEach((id) => expect(byId[id].press, id).toBe('pass'));
+    ['versus-btn', 'flashcards-btn'].forEach((id) => expect(byId[id].press, id).toBe('pass'));
+    expect(byId['challenge-btn'].press).toBe('count'); // it is only pointed at, not opened
     expect(typeof byId.versus.after).toBe('function');
     expect(typeof byId.flashcards.after).toBe('function');
-    expect(typeof byId['ch-exam'].after).toBe('function');
     // closing really closes
     const sheet = document.getElementById('flashcardsSheet');
     sheet.classList.add('active');

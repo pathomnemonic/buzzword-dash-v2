@@ -1066,11 +1066,11 @@ class Storage {
       var rights = this.data.history.dailyCorrect;
       rights[key] = (rights[key] || 0) + Math.min(correct, count);
     }
-    // Keep ~90 days
+    // Keep about three years, so the streak calendar can be paged back
     var keys = Object.keys(counts).sort();
-    while (keys.length > 90) delete counts[keys.shift()];
+    while (keys.length > 1100) delete counts[keys.shift()];
     var rkeys = Object.keys(this.data.history.dailyCorrect || {}).sort();
-    while (rkeys.length > 90) delete this.data.history.dailyCorrect[rkeys.shift()];
+    while (rkeys.length > 1100) delete this.data.history.dailyCorrect[rkeys.shift()];
     return this._advanceStudyStreak(key);
   }
 

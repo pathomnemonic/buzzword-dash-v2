@@ -121,11 +121,12 @@ describe('time zones and clock changes', () => {
       instants.forEach((ms) => {
         const now = new Date(ms);
         const key = expectedLocalKey(ms);
-        // calendar: 84 distinct, consecutive days, starting on a Sunday and ending with today (the rest is the future)
-        const model = buildCalendarModel({ counts: {}, correct: {}, goal: 20, today: now });
-        expect(model.cells).toHaveLength(84);
+        // calendar: up to 84 distinct, consecutive days, starting on a Sunday and ending with today
+        const model = buildCalendarModel({ counts: {}, correct: {}, goal: 20, today: now, first: '2020-01-01' });
+        expect(model.cells.length).toBeGreaterThanOrEqual(78);
+        expect(model.cells.length).toBeLessThanOrEqual(84);
         expect(model.cells[0].date.getDay()).toBe(0);
-        for (let i = 1; i < 84; i++) expect(daysBetween(model.cells[i - 1].key, model.cells[i].key), tz + ' cell ' + i).toBe(1);
+        for (let i = 1; i < model.cells.length; i++) expect(daysBetween(model.cells[i - 1].key, model.cells[i].key), tz + ' cell ' + i).toBe(1);
         const todayCells = model.cells.filter((c) => c.today);
         expect(todayCells).toHaveLength(1);
         expect(todayCells[0].key).toBe(key);

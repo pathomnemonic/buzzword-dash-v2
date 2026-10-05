@@ -270,7 +270,16 @@ export function startTour(opts) {
     if (!targetEl) return;
     if (!targetEl.contains(e.target)) return;
     var mode = pressMode();
-    if (mode === 'next') return;
+    if (mode === 'next') {
+      // A spot that is only being shown (the Versus panel, the flashcard list, the profile) must not work while the tour
+      // is open: tapping Host Game in the middle of a tutorial only confuses people. (A step can say interactive: true,
+      // for the hero display that is meant to be dragged.)
+      if (!current.interactive) {
+        if (e.type === 'click') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        else e.stopPropagation();
+      }
+      return;
+    }
     if (e.type === 'click') {
       if (mode === 'count') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
       advance();

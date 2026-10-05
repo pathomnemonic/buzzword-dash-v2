@@ -44,7 +44,9 @@ async function walkTour(page) {
     }
     await page.waitForTimeout(450);
   }
-  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Racing a friend', 'Choose your cards', 'Study', 'Weekly Gauntlet', 'Exam Sim', 'Your first trail', 'Daily quests']));
+  expect(seen).not.toContain('PLAY');
+  expect(seen).not.toContain('Weekly Gauntlet');
+  expect(seen).toEqual(expect.arrayContaining(['Filters', 'Racing a friend', 'Choose your cards', 'Challenge', 'Your first trail', 'Daily quests']));
   await expect(page.locator('#tourOverlay')).toHaveCount(0);
 }
 
@@ -178,13 +180,10 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await step(page, 'rush');
     await page.locator('#tutSkipStepBtn').click();
     await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
-    // Home, then coins, then PLAY: pressing the highlighted PLAY only moves the tour on
+    // Home, then coins, then Filters (there is no lesson on the PLAY button): pressing the highlighted spot only moves the tour on
     await page.locator('#tourNextBtn').click();
     await expect(page.locator('.tour-card h2')).toHaveText('Coins and best score');
     let box = await page.locator('.tour-ring').boundingBox();
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-    await expect(page.locator('.tour-card h2')).toHaveText('PLAY');
-    box = await page.locator('.tour-ring').boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     await expect(page.locator('.tour-card h2')).toHaveText('Filters');
     expect(await page.evaluate(() => window.__game._state)).toBe('ended'); // no new run
@@ -252,5 +251,33 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await page.locator('#tutExitYes').click();
     await expect(page.locator('#tutorialCoach')).not.toHaveClass(/active/);
     await expect(page.locator('#screenHome')).toHaveClass(/active/, { timeout: 10000 });
+  });
+});
+
+test.describe('Tour panels are for looking at', () => {
+  test('buttons inside the Versus panel do nothing while the tour is open', async ({ page }) => {
+    await openFirstRun(page);
+    await page.locator('#tutNextBtn').click();
+    await step(page, 'left');
+    for (const id of ['left', 'right', 'jump', 'slide']) { await step(page, id); await page.locator('#tutSkipStepBtn').click(); }
+    await step(page, 'answer'); await page.locator('#tutSkipStepBtn').click();
+    await step(page, 'rush'); await page.locator('#tutSkipStepBtn').click();
+    await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
+    // walk to the Versus panel
+    for (let i = 0; i < 20; i++) {
+      const title = await page.locator('.tour-card h2').textContent();
+      if (title === 'Racing a friend') break;
+      const next = page.locator('#tourNextBtn');
+      if (await next.count()) await next.click();
+      else { const b = await page.locator('.tour-ring').boundingBox(); await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2); }
+      await page.waitForTimeout(450);
+    }
+    await expect(page.locator('.tour-card h2')).toHaveText('Racing a friend');
+    const before = await page.evaluate(() => document.getElementById('mpContent').innerText);
+    const host = page.locator('#mpContent button').first();
+    await host.click({ force: true }).catch(() => {});
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => document.getElementById('mpContent').innerText)).toBe(before);
+    await expect(page.locator('.tour-card h2')).toHaveText('Racing a friend');
   });
 });
