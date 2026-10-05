@@ -26,7 +26,18 @@ export var HAZARD_BY_SKIN = {
   'Surgical Theater': 'blackout',
   'Candy Lab': 'glitch',
   'X-Ray Vision': 'glitch',
-  'Defibrillator Shock': 'surge'
+  'Defibrillator Shock': 'surge',
+  // the bright maps only ever get the gentle ones: a speed surge or a bright flare
+  'Pediatric Playland': 'surge',
+  'Sunshine Rehab Garden': 'flare',
+  'Cafeteria Carnival': 'surge',
+  'Neonatal Cloud Nursery': 'flare',
+  'Anatomy Amusement Park': 'surge',
+  'Pharmacy Pop Factory': 'glitch',
+  'Aquarium Imaging Center': 'pulse',
+  'Rooftop Helipad Resort': 'flare',
+  'Vet and Farm Clinic': 'surge',
+  'Holiday Wards': 'flare'
 };
 
 export var HAZARDS = {

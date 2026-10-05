@@ -23,6 +23,7 @@
 import * as THREE from 'three';
 import { roundedBox } from './materials.js';
 import { buildHallWallBay, buildHallSign, buildHallFloor, isHospitalHall } from './hospitalhall.js';
+import { isWorld, buildWorldBay, buildWorldArch, buildWorldGround } from './worlds.js';
 
 // ===== WALL SEGMENT BUILDERS =====
 
@@ -37,6 +38,7 @@ import { buildHallWallBay, buildHallSign, buildHallFloor, isHospitalHall } from 
  * @returns {THREE.Group}
  */
 export function buildWallSegment(skin, side, z, height) {
+  if (isWorld(skin)) return buildWorldBay(skin, side, z);
   var g = new THREE.Group();
   var c = skin.colors;
   if (!height) height = 3.5;
@@ -383,6 +385,7 @@ export function buildWallSegment(skin, side, z, height) {
  * @returns {THREE.Group}
  */
 export function buildArch(skin, z) {
+  if (isWorld(skin)) return buildWorldArch(skin, z);
   var g = new THREE.Group();
   var c = skin.colors;
 
@@ -718,6 +721,7 @@ export function buildArch(skin, z) {
  * @returns {THREE.Group} Group containing all ground elements
  */
 export function buildGround(skin) {
+  if (isWorld(skin)) return buildWorldGround(skin);
   var g = new THREE.Group();
   var c = skin.colors;
 
@@ -1216,8 +1220,8 @@ export function buildWallGlowStrips(skin, side) {
   var c = skin.colors;
   var x = side * 5.5;
 
-  // The hospital corridor has its own trim
-  if (isHospitalHall(skin)) return g;
+  // The hospital corridor and the bright worlds have their own trim
+  if (isHospitalHall(skin) || isWorld(skin)) return g;
 
   // Top glow strip
   var topGlow = new THREE.Mesh(

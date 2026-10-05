@@ -55,7 +55,8 @@ describe('mergeStatic (fewer draw calls, same picture)', () => {
       const refs = buildTrack(root, skin, { quality: 'medium', reducedMotion: false });
       const meshes = countMeshes(root);
       expect(meshes, skin.name).toBeLessThan(450);
-      expect(refs.scrollers.length, skin.name).toBeGreaterThanOrEqual(5);
+      // the classic maps also scroll glowing lines, panels and markers; the bright worlds scroll just their walls and fixtures
+      expect(refs.scrollers.length, skin.name).toBeGreaterThanOrEqual(skin.world ? 2 : 5);
     });
   }, 90000);
 });

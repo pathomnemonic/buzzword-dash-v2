@@ -39,6 +39,7 @@ import { setupEnvironment } from './materials.js';
 import { TrailSystem } from './trails.js';
 import { buildMonster } from './monsters.js';
 import { buildTrack, updateScrollers, updateRunningLights } from './track.js';
+import { updateAnimators } from './mapfx.js';
 import { SKINS } from './skins.js';
 
 // Gesture constants
@@ -496,6 +497,7 @@ export class CharacterPreview {
             if (self.mapRefs && !self._reducedMotion) {
                 updateScrollers(self.mapRefs.scrollers, dt * 6);
                 if (self.mapRefs.runningLights) updateRunningLights(self.mapRefs.runningLights, self.time, 1);
+                if (self.mapRefs.animators) updateAnimators(self.mapRefs.animators, self.time, dt, dt * 6);
             }
             if (self.trailRoot) self.trailRoot.rotation.y = self.rotationY;
             if (self.trailSystem) self.trailSystem.update(dt, 0, 0, 0, 5);

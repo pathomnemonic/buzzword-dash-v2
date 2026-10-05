@@ -434,6 +434,7 @@ export var settingsMethods = {
       var creditsBody = createElement('div', { className: 'howto-body' });
       [
         'Characters, monsters, props, the hospital bed and traffic cone: Quaternius (CC0). Screens and signs: Kenney (CC0). More props: CreativeTrio, iPoly3D (CC0).',
+        'Bright-map props (food, kitchen, furniture, pumpkins, buildings): KayKit Restaurant, Halloween, City Builder and Furniture Bits by Kay Lousberg (CC0).',
         'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
         'Doctor, nurse and paramedic: Quaternius characters (CC0).',
         'Scout: KayKit Adventurers Rogue by Kay Lousberg (CC0), www.kaylousberg.com.'
@@ -943,7 +944,7 @@ export var settingsMethods = {
     var heading = createElement('h3', { text: '🗺️ Maps' });
     heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
     wrap.appendChild(heading);
-    var intro = createElement('div', { className: 'setting-sublabel', text: 'Runs rotate through the maps you own. All ' + free.length + ' hospital maps are free; buy the rest below. Tap one to see it above.' });
+    var intro = createElement('div', { className: 'setting-sublabel', text: 'Runs rotate through the maps you own. The ' + free.length + ' starter maps are free; buy the rest below. Tap one to see it above.' });
     intro.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
     wrap.appendChild(intro);
 

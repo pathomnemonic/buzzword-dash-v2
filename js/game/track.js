@@ -33,6 +33,8 @@ import { PROP_BUILDERS, getSpecialtyProps } from './props.js';
 import { upgradeMaterials, mergeStatic, softDotTexture, softenTranslucentScenery } from './materials.js';
 import { isLowQuality } from './quality.js';
 import { HALL_PERIOD, isHospitalHall } from './hospitalhall.js';
+import { worldOf, buildDaySky } from './worlds.js';
+import { beginWorld, endWorld } from './mapkit.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -169,6 +171,8 @@ export function buildTrack(trackRoot, skin, options) {
     wallMarkers: [],
     skyboxElements: [],
     scrollers: [],
+    animators: [],
+    worldMovers: null,
     sharedResources: {},
     dispose: function () {
       // Safe disposal: only removes trackRoot's children
@@ -185,17 +189,36 @@ export function buildTrack(trackRoot, skin, options) {
       this.wallMarkers = [];
       this.skyboxElements = [];
       this.scrollers = [];
+      this.animators = [];
+      this.worldMovers = null;
       this.lights = [];
     }
   };
 
+  // A bright world map records what moves while it is built (see mapkit.js beginWorld)
+  var world = worldOf(skin);
+  if (world && world.prepare) world.prepare(skin); // e.g. the Holiday Wards pick today's season
+  if (world) beginWorld(skin, trackRoot);
+  try {
+    buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reducedMotion);
+  } finally {
+    if (world) {
+      var done = endWorld();
+      trackRefs.animators = done.fx;
+      trackRefs.worldMovers = done.movers;
+    }
+  }
+  return trackRefs;
+}
+
+function buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reducedMotion) {
   // Setup lighting (lights are added to trackRoot)
   var lightRefs = setupSkinLightingUnderRoot(skin, trackRoot);
   trackRefs.lights = lightRefs;
 
   // Sky and distance haze: depth instead of a black void
-  if (!isLowQuality()) trackRoot.add(buildSkyDome(skin));
-  if (trackRoot.isScene) trackRoot.fog = new THREE.Fog(skin.colors.bg, 70, 240);
+  if (!isLowQuality() && !(world && world.indoor)) trackRoot.add(world ? buildDaySky(skin) : buildSkyDome(skin));
+  if (trackRoot.isScene) trackRoot.fog = new THREE.Fog(skin.colors.bg, skin.fog ? skin.fog.near : 70, skin.fog ? skin.fog.far : 240);
 
   // Ground
   var groundGroup = buildGround(skin);
@@ -215,22 +238,24 @@ export function buildTrack(trackRoot, skin, options) {
     trackRoot.add(glowStrips);
   }
 
-  // Running lights
-  buildRunningLights(trackRoot, skin, trackRefs);
+  // Running lights (the bright worlds have their own lights)
+  if (!world || world.runningLights) buildRunningLights(trackRoot, skin, trackRefs);
 
   // The floating glow particles are off unless the player turns them on (Settings -> Look); never with reduced motion
   if (!reducedMotion && options.ambientParticles) {
     createParticlePool(trackRoot, skin, trackRefs, qc);
   }
 
-  // Scroll lines
-  buildScrollLines(trackRoot, skin, trackRefs, qc);
+  if (!world) {
+    // Scroll lines
+    buildScrollLines(trackRoot, skin, trackRefs, qc);
 
-  // Wall scroll panels
-  buildWallScrollPanels(trackRoot, skin, trackRefs, qc);
+    // Wall scroll panels
+    buildWallScrollPanels(trackRoot, skin, trackRefs, qc);
 
-  // Wall markers
-  buildWallMarkers(trackRoot, skin, trackRefs, qc);
+    // Wall markers
+    buildWallMarkers(trackRoot, skin, trackRefs, qc);
+  }
 
   // Merge the scrolling decorations (each pattern repeats: lines every 7.5, panels 7, markers 48)
   convertToPeriodic(trackRefs.scrollLines, SCROLL_LINE_SPACING * 3, trackRoot, trackRefs);
@@ -238,13 +263,14 @@ export function buildTrack(trackRoot, skin, options) {
   convertToPeriodic(trackRefs.wallMarkers, WALL_MARKER_SPACING * 12, trackRoot, trackRefs);
 
   // Skybox elements (skip if reduced motion)
-  if (!reducedMotion && !isHospitalHall(skin)) {
+  if (!reducedMotion && !isHospitalHall(skin) && !world) {
     buildSkyboxElements(trackRoot, skin, trackRefs, qc);
   }
 
-  softenTranslucentScenery(trackRoot);
+  // The things that move beside the track in a bright world (trains, balloons, fish, ...)
+  if (world && world.extras) world.extras(skin, trackRoot);
 
-  return trackRefs;
+  softenTranslucentScenery(trackRoot);
 }
 
 
@@ -293,17 +319,20 @@ function setupSkinLightingUnderRoot(skin, trackRoot) {
   var c = skin.colors;
   var lights = [];
 
-  var ambient = new THREE.AmbientLight(c.ambient, 0.6);
+  // A map can set how strong each light is (the bright worlds turn them up)
+  var level = skin.light || {};
+
+  var ambient = new THREE.AmbientLight(c.ambient, level.ambient === undefined ? 0.6 : level.ambient);
   ambient.userData.skinLight = true;
   trackRoot.add(ambient);
   lights.push(ambient);
 
-  var hemi = new THREE.HemisphereLight(c.hemiTop, c.hemiBot, 0.5);
+  var hemi = new THREE.HemisphereLight(c.hemiTop, c.hemiBot, level.hemi === undefined ? 0.5 : level.hemi);
   hemi.userData.skinLight = true;
   trackRoot.add(hemi);
   lights.push(hemi);
 
-  var dir = new THREE.DirectionalLight(c.dirLight, 0.8);
+  var dir = new THREE.DirectionalLight(c.dirLight, level.dir === undefined ? 0.8 : level.dir);
   dir.position.set(5, 18, 8);
   dir.castShadow = true;
   dir.userData.skinLight = true;
@@ -335,18 +364,22 @@ export function updateScrollers(scrollers, move) {
 }
 
 function buildWalls(trackRoot, skin, qc, trackRefs) {
-  var hall = isHospitalHall(skin);
+  var world = worldOf(skin);
+  var hall = isHospitalHall(skin) || !!world;
   var spacing = hall ? HALL_PERIOD : (qc.wallSegmentSpacing || WALL_SEGMENT_SPACING);
   var step = hall ? 4 : spacing; // the corridor is four bays per repeat, so it scrolls seamlessly
+  // A world map fades into haze, so it only needs scenery as far as its fog reaches (and none behind the camera)
+  var reach = world && skin.fog ? skin.fog.far - 10 : 160;
+  var behind = world ? 14 : 20;
   var group = makeScroller(trackRoot, trackRefs, spacing);
   for (var side = -1; side <= 1; side += 2) {
-    for (var z = -160 - spacing; z < 20; z += step) {
+    for (var z = -reach - spacing; z < behind; z += step) {
       var segment = buildWallSegment(skin, side, z, 3.5);
       group.add(segment);
     }
   }
-  // Solid wall surfaces become lit; bright neon and see-through parts keep their glow
-  upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
+  // Solid wall surfaces become lit; bright neon and see-through parts keep their glow (the worlds are already lit)
+  if (!world) upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
   mergeStatic(group);
 }
 
@@ -359,7 +392,7 @@ function buildArches(trackRoot, skin, qc, trackRefs) {
     var arch = buildArch(skin, z);
     group.add(arch);
 
-    for (var legSide = -1; legSide <= 1 && !isHospitalHall(skin); legSide += 2) {
+    for (var legSide = -1; legSide <= 1 && !isHospitalHall(skin) && !worldOf(skin); legSide += 2) {
       var leg = new THREE.Mesh(
         new THREE.CylinderGeometry(0.06, 0.06, 5, 6),
         new THREE.MeshBasicMaterial({ color: skin.colors.archMain })
@@ -368,7 +401,7 @@ function buildArches(trackRoot, skin, qc, trackRefs) {
       group.add(leg);
     }
   }
-  upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
+  if (!worldOf(skin)) upgradeMaterials(group, { glowAbove: 0.62, envIntensity: 0.6 });
   mergeStatic(group);
 }
 

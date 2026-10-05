@@ -303,6 +303,108 @@ SKIN_MUSIC['Ambulance Bay'] = {
   filterFreq: 2800, filterQ: 3
 };
 
+// Music for the bright maps: sunny, bouncy major-key tunes, each with its own tempo, key, bassline and melody
+SKIN_MUSIC['Pediatric Playland'] = {
+  // a music-box nursery rhyme: tinkling triangle melody over a skipping bass
+  bpm: 124, key: 60, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, 2, -1, 4, -1, 2, -1, 0, -1, 2, -1, 4, 2, 0, -1],
+  melodyPattern: [9, 7, 9, 12, -1, 9, 7, -1, 9, 7, 5, 7, 9, -1, -1, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-5, -1, 2]],
+  bassType: 'triangle', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1], hat: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0] },
+  filterFreq: 4200, filterQ: 0.5
+};
+SKIN_MUSIC['Sunshine Rehab Garden'] = {
+  // a gentle morning stroll: lazy guitar-like plucks in a warm major key
+  bpm: 104, key: 53, scale: 'cMajor',
+  bassPattern: [0, -1, -1, 4, 0, -1, -1, 4, 3, -1, -1, 5, 4, -1, -1, 2],
+  melodyPattern: [7, -1, 9, -1, 11, -1, 9, 7, 4, -1, 7, -1, 9, -1, -1, -1],
+  chordIntervals: [[0, 4, 7], [-3, 0, 4], [-4, 0, 3], [-5, -1, 2]],
+  bassType: 'sine', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], snare: [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0], hat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] },
+  filterFreq: 3000, filterQ: 0.5
+};
+SKIN_MUSIC['Cafeteria Carnival'] = {
+  // a fairground organ oompah: bouncy bass on the beat, bright square lead
+  bpm: 138, key: 55, scale: 'cMixolydian',
+  bassPattern: [0, -1, 4, -1, 0, -1, 4, -1, 5, -1, 3, -1, 4, -1, 2, -1],
+  melodyPattern: [12, 11, 9, 7, 9, 11, 12, -1, 14, 12, 11, 9, 11, 12, -1, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-2, 2, 5], [-2, 2, 5]],
+  bassType: 'square', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0], hat: [1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1] },
+  filterFreq: 3600, filterQ: 1
+};
+SKIN_MUSIC['Neonatal Cloud Nursery'] = {
+  // a lullaby: slow, floating sine pads and a tiny sparse melody
+  bpm: 84, key: 62, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, -1, -1, 2, -1, -1, -1, 4, -1, -1, -1, 2, -1, -1, -1],
+  melodyPattern: [-1, 9, -1, -1, 7, -1, 9, -1, 12, -1, -1, 9, -1, 7, -1, -1],
+  chordIntervals: [[0, 4, 7], [-3, 0, 4], [-5, -1, 2], [0, 4, 7]],
+  bassType: 'sine', melodyType: 'sine', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], snare: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], hat: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0] },
+  filterFreq: 2200, filterQ: 0.5
+};
+SKIN_MUSIC['Anatomy Amusement Park'] = {
+  // fast and thrilling like a coaster climb: driving bass, sparkling arpeggios
+  bpm: 150, key: 50, scale: 'cMajor',
+  bassPattern: [0, 0, 7, 0, 0, 0, 7, 0, 5, 5, 4, 5, 3, 3, 2, 3],
+  melodyPattern: [7, 11, 14, 11, 7, 11, 14, 16, 9, 12, 16, 12, 9, 12, 14, 12],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-1, 2, 5]],
+  bassType: 'sawtooth', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1], hat: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] },
+  filterFreq: 4800, filterQ: 1
+};
+SKIN_MUSIC['Pharmacy Pop Factory'] = {
+  // clockwork pop: a mechanical, off-beat bass and plinky bell-like melody
+  bpm: 128, key: 57, scale: 'cDorian',
+  bassPattern: [0, -1, 0, 3, -1, 0, -1, 5, 0, -1, 0, 3, -1, 2, -1, 0],
+  melodyPattern: [12, -1, 15, -1, 14, -1, 12, 10, -1, 12, -1, 10, 9, -1, 10, -1],
+  chordIntervals: [[0, 3, 7], [0, 3, 7], [3, 7, 10], [2, 5, 9]],
+  bassType: 'square', melodyType: 'triangle', padType: 'square',
+  drumPattern: { kick: [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1] },
+  filterFreq: 3000, filterQ: 2
+};
+SKIN_MUSIC['Aquarium Imaging Center'] = {
+  // underwater shimmer: wobbling sine bass, glassy high notes drifting over soft pads
+  bpm: 96, key: 52, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, -1, 0, -1, -1, 2, -1, 4, -1, -1, 4, -1, -1, 2, -1],
+  melodyPattern: [14, -1, -1, 12, -1, 9, -1, -1, 11, -1, 14, -1, -1, 9, -1, 7],
+  chordIntervals: [[0, 4, 7, 11], [-3, 0, 4, 7], [-5, -1, 2, 5], [0, 4, 7, 11]],
+  bassType: 'sine', melodyType: 'sine', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0], snare: [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], hat: [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0] },
+  filterFreq: 1900, filterQ: 2
+};
+SKIN_MUSIC['Rooftop Helipad Resort'] = {
+  // laid-back lounge: smooth walking bass, soft chords, easy off-beat hats
+  bpm: 112, key: 48, scale: 'cMajor',
+  bassPattern: [0, -1, 2, 4, 5, -1, 4, 2, 3, -1, 4, 5, 7, -1, 5, 4],
+  melodyPattern: [-1, 11, -1, 9, -1, 7, 9, -1, -1, 12, -1, 11, 9, -1, -1, 7],
+  chordIntervals: [[0, 4, 7, 11], [-3, 0, 4, 7], [-4, 0, 3, 7], [-5, -1, 2, 5]],
+  bassType: 'triangle', melodyType: 'sine', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,1] },
+  filterFreq: 2600, filterQ: 0.5
+};
+SKIN_MUSIC['Vet and Farm Clinic'] = {
+  // a country hoedown: a trotting bass and a fiddle-like bright lead
+  bpm: 132, key: 55, scale: 'cMajor',
+  bassPattern: [0, -1, 4, -1, 0, -1, 4, -1, 3, -1, 5, -1, 4, -1, 0, -1],
+  melodyPattern: [9, 11, 12, 11, 9, 7, 9, -1, 12, 14, 12, 11, 9, 11, 12, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-5, -1, 2]],
+  bassType: 'triangle', melodyType: 'sawtooth', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0] },
+  filterFreq: 3400, filterQ: 1
+};
+SKIN_MUSIC['Holiday Wards'] = {
+  // a festive jingle: sleigh-bell hats, a cheerful bell melody
+  bpm: 118, key: 57, scale: 'cMajor',
+  bassPattern: [0, -1, 0, -1, 4, -1, 4, -1, 5, -1, 5, -1, 4, -1, 2, -1],
+  melodyPattern: [12, 12, 12, -1, 12, 12, 12, -1, 12, 14, 9, 11, 12, -1, -1, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-1, 2, 5]],
+  bassType: 'triangle', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] },
+  filterFreq: 4600, filterQ: 0.5
+};
+
 class MusicGenerator {
   constructor(ctx, outputNode, skinName, settingsGetter) {
     this.ctx = ctx;

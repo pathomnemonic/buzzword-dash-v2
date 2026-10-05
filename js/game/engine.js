@@ -48,6 +48,7 @@ import { createPostFX } from './postfx.js';
 import { compileSafely } from './safecompile.js';
 import { applyKillSwitch } from '../remoteconfig.js';
 import { isHospitalHall } from './hospitalhall.js';
+import { isWorld } from './worlds.js';
 import { HazardManager, HAZARDS } from './hazards.js';
 
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
@@ -1466,7 +1467,7 @@ class Game {
     this.envPropSpawnTimer -= dt;
     if (this.envPropSpawnTimer <= 0) {
       // (nothing floats inside the hospital corridor: it has a ceiling)
-      if (!isHospitalHall(this.currentSkin)) spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
+      if (!isHospitalHall(this.currentSkin) && !isWorld(this.currentSkin)) spawnEnvProp(this.scene, this.envPropMeshes, storage.get('selectedSubjects'));
       this.envPropSpawnTimer = 1.5 + Math.random() * 2;
     }
     for (var ei = this.envPropMeshes.length - 1; ei >= 0; ei--) {

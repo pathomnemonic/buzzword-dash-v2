@@ -334,6 +334,252 @@ export var SKINS = [
     }
   },
   {
+    id: 'skin_pediatric_playland',
+    name: 'Pediatric Playland',
+    desc: 'A giant playroom in the children\'s ward',
+    world: 'playland',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'bubbles',
+    fog: { near: 55, far: 150 },
+    light: { ambient: 0.9, hemi: 0.85, dir: 0.85 },
+    colors: {
+      bg: 0xcfeaff, sky: 0x9ed8ff,
+      ground: 0xdff0ff, groundStripe: 0x9ecbff, groundAccent: 0xb5d8ff,
+      wallA: 0xfff3dc, wallB: 0xff7ab8, wallGlow: 0xffd23f,
+      archMain: 0xffffff, archGlow: 0xffd23f,
+      lane: 0x5aa0ff,
+      gateBase: 0x3d6fe0, gateGlow: 0xff7ab8,
+      particle: 0xffffff, particleB: 0xbfe6ff,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xeaf6ff, hemiBot: 0xcfd8f0,
+      dirLight: 0xfff6e0
+    }
+  },
+  {
+    id: 'skin_sunshine_rehab_garden',
+    name: 'Sunshine Rehab Garden',
+    desc: 'A sunny walk through the therapy garden',
+    world: 'garden',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'dust_motes',
+    fog: { near: 60, far: 160 },
+    light: { ambient: 0.8, hemi: 0.8, dir: 1.0 },
+    sky: { top: 0x1f86ee, horizon: 0xbfe6ff, sun: 0xfff2c0 },
+    colors: {
+      bg: 0xcdeeff, sky: 0x2f9bf0,
+      ground: 0xe9d3ac, groundStripe: 0xd9c08f, groundAccent: 0xe0c99c,
+      wallA: 0x2fae58, wallB: 0xffd23f, wallGlow: 0xfff2a0,
+      archMain: 0x3fbf5a, archGlow: 0xffffff,
+      lane: 0xffffff,
+      gateBase: 0x2f7fe0, gateGlow: 0xffd23f,
+      particle: 0xffffff, particleB: 0xfff2a0,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xcfeaff, hemiBot: 0x9fe0a0,
+      dirLight: 0xfff4d6
+    }
+  },
+  {
+    id: 'skin_cafeteria_carnival',
+    name: 'Cafeteria Carnival',
+    desc: 'Fair day in the hospital canteen',
+    world: 'cafeteria',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'sparks',
+    fog: { near: 55, far: 150 },
+    light: { ambient: 0.9, hemi: 0.85, dir: 0.85 },
+    colors: {
+      bg: 0xffe9c8, sky: 0xffe9c8,
+      ground: 0xfff1de, groundStripe: 0xff7a6b, groundAccent: 0xffd9a0,
+      wallA: 0xfff6e2, wallB: 0x20c4b0, wallGlow: 0xffd23f,
+      archMain: 0xff4d4d, archGlow: 0xffd23f,
+      lane: 0xff4d4d,
+      gateBase: 0x1f8fa8, gateGlow: 0xffd23f,
+      particle: 0xfff2a0, particleB: 0xffd0a0,
+      coin: 0xffcc22,
+      ambient: 0xfff4e0, hemiTop: 0xfff6e8, hemiBot: 0xf0c8a0,
+      dirLight: 0xfff0d0
+    }
+  },
+  {
+    id: 'skin_neonatal_cloud_nursery',
+    name: 'Neonatal Cloud Nursery',
+    desc: 'A pastel nursery floating on clouds',
+    world: 'nursery',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'bubbles',
+    fog: { near: 70, far: 170 },
+    light: { ambient: 0.6, hemi: 0.7, dir: 0.7 },
+    sky: { top: 0x6a9cff, horizon: 0xffc8e2, sun: 0xffd6ec },
+    colors: {
+      bg: 0xffcfe6, sky: 0x6a9cff,
+      ground: 0xfff0f6, groundStripe: 0xffb3d1, groundAccent: 0xd6ecff,
+      wallA: 0xffffff, wallB: 0xffb3d1, wallGlow: 0xffd6ec,
+      archMain: 0xffffff, archGlow: 0xffe9a0,
+      lane: 0xffffff,
+      gateBase: 0x6a5be0, gateGlow: 0xffb3d1,
+      particle: 0xffffff, particleB: 0xd6ecff,
+      coin: 0xffcc22,
+      ambient: 0xfff6fa, hemiTop: 0xeaf4ff, hemiBot: 0xffd6ec,
+      dirLight: 0xfff0e0
+    }
+  },
+  {
+    id: 'skin_anatomy_amusement_park',
+    name: 'Anatomy Amusement Park',
+    desc: 'Rides shaped like the human body',
+    world: 'amusement',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'sparks',
+    fog: { near: 60, far: 160 },
+    light: { ambient: 0.75, hemi: 0.8, dir: 1.0 },
+    sky: { top: 0x1f86ee, horizon: 0xb8e4ff, sun: 0xfff2c0 },
+    colors: {
+      bg: 0xb8e4ff, sky: 0x1f86ee,
+      ground: 0xf1d3a0, groundStripe: 0xe8c78e, groundAccent: 0xf4daae,
+      wallA: 0xff4d6a, wallB: 0xffd23f, wallGlow: 0xfff2a0,
+      archMain: 0xff4d6a, archGlow: 0xffd23f,
+      lane: 0xff4d6a,
+      gateBase: 0x5a3fd0, gateGlow: 0xffd23f,
+      particle: 0xfff2a0, particleB: 0xffb3d1,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xcfeaff, hemiBot: 0xf0d8b0,
+      dirLight: 0xfff4d6
+    }
+  },
+  {
+    id: 'skin_pharmacy_pop_factory',
+    name: 'Pharmacy Pop Factory',
+    desc: 'Giant capsules roll off the candy-coloured line',
+    world: 'pharmacy',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'capsule_bits',
+    fog: { near: 55, far: 150 },
+    light: { ambient: 0.75, hemi: 0.75, dir: 0.85 },
+    colors: {
+      bg: 0xcdeeff, sky: 0xcdeeff,
+      ground: 0xeaf6ff, groundStripe: 0xffd23f, groundAccent: 0xd4ecff,
+      wallA: 0xf4fbff, wallB: 0xff6fae, wallGlow: 0x4fb8ff,
+      archMain: 0xffffff, archGlow: 0xff6fae,
+      lane: 0xff6fae,
+      gateBase: 0x2a6fd0, gateGlow: 0xff6fae,
+      particle: 0xffffff, particleB: 0xffd0e8,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xf4fbff, hemiBot: 0xc8e0f0,
+      dirLight: 0xffffff
+    }
+  },
+  {
+    id: 'skin_aquarium_imaging_center',
+    name: 'Aquarium Imaging Center',
+    desc: 'A glass tunnel under a sunlit reef',
+    world: 'aquarium',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'bubbles',
+    fog: { near: 50, far: 140 },
+    light: { ambient: 0.65, hemi: 0.65, dir: 0.75 },
+    colors: {
+      bg: 0x5fd0f0, sky: 0x5fd0f0,
+      ground: 0xf6e6bf, groundStripe: 0x1fb4d8, groundAccent: 0xf0dcae,
+      wallA: 0x1fb4d8, wallB: 0x4fe0c0, wallGlow: 0x9af0ff,
+      archMain: 0xdfe8f2, archGlow: 0xffe27a,
+      lane: 0x1fb4d8,
+      gateBase: 0x1a4fa8, gateGlow: 0xffe27a,
+      particle: 0xffffff, particleB: 0x9af0ff,
+      coin: 0xffcc22,
+      ambient: 0xe0f8ff, hemiTop: 0xcff6ff, hemiBot: 0x7fcfe8,
+      dirLight: 0xffffff
+    }
+  },
+  {
+    id: 'skin_rooftop_helipad_resort',
+    name: 'Rooftop Helipad Resort',
+    desc: 'A sun deck above the city skyline',
+    world: 'rooftop',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'dust_motes',
+    fog: { near: 70, far: 180 },
+    light: { ambient: 0.7, hemi: 0.8, dir: 1.0 },
+    sky: { top: 0x2a8ff0, horizon: 0xcfeaff, sun: 0xffe9a0, sunX: -0.5, sunY: 0.4 },
+    colors: {
+      bg: 0xcfeaff, sky: 0x2a8ff0,
+      ground: 0xd9a566, groundStripe: 0xe2b073, groundAccent: 0xdcaa68,
+      wallA: 0xcff4ff, wallB: 0x2fd0d8, wallGlow: 0xffe9a0,
+      archMain: 0xe8eef6, archGlow: 0xffe27a,
+      lane: 0xffffff,
+      gateBase: 0x2a5fd0, gateGlow: 0xffe27a,
+      particle: 0xffffff, particleB: 0xfff0a8,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xcfeaff, hemiBot: 0xf0d8b0,
+      dirLight: 0xfff0d0
+    }
+  },
+  {
+    id: 'skin_vet_and_farm_clinic',
+    name: 'Vet and Farm Clinic',
+    desc: 'A country clinic full of friendly animals',
+    world: 'farm',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'dust_motes',
+    fog: { near: 60, far: 160 },
+    light: { ambient: 0.75, hemi: 0.8, dir: 1.0 },
+    sky: { top: 0x2a8ff0, horizon: 0xcdeeff, sun: 0xfff2c0 },
+    colors: {
+      bg: 0xcdeeff, sky: 0x2a8ff0,
+      ground: 0xe0b878, groundStripe: 0xd0a463, groundAccent: 0xecc98d,
+      wallA: 0xffffff, wallB: 0xd9382f, wallGlow: 0xfff2a0,
+      archMain: 0xd9382f, archGlow: 0xffd23f,
+      lane: 0xffffff,
+      gateBase: 0x2f6fd0, gateGlow: 0xffd23f,
+      particle: 0xfff2a0, particleB: 0xffffff,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xcfeaff, hemiBot: 0x9fe08a,
+      dirLight: 0xfff4d6
+    }
+  },
+  {
+    id: 'skin_holiday_wards',
+    name: 'Holiday Wards',
+    desc: 'Decorated for the season: snow, blossoms, beaches, pumpkins or a party',
+    world: 'holiday',
+    wallType: 'world',
+    archType: 'world',
+    groundType: 'world',
+    particleType: 'sparks',
+    fog: { near: 60, far: 160 },
+    light: { ambient: 0.85, hemi: 0.85, dir: 0.9 },
+    sky: { top: 0x4aa8f0, horizon: 0xdff0ff, sun: 0xfff2c0 },
+    colors: {
+      bg: 0xdff0ff, sky: 0x4aa8f0,
+      ground: 0xffe9f4, groundStripe: 0xb89aff, groundAccent: 0xd9e8ff,
+      wallA: 0xffffff, wallB: 0xff5a8a, wallGlow: 0xffd23f,
+      archMain: 0xff5a8a, archGlow: 0xffd23f,
+      lane: 0xff5a8a,
+      gateBase: 0x3a5fd0, gateGlow: 0xffd23f,
+      particle: 0xffffff, particleB: 0xffd0e8,
+      coin: 0xffcc22,
+      ambient: 0xffffff, hemiTop: 0xeaf4ff, hemiBot: 0xf0e0f0,
+      dirLight: 0xfff4e0
+    }
+  },
+  {
     id: 'skin_defibrillator_shock',
     name: 'Defibrillator Shock',
     desc: 'Electric urgency',
@@ -357,12 +603,12 @@ export var SKINS = [
 ];
 
 /**
- * Maps set in real hospital rooms (and the pharmacy and chemistry lab) are "indoor"; the open and
+ * Maps set in real hospital rooms (and the children's playroom) are "indoor"; the open and
  * body-interior worlds are "outdoor". A run starts indoors, then moves outdoors, then is random.
  */
 var INDOOR_IDS = [
   'skin_hospital_hallway', 'skin_operating_room', 'skin_research_lab',
-  'skin_ambulance_bay'
+  'skin_ambulance_bay', 'skin_pediatric_playland'
 ];
 
 export function isIndoorSkin(skin) {

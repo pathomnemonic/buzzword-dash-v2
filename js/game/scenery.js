@@ -14,6 +14,9 @@ import { clone as cloneModel } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { useSceneryModels } from './quality.js';
 import { markShared, mergeStatic } from './materials.js';
 
+/** The KayKit pack the bright maps use: one file, one shared material, one node per model ('rest__food_burger'). */
+export var KIT_FILE = 'kaykit/kaykit.glb';
+
 export var SCENERY_FILES = {
   // Obstacles
   bed: 'obstacles/bed.glb',
@@ -66,7 +69,10 @@ export function preloadScenery() {
   if (!useSceneryModels()) return Promise.resolve();
   if (_preload) return _preload;
   var loader = createGLTFLoader();
-  _preload = Promise.all(Object.keys(SCENERY_FILES).map(function (key) {
+  var kitLoaded = new Promise(function (resolve) {
+    loader.load(baseUrl() + 'models/' + KIT_FILE, function (gltf) { registerKit(gltf); resolve(); }, undefined, function () { resolve(); });
+  });
+  _preload = Promise.all([kitLoaded].concat(Object.keys(SCENERY_FILES).map(function (key) {
     return new Promise(function (resolve) {
       loader.load(baseUrl() + 'models/' + SCENERY_FILES[key], function (gltf) {
         gltf.scene.updateMatrixWorld(true);
@@ -76,8 +82,35 @@ export function preloadScenery() {
         resolve();
       }, undefined, function () { resolve(); });
     });
-  }));
+  })));
   return _preload;
+}
+
+/** The pack stores its vertices as 16-bit numbers; merging needs plain floats, so widen them first. */
+function widenVertices(root) {
+  root.traverse(function (o) {
+    if (!o.isMesh || !o.geometry) return;
+    ['position', 'normal', 'uv'].forEach(function (name) {
+      var a = o.geometry.getAttribute(name);
+      if (!a || a.array instanceof Float32Array) return;
+      var out = new Float32Array(a.count * a.itemSize);
+      for (var i = 0; i < a.count; i++) for (var c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
+      o.geometry.setAttribute(name, new THREE.BufferAttribute(out, a.itemSize));
+    });
+  });
+}
+
+/** Register every model in a loaded kit file under its 'pack/model' name. */
+export function registerKit(gltf) {
+  gltf.scene.children.slice().forEach(function (node) {
+    var holder = new THREE.Group();
+    holder.add(node);
+    holder.updateMatrixWorld(true);
+    widenVertices(holder);
+    mergeStatic(holder);
+    markShared(holder);
+    _cache[node.name.replace('__', '/')] = { scene: holder, box: new THREE.Box3().setFromObject(holder, true) };
+  });
 }
 
 /** Register a model from bytes already in memory (used by tests). */

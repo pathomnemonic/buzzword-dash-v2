@@ -446,6 +446,15 @@ export var SHOP_ITEMS = [
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
 
   // --- Maps (the open and body-interior worlds; the indoor hospital maps are free for everyone) ---
+  { id: "map_sunshine_rehab_garden", name: "Sunshine Rehab Garden", desc: "A sunny walk through the therapy garden", price: 1500, type: "map", skinId: "skin_sunshine_rehab_garden", color: 0x62d06c, icon: "🌻", compatibility: COMPAT_ALL },
+  { id: "map_cafeteria_carnival", name: "Cafeteria Carnival", desc: "Fair day in the hospital canteen", price: 1800, type: "map", skinId: "skin_cafeteria_carnival", color: 0xff4d4d, icon: "🍔", compatibility: COMPAT_ALL },
+  { id: "map_neonatal_cloud_nursery", name: "Neonatal Cloud Nursery", desc: "A pastel nursery floating on clouds", price: 2000, type: "map", skinId: "skin_neonatal_cloud_nursery", color: 0xffb3d1, icon: "☁️", compatibility: COMPAT_ALL },
+  { id: "map_anatomy_amusement_park", name: "Anatomy Amusement Park", desc: "Rides shaped like the human body", price: 2500, type: "map", skinId: "skin_anatomy_amusement_park", color: 0xff4d6a, icon: "🎡", compatibility: COMPAT_ALL },
+  { id: "map_pharmacy_pop_factory", name: "Pharmacy Pop Factory", desc: "Giant capsules roll off the candy-coloured line", price: 2500, type: "map", skinId: "skin_pharmacy_pop_factory", color: 0xff6fae, icon: "🏭", compatibility: COMPAT_ALL },
+  { id: "map_aquarium_imaging_center", name: "Aquarium Imaging Center", desc: "A glass tunnel under a sunlit reef", price: 3000, type: "map", skinId: "skin_aquarium_imaging_center", color: 0x4fe0ff, icon: "🐠", compatibility: COMPAT_ALL },
+  { id: "map_rooftop_helipad_resort", name: "Rooftop Helipad Resort", desc: "A sun deck above the city skyline", price: 3000, type: "map", skinId: "skin_rooftop_helipad_resort", color: 0x2fd0d8, icon: "🚁", compatibility: COMPAT_ALL },
+  { id: "map_vet_and_farm_clinic", name: "Vet and Farm Clinic", desc: "A country clinic full of friendly animals", price: 2000, type: "map", skinId: "skin_vet_and_farm_clinic", color: 0xd9382f, icon: "🐄", compatibility: COMPAT_ALL },
+  { id: "map_holiday_wards", name: "Holiday Wards", desc: "Decorated for the season: snow, blossoms, beaches, pumpkins or a party", price: 2000, type: "map", skinId: "skin_holiday_wards", color: 0xff5a8a, icon: "🎉", compatibility: COMPAT_ALL },
   { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2000, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
   { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2000, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
   { id: "map_neon_er", name: "Neon ER", desc: "Emergency room at midnight", price: 2000, type: "map", skinId: "skin_neon_er", color: 0xff4488, icon: "🚨", compatibility: COMPAT_ALL },

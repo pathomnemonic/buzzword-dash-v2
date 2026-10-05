@@ -11,6 +11,7 @@ import { buildTrack, updateRunningLights, updateAtmosphericParticles, updateScro
 import { softDotTexture } from './materials.js';
 import { getQuality, isLowQuality, useSceneryModels } from './quality.js';
 import { buildSideScenery, animateSideScenery } from './scenery.js';
+import { updateAnimators } from './mapfx.js';
 
 export var visualMethods = {
 
@@ -86,6 +87,8 @@ export var visualMethods = {
       if (this.trackRefs.wallScrollPanels) updateWallScrollPanels(this.trackRefs.wallScrollPanels, dt, move);
       if (this.trackRefs.wallMarkers) updateWallMarkers(this.trackRefs.wallMarkers, dt, move);
       if (this.trackRefs.skyboxElements) updateSkyboxElements(this.trackRefs.skyboxElements, dt, move, this.elapsedTime);
+      // trains, balloons, fish and the like in a bright world (they stand still for players who prefer reduced motion)
+      if (this.trackRefs.animators && this.trackRefs.animators.length && !storage.get('reducedMotion')) updateAnimators(this.trackRefs.animators, this.elapsedTime, dt, move);
     }
 
     // Speed lines

@@ -362,7 +362,13 @@ In the app: set a display name on the Leaderboard screen, then use **Find** or *
 
 - `public/models/medical/*.glb` — set dressing for the hospital hallway, operating room, research lab and ambulance bay, downloaded from [Poly Pizza](https://poly.pizza/). Licensed CC BY 3.0 (credit required): Wheelchair by Poly by Google, IV stand ("15") by Daisuke Takeoka, Doctor by jeremy, Wet Floor Sign by J-Toastie, Microscope by Colonel Cthulu, Science Tubes by Ryan Donaldson, Lab Desk by Colonel Cthulu, Ambulance (two) by Poly by Google and jeremy, Fire Extinguisher by Jarlan Perez. The hospital bed and traffic cone in the rooms are the CC0 Quaternius ones listed above. These credits are also shown in Settings -> About.
 
+- `public/models/kaykit/kaykit.glb` — props for the bright maps (burgers, kitchen and diner pieces, pumpkins and autumn trees, city buildings, furniture) from the KayKit Restaurant Bits, Halloween Bits, City Builder Bits and Furniture Bits packs by Kay Lousberg ([kaylousberg.com](https://www.kaylousberg.com/), CC0 1.0). `tools/pack-kaykit.mjs` packs only the models the maps use into one file that shares one swatch texture; the packs are not stored in this repository (see the tool's header for where to get them).
+
 - `public/models/characters/{doctor,nurse,surgeon,paramedic,resident}.glb` — the medical staff: Quaternius's CC0 "Casual Character", "Animated Woman" and "Worker" (from [Poly Pizza](https://poly.pizza/)), repainted into scrubs, a white coat and a paramedic uniform by `tools/make-medical-characters.mjs`. Animations are the originals.
+
+## Bright maps
+
+Ten extra maps are bright, colourful "worlds" built from many assets, like the Hospital Hallway but sunnier: Pediatric Playland (free), Sunshine Rehab Garden, Cafeteria Carnival, Neonatal Cloud Nursery, Anatomy Amusement Park, Pharmacy Pop Factory, Aquarium Imaging Center, Rooftop Helipad Resort, Vet and Farm Clinic, and Holiday Wards (which dresses itself for winter, spring, summer, autumn or an everyday party by the calendar). Each repeats every 16 units so it scrolls without a seam; the shared building blocks are in `js/game/mapkit.js` (materials, shapes, painted textures, kit models), `js/game/mapfx.js` (the moving parts: shared-material animation, spinning features, drifting movers, instanced swarms of fish, balloons, butterflies...) and `js/game/mapprops.js`; each map is one file in `js/game/maps/`, registered in `js/game/worlds.js` and `js/game/skins.js`. The motion is decoration: it stays off the lanes, and tests (`tests/unit/worldmaps.test.js`) check every map keeps the lanes clear, repeats without a seam and stays within a draw-call and triangle budget. Players who prefer reduced motion see the scenery still.
 
 ## Graphics
 
