@@ -34,7 +34,7 @@ import { buildPlayer, getPlayerLimbs, disposeCharacter } from './player.js';
 import { setupInput } from './input.js';
 import { getDashControl } from '../dashcontrol.js';
 import { updateGateHighlights } from './gates.js';
-import { spawnObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstanceMeshes, reattachCoinInstances } from './obstacles.js';
+import { spawnObstacle, spawnCoinsForObstacle, preloadStaffModels, spawnCoinBatch, spawnPowerup, enableCoinInstancing, disableCoinInstancing, syncCoinInstances, coinInstanceMeshes, reattachCoinInstances } from './obstacles.js';
 import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
@@ -42,6 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
+import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinBreather, NEAR_MISS_COINS, NEAR_MISS_Z } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -373,12 +374,17 @@ class Game {
         if (this.onStreakMilestone) this.onStreakMilestone(event.payload.streak, event.payload.multiplier);
         break;
       case 'coin_collected':
-        if (this.onScorePopup) {
-          var pl = event.payload;
+        var pl = event.payload;
+        if (pl.type === 'coin' && typeof pl.chain === 'number' && this.onCoinCollected) {
+          this.onCoinCollected(pl); // a coin off the track: chime, counter bump, a coin flying to the counter
+        } else if (this.onScorePopup) {
           if (typeof pl.points === 'number') this.onScorePopup(pl.points);
           else if (pl.type === 'heart') this.onScorePopup('❤️ +1');
           else if (pl.type === 'coin') this.onScorePopup('🪙 +' + (pl.value || 1));
         }
+        break;
+      case 'near_miss':
+        if (this.onNearMiss) this.onNearMiss(event.payload);
         break;
       case 'secret_found':
         if (this.onSecretFound) this.onSecretFound(event.payload);
@@ -860,6 +866,7 @@ class Game {
     this.answerLocked = false; this.committedLane = 1;
     this.waitingForNext = false; this.nextEncounterTimer = 0;
     this.coinSpawnTimer = 0; this.powerupSpawnTimer = 8;
+    this._coinChain = 0; this._coinChainT = -99;
     this.envPropSpawnTimer = 0.5; this.speedLineTimer = 0;
     this.shakeTimer = 0;
 
@@ -1498,7 +1505,9 @@ class Game {
     if (this.coinSpawnTimer <= 0 && !this._tutorial) {
       // The next batch only starts once this one has passed, plus a breather, so lanes stay uncluttered
       var batchLength = spawnCoinBatch(this.scene, this.coinMeshes);
-      this.coinSpawnTimer = batchLength / Math.max(this.speed, 0.5) + 1.0 + Math.random() * 1.5;
+      // (shorter breathers, and none to speak of while a coin power-up is on: Frenzy and Gold Rush bring a shower)
+      var coinPowerUp = this.powerups.scoreFrenzy > 0 || this.powerups.goldRush > 0 || this.powerups.jackpot > 0;
+      this.coinSpawnTimer = batchLength / Math.max(this.speed, 0.5) + coinBreather(Math.random(), coinPowerUp);
     }
 
     // Power-up spawning
@@ -1544,7 +1553,7 @@ class Game {
       // it, so a jump or slide timed a little early or a little late still works. Only an obstacle that arrives
       // without one of those having happened hurts.
       if (!od.checked && od.lane === this.currentLane && ob.position.z > -1.5 && !od.cleared) {
-        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) od.cleared = true;
+        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) { od.cleared = true; od.clearedZ = ob.position.z; }
       }
       if (!od.checked && ob.position.z > 0.15) {
         od.checked = true;
@@ -1553,6 +1562,8 @@ class Game {
           if (dodged) {
             if (od.type === 'low') this.obstaclesJumped++;
             else this.obstaclesSlid++;
+            // a jump or slide at the very last moment is a close call: a small burst of coins
+            if (typeof od.clearedZ === 'number' && od.clearedZ > -NEAR_MISS_Z && this.mode !== GAME_MODES.STUDY) this._nearMiss(od.type);
           }
           if (!dodged && !this.rushInvulnerable) {
             if (this.powerups.shield > 0) {
@@ -1609,16 +1620,19 @@ class Game {
         continue;
       }
 
+      // The magnet reaches well ahead and curves coins in, quicker as they get close
+      if (this.powerups.magnet > 0 && c.userData.type === 'coin' && !c.userData.collected && c.position.z > -9 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED) {
+        c.position.x = magnetX(c.position.x, this.playerGroup.position.x, c.position.z, dt);
+      }
+
       if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED && !c.userData.collected) {
         var inLane = c.userData.lane === this.currentLane;
         var magnetActive = this.powerups.magnet > 0;
         var closeEnough = Math.abs(LANE_X[this.currentLane] - c.position.x) < 1.8;
+        // a coin up in the air takes a jump to reach (the magnet does not mind)
+        var reachable = magnetActive || coinReachable(c.position.y, this.playerY, c.userData.air);
 
-        if (magnetActive && !inLane && c.position.z > -5 * VISUAL_SPEED) {
-          c.position.x += (this.playerGroup.position.x - c.position.x) * dt * 5;
-        }
-
-        if (inLane || closeEnough || magnetActive) {
+        if ((inLane || closeEnough || magnetActive) && reachable) {
           c.userData.collected = true;
 
           if (c.userData.type === 'powerup') {
@@ -1628,11 +1642,7 @@ class Game {
             if (this.lives < maxLives) this.lives++;
             this._emit('coin_collected', { type: 'heart' });
           } else {
-            var coinValue = (this.powerups.scoreFrenzy > 0 ? 5 : 1) * (this.powerups.goldRush > 0 ? 2 : 1);
-            this.coins += coinValue;
-            this.runCoinsCollected += coinValue;
-            this._spawnSparks(c.position, 0xffd54a);
-            this._emit('coin_collected', { type: 'coin', value: coinValue, lane: c.userData.lane });
+            this._pickUpCoin(c);
           }
           removeAndDispose(this.scene, c);
           this.coinMeshes.splice(ci, 1);
@@ -1691,6 +1701,35 @@ class Game {
     heartGroup.userData = { lane: lane, collected: false, type: 'heart' };
     this.scene.add(heartGroup);
     this.coinMeshes.push(heartGroup);
+  }
+
+  /** A coin off the track: counts it, keeps the chain going (the chime climbs), and tells the screen where it was. */
+  _pickUpCoin(c) {
+    var air = !!c.userData.air && this.playerY > 0.4; // taken in the air, mid-jump: worth double
+    var coinValue = coinWorth({ airJump: air, frenzy: this.powerups.scoreFrenzy > 0, goldRush: this.powerups.goldRush > 0 });
+    this.coins += coinValue;
+    this.runCoinsCollected += coinValue;
+    this._coinChain = chainContinues(this.elapsedTime - this._coinChainT) ? this._coinChain + 1 : 0;
+    this._coinChainT = this.elapsedTime;
+    this._spawnSparks(c.position, air ? 0xffffff : 0xffd54a);
+    // where on the screen it was, so a coin can fly to the counter from there
+    if (!this._coinScreen) this._coinScreen = new THREE.Vector3();
+    this._coinScreen.copy(c.position).project(this.camera);
+    this._emit('coin_collected', {
+      type: 'coin', value: coinValue, lane: c.userData.lane, chain: this._coinChain, ratio: chimeRatio(this._coinChain), air: air,
+      sx: (this._coinScreen.x * 0.5 + 0.5) * innerWidth, sy: (-this._coinScreen.y * 0.5 + 0.5) * innerHeight
+    });
+  }
+
+  /** Cleared an obstacle at the last moment. */
+  _nearMiss(kind) {
+    var bonus = NEAR_MISS_COINS;
+    this.coins += bonus;
+    this.runCoinsCollected += bonus;
+    this._spawnSparks(this.playerGroup.position, 0xffffff);
+    this._spawnSparks(this.playerGroup.position, 0xffd54a);
+    this._emit('near_miss', { kind: kind, coins: bonus });
+    this._emit('score_changed', {});
   }
 
   _collectPowerup(type) {
@@ -1783,7 +1822,10 @@ class Game {
     // the gate: they only arrive after the answer has been locked in, never right at the gate.
     this._spawnEncounter();
     if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
-      spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED });
+      var obstacleZ = (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED;
+      var made = spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: obstacleZ });
+      // a reward for getting past it: an arc over a jump, a trail under an overhead obstacle
+      if (made) spawnCoinsForObstacle(this.scene, this.coinMeshes, made, obstacleZ);
     }
   }
 

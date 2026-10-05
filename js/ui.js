@@ -1256,6 +1256,44 @@ class UI {
     setTimeout(function () { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 800);
   }
 
+  /**
+   * A coin off the track: it flies from where it was to the coin counter, which bumps when it arrives.
+   * (No text per coin: a stream of "+1"s buries the track. Only a bigger coin, from a power-up, says what it is worth.)
+   * @param {{value: number, sx: number, sy: number, air: boolean}} info
+   */
+  showCoinPickup(info) {
+    if (prefersReducedMotion()) return;
+    var counter = document.getElementById('hudCoins');
+    if (!counter) return;
+    var pill = counter.parentElement;
+    this._flyingCoins = this._flyingCoins || 0;
+    if (this._flyingCoins < 12 && isFinite(info.sx) && isFinite(info.sy)) {
+      this._flyingCoins++;
+      var dot = createElement('div', { className: 'coin-fly' + (info.air ? ' air' : '') });
+      dot.style.left = info.sx + 'px';
+      dot.style.top = info.sy + 'px';
+      document.body.appendChild(dot);
+      var rect = counter.getBoundingClientRect();
+      var self = this;
+      requestAnimationFrame(function () {
+        dot.style.left = (rect.left + rect.width / 2) + 'px';
+        dot.style.top = (rect.top + rect.height / 2) + 'px';
+        dot.style.opacity = '0.2';
+        dot.style.transform = 'translate(-50%, -50%) scale(0.5)';
+      });
+      setTimeout(function () {
+        self._flyingCoins = Math.max(0, self._flyingCoins - 1);
+        if (dot.parentNode) dot.parentNode.removeChild(dot);
+        if (pill) { pill.classList.remove('coin-bump'); void pill.offsetWidth; pill.classList.add('coin-bump'); }
+      }, 380);
+    }
+    // a bigger coin (a jump-collected one, Frenzy, Gold Rush) says what it was worth, lightly
+    if (info.value > 1 && (!this._lastCoinPopup || performance.now() - this._lastCoinPopup > 250)) {
+      this._lastCoinPopup = performance.now();
+      this.showScorePopup('🪙 +' + info.value);
+    }
+  }
+
   showCoinBurst() {
     if (prefersReducedMotion()) return;
     for (var i = 0; i < 6; i++) {

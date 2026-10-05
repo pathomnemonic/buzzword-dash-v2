@@ -954,8 +954,8 @@ class AudioEngine {
         this._vibrate(HAPTIC_PATTERNS.wrong);
         break;
       case 'coin':
-        this._playCoinVariation(sfxVol, opts.lane);
-        this._vibrate(HAPTIC_PATTERNS.coin);
+        this._playCoinVariation(sfxVol, opts.lane, opts.ratio);
+        if (!opts.noHaptic) this._vibrate(HAPTIC_PATTERNS.coin);
         break;
       case 'rush':
         this._playRush(sfxVol);
@@ -1223,7 +1223,8 @@ class AudioEngine {
     }, this);
   }
 
-  _playCoinVariation(vol, lane) {
+  /** One coin. With `ratio` (a run of coins) the chime climbs: 1 is the first note, 2 an octave above it. */
+  _playCoinVariation(vol, lane, ratio) {
     var ctx = this.ctx; var t = ctx.currentTime;
     var g = ctx.createGain();
     var panner = null;
@@ -1240,7 +1241,15 @@ class AudioEngine {
     }
     var o = ctx.createOscillator(); o.type = 'sine';
     var variation = Math.floor(Math.random() * 4);
+    if (typeof ratio === 'number' && ratio > 0) {
+      var base = 988 * ratio;
+      o.frequency.setValueAtTime(base, t);
+      o.frequency.setValueAtTime(base * 4 / 3, t + 0.04);
+      vol *= 1 / Math.sqrt(Math.max(1, ratio)); // the higher notes are brighter, so they sit a little lower
+      variation = -1;
+    }
     switch (variation) {
+      case -1: break;
       case 0: o.frequency.setValueAtTime(988, t); o.frequency.setValueAtTime(1318, t + 0.04); break;
       case 1: o.frequency.setValueAtTime(1047, t); o.frequency.setValueAtTime(1397, t + 0.04); break;
       case 2: o.frequency.setValueAtTime(880, t); o.frequency.setValueAtTime(1175, t + 0.03); o.frequency.setValueAtTime(1480, t + 0.06); break;

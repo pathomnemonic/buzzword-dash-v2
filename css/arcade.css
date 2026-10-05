@@ -2254,3 +2254,16 @@ body.is-dying .side-card { opacity: 0; }
   transition: opacity .6s ease; opacity: 1;
 }
 .bottom-hint.fade { opacity: 0; }
+
+/* ---------- coins: one flies to the counter, which bumps ---------- */
+.coin-fly {
+  position: fixed; width: 14px; height: 14px; border-radius: 50%; z-index: 20; pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, #fff6a8, #ffc928 60%, #e09a00); border: 2px solid var(--ink);
+  box-shadow: 0 0 8px rgba(255, 204, 0, .8); transform: translate(-50%, -50%); opacity: 1;
+  transition: left .36s cubic-bezier(.4, 0, .9, .6), top .36s cubic-bezier(.4, 0, .9, .6), opacity .36s ease-in, transform .36s ease-in;
+}
+.coin-fly.air { background: radial-gradient(circle at 35% 30%, #ffffff, #bff3ff 60%, #6fd4ff); box-shadow: 0 0 10px rgba(180, 240, 255, .9); }
+.quality-low .coin-fly { display: none; }
+#hud .hud-pill.coin-bump { animation: coinBump .22s ease-out; }
+@keyframes coinBump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .coin-fly { display: none; } #hud .hud-pill.coin-bump { animation: none; } }

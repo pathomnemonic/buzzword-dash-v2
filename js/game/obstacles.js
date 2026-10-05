@@ -28,6 +28,7 @@ import { buildModelCharacter, loadCharacterModel, isModelReady } from './charact
 import { modelUrl } from './modelcatalog.js';
 import { useCharacterModels } from './quality.js';
 import { VISUAL_SPEED } from './enginedefs.js';
+import { COIN_GAP, coinsForObstacle } from './coinfx.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -803,8 +804,9 @@ function makeCoinMesh(lane, z, y) {
 
 var _lastCoinLane = -1;
 
-function addCoin(scene, coinMeshes, lane, z, y) {
+function addCoin(scene, coinMeshes, lane, z, y, air) {
   var c = makeCoinMesh(lane, z, y);
+  if (air) c.userData.air = true; // up in the air: it takes a jump to reach
   softenTranslucentScenery(c);
   scene.add(c);
   coinMeshes.push(c);
@@ -824,51 +826,74 @@ function neighbourLane(lane) {
   return Math.random() < 0.5 ? 0 : 2;
 }
 
+// Coins sit COIN_GAP apart (close, like a trail you run along), in longer runs than they used to be.
+
 function spawnCoinLine(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  var n = 5 + Math.floor(Math.random() * 3);
-  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, lane, startZ - i * 2.5);
+  var n = 9 + Math.floor(Math.random() * 6);
+  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, lane, startZ - i * COIN_GAP);
   _lastCoinLane = lane;
-  return n * 2.5;
+  return n * COIN_GAP;
 }
 
 /** A run of coins that moves over to the next lane halfway. */
 function spawnCoinSwitch(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 4; i++) addCoin(scene, coinMeshes, a, startZ - i * 2.2);
-  for (var j = 0; j < 4; j++) addCoin(scene, coinMeshes, b, startZ - (5 + j) * 2.2);
+  for (var i = 0; i < 6; i++) addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
+  for (var j = 0; j < 6; j++) addCoin(scene, coinMeshes, b, startZ - (7 + j) * COIN_GAP);
   _lastCoinLane = b;
-  return 9 * 2.2;
+  return 13 * COIN_GAP;
 }
 
-/** Alternating coins between two neighbouring lanes. */
+/** A winding S: three coins in one lane, three in the next, and back again. */
 function spawnCoinZigzag(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 8; i++) addCoin(scene, coinMeshes, i % 2 ? b : a, startZ - i * 2.2);
-  _lastCoinLane = i % 2 ? a : b;
-  return 8 * 2.2;
+  var n = 12;
+  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, Math.floor(i / 3) % 2 ? b : a, startZ - i * COIN_GAP);
+  _lastCoinLane = Math.floor((n - 1) / 3) % 2 ? b : a;
+  return n * COIN_GAP;
 }
 
-/** An arc of coins in one lane: jump to collect them all. */
+/** An arc of coins in one lane: jump to collect them all (they are in the air, so it takes a jump). */
 function spawnCoinArc(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  for (var i = 0; i < 6; i++) addCoin(scene, coinMeshes, lane, startZ - i * 2, 1.2 + Math.sin(i / 5 * Math.PI) * 1.5);
+  var n = 8;
+  for (var i = 0; i < n; i++) {
+    var h = Math.sin(i / (n - 1) * Math.PI);
+    addCoin(scene, coinMeshes, lane, startZ - i * 1.0, 1.2 + h * 1.75, h > 0.55);
+  }
   _lastCoinLane = lane;
-  return 6 * 2;
+  return n * 1.0;
 }
 
 /** Pairs of coins side by side in two neighbouring lanes. */
 function spawnCoinPairs(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 4; i++) {
-    addCoin(scene, coinMeshes, a, startZ - i * 2.5);
-    addCoin(scene, coinMeshes, b, startZ - i * 2.5);
+  for (var i = 0; i < 6; i++) {
+    addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP * 1.2);
+    addCoin(scene, coinMeshes, b, startZ - i * COIN_GAP * 1.2);
   }
   _lastCoinLane = b;
-  return 4 * 2.5;
+  return 6 * COIN_GAP * 1.2;
+}
+
+/**
+ * Coins that go with an obstacle: an arc over a jump obstacle (the jump that clears it collects them), a low trail
+ * under an overhead one. They never lean toward an answer: an obstacle's lane is chosen without regard to the gates.
+ * @param {THREE.Scene} scene
+ * @param {THREE.Object3D[]} coinMeshes
+ * @param {{type: string, lane: number}} info what spawnObstacle returned
+ * @param {number} obstacleZ the obstacle's world z when it spawned
+ */
+export function spawnCoinsForObstacle(scene, coinMeshes, info, obstacleZ) {
+  if (!info) return 0;
+  var list = coinsForObstacle(info.type === 'slide' ? 'slide' : 'jump');
+  var middle = obstacleZ / VISUAL_SPEED;
+  for (var i = 0; i < list.length; i++) addCoin(scene, coinMeshes, info.lane, middle + list[i].dz, list[i].y, list[i].air);
+  return list.length;
 }
 
 /**
@@ -881,14 +906,12 @@ function spawnCoinPairs(scene, coinMeshes, startZ) {
  */
 export function spawnCoinBatch(scene, coinMeshes, startZ) {
   var z = startZ || (-40 - Math.random() * 20);
-  var p = Math.floor(Math.random() * 5);
-  switch (p) {
-    case 0: return spawnCoinLine(scene, coinMeshes, z);
-    case 1: return spawnCoinSwitch(scene, coinMeshes, z);
-    case 2: return spawnCoinZigzag(scene, coinMeshes, z);
-    case 3: return spawnCoinArc(scene, coinMeshes, z);
-    default: return spawnCoinPairs(scene, coinMeshes, z);
-  }
+  var r = Math.random() * 10;
+  if (r < 3) return spawnCoinLine(scene, coinMeshes, z);
+  if (r < 5) return spawnCoinSwitch(scene, coinMeshes, z);
+  if (r < 7) return spawnCoinZigzag(scene, coinMeshes, z);
+  if (r < 9) return spawnCoinArc(scene, coinMeshes, z);
+  return spawnCoinPairs(scene, coinMeshes, z);
 }
 
 /**
