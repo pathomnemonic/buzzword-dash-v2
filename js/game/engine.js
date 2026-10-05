@@ -42,6 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
+import { applyTrackShift } from './widelayout.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -433,6 +434,7 @@ class Game {
     this.camera = new THREE.PerspectiveCamera(this.baseFOV, innerWidth / innerHeight, 0.1, 300);
     this.camera.position.copy(this.cameraBasePos);
     this.camera.lookAt(0, 1, -20);
+    applyTrackShift(this.camera, innerWidth, innerHeight);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(innerWidth, innerHeight);
@@ -652,7 +654,7 @@ class Game {
   resize(width, height, pixelRatio) {
     if (this.camera) {
       this.camera.aspect = width / height;
-      this.camera.updateProjectionMatrix();
+      applyTrackShift(this.camera, width, height); // (also updates the projection)
     }
     if (this.renderer) {
       this.renderer.setSize(width, height);

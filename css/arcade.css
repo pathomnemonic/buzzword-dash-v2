@@ -1516,7 +1516,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .tut-exit-box .tut-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 
 /* ---------- the Locker: three even tabs on one line, and the hero card ---------- */
-.locker-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0 6px; }
+.locker-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 6px; }
+.locker-tabs.five { grid-template-columns: repeat(5, 1fr); }
 .locker-tabs .locker-tab { width: 100%; white-space: nowrap; padding: 8px 1px; font-size: 10px; letter-spacing: 0; justify-content: center; position: relative; min-width: 0; }
 .locker-tabs .locker-tab { flex-direction: column; gap: 1px; line-height: 1.1; overflow: hidden; }
 .locker-tabs .locker-tab .tab-icon { display: block; font-size: 16px; line-height: 1.1; }
@@ -2216,3 +2217,26 @@ body.dyslexia #hud .hud-pill { font-size: 12px; }
 body.dyslexia .btn { letter-spacing: .01em; }
 body.lefty .dash-btn { right: auto; left: calc(var(--safe-left, 0px) + 14px); }
 body.lefty .auto-btn { right: auto; left: calc(var(--safe-left, 0px) + 18px); }
+
+/* ---------- wide landscape (tablet, laptop, desktop): the question lives in a column on the left, the track fills the rest ----------
+   Same condition as WIDE_QUERY in js/game/widelayout.js, which slides the 3D view to the middle of the free space. */
+@media (min-width: 1000px) and (min-height: 600px) and (min-aspect-ratio: 4/3) {
+  :root { --wide-panel: 380px; }
+  #hud {
+    right: auto; bottom: 0; width: var(--wide-panel); box-sizing: border-box;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: calc(var(--safe-top) + 12px) 14px calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 14px);
+    background: linear-gradient(90deg, rgba(14, 6, 40, .82) 0%, rgba(14, 6, 40, .72) 80%, rgba(14, 6, 40, 0) 100%);
+  }
+  #hud .hud-row, #opponentHud, .powerup-row { max-width: none; margin: 0; width: 100%; }
+  #hud .hud-row { flex-wrap: wrap; gap: 6px; }
+  #hud .hud-pill { flex: 1 1 calc(33% - 6px); }
+  #hud #pauseBtn { flex: 0 0 auto; }
+  #buzzBox { max-width: none; width: 100%; margin: 4px 0; padding: 16px 16px; box-sizing: border-box; }
+  #buzzText { font-size: 19px; line-height: 1.4; }
+  #answerRow { flex-direction: column; gap: 10px; max-width: none; width: 100%; margin: 0; }
+  .answer-choice { font-size: 18px; padding: 14px 12px; text-align: left; }
+  .answer-choice .lane-label { font-size: 11px; }
+  /* hold the dash controls on the track side of the screen, away from the column */
+  body:not(.lefty) .dash-btn, body:not(.lefty) .auto-btn { right: calc(var(--safe-right) + 28px); }
+}

@@ -923,6 +923,7 @@ export var settingsMethods = {
     // (Older saves of the tab name still work: 'characters' and 'customize' are Heroes, 'extras' is Trails.)
     var rawTab = this._lockerTab || 'heroes';
     var tab = rawTab === 'characters' || rawTab === 'customize' ? 'heroes' : (rawTab === 'extras' ? 'trails' : rawTab);
+    if (tab === 'pals' && !FEATURES.studyBuddies) tab = 'heroes';
     if (rawTab === 'customize') this._heroColorsOpen = true;
     this._lockerTab = tab;
     // The Locker opens as one calm screen (the display, the tabs and what you wear). Tapping a tab opens its list
@@ -933,12 +934,12 @@ export var settingsMethods = {
     var shopItems = document.getElementById('shopItems');
     clearElement(shopItems);
 
-    var tabBar = createElement('div', { className: 'locker-tabs', attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
+    var tabBar = createElement('div', { className: 'locker-tabs' + (FEATURES.studyBuddies ? ' five' : ''), attributes: { role: 'tablist', 'aria-label': 'Locker sections' } });
     var fresh = this._lockerFresh || [];
     var tabOf = function (item) { return item.type === 'skin' ? 'heroes' : item.type === 'trail' ? 'trails' : item.type === 'monster' ? 'monsters' : item.type === 'map' ? 'maps' : item.type === 'pal' ? 'pals' : 'heroes'; };
     var freshTabs = {};
     LOCKER_ITEMS.forEach(function (item) { if (fresh.indexOf(item.id) >= 0) freshTabs[tabOf(item)] = (freshTabs[tabOf(item)] || 0) + 1; });
-    [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters'], ['pals', '🐾', 'Pals']].forEach(function (t) {
+    [['heroes', '🦸', 'Heroes'], ['trails', '✨', 'Trails'], ['maps', '🗺️', 'Maps'], ['monsters', '👾', 'Monsters'], ['pals', '🐾', 'Pals']].filter(function (t) { return t[0] !== 'pals' || FEATURES.studyBuddies; }).forEach(function (t) {
       var b = createElement('button', {
         className: 'btn btn-sm locker-tab ' + (listOpen && tab === t[0] ? 'btn-primary' : 'btn-outline'),
         attributes: { type: 'button', role: 'tab', 'aria-selected': listOpen && tab === t[0] ? 'true' : 'false', 'aria-expanded': listOpen && tab === t[0] ? 'true' : 'false' }

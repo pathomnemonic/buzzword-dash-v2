@@ -5,6 +5,7 @@
 
 import { storage } from './storage.js';
 import { getPal, palMood, palLine, isPalMilestone, NO_PAL, DEFAULT_PAL } from './companions.js';
+import { FEATURES } from './features.js';
 
 var bubbleTimer = null;
 var pendingEvent = null;
@@ -18,6 +19,7 @@ function dateKey(d) {
 
 /** The buddy the player has chosen (null for "no buddy"). */
 export function currentPal() {
+  if (!FEATURES.studyBuddies) return null; // shelved (see features.js): no buddy on Home, in cheers or in reminders
   var id = (storage.get('equipped') || {}).pal || DEFAULT_PAL;
   return id === NO_PAL ? null : getPal(id);
 }

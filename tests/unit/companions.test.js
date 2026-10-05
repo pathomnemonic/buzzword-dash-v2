@@ -81,3 +81,14 @@ describe('a new player and the Collector badges', () => {
     expect(storage.checkAchievements(null)).toContain('ach_collect_10');
   });
 });
+
+describe('study buddies are shelved but kept', () => {
+  it('no buddy is shown, cheers or lends its voice while the feature is off', async () => {
+    const { FEATURES } = await import('../../js/features.js');
+    const { currentPal } = await import('../../js/palui.js');
+    expect(FEATURES.studyBuddies).toBe(false);
+    expect(currentPal()).toBeNull();
+    // the data and rules are all still there for when it comes back
+    expect(PALS.length).toBeGreaterThan(5);
+  });
+});

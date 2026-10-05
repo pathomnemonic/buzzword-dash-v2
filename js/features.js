@@ -18,6 +18,9 @@
  * so for now a right answer plays a short rising musical chime and a wrong one a soft falling two-note sigh
  * instead. The code is kept; build with VITE_FEATURE_CHARACTER_VOICES=1 to bring the voices (and their Settings
  * switch) back.
+ *
+ * studyBuddies: the Home-screen pet (js/companions.js, js/palui.js) and its Pals tab in the Locker. It is shelved for now: the
+ * code, the buddy items and the saved choice are all kept, so it comes back untouched. Build with VITE_FEATURE_STUDY_BUDDIES=1.
  */
 
 function flag(value) {
@@ -28,5 +31,6 @@ export var FEATURES = {
   cohorts: flag(import.meta.env && import.meta.env.VITE_FEATURE_COHORTS),
   globalLeaderboard: flag(import.meta.env && import.meta.env.VITE_FEATURE_GLOBAL_LEADERBOARD),
   discovery: flag(import.meta.env && import.meta.env.VITE_FEATURE_DISCOVERY),
-  characterVoices: flag(import.meta.env && import.meta.env.VITE_FEATURE_CHARACTER_VOICES)
+  characterVoices: flag(import.meta.env && import.meta.env.VITE_FEATURE_CHARACTER_VOICES),
+  studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES)
 };
