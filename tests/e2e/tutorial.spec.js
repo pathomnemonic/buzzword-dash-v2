@@ -44,7 +44,7 @@ async function walkTour(page) {
     }
     await page.waitForTimeout(450);
   }
-  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Racing a friend', 'Choose your cards', 'Study', 'Weekly Gauntlet', 'Exam Sim', 'Your first trail', 'Wear it', 'Daily quests']));
+  expect(seen).toEqual(expect.arrayContaining(['PLAY', 'Filters', 'Racing a friend', 'Choose your cards', 'Study', 'Weekly Gauntlet', 'Exam Sim', 'Your first trail', 'Daily quests']));
   await expect(page.locator('#tourOverlay')).toHaveCount(0);
 }
 

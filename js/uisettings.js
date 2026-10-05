@@ -807,6 +807,9 @@ export var settingsMethods = {
               audio.play('buy');
               var earned = storage.afterPurchase();
               if (earned.length) self.showAchievementNotification(earned);
+              // what you just bought is worn straight away
+              storage.equipItem(item.id, type);
+              if (self.onEquipChange) self.onEquipChange();
               self.renderShop();
               if (self.characterPreview) {
                 self.characterPreview.clearPreview();
@@ -915,8 +918,9 @@ export var settingsMethods = {
   _syncLockerPreview() {
     var cp = this.characterPreview;
     if (!cp) return;
-    cp.clearPreview();
     var tab = this._lockerTab;
+    cp.showTrail = tab === 'trails';
+    cp.clearPreview();
     if (tab === 'monsters') {
       var monster = (storage.get('equipped') || {}).monster;
       if (monster) cp.previewItem(monster, 'monster');

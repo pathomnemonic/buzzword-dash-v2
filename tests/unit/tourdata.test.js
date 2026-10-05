@@ -79,9 +79,9 @@ describe('the tour always teaches with the EKG Line, and never hands out coins',
     const coinsAfter = storage.get('coins');
     ui.renderShop();
     expect(applies('buy')).toBe(false);
-    expect(applies('equip')).toBe(true);
-    step('equip').target().click();
+    // buying wears it at once, so there is nothing left to equip
     expect(storage.get('equipped').trail).toBe('trail_ekg');
+    expect(applies('equip')).toBe(false);
     ui.renderShop();
     // the tour again: nothing to buy, nothing to equip, the display step still makes sense, and no coins appear or go
     expect(applies('buy')).toBe(false);

@@ -398,7 +398,7 @@ export class CharacterPreview {
      * viewer from behind it; otherwise the runner faces the viewer.
      */
     _faceForTrail() {
-        var trail = this.trailSystem && this.trailSystem.getConfig();
+        var trail = this.showTrail !== false && this.trailSystem && this.trailSystem.getConfig();
         this.targetRotationY = trail && !this.previewMonsterId ? 0 : Math.PI;
     }
 
@@ -466,7 +466,9 @@ export class CharacterPreview {
         this._removeMap();
         this.previewOverrides = null;
         this.previewMonsterId = null;
-        if (this.trailSystem) this.trailSystem.setOverride(null); // back to the equipped trail
+        // back to the equipped trail (or none while another Locker tab is open: showTrail is false there, so the hero
+        // keeps facing you instead of turning its back)
+        if (this.trailSystem) this.trailSystem.setOverride(this.showTrail === false ? 'trail_none' : null);
         this._faceForTrail();
         this.rebuildCharacter();
     }
