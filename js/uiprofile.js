@@ -151,6 +151,7 @@ export var profileMethods = {
       var list = pins.map(function (id) { return ACHIEVEMENTS.filter(function (a) { return a.id === id; })[0]; }).filter(function (a) { return a && have.indexOf(a.id) >= 0; });
       if (!list.length) return;
       var showcase = createElement('div', { className: 'profile-showcase', attributes: { id: 'profileShowcase', role: 'list', 'aria-label': 'Pinned badges' } });
+      showcase.style.setProperty('--cols', String(Math.min(3, list.length))); // three to a row: six badges make two even rows, never three
       list.forEach(function (a) {
         var chip = createElement('div', { className: 'showcase-badge', attributes: { role: 'listitem', title: a.name + ': ' + a.desc, 'aria-label': a.name + ': ' + a.desc } });
         chip.appendChild(createElement('span', { className: 'showcase-icon', text: a.icon }));
@@ -241,6 +242,16 @@ export var profileMethods = {
     detail.textContent = 'Tap a badge to see what it is for.';
     badgeSection.appendChild(detail);
 
+    var bannerTimer = null;
+    function showBadgeBanner(text) {
+      var old = document.getElementById('badgeBanner');
+      if (old) old.remove();
+      var banner = createElement('div', { className: 'badge-banner', text: text, attributes: { id: 'badgeBanner', role: 'status' } });
+      document.body.appendChild(banner);
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(function () { banner.remove(); }, 4500);
+    }
+
     var byId = {};
     ACHIEVEMENTS.forEach(function (a) { byId[a.id] = a; });
     ACHIEVEMENT_GROUPS.forEach(function (group) {
@@ -274,6 +285,7 @@ export var profileMethods = {
         item.appendChild(pin);
         var activate = function () {
           detail.textContent = (earned ? ach.icon : '🔒') + ' ' + ach.name + ': ' + ach.desc + (earned ? '' : ' (not yet earned)');
+          showBadgeBanner(detail.textContent); // the line above may be scrolled out of sight, so it also floats near the bottom
           if (!earned) return;
           var badges = storage.get('selectedBadges') || [];
           var idx = badges.indexOf(ach.id);

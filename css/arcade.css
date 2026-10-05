@@ -2167,3 +2167,9 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 #answerRow.tut-tappable .answer-choice { pointer-events: auto; cursor: pointer; }
 .answer-choice.tut-nudge { outline: 3px solid var(--accent-gold, #fbbf24); box-shadow: 0 0 16px rgba(251, 191, 36, .8); }
 .coach-feedback.hint { color: var(--accent-gold, #fbbf24); }
+
+/* pinned badges: three to a row, so six sit on two tidy rows instead of wrapping onto a third */
+.profile-showcase { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); }
+.profile-showcase .showcase-badge { min-width: 0; }
+/* the explanation of the tapped badge floats just above the bottom bar, wherever the list is scrolled to */
+.badge-banner { position: fixed; left: 12px; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); z-index: 40; padding: 10px 12px; border-radius: 14px; background: #fff6dc; color: #1b0a40; border: 3px solid #1b0a40; box-shadow: 0 4px 0 #1b0a40; font-size: 13px; font-weight: 800; line-height: 1.35; text-align: center; pointer-events: none; }
