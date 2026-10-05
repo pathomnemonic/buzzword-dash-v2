@@ -49,7 +49,14 @@ export function fitScreen(screen) {
   var avail = scroll.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   wrap.style.zoom = '1';
   var h = wrap.getBoundingClientRect().height;
-  if (!(h > 0) || h > avail) return 1; // more than fits: normal size, and it scrolls
+  var widthCap0 = Math.max(1, scroll.clientWidth / MIN_EFFECTIVE_WIDTH);
+  if (!(h > 0) || h > avail) {
+    // More than fits (a section was opened, a long list): it scrolls. It keeps the size it had a moment ago, so opening a
+    // dropdown does not make the whole screen suddenly shrink; a screen that never fitted just stays at normal size.
+    var keep = Math.max(1, Math.min(Number(screen._fitZoom) || 1, widthCap0));
+    wrap.style.zoom = String(Math.round(keep * 1000) / 1000);
+    return keep;
+  }
   var widthCap = Math.max(1, scroll.clientWidth / MIN_EFFECTIVE_WIDTH);
   var f = zoomFor(h, avail * 0.965, Math.min(MAX_ZOOM, widthCap));
   for (var i = 0; i < STEPS && f > 1.01; i++) {
@@ -58,14 +65,15 @@ export function fitScreen(screen) {
     if (now <= avail * 0.97) break;
     f = Math.max(1, f * (avail / now) * 0.97);
   }
-  if (f <= 1.01) { wrap.style.zoom = '1'; return 1; }
+  if (f <= 1.01) { wrap.style.zoom = '1'; screen._fitZoom = 1; return 1; }
   wrap.style.zoom = String(Math.round(f * 1000) / 1000);
   // the real test: the scroll area itself must not overflow (margins, sticky parts and rounding can add a few pixels)
   for (var k = 0; k < 5 && scroll.scrollHeight > scroll.clientHeight && f > 1; k++) {
     f = Math.max(1, f * (scroll.clientHeight / scroll.scrollHeight) * 0.99);
     wrap.style.zoom = String(Math.round(f * 1000) / 1000);
   }
-  if (f <= 1.01) { wrap.style.zoom = '1'; return 1; }
+  if (f <= 1.01) { wrap.style.zoom = '1'; screen._fitZoom = 1; return 1; }
+  screen._fitZoom = f;
   return f;
 }
 
