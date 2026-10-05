@@ -170,3 +170,28 @@ export function stepAdaptiveResolution(state, frameMs, nowMs, targetMs) {
   }
   return null;
 }
+
+// ===== TRIM THE SCENERY BEFORE THE PICTURE =====
+
+/** How much of the moving side scenery to draw, best first. */
+export var DENSITY_LEVELS = [1, 0.5, 0.2, 0];
+
+/**
+ * When the frame rate drops, the cheapest thing to give up is the decoration beside the track (balloons, fish,
+ * butterflies), not sharpness. So a "slower" step thins the scenery first and only lowers the resolution once the
+ * scenery is as thin as it goes; a "faster" step restores the resolution first, then the scenery.
+ * @param {'slower'|'faster'} direction what the resolution controller wants to do
+ * @param {number} densityIndex position in DENSITY_LEVELS (0 = everything)
+ * @param {boolean} atFullResolution whether the resolution is already at its maximum
+ * @returns {{densityIndex: number, applyResolution: boolean}}
+ */
+export function planAdaptiveStep(direction, densityIndex, atFullResolution) {
+  var last = DENSITY_LEVELS.length - 1;
+  if (direction === 'slower') {
+    if (densityIndex < last) return { densityIndex: densityIndex + 1, applyResolution: false };
+    return { densityIndex: densityIndex, applyResolution: true };
+  }
+  if (!atFullResolution) return { densityIndex: densityIndex, applyResolution: true };
+  if (densityIndex > 0) return { densityIndex: densityIndex - 1, applyResolution: false };
+  return { densityIndex: 0, applyResolution: true };
+}

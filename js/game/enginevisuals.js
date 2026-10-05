@@ -9,9 +9,9 @@ import * as THREE from 'three';
 import { storage } from '../storage.js';
 import { buildTrack, updateRunningLights, updateAtmosphericParticles, updateScrollLines, updateScrollers, updateWallScrollPanels, updateWallMarkers, updateSkyboxElements } from './track.js';
 import { softDotTexture } from './materials.js';
-import { getQuality, isLowQuality, useSceneryModels } from './quality.js';
+import { getQuality, isLowQuality, useSceneryModels, DENSITY_LEVELS } from './quality.js';
 import { buildSideScenery, animateSideScenery } from './scenery.js';
-import { updateAnimators } from './mapfx.js';
+import { updateAnimators, setSceneryDensity } from './mapfx.js';
 import { trackGlow } from './combo.js';
 
 export var visualMethods = {
@@ -223,6 +223,7 @@ export var visualMethods = {
 
       this._cleanupTrack();
       this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
+      setSceneryDensity(this.trackRefs, DENSITY_LEVELS[this._densityIndex || 0]);
 
       if (this.playerGroup && !this.scene.children.includes(this.playerGroup)) this.scene.add(this.playerGroup);
       if (this.playerShadow && !this.scene.children.includes(this.playerShadow)) this.scene.add(this.playerShadow);

@@ -39,7 +39,8 @@ import { TrailSystem } from './trails.js';
 import { PowerUpFX } from './powerupfx.js';
 import { setupEnvironment, softDotTexture } from './materials.js';
 import { reportPerformance } from '../errors.js';
-import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution } from './quality.js';
+import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
+import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
@@ -446,6 +447,7 @@ class Game {
     this.scene.add(this.trackRoot);
 
     this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
+    setSceneryDensity(this.trackRefs, DENSITY_LEVELS[this._densityIndex || 0]);
     this._rebuildPlayer();
     this._createPlayerShadow();
     this.trailSystem = new TrailSystem(this.scene);
@@ -598,7 +600,17 @@ class Game {
     var now = performance.now();
     if (this._lastFrameAt) {
       var scale = stepAdaptiveResolution(this._adaptive, now - this._lastFrameAt, now, this.targetFrameMs);
-      if (scale !== null) this._setResolutionScale(scale);
+      if (scale !== null) {
+        // thin the moving scenery before giving up sharpness, and bring sharpness back before the scenery
+        var slower = scale < this._resScale;
+        var plan = planAdaptiveStep(slower ? 'slower' : 'faster', this._densityIndex || 0, this._resScale >= 1);
+        if (plan.densityIndex !== (this._densityIndex || 0)) {
+          this._densityIndex = plan.densityIndex;
+          setSceneryDensity(this.trackRefs, DENSITY_LEVELS[this._densityIndex]);
+        }
+        if (plan.applyResolution) this._setResolutionScale(scale);
+        else this._adaptive.level = Math.max(0, this._adaptive.level + (slower ? -1 : 1)); // the resolution did not move, so neither does its level
+      }
     }
     this._lastFrameAt = now;
   }
@@ -718,6 +730,7 @@ class Game {
     }
 
     this.trackRefs = buildTrack(this.scene, this.currentSkin, { quality: getQuality() === 'low' ? 'low' : 'medium', ambientParticles: !!storage.get('ambientParticles') });
+    setSceneryDensity(this.trackRefs, DENSITY_LEVELS[this._densityIndex || 0]);
 
     this.camera.position.copy(this.cameraBasePos);
     this.camera.fov = this.baseFOV;

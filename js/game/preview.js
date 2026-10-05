@@ -441,7 +441,7 @@ export class CharacterPreview {
         this.mapGroup = new THREE.Group();
         this.mapGroup.position.z = 1.5; // the start of the track is just behind the camera's focus
         this.scene.add(this.mapGroup);
-        this.mapRefs = buildTrack(this.mapGroup, skin, { quality: 'low', ambientParticles: false });
+        this.mapRefs = buildTrack(this.mapGroup, skin, { quality: 'low', ambientParticles: false, atmosphere: 'day' });
         this.previewMapId = skinId;
         this.scene.background = new THREE.Color(skin.colors.bg);
         this.scene.fog = new THREE.Fog(skin.colors.bg, 12, 40);

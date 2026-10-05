@@ -165,6 +165,7 @@ export function swarm(o) {
   var mesh = new THREE.InstancedMesh(o.geo, material, n);
   mesh.frustumCulled = false;
   mesh.userData.noMerge = true;
+  mesh.userData.swarmCount = n; // so the scenery can be thinned on a slow device (see setSceneryDensity)
   var seed = o.seed || 1;
   var rnd = function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
   var between = function (r) { return r[0] + (r[1] - r[0]) * rnd(); };
@@ -237,3 +238,19 @@ export function cloudBank(count, o) {
   });
 }
 
+
+/**
+ * Draw only part of every swarm (fish, balloons, butterflies...). 1 is all of it, 0 none. The moving pieces that are not
+ * swarms (trains, windmills) stay: they are few.
+ * @param {{worldMovers?: THREE.Object3D}} refs the track references from buildTrack
+ * @param {number} density 0..1
+ */
+export function setSceneryDensity(refs, density) {
+  if (!refs || !refs.worldMovers) return;
+  refs.worldMovers.children.forEach(function (m) {
+    var n = m.userData && m.userData.swarmCount;
+    if (!n) return;
+    m.count = density <= 0 ? 0 : Math.max(1, Math.ceil(n * density));
+    m.visible = m.count > 0;
+  });
+}

@@ -36,6 +36,7 @@ import { HALL_PERIOD, isHospitalHall } from './hospitalhall.js';
 import { worldOf, buildDaySky } from './worlds.js';
 import { beginWorld, endWorld } from './mapkit.js';
 import { addSideMotion } from './sidemotion.js';
+import { applyAtmosphere, pickAtmosphere, addPrecipitation, ATMOSPHERES } from './atmosphere.js';
 
 // ===== CONSTANTS =====
 var WALL_SEGMENT_SPACING = 4;
@@ -199,6 +200,10 @@ export function buildTrack(trackRoot, skin, options) {
   // A bright world map records what moves while it is built (see mapkit.js beginWorld)
   var world = worldOf(skin);
   if (world && world.prepare) world.prepare(skin); // e.g. the Holiday Wards pick today's season
+  // time of day and weather on the open-air maps (a run can ask for one; the Locker preview asks for a clear day)
+  var atmosphere = world && !world.indoor ? (options.atmosphere || (typeof window !== 'undefined' && window.__forceAtmosphere) || pickAtmosphere(skin)) : null;
+  if (world && !world.indoor) applyAtmosphere(skin, atmosphere);
+  trackRefs.atmosphere = atmosphere;
   beginWorld(skin, trackRoot); // every map records what moves while it is built
   try {
     buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reducedMotion);
@@ -269,6 +274,7 @@ function buildTrackParts(trackRoot, skin, options, trackRefs, qc, world, reduced
   // The things that move beside the track in a bright world (trains, balloons, fish, ...)
   if (world && world.extras) world.extras(skin, trackRoot);
   else if (!world) addSideMotion(skin);
+  if (trackRefs.atmosphere && ATMOSPHERES[trackRefs.atmosphere] && ATMOSPHERES[trackRefs.atmosphere].precipitation) addPrecipitation(trackRefs.atmosphere);
 
   softenTranslucentScenery(trackRoot);
 }
