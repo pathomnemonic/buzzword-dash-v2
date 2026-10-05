@@ -5,6 +5,8 @@
 
 import { storage } from './storage.js';
 import { audio } from './audio.js';
+import { mapsUnlockedBetween } from './game/mapunlocks.js';
+import { LOCKER_ITEMS } from './game/shopdata.js';
 import { levelFromXp, xpForRun, nearMissLine, dailyTrack, rankForLevel } from './progress.js';
 
 function el(tag, className, text) {
@@ -84,6 +86,11 @@ export function buildRunRewardCard(info, score, best, newBest) {
     }, 1100);
     setTimeout(function () { audio.play(promoted ? 'promotion' : 'level_up'); celebrate(); }, 700);
     card.classList.add('xp-levelup');
+  }
+
+  if (leveled) {
+    var gained = mapsUnlockedBetween(info.levelBefore, info.levelAfter).map(function (id) { var it = LOCKER_ITEMS.filter(function (x) { return x.id === id; })[0]; return it ? it.name : ''; }).filter(Boolean);
+    if (gained.length) card.appendChild(el('div', 'xp-nudge', '🗺️ New map unlocked: ' + gained.join(', ')));
   }
 
   var next = to.needed - to.into;

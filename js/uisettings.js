@@ -13,6 +13,8 @@ import { LOCKER_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_RAMP_EVERY_OPTIONS, SPEED_RAMP_STEP_OPTIONS } from './rules.js';
 import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
+import { levelFromXp } from './progress.js';
+import { mapUnlockLevel, UNLOCK_EVERY } from './game/mapunlocks.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
@@ -944,12 +946,12 @@ export var settingsMethods = {
     var heading = createElement('h3', { text: '🗺️ Maps' });
     heading.style.cssText = 'margin:12px 0 6px;font-size:14px;color:var(--text-secondary)';
     wrap.appendChild(heading);
-    var intro = createElement('div', { className: 'setting-sublabel', text: 'Runs rotate through the maps you own. The ' + free.length + ' starter maps are free; buy the rest below. Tap one to see it above.' });
+    var intro = createElement('div', { className: 'setting-sublabel', text: 'Runs rotate through the maps you own. The ' + free.length + ' hospital rooms are yours from the start. Every other map unlocks as a reward, one more every ' + UNLOCK_EVERY + ' levels, or you can buy it early. Tap one to see it above.' });
     intro.style.cssText = 'margin:-2px 0 8px;line-height:1.4';
     wrap.appendChild(intro);
 
-    // cheapest first
-    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return (a.it.price - b.it.price) || (a.idx - b.idx); }).map(function (x) { return x.it; }).forEach(function (item) {
+    // in the order they unlock
+    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).sort(function (a, b) { return (mapUnlockLevel(a.id) || 999) - (mapUnlockLevel(b.id) || 999); }).forEach(function (item) {
       var owned = storage.ownsItem(item.id);
       var skin = SKINS.filter(function (s) { return s.id === item.skinId; })[0];
       var isFavorite = !!skin && storage.get('preferredMap') === skin.name;
@@ -963,7 +965,9 @@ export var settingsMethods = {
       nameWrap.style.flex = '1';
       nameWrap.appendChild(createElement('div', { text: item.name }));
       nameWrap.firstChild.style.cssText = 'font-size:13px;font-weight:700';
-      var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc });
+      var unlockAt = mapUnlockLevel(item.id);
+      var reached = unlockAt > 0 && levelFromXp(storage.get('xp') || 0).level >= unlockAt;
+      var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc + (owned ? (reached && storage.data.progression.ownedItems.indexOf(item.id) < 0 ? ' · Unlocked at level ' + unlockAt : '') : ' · Unlocks at level ' + unlockAt + ' (or buy it now)') });
       descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
       nameWrap.appendChild(descLine);
       if ((self._lockerFresh || []).indexOf(item.id) >= 0) {

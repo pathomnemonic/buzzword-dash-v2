@@ -17,9 +17,9 @@ describe('maps in the Locker', () => {
     expect(SKINS.filter(isIndoorSkin).length).toBeGreaterThanOrEqual(4);
   });
 
-  it('exactly five indoor maps are free (four hospital rooms and the children\'s playroom); every other map has to be bought', () => {
+  it('exactly four hospital rooms are free; every other map is a reward or has to be bought', () => {
     const free = SKINS.filter(isIndoorSkin).map((s) => s.name).sort();
-    expect(free).toEqual(['Ambulance Bay', 'Hospital Hallway', 'Operating Room', 'Pediatric Playland', 'Research Lab']);
+    expect(free).toEqual(['Ambulance Bay', 'Hospital Hallway', 'Operating Room', 'Research Lab']);
     ['Neon ER', 'Prescription Sunset', 'Surgical Theater', 'Candy Lab'].forEach((name) => {
       const skin = SKINS.find((s) => s.name === name);
       expect(isMapUnlocked(skin, () => false), name).toBe(false);
@@ -79,7 +79,7 @@ describe('buying and choosing maps', () => {
     ui._lockerTab = 'maps';
     ui.renderShop();
     const rows = document.querySelectorAll('#shopItems [data-map]');
-    expect(rows.length).toBe(21);
+    expect(rows.length).toBe(22);
     const row = document.querySelector('[data-map="map_cardiac_pulse"]');
     row.querySelector('.btn-gold').click();
     expect(storage.ownsItem('map_cardiac_pulse')).toBe(true);
@@ -112,10 +112,11 @@ describe('buying and choosing maps', () => {
     expect(storage.ownsItem('map_neural_highway')).toBe(true);
   });
 
-  it('every Locker list runs from the cheapest to the dearest', () => {
+  it('every Locker list runs from the cheapest to the dearest (maps run in the order they unlock)', () => {
     storage.set('coins', 0);
     const price = (id) => LOCKER_ITEMS.find((i) => i.id === id).price;
     ['heroes', 'trails', 'maps', 'monsters'].forEach((tab) => {
+      if (tab === 'maps') return; // maps are listed by the level they unlock at (tested below)
       ui._lockerTab = tab;
       ui.renderShop();
       const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement);
@@ -128,5 +129,40 @@ describe('buying and choosing maps', () => {
         expect(prices, tab).toEqual([...prices].sort((a, b) => a - b));
       });
     });
+  });
+});
+
+describe('maps as level rewards', () => {
+  let storage;
+  beforeEach(async () => {
+    localStorage.clear();
+    ({ storage } = await import('../../js/storage.js'));
+    storage.load();
+  });
+
+  it('every non-free map unlocks at a level, one more every five levels, and the four rooms never do', async () => {
+    const { MAP_ORDER, mapUnlockLevel } = await import('../../js/game/mapunlocks.js');
+    expect(MAP_ORDER.slice().sort()).toEqual(maps.map((m) => m.id).sort());
+    MAP_ORDER.forEach((id, i) => expect(mapUnlockLevel(id)).toBe((i + 1) * 5));
+    expect(mapUnlockLevel('map_hospital_hallway')).toBe(0);
+  });
+
+  it('reaching the level makes the map yours; before that it can still be bought', async () => {
+    const { xpAtLevel } = await import('../../js/progress.js');
+    expect(storage.ownsItem('map_pediatric_playland')).toBe(false);
+    storage.set('xp', xpAtLevel(5));
+    expect(storage.ownsItem('map_pediatric_playland')).toBe(true);
+    expect(storage.ownsItem('map_sunshine_rehab_garden')).toBe(false);
+    storage.set('coins', 5000);
+    expect(storage.buyItem('map_sunshine_rehab_garden', 1500)).toBe(true);
+    expect(storage.ownsItem('map_sunshine_rehab_garden')).toBe(true);
+    expect(isMapUnlocked(SKINS.find((s) => s.id === 'skin_pediatric_playland'), (id) => storage.ownsItem(id))).toBe(true);
+  });
+
+  it('the level-up card names a map that has just unlocked', async () => {
+    const { mapsUnlockedBetween } = await import('../../js/game/mapunlocks.js');
+    expect(mapsUnlockedBetween(4, 5)).toEqual(['map_pediatric_playland']);
+    expect(mapsUnlockedBetween(4, 12)).toHaveLength(2);
+    expect(mapsUnlockedBetween(5, 9)).toEqual([]);
   });
 });

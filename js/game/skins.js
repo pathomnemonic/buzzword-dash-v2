@@ -603,12 +603,12 @@ export var SKINS = [
 ];
 
 /**
- * Maps set in real hospital rooms (and the children's playroom) are "indoor"; the open and
+ * Maps set in real hospital rooms  are "indoor"; the open and
  * body-interior worlds are "outdoor". A run starts indoors, then moves outdoors, then is random.
  */
 var INDOOR_IDS = [
   'skin_hospital_hallway', 'skin_operating_room', 'skin_research_lab',
-  'skin_ambulance_bay', 'skin_pediatric_playland'
+  'skin_ambulance_bay'
 ];
 
 export function isIndoorSkin(skin) {

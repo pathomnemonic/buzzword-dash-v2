@@ -455,6 +455,7 @@ export var SHOP_ITEMS = [
   { id: "map_rooftop_helipad_resort", name: "Rooftop Helipad Resort", desc: "A sun deck above the city skyline", price: 3000, type: "map", skinId: "skin_rooftop_helipad_resort", color: 0x2fd0d8, icon: "🚁", compatibility: COMPAT_ALL },
   { id: "map_vet_and_farm_clinic", name: "Vet and Farm Clinic", desc: "A country clinic full of friendly animals", price: 2000, type: "map", skinId: "skin_vet_and_farm_clinic", color: 0xd9382f, icon: "🐄", compatibility: COMPAT_ALL },
   { id: "map_holiday_wards", name: "Holiday Wards", desc: "Decorated for the season: snow, blossoms, beaches, pumpkins or a party", price: 2000, type: "map", skinId: "skin_holiday_wards", color: 0xff5a8a, icon: "🎉", compatibility: COMPAT_ALL },
+  { id: "map_pediatric_playland", name: "Pediatric Playland", desc: "A giant playroom in the children's ward", price: 1500, type: "map", skinId: "skin_pediatric_playland", color: 0xff7ab8, icon: "🧸", compatibility: COMPAT_ALL },
   { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 2000, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
   { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 2000, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
   { id: "map_neon_er", name: "Neon ER", desc: "Emergency room at midnight", price: 2000, type: "map", skinId: "skin_neon_er", color: 0xff4488, icon: "🚨", compatibility: COMPAT_ALL },

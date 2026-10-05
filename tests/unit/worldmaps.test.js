@@ -38,17 +38,16 @@ describe('the ten bright maps', () => {
       expect(HAZARD_BY_SKIN[s.name], s.name + ' hazard').toBeTruthy();
       ['surge', 'flare', 'glitch', 'pulse'].includes(HAZARD_BY_SKIN[s.name]) || expect.fail(s.name + ' has a harsh hazard');
       expect(s.fog && s.fog.far, s.name + ' fog').toBeGreaterThan(100);
-      if (!isIndoorSkin(s)) expect(LOCKER_ITEMS.some((i) => i.skinId === s.id), s.name + ' for sale').toBe(true);
+      expect(LOCKER_ITEMS.some((i) => i.skinId === s.id), s.name + ' for sale').toBe(true);
     });
   });
 
-  it('only Pediatric Playland among them is free, and it is how a new player meets them', () => {
-    expect(worlds.filter(isIndoorSkin).map((s) => s.name)).toEqual(['Pediatric Playland']);
+  it('none of them is free from the start: they are rewards, and a new player never rotates into one', () => {
+    expect(worlds.filter(isIndoorSkin)).toEqual([]);
     const owns = () => false;
     const seen = new Set();
     for (let i = 0; i < 300; i++) seen.add(getNextSkin(SKINS[0], 3, Math.random, owns).name);
-    expect(seen.has('Pediatric Playland')).toBe(true);
-    expect(seen.has('Holiday Wards')).toBe(false);
+    expect(seen.has('Pediatric Playland')).toBe(false);
   });
 
   worlds.forEach((skin) => {

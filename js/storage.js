@@ -20,6 +20,8 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
+import { mapUnlockLevel } from './game/mapunlocks.js';
+import { levelFromXp } from './progress.js';
 import { repairData, sanitizeCollections } from './sanity.js';
 import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetween } from './studystreak.js';
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
@@ -1199,7 +1201,10 @@ class Storage {
   // ===== SHOP =====
 
   ownsItem(itemId) {
-    return this.data.progression.ownedItems.indexOf(itemId) >= 0;
+    if (this.data.progression.ownedItems.indexOf(itemId) >= 0) return true;
+    // a map is also yours once you reach the level it unlocks at (see mapunlocks.js)
+    var unlock = mapUnlockLevel(itemId);
+    return unlock > 0 && levelFromXp(this.data.progression.xp || 0).level >= unlock;
   }
 
   buyItem(itemId, price) {
