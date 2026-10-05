@@ -2237,6 +2237,9 @@ body.lefty .auto-btn { right: auto; left: calc(var(--safe-left, 0px) + 18px); }
   #answerRow { flex-direction: column; gap: 10px; max-width: none; width: 100%; margin: 0; }
   .answer-choice { font-size: 18px; padding: 14px 12px; text-align: left; }
   .answer-choice .lane-label { font-size: 11px; }
+  /* the tutorial's coach card, with a question showing, sits in the column under the answers instead of over the track */
+  .tutorial-coach.docked.under-question { justify-content: flex-start; padding-left: calc(var(--safe-left, 0px) + 14px); padding-right: 0; }
+  .tutorial-coach.under-question .coach-card { width: calc(var(--wide-panel) - 28px); max-width: none; box-sizing: border-box; }
   /* hold the dash controls on the track side of the screen, away from the column */
   body:not(.lefty) .dash-btn, body:not(.lefty) .auto-btn { right: calc(var(--safe-right) + 28px); }
 }
