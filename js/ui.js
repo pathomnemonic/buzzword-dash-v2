@@ -52,6 +52,7 @@ import { LOCKER_ITEMS, ACHIEVEMENTS, QUESTS } from './game/shopdata.js';
 import { CharacterPreview } from './game/preview.js';
 import { FlashcardMode } from './game/flashcardmode.js';
 import { getControlText } from './controlhints.js';
+import { KEY_ACTIONS, getKeyBindings, keyLabel } from './keybindings.js';
 import { getDashControl } from './dashcontrol.js';
 import { streakCallout } from './flavor.js';
 import { dailyReward, loginStep } from './progress.js';
@@ -1124,6 +1125,39 @@ class UI {
 
     this.updateRushVignette(game.rushStacks);
     this.updateSpeedTimer(game);
+    this.updateSideCards(game);
+  }
+
+  /** The cards beside the track on wide landscape screens (hidden by CSS everywhere else). */
+  updateSideCards(game) {
+    var acc = document.getElementById('sideAcc');
+    if (!acc) return;
+    var done = (game.correct || 0) + (game.wrong || 0);
+    setText(acc, done ? Math.round((game.correct / done) * 100) + '%' : '–');
+    setText(document.getElementById('sideAns'), done);
+    setText(document.getElementById('sideBest'), game.bestStreak || 0);
+    var map = game.currentSkin ? game.currentSkin.name : '';
+    if (map !== this._sideMap) { this._sideMap = map; setText(document.getElementById('sideMap'), map ? '🗺️ ' + map : ''); }
+    if (!this._sideKeysShown) this.renderSideKeys();
+  }
+
+  /** The keys now in force (a player's own choices included). Touch screens show nothing: the swipes are taught in the tutorial. */
+  renderSideKeys() {
+    var list = document.getElementById('sideKeyList');
+    if (!list) return;
+    this._sideKeysShown = true;
+    clearElement(list);
+    var touch = getControlText().touch;
+    if (touch) { list.appendChild(createElement('li', { text: 'Swipe to change lane, jump and slide' })); return; }
+    var binds = getKeyBindings();
+    KEY_ACTIONS.forEach(function (a) {
+      var keys = binds[a.id] || [];
+      if (!keys.length) return;
+      var li = createElement('li');
+      li.appendChild(createElement('span', { text: a.label }));
+      li.appendChild(createElement('kbd', { text: keys.slice(0, 2).map(keyLabel).join(' / ') }));
+      list.appendChild(li);
+    });
   }
 
   // ═══════════════════════════════════════════════════════

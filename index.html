@@ -88,6 +88,19 @@
       </div>
     </div>
 
+    <!-- Wide landscape screens only (see css/arcade.css): the space beside the track shows how the run is going and the keys -->
+    <aside class="side-card side-left" id="sideRun" aria-hidden="true">
+      <div class="side-title">This run</div>
+      <div class="side-map" id="sideMap"></div>
+      <div class="side-stat"><b id="sideAcc">–</b><span>correct</span></div>
+      <div class="side-stat"><b id="sideAns">0</b><span>answered</span></div>
+      <div class="side-stat"><b id="sideBest">0</b><span>best streak</span></div>
+    </aside>
+    <aside class="side-card side-right" id="sideKeys" aria-hidden="true">
+      <div class="side-title">Controls</div>
+      <ul class="side-keys" id="sideKeyList"></ul>
+    </aside>
+
     <div id="feedbackEl" role="status" aria-live="polite"></div>
     <div id="rushEl" aria-hidden="true">⚡ RUSH ×1 ⚡</div>
     <div id="teachEl" role="status" aria-live="polite"></div>

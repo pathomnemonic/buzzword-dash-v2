@@ -2218,28 +2218,30 @@ body.dyslexia .btn { letter-spacing: .01em; }
 body.lefty .dash-btn { right: auto; left: calc(var(--safe-left, 0px) + 14px); }
 body.lefty .auto-btn { right: auto; left: calc(var(--safe-left, 0px) + 18px); }
 
-/* ---------- wide landscape (tablet, laptop, desktop): the question lives in a column on the left, the track fills the rest ----------
-   Same condition as WIDE_QUERY in js/game/widelayout.js, which slides the 3D view to the middle of the free space. */
+
+/* ---------- wide landscape (tablet, laptop, desktop): the question and answers stay on top; the space beside the track shows how the run is going ---------- */
+.side-card { display: none; }
 @media (min-width: 1000px) and (min-height: 600px) and (min-aspect-ratio: 4/3) {
-  :root { --wide-panel: 380px; }
-  #hud {
-    right: auto; bottom: 0; width: var(--wide-panel); box-sizing: border-box;
-    display: flex; flex-direction: column; gap: 10px;
-    padding: calc(var(--safe-top) + 12px) 14px calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 14px);
-    background: linear-gradient(90deg, rgba(14, 6, 40, .82) 0%, rgba(14, 6, 40, .72) 80%, rgba(14, 6, 40, 0) 100%);
+  .side-card {
+    display: block; position: fixed; top: 50%; transform: translateY(-50%); z-index: 4; pointer-events: none; width: 190px;
+    background: rgba(14, 6, 40, .55); border: 3px solid var(--ink); border-radius: var(--radius-lg, 18px); box-shadow: 0 4px 0 var(--ink);
+    padding: 10px 12px; color: #fff; font-family: var(--font-display);
   }
-  #hud .hud-row, #opponentHud, .powerup-row { max-width: none; margin: 0; width: 100%; }
-  #hud .hud-row { flex-wrap: wrap; gap: 6px; }
-  #hud .hud-pill { flex: 1 1 calc(33% - 6px); }
-  #hud #pauseBtn { flex: 0 0 auto; }
-  #buzzBox { max-width: none; width: 100%; margin: 4px 0; padding: 16px 16px; box-sizing: border-box; }
-  #buzzText { font-size: 19px; line-height: 1.4; }
-  #answerRow { flex-direction: column; gap: 10px; max-width: none; width: 100%; margin: 0; }
-  .answer-choice { font-size: 18px; padding: 14px 12px; text-align: left; }
-  .answer-choice .lane-label { font-size: 11px; }
-  /* the tutorial's coach card, with a question showing, sits in the column under the answers instead of over the track */
-  .tutorial-coach.docked.under-question { justify-content: flex-start; padding-left: calc(var(--safe-left, 0px) + 14px); padding-right: 0; }
-  .tutorial-coach.under-question .coach-card { width: calc(var(--wide-panel) - 28px); max-width: none; box-sizing: border-box; }
-  /* hold the dash controls on the track side of the screen, away from the column */
-  body:not(.lefty) .dash-btn, body:not(.lefty) .auto-btn { right: calc(var(--safe-right) + 28px); }
+  .side-left { left: calc(var(--safe-left, 0px) + 18px); }
+  .side-right { right: calc(var(--safe-right, 0px) + 18px); }
+  .side-title { font-size: 11px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent-gold); margin-bottom: 6px; }
+  .side-map { font-size: 12px; font-weight: 800; margin-bottom: 8px; color: var(--text-secondary); }
+  .side-stat { display: flex; align-items: baseline; justify-content: space-between; padding: 5px 0; border-top: 2px solid rgba(255, 255, 255, .12); }
+  .side-stat b { font-size: 24px; font-variant-numeric: tabular-nums; }
+  .side-stat span { font-size: 11px; color: var(--text-secondary); }
+  .side-keys { list-style: none; margin: 0; padding: 0; font-size: 12px; font-weight: 800; }
+  .side-keys li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-top: 2px solid rgba(255, 255, 255, .12); }
+  .side-keys li:first-child { border-top: 0; }
+  .side-keys kbd { font-family: inherit; background: rgba(255, 255, 255, .14); border-radius: 6px; padding: 0 6px; color: var(--accent-gold); white-space: nowrap; }
+  /* the active power-ups move to the right-hand side too, under the controls */
+  #hud .powerup-row { position: fixed; right: calc(var(--safe-right, 0px) + 18px); top: calc(50% + 150px); width: 190px; flex-direction: column; align-items: stretch; max-width: none; margin: 0; }
+  #hud .powerup-tag { font-size: 13px; padding: 4px 10px; text-align: center; }
+  /* with the dash buttons also on the right, keep them clear of the cards */
+  body:not(.lefty) .dash-btn, body:not(.lefty) .auto-btn { right: calc(var(--safe-right, 0px) + 230px); }
 }
+body.is-dying .side-card { opacity: 0; }

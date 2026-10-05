@@ -99,12 +99,10 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect(page.locator('#ansText0')).not.toHaveText('');
     const under = await page.evaluate(() => {
       const card = document.querySelector('#tutorialCoach .tut-card').getBoundingClientRect();
-      return { cardTop: card.top, answersBottom: document.getElementById('answerRow').getBoundingClientRect().bottom, cardBottom: card.bottom, cardRight: card.right, height: window.innerHeight, wide: window.matchMedia('(min-width: 1000px) and (min-height: 600px) and (min-aspect-ratio: 4/3)').matches };
+      return { cardTop: card.top, answersBottom: document.getElementById('answerRow').getBoundingClientRect().bottom, cardBottom: card.bottom, height: window.innerHeight };
     });
     expect(under.cardTop).toBeGreaterThanOrEqual(under.answersBottom - 1);
-    // (on a wide screen the question is a column on the left, and the card stays inside it, off the track)
-    if (under.wide) expect(under.cardRight).toBeLessThanOrEqual(380);
-    else expect(under.cardBottom).toBeLessThan(under.height * 0.6);
+    expect(under.cardBottom).toBeLessThan(under.height * 0.6);
     const { right } = await page.evaluate(() => ({ right: window.__game.gates.findIndex((g) => g.correct) }));
     const lane = () => page.evaluate(() => window.__game.targetLane);
     let at = await lane();
