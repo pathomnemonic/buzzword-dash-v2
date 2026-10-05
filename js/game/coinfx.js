@@ -48,12 +48,6 @@ export function coinWorth(o) {
   return base * (o.frenzy ? 5 : 1) * (o.goldRush ? 2 : 1);
 }
 
-/** Extra coins for clearing an obstacle at the very last moment. */
-export var NEAR_MISS_COINS = 3;
-
-/** Within this many world units of the runner, clearing an obstacle counts as a close call. */
-export var NEAR_MISS_Z = 0.9;
-
 /**
  * Coins that go with an obstacle, relative to the obstacle's middle: { dz, y }, dz in pattern units (negative is
  * further up the track). A jump obstacle gets an arc over it, so the jump that clears it collects them;

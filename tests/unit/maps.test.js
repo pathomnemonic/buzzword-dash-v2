@@ -83,7 +83,8 @@ describe('buying and choosing maps', () => {
     const row = document.querySelector('[data-map="map_cardiac_pulse"]');
     row.querySelector('.btn-gold').click();
     expect(storage.ownsItem('map_cardiac_pulse')).toBe(true);
-    expect(storage.get('coins')).toBe(20000 - 3000);
+    const cost = LOCKER_ITEMS.find((i) => i.id === 'map_cardiac_pulse').price;
+    expect(storage.get('coins')).toBe(20000 - cost);
     const fav = document.querySelector('[data-map="map_cardiac_pulse"] button[aria-pressed]');
     expect(fav.textContent).toMatch(/Favorite/);
     fav.click();

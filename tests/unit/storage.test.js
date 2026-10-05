@@ -2,6 +2,7 @@
 // Storage tests per Section 33.1 of the architecture document
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { SHOP_ITEMS } from '../../js/game/shopdata.js';
 
 // We need to import storage after setup has run
 let storage;
@@ -209,11 +210,12 @@ describe('retired duplicate characters', () => {
     ['avatar_m_resident', 'avatar_m_surgeon', 'avatar_robopro'].forEach((id) => expect(owned).not.toContain(id));
     expect(owned).toContain('avatar_m_robot');                       // the robot they paid for, in its other form
     expect(storage.data.progression.equipped.skin).toBe('avatar_intern');
-    // 400 + 1000 back (they already had Dr. Dash), and 9000 - 6500 for the robot
-    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - 6500));
+    // 400 + 1000 back (they already had Dr. Dash), and 9000 less the price of the robot they are given instead
+    const robot = SHOP_ITEMS.find((i) => i.id === 'avatar_m_robot').price;
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - robot));
     // running it again changes nothing
     storage._ensureInvariants();
-    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - 6500));
+    expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + (9000 - robot));
   });
 
   it('turns the old shared scrub color into the doctor\'s pants color', () => {

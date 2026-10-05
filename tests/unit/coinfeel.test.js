@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import {
   chimeRatio, chainContinues, CHAIN_WINDOW, coinReachable, coinWorth, coinsForObstacle, magnetX, coinBreather,
-  COIN_GAP, NEAR_MISS_COINS, NEAR_MISS_Z, AIR_COIN_HEIGHT
+  COIN_GAP, AIR_COIN_HEIGHT
 } from '../../js/game/coinfx.js';
 import { enableCoinInstancing, disableCoinInstancing, spawnCoinBatch, spawnCoinsForObstacle } from '../../js/game/obstacles.js';
 import { VISUAL_SPEED } from '../../js/game/enginedefs.js';
@@ -44,12 +44,6 @@ describe('which coins can be reached, and what they are worth', () => {
     expect(coinWorth({ goldRush: true })).toBe(2);
     expect(coinWorth({ airJump: true, frenzy: true, goldRush: true })).toBe(20);
     expect(coinWorth()).toBe(1);
-  });
-
-  it('a close call pays a small, fixed burst', () => {
-    expect(NEAR_MISS_COINS).toBeGreaterThan(1);
-    expect(NEAR_MISS_COINS).toBeLessThan(10);
-    expect(NEAR_MISS_Z).toBeGreaterThan(0);
   });
 });
 

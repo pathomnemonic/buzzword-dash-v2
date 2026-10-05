@@ -7,13 +7,14 @@ import { dailyReward } from '../../js/progress.js';
  * Do the prices and the earnings make sense together?
  *
  * Earning in play: 2 coins per right answer plus 1 per 3 in the streak (about 3 each, six or seven answers a minute)
- * and the coin pick-ups on the track (about 25 a minute at normal speed), which is about 50 coins for each minute. A casual player is on it for
+ * and the coin pick-ups on the track (denser since the coin overhaul: about 50 a minute at normal speed), which is
+ * about 75 coins for each minute. A casual player is on it for
  * 10 to 20 minutes a day. Quests are a bonus on top of that, not the main income: when they paid 300 to 1,100 each
  * a day's quests were worth over an hour of play. This test keeps the pieces in proportion.
  */
-const COINS_PER_MINUTE = 50;
+const COINS_PER_MINUTE = 75;
 const CASUAL_MINUTES_PER_DAY = 15;
-const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 900
+const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 1,100
 
 const dayKeys = Array.from({ length: 90 }, (_, i) => { const d = new Date(2026, 9, 1 + i, 12); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); });
 const paid = LOCKER_ITEMS.filter((i) => i.price > 0);
@@ -48,7 +49,7 @@ describe('prices against earnings', () => {
   it('every paid item costs something, in a sensible range', () => {
     expect(paid.length).toBeGreaterThan(40);
     paid.forEach((i) => {
-      expect(i.price, i.id).toBeGreaterThanOrEqual(300);
+      expect(i.price, i.id).toBeGreaterThanOrEqual(100);
       expect(i.price, i.id).toBeLessThanOrEqual(8000);
     });
   });
@@ -58,6 +59,26 @@ describe('prices against earnings', () => {
     const dearest = Math.max(...paid.map((i) => i.price));
     expect(cheapest / (dayOfPlay + 150)).toBeLessThanOrEqual(1);
     expect(dearest / (dayOfPlay + 150)).toBeLessThanOrEqual(10);
+  });
+
+  it('a new player always has something within reach: plenty of things cost a run or two, a day of play opens up many more', () => {
+    // what is on sale in the Locker (the archived classic heroes, hats and gear, and the shelved study buddies, are not)
+    const shown = paid.filter((i) => ['trail', 'monster', 'map'].includes(i.type) || (i.type === 'skin' && i.id.startsWith('avatar_m_')));
+    const within = (coins) => shown.filter((i) => i.price <= coins).length;
+    expect(within(300)).toBeGreaterThanOrEqual(3);          // the first run or two
+    expect(within(700)).toBeGreaterThanOrEqual(8);          // the first evening
+    expect(within(dayOfPlay)).toBeGreaterThanOrEqual(18);   // the first day
+    expect(shown.some((i) => i.type === 'skin' && i.price <= 600)).toBe(true);   // a hero is within reach early
+    expect(shown.some((i) => i.type === 'monster' && i.price <= 1000)).toBe(true);
+    expect(shown.some((i) => i.type === 'map' && i.price <= 500)).toBe(true);
+  });
+
+  it('prices climb steadily: nothing leaps by more than the step before it in a way that strands a player', () => {
+    ['trail', 'monster', 'skin'].forEach((type) => {
+      const list = shown(type).map((i) => i.price).sort((a, b) => a - b);
+      for (let k = 1; k < list.length; k++) expect(list[k] / list[k - 1], type + ' ' + list[k - 1] + ' to ' + list[k]).toBeLessThanOrEqual(2.1);
+    });
+    function shown(type) { return paid.filter((i) => i.type === type && (type !== 'skin' || i.id.startsWith('avatar_m_'))); }
   });
 
   it('trails are the cheapest things in the Locker and heroes the dearest, with maps and monsters between', () => {

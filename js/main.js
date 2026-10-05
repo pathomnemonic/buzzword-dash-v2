@@ -1427,15 +1427,9 @@ function init() {
   };
 
   game.onCoinCollected = function (info) {
-    // the chime climbs with each coin in a run; only every third coin buzzes the phone
-    audio.play('coin', { lane: info.lane, ratio: info.ratio, noHaptic: info.chain % 3 !== 0 });
+    // the chime climbs with each coin in a run (sound only: coins never buzz the phone)
+    audio.play('coin', { lane: info.lane, ratio: info.ratio, noHaptic: true });
     ui.showCoinPickup(info);
-  };
-
-  game.onNearMiss = function (info) {
-    ui.showNotice('😮 Close call! +' + info.coins + ' 🪙', { color: 'var(--accent-gold, #ffcc22)', ms: 1100 });
-    audio.play('coin', { ratio: 2 });
-    audio.haptic('fusion');
   };
 
   game.onScorePopup = function (points) {

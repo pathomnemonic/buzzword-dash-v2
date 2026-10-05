@@ -42,7 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
-import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinBreather, NEAR_MISS_COINS, NEAR_MISS_Z } from './coinfx.js';
+import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinBreather } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -382,9 +382,6 @@ class Game {
           else if (pl.type === 'heart') this.onScorePopup('❤️ +1');
           else if (pl.type === 'coin') this.onScorePopup('🪙 +' + (pl.value || 1));
         }
-        break;
-      case 'near_miss':
-        if (this.onNearMiss) this.onNearMiss(event.payload);
         break;
       case 'secret_found':
         if (this.onSecretFound) this.onSecretFound(event.payload);
@@ -1553,7 +1550,7 @@ class Game {
       // it, so a jump or slide timed a little early or a little late still works. Only an obstacle that arrives
       // without one of those having happened hurts.
       if (!od.checked && od.lane === this.currentLane && ob.position.z > -1.5 && !od.cleared) {
-        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) { od.cleared = true; od.clearedZ = ob.position.z; }
+        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) od.cleared = true;
       }
       if (!od.checked && ob.position.z > 0.15) {
         od.checked = true;
@@ -1562,8 +1559,6 @@ class Game {
           if (dodged) {
             if (od.type === 'low') this.obstaclesJumped++;
             else this.obstaclesSlid++;
-            // a jump or slide at the very last moment is a close call: a small burst of coins
-            if (typeof od.clearedZ === 'number' && od.clearedZ > -NEAR_MISS_Z && this.mode !== GAME_MODES.STUDY) this._nearMiss(od.type);
           }
           if (!dodged && !this.rushInvulnerable) {
             if (this.powerups.shield > 0) {
@@ -1719,17 +1714,6 @@ class Game {
       type: 'coin', value: coinValue, lane: c.userData.lane, chain: this._coinChain, ratio: chimeRatio(this._coinChain), air: air,
       sx: (this._coinScreen.x * 0.5 + 0.5) * innerWidth, sy: (-this._coinScreen.y * 0.5 + 0.5) * innerHeight
     });
-  }
-
-  /** Cleared an obstacle at the last moment. */
-  _nearMiss(kind) {
-    var bonus = NEAR_MISS_COINS;
-    this.coins += bonus;
-    this.runCoinsCollected += bonus;
-    this._spawnSparks(this.playerGroup.position, 0xffffff);
-    this._spawnSparks(this.playerGroup.position, 0xffd54a);
-    this._emit('near_miss', { kind: kind, coins: bonus });
-    this._emit('score_changed', {});
   }
 
   _collectPowerup(type) {
