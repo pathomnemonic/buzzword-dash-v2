@@ -42,7 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
-import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinBreather } from './coinfx.js';
+import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -177,7 +177,7 @@ class Game {
     // Timers
     this.feedbackTimer = 0;
     this.teachTimer = 0;
-    this.coinSpawnTimer = 0;
+    this._coinTail = -COIN_FIRST;
     this.powerupSpawnTimer = 0;
     this.envPropSpawnTimer = 0;
     this.speedLineTimer = 0;
@@ -862,7 +862,7 @@ class Game {
     this.card = null; this.gatesActive = false;
     this.answerLocked = false; this.committedLane = 1;
     this.waitingForNext = false; this.nextEncounterTimer = 0;
-    this.coinSpawnTimer = 0; this.powerupSpawnTimer = 8;
+    this._coinTail = -COIN_FIRST; this.powerupSpawnTimer = 8;
     this._coinChain = 0; this._coinChainT = -99;
     this.envPropSpawnTimer = 0.5; this.speedLineTimer = 0;
     this.shakeTimer = 0;
@@ -1497,14 +1497,14 @@ class Game {
       }
     }
 
-    // Coin spawning
-    this.coinSpawnTimer -= dt;
-    if (this.coinSpawnTimer <= 0 && !this._tutorial) {
-      // The next batch only starts once this one has passed, plus a breather, so lanes stay uncluttered
-      var batchLength = spawnCoinBatch(this.scene, this.coinMeshes);
-      // (shorter breathers, and none to speak of while a coin power-up is on: Frenzy and Gold Rush bring a shower)
+    // Coin spawning: batches are laid end to end out to the horizon, so there is nearly always a coin in some lane
+    if (!this._tutorial) {
+      this._coinTail += move; // (the farthest coin laid out so far moves toward the runner like everything else)
       var coinPowerUp = this.powerups.scoreFrenzy > 0 || this.powerups.goldRush > 0 || this.powerups.jackpot > 0;
-      this.coinSpawnTimer = batchLength / Math.max(this.speed, 0.5) + coinBreather(Math.random(), coinPowerUp);
+      var self2 = this;
+      this._coinTail = fillCoins(this._coinTail,
+        function (z) { return spawnCoinBatch(self2.scene, self2.coinMeshes, z); },
+        function () { return coinGap(Math.random(), coinPowerUp); });
     }
 
     // Power-up spawning

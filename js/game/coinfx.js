@@ -87,8 +87,34 @@ export function magnetX(coinX, playerX, coinZ, dt) {
 /** Spacing between neighbouring coins in a line (pattern units): about a coin and a third apart, so a line is a stream you run along, like a runner game's. */
 export var COIN_GAP = 0.45;
 
-/** The breather between batches (seconds): shorter while a coin power-up is on. */
-export function coinBreather(rand, coinPowerUp) {
+/** How far ahead (pattern units) coins are kept laid out. Everything nearer than this always has coins in it. */
+export var COIN_HORIZON = 48;
+
+/** Where the first coins of a run start (pattern units ahead of the runner), so the first moments already have some. */
+export var COIN_FIRST = 12;
+
+/**
+ * The empty stretch (pattern units) left between one batch and the next. It is short on purpose: batches are laid
+ * end to end up to the horizon, so there is a coin in some lane almost all of the time. Shorter still while a coin
+ * power-up is on.
+ */
+export function coinGap(rand, coinPowerUp) {
   var r = typeof rand === 'number' ? rand : Math.random();
-  return coinPowerUp ? r * 0.1 : 0.15 + r * 0.4;
+  return coinPowerUp ? r * 0.3 : 0.4 + r * 1.4;
+}
+
+/**
+ * Lay batches end to end up to the horizon.
+ * @param {number} tail z of the farthest coin laid out so far (pattern units; more negative is farther)
+ * @param {function(number): number} lay puts a batch down starting at that z and returns its length
+ * @param {function(): number} nextGap gives the empty stretch to leave before the next batch
+ * @returns {number} the new tail
+ */
+export function fillCoins(tail, lay, nextGap) {
+  var guard = 0;
+  while (tail > -COIN_HORIZON && guard++ < 6) {
+    var start = tail - nextGap();
+    tail = start - lay(start);
+  }
+  return tail;
 }

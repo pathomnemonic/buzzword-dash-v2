@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import {
-  chimeRatio, chainContinues, CHAIN_WINDOW, coinReachable, coinWorth, coinsForObstacle, magnetX, coinBreather,
+  chimeRatio, chainContinues, CHAIN_WINDOW, coinReachable, coinWorth, coinsForObstacle, magnetX, coinGap, fillCoins, COIN_HORIZON,
   COIN_GAP, AIR_COIN_HEIGHT
 } from '../../js/game/coinfx.js';
 import { enableCoinInstancing, disableCoinInstancing, spawnCoinBatch, spawnCoinsForObstacle } from '../../js/game/obstacles.js';
@@ -95,11 +95,11 @@ describe('the magnet', () => {
 describe('how coins are laid out', () => {
   beforeEach(() => disableCoinInstancing());
 
-  it('are closer together than before, and the breather between batches is shorter', () => {
+  it('are closer together than before, and the gap between batches is short', () => {
     expect(COIN_GAP).toBeLessThan(2);
-    expect(coinBreather(1, false)).toBeLessThan(1.5);
-    expect(coinBreather(1, true)).toBeLessThan(coinBreather(0, false));
-    expect(coinBreather(0, false)).toBeGreaterThan(0);
+    expect(coinGap(1, false)).toBeLessThan(2);
+    expect(coinGap(1, true)).toBeLessThan(coinGap(0, false));
+    expect(coinGap(0, false)).toBeGreaterThan(0);
   });
 
   it('every pattern has plenty of coins, never fills all three lanes at one spot, and has no stray values', () => {
@@ -135,5 +135,45 @@ describe('how coins are laid out', () => {
     spawnCoinsForObstacle(scene, coins, { type: 'slide', lane: 0 }, -100);
     expect(coins.length).toBeGreaterThan(4);
     coins.forEach((c) => expect(c.children.length).toBe(0));
+  });
+});
+
+describe('coins are laid end to end, so a coin is almost always in view', () => {
+  it('fills out to the horizon and stops there', () => {
+    const laid = [];
+    const tail = fillCoins(-12, (z) => { laid.push(z); return 10; }, () => 1);
+    expect(tail).toBeLessThanOrEqual(-COIN_HORIZON);
+    expect(laid[0]).toBeCloseTo(-13, 5);           // the first batch starts just past the starting point
+    laid.forEach((z, i) => { if (i) expect(laid[i - 1] - z).toBeCloseTo(11, 5); }); // each starts one gap after the last ended
+    expect(fillCoins(-60, () => { throw new Error('nothing to lay'); }, () => 1)).toBe(-60); // already filled
+  });
+
+  it('never loops for ever, even if a batch comes back empty', () => {
+    let calls = 0;
+    fillCoins(0, () => { calls++; return 0; }, () => 0);
+    expect(calls).toBeLessThanOrEqual(6);
+  });
+
+  it('played end to end for two minutes, some lane has a coin within the next 40 units 99% of the time, and a gap never lasts long', () => {
+    const scene = new THREE.Scene();
+    let coins = [];
+    let tail = -12;
+    const speed = 1.875; // pattern units per second at 1x
+    const dt = 1 / 30;
+    let samples = 0; let covered = 0; let run = 0; let worstRun = 0;
+    for (let t = 0; t < 120; t += dt) {
+      const move = speed * dt;
+      coins.forEach((c) => { c.position.z += move * VISUAL_SPEED; });
+      coins = coins.filter((c) => c.position.z < 3 * VISUAL_SPEED);
+      tail += move;
+      tail = fillCoins(tail, (z) => spawnCoinBatch(scene, coins, z), () => coinGap(Math.random(), false));
+      if (t > 3) {
+        samples++;
+        const ahead = coins.some((c) => c.position.z < 0 && c.position.z > -40);
+        if (ahead) { covered++; run = 0; } else { run += dt; worstRun = Math.max(worstRun, run); }
+      }
+    }
+    expect(covered / samples).toBeGreaterThanOrEqual(0.99);
+    expect(worstRun).toBeLessThan(1);
   });
 });
