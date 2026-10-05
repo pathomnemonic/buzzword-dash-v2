@@ -13,6 +13,7 @@ import { getQuality, isLowQuality, useSceneryModels, DENSITY_LEVELS } from './qu
 import { buildSideScenery, animateSideScenery } from './scenery.js';
 import { updateAnimators, setSceneryDensity } from './mapfx.js';
 import { trackGlow } from './combo.js';
+import { secretFor, buildSecret, planSecretTime, isTapOnSecret, secretReward } from './secrets.js';
 
 export var visualMethods = {
 
@@ -98,8 +99,74 @@ export var visualMethods = {
     }
   },
 
+  /**
+   * The hidden secret (see secrets.js): partway through a solo run something friendly shows up well outside the lanes
+   * and drifts slowly by; a tap on it pays a few coins. At most one a run, never in a competitive (seeded) run.
+   */
+  _updateSecret(dt, move) {
+    var st = this._secret;
+    if (!st) st = this._secret = { at: planSecretTime(), mesh: null, done: false };
+    if (st.done || this.seededCardOrder || this._state !== 'playing') return;
+    if (!st.mesh) {
+      var def = this.currentSkin && secretFor(this.currentSkin.name);
+      if (!def || this.elapsedTime < st.at || this.transitionActive) return;
+      var side = Math.random() < 0.5 ? -1 : 1;
+      var mesh = buildSecret(def.kind);
+      mesh.userData.baseY = 1.3;
+      mesh.userData.side = side;
+      mesh.scale.setScalar(1.5);
+      mesh.position.set(side * 7.4, 1.3, -62);
+      this.scene.add(mesh);
+      st.mesh = mesh;
+      st.def = def;
+      return;
+    }
+    var m = st.mesh;
+    m.position.z += move * 0.45; // it drifts past slowly, so there is time to spot it
+    m.userData.tick(this.elapsedTime);
+    if (m.position.z > 11) this._removeSecret(true);
+  },
+
+  _removeSecret(done) {
+    var st = this._secret;
+    if (!st || !st.mesh) return;
+    this.scene.remove(st.mesh);
+    st.mesh.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material && !o.material.userData.shared) o.material.dispose(); });
+    st.mesh = null;
+    if (done) st.done = true;
+  },
+
+  /**
+   * A tap (screen pixels) while a secret is on show: did it land on it? Pays the coins and tells the app.
+   * @returns {boolean} true when the secret was found
+   */
+  tryCollectSecret(clientX, clientY) {
+    var st = this._secret;
+    if (!st || !st.mesh || !this.camera || !this.renderer) return false;
+    var rect = this.renderer.domElement.getBoundingClientRect();
+    var v = st.mesh.position.clone();
+    v.y += 0.7;
+    v.project(this.camera);
+    if (v.z > 1) return false;
+    var sx = rect.left + (v.x * 0.5 + 0.5) * rect.width;
+    var sy = rect.top + (-v.y * 0.5 + 0.5) * rect.height;
+    if (!isTapOnSecret(clientX, clientY, sx, sy)) return false;
+    var first = !storage.secretFound(this.currentSkin.name);
+    var coins = secretReward(first);
+    this.coins += coins;
+    this.runCoinsCollected += coins;
+    storage.markSecretFound(this.currentSkin.name);
+    this._spawnSparks(st.mesh.position, 0xfff2a0);
+    this._spawnSparks(st.mesh.position, 0xffffff);
+    this._emit('coin_collected', { type: 'coin', value: coins });
+    this._emit('secret_found', { name: st.def.name, coins: coins, first: first });
+    this._removeSecret(true);
+    return true;
+  },
+
   _updateVisuals(dt, move, currentSpeed, rushMult) {
     if (!move) move = 0;
+    this._updateSecret(dt, move);
     this._updateTrackGlow(dt);
     this._ensureSideScenery();
     animateSideScenery(this._sideGroup, this.elapsedTime, dt);

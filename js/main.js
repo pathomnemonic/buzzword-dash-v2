@@ -67,6 +67,7 @@ import { leagueRules } from './leagues.js';
 import { shareText } from './platform.js';
 import { installChunkRecovery } from './chunkrecovery.js';
 import { ComboTracker, musicMood } from './game/combo.js';
+import { GOLD_REWARD_COINS } from './game/mapmastery.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
@@ -1010,6 +1011,7 @@ function buildRunSummary(gameRef) {
     subjectsSeen: [],
     rushesUsed: 0,
     powerupsCollected: gameRef.runPowerupsCollected || 0,
+    mapAnswers: gameRef.mapAnswers || {},
     obstaclesJumped: 0,
     obstaclesSlid: 0,
 
@@ -1067,6 +1069,9 @@ function finalizeRun(gameRef) {
     storage.set('ownedItems', owned);
   }
 
+  if (result.newMapMasteries && result.newMapMasteries.length > 0) {
+    ui.showNotice('🥇 Map mastered: ' + result.newMapMasteries.join(', ') + '! +' + (result.newMapMasteries.length * GOLD_REWARD_COINS) + ' 🪙', { color: 'var(--accent-gold, #ffcc22)', ms: 4200 });
+  }
   if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
     ui.showAchievementNotification(result.newlyUnlockedAchievementIds);
   }
@@ -1422,6 +1427,12 @@ function init() {
     audio.play('streak');
     audio.haptic('streak', streak); // a bigger streak buzzes bigger
     ui.showStreakMilestone(streak, multiplier);
+  };
+
+  game.onSecretFound = function (found) {
+    ui.showNotice('🔎 You found ' + found.name + '! +' + found.coins + ' 🪙' + (found.first ? ' (first time here!)' : ''), { color: 'var(--accent-gold, #ffcc22)', ms: 2600 });
+    audio.play('achievement');
+    audio.haptic('fusion');
   };
 
   game.onPowerupFused = function (fusion) {

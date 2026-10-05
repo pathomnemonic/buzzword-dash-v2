@@ -15,6 +15,7 @@ import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_
 import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
 import { levelFromXp } from './progress.js';
 import { mapUnlockLevel, UNLOCK_EVERY } from './game/mapunlocks.js';
+import { masteryProgress } from './game/mapmastery.js';
 import { getQuality } from './game/quality.js';
 import { THEME_CHOICES } from './theme.js';
 import { FEATURES } from './features.js';
@@ -970,6 +971,18 @@ export var settingsMethods = {
       var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc + (owned ? (reached && storage.data.progression.ownedItems.indexOf(item.id) < 0 ? ' · Unlocked at level ' + unlockAt : '') : ' · Unlocks at level ' + unlockAt + ' (or buy it now)') });
       descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
       nameWrap.appendChild(descLine);
+      // map mastery: a bar toward silver and gold, and a gold frame once mastered
+      var mastery = masteryProgress(storage.mapAnswered(item.name));
+      var masteryLine = createElement('div', { className: 'map-mastery map-mastery-' + mastery.tier });
+      masteryLine.appendChild(createElement('span', { text: mastery.tier === 'gold' ? '🥇 Mastered · ' + mastery.answered + ' questions' : (mastery.tier === 'silver' ? '🥈 ' : '🗺️ ') + mastery.answered + '/' + mastery.goal + ' questions to ' + (mastery.tier === 'silver' ? 'gold' : 'silver') }));
+      var bar = createElement('div', { className: 'map-mastery-bar' });
+      var fillEl = createElement('i');
+      fillEl.style.width = Math.round(mastery.fraction * 100) + '%';
+      bar.appendChild(fillEl);
+      masteryLine.appendChild(bar);
+      nameWrap.appendChild(masteryLine);
+      if (mastery.tier === 'gold') row.classList.add('map-gold');
+      if (storage.secretFound(item.name)) nameWrap.firstChild.appendChild(createElement('span', { text: ' 🔎', attributes: { title: 'You found this map\'s secret', 'aria-label': 'Secret found' } }));
       if ((self._lockerFresh || []).indexOf(item.id) >= 0) {
         nameWrap.firstChild.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } }));
       }

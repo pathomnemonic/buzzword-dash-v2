@@ -205,6 +205,7 @@ class Game {
 
     // Animations
     this.celebrateTimer = 0;
+    this.mapAnswers = {};    // questions answered per map this run
     this.flourishTimer = 0;  // the hero's spin after 20, 30, 40... in a row
     this._trackGlow = 0;     // how lit the track is for the current streak (0..1.6)
     this.stumbleTimer = 0;
@@ -288,6 +289,7 @@ class Game {
     this.onHudUpdate = null;
     this.onStreakMilestone = null;
     this.onPowerupFused = null;
+    this.onSecretFound = null;
     this.onScorePopup = null;
     this.onPowerupCollected = null;
     this.onAchievementUnlocked = null;
@@ -378,6 +380,9 @@ class Game {
           else if (pl.type === 'coin') this.onScorePopup('🪙 +' + (pl.value || 1));
         }
         break;
+      case 'secret_found':
+        if (this.onSecretFound) this.onSecretFound(event.payload);
+        break;
       case 'powerup_fused':
         if (this.onPowerupFused) this.onPowerupFused(event.payload);
         break;
@@ -440,6 +445,14 @@ class Game {
     preloadScenery().catch(function () { /* the built-in versions are used */ });
     preloadStaffModels();
     container.appendChild(this.renderer.domElement);
+    // A quick tap (not a swipe) may land on the hidden secret; everything else about the touch is handled by input.js
+    var tapStart = null;
+    var tapGame = this;
+    this.renderer.domElement.addEventListener('pointerdown', function (e) { tapStart = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    this.renderer.domElement.addEventListener('pointerup', function (e) {
+      if (tapStart && performance.now() - tapStart.t < 400 && Math.abs(e.clientX - tapStart.x) < 14 && Math.abs(e.clientY - tapStart.y) < 14) tapGame.tryCollectSecret(e.clientX, e.clientY);
+      tapStart = null;
+    });
 
     // Create trackRoot group
     this.trackRoot = new THREE.Group();
@@ -858,7 +871,7 @@ class Game {
     this.autoPilotGatesLeft = 0;
     this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
-    this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this.stumbleTimer = 0;
+    this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this.mapAnswers = {}; this._removeSecret(false); this._secret = null; this.stumbleTimer = 0;
     this.landingTimer = 0; this.wasJumping = false;
     this.encounterStartTime = 0; this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;
@@ -1087,6 +1100,7 @@ class Game {
       this.scene.remove(this.speedLines[i]);
     }
     this.speedLines = [];
+    this._removeSecret(false);
   }
 
   _cleanupTrack() {
