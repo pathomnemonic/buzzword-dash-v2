@@ -51,6 +51,16 @@ async function walkTour(page) {
 test.describe('Interactive tutorial (on the real track)', () => {
   test.setTimeout(150000);
 
+  test('tapping an answer at the top explains that you steer into the gate instead', async ({ page }) => {
+    await openFirstRun(page);
+    await page.locator('#tutNextBtn').click();
+    await step(page, 'left');
+    await page.evaluate(() => document.getElementById('ans2').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
+    await expect(page.locator('#tutorialCoach .coach-feedback')).toContainText(/just the choices.*right gate/);
+    await expect(page.locator('#ans2')).toHaveClass(/tut-nudge/);
+    await step(page, 'left'); // and the step did not move on
+  });
+
   test('asks for each move in turn and sends the obstacle or question only then', async ({ page }) => {
     await openFirstRun(page);
     // Nothing is running behind the welcome page

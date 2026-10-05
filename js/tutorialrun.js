@@ -313,6 +313,12 @@ export function startGameTutorial(env) {
     document.removeEventListener('keydown', swallowSpace, true);
     document.removeEventListener('keyup', swallowSpace, true);
     game.tutorialListener = null;
+    if (answerRow) {
+      answerRow.removeEventListener('pointerdown', onAnswerTap);
+      answerRow.classList.remove('tut-tappable');
+      answerRow.querySelectorAll('.tut-nudge').forEach(function (c) { c.classList.remove('tut-nudge'); });
+    }
+    clearTimeout(nudgeTimer);
     if (isExitConfirmOpen()) dismissExitConfirm();
     quietHud(false);
     if (isTourOpen()) skipTour();
@@ -341,6 +347,25 @@ export function startGameTutorial(env) {
   }
   document.addEventListener('keydown', swallowSpace, true);
   document.addEventListener('keyup', swallowSpace, true);
+
+  // Players try to tap the answers at the top of the screen. They are only labels for the three gates, so say so, kindly,
+  // and point at the lane that tap would have meant.
+  var answerRow = document.getElementById('answerRow');
+  var nudgeTimer = null;
+  function onAnswerTap(e) {
+    var choice = e.target && e.target.closest ? e.target.closest('.answer-choice') : null;
+    if (closed || !choice) return;
+    var lane = Number(String(choice.id).replace('ans', ''));
+    var where = lane === 0 ? 'left' : lane === 2 ? 'right' : 'middle';
+    say('Those are just the choices. Run into the ' + where + ' gate to pick it: swipe ' + (lane === 1 ? 'to the middle lane' : where) + ' or use the arrow keys.', 'hint');
+    choice.classList.add('tut-nudge');
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(function () { choice.classList.remove('tut-nudge'); }, 1600);
+  }
+  if (answerRow) {
+    answerRow.classList.add('tut-tappable');
+    answerRow.addEventListener('pointerdown', onAnswerTap);
+  }
 
   _session = { finish: finish, requestClose: requestClose };
   game.tutorialListener = onGameEvent;

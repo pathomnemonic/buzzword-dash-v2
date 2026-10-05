@@ -2162,3 +2162,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 
 /* white text on the pink pills needs a deeper pink to reach the 4.5:1 contrast that WCAG asks for */
 .home-header .home-tagline, .lv-badge:not(.prestige) { background: #d10a3a; }
+
+/* tutorial: the answer labels can be tapped (they only explain themselves), and the one tapped glows */
+#answerRow.tut-tappable .answer-choice { pointer-events: auto; cursor: pointer; }
+.answer-choice.tut-nudge { outline: 3px solid var(--accent-gold, #fbbf24); box-shadow: 0 0 16px rgba(251, 191, 36, .8); }
+.coach-feedback.hint { color: var(--accent-gold, #fbbf24); }
