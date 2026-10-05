@@ -447,28 +447,28 @@ export var SHOP_ITEMS = [
   { id: "avatar_skeleton", name: "Skeleton", price: 4000, type: "skin", color: 0xeeeedd, icon: "💀", compatibility: COMPAT_ALL },
 
   // --- Maps (the open and body-interior worlds; the indoor hospital maps are free for everyone) ---
-  { id: "map_sunshine_rehab_garden", name: "Sunshine Rehab Garden", desc: "A sunny walk through the therapy garden", price: 1350, type: "map", skinId: "skin_sunshine_rehab_garden", color: 0x62d06c, icon: "🌻", compatibility: COMPAT_ALL },
-  { id: "map_cafeteria_carnival", name: "Cafeteria Carnival", desc: "Fair day in the hospital canteen", price: 2350, type: "map", skinId: "skin_cafeteria_carnival", color: 0xff4d4d, icon: "🍔", compatibility: COMPAT_ALL },
-  { id: "map_neonatal_cloud_nursery", name: "Neonatal Cloud Nursery", desc: "A pastel nursery floating on clouds", price: 2650, type: "map", skinId: "skin_neonatal_cloud_nursery", color: 0xffb3d1, icon: "☁️", compatibility: COMPAT_ALL },
-  { id: "map_anatomy_amusement_park", name: "Anatomy Amusement Park", desc: "Rides shaped like the human body", price: 3000, type: "map", skinId: "skin_anatomy_amusement_park", color: 0xff4d6a, icon: "🎡", compatibility: COMPAT_ALL },
-  { id: "map_pharmacy_pop_factory", name: "Pharmacy Pop Factory", desc: "Giant capsules roll off the candy-coloured line", price: 3350, type: "map", skinId: "skin_pharmacy_pop_factory", color: 0xff6fae, icon: "🏭", compatibility: COMPAT_ALL },
-  { id: "map_aquarium_imaging_center", name: "Aquarium Imaging Center", desc: "A glass tunnel under a sunlit reef", price: 3650, type: "map", skinId: "skin_aquarium_imaging_center", color: 0x4fe0ff, icon: "🐠", compatibility: COMPAT_ALL },
-  { id: "map_rooftop_helipad_resort", name: "Rooftop Helipad Resort", desc: "A sun deck above the city skyline", price: 4000, type: "map", skinId: "skin_rooftop_helipad_resort", color: 0x2fd0d8, icon: "🚁", compatibility: COMPAT_ALL },
-  { id: "map_vet_and_farm_clinic", name: "Vet and Farm Clinic", desc: "A country clinic full of friendly animals", price: 1650, type: "map", skinId: "skin_vet_and_farm_clinic", color: 0xd9382f, icon: "🐄", compatibility: COMPAT_ALL },
-  { id: "map_holiday_wards", name: "Holiday Wards", desc: "Decorated for the season: snow, blossoms, beaches, pumpkins or a party", price: 2000, type: "map", skinId: "skin_holiday_wards", color: 0xff5a8a, icon: "🎉", compatibility: COMPAT_ALL },
-  { id: "map_pediatric_playland", name: "Pediatric Playland", desc: "A giant playroom in the children's ward", price: 1000, type: "map", skinId: "skin_pediatric_playland", color: 0xff7ab8, icon: "🧸", compatibility: COMPAT_ALL },
-  { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 4350, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
-  { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 4650, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
-  { id: "map_neon_er", name: "Neon ER", desc: "Emergency room at midnight", price: 5000, type: "map", skinId: "skin_neon_er", color: 0xff4488, icon: "🚨", compatibility: COMPAT_ALL },
-  { id: "map_surgical_theater", name: "Surgical Theater", desc: "Under the operating lights", price: 5350, type: "map", skinId: "skin_surgical_theater", color: 0x88ddff, icon: "🔬", compatibility: COMPAT_ALL },
-  { id: "map_candy_lab", name: "Candy Lab", desc: "A sweet-shop laboratory", price: 5650, type: "map", skinId: "skin_candy_lab", color: 0xff88cc, icon: "🍬", compatibility: COMPAT_ALL },
-  { id: "map_prescription_sunset", name: "Prescription Sunset", desc: "Warm pharmacy vibes", price: 6000, type: "map", skinId: "skin_prescription_sunset", color: 0xffaa55, icon: "💊", compatibility: COMPAT_ALL },
-  { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 6350, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
-  { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 6650, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },
-  { id: "map_dna_helix_tunnel", name: "DNA Helix Tunnel", desc: "Spiral through the double helix", price: 7000, type: "map", skinId: "skin_dna_helix_tunnel", color: 0x66aaff, icon: "🧬", compatibility: COMPAT_ALL },
-  { id: "map_cardiac_pulse", name: "Cardiac Pulse", desc: "Inside a beating heart", price: 7350, type: "map", skinId: "skin_cardiac_pulse", color: 0xff5588, icon: "❤️", compatibility: COMPAT_ALL },
-  { id: "map_xray_vision", name: "X-Ray Vision", desc: "See through everything", price: 7650, type: "map", skinId: "skin_xray_vision", color: 0x44eeff, icon: "☢️", compatibility: COMPAT_ALL },
-  { id: "map_defibrillator_shock", name: "Defibrillator Shock", desc: "Electric urgency", price: 8000, type: "map", skinId: "skin_defibrillator_shock", color: 0xffee66, icon: "⚡", compatibility: COMPAT_ALL },
+  { id: "map_sunshine_rehab_garden", name: "Sunshine Rehab Garden", desc: "A sunny walk through the therapy garden", price: 950, type: "map", skinId: "skin_sunshine_rehab_garden", color: 0x62d06c, icon: "🌻", compatibility: COMPAT_ALL },
+  { id: "map_cafeteria_carnival", name: "Cafeteria Carnival", desc: "Fair day in the hospital canteen", price: 1650, type: "map", skinId: "skin_cafeteria_carnival", color: 0xff4d4d, icon: "🍔", compatibility: COMPAT_ALL },
+  { id: "map_neonatal_cloud_nursery", name: "Neonatal Cloud Nursery", desc: "A pastel nursery floating on clouds", price: 1850, type: "map", skinId: "skin_neonatal_cloud_nursery", color: 0xffb3d1, icon: "☁️", compatibility: COMPAT_ALL },
+  { id: "map_anatomy_amusement_park", name: "Anatomy Amusement Park", desc: "Rides shaped like the human body", price: 2100, type: "map", skinId: "skin_anatomy_amusement_park", color: 0xff4d6a, icon: "🎡", compatibility: COMPAT_ALL },
+  { id: "map_pharmacy_pop_factory", name: "Pharmacy Pop Factory", desc: "Giant capsules roll off the candy-coloured line", price: 2350, type: "map", skinId: "skin_pharmacy_pop_factory", color: 0xff6fae, icon: "🏭", compatibility: COMPAT_ALL },
+  { id: "map_aquarium_imaging_center", name: "Aquarium Imaging Center", desc: "A glass tunnel under a sunlit reef", price: 2550, type: "map", skinId: "skin_aquarium_imaging_center", color: 0x4fe0ff, icon: "🐠", compatibility: COMPAT_ALL },
+  { id: "map_rooftop_helipad_resort", name: "Rooftop Helipad Resort", desc: "A sun deck above the city skyline", price: 2800, type: "map", skinId: "skin_rooftop_helipad_resort", color: 0x2fd0d8, icon: "🚁", compatibility: COMPAT_ALL },
+  { id: "map_vet_and_farm_clinic", name: "Vet and Farm Clinic", desc: "A country clinic full of friendly animals", price: 1150, type: "map", skinId: "skin_vet_and_farm_clinic", color: 0xd9382f, icon: "🐄", compatibility: COMPAT_ALL },
+  { id: "map_holiday_wards", name: "Holiday Wards", desc: "Decorated for the season: snow, blossoms, beaches, pumpkins or a party", price: 1400, type: "map", skinId: "skin_holiday_wards", color: 0xff5a8a, icon: "🎉", compatibility: COMPAT_ALL },
+  { id: "map_pediatric_playland", name: "Pediatric Playland", desc: "A giant playroom in the children's ward", price: 700, type: "map", skinId: "skin_pediatric_playland", color: 0xff7ab8, icon: "🧸", compatibility: COMPAT_ALL },
+  { id: "map_neural_highway", name: "Neural Highway", desc: "Race through neural pathways", price: 3050, type: "map", skinId: "skin_neural_highway", color: 0xaa66ff, icon: "🧠", compatibility: COMPAT_ALL },
+  { id: "map_vascular_rush", name: "Vascular Rush", desc: "Sprint through the bloodstream", price: 3250, type: "map", skinId: "skin_vascular_rush", color: 0xff5566, icon: "🩸", compatibility: COMPAT_ALL },
+  { id: "map_neon_er", name: "Neon ER", desc: "Emergency room at midnight", price: 3500, type: "map", skinId: "skin_neon_er", color: 0xff4488, icon: "🚨", compatibility: COMPAT_ALL },
+  { id: "map_surgical_theater", name: "Surgical Theater", desc: "Under the operating lights", price: 3750, type: "map", skinId: "skin_surgical_theater", color: 0x88ddff, icon: "🔬", compatibility: COMPAT_ALL },
+  { id: "map_candy_lab", name: "Candy Lab", desc: "A sweet-shop laboratory", price: 3950, type: "map", skinId: "skin_candy_lab", color: 0xff88cc, icon: "🍬", compatibility: COMPAT_ALL },
+  { id: "map_prescription_sunset", name: "Prescription Sunset", desc: "Warm pharmacy vibes", price: 4200, type: "map", skinId: "skin_prescription_sunset", color: 0xffaa55, icon: "💊", compatibility: COMPAT_ALL },
+  { id: "map_skeletal_corridor", name: "Skeletal Corridor", desc: "Race through a giant ribcage", price: 4450, type: "map", skinId: "skin_skeletal_corridor", color: 0xffeedd, icon: "🦴", compatibility: COMPAT_ALL },
+  { id: "map_cellular_matrix", name: "Cellular Matrix", desc: "Shrink inside a living cell", price: 4650, type: "map", skinId: "skin_cellular_matrix", color: 0x66ffaa, icon: "🦠", compatibility: COMPAT_ALL },
+  { id: "map_dna_helix_tunnel", name: "DNA Helix Tunnel", desc: "Spiral through the double helix", price: 4900, type: "map", skinId: "skin_dna_helix_tunnel", color: 0x66aaff, icon: "🧬", compatibility: COMPAT_ALL },
+  { id: "map_cardiac_pulse", name: "Cardiac Pulse", desc: "Inside a beating heart", price: 5150, type: "map", skinId: "skin_cardiac_pulse", color: 0xff5588, icon: "❤️", compatibility: COMPAT_ALL },
+  { id: "map_xray_vision", name: "X-Ray Vision", desc: "See through everything", price: 5350, type: "map", skinId: "skin_xray_vision", color: 0x44eeff, icon: "☢️", compatibility: COMPAT_ALL },
+  { id: "map_defibrillator_shock", name: "Defibrillator Shock", desc: "Electric urgency", price: 5600, type: "map", skinId: "skin_defibrillator_shock", color: 0xffee66, icon: "⚡", compatibility: COMPAT_ALL },
 
   // --- Exam monsters ---
   { id: "monster_classic", name: "Exam Monster", price: 0, type: "monster", color: 0x220044, icon: "👾", compatibility: COMPAT_ALL },
@@ -499,17 +499,17 @@ export var SHOP_ITEMS = [
   // --- Trails (all avatars) ---
   { id: "trail_none", name: "No Trail", price: 0, type: "trail", color: null, compatibility: COMPAT_ALL },
   { id: "trail_ekg", name: "EKG Line", price: 500, type: "trail", color: 0x00ff44, desc: "A glowing heartbeat line (EKG spikes) behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_neural", name: "Neural Sparks", price: 2200, type: "trail", color: 0xaa44ff, desc: "Bright sparks fizzing like firing neurons.", compatibility: COMPAT_ALL },
-  { id: "trail_blood", name: "Blood Cells", price: 1300, type: "trail", color: 0xff2222, desc: "Red blood cells drifting behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_dna", name: "DNA Helix", price: 2800, type: "trail", color: 0x4488ff, desc: "A twisting double helix of blue and pink beads.", compatibility: COMPAT_ALL },
-  { id: "trail_fire", name: "Fire Trail", price: 3300, type: "trail", color: 0xff8800, desc: "Flames licking up behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_rainbow", name: "Rainbow", price: 4800, type: "trail", color: 0xff44ff, desc: "A ribbon that cycles through every rainbow colour.", compatibility: COMPAT_ALL },
-  { id: "trail_confetti", name: "Confetti", price: 1700, type: "trail", color: 0xff4444, desc: "Tumbling party confetti in bright colours.", compatibility: COMPAT_ALL },
-  { id: "trail_hearts", name: "Hearts", price: 900, type: "trail", color: 0xff4488, desc: "A stream of little hearts.", compatibility: COMPAT_ALL },
-  { id: "trail_lightning", name: "Lightning", price: 3900, type: "trail", color: 0xffff44, desc: "Crackling lightning bolts.", compatibility: COMPAT_ALL },
-  { id: "trail_bubbles", name: "Bubbles", price: 700, type: "trail", color: 0x88ddff, desc: "Floating see-through bubbles.", compatibility: COMPAT_ALL },
-  { id: "trail_music", name: "Music Notes", price: 1100, type: "trail", color: 0xff88ff, desc: "Music notes drifting behind you.", compatibility: COMPAT_ALL },
-  { id: "trail_pills", name: "Pill Trail", price: 400, type: "trail", color: 0xff4444, desc: "Red and white pills rattling behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_neural", name: "Neural Sparks", price: 1500, type: "trail", color: 0xaa44ff, desc: "Bright sparks fizzing like firing neurons.", compatibility: COMPAT_ALL },
+  { id: "trail_blood", name: "Blood Cells", price: 900, type: "trail", color: 0xff2222, desc: "Red blood cells drifting behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_dna", name: "DNA Helix", price: 2000, type: "trail", color: 0x4488ff, desc: "A twisting double helix of blue and pink beads.", compatibility: COMPAT_ALL },
+  { id: "trail_fire", name: "Fire Trail", price: 2300, type: "trail", color: 0xff8800, desc: "Flames licking up behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_rainbow", name: "Rainbow", price: 3300, type: "trail", color: 0xff44ff, desc: "A ribbon that cycles through every rainbow colour.", compatibility: COMPAT_ALL },
+  { id: "trail_confetti", name: "Confetti", price: 1200, type: "trail", color: 0xff4444, desc: "Tumbling party confetti in bright colours.", compatibility: COMPAT_ALL },
+  { id: "trail_hearts", name: "Hearts", price: 600, type: "trail", color: 0xff4488, desc: "A stream of little hearts.", compatibility: COMPAT_ALL },
+  { id: "trail_lightning", name: "Lightning", price: 2700, type: "trail", color: 0xffff44, desc: "Crackling lightning bolts.", compatibility: COMPAT_ALL },
+  { id: "trail_bubbles", name: "Bubbles", price: 450, type: "trail", color: 0x88ddff, desc: "Floating see-through bubbles.", compatibility: COMPAT_ALL },
+  { id: "trail_music", name: "Music Notes", price: 750, type: "trail", color: 0xff88ff, desc: "Music notes drifting behind you.", compatibility: COMPAT_ALL },
+  { id: "trail_pills", name: "Pill Trail", price: 300, type: "trail", color: 0xff4444, desc: "Red and white pills rattling behind you.", compatibility: COMPAT_ALL },
 
   // --- Gear (humanoid only) ---
   { id: "gear_none", name: "No Gear", price: 0, type: "gear", color: null, compatibility: COMPAT_HUMANOID_ONLY },
@@ -860,7 +860,7 @@ export var ACHIEVEMENTS = [
 // CONTINUE COST
 // ═══════════════════════════════════════════════════════════
 
-export var CONTINUE_COST = 150;
+export var CONTINUE_COST = 100;
 
 
 function previousDateKey(dateKey) {

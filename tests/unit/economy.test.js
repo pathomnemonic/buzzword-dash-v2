@@ -7,14 +7,14 @@ import { dailyReward } from '../../js/progress.js';
  * Do the prices and the earnings make sense together?
  *
  * Earning in play: 2 coins per right answer plus 1 per 3 in the streak (about 3 each, six or seven answers a minute)
- * and the coin pick-ups on the track (a stream like a runner game's: about 190 a minute for a casual player, 250 for a sharp one,
- * measured by stepping the game headlessly), which is about 220 coins for each minute. A casual player is on it for
+ * and the coin pick-ups on the track (a continuous stream, taken only where the runner actually is: about 130 a minute whatever the skill,
+ * measured by stepping the game headlessly), which is about 150 coins for each minute. A casual player is on it for
  * 10 to 20 minutes a day. Quests are a bonus on top of that, not the main income: when they paid 300 to 1,100 each
  * a day's quests were worth over an hour of play. This test keeps the pieces in proportion.
  */
-const COINS_PER_MINUTE = 220;
+const COINS_PER_MINUTE = 150;
 const CASUAL_MINUTES_PER_DAY = 15;
-const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 3,300
+const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 2,250
 
 const dayKeys = Array.from({ length: 90 }, (_, i) => { const d = new Date(2026, 9, 1 + i, 12); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); });
 const paid = LOCKER_ITEMS.filter((i) => i.price > 0);
