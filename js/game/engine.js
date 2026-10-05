@@ -42,7 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
-import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST } from './coinfx.js';
+import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -1620,14 +1620,25 @@ class Game {
         c.position.x = magnetX(c.position.x, this.playerGroup.position.x, c.position.z, dt);
       }
 
-      if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED && !c.userData.collected) {
+      // A coin is taken where the runner actually is, in the moment it passes: not in the lane they have asked for,
+      // not over a long stretch. So flicking between lanes cannot scoop up coins from both. (Power-ups and hearts are
+      // more forgiving, as they always were.)
+      if (c.userData.type === 'coin') {
+        if (!c.userData.collected && c.position.z > -3 && c.position.z < 3) {
+          var magnetOn = this.powerups.magnet > 0;
+          var touched = coinTouches(c.position.x - this.playerGroup.position.x, c.position.z);
+          if (touched && (magnetOn || coinReachable(c.position.y, this.playerY, c.userData.air))) {
+            c.userData.collected = true;
+            this._pickUpCoin(c);
+            removeAndDispose(this.scene, c);
+            this.coinMeshes.splice(ci, 1);
+          }
+        }
+      } else if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED && !c.userData.collected) {
         var inLane = c.userData.lane === this.currentLane;
-        var magnetActive = this.powerups.magnet > 0;
         var closeEnough = Math.abs(LANE_X[this.currentLane] - c.position.x) < 1.8;
-        // a coin up in the air takes a jump to reach (the magnet does not mind)
-        var reachable = magnetActive || coinReachable(c.position.y, this.playerY, c.userData.air);
 
-        if ((inLane || closeEnough || magnetActive) && reachable) {
+        if (inLane || closeEnough || this.powerups.magnet > 0) {
           c.userData.collected = true;
 
           if (c.userData.type === 'powerup') {
@@ -1636,8 +1647,6 @@ class Game {
             var maxLives = this.mode === GAME_MODES.STUDY ? 99 : (this._modeConfig.lives || 3);
             if (this.lives < maxLives) this.lives++;
             this._emit('coin_collected', { type: 'heart' });
-          } else {
-            this._pickUpCoin(c);
           }
           removeAndDispose(this.scene, c);
           this.coinMeshes.splice(ci, 1);

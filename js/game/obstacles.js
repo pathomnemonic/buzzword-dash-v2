@@ -834,7 +834,7 @@ function neighbourLane(lane) {
 
 function spawnCoinLine(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  var n = 18 + Math.floor(Math.random() * 12);
+  var n = 14 + Math.floor(Math.random() * 10);
   for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, lane, startZ - i * COIN_GAP);
   _lastCoinLane = lane;
   return n * COIN_GAP;
@@ -844,44 +844,37 @@ function spawnCoinLine(scene, coinMeshes, startZ) {
 function spawnCoinSwitch(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  for (var i = 0; i < 12; i++) addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
-  for (var j = 0; j < 12; j++) addCoin(scene, coinMeshes, b, startZ - (14 + j) * COIN_GAP);
+  for (var i = 0; i < 9; i++) addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
+  for (var j = 0; j < 9; j++) addCoin(scene, coinMeshes, b, startZ - (10 + j) * COIN_GAP); // (a gap while the runner changes lane)
   _lastCoinLane = b;
-  return 26 * COIN_GAP;
+  return 19 * COIN_GAP;
 }
 
 /** A winding S: a stretch in one lane, a stretch in the next, and back again. */
 function spawnCoinZigzag(scene, coinMeshes, startZ) {
   var a = nextCoinLane();
   var b = neighbourLane(a);
-  var n = 30;
-  for (var i = 0; i < n; i++) addCoin(scene, coinMeshes, Math.floor(i / 8) % 2 ? b : a, startZ - i * COIN_GAP);
-  _lastCoinLane = Math.floor((n - 1) / 8) % 2 ? b : a;
+  var n = 24;
+  for (var i = 0; i < n; i++) {
+    // groups of six, with a gap of one slot between groups for the lane change
+    var group = Math.floor(i / 7);
+    if (i % 7 === 6) continue;
+    addCoin(scene, coinMeshes, group % 2 ? b : a, startZ - i * COIN_GAP);
+  }
+  _lastCoinLane = Math.floor((n - 1) / 7) % 2 ? b : a;
   return n * COIN_GAP;
 }
 
 /** An arc of coins in one lane: jump to collect them all (they are in the air, so it takes a jump). */
 function spawnCoinArc(scene, coinMeshes, startZ) {
   var lane = nextCoinLane();
-  var n = 15;
+  var n = 11;
   for (var i = 0; i < n; i++) {
     var h = Math.sin(i / (n - 1) * Math.PI);
-    addCoin(scene, coinMeshes, lane, startZ - i * 0.4, 1.2 + h * 1.75, h > 0.55);
+    addCoin(scene, coinMeshes, lane, startZ - i * 0.6, 1.2 + h * 1.75, h > 0.55);
   }
   _lastCoinLane = lane;
-  return n * 0.4;
-}
-
-/** Pairs of coins side by side in two neighbouring lanes. */
-function spawnCoinPairs(scene, coinMeshes, startZ) {
-  var a = nextCoinLane();
-  var b = neighbourLane(a);
-  for (var i = 0; i < 14; i++) {
-    addCoin(scene, coinMeshes, a, startZ - i * COIN_GAP);
-    addCoin(scene, coinMeshes, b, startZ - i * COIN_GAP);
-  }
-  _lastCoinLane = b;
-  return 14 * COIN_GAP;
+  return n * 0.6;
 }
 
 /**
@@ -910,12 +903,12 @@ export function spawnCoinsForObstacle(scene, coinMeshes, info, obstacleZ) {
  */
 export function spawnCoinBatch(scene, coinMeshes, startZ) {
   var z = startZ || (-40 - Math.random() * 20);
+  // (never two lanes at the same spot: with a coin in each of two lanes you could flick between them and take both)
   var r = Math.random() * 10;
-  if (r < 3) return spawnCoinLine(scene, coinMeshes, z);
-  if (r < 5) return spawnCoinSwitch(scene, coinMeshes, z);
-  if (r < 7) return spawnCoinZigzag(scene, coinMeshes, z);
-  if (r < 9) return spawnCoinArc(scene, coinMeshes, z);
-  return spawnCoinPairs(scene, coinMeshes, z);
+  if (r < 4) return spawnCoinLine(scene, coinMeshes, z);
+  if (r < 6) return spawnCoinSwitch(scene, coinMeshes, z);
+  if (r < 8) return spawnCoinZigzag(scene, coinMeshes, z);
+  return spawnCoinArc(scene, coinMeshes, z);
 }
 
 /**

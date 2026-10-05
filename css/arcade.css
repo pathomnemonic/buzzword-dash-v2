@@ -2267,3 +2267,13 @@ body.is-dying .side-card { opacity: 0; }
 #hud .hud-pill.coin-bump { animation: coinBump .22s ease-out; }
 @keyframes coinBump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .coin-fly { display: none; } #hud .hud-pill.coin-bump { animation: none; } }
+
+/* ---------- a small swap button beside each quest that is not done ---------- */
+#questList .quest-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+#questList .quest-title-row .quest-title { flex: 1; }
+.quest-swap {
+  flex: 0 0 auto; width: 28px; height: 28px; padding: 0; line-height: 1; font-size: 14px; cursor: pointer;
+  border-radius: 50%; border: 2px solid var(--ink); background: rgba(255, 255, 255, .14); color: #fff; box-shadow: 0 2px 0 var(--ink);
+}
+.quest-swap:active { transform: translateY(2px); box-shadow: none; }
+.quest-swap-short { color: var(--accent-orange, #ff8a1f); font-weight: 800; }

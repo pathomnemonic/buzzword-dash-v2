@@ -58,13 +58,13 @@ export function coinsForObstacle(kind) {
   var out = [];
   var i;
   if (kind === 'slide') {
-    for (i = -6; i <= 6; i++) out.push({ dz: i * 0.3, y: 0.7, air: false });
+    for (i = -4; i <= 4; i++) out.push({ dz: i * 0.5, y: 0.7, air: false });
     return out;
   }
   // a jump lasts about two pattern units each side of the middle; the arc peaks right over the obstacle
-  for (i = -6; i <= 6; i++) {
-    var t = (i + 6) / 12; // 0 .. 1
-    out.push({ dz: i * 0.3, y: 1.2 + Math.sin(t * Math.PI) * 1.75, air: true });
+  for (i = -4; i <= 4; i++) {
+    var t = (i + 4) / 8; // 0 .. 1
+    out.push({ dz: i * 0.5, y: 1.2 + Math.sin(t * Math.PI) * 1.75, air: true });
   }
   return out;
 }
@@ -84,8 +84,8 @@ export function magnetX(coinX, playerX, coinZ, dt) {
   return coinX + (playerX - coinX) * k;
 }
 
-/** Spacing between neighbouring coins in a line (pattern units): about a coin and a third apart, so a line is a stream you run along, like a runner game's. */
-export var COIN_GAP = 0.45;
+/** Spacing between neighbouring coins in a line (pattern units): two coin-widths apart, so a line is a stream you run along but each coin is its own. */
+export var COIN_GAP = 0.7;
 
 /** How far ahead (pattern units) coins are kept laid out. Everything nearer than this always has coins in it. */
 export var COIN_HORIZON = 48;
@@ -117,4 +117,18 @@ export function fillCoins(tail, lay, nextGap) {
     tail = start - lay(start);
   }
   return tail;
+}
+
+/** A coin is picked up only where the runner actually is: within this far sideways (world units)... */
+export var COIN_REACH_X = 1.0;
+/** ...and within this far along the track. Narrow on purpose, so two coins side by side cannot both be taken by flicking between lanes. */
+export var COIN_REACH_Z = 1.1;
+
+/**
+ * Does the runner, at this offset from a coin, pick it up?
+ * @param {number} dx coin x minus the runner's actual x (not the lane they have asked for)
+ * @param {number} dz coin z (the runner is at 0)
+ */
+export function coinTouches(dx, dz) {
+  return Math.abs(dx) < COIN_REACH_X && Math.abs(dz) < COIN_REACH_Z;
 }

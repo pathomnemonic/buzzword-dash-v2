@@ -11,7 +11,7 @@ import { createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { renderPerformance } from './statsview.js';
-import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS } from './game/shopdata.js';
+import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS, QUEST_SWAP_COST } from './game/shopdata.js';
 import { localDateKey } from './uihelpers.js';
 import { renderStreakCalendar } from './streakcalendar.js';
 import { renderLevelChip } from './rewardsui.js';
@@ -319,6 +319,49 @@ export var profileMethods = {
     renderStreakCalendar(document.getElementById('streakCalendar'));
   },
 
+  /** "Get a new quest for 75 coins?" Yes swaps it (and says what the new one is); No keeps it. */
+  _askQuestSwap(q) {
+    var self = this;
+    var old = document.getElementById('questSwapAsk');
+    if (old) old.remove();
+    var coins = storage.get('coins') || 0;
+    var enough = coins >= QUEST_SWAP_COST;
+    var overlay = createElement('div', { className: 'report-overlay', attributes: { id: 'questSwapAsk', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'questSwapTitle' } });
+    var box = createElement('div', { className: 'report-box' });
+    box.appendChild(createElement('h2', { text: '🔄 New quest?', attributes: { id: 'questSwapTitle' } }));
+    box.appendChild(createElement('p', { text: 'Swap "' + q.title + '" for a different quest for ' + QUEST_SWAP_COST + ' 🪙?' }));
+    if (!enough) box.appendChild(createElement('p', { className: 'quest-swap-short', text: 'You have ' + coins + ' 🪙. Keep playing and come back.' }));
+    var row = createElement('div', { className: 'tut-buttons' });
+    var yes = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Swap for ' + QUEST_SWAP_COST + ' 🪙', attributes: { type: 'button', id: 'questSwapYes' } });
+    yes.disabled = !enough;
+    var no = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Keep it', attributes: { type: 'button', id: 'questSwapNo' } });
+    function close() { overlay.remove(); }
+    no.addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    overlay.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    yes.addEventListener('click', function () {
+      var res = storage.swapQuest(q.id);
+      close();
+      if (res.success) {
+        var now = QUESTS.filter(function (x) { return x.id === res.newId; })[0];
+        audio.play('coin');
+        self._showToast('New quest: ' + (now ? now.title : ''));
+      } else {
+        self._showToast(res.error || 'Could not swap the quest.');
+      }
+      self.renderQuests();
+      self.renderHome();
+      document.dispatchEvent(new CustomEvent('dx:coins-changed'));
+      document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+    });
+    row.appendChild(yes);
+    row.appendChild(no);
+    box.appendChild(row);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    (enough ? yes : no).focus();
+  },
+
   renderQuests() {
     var container = document.getElementById('questList');
     if (!container) return;
@@ -365,8 +408,19 @@ export var profileMethods = {
 
       var questEl = createElement('div', { className: 'quest-item' });
 
+      var titleRow = createElement('div', { className: 'quest-title-row' });
       var titleEl = createElement('div', { className: 'quest-title', text: (CATEGORY_ICON[q.category] || '') + ' ' + q.title + ': ' + q.desc });
-      questEl.appendChild(titleEl);
+      titleRow.appendChild(titleEl);
+      // A quest not done yet can be swapped for a new one, for a few coins (asked first)
+      if (!isComplete) {
+        var swapBtn = createElement('button', {
+          className: 'quest-swap', text: '🔄',
+          attributes: { type: 'button', title: 'Swap this quest', 'aria-label': 'Swap the quest ' + q.title + ' for a new one (' + QUEST_SWAP_COST + ' coins)', 'data-swap': q.id }
+        });
+        swapBtn.addEventListener('click', function () { self._askQuestSwap(q); });
+        titleRow.appendChild(swapBtn);
+      }
+      questEl.appendChild(titleRow);
 
       var barEl = createElement('div', { className: 'quest-bar' });
       var fillEl = createElement('div', { className: 'quest-fill' });

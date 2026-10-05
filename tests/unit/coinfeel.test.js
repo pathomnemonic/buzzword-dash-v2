@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import {
   chimeRatio, chainContinues, CHAIN_WINDOW, coinReachable, coinWorth, coinsForObstacle, magnetX, coinGap, fillCoins, COIN_HORIZON,
-  COIN_GAP, AIR_COIN_HEIGHT
+  COIN_GAP, AIR_COIN_HEIGHT, coinTouches, COIN_REACH_X, COIN_REACH_Z
 } from '../../js/game/coinfx.js';
 import { enableCoinInstancing, disableCoinInstancing, spawnCoinBatch, spawnCoinsForObstacle } from '../../js/game/obstacles.js';
 import { VISUAL_SPEED } from '../../js/game/enginedefs.js';
@@ -175,5 +175,57 @@ describe('coins are laid end to end, so a coin is almost always in view', () => 
     }
     expect(covered / samples).toBeGreaterThanOrEqual(0.99);
     expect(worstRun).toBeLessThan(1);
+  });
+});
+
+describe('coins cannot be scooped from two lanes by flicking between them', () => {
+  beforeEach(() => disableCoinInstancing());
+
+  it('a coin is taken only where the runner is, and only as it passes', () => {
+    expect(coinTouches(0, 0)).toBe(true);
+    expect(coinTouches(COIN_REACH_X - 0.01, COIN_REACH_Z - 0.01)).toBe(true);
+    expect(coinTouches(3, 0)).toBe(false);                 // the next lane over
+    expect(coinTouches(1.5, 0)).toBe(false);               // half way between two lanes takes neither
+    expect(coinTouches(0, 4)).toBe(false);                 // well ahead or behind
+    expect(coinTouches(0, -COIN_REACH_Z)).toBe(false);
+    expect(COIN_REACH_X).toBeLessThan(1.5);                // less than half a lane
+  });
+
+  it('no pattern puts coins in two lanes at the same spot, or close enough along the track to take both without a lane change', () => {
+    const LANE_CHANGE_ALONG = 1.3; // pattern units: about a lane change at normal speed
+    for (let trial = 0; trial < 120; trial++) {
+      const coins = [];
+      spawnCoinBatch(new THREE.Scene(), coins, -60);
+      const flat = coins.filter((c) => !c.userData.air);
+      for (let a = 0; a < flat.length; a++) {
+        for (let b = a + 1; b < flat.length; b++) {
+          if (flat[a].userData.lane === flat[b].userData.lane) continue;
+          const along = Math.abs(flat[a].position.z - flat[b].position.z) / VISUAL_SPEED;
+          expect(along, 'two lanes ' + along.toFixed(2) + ' apart').toBeGreaterThanOrEqual(LANE_CHANGE_ALONG);
+        }
+      }
+    }
+  });
+
+  it('even a runner who teleports to the best lane every instant cannot take two coins from the same slot', () => {
+    // sweep a runner along a batch, always standing under whichever coin is nearest, and count how many coins are taken
+    for (let trial = 0; trial < 60; trial++) {
+      const coins = [];
+      spawnCoinBatch(new THREE.Scene(), coins, -60);
+      const total = coins.length;
+      let taken = 0;
+      const alive = coins.slice();
+      for (let z = -65 * VISUAL_SPEED; z < 5; z += 0.05) {
+        alive.forEach((c) => { c.position.z += 0.05; });
+        // the best case: stand exactly under the nearest coin that is within reach
+        const near = alive.filter((c) => Math.abs(c.position.z) < COIN_REACH_Z).sort((p, q) => Math.abs(p.position.z) - Math.abs(q.position.z))[0];
+        if (near) {
+          const px = near.position.x;
+          for (let k = alive.length - 1; k >= 0; k--) if (coinTouches(alive[k].position.x - px, alive[k].position.z)) { alive.splice(k, 1); taken++; }
+        }
+      }
+      expect(taken).toBeLessThanOrEqual(total);
+      expect(taken).toBeGreaterThan(0);
+    }
   });
 });

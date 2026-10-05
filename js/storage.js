@@ -25,7 +25,7 @@ import { masteryTier, cleanMapAnswers, GOLD_REWARD_COINS } from './game/mapmaste
 import { levelFromXp } from './progress.js';
 import { repairData, sanitizeCollections } from './sanity.js';
 import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetween } from './studystreak.js';
-import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate } from './game/shopdata.js';
+import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate, pickReplacementQuest, QUEST_SWAP_COST } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
@@ -1776,6 +1776,30 @@ class Storage {
       while (keys.length > 45) delete picks[keys.shift()];
     }
     return picks[key].slice();
+  }
+
+  /**
+   * Pay to swap one of today's quests for a new one. Not for a quest that is already done, and never for free.
+   * @param {string} oldId
+   * @param {function(): number} [rand]
+   * @returns {{success: boolean, newId?: string, cost?: number, error?: string}}
+   */
+  swapQuest(oldId, rand) {
+    var key = todayKey();
+    var ids = this.getDailyQuestIds(key);
+    var at = ids.indexOf(oldId);
+    if (at < 0) return { success: false, error: 'That quest is not on offer today.' };
+    var def = this._getQuestDef(oldId);
+    var qs = (this.data.progression.questState[key] || {})[oldId] || {};
+    if (qs.completed || qs.claimed || (def && (qs.progress || 0) >= def.target)) return { success: false, error: 'That quest is already done.' };
+    if (this.data.progression.coins < QUEST_SWAP_COST) return { success: false, error: 'You need ' + QUEST_SWAP_COST + ' coins to swap a quest.' };
+    var self = this;
+    var newId = pickReplacementQuest(ids, oldId, function (id) { return self.getQuestProgress(id); }, rand);
+    if (!newId) return { success: false, error: 'There is no other quest to swap in.' };
+    this.data.progression.coins -= QUEST_SWAP_COST;
+    this.data.progression.questPicks[key][at] = newId;
+    this.save();
+    return { success: true, newId: newId, cost: QUEST_SWAP_COST };
   }
 
   /** Quest definitions on offer today. */

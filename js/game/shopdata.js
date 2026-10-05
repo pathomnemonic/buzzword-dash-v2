@@ -719,6 +719,35 @@ function seededRandom(seed) {
  * @param {string[]} [avoidIds] ids to skip (yesterday's quests)
  * @returns {string[]} quest ids
  */
+/** What it costs to swap one quest for a new one (a few seconds of play: more than a quest's reward would be a trap). */
+export var QUEST_SWAP_COST = 75;
+
+/**
+ * The quest to offer in place of one the player wants rid of: one that is not already on offer today and not finished,
+ * preferring one they have not started (so it is a fresh goal) and one of the same kind.
+ * @param {string[]} offeredIds quests on offer today
+ * @param {string} oldId the quest being swapped out
+ * @param {function(string): number} progressOf today's progress on a quest
+ * @param {function(): number} [rand]
+ * @returns {string|null}
+ */
+export function pickReplacementQuest(offeredIds, oldId, progressOf, rand) {
+  var old = QUESTS.filter(function (q) { return q.id === oldId; })[0];
+  var open = QUESTS.filter(function (q) { return offeredIds.indexOf(q.id) < 0 && (progressOf(q.id) || 0) < q.target; });
+  var same = function (q) { return old && q.category === old.category; };
+  var fresh = function (q) { return !(progressOf(q.id) > 0); };
+  var tiers = [
+    open.filter(function (q) { return fresh(q) && same(q); }),
+    open.filter(fresh),
+    open.filter(same),
+    open
+  ];
+  for (var i = 0; i < tiers.length; i++) {
+    if (tiers[i].length) return tiers[i][Math.floor((rand || Math.random)() * tiers[i].length) % tiers[i].length].id;
+  }
+  return null;
+}
+
 export function pickDailyQuests(dateKey, avoidIds) {
   var avoid = avoidIds || [];
   var rand = seededRandom(hashString('dx-quests:' + dateKey));
