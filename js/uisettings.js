@@ -1054,8 +1054,9 @@ export var settingsMethods = {
       var unlockAt = mapUnlockLevel(item.id);
       var reached = unlockAt > 0 && levelFromXp(storage.get('xp') || 0).level >= unlockAt;
       var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc + (owned ? (reached && storage.data.progression.ownedItems.indexOf(item.id) < 0 ? ' · Unlocked at level ' + unlockAt : '') : ' · Unlocks at level ' + unlockAt + ' (or buy it now)') });
-      descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
-      nameWrap.appendChild(descLine);
+      // the description sits on its own line under the name and the buttons, across the whole card, so it is never squeezed beside them
+      descLine.style.cssText = 'font-size:11px;line-height:1.35;flex:1 1 100%;order:3;margin:0';
+      row.style.flexWrap = 'wrap';
       if (storage.secretFound(item.name)) nameWrap.firstChild.appendChild(createElement('span', { text: ' 🔎', attributes: { title: 'You found this map\'s secret', 'aria-label': 'Secret found' } }));
       if ((self._lockerFresh || []).indexOf(item.id) >= 0) {
         nameWrap.firstChild.appendChild(createElement('span', { className: 'new-dot', attributes: { 'aria-label': 'You can afford this now', title: 'You can afford this now' } }));
@@ -1063,7 +1064,7 @@ export var settingsMethods = {
       row.appendChild(nameWrap);
 
       var btnWrap = createElement('div');
-      btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px';
+      btnWrap.style.cssText = 'display:flex;align-items:center;gap:2px;flex-shrink:0';
       var seeMap = function () { if (self.characterPreview && self.characterPreview.previewMap) self.characterPreview.previewMap(item.skinId); };
       var eye = createElement('button', { className: 'btn btn-outline btn-sm', text: '\uD83D\uDC41', attributes: { type: 'button', 'aria-label': 'Preview ' + item.name } });
       eye.style.cssText = 'font-size:10px;padding:4px 8px;margin-left:4px';
@@ -1099,6 +1100,7 @@ export var settingsMethods = {
         btnWrap.appendChild(buy);
       }
       row.appendChild(btnWrap);
+      row.appendChild(descLine);
       wrap.appendChild(row);
     });
     return wrap;
