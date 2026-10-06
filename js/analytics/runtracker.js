@@ -147,7 +147,7 @@ export function createRunTracker(deps) {
           var from = run.lastMap;
           run.mapChanges++;
           if (to && run.maps.indexOf(to) < 0) run.maps.push(to);
-          track('map_changed', { from: from, to: to, run_id: run.id, answers_on_from: (game.mapAnswers && game.mapAnswers[from]) || 0 });
+          track('map_changed', { from: from, to: to, run_id: run.id });
           run.lastMap = to;
           break;
         }
@@ -204,7 +204,7 @@ export function createRunTracker(deps) {
     /**
      * Everything about the finished run, for the run_end event.
      * @param {object} summary the engine's canonical run summary
-     * @param {object} extra { level_before, level_after, xp_gain, new_best, ranked, quests_completed, achievements, map_masteries, coins_wallet_after, run_number, session_run_index, tier_end, res_scale, scenery_density }
+     * @param {object} extra { level_before, level_after, xp_gain, new_best, ranked, quests_completed, achievements, coins_wallet_after, run_number, session_run_index, tier_end, res_scale, scenery_density }
      */
     endProps: function (summary, extra) {
       if (!run) return null;
@@ -234,7 +234,7 @@ export function createRunTracker(deps) {
         ranked: extra.ranked !== false && !summary.custom, custom: !!summary.custom, unique_cards: Object.keys(run.unique).length, repeat_cards: run.repeats,
         subjects: run.subjects, subject_correct: run.subjectCorrect, fps_avg: frames.avgFps(), fps_p5: frames.p5Fps(), frames_slow: frames.slowFrames(),
         tier_end: extra.tier_end || '', res_scale: Math.round((game._resScale || 0) * 100) / 100, scenery_density: game._densityIndex || 0, coins_wallet_after: extra.coins_wallet_after || 0,
-        quests_completed: extra.quests_completed || 0, achievements: extra.achievements || 0, map_masteries: extra.map_masteries || 0,
+        quests_completed: extra.quests_completed || 0, achievements: extra.achievements || 0,
         session_run_index: extra.session_run_index || 0, run_number: extra.run_number || 0
       };
     },

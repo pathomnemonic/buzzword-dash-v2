@@ -21,7 +21,6 @@
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
 import { mapUnlockLevel } from './game/mapunlocks.js';
-import { masteryTier, cleanMapAnswers, GOLD_REWARD_COINS } from './game/mapmastery.js';
 import { levelFromXp } from './progress.js';
 import { repairData, sanitizeCollections } from './sanity.js';
 import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetween } from './studystreak.js';
@@ -130,8 +129,6 @@ var DEFAULTS = {
     totalPlayTimeMs: 0,
     totalCardsStudied: 0,
     autoPilotHints: 0,   // how many times the pick-up tip for Auto-Pilot has been shown (it stops after 10)
-    mapStats: {},        // questions answered on each map, by map name (see game/mapmastery.js)
-    masteredMaps: [],    // maps that have gone gold (their coin reward is paid once)
     secretsFound: [],    // maps whose hidden secret has been found at least once
     perfectRuns: 0,
     continuesUsed: 0,
@@ -524,7 +521,6 @@ function cleanRunSummary(s) {
   }
   out.encounters = (Array.isArray(out.encounters) ? out.encounters : []).filter(function (e) { return e && typeof e === 'object' && typeof e.cardId === 'string'; });
   if (!Array.isArray(out.subjectsSeen)) out.subjectsSeen = [];
-  out.mapAnswers = cleanMapAnswers(out.mapAnswers);
   return out;
 }
 
@@ -1236,12 +1232,6 @@ class Storage {
     return true;
   }
 
-  /** Questions answered on a map, over all runs. */
-  mapAnswered(mapName) {
-    var stats = this.data && this.data.progression && this.data.progression.mapStats;
-    return stats && typeof stats === 'object' ? Number(stats[mapName]) || 0 : 0;
-  }
-
   /** Has the hidden secret on this map ever been found? */
   secretFound(mapName) {
     var f = this.data.progression.secretsFound;
@@ -1561,19 +1551,6 @@ class Storage {
     p.totalWrong += summary.wrong || 0;
     p.totalCardsStudied += summary.encountersCompleted || 0;
     p.totalPlayTimeMs += summary.durationMs || 0;
-
-    // --- Map mastery: questions answered on each map; a map's first gold pays a one-time reward ---
-    if (!p.mapStats || typeof p.mapStats !== 'object' || Array.isArray(p.mapStats)) p.mapStats = {};
-    if (!Array.isArray(p.masteredMaps)) p.masteredMaps = [];
-    result.newMapMasteries = [];
-    Object.keys(summary.mapAnswers || {}).forEach(function (name) {
-      p.mapStats[name] = Math.min(1000000, (Number(p.mapStats[name]) || 0) + summary.mapAnswers[name]);
-      if (masteryTier(p.mapStats[name]) === 'gold' && p.masteredMaps.indexOf(name) < 0) {
-        p.masteredMaps.push(name);
-        p.coins += GOLD_REWARD_COINS;
-        result.newMapMasteries.push(name);
-      }
-    });
 
     // Coins
     // coinsEarned is the run's full total; coinsCollected (pickups) is a subset of it.

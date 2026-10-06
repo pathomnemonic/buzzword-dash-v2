@@ -90,7 +90,7 @@ export var EVENTS = {
     continue_offered: 'b', continued: 'b', monster_caught: 'b', monster_warnings: 'i', hazards: 'm', maps: 'sa', map_changes: 'i',
     speed_start: 'n', speed_end: 'n', xp_gain: 'i', level_before: 'i', level_after: 'i', new_best: 'b', ranked: 'b', custom: 'b',
     unique_cards: 'i', repeat_cards: 'i', subjects: 'm', subject_correct: 'm', fps_avg: 'i', fps_p5: 'i', frames_slow: 'i', tier_end: 'e:low|medium|high', res_scale: 'n',
-    scenery_density: 'n', coins_wallet_after: 'i', quests_completed: 'i', achievements: 'i', map_masteries: 'i', session_run_index: 'i', run_number: 'i'
+    scenery_density: 'n', coins_wallet_after: 'i', quests_completed: 'i', achievements: 'i', session_run_index: 'i', run_number: 'i'
   }],
   run_cards: ['gameplay', 'The questions of a run, packed: [card_id, correct 0/1, decision ms, lane chosen, correct lane, wrong-answer index or -1, rush 0/1, streak]. Several events when a run is long.', {
     run_id: 's40!', mode: 'e:' + MODES, part: 'i', parts: 'i', rows: 'rows!', subjects: 'sa'
@@ -103,7 +103,7 @@ export var EVENTS = {
   auto_pilot_used: ['gameplay', 'The player used a held Auto-Pilot.', { run_id: 's40', via: 'e:key|button|tap' }],
   secret_found: ['gameplay', 'The hidden secret on a map was found.', { map: 's40', first_time: 'b', coins: 'i' }],
   streak_milestone: ['gameplay', 'A streak milestone (5, 10, 15...) was hit.', { streak: 'i', multiplier: 'i', run_id: 's40' }],
-  map_changed: ['gameplay', 'The track changed to another map mid-run.', { from: 's40', to: 's40', run_id: 's40', answers_on_from: 'i' }],
+  map_changed: ['gameplay', 'The track changed to another map mid-run.', { from: 's40', to: 's40', run_id: 's40' }],
   hazard_started: ['gameplay', 'A map hazard (blackout, tremor, fog...) began.', { kind: 's24!', map: 's40', run_id: 's40' }],
   monster_event: ['gameplay', 'The exam monster warned, closed in or caught the runner.', { kind: 'e:warning|close|caught|slip', run_id: 's40' }],
   obstacle_outcome: ['gameplay', 'An obstacle was cleared or hit (sampled: 1 in 5).', { kind: 'e:jump|slide', outcome: 'e:cleared|hit', run_id: 's40' }],
@@ -113,7 +113,6 @@ export var EVENTS = {
   level_up: ['progression', 'The player reached a new level.', { level: 'i!', rank: 's24', via: 'e:run|study|quest|other', maps_unlocked: 'sa' }],
   achievement_unlocked: ['progression', 'A badge was earned.', { id: 's40!', total: 'i' }],
   map_unlocked: ['progression', 'A map became available (by level or by purchase).', { map: 's40!', via: 'e:level|purchase|start', level: 'i' }],
-  map_mastered: ['progression', 'A map reached gold mastery.', { map: 's40!', answers: 'i' }],
   streak_changed: ['progression', 'The study streak grew, was saved by a shield or was lost.', { kind: 'e:extended|shield_used|lost|started', days: 'i', best: 'i' }],
   daily_reward_claimed: ['economy', 'The daily login reward.', { day: 'i', coins: 'i', chest: 'b', login_streak: 'i' }],
   quest_completed: ['economy', 'A daily quest was completed.', { id: 's40!', category: 's20', reward: 'i', swapped_in: 'b' }],

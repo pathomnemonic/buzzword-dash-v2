@@ -72,7 +72,6 @@ import { leagueRules } from './leagues.js';
 import { shareText } from './platform.js';
 import { installChunkRecovery } from './chunkrecovery.js';
 import { ComboTracker, musicMood } from './game/combo.js';
-import { GOLD_REWARD_COINS } from './game/mapmastery.js';
 import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
 import { palReminder } from './companions.js';
 import { maybeAskConsent, analyticsAvailable } from './analyticsui.js';
@@ -1034,7 +1033,6 @@ function buildRunSummary(gameRef) {
     subjectsSeen: [],
     rushesUsed: 0,
     powerupsCollected: gameRef.runPowerupsCollected || 0,
-    mapAnswers: gameRef.mapAnswers || {},
     obstaclesJumped: 0,
     obstaclesSlid: 0,
 
@@ -1070,13 +1068,12 @@ function finalizeRun(gameRef) {
   reportRunEnd(summary, {
     xp_gain: lastRunReward && lastRunReward.info ? (lastRunReward.info.gain || 0) : 0, level_before: lastRunReward && lastRunReward.info ? lastRunReward.info.levelBefore : 0,
     level_after: lastRunReward && lastRunReward.info ? lastRunReward.info.levelAfter : 0, new_best: !!result.newBestScore, ranked: isRankedRun(summary),
-    quests_completed: (result.completedQuestIds || []).length, achievements: (result.newlyUnlockedAchievementIds || []).length, map_masteries: (result.newMapMasteries || []).length,
+    quests_completed: (result.completedQuestIds || []).length, achievements: (result.newlyUnlockedAchievementIds || []).length,
     coins_wallet_after: storage.get('coins') || 0, run_number: storage.data.settings.runsFinished || 0
   });
   if (lastRunReward && lastRunReward.info && lastRunReward.info.levelAfter > lastRunReward.info.levelBefore) {
     trackEvent('level_up', { level: lastRunReward.info.levelAfter, via: 'run' });
   }
-  (result.newMapMasteries || []).forEach(function (m) { trackEvent('map_mastered', { map: String(m), answers: (storage.mapAnswered && storage.mapAnswered(m)) || 0 }); });
 
   // The subject of the day pays a few coins for each right answer in it (up to a daily cap)
   lastRunBonus = null;
@@ -1108,9 +1105,6 @@ function finalizeRun(gameRef) {
     if (lastRunReward && lastRunReward.newBest) palCheer('best');
     else if (lastRunReward && lastRunReward.info && lastRunReward.info.levelAfter > lastRunReward.info.levelBefore) palCheer('levelup');
     else if (streakDeservesCheer(storage.getStreakStatus().streak) && storage.getStudiedToday() > 0) palCheer('milestone');
-  }
-  if (result.newMapMasteries && result.newMapMasteries.length > 0) {
-    ui.showNotice('🥇 Map mastered: ' + result.newMapMasteries.join(', ') + '! +' + (result.newMapMasteries.length * GOLD_REWARD_COINS) + ' 🪙', { color: 'var(--accent-gold, #ffcc22)', ms: 4200 });
   }
   if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
     ui.showAchievementNotification(result.newlyUnlockedAchievementIds);

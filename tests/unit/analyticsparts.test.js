@@ -232,7 +232,7 @@ describe('frame meter', function () {
 describe('run tracker', function () {
   function setup() {
     var sent = [];
-    var game = { streak: 3, coins: 40, score: 900, currentSkin: { name: 'City' }, speed: 3.75, mapAnswers: {} };
+    var game = { streak: 3, coins: 40, score: 900, currentSkin: { name: 'City' }, speed: 3.75 };
     var t = createRunTracker({ now: function () { return 1000 + clock.t; }, track: function (n, p) { sent.push([n, p]); }, game: game });
     var clock = { t: 0 };
     return { t: t, sent: sent, game: game, clock: clock };

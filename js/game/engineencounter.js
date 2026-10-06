@@ -261,8 +261,6 @@ card = pickResult ? pickResult.card : null;
       this.monsterTargetZ = Math.max(this.monsterTargetZ, 3);
     }
 
-    // questions answered on each map (for map mastery)
-    if (this.currentSkin) this.mapAnswers[this.currentSkin.name] = (this.mapAnswers[this.currentSkin.name] || 0) + 1;
     if (ok) {
       this.correct++;
       this._fovKick = Math.max(this._fovKick, 3);

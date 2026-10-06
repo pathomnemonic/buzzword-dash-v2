@@ -206,7 +206,6 @@ class Game {
 
     // Animations
     this.celebrateTimer = 0;
-    this.mapAnswers = {};    // questions answered per map this run
     this.flourishTimer = 0;  // the hero's spin after 20, 30, 40... in a row
     this._trackGlow = 0;     // how lit the track is for the current streak (0..1.6)
     this.stumbleTimer = 0;
@@ -877,7 +876,7 @@ class Game {
     this.autoPilotGatesLeft = 0;
     this.autoPilotHeld = false; // an Auto-Pilot picked up and waiting for the player to use it
 
-    this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this.mapAnswers = {}; this._removeSecret(false); this._secret = null; this.stumbleTimer = 0;
+    this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this._removeSecret(false); this._secret = null; this.stumbleTimer = 0;
     this.landingTimer = 0; this.wasJumping = false;
     this.encounterStartTime = 0; this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;

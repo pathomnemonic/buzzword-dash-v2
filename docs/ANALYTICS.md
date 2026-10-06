@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **102**.
+Total events: **101**.
 
 ## Acquisition
 
@@ -352,7 +352,6 @@ A run ended: the full result. The most important event for product and balance w
 | `coins_wallet_after` | whole number |
 | `quests_completed` | whole number |
 | `achievements` | whole number |
-| `map_masteries` | whole number |
 | `session_run_index` | whole number |
 | `run_number` | whole number |
 
@@ -459,7 +458,6 @@ The track changed to another map mid-run.
 | `from` | text (≤40) |
 | `to` | text (≤40) |
 | `run_id` | text (≤40) |
-| `answers_on_from` | whole number |
 
 ### `hazard_started`
 
@@ -531,15 +529,6 @@ A map became available (by level or by purchase).
 | `map` | text (≤40) — required |
 | `via` | one of: level, purchase, start |
 | `level` | whole number |
-
-### `map_mastered`
-
-A map reached gold mastery.
-
-| Property | Type |
-|---|---|
-| `map` | text (≤40) — required |
-| `answers` | whole number |
 
 ### `streak_changed`
 

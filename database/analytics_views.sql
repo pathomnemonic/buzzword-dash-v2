@@ -355,7 +355,7 @@ WITH feature(name, feature) AS (VALUES
   ('share', 'sharing'), ('challenge_event', 'challenges'), ('multiplayer_event', 'versus'), ('leaderboard_viewed', 'leaderboard'), ('friend_event', 'friends'),
   ('setting_changed', 'changing settings'), ('review_session', 'quick review'), ('explain_viewed', 'explanations'), ('readiness_viewed', 'readiness view'),
   ('card_browser', 'card browser'), ('card_reported', 'reporting cards'), ('offline_pack', 'offline download'), ('account_event', 'account'),
-  ('feedback_sent', 'sending feedback'), ('secret_found', 'finding secrets'), ('powerup_fused', 'power-up fusions'), ('map_mastered', 'map mastery'))
+  ('feedback_sent', 'sending feedback'), ('secret_found', 'finding secrets'), ('powerup_fused', 'power-up fusions'))
 SELECT f.feature, count(DISTINCT e.install_id) AS installs, analytics_pct(count(DISTINCT e.install_id), (SELECT count(DISTINCT install_id) FROM analytics_v_active_days WHERE day > current_date - 30)) AS pct_of_active_installs,
        count(*) AS uses
 FROM feature f JOIN analytics_events e ON e.name = f.name AND e.ts > now() - interval '30 days'
@@ -461,7 +461,7 @@ WHERE s.map IS NOT NULL GROUP BY s.map ORDER BY runs DESC;
 
 CREATE OR REPLACE VIEW analytics_v_map_progress AS
 SELECT name, props ->> 'map' AS map, coalesce(props ->> 'via', '') AS via, count(*) AS events, count(DISTINCT install_id) AS installs
-FROM analytics_events WHERE name IN ('map_unlocked', 'map_mastered', 'secret_found') GROUP BY 1, 2, 3 ORDER BY events DESC;
+FROM analytics_events WHERE name IN ('map_unlocked', 'secret_found') GROUP BY 1, 2, 3 ORDER BY events DESC;
 
 -- heroes, monsters and trails in use
 CREATE OR REPLACE VIEW analytics_v_cosmetics_in_use AS
