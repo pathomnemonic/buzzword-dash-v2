@@ -5,7 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
-import { requireGate, proGiftState, giftMonthKey } from './pro.js';
+import { requireGate, proGiftState } from './pro.js';
 import { renderProSettings, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -754,7 +754,7 @@ export var settingsMethods = {
         return;
       }
       clearTimeout(timer);
-      if (!storage.claimProGift(item.id, giftMonthKey())) { self._showToast('Your gift is already used this month.'); self.renderShop(); return; }
+      if (!storage.claimProGift(item.id, proGiftState().key)) { self._showToast('Your gift is already used this month.'); self.renderShop(); return; }
       audio.play('buy');
       trackEvent('pro_gift_claimed', { item: String(item.id).slice(0, 40) });
       var earned = storage.afterPurchase();
@@ -776,8 +776,8 @@ export var settingsMethods = {
       giftBar.classList.toggle('shop-gift-used', gs.eligible && !gs.available);
       if (gs.eligible) {
         setText(giftBar, gs.available
-          ? '🎁 Your Pro gift: pick any one item below and tap 🎁 FREE. It is on the house, once a month.'
-          : '🎁 Pro gift used this month. Your next free pick opens ' + new Date(gs.nextAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) + '.');
+          ? '🎁 Your Pro gift: pick any one item below and tap 🎁 FREE. It is on the house, once a month, counted from when you joined Pro.'
+          : '🎁 Pro gift used for now. Your next free pick opens ' + new Date(gs.nextAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) + '.');
       }
     }
 

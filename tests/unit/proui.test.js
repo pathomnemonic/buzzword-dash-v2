@@ -74,24 +74,26 @@ describe('Pro screens once switched on', () => {
     expect(b.querySelector('.pro-lock')).toBeNull();
   });
 
-  it('a Pro member can take one free item a month, then has to wait for the next', async () => {
+  it('a Pro member can take one free item per month counted from when Pro began, then waits for the next', async () => {
     const { storage } = await import('../../js/storage.js');
-    const { proGiftState, giftMonthKey } = await import('../../js/pro.js');
+    const { proGiftState, giftPeriod, addMonths } = await import('../../js/pro.js');
     storage.load();
     expect(proGiftState().eligible).toBe(false);
-    document.body.innerHTML = '';
-    const { setProStatusForTest } = await import('../../js/pro.js').then((m) => ({ setProStatusForTest: m.setProDebug }));
-    setProStatusForTest(true);
-    const now = new Date(2026, 5, 15).getTime();
-    expect(proGiftState(now).available).toBe(true);
-    expect(storage.claimProGift('trail_ekg', giftMonthKey(now))).toBe(true);
+    const since = new Date(2026, 0, 12, 9, 30).getTime(); // joined on the 12th
+    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'yearly', trial: false, until: new Date(2027, 0, 12).getTime(), provenAt: new Date(2026, 2, 20).getTime(), since }));
+    const mar20 = new Date(2026, 2, 20).getTime();
+    const g = proGiftState(mar20);
+    expect(g.available).toBe(true);
+    expect(g.nextAt).toBe(new Date(2026, 3, 12, 9, 30).getTime()); // next one opens April 12th, not April 1st
+    expect(storage.claimProGift('trail_ekg', g.key)).toBe(true);
     expect(storage.ownsItem('trail_ekg')).toBe(true);
-    expect(proGiftState(now).available).toBe(false);
-    expect(storage.claimProGift('trail_fire', giftMonthKey(now))).toBe(false);
-    const july = new Date(2026, 6, 2).getTime();
-    expect(proGiftState(july).available).toBe(true);
-    expect(proGiftState(now).nextAt).toBe(new Date(2026, 6, 1).getTime());
-    setProStatusForTest(null);
+    expect(proGiftState(mar20).available).toBe(false);
+    expect(storage.claimProGift('trail_fire', proGiftState(mar20).key)).toBe(false);
+    expect(proGiftState(new Date(2026, 3, 11).getTime()).available).toBe(false); // the day before
+    expect(proGiftState(new Date(2026, 3, 13).getTime()).available).toBe(true);  // after the 12th
+    // a 31st start lands on the last day of a shorter month
+    expect(new Date(addMonths(new Date(2026, 0, 31).getTime(), 1)).getDate()).toBe(28);
+    expect(giftPeriod(since, since).key).toBe(giftPeriod(since, since + 86400000).key);
   });
 
   it('the Home button shows while Pro is on sale and opens the paywall', () => {

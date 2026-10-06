@@ -133,13 +133,13 @@ export function combineStatus(found, cached, o) {
   (found || []).forEach(function (f) {
     if (!f || !f.active) return;
     var until = typeof f.until === 'number' ? f.until : now + 2 * 24 * 60 * 60 * 1000;
-    if (!best || until > best.until) best = { source: f.source, plan: f.plan || 'pro', trial: !!f.trial, until: until, provenAt: now };
+    if (!best || until > best.until) best = { source: f.source, plan: f.plan || 'pro', trial: !!f.trial, until: until, provenAt: now, since: f.since };
   });
-  if (best) return { active: true, source: best.source, plan: best.plan, trial: best.trial, until: best.until, provenAt: now };
+  if (best) return { active: true, source: best.source, plan: best.plan, trial: best.trial, until: best.until, provenAt: now, since: best.since };
   if (o.fresh) return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: now };
   // could not ask: keep the last good answer for a while
   if (cached && cached.until && cached.provenAt && (cached.until > now || cached.provenAt + GRACE_MS > now) && cached.provenAt + GRACE_MS > now) {
-    return { active: true, source: cached.source || '', plan: cached.plan || 'pro', trial: !!cached.trial, until: cached.until, provenAt: cached.provenAt };
+    return { active: true, source: cached.source || '', plan: cached.plan || 'pro', trial: !!cached.trial, until: cached.until, provenAt: cached.provenAt, since: cached.since };
   }
   return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: (cached && cached.provenAt) || 0 };
 }
@@ -160,7 +160,7 @@ export function isPro(now) {
 /** The saved answer, for screens: {active, source, plan, trial, until}. */
 export function proStatus() {
   var c = readJson(CACHE_KEY, null) || { active: false, source: '', plan: '', trial: false, until: 0 };
-  return { active: isPro(), source: c.source || '', plan: c.plan || '', trial: !!c.trial, until: c.until || 0 };
+  return { active: isPro(), source: c.source || '', plan: c.plan || '', trial: !!c.trial, until: c.until || 0, since: c.since || 0 };
 }
 
 function planName(productId) { return String(productId || '').replace(/^dxdash_pro_/, '') || 'pro'; }
@@ -204,12 +204,20 @@ export function refreshPro(deps) {
     }).then(function (r) {
       asked++;
       if (r && r.library && !isNative()) libraryOwned = true;
-      if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial });
+      if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
     }).catch(function () { /* offline */ }));
   }
   return Promise.all(jobs).then(function () {
     var before = isPro(now);
-    var next = combineStatus(found, readJson(CACHE_KEY, null), { now: now, fresh: asked > 0 });
+    var prev = readJson(CACHE_KEY, null);
+    var next = combineStatus(found, prev, { now: now, fresh: asked > 0 });
+    if (next.active && !(next.since > 0)) {
+      // no start date from the server (the store, or a code): the first time this install saw Pro, kept while it carries on,
+      // and begun again after a lapse or when a trial becomes a purchase
+      var carries = prev && prev.active && prev.since > 0 && !(prev.trial && !next.trial);
+      next.since = carries ? prev.since : now;
+    }
+    if (!next.active) next.since = 0;
     writeJson(CACHE_KEY, next);
     var libBefore = libraryUnlocked();
     if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned });
@@ -412,23 +420,38 @@ export function checkGate(feature, o) {
   return { allowed: used < gate.limit, mode: 'limit', limit: gate.limit, used: used, remaining: Math.max(0, gate.limit - used), per: gate.per };
 }
 
-/** The calendar month a gift belongs to, as 'YYYY-MM' (local time). */
-export function giftMonthKey(now) {
-  var d = new Date(typeof now === 'number' ? now : Date.now());
-  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+/** `n` months after `anchor` (ms), on the same day of the month, or the last day of a shorter month. */
+export function addMonths(anchor, n) {
+  var a = new Date(anchor);
+  var y = a.getFullYear(), m = a.getMonth() + n;
+  var last = new Date(y, m + 1, 0).getDate();
+  return new Date(y, m, Math.min(a.getDate(), last), a.getHours(), a.getMinutes(), a.getSeconds()).getTime();
 }
 
 /**
- * The monthly Pro gift: one free item from the Locker, any one, each calendar month, for anyone with Pro (a trial too).
- * @returns {{eligible: boolean, available: boolean, nextAt: number, item: string}} nextAt: when the next gift opens (ms)
+ * Which gift month `now` falls in, counted from when Pro began: the start of that month and the start of the next (ms).
+ * A member who started on the 12th gets a new gift on the 12th of each month.
+ */
+export function giftPeriod(since, now) {
+  var a = new Date(since), b = new Date(now);
+  var k = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  if (addMonths(since, k) > now) k--;
+  if (k < 0) k = 0;
+  return { start: addMonths(since, k), next: addMonths(since, k + 1), key: new Date(addMonths(since, k)).toISOString().slice(0, 10) };
+}
+
+/**
+ * The monthly Pro gift: one free item from the Locker, any one, for each month since Pro began (a trial counts too).
+ * @returns {{eligible: boolean, available: boolean, nextAt: number, key: string, item: string}} nextAt: when the next gift opens (ms)
  */
 export function proGiftState(now) {
   var t = typeof now === 'number' ? now : Date.now();
-  var d = new Date(t);
-  var nextAt = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
   var p = (storage && storage.data && storage.data.progression) || {};
-  var eligible = proLive() && isPro(t);
-  return { eligible: eligible, available: eligible && p.proGiftMonth !== giftMonthKey(t), nextAt: nextAt, item: p.proGiftItem || '' };
+  var since = proStatus().since;
+  var eligible = proLive() && isPro(t) && since > 0;
+  if (!eligible) return { eligible: false, available: false, nextAt: 0, key: '', item: p.proGiftItem || '' };
+  var per = giftPeriod(since, t);
+  return { eligible: true, available: p.proGiftMonth !== per.key, nextAt: per.next, key: per.key, item: p.proGiftItem || '' };
 }
 
 /** Count one use of a feature (for "per day / per week" limits). */

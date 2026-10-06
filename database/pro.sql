@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS pro_entitlements (
   trial boolean NOT NULL DEFAULT false,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+-- When this stretch of Pro began: kept across renewals, restarted after a lapse or when a trial turns into a purchase.
+-- The monthly Locker gift counts its months from here.
+ALTER TABLE pro_entitlements ADD COLUMN IF NOT EXISTS started_at timestamptz NOT NULL DEFAULT now();
 
 CREATE TABLE IF NOT EXISTS pro_codes (
   code text PRIMARY KEY CHECK (code = upper(code) AND code ~ '^[A-Z0-9_-]{4,32}$'),
@@ -88,7 +91,7 @@ LANGUAGE sql STABLE SET search_path = public AS $$
   SELECT coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false)
 $$;
 
--- Do I have Pro right now? { active, until, plan, source, trial, library, trial_available }
+-- Do I have Pro right now? { active, until, plan, source, trial, since, library, trial_available }
 -- (library: I hold the one-time Full Library unlock from before it was withdrawn, which opens every card but not the tools;
 --  trial_available: I have an account, have never had the free trial and have no Pro, so the app may start it)
 CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
@@ -100,7 +103,7 @@ BEGIN
   can_trial := NOT pro_is_guest() AND NOT EXISTS (SELECT 1 FROM pro_trials WHERE user_id = me);
   SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
   IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial); END IF;
-  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'library', lib, 'trial_available', false);
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'since', r.started_at, 'library', lib, 'trial_available', false);
 END $$;
 
 -- Start my free trial: seven days of Pro, once per account, for a signed-in (not guest) player who has no Pro.
@@ -126,11 +129,12 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE new_until timestamptz;
 BEGIN
   IF p_days IS NULL OR p_days < 1 OR p_days > 3650 THEN RAISE EXCEPTION 'days must be 1 to 3650'; END IF;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at)
-  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), now() + make_interval(days => p_days), coalesce(p_trial, false), now())
+  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
+  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), now() + make_interval(days => p_days), coalesce(p_trial, false), now(), now())
   ON CONFLICT (user_id) DO UPDATE SET
     until = greatest(e.until, now()) + make_interval(days => p_days),
-    plan = excluded.plan, source = excluded.source, trial = excluded.trial AND e.until > now(), updated_at = now()
+    plan = excluded.plan, source = excluded.source, trial = excluded.trial AND e.until > now(), updated_at = now(),
+    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
   RETURNING until INTO new_until;
   RETURN new_until;
 END $$;
@@ -176,14 +180,15 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE new_until timestamptz;
 BEGIN
   IF p_until IS NULL OR p_until > now() + interval '3651 days' THEN RAISE EXCEPTION 'until is out of range'; END IF;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at)
-  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'stripe'), p_until, coalesce(p_trial, false), now())
+  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
+  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'stripe'), p_until, coalesce(p_trial, false), now(), now())
   ON CONFLICT (user_id) DO UPDATE SET
     until = greatest(e.until, excluded.until),
     plan = CASE WHEN excluded.until >= e.until THEN excluded.plan ELSE e.plan END,
     source = CASE WHEN excluded.until >= e.until THEN excluded.source ELSE e.source END,
     trial = excluded.trial AND excluded.until >= e.until,
-    updated_at = now()
+    updated_at = now(),
+    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
   RETURNING until INTO new_until;
   RETURN new_until;
 END $$;

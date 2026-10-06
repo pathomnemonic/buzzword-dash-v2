@@ -56,6 +56,23 @@ describe('Dx Dash Pro backend', () => {
     expect((await one(A, 'SELECT get_my_pro() AS r')).r.active).toBe(false);
   });
 
+  it('remembers when Pro began: kept across renewals, restarted after a lapse or when a trial becomes a purchase', async () => {
+    const C = '88888888-8888-4888-8888-888888888888';
+    const since = async () => new Date((await one(C, 'SELECT get_my_pro() AS r')).r.since).getTime();
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [C]);
+    expect(Math.abs((await since()) - Date.now())).toBeLessThan(60000);
+    await db.query("UPDATE pro_entitlements SET started_at = now() - interval '90 days' WHERE user_id = $1", [C]);
+    const old = await since();
+    await db.query("SELECT pro_grant_until($1, now() + interval '60 days', 'monthly', 'stripe', false)", [C]);
+    expect(await since()).toBe(old); // a renewal does not move it
+    await db.query("UPDATE pro_entitlements SET until = now() - interval '1 day' WHERE user_id = $1", [C]);
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [C]);
+    expect(Math.abs((await since()) - Date.now())).toBeLessThan(60000); // after a lapse it starts again
+    await db.query("UPDATE pro_entitlements SET trial = true, started_at = now() - interval '6 days' WHERE user_id = $1", [C]);
+    await db.query("SELECT pro_grant_until($1, now() + interval '365 days', 'yearly', 'stripe', false)", [C]);
+    expect(Math.abs((await since()) - Date.now())).toBeLessThan(60000); // a trial turning into a purchase starts again
+  });
+
   it('redeems a code once per person, up to its limit', async () => {
     await db.exec("INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 1, 'test')");
     expect((await one(null, "SELECT redeem_pro_code('LAUNCH30') AS r")).r.ok).toBe(false);
