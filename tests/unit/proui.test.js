@@ -57,7 +57,7 @@ describe('Pro screens once switched on', () => {
   it('the paywall lists every Pro feature and puts the one just tapped first', () => {
     const o = openPaywall({ trigger: 'gate_offline_pack', feature: 'offline_pack' });
     const items = [...o.querySelectorAll('.pro-feature')];
-    expect(items.length).toBe(11);
+    expect(items.length).toBe(14);
     expect(items[0].textContent).toMatch(/Play with no connection/);
     expect(items[0].classList.contains('pro-feature-hit')).toBe(true);
     expect(o.textContent).toMatch(/Free: 300 cards/);
@@ -120,6 +120,28 @@ describe('Pro screens once switched on', () => {
     expect(o.textContent).toMatch(/Restore purchases/);
     o.querySelector('#proPaywallClose').click();
     expect(document.getElementById('proPaywall')).toBeNull();
+  });
+
+  it('someone on the free trial still sees the plans, with how long the trial has left', async () => {
+    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'trial', trial: true, until: Date.now() + 3 * 86400000, provenAt: Date.now() }));
+    const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
+    iap.add(['dxdash_pro_yearly', 'dxdash_pro_monthly'].map((id) => ({ id, kind: 'subscription' })));
+    setIapForTest(iap);
+    const o = openPaywall({ trigger: 'home_button' });
+    await tick();
+    expect(o.textContent).toMatch(/free trial is on: 3 days left/);
+    expect(o.querySelectorAll('button[data-plan]').length).toBe(2);
+    // the plans sit above the list of what Pro gets you
+    const firstPlan = o.querySelector('button[data-plan]');
+    const features = o.querySelector('.pro-features');
+    expect(firstPlan.compareDocumentPosition(features) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('every mode but Versus High Score is a Pro gate, closed by default', async () => {
+    const { defaultProConfig } = await import('../../js/proconfig.js');
+    const g = defaultProConfig().gates;
+    ['mode_study', 'mode_weakness', 'exam_sim', 'mp_suddendeath', 'mp_race'].forEach((f) => expect(g[f], f).toBe('locked'));
+    expect(g.mp_highscore).toBeUndefined();
   });
 
   it('a gate being hit opens the paywall for that feature', async () => {

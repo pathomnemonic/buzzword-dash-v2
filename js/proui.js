@@ -40,6 +40,7 @@ function perMonth(p) {
 /** The "what Pro gets you" list; the feature the player just tapped (if any) goes first and is marked. */
 function featureList(hit) {
   var ul = createElement('ul', { className: 'pro-features' });
+  hit = hit === 'mp_suddendeath' || hit === 'mp_race' ? 'mp_modes' : hit;
   var items = PRO_FEATURES.slice().sort(function (a, b) { return (b.id === hit ? 1 : 0) - (a.id === hit ? 1 : 0); });
   items.forEach(function (f) {
     var li = createElement('li', { className: 'pro-feature' + (f.id === hit ? ' pro-feature-hit' : '') });
@@ -69,18 +70,21 @@ export function openPaywall(o) {
   var overlay = createElement('div', { className: 'report-overlay', attributes: { id: 'proPaywall', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Dx Dash Pro' } });
   var box = createElement('div', { className: 'report-box' });
   box.appendChild(createElement('h2', { text: '⚡ Dx Dash Pro' }));
-  if (isPro()) {
-    var st0 = proStatus();
-    box.appendChild(createElement('p', { text: st0.trial ? 'Your free trial is on. Enjoy every card and tool!' + (st0.until ? ' It ends ' + new Date(st0.until).toLocaleDateString() + '.' : '') : 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
+  var st0 = proStatus();
+  // Someone on the free trial still needs a way to buy: they see the plans too, with their trial's end date
+  var needsPlan = !isPro() || !!st0.trial;
+  var counts = libraryCounts();
+  if (isPro() && st0.trial) {
+    var daysLeft = st0.until ? Math.max(0, Math.ceil((st0.until - Date.now()) / 86400000)) : 0;
+    var tl = createElement('p', { text: 'Your free trial is on' + (daysLeft ? ': ' + daysLeft + (daysLeft === 1 ? ' day' : ' days') + ' left' : '') + (st0.until ? ' (ends ' + new Date(st0.until).toLocaleDateString() + ')' : '') + '. Pick a plan to keep everything when it ends.' });
+    tl.style.fontWeight = '800';
+    box.appendChild(tl);
+  } else if (isPro()) {
+    box.appendChild(createElement('p', { text: 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
   } else {
-    var counts = libraryCounts();
-    var headline = createElement('p', { text: counts.total ? 'Go Pro for ' + moreCards(counts) + ' cards. Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + '; Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' });
-    headline.style.fontWeight = '800';
+    var headline = createElement('p', { text: counts.total ? 'Go Pro for ' + moreCards(counts) + ' cards, plus every mode and study tool.' : 'Study smarter with every card, every mode and every study tool.' });
+    headline.style.cssText = 'font-weight:800;font-size:16px';
     box.appendChild(headline);
-    box.appendChild(featureList(o.feature));
-    var thanks = createElement('p', { text: 'Pro also keeps a solo developer making the game. 💜' });
-    thanks.style.cssText = 'font-size:12px;opacity:.8;margin:2px 0 6px';
-    box.appendChild(thanks);
     if (!(_lb && _lb.isAuthenticated && _lb.isAuthenticated()) || (_lb.isGuest && _lb.isGuest())) {
       var tr = createElement('p', { text: '🎁 New here? Create a free account (Friends → Account) and get a 7-day Pro trial: no card, nothing to cancel.' });
       tr.style.cssText = 'font-size:13px;font-weight:800;margin:6px 0';
@@ -92,11 +96,22 @@ export function openPaywall(o) {
   var status = createElement('div', { className: 'setting-sublabel', attributes: { role: 'status' } });
   box.appendChild(list);
   box.appendChild(status);
+  if (needsPlan) {
+    // the plans come first, so the way to buy is the first thing under the headline; what it gets you follows
+    var whatHead = createElement('h3', { text: 'WHAT YOU GET' });
+    whatHead.style.cssText = 'margin:14px 0 2px;font-size:13px;letter-spacing:1px;color:var(--accent-gold,#ffd24a)';
+    box.appendChild(whatHead);
+    if (counts.total) box.appendChild(createElement('p', { className: 'setting-sublabel', text: 'Free has ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards. Pro opens all of them.' }));
+    box.appendChild(featureList(o.feature));
+    var thanks = createElement('p', { text: 'Pro also keeps a solo developer making the game. 💜' });
+    thanks.style.cssText = 'font-size:12px;opacity:.8;margin:2px 0 6px';
+    box.appendChild(thanks);
+  }
 
   var cleanup = function () { releaseFocusTrap(); overlay.remove(); if (opener && opener.focus) { try { opener.focus(); } catch (e) { /* gone */ } } };
   var act = function (action, extra) { track('paywall_action', Object.assign({ action: action, trigger: trigger }, extra || {})); };
 
-  if (!isPro()) {
+  if (needsPlan) {
     if (isNative()) {
       setText(status, 'Loading prices…');
       proPlans().then(function (plans) {
@@ -324,7 +339,7 @@ function paintLock(btn, feature) {
   btn.appendChild(tag);
   btn.setAttribute('data-pro-feature', feature);
 }
-var STATIC_LOCKS = { '#examBtn': 'exam_sim', '#addCardBtn': 'custom_cards', '#flashcardsSheet [data-source="missed"]': 'missed_cards', '#cardBrowserBtn': 'browse_cards', '#myCardsBtn': 'my_cards' };
+var STATIC_LOCKS = { '#examBtn': 'exam_sim', '#addCardBtn': 'custom_cards', '#flashcardsSheet [data-source="missed"]': 'missed_cards', '#cardBrowserBtn': 'browse_cards', '#myCardsBtn': 'my_cards', '#challengeSheet [data-mode="study"]': 'mode_study', '#challengeSheet [data-mode="weakness"]': 'mode_weakness' };
 /** The fixed buttons that open Pro features, and any made since. */
 export function markProLocks() {
   if (typeof document === 'undefined') return;

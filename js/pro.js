@@ -55,10 +55,13 @@ export var PRO_BENEFITS = [
  * `free` says what a free player has, so the difference is clear.
  */
 export var PRO_FEATURES = [
-  { id: 'monthly_gift', icon: '🎁', title: 'A free Locker item every month', detail: 'Pick any one hero, trail, monster or map in the shop, on the house. A new pick opens each month.', free: 'Free: buy with coins' },
   { id: 'card_library', icon: '🗂', title: '10× more cards: the whole bank', detail: 'All 3,010 cards across every subject and system, not just 300.', free: 'Free: 300 cards' },
+  { id: 'monthly_gift', icon: '🎁', title: 'A free Locker item every month', detail: 'Pick any one hero, trail, monster or map in the shop, on the house. A new pick opens each month.', free: 'Free: buy with coins' },
+  { id: 'mode_study', icon: '📖', title: 'Study mode', detail: 'Relaxed runs with a teaching point after every answer and no lives lost.', free: 'Free: not included' },
+  { id: 'mode_weakness', icon: '🎯', title: 'Weakness mode', detail: 'Runs built from the cards you miss most, until they stick.', free: 'Free: not included' },
+  { id: 'mp_modes', icon: '⚔️', title: 'Every Versus mode', detail: 'Sudden Death and Race, on top of High Score.', free: 'Free: High Score only' },
   { id: 'explanations', icon: '💡', title: 'Every "why" explanation', detail: 'See why the answer is right and why the others are not, after every miss.', free: 'Free: 8 a day' },
-  { id: 'exam_sim', icon: '⏱', title: 'Unlimited exam simulations', detail: 'Timed blocks with pacing, flagged questions and a score report.', free: 'Free: 1 a week' },
+  { id: 'exam_sim', icon: '⏱', title: 'Exam Sim', detail: 'Timed blocks with pacing, flagged questions and a score report.', free: 'Free: not included' },
   { id: 'analytics_detail', icon: '📊', title: 'Detailed stats', detail: 'Subject and system breakdowns, weak spots, exam pacing, and export to a file.', free: 'Free: the basics' },
   { id: 'custom_cards', icon: '✏️', title: 'Unlimited custom cards', detail: 'Write your own cards for anything your course throws at you.', free: 'Free: 25 cards' },
   { id: 'anki_import', icon: '📥', title: 'Anki import', detail: 'Bring in your existing Anki decks and play them in the game.', free: 'Free: not included' },

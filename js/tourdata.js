@@ -128,7 +128,7 @@ export function buildTourSteps(ctx) {
       text: 'Study your subjects, review the cards that are due (timed by FSRS, the same spaced-repetition algorithm Anki uses), drill the ones you miss, or meet new ones. Flip them yourself or listen hands-free. Browse cards and My cards (your own, or imported from Anki) are here too.' + pro('(Cards I miss, Browse cards, My cards and importing are Pro.)') },
 
     { id: 'challenge-btn', title: 'Challenge', target: '#homeChallengeBtn', press: 'count',
-      text: 'Every other way to play lives here: Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim.' + pro('A small gold PRO tag marks anything Pro opens up.') + ' Have a look when you are ready.' },
+      text: 'Every other way to play lives here: Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim.' + pro('Study, Weakness and the Exam Sim are Pro, and so are two of the three Versus modes. A small gold PRO tag marks anything Pro opens up.') + ' Have a look when you are ready.' },
 
     { id: 'friends', title: 'Friends', target: '#leaderboardBtn', press: 'count',
       text: 'Add friends, see their highlights in the feed and make private study groups with a shared weekly goal. It needs a free account (the profile button beside it).' },

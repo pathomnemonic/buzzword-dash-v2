@@ -23,7 +23,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, requireGate, checkGate } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -304,10 +304,17 @@ function configureMultiplayer(client, content) {
         mod.MP_MODES.forEach(function (m) {
           var opt = document.createElement('option');
           opt.value = m.id;
-          opt.textContent = m.name + ' — ' + m.desc;
+          opt.textContent = (m.id !== 'mp_highscore' && !checkGate(m.id).allowed ? '🔒 ' : '') + m.name + ' — ' + m.desc;
           select.appendChild(opt);
         });
-        select.addEventListener('change', function () { client.setMode(select.value); });
+        var lastMode = select.value;
+        select.addEventListener('change', function () {
+          // Pro: only High Score is free
+          var feature = select.value === 'mp_suddendeath' || select.value === 'mp_race' ? select.value : '';
+          if (feature && !requireGate(feature)) { select.value = lastMode; return; }
+          lastMode = select.value;
+          client.setMode(select.value);
+        });
         modeSlot.appendChild(select);
         client.setMode(select.value);
       } else {
@@ -874,6 +881,7 @@ function attachChallengeResult(finalScore) {
 
 /** Play a list of cards in the runner (the study plan's "Run it" button). */
 function startStudyPlanRun(cardIds) {
+  if (!requireGate('mode_study')) return;
   trackEvent('study_plan_changed', { action: 'run_started' });
   if (!areCardsReady()) {
     ui._showToast(loadingLine());
@@ -885,6 +893,9 @@ function startStudyPlanRun(cardIds) {
 }
 
 function startMode(mode) {
+  // Pro: Study and Weakness (the other ways to play are free, Exam Sim and the extra Versus modes ask for Pro themselves)
+  if (mode === 'study' && !requireGate('mode_study')) return;
+  if (mode === 'weakness' && !requireGate('mode_weakness')) return;
   trackEvent('mode_selected', { mode: mode, from: 'home' });
   // The questions load in the background after the first paint; wait for them if needed
   if (!areCardsReady()) {
