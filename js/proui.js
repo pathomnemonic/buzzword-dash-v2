@@ -10,7 +10,7 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_FEATURES, libraryUnlocked } from './pro.js';
+import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_FEATURES, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
@@ -74,7 +74,9 @@ export function openPaywall(o) {
     box.appendChild(createElement('p', { text: st0.trial ? 'Your free trial is on. Enjoy every card and tool!' + (st0.until ? ' It ends ' + new Date(st0.until).toLocaleDateString() + '.' : '') : 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
   } else {
     var counts = libraryCounts();
-    box.appendChild(createElement('p', { text: counts.total ? 'Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards. Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' }));
+    var headline = createElement('p', { text: counts.total ? 'Go Pro for ' + moreCards(counts) + ' cards. Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + '; Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' });
+    headline.style.fontWeight = '800';
+    box.appendChild(headline);
     box.appendChild(featureList(o.feature));
     var thanks = createElement('p', { text: 'Pro also keeps a solo developer making the game. 💜' });
     thanks.style.cssText = 'font-size:12px;opacity:.8;margin:2px 0 6px';
@@ -258,22 +260,30 @@ export function renderProSettings(container) {
   container.appendChild(row);
 }
 
-/** The small gold button on Home: shows while Pro can be bought or owned, turns green when Pro is on, and opens the Pro popup. */
+/** The wide gold button on Home: shows while Pro can be bought (or a trial is running), says what Pro is worth, and opens the Pro popup. */
 export function mountProButton() {
   if (typeof document === 'undefined') return null;
-  var btn = document.getElementById('homeProBtn');
+  var btn = document.getElementById('homeProBanner');
   if (!btn || btn.getAttribute('data-mounted')) return btn;
   btn.setAttribute('data-mounted', '1');
-  var text = document.getElementById('homeProText');
+  var title = document.getElementById('homeProTitle');
+  var sub = document.getElementById('homeProSub');
   var paint = function () {
     var live = proLive();
-    btn.hidden = !live;
-    if (!live) return;
     var st = proStatus();
-    btn.classList.toggle('pro-on', !!st.active);
-    var label = st.active ? (st.trial ? 'Trial' : 'Pro') : 'Go Pro';
-    if (text) setText(text, label);
-    btn.setAttribute('aria-label', st.active ? (st.trial ? 'Dx Dash Pro trial: see details' : 'Dx Dash Pro: active') : 'Go Pro: see what Pro gets you');
+    btn.hidden = !live || (!!st.active && !st.trial);
+    markProLocks();
+    if (btn.hidden) return;
+    if (st.active && st.trial) {
+      var days = st.until ? Math.max(0, Math.ceil((st.until - Date.now()) / 86400000)) : 0;
+      if (title) setText(title, 'PRO TRIAL' + (days ? ' · ' + days + (days === 1 ? ' DAY' : ' DAYS') + ' LEFT' : ''));
+      if (sub) setText(sub, 'Keep 10× more cards and every study tool');
+      btn.setAttribute('aria-label', 'Dx Dash Pro trial: keep Pro');
+    } else {
+      if (title) setText(title, 'GO PRO');
+      if (sub) setText(sub, '10× more cards and every study tool');
+      btn.setAttribute('aria-label', 'Go Pro: 10 times more cards and every study tool');
+    }
   };
   btn.addEventListener('click', function () { openPaywall({ trigger: 'home_button' }); });
   ['dx:pro-changed', 'dx:pro-trial-started'].forEach(function (ev) { document.addEventListener(ev, paint); });
@@ -281,6 +291,46 @@ export function mountProButton() {
   setTimeout(paint, 1500);
   setTimeout(paint, 6000);
   return btn;
+}
+
+/** "10× more" (the whole bank against the free part of it). */
+function moreCards(counts) {
+  var n = counts && counts.free > 0 ? Math.round(counts.total / counts.free) : 10;
+  return (n >= 2 ? n : 10) + '× more';
+}
+
+var _locks = [];
+/**
+ * Tag a button as part of Pro: a small gold "🔒 PRO" on it while the feature is closed to this player ("⚡ PRO" while
+ * it is open with a limit), and nothing once it is fully open. Repainted whenever Pro changes.
+ */
+export function applyProLock(btn, feature) {
+  if (!btn) return btn;
+  if (!_locks.some(function (l) { return l.btn === btn; })) _locks.push({ btn: btn, feature: feature });
+  paintLock(btn, feature);
+  return btn;
+}
+function paintLock(btn, feature) {
+  var old = btn.querySelector(':scope > .pro-lock');
+  if (old) old.remove();
+  btn.classList.remove('has-pro-lock', 'pro-locked');
+  if (!proLive()) return;
+  var g = checkGate(feature);
+  if (g.mode === 'open') return;
+  var blocked = !g.allowed;
+  var tag = createElement('span', { className: 'pro-lock' + (blocked ? '' : ' pro-lock-soft'), text: blocked ? '🔒 PRO' : '⚡ PRO', attributes: { 'aria-hidden': 'true' } });
+  btn.classList.add('has-pro-lock');
+  if (blocked) btn.classList.add('pro-locked');
+  btn.appendChild(tag);
+  btn.setAttribute('data-pro-feature', feature);
+}
+var STATIC_LOCKS = { examBtn: 'exam_sim', addCardBtn: 'custom_cards' };
+/** The fixed buttons that open Pro features, and any made since. */
+export function markProLocks() {
+  if (typeof document === 'undefined') return;
+  Object.keys(STATIC_LOCKS).forEach(function (id) { var b = document.getElementById(id); if (b) applyProLock(b, STATIC_LOCKS[id]); });
+  _locks = _locks.filter(function (l) { return l.btn.isConnected; });
+  _locks.forEach(function (l) { paintLock(l.btn, l.feature); });
 }
 
 var _installed = false;
@@ -313,7 +363,7 @@ export function renderLibraryBanner(container, trigger) {
   var box = createElement('div', { className: 'library-banner', attributes: { role: 'note' } });
   var text = createElement('div', { className: 'library-banner-text' });
   text.appendChild(createElement('strong', { text: '🔒 ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards free' }));
-  text.appendChild(createElement('span', { text: 'Unlock the whole bank and every study tool.' }));
+  text.appendChild(createElement('span', { text: 'Go Pro for ' + moreCards(counts) + ' cards and every study tool.' }));
   box.appendChild(text);
   var btn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'UNLOCK', attributes: { type: 'button' } });
   btn.addEventListener('click', function () { openPaywall({ trigger: trigger || 'library_banner', feature: 'card_library' }); });

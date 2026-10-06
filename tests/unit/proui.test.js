@@ -5,7 +5,7 @@ vi.mock('../../js/native.js', () => ({ isNative: () => true, getNativePlatform: 
 import { setProConfigForTest } from '../../js/remoteconfig.js';
 import { resetProForTest, setSellableForTest } from '../../js/pro.js';
 import { setIapForTest, createIap } from '../../js/iap.js';
-import { openPaywall, renderProSettings, installProUi, setProUiDeps, mountProButton } from '../../js/proui.js';
+import { openPaywall, renderProSettings, installProUi, setProUiDeps, mountProButton, applyProLock } from '../../js/proui.js';
 
 function fakePlugin(owned = []) {
   const handlers = {}; const products = {}; const own = new Set(owned);
@@ -63,11 +63,23 @@ describe('Pro screens once switched on', () => {
     expect(o.textContent).toMatch(/Free: 300 cards/);
   });
 
+  it('a button for a locked feature carries a PRO tag, and loses it once Pro is on', () => {
+    document.body.innerHTML = '<button id="b">Exam</button>';
+    const b = document.getElementById('b');
+    applyProLock(b, 'offline_pack');
+    expect(b.querySelector('.pro-lock').textContent).toMatch(/PRO/);
+    expect(b.classList.contains('pro-locked')).toBe(true);
+    setProConfigForTest({ enabled: false });
+    applyProLock(b, 'offline_pack');
+    expect(b.querySelector('.pro-lock')).toBeNull();
+  });
+
   it('the Home button shows while Pro is on sale and opens the paywall', () => {
-    document.body.innerHTML = '<button id="homeProBtn" hidden><span id="homeProText"></span></button>';
+    document.body.innerHTML = '<button id="homeProBanner" hidden><strong id="homeProTitle"></strong><span id="homeProSub"></span></button>';
     const btn = mountProButton();
     expect(btn.hidden).toBe(false);
-    expect(btn.textContent).toMatch(/Go Pro/);
+    expect(btn.textContent).toMatch(/GO PRO/);
+    expect(btn.textContent).toMatch(/10× more cards/);
     btn.click();
     expect(document.getElementById('proPaywall')).toBeTruthy();
   });

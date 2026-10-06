@@ -196,9 +196,6 @@
       <!-- Top bar: settings (left), coins, ranks, account (right) -->
       <div class="home-topbar">
         <button class="top-btn" id="settingsBtn" type="button" aria-label="Settings">⚙</button>
-        <button class="top-btn top-btn-pro" id="homeProBtn" type="button" aria-label="Dx Dash Pro" aria-haspopup="dialog" hidden>
-          <span aria-hidden="true">⚡</span><span class="top-btn-text" id="homeProText">Pro</span>
-        </button>
         <div class="home-coins" id="homeCoinsDisplay" aria-label="Your coins and best score">
           <span aria-hidden="true">🪙</span> <span id="homeCoins">500</span>
           <span class="home-coins-sep" aria-hidden="true">|</span>
@@ -224,6 +221,13 @@
         <h1>Dx Dash</h1>
         <p class="home-tagline">Run the list.</p>
       </header>
+
+      <!-- Go Pro: a wide gold button, shown while Pro can be bought (or a trial is running) -->
+      <button class="home-pro-banner" id="homeProBanner" type="button" aria-haspopup="dialog" hidden>
+        <span class="hpb-icon" aria-hidden="true">⚡</span>
+        <span class="hpb-text"><strong id="homeProTitle">GO PRO</strong><span id="homeProSub">10× more cards and every study tool</span></span>
+        <span class="hpb-go" aria-hidden="true">▸</span>
+      </button>
 
       <!-- PRIMARY ACTION, with the two things you set before a run on either side -->
       <div class="play-row">
@@ -349,12 +353,13 @@
   <div class="tutorial-overlay sheet-overlay" id="speedSheet" role="dialog" aria-label="Game speed" aria-modal="true">
     <div class="sheet-card">
       <h2>🏎 Speed</h2>
-      <p class="sheet-intro">Faster runs score more points per correct answer.</p>
+      <p class="sheet-intro">Faster runs score more points per correct answer. Slide left for a slower, calmer track.</p>
       <div class="speed-dial">
         <label for="speedDial">🏎 Speed</label>
-        <input type="range" id="speedDial" min="1" max="10" step="1" value="1" aria-label="Game speed">
+        <input type="range" id="speedDial" min="0" max="12" step="1" value="3" aria-label="Game speed">
         <div class="speed-value" id="speedValue" aria-live="polite">1×</div>
       </div>
+      <p class="sheet-intro" style="font-size:12px;margin-top:2px">Slower ◂ 1× is the normal pace ▸ Faster</p>
       <button class="btn btn-primary btn-block sheet-close" type="button">Done</button>
     </div>
   </div>

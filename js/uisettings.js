@@ -6,7 +6,7 @@
  */
 
 import { requireGate } from './pro.js';
-import { renderProSettings } from './proui.js';
+import { renderProSettings, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
 import { track as trackEvent } from './analytics/index.js';
@@ -358,6 +358,7 @@ export var settingsMethods = {
             }
           });
         });
+        applyProLock(packBtn, 'offline_pack');
         packRow.appendChild(packBtn);
         content.appendChild(packRow);
       }
@@ -382,6 +383,8 @@ export var settingsMethods = {
           self._showToast(how === 'failed' ? 'Could not save the file.' : 'Study report saved.');
         });
       });
+      applyProLock(copyReport, 'analytics_detail');
+      applyProLock(csvReport, 'analytics_detail');
       reportBtns2.appendChild(copyReport);
       reportBtns2.appendChild(csvReport);
       reportRow2.appendChild(reportBtns2);

@@ -1671,7 +1671,7 @@ class Game {
       // Every N questions the run gets a little faster (set in Settings; 0.5 every 20 by default)
       var ramp = (this._rules && this._rules.speedRamp) || normalizeSpeedRamp(null);
       var bonus = speedBonus(ramp, this.encountersDone);
-      this.speed = Math.min(1.875 * 10, this.baseSpeed + bonus * 1.875);
+      this.speed = Math.min(1.875 * 10, this.baseSpeed + bonus * 1.875 * Math.min(1, this.userSpeed)); // (a slow setting speeds up in proportion, so 0.25× does not triple after 20 questions)
       if (bonus !== this._lastSpeedBonus) {
         if (bonus > 0 && this.onSpeedUp) this.onSpeedUp(+(this.speed / 1.875).toFixed(2));
         this._lastSpeedBonus = bonus;

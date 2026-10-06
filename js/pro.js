@@ -55,7 +55,7 @@ export var PRO_BENEFITS = [
  * `free` says what a free player has, so the difference is clear.
  */
 export var PRO_FEATURES = [
-  { id: 'card_library', icon: '🗂', title: 'The whole card bank', detail: 'All 3,010 cards across every subject and system.', free: 'Free: 300 cards' },
+  { id: 'card_library', icon: '🗂', title: '10× more cards: the whole bank', detail: 'All 3,010 cards across every subject and system, not just 300.', free: 'Free: 300 cards' },
   { id: 'explanations', icon: '💡', title: 'Every "why" explanation', detail: 'See why the answer is right and why the others are not, after every miss.', free: 'Free: 8 a day' },
   { id: 'exam_sim', icon: '⏱', title: 'Unlimited exam simulations', detail: 'Timed blocks with pacing, flagged questions and a score report.', free: 'Free: 1 a week' },
   { id: 'analytics_detail', icon: '📊', title: 'Detailed stats', detail: 'Subject and system breakdowns, weak spots, exam pacing, and export to a file.', free: 'Free: the basics' },

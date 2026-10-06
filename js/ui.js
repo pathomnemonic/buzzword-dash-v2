@@ -103,6 +103,15 @@ function NAV_PARENT(screenId) {
   return screenId;
 }
 
+/** The speed settings, slowest to fastest. 1 is the default; the first three are slower for a calmer track. */
+export var SPEED_STEPS = [0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+/** The slider position for a saved speed (the nearest setting). */
+export function speedIndex(speed) {
+  var best = 3, gap = Infinity;
+  SPEED_STEPS.forEach(function (v, i) { var d = Math.abs(v - (Number(speed) || 1)); if (d < gap) { gap = d; best = i; } });
+  return best;
+}
+
 class UI {
   constructor() {
     this.characterPreview = null;
@@ -669,14 +678,17 @@ class UI {
     var dial = document.getElementById('speedDial');
     var val = document.getElementById('speedValue');
     if (!dial || !val) return;
+    // the slider walks SPEED_STEPS: three slower settings below the 1× default, then 2× to 10× as before
+    dial.min = '0'; dial.max = String(SPEED_STEPS.length - 1); dial.step = '1';
     var current = storage.get('userSpeed') || 1;
-    dial.value = current;
-    setText(val, current + '×');
+    dial.value = String(speedIndex(current));
+    var shown = SPEED_STEPS[speedIndex(current)];
+    setText(val, shown + '×');
     var btnVal = document.getElementById('speedBtnValue');
-    if (btnVal) setText(btnVal, current + '×');
+    if (btnVal) setText(btnVal, shown + '×');
     var self = this;
     dial.addEventListener('input', function () {
-      var v = parseFloat(dial.value);
+      var v = SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, parseInt(dial.value, 10) || 0))];
       storage.set('userSpeed', v);
       setText(val, v + '×');
       if (btnVal) setText(btnVal, v + '×');
@@ -1204,7 +1216,7 @@ class UI {
     if (!wasCorrect && (this._teachOnMiss || this._teachOnMiss === undefined)) {
       var tb = document.getElementById('teachEl');
       if (requireGate('explanations', { record: true, passive: true })) setText(tb, missExplanation(card, choice));
-      else setText(tb, '🔒 Unlock every explanation with Dx Dash Pro');
+      else setText(tb, '🔒 Free explanations used up today. Go Pro for every "why", every time.');
       shareTrack('explain_viewed', { card_id: card.id, source: this.flashcardMode && this._flashcardActive && this._flashcardActive() ? 'flashcards' : 'study' });
       tb.classList.add('show');
     }

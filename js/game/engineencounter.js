@@ -141,7 +141,10 @@ card = pickResult ? pickResult.card : null;
     // (world units: the road moves VISUAL_SPEED times faster than the run's own speed, and starts that much
     // farther away, so the time to reach the gate is the same)
     // (the tutorial's question comes a little nearer so nobody waits long to try the move)
-    this._gateSpawnZ = -(this._tutorial ? 20 : 30 + 30 * slowFactor) * VISUAL_SPEED;
+    // (on the slower dial settings the gate starts nearer still, so 0.25× is about 25 s to a question, not a minute)
+    var nearFactor = 1;
+    if (this.userSpeed < 1 && !this._tutorial && this.mode !== GAME_MODES.STUDY) nearFactor = Math.max(0.4, this.userSpeed * (1 + 0.5 * (1 - this.userSpeed)));
+    this._gateSpawnZ = -(this._tutorial ? 20 : (30 + 30 * slowFactor) * nearFactor) * VISUAL_SPEED;
     this.gateZ = this._gateSpawnZ;
     for (var g = 0; g < this.gateMeshes.length; g++) removeAndDispose(this.scene, this.gateMeshes[g]);
     var gateTheme = { glow: this.currentSkin.colors.gateGlow, gate: this.currentSkin.colors.gateBase };

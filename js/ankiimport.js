@@ -24,6 +24,7 @@
  */
 
 import { requireGate } from './pro.js';
+import { applyProLock } from './proui.js';
 import { track } from './analytics/index.js';
 import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply } from './importguide.js';
 import { copyText } from './platform.js';
@@ -883,7 +884,9 @@ function _renderUI() {
   });
 
   // ----- Path 1: flashcards -----
-  section.appendChild(_el('h5', { text: 'Anki or spreadsheet cards', style: { margin: '14px 0 4px' } }));
+  var ankiHead = _el('h5', { text: 'Anki or spreadsheet cards', style: { margin: '14px 0 4px' } });
+  applyProLock(ankiHead, 'anki_import');
+  section.appendChild(ankiHead);
   var fileInput = _el('input', {
     type: 'file', accept: '.apkg,.csv,.tsv,.txt',
     style: { width: '100%', marginBottom: '8px', fontSize: '12px', color: 'var(--text-primary, #fff)' }

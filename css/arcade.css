@@ -2329,11 +2329,26 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 
 
 /* Pro: the small gold button on Home, and the "what you get" list in the Pro popup */
-.top-btn-pro { color: #3a2600; background: linear-gradient(180deg, #ffe27a, #ffb52e); border: 2px solid #8a5a00; border-radius: 12px; font-size: 18px; padding: 0 10px; min-width: 44px; box-shadow: 0 2px 0 #8a5a00; }
-.top-btn-pro[hidden] { display: none; }
-.top-btn-pro.pro-on { background: linear-gradient(180deg, #b8f5c8, #5fd88a); border-color: #1f7a45; box-shadow: 0 2px 0 #1f7a45; }
-.top-btn-pro .top-btn-text { font-weight: 800; }
-@media (max-width: 420px) { .home-topbar .top-btn-pro .top-btn-text { display: inline; font-size: 10px; } }
+/* the wide gold Go Pro button on Home */
+.home-pro-banner { display: flex; align-items: center; gap: 10px; width: 100%; margin: 6px 0 2px; padding: 8px 14px; cursor: pointer; text-align: left; font: inherit; color: #3a2600;
+  background: linear-gradient(180deg, #fff0a0, #ffc83a 55%, #ffae1f); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 4px 0 #8a5a00, 0 0 18px rgba(255,200,58,.55); }
+.home-pro-banner[hidden] { display: none; }
+.home-pro-banner .hpb-icon { font-size: 28px; line-height: 1; }
+.home-pro-banner .hpb-text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.15; }
+.home-pro-banner strong { font-family: var(--font-title, inherit); font-size: 24px; letter-spacing: .5px; }
+.home-pro-banner .hpb-text span { font-size: 12.5px; font-weight: 800; }
+.home-pro-banner .hpb-go { font-size: 26px; font-weight: 900; }
+.home-pro-banner:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a5a00; }
+.home-pro-banner:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .home-pro-banner { animation: hpbGlow 2.6s ease-in-out infinite; } }
+@keyframes hpbGlow { 50% { box-shadow: 0 4px 0 #8a5a00, 0 0 28px rgba(255,200,58,.95); } }
+@media (max-height: 700px) { .home-pro-banner { padding: 5px 12px; } .home-pro-banner strong { font-size: 20px; } .home-pro-banner .hpb-text span { display: none; } }
+/* a feature behind Pro: a tag on the button that opens it */
+.has-pro-lock { position: relative; }
+.pro-lock { position: absolute; top: -9px; right: 8px; z-index: 2; padding: 1px 7px; border-radius: 9px; font-size: 11px; font-weight: 900; letter-spacing: .4px; line-height: 1.4; pointer-events: none;
+  color: #3a2600; background: linear-gradient(180deg, #ffe27a, #ffb52e); border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); }
+.pro-lock.pro-lock-soft { background: #fff3c4; }
+.has-pro-lock.pro-locked { filter: saturate(.7); }
 .pro-features { display: grid; gap: 6px; margin: 8px 0 10px; padding: 0; list-style: none; text-align: left; }
 .pro-feature { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: start; padding: 7px 9px; border-radius: 12px; background: rgba(255,255,255,.07); border: 2px solid transparent; }
 .pro-feature-icon { font-size: 22px; line-height: 1.1; text-align: center; }
