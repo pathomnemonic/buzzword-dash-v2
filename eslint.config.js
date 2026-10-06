@@ -31,7 +31,8 @@ export default [
         THREE: 'readonly',
         JSZip: 'readonly',
         initSqlJs: 'readonly',
-        __APP_VERSION__: 'readonly'
+        __APP_VERSION__: 'readonly',
+        __APP_SEMVER__: 'readonly'
       }
     },
     rules: {

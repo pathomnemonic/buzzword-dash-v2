@@ -70,6 +70,9 @@ import { ComboTracker, musicMood } from './game/combo.js';
 import { GOLD_REWARD_COINS } from './game/mapmastery.js';
 import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
 import { palReminder } from './companions.js';
+import { maybeAskConsent } from './analyticsui.js';
+import { installAnalytics, reportRunEnd, reportFrame } from './analytics/instrument.js';
+import { track as trackEvent } from './analytics/index.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
@@ -139,6 +142,7 @@ function setupCollapsibles() {
 //  HOME CHARACTER
 // =========================================================================
 function showWebGLNotice() {
+  trackEvent('webgl_unavailable', { reason: /[?&]webgl=off/.test(window.location.search) ? 'forced_off' : 'unsupported' });
   var section = document.querySelector('.play-section');
   if (!section) return;
   var note = document.createElement('p');
@@ -543,7 +547,7 @@ function shareChallenge(challenge) {
         ids: challenge.ids || null
       });
       var text = 'Beat my Dx Dash score of ' + (challenge.myScore || 0) + '!';
-      return shareText({ title: 'Dx Dash challenge', text: text, url: url }).then(function (res) {
+      return shareText({ title: 'Dx Dash challenge', text: text, url: url, kind: 'challenge', surface: 'challenge', score: challenge.myScore || 0 }).then(function (res) {
         if (res === 'copied') ui._showToast('Challenge link copied \u2014 send it to a friend!');
         else if (res === 'failed') window.prompt('Copy this challenge link:', url);
       });
@@ -588,6 +592,8 @@ function handleChallengeLink() {
   import('./challenge.js').then(function (mod) {
     var challenge = mod.parseChallengeHash(window.location.hash);
     if (!challenge) return;
+    trackEvent('deep_link_opened', { kind: 'challenge' });
+    trackEvent('challenge_event', { action: 'opened', score: challenge.score || 0, count: challenge.n || 0 });
     // Clear the hash so a refresh does not re-open the banner.
     history.replaceState(null, '', window.location.pathname + window.location.search);
     return import('./multiplayer.js').then(function (mp) {
@@ -664,6 +670,8 @@ function attachTipPrompt() {
   });
   if (!shouldShow) return;
   storage.set('lastTipPromptAt', Date.now());
+  var tipFacts = { trigger: 'postrun', runs_total: storage.get('runsFinished') || 0, days_since_install: storage.data.settings.firstRunAt ? Math.floor((Date.now() - storage.data.settings.firstRunAt) / 86400000) : 0 };
+  trackEvent('tip_prompt', Object.assign({ step: 'shown' }, tipFacts));
 
   var box = document.createElement('div');
   box.style.cssText = 'margin:14px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,215,0,0.4);text-align:center;background:rgba(255,215,0,0.06)';
@@ -682,8 +690,8 @@ function attachTipPrompt() {
     b.addEventListener('click', onClick);
     row.appendChild(b);
   }
-  makeButton('\u2615 Leave a tip', 'btn-gold', function () { openTipPage(); box.remove(); });
-  makeButton('Not now', 'btn-outline', function () { box.remove(); });
+  makeButton('\u2615 Leave a tip', 'btn-gold', function () { trackEvent('tip_prompt', Object.assign({ step: 'clicked' }, tipFacts)); openTipPage(); box.remove(); });
+  makeButton('Not now', 'btn-outline', function () { trackEvent('tip_prompt', Object.assign({ step: 'dismissed' }, tipFacts)); box.remove(); });
   makeButton('Don\u2019t ask again', 'btn-outline', function () { storage.set('tipPromptOff', true); box.remove(); });
   box.appendChild(row);
   content.appendChild(box);
@@ -864,6 +872,7 @@ function startStudyPlanRun(cardIds) {
 }
 
 function startMode(mode) {
+  trackEvent('mode_selected', { mode: mode, from: 'home' });
   // The questions load in the background after the first paint; wait for them if needed
   if (!areCardsReady()) {
     ui._showToast(loadingLine());
@@ -1046,6 +1055,16 @@ function finalizeRun(gameRef) {
   lastRunReward = result.applied
     ? { info: awardRunXp(summary), score: summary.score, best: storage.get('bestScore'), newBest: !!result.newBestScore }
     : null;
+  reportRunEnd(summary, {
+    xp_gain: lastRunReward && lastRunReward.info ? (lastRunReward.info.gain || 0) : 0, level_before: lastRunReward && lastRunReward.info ? lastRunReward.info.levelBefore : 0,
+    level_after: lastRunReward && lastRunReward.info ? lastRunReward.info.levelAfter : 0, new_best: !!result.newBestScore, ranked: isRankedRun(summary),
+    quests_completed: (result.completedQuestIds || []).length, achievements: (result.newlyUnlockedAchievementIds || []).length, map_masteries: (result.newMapMasteries || []).length,
+    coins_wallet_after: storage.get('coins') || 0, run_number: storage.data.settings.runsFinished || 0
+  });
+  if (lastRunReward && lastRunReward.info && lastRunReward.info.levelAfter > lastRunReward.info.levelBefore) {
+    trackEvent('level_up', { level: lastRunReward.info.levelAfter, via: 'run' });
+  }
+  (result.newMapMasteries || []).forEach(function (m) { trackEvent('map_mastered', { map: String(m), answers: (storage.mapAnswered && storage.mapAnswered(m)) || 0 }); });
 
   // The subject of the day pays a few coins for each right answer in it (up to a daily cap)
   lastRunBonus = null;
@@ -1059,6 +1078,7 @@ function finalizeRun(gameRef) {
     var capDate = paid.date > todayKey ? paid.date : todayKey;
     var bonusCoins = bonusCoinsFor(got, already);
     if (bonusCoins > 0) {
+      trackEvent('coins_earned', { source: 'subject_bonus', amount: bonusCoins });
       storage.addCoins(bonusCoins);
       storage.set('bonusCoins', { date: capDate, coins: already + bonusCoins });
     }
@@ -1083,6 +1103,7 @@ function finalizeRun(gameRef) {
   if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
     ui.showAchievementNotification(result.newlyUnlockedAchievementIds);
   }
+  (result.completedQuestIds || []).forEach(function (id) { var qd = QUESTS.filter(function (x) { return x.id === id; })[0]; trackEvent('quest_completed', { id: id, category: qd ? qd.category : '', reward: qd ? qd.reward : 0 }); });
   if (result.completedQuestIds && result.completedQuestIds.length > 0) {
     var titles = result.completedQuestIds.map(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; return q ? q.title : ''; }).filter(Boolean);
     if (titles.length) ui.showNotice('✅ Quest complete: ' + titles.join(', ') + '. Claim your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
@@ -1205,7 +1226,7 @@ function init() {
   }
   storage.load();
   // Switches for mechanics that turn out broken in the field (see remoteconfig.js); the saved copy applies at once
-  loadRemoteConfig().catch(function () { /* the saved copy stays */ });
+  loadRemoteConfig().then(function () { trackEvent('remote_config', { killed: [], experiments: 0, ok: true }); }).catch(function () { trackEvent('remote_config', { ok: false }); /* the saved copy stays */ });
   // Badges added or fixed in an update are awarded to anyone who already qualifies, shown a little after launch
   setTimeout(function () {
     try {
@@ -1246,6 +1267,7 @@ function init() {
     reportError(e, { system: 'engine', operation: 'init', recoverable: true });
   }
   installGlobalErrorHandlers();
+  try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
   watchBattery(); // a nearly flat phone steps Auto graphics down a tier
   watchConnection(function (msg) { ui.showNotice(msg, { ms: 4500 }); });
   // Anonymous crash and slow-frame reports, only for players who switched them on in Settings
@@ -1254,7 +1276,7 @@ function init() {
     if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
     leaderboardModule.leaderboard.reportDiagnostic(report);
   });
-  installChunkRecovery(function () { ui._showToast("Part of the app did not load. Reload the page to update."); });
+  installChunkRecovery(function () { trackEvent('chunk_failed', { chunk: 'app', online: navigator.onLine !== false }); ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;
   ui.submitFeedback = function (fb) {
@@ -1300,9 +1322,10 @@ function init() {
   };
 
   // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
-  if (!storage.get('firstRunComplete')) {
-    ui.showTutorial({ firstRun: true });
-  }
+  // (the analytics question comes first, once, on a fresh install)
+  maybeAskConsent(function () {
+    if (!storage.get('firstRunComplete')) ui.showTutorial({ firstRun: true });
+  });
 
   // --- Anki import (lazy) ---
   import('./ankiimport.js').then(function (mod) {
@@ -1837,6 +1860,7 @@ function init() {
     // (a merely slow frame still gets up to 0.1 s so the game does not crawl on a weak phone)
     var gap = lastFrameMs ? (nowMs - lastFrameMs) / 1000 : 0;
     var dt = gap > 0.5 || !gap ? 0.016 : Math.min(gap, 0.1);
+    if (lastFrameMs && game._state === 'playing') reportFrame(nowMs - lastFrameMs);
     lastFrameMs = nowMs;
     if (game._state === 'playing' && nowMs - lastMusicMs > 250) {
       // Adaptive music: layers build with the streak, tension rises with the monster
@@ -2143,11 +2167,12 @@ if (document.readyState === 'loading') {
 if (import.meta.env && import.meta.env.PROD && 'serviceWorker' in navigator && !isNative()) {
   var registerSW = function () {
     registerServiceWorker(navigator.serviceWorker, function () {
+      trackEvent('app_update_available', {});
       showUserError('A new version of Dx Dash is ready.', {
         title: 'Update available',
         info: true,
         actionLabel: 'Reload',
-        onAction: function () { window.location.reload(); },
+        onAction: function () { trackEvent('app_update_applied', {}); window.location.reload(); },
         durationMs: 15000
       });
     }).catch(function (e) {

@@ -10,6 +10,8 @@
  * It does not need WebGL, so it also works where the 3D runner cannot start.
  */
 
+import { storage } from './storage.js';
+import { createStepTracker } from './analytics/steptracker.js';
 import { createElement, clearElement } from './dom.js';
 import { setupInput } from './game/input.js';
 import { getControlText } from './controlhints.js';
@@ -116,6 +118,8 @@ export function startTutorial(opts) {
   var feedback = null;
   var answerLane = Math.random() < 0.5 ? MIN_LANE : MAX_LANE;
   var closed = false;
+  var st = createStepTracker('practice', { firstTime: !storage.get('firstRunComplete') });
+  var exitAsked = false;
 
   function later(fn, ms) {
     var id = setTimeout(function () {
@@ -204,6 +208,7 @@ export function startTutorial(opts) {
 
   function act(name) {
     var step = steps[index];
+    st.view(step.id, index);
     if (!step || step.kind === 'info' || locked) return;
 
     var moved = false;
@@ -345,11 +350,13 @@ export function startTutorial(opts) {
   function requestClose() {
     if (closed || isExitConfirmOpen()) return;
     if (index === steps.length - 1) { finish('completed'); return; }
+    exitAsked = true;
     confirmExitTutorial({ onExit: function () { finish('skipped'); } });
   }
 
   function finish(result) {
     if (closed) return;
+    st.end(result, exitAsked);
     if (isExitConfirmOpen()) dismissExitConfirm();
     closed = true;
     clearTimers();

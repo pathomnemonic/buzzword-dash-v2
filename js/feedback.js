@@ -6,6 +6,7 @@
  * the message is copied so it can be pasted anywhere.
  */
 
+import { track } from './analytics/index.js';
 import { getNativePlatform } from './native.js';
 import { openUrl, copyText } from './platform.js';
 
@@ -59,11 +60,16 @@ export function sendFeedback(fb, deps) {
     return openUrl(url);
   }
 
+  var mood = payload.mood === 'idea' || payload.mood === 'bug' ? payload.mood : 'unhappy';
+  var report = function (res) {
+    track('feedback_sent', { mood: mood, length: message.length, has_contact: !!payload.contact, ok: res.how !== 'failed' });
+    return res;
+  };
   return viaBackend().then(function (sent) {
-    if (sent) return { how: 'sent' };
+    if (sent) return report({ how: 'sent' });
     return viaEmail().then(function (emailed) {
-      if (emailed) return { how: 'email' };
-      return copyText(feedbackBody(payload, ctx)).then(function (ok) { return { how: ok ? 'copied' : 'failed' }; });
+      if (emailed) return report({ how: 'email' });
+      return copyText(feedbackBody(payload, ctx)).then(function (ok) { return report({ how: ok ? 'copied' : 'failed' }); });
     });
   });
 }

@@ -3,6 +3,7 @@
  * What to ask, and when, is decided in prompts.js.
  */
 
+import { track, shareLink } from './analytics/index.js';
 import { choosePrompt, recordPrompt } from './prompts.js';
 import { canRate, rateTheApp, openStorePage, storeLinks } from './review.js';
 import { buildFeedbackForm } from './feedback.js';
@@ -25,7 +26,7 @@ var SHARE_TEXT = 'I have been studying with Dx Dash, a free endless runner for U
 /** Share the game: the system share sheet if there is one, otherwise copy the link. @returns {Promise<'shared'|'copied'|'failed'>} */
 export function shareGame() {
   var url = getShareUrl();
-  return shareText({ title: 'Dx Dash', text: SHARE_TEXT, url: url || undefined });
+  return shareText({ title: 'Dx Dash', text: SHARE_TEXT, url: url ? shareLink(url, 'app') : undefined, kind: 'app', surface: 'postrun' });
 }
 
 export function canShareGame() {
@@ -120,6 +121,9 @@ export function attachPromptCard(deps) {
   });
   if (!kind) return null;
   storage.set('promptState', recordPrompt(state, kind, 'shown', now));
+  var promptFacts = { trigger: 'postrun', runs_total: storage.get('runsFinished') || 0, days_since_install: firstRunAt ? Math.floor((now - firstRunAt) / 86400000) : 0 };
+  if (kind === 'review') track('rating_prompt', Object.assign({ step: 'shown' }, promptFacts));
+  else track('nudge_shown', { kind: kind });
 
   var copy = COPY[kind];
   // Apple's rules (5.6.1) ask apps to use the system rating box and not to screen people by mood first, so on iPhone the
@@ -158,17 +162,17 @@ export function attachPromptCard(deps) {
       });
       return;
     }
-    if (kind === 'review') { askToRate(); return; }
+    if (kind === 'review') { track('rating_prompt', Object.assign({ step: 'enjoying_yes' }, promptFacts)); askToRate(); return; }
     shareGame().then(function (result) {
       if (result === 'copied') deps.toast('Link copied. Paste it to a friend!');
       if (result === 'failed') { deps.toast('Could not share from here.'); return; }
       finish('done');
     });
   });
-  if (kind === 'review' && !plainRating) button('😕 Not really', 'btn-outline', function () { askWhatWentWrong(); });
+  if (kind === 'review' && !plainRating) button('😕 Not really', 'btn-outline', function () { track('rating_prompt', Object.assign({ step: 'enjoying_no' }, promptFacts)); askWhatWentWrong(); });
   if (plainRating) button('💬 Send feedback', 'btn-outline', function () { askWhatWentWrong(); });
-  button('Not now', 'btn-outline', function () { finish(null); });
-  button('Don’t ask again', 'btn-outline', function () { finish('never'); });
+  button('Not now', 'btn-outline', function () { if (kind === 'review') track('rating_prompt', Object.assign({ step: 'later' }, promptFacts)); finish(null); });
+  button('Don’t ask again', 'btn-outline', function () { if (kind === 'review') track('rating_prompt', Object.assign({ step: 'dismissed' }, promptFacts)); finish('never'); });
   box.appendChild(row);
 
   /** Step two for a happy player: would they rate it? (The store's own rating box first, then the store page.) */
@@ -176,6 +180,7 @@ export function attachPromptCard(deps) {
     text.textContent = 'Great to hear! Would you rate Dx Dash on the ' + (isIosBuild() ? 'App Store' : 'Play Store') + '? It takes a few seconds and helps other students find it.';
     while (row.firstChild) row.removeChild(row.firstChild);
     button('⭐ Sure, rate it', 'btn-gold', function () {
+      track('rating_prompt', Object.assign({ step: 'store_opened' }, promptFacts));
       rateTheApp().then(function (res) {
         storage.set('promptState', recordPrompt(storage.get('promptState') || {}, 'review', 'done', Date.now()));
         if (res.how === 'failed') { deps.toast('Could not open the store from here.'); finish(null); return; }
@@ -210,6 +215,7 @@ export function attachPromptCard(deps) {
       mood: plainRating ? 'idea' : 'unhappy',
       prompt: plainRating ? 'What would you like to tell us?' : 'Sorry about that. What went wrong, or what would make Dx Dash better?',
       submit: deps.sendFeedback,
+      trigger: 'rating_prompt',
       toast: deps.toast,
       onDone: function () { finish(null); }
     }));

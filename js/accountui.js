@@ -3,6 +3,7 @@
  * "which save do you want?" dialog. Safe DOM only.
  */
 
+import { track } from './analytics/index.js';
 import { createElement } from './dom.js';
 
 var INPUT_STYLE = 'width:100%;padding:9px 11px;border-radius:10px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3);margin-bottom:8px;font-size:14px';
@@ -138,6 +139,7 @@ function renderGuest(body, deps, status) {
     var run;
     if (_mode === 'signup') {
       run = deps.leaderboard.signUp(email.value, password.value).then(function (res) {
+        track('account_event', { action: res.success ? 'signup_ok' : 'signup_started', method: 'email', ok: !!res.success });
         if (!res.success) return deps.toast(res.error || 'Could not create the account.');
         if (res.needsConfirm) {
           _busyMessage = 'Almost there! We emailed ' + email.value.trim() + '. Open the link in that email to finish. Check spam if you do not see it.';
@@ -148,6 +150,7 @@ function renderGuest(body, deps, status) {
       });
     } else if (_mode === 'signin') {
       run = deps.leaderboard.signIn(email.value, password.value).then(function (res) {
+        track('account_event', { action: res.success ? 'signin_ok' : 'signin_failed', method: 'email', ok: !!res.success });
         if (!res.success) return deps.toast(res.error || 'Could not sign in.');
         deps.toast('Signed in.');
         _busyMessage = '';
@@ -155,6 +158,7 @@ function renderGuest(body, deps, status) {
       });
     } else {
       run = deps.leaderboard.sendPasswordReset(email.value).then(function (res) {
+        track('account_event', { action: 'password_reset', ok: !!res.success });
         if (!res.success) return deps.toast(res.error || 'Could not send the email.');
         _busyMessage = 'If an account exists for that email, a reset link is on its way.';
         deps.rerender();
@@ -191,6 +195,7 @@ function deleteAccountButton(deps) {
     var ok = window.confirm('Delete your account and all online data (profile, scores, friends, groups and cloud save)? This cannot be undone. Progress saved on this device stays.');
     if (!ok) return Promise.resolve();
     return deps.leaderboard.deleteAccount().then(function (res) {
+      track('account_event', { action: 'delete_requested', ok: !!res.success });
       deps.toast(res.success ? 'Your account and online data were deleted.' : (res.error || 'Could not delete the account.'));
       deps.rerender();
     });
@@ -235,6 +240,7 @@ function renderSignedIn(body, deps, status) {
   out.appendChild(button('Sign out', function () {
     var flush = deps.cloudSync ? deps.cloudSync.sync() : Promise.resolve();
     return flush.then(function () { return deps.leaderboard.signOut(); }).then(function (res) {
+      track('account_event', { action: 'signout', ok: !!res.success });
       deps.toast(res.success ? 'Signed out. Your progress stays on this device.' : (res.error || 'Could not sign out.'));
       deps.rerender();
     });

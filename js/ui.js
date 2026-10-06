@@ -34,6 +34,7 @@
  * - Agent 18 (card hub): CARDS, SUBJECTS, EXAM_FILTERS, QUESTION_TYPES
  */
 
+import { shareLink, track as shareTrack } from './analytics/index.js';
 import { renderPal } from './palui.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { SUBJECTS, CARDS, EXAM_FILTERS } from './cardhub.js';
@@ -613,6 +614,7 @@ class UI {
     storage.set('loginStreak', loginStreak);
     var reward = dailyReward(loginStreak);
     storage.addCoins(reward.coins);
+    shareTrack('daily_reward_claimed', { day: loginStreak, coins: reward.coins, chest: !!reward.chest, login_streak: loginStreak });
     var self = this;
     // The coins are already in the wallet; the screen is the reveal. It waits for the tutorial to finish.
     function show() {
@@ -1199,6 +1201,7 @@ class UI {
     if (!wasCorrect && (this._teachOnMiss || this._teachOnMiss === undefined)) {
       var tb = document.getElementById('teachEl');
       setText(tb, missExplanation(card, choice));
+      shareTrack('explain_viewed', { card_id: card.id, source: this.flashcardMode && this._flashcardActive && this._flashcardActive() ? 'flashcards' : 'study' });
       tb.classList.add('show');
     }
     this.hideAnswerChoices();
@@ -2105,6 +2108,10 @@ class UI {
   _persistFlashcardSummary(summary) {
     if (!summary || summary.total === 0) return;
     var result = storage.finalizeFlashcardSession(summary);
+    var subjSet = {};
+    (summary.cardResults || []).forEach(function (r) { subjSet[r.subject] = true; });
+    shareTrack('flashcard_session', { cards: summary.total, correct: summary.correct, duration_s: Math.round((summary.durationMs || 0) / 1000), kind: 'other', subjects: Object.keys(subjSet).length });
+    (result.completedQuestIds || []).forEach(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; shareTrack('quest_completed', { id: id, category: q ? q.category : '', reward: q ? q.reward : 0 }); });
     if (result.newlyUnlockedAchievementIds && result.newlyUnlockedAchievementIds.length > 0) {
       this.showAchievementNotification(result.newlyUnlockedAchievementIds);
     }
@@ -2242,10 +2249,10 @@ class UI {
     var total = game.correct + game.wrong;
     var acc = total > 0 ? Math.round(game.correct / total * 100) : 0;
     var skinName = game.currentSkin ? game.currentSkin.name : 'Unknown';
-    var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + appPublicUrl();
+    var text = '⚡ Dx Dash ⚡\n🏆 Score: ' + game.score + '\n✅ Accuracy: ' + acc + '%\n🔥 Streak: ' + game.bestStreak + '\n🪙 Coins: ' + game.coins + '\n💊 Speed: ' + game.userSpeed + '×\n🌍 Track: ' + skinName + '\n\nCan you beat my score? Play at:\n' + shareLink(appPublicUrl(), 'results');
 
     var self = this;
-    shareText({ title: 'Dx Dash Score', text: text }).then(function (how) {
+    shareText({ title: 'Dx Dash Score', text: text, kind: 'results', surface: 'postrun', score: game.score }).then(function (how) {
       if (how === 'copied') self._showToast('Score copied \u2014 paste it anywhere to share.');
       else if (how === 'failed') window.alert('Could not share. Your score:\n\n' + text);
     });

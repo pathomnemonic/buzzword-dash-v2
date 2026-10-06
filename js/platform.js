@@ -6,6 +6,7 @@
  * A test (platformaudit.test.js) fails if a screen goes back to the raw calls.
  */
 
+import { track } from './analytics/index.js';
 import { isNative } from './native.js';
 
 var _testPlugins = null;
@@ -79,6 +80,9 @@ export function shareText(opts) {
   }).then(function (result) {
     if (result !== 'failed') return result;
     return copyText([text, url].filter(Boolean).join(' ')).then(function (ok) { return ok ? 'copied' : 'failed'; });
+  }).then(function (result) {
+    track('share', { kind: opts.kind || 'other', method: result === 'copied' ? 'copy' : 'native', ok: result !== 'failed', surface: opts.surface || '', score: opts.score });
+    return result;
   });
 }
 

@@ -13,6 +13,8 @@
  * Where the runner cannot start (no WebGL), the older practice-track tutorial in tutorial.js is used.
  */
 
+import { storage } from './storage.js';
+import { createStepTracker } from './analytics/steptracker.js';
 import { createElement, clearElement } from './dom.js';
 import { buildSteps, REFERENCE } from './tutorial.js';
 import { getDashControl } from './dashcontrol.js';
@@ -68,6 +70,8 @@ export function startGameTutorial(env) {
   steps.splice(doneAt < 0 ? steps.length : doneAt, 0, { id: 'tour', kind: 'tour', title: 'App tour' });
   var index = 0;
   var closed = false;
+  var st = createStepTracker('real_track', { firstTime: !storage.get('firstRunComplete') });
+  var exitAsked = false;
   var locked = false;
   var touring = false;     // the practice run was put away and the spotlight tour is open
   var started = false;     // the run is going and practice steps can be sent
@@ -202,6 +206,7 @@ export function startGameTutorial(env) {
   function render() {
     clearTimers();
     var step = steps[index];
+    st.view(step.id, index);
     if (step.kind === 'tour') { startTourStep(); return; }
     var isPage = step.kind === 'info';
     var target = isPage ? page : coach;
@@ -303,11 +308,13 @@ export function startGameTutorial(env) {
     if (closed || isExitConfirmOpen()) return;
     var onLastPage = index === steps.length - 1 && steps[index].kind === 'info';
     if (onLastPage) { finish('completed'); return; }
+    exitAsked = true;
     confirmExitTutorial({ onExit: function () { finish('skipped'); } });
   }
 
   function finish(result) {
     if (closed) return;
+    st.end(result, exitAsked);
     closed = true;
     clearTimers();
     document.removeEventListener('keydown', swallowSpace, true);

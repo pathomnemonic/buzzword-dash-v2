@@ -13,3 +13,4 @@ interface Window {
   supabase?: { createClient: (...args: any[]) => any };
 }
 declare const __APP_VERSION__: string | undefined;
+declare const __APP_SEMVER__: string | undefined;

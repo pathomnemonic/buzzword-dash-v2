@@ -5,6 +5,8 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { track as trackEvent } from './analytics/index.js';
+import { renderAnalyticsSettings } from './analyticsui.js';
 import { storyFor } from './stories.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
@@ -319,6 +321,7 @@ export var settingsMethods = {
         return n;
       };
       content.appendChild(explain('Your progress lives on this device. Save a backup file before switching devices, then restore it on the new one.'));
+      renderAnalyticsSettings(content, function (m) { self._showToast(m); });
 
       if (canDownloadPack({ isNative: isNative() })) {
         var packRow = createElement('div', { className: 'setting-row', attributes: { id: 'offlinePackRow' } });
@@ -339,6 +342,7 @@ export var settingsMethods = {
             onProgress: function (done, total) { setText(packState, 'Downloading… ' + Math.round((done / Math.max(1, total)) * 100) + '%'); }
           }).then(function (res) {
             packBtn.disabled = false;
+            trackEvent('offline_pack', { ok: !!res.ok, mb: res.bytes ? Math.round(res.bytes / 104857.6) / 10 : 0 });
             if (res.ok) {
               setText(packState, packStatus(storage.get('offlinePackAt')) + ' (' + formatBytes(res.bytes) + ')');
               setText(packBtn, 'Update');
@@ -518,7 +522,7 @@ export var settingsMethods = {
         tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
         tipRow.appendChild(tipLabel);
         var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
-        tipBtn.addEventListener('click', function () { openTipPage(); });
+        tipBtn.addEventListener('click', function () { trackEvent('tip_prompt', { step: 'opened_settings' }); openTipPage(); });
         tipRow.appendChild(tipBtn);
         content.appendChild(tipRow);
       }
@@ -795,6 +799,7 @@ export var settingsMethods = {
             self._showToast(palDef ? palDef.emoji + ' ' + palDef.name + ': ' + palLine(palDef, 'greet', storage.getStreakStatus().streak) : 'No buddy on the Home screen');
             return;
           }
+          trackEvent('item_previewed', { item_id: item.id, item_type: type, owned: storage.ownsItem(item.id), affordable: (storage.get('coins') || 0) >= (item.price || 0) });
           if (self.characterPreview) self.characterPreview.previewItem(item.id, type);
         };
         if (story) {
@@ -946,7 +951,7 @@ export var settingsMethods = {
       });
       b.addEventListener('click', function () {
         if (listOpen && self._lockerTab === t[0]) self._lockerOpen = false;
-        else { self._lockerTab = t[0]; self._lockerOpen = true; }
+        else { self._lockerTab = t[0]; self._lockerOpen = true; trackEvent('tab_changed', { screen: 'shop', tab: String(t[0]) }); }
         self.renderShop();
         if (self._lockerOpen) {
           var bar = document.querySelector('#shopItems .locker-tabs');

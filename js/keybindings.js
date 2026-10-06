@@ -9,6 +9,7 @@
  * and Shift do not matter.
  */
 
+import { track } from './analytics/index.js';
 import { storage } from './storage.js';
 
 /** The actions, in the order Settings lists them. */
@@ -43,6 +44,7 @@ export function normalizeKey(key) {
 
 /** Why a key cannot be used, or '' when it can. */
 export function keyProblem(action, key) {
+  track('keybinding_changed', { action: key ? 'set' : 'cleared', key_action: String(action) });
   var k = normalizeKey(key);
   if (!k) return 'That key cannot be used.';
   if (RESERVED.indexOf(k) >= 0) return 'That key is used by the page itself. Pick another.';

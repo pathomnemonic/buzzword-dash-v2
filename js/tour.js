@@ -16,6 +16,7 @@
  *   before(ctx), after(ctx), skipIf(ctx)
  * }
  */
+import { createStepTracker } from './analytics/steptracker.js';
 
 var PAD = 6;            // space around the highlighted element
 var CARD_GAP = 12;      // space between the highlight and the card
@@ -89,6 +90,7 @@ export function startTour(opts) {
   var ctx = opts.ctx || {};
   var index = -1;
   var closed = false;
+  var st = createStepTracker('tour', { firstTime: !!opts.firstTime });
   var frame = null;
   var advanceTimer = null;
   var current = null;
@@ -230,6 +232,7 @@ export function startTour(opts) {
     if (i >= steps.length) { finish('completed'); return; }
     index = i;
     current = steps[i];
+    st.view(current.id || ('step' + i), i);
     targetEl = null;
     if (current.before) { internal = true; try { current.before(ctx); } finally { internal = false; } }
     // give the screen a moment to draw whatever the step just opened, then find the element
@@ -309,6 +312,7 @@ export function startTour(opts) {
   function finish(result) {
     if (closed) return;
     closed = true;
+    st.end(result);
     clearTimeout(advanceTimer);
     if (frame !== null) window.cancelAnimationFrame(frame);
     pressEvents.forEach(function (t) { document.removeEventListener(t, onPress, true); });

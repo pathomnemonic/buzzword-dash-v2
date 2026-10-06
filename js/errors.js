@@ -43,6 +43,20 @@ export function reportError(error, context = {}) {
   }
 
   sendRemote(msg, stack, context);
+  notifyObserver({ kind: 'error', message: msg, stack: stack, system: context.system, operation: context.operation, recoverable: context.recoverable });
+}
+
+var _observer = null;
+
+/**
+ * Watch every error and slow-frame report (analytics counts them). Unlike the diagnostics sink this sees all of them,
+ * so the observer must do its own de-duplication and limits.
+ */
+export function setErrorObserver(fn) { _observer = typeof fn === 'function' ? fn : null; }
+
+function notifyObserver(report) {
+  if (!_observer) return;
+  try { _observer(report); } catch (e) { /* observing must never throw */ }
 }
 
 /* ---- optional remote error tracking ----
@@ -87,6 +101,7 @@ export function setDiagnosticsSink(fn) { _diagnosticsSink = typeof fn === 'funct
 
 /** A report that is not an error: the game ran slowly on this device. */
 export function reportPerformance(info) {
+  notifyObserver({ kind: 'perf', message: 'slow frames', system: 'render', operation: String((info && info.operation) || 'frame-rate'), tier: info && info.tier });
   if (!_diagnosticsSink) return;
   var key = 'perf|' + (info && info.tier);
   if (remoteSeen[key]) return;

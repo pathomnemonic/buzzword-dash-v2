@@ -9,6 +9,7 @@
  * prediction of a licensing-exam score.
  */
 
+import { track } from './analytics/index.js';
 import { createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { uniqueByAnswer } from './cardleaks.js';
@@ -123,6 +124,7 @@ export function mountExam(container, deps) {
 
 export function unmountExam() {
   stopTimer();
+  if (_state && !_state.finished) track('exam_ended', { questions: _state.questions.length, answered: _state.answers.filter(function (a) { return a !== null; }).length, duration_s: Math.round((Date.now() - _state.startedAt) / 1000), outcome: 'left' });
   _state = null;
 }
 
@@ -212,6 +214,7 @@ function startExam(cards, count, pace) {
     limitSec: pace > 0 ? pace * questions.length : 0,
     finished: false
   };
+  track('exam_started', { questions: questions.length, minutes: pace > 0 ? Math.round(pace * questions.length / 60) : 0, filters: storage.getSelectedExams ? storage.getSelectedExams() : [] });
   renderQuestion();
   stopTimer();
   if (_state.limitSec > 0) {
@@ -333,6 +336,8 @@ function finishExam() {
     })
   };
   storage.finalizeExamSession(summary);
+  var examFlagged = st.flags.filter(Boolean).length;
+  track('exam_ended', { questions: result.total, answered: result.total - result.unanswered, correct: result.correct, duration_s: durationSec, outcome: st.limitSec > 0 && durationSec >= st.limitSec ? 'timeout' : 'finished', flagged: examFlagged });
   // (main.js posts "scored X% on an exam simulation" to friends' feeds when the player has a public profile)
   document.dispatchEvent(new CustomEvent('dx:exam-finished', { detail: { accuracy: result.accuracy, total: result.total } }));
   renderResults(st, result, durationSec);
