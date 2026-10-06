@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, portalConfig, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, portalConfig, invoiceSubscriptionId, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -56,6 +56,23 @@ describe('checkout', () => {
     expect(() => checkoutParams('wat', 'u1', ENV)).toThrow(/Unknown/);
     expect(() => checkoutParams('yearly', '', ENV)).toThrow(/Sign in/);
     expect(() => checkoutParams('yearly', 'u1', { STRIPE_PRICE_YEARLY: 'p', SITE_URL: 'http://x' })).toThrow(/site address/);
+  });
+});
+
+describe('invoices on newer Stripe API versions', () => {
+  it('finds the subscription in either place', () => {
+    expect(invoiceSubscriptionId({ subscription: 'sub_1' })).toBe('sub_1');
+    expect(invoiceSubscriptionId({ parent: { subscription_details: { subscription: 'sub_2' } } })).toBe('sub_2');
+    expect(invoiceSubscriptionId({ subscription: null, parent: { subscription_details: { subscription: { id: 'sub_3' } } } })).toBe('sub_3');
+    expect(invoiceSubscriptionId({})).toBe('');
+  });
+  it('a renewal still grants Pro when the invoice has no top-level subscription', async () => {
+    const calls = [];
+    const sub = { id: 'sub_9', status: 'active', metadata: { user_id: 'u1', plan: 'monthly' }, items: { data: [{ current_period_end: NOW + 30 * 86400 }] } };
+    const out = await handleEvent({ type: 'invoice.paid', data: { object: { amount_paid: 349, customer: 'cus_1', parent: { subscription_details: { subscription: 'sub_9' } } } } },
+      { rpc: async (n, a) => { calls.push([n, a]); return null; }, getSubscription: async () => sub, now: NOW });
+    expect(out).toEqual({ handled: true, action: 'renewal' });
+    expect(calls[0][0]).toBe('pro_grant_until');
   });
 });
 

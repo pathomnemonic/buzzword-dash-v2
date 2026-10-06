@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, configuredProducts, describePrice, checkoutParams, portalConfig } from '../_shared/billing.js';
+import { PRODUCTS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -40,7 +40,10 @@ var _prices = { at: 0, list: [] };
 async function prices() {
   if (Date.now() - _prices.at < 5 * 60 * 1000) return _prices.list;
   var list = [];
-  for (var id of configuredProducts(env)) list.push(describePrice(id, await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env]))));
+  for (var id of configuredProducts(env)) {
+    try { list.push(describePrice(id, await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env])))); } catch (e) { console.error('price for ' + id + ' failed', e && e.message); } // (one bad Price id must not hide the others)
+  }
+  if (!list.length) throw new Error('No plan could be loaded. Check the STRIPE_PRICE_* secrets are Price ids (price_...) from the same Stripe mode as the secret key.');
   _prices = { at: Date.now(), list: list };
   return list;
 }
@@ -60,6 +63,8 @@ Deno.serve(async function (req) {
     var user = who && who.data && who.data.user;
     if (!user) return json({ error: 'Sign in first.' }, 401);
 
+    if (user.is_anonymous || !user.email) return json({ error: 'Create an account first (Friends → Account), so Pro stays with you.' }, 403);
+
     var customer = await admin.rpc('pro_user_customer', { p_user: user.id });
     var customerId = customer && customer.data ? customer.data : '';
 
@@ -78,6 +83,11 @@ Deno.serve(async function (req) {
     }
 
     if (body.action === 'checkout') {
+      var wanted = productFor(body.plan);
+      if (customerId && wanted && wanted.def.kind === 'subscription') {
+        var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=active&limit=1');
+        if (live && live.data && live.data.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+      }
       var params = checkoutParams(body.plan, user.id, env, { customer: customerId || undefined });
       if (!params.customer) params.customer_email = user.email || undefined;
       Object.keys(params).forEach(function (k) { if (params[k] === undefined) delete params[k]; });

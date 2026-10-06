@@ -75,6 +75,17 @@ export function periodEnd(sub) {
   return ends.length ? Math.max.apply(null, ends) : 0;
 }
 
+/** The subscription an invoice belongs to (newer Stripe API versions moved it from invoice.subscription to invoice.parent). */
+export function invoiceSubscriptionId(inv) {
+  if (!inv) return '';
+  if (typeof inv.subscription === 'string' && inv.subscription) return inv.subscription;
+  if (inv.subscription && inv.subscription.id) return inv.subscription.id;
+  var d = inv.parent && inv.parent.subscription_details;
+  var sub = d && d.subscription;
+  if (typeof sub === 'string') return sub;
+  return (sub && sub.id) || '';
+}
+
 /** Until when Pro should run for a subscription, as an ISO string, or '' when it has nothing to give. */
 export function subscriptionUntil(sub, nowSec) {
   var end = periodEnd(sub);
@@ -203,8 +214,9 @@ export async function handleEvent(event, deps) {
   }
 
   if (event.type === 'invoice.paid' || event.type === 'invoice.payment_succeeded') {
-    if (!obj.subscription || !(Number(obj.amount_paid) > 0)) return { handled: false }; // a free trial's $0 invoice grants nothing extra
-    var sub2 = await deps.getSubscription(obj.subscription);
+    var subId = invoiceSubscriptionId(obj);
+    if (!subId || !(Number(obj.amount_paid) > 0)) return { handled: false }; // a free trial's $0 invoice grants nothing extra
+    var sub2 = await deps.getSubscription(subId);
     var plan = productFor(sub2 && sub2.metadata && sub2.metadata.plan);
     var user2 = (sub2 && sub2.metadata && sub2.metadata.user_id) || (obj.customer ? await rpc('pro_customer_user', { p_customer: obj.customer }) : null);
     var until2 = subscriptionUntil(sub2, deps.now);
