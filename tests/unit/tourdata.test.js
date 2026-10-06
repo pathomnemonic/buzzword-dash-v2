@@ -13,7 +13,7 @@ describe('the tour steps', () => {
 
   it('walks Home first, with a section each for Versus and Flashcards, one line on Challenge (no PLAY lesson, no mode-by-mode walk), then the tabs', () => {
     const order = ids();
-    ['coins', 'filters', 'speed', 'versus-btn', 'versus', 'flashcards-btn', 'flashcards', 'challenge-btn', 'friends', 'settings', 'stats-tab', 'locker-tab', 'quests-tab', 'profile-tab', 'back-home'].forEach((id) => expect(order, id).toContain(id));
+    ['coins', 'filters', 'speed', 'speed-dial', 'versus-btn', 'versus', 'flashcards-btn', 'flashcards', 'challenge-btn', 'friends', 'settings', 'stats-tab', 'locker-tab', 'quests-tab', 'profile-tab', 'back-home'].forEach((id) => expect(order, id).toContain(id));
     expect(order.indexOf('versus-btn')).toBeLessThan(order.indexOf('flashcards-btn'));
     expect(order.indexOf('flashcards-btn')).toBeLessThan(order.indexOf('challenge-btn'));
     ['play', 'ch-study', 'ch-weakness', 'ch-daily', 'ch-gauntlet', 'ch-friend', 'ch-exam'].forEach((id) => expect(order, id).not.toContain(id));
@@ -41,6 +41,30 @@ describe('the tour steps', () => {
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
     expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview'].includes(id))).toEqual([]);
+  });
+
+  it('the tour teaches the speed dial: opens the sheet, lets the player drag it, then closes it', () => {
+    const byId = Object.fromEntries(steps.map((s) => [s.id, s]));
+    expect(byId.speed.press).toBe('pass');
+    expect(byId['speed-dial'].interactive).toBe(true);
+    expect(byId['speed-dial'].text).toMatch(/slower/i);
+    expect(typeof byId['speed-dial'].after).toBe('function');
+    expect(ids().indexOf('speed-dial')).toBe(ids().indexOf('speed') + 1);
+  });
+
+  it('Pro is mentioned only while it can be bought, and then only quietly', async () => {
+    const { setSellableForTest } = await import('../../js/pro.js');
+    const { setProConfigForTest } = await import('../../js/remoteconfig.js');
+    setProConfigForTest({ enabled: false });
+    let off = buildTourSteps({ ui: { show() {} } });
+    expect(off.map((s) => s.text).join(' ')).not.toMatch(/Pro\b/);
+    setProConfigForTest({ enabled: true, gates: { exam_sim: { limit: 1, per: 'week' } } });
+    setSellableForTest(true);
+    const on = buildTourSteps({ ui: { show() {} } });
+    expect(on.find((s) => s.id === 'pro').text).toMatch(/10× more cards/);
+    expect(on.find((s) => s.id === 'challenge-btn').text).toMatch(/PRO tag/);
+    setSellableForTest(false);
+    setProConfigForTest(null);
   });
 
   it('each step says what it is: a title and some text', () => {

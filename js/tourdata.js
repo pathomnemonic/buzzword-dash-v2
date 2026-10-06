@@ -7,6 +7,7 @@
  */
 
 import { storage } from './storage.js';
+import { proLive } from './pro.js';
 
 function q(selector) { return function () { return document.querySelector(selector); }; }
 
@@ -97,6 +98,9 @@ function closeVersus() {
  * @returns {object[]} steps for startTour()
  */
 export function buildTourSteps(ctx) {
+  // Pro is only mentioned while it can be bought (or is owned): a quiet word on the way past, never a sales stop
+  var live = proLive();
+  var pro = function (text) { return live ? ' ' + text : ''; };
   return [
     { id: 'home', title: 'Welcome home', text: 'This is the Home screen. Let\'s look around. Tap each highlighted spot to go on.',
       target: null, press: 'next',
@@ -105,8 +109,11 @@ export function buildTourSteps(ctx) {
       text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score. You start with a balance to spend in the Locker in a minute.' },
     { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'count',
       text: 'Choose subjects, exams and question types. Everything is switched on to begin with, so you will see every question.' },
-    { id: 'speed', title: 'Speed', target: '#speedBtn', press: 'count',
-      text: 'Faster runs score more points for every correct answer. Start at 1× and turn it up as you get confident.' },
+    { id: 'speed', title: 'Speed', target: '#speedBtn', press: 'pass', hint: 'Tap Speed to open the dial',
+      text: 'This sets how fast the track runs. Open it and have a go with the dial.' },
+    { id: 'speed-dial', title: 'Set your pace', target: '.speed-dial', press: 'next', interactive: true,
+      after: closeSheet('#speedSheet'),
+      text: 'Slide it! Right is faster and scores more points for every correct answer. Left is slower and calmer, with more time to think. 1× is the normal pace; if you are new, or tired, slide it left. You can change it any time before a run.' },
     // Each way to play gets its own short section: press its button, see what is inside, close it
     { id: 'versus-btn', title: 'Versus', target: '#multiplayerBtn', press: 'pass', hint: 'Tap Versus to look inside',
       text: 'Race a friend live, with the same questions at the same moment. Open it.' },
@@ -118,20 +125,23 @@ export function buildTourSteps(ctx) {
       text: 'Calm study with no runner and no lives. Open it.' },
     { id: 'flashcards', title: 'Choose your cards', target: '#flashcardsList', press: 'next',
       after: closeSheet('#flashcardsSheet'),
-      text: 'Study your subjects, review the cards that are due (timed by FSRS, the same spaced-repetition algorithm Anki uses), drill the ones you miss, or meet new ones. Flip them yourself or listen hands-free. Browse cards and My cards (your own, or imported from Anki) are here too.' },
+      text: 'Study your subjects, review the cards that are due (timed by FSRS, the same spaced-repetition algorithm Anki uses), drill the ones you miss, or meet new ones. Flip them yourself or listen hands-free. Browse cards and My cards (your own, or imported from Anki) are here too.' + pro('(Importing and unlimited custom cards are Pro.)') },
 
     { id: 'challenge-btn', title: 'Challenge', target: '#homeChallengeBtn', press: 'count',
-      text: 'Every other way to play lives here: Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim. Have a look when you are ready.' },
+      text: 'Every other way to play lives here: Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim.' + pro('A small gold PRO tag marks anything Pro opens up.') + ' Have a look when you are ready.' },
 
     { id: 'friends', title: 'Friends', target: '#leaderboardBtn', press: 'count',
       text: 'Add friends, see their highlights in the feed and make private study groups with a shared weekly goal. It needs a free account (the profile button beside it).' },
     { id: 'settings', title: 'Settings', target: '#settingsBtn', press: 'count',
       text: 'Sound, colors, camera, controls and game rules live here. You can replay this tour any time from Settings, then About, then How to play.' },
+    !live ? null : { id: 'pro', title: 'Dx Dash Pro', target: '#homeProBanner', press: 'next',
+      skipIf: function () { var b = document.getElementById('homeProBanner'); return !b || b.hidden; },
+      text: '⚡ Playing is complete without it. Pro is for when you want more: 10× more cards (3,010 instead of 300), every explanation, detailed stats, Anki import and offline play. Every new account gets a free 7-day trial, so you can try it all. Tap this button any time to see what is inside.' },
 
     { id: 'stats-tab', title: 'Stats', target: tab('screenStats'), press: 'pass',
       text: 'Now the tabs along the bottom. Open Stats.' },
     { id: 'stats', title: 'How you are doing', target: '#screenStats .perf-hero', press: 'next',
-      text: 'Your accuracy by subject, your weakest topics and your recent runs. Use it to decide what to drill next.' },
+      text: 'Your accuracy by subject, your weakest topics and your recent runs. Use it to decide what to drill next.' + pro('(The full breakdowns are part of Pro.)') },
 
     { id: 'locker-tab', title: 'Locker', target: tab('screenShop'), press: 'pass',
       text: 'Next, the Locker, where your coins go.' },
@@ -167,7 +177,7 @@ export function buildTourSteps(ctx) {
 
     { id: 'back-home', title: 'Back to Home', target: tab('screenHome'), press: 'pass',
       text: 'That is everything. Tap Home to finish.' }
-  ].map(function (s) {
+  ].filter(Boolean).map(function (s) {
     if (typeof s.target === 'string') s.target = q(s.target);
     return s;
   });
