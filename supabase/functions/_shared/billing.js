@@ -113,6 +113,25 @@ export function checkoutParams(planOrId, userId, env, opts) {
   return f;
 }
 
+/** Settings for the Stripe billing portal, used when none are saved in the Dashboard: cancel at the end of the period, update the card, see invoices. */
+export function portalConfig(env) {
+  var site = String((env && env.SITE_URL) || '').replace(/\/+$/, '');
+  var f = {
+    'business_profile[headline]': 'Manage your Dx Dash Pro subscription',
+    'features[subscription_cancel][enabled]': 'true',
+    'features[subscription_cancel][mode]': 'at_period_end',
+    'features[payment_method_update][enabled]': 'true',
+    'features[invoice_history][enabled]': 'true',
+    'features[customer_update][enabled]': 'true',
+    'features[customer_update][allowed_updates][0]': 'email'
+  };
+  if (/^https:\/\//.test(site)) {
+    f['business_profile[privacy_policy_url]'] = site + '/privacy.html';
+    f['business_profile[terms_of_service_url]'] = site + '/terms.html';
+  }
+  return f;
+}
+
 // ---------- webhook signatures ----------
 
 /** "t=123,v1=abc,v1=def" -> { t, v1: [...] } */

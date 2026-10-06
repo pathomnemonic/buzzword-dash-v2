@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, configuredProducts, describePrice, checkoutParams } from '../_shared/billing.js';
+import { PRODUCTS, configuredProducts, describePrice, checkoutParams, portalConfig } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -65,7 +65,15 @@ Deno.serve(async function (req) {
 
     if (body.action === 'portal') {
       if (!customerId) return json({ error: 'No web subscription found for this account.' }, 404);
-      var portal = await stripe('billing_portal/sessions', { customer: customerId, return_url: env.SITE_URL + '/' });
+      var portal;
+      try {
+        portal = await stripe('billing_portal/sessions', { customer: customerId, return_url: env.SITE_URL + '/' });
+      } catch (e) {
+        // no portal settings saved in the Stripe Dashboard yet: create ours (cancel at period end, update card, invoices), then retry
+        if (!/configuration/i.test((e && e.message) || '')) throw e;
+        var cfg = await stripe('billing_portal/configurations', portalConfig(env));
+        portal = await stripe('billing_portal/sessions', { customer: customerId, return_url: env.SITE_URL + '/', configuration: cfg.id });
+      }
       return json({ url: portal.url });
     }
 

@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, portalConfig, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -56,6 +56,14 @@ describe('checkout', () => {
     expect(() => checkoutParams('wat', 'u1', ENV)).toThrow(/Unknown/);
     expect(() => checkoutParams('yearly', '', ENV)).toThrow(/Sign in/);
     expect(() => checkoutParams('yearly', 'u1', { STRIPE_PRICE_YEARLY: 'p', SITE_URL: 'http://x' })).toThrow(/site address/);
+  });
+});
+
+describe('the billing portal', () => {
+  it('has its own settings so nothing has to be set up in the Stripe Dashboard', () => {
+    const f = portalConfig(ENV);
+    expect(f).toMatchObject({ 'features[subscription_cancel][enabled]': 'true', 'features[subscription_cancel][mode]': 'at_period_end', 'features[payment_method_update][enabled]': 'true', 'business_profile[terms_of_service_url]': 'https://me.github.io/dx/terms.html', 'business_profile[privacy_policy_url]': 'https://me.github.io/dx/privacy.html' });
+    expect('business_profile[terms_of_service_url]' in portalConfig({})).toBe(false);
   });
 });
 

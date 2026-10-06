@@ -38,7 +38,7 @@ On the website the paywall shows your real Stripe prices and sends the player to
 **One-time setup (about an hour):**
 
 1. **Database.** Run `database/pro.sql` in the Supabase SQL editor (safe to run again).
-2. **Stripe products.** In Stripe (start in Test mode) create four Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time). Do not add a free trial in Stripe: the trial is built into accounts. Copy each **Price id** (`price_...`). Turn on the customer portal (Settings → Billing → Customer portal) so people can cancel.
+2. **Stripe products.** In Stripe (start in Test mode) create four Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time). Do not add a free trial in Stripe: the trial is built into accounts. Copy each **Price id** (`price_...`). The customer portal (where subscribers cancel) needs no setup: the function creates its own settings the first time someone taps Manage subscription, unless you have saved your own in the Dashboard.
 3. **Deploy the two functions** (needs the [Supabase CLI](https://supabase.com/docs/guides/cli), logged in and linked to your project):
    ```
    supabase functions deploy pro-checkout
