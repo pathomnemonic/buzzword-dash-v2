@@ -39,10 +39,23 @@ function wrapperOf(screen) {
   return { scroll: scroll, wrap: w };
 }
 
-/** Fit one screen. Returns the zoom that was applied. */
+/**
+ * Fit one screen. Returns the zoom that was applied.
+ * Measuring briefly sets the zoom to 1, which shortens the page; a player who had scrolled far down would be thrown
+ * back up by the browser (the scroll position gets clamped and is not restored). So where they were is kept and
+ * put back, scaled by any real change in zoom.
+ */
 export function fitScreen(screen) {
   var parts = wrapperOf(screen);
   if (!parts || !screen.classList.contains('active')) return 1;
+  var before = parts.scroll.scrollTop;
+  var wasZoom = parseFloat(parts.wrap.style.zoom) || 1;
+  var z = fitScreenNow(screen, parts);
+  if (before > 0) parts.scroll.scrollTop = before * (z / wasZoom);
+  return z;
+}
+
+function fitScreenNow(screen, parts) {
   var scroll = parts.scroll;
   var wrap = parts.wrap;
   var cs = getComputedStyle(scroll);

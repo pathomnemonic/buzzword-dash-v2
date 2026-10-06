@@ -2149,7 +2149,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .shop-item { flex-wrap: wrap; }
 .story-long { flex: 0 0 100%; order: 99; box-sizing: border-box; }
 
-/* Heroes and monsters: name and one-liner get the full width; the buttons sit on their own line beneath */
+/* Every Locker card (heroes, trails, maps, monsters): icon, name and one-liner on top, the buttons always on their own line beneath, the same everywhere */
 .shop-item.stacked { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 10px; }
 .shop-item.stacked > div:nth-child(2) { flex: 1 1 0; min-width: 0; }
 .shop-item.stacked > div:last-of-type:not(.story-long) { flex: 0 0 100%; order: 1; justify-content: flex-start; gap: 6px; }
