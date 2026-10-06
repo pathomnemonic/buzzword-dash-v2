@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **101**.
+Total events: **102**.
 
 ## Acquisition
 
@@ -1034,6 +1034,14 @@ A free player reached a Pro limit (a locked feature, or the daily/weekly/total l
 | `mode` | one of: limit, locked |
 | `used` | whole number |
 | `limit` | whole number |
+
+### `pro_gift_claimed`
+
+A Pro member used their free monthly Locker item.
+
+| Property | Type |
+|---|---|
+| `item` | text (≤40) |
 
 ### `pro_status`
 

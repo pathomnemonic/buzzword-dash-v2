@@ -7,6 +7,7 @@
 
 import { createElement, clearElement, setText } from './dom.js';
 import { storage } from './storage.js';
+import { requireGate } from './pro.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { firstWeekState } from './firstweek.js';
 import { getTodayPlan, stepButtons, shortLabel } from './statsview.js';
@@ -58,7 +59,8 @@ export var homeMethods = {
       b.addEventListener('click', function () {
         self.closeSheets();
         var source = b.getAttribute('data-source');
-        if (!source) return; // Browse cards and My cards open their own screens
+        if (!source) return; // Browse cards and My cards open their own screens (which ask for Pro themselves)
+        if (source === 'missed' && !requireGate('missed_cards')) return;
         var pick = self._fcPick || (self._fcPick = { source: 'mine', subjects: [], count: 20 });
         pick.source = source;
         self.show('screenFlashcard');

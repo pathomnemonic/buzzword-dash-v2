@@ -2356,3 +2356,14 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 .pro-feature-detail { font-size: 12.5px; line-height: 1.4; opacity: .85; }
 .pro-feature.pro-feature-hit { border-color: var(--accent-gold, #ffd24a); background: rgba(255,210,74,.14); }
 .pro-feature-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 8px; background: var(--accent-gold, #ffd24a); color: #3a2600; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+
+/* a stats section behind Pro */
+.perf-section.perf-locked { border-color: var(--accent-gold, #ffd24a); background-image: linear-gradient(180deg, rgba(255,210,74,.10), rgba(255,210,74,0)); }
+.perf-section.perf-locked .perf-hint { color: var(--accent-gold, #ffd24a); font-weight: 800; }
+
+/* the monthly Pro gift in the Locker */
+.shop-gift { margin: 6px 0 10px; padding: 8px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; text-align: left; color: #3a2600;
+  background: linear-gradient(180deg, #fff0a0, #ffc83a); border: 3px solid var(--ink); box-shadow: 0 3px 0 #8a5a00; }
+.shop-gift[hidden] { display: none; }
+.shop-gift.shop-gift-used { color: var(--text-primary, #fff); background: rgba(255,255,255,.08); box-shadow: none; border-color: rgba(255,255,255,.2); font-weight: 600; }
+.btn-gift { background: linear-gradient(180deg, #b8f5c8, #5fd88a); color: #0b3a1d; border: 3px solid var(--ink); }

@@ -5,7 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
-import { requireGate } from './pro.js';
+import { requireGate, proGiftState, giftMonthKey } from './pro.js';
 import { renderProSettings, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -734,10 +734,52 @@ export var settingsMethods = {
     return wrap;
   },
 
+  /**
+   * The "🎁 FREE" button beside a price while this month's Pro gift is unspent. The first tap asks, the second takes it.
+   * @param {object} item a Locker item
+   * @param {function(): void} done what to do after it is claimed (equip, redraw)
+   * @returns {HTMLElement|null}
+   */
+  _giftButton(item, done) {
+    var self = this;
+    if (!proGiftState().available || storage.ownsItem(item.id)) return null;
+    var btn = createElement('button', { className: 'btn btn-gift btn-sm', text: '🎁 FREE', attributes: { type: 'button', 'aria-label': 'Use your monthly Pro gift on ' + item.name } });
+    var armed = false;
+    var timer = null;
+    btn.addEventListener('click', function () {
+      if (!armed) {
+        armed = true;
+        setText(btn, 'Pick this? Tap again');
+        timer = setTimeout(function () { armed = false; setText(btn, '🎁 FREE'); }, 4000);
+        return;
+      }
+      clearTimeout(timer);
+      if (!storage.claimProGift(item.id, giftMonthKey())) { self._showToast('Your gift is already used this month.'); self.renderShop(); return; }
+      audio.play('buy');
+      trackEvent('pro_gift_claimed', { item: String(item.id).slice(0, 40) });
+      var earned = storage.afterPurchase();
+      if (earned.length) self.showAchievementNotification(earned);
+      self._showToast('🎁 ' + item.name + ' is yours. Your Pro gift is back next month!');
+      done();
+    });
+    return btn;
+  },
+
   renderShop() {
     var self = this;
     var shopCoinsEl = document.getElementById('shopCoins');
     if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
+    var giftBar = document.getElementById('shopGiftBar');
+    if (giftBar) {
+      var gs = proGiftState();
+      giftBar.hidden = !gs.eligible;
+      giftBar.classList.toggle('shop-gift-used', gs.eligible && !gs.available);
+      if (gs.eligible) {
+        setText(giftBar, gs.available
+          ? '🎁 Your Pro gift: pick any one item below and tap 🎁 FREE. It is on the house, once a month.'
+          : '🎁 Pro gift used this month. Your next free pick opens ' + new Date(gs.nextAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) + '.');
+      }
+    }
 
     var renderGroup = function (type, title, filter, note) {
       var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
@@ -916,6 +958,16 @@ export var settingsMethods = {
             }
           });
           btnWrap.appendChild(buyBtn);
+          var giftBtn = self._giftButton(item, function () {
+            storage.equipItem(item.id, type);
+            if (self.onEquipChange) self.onEquipChange();
+            self.renderShop();
+            if (self.characterPreview) {
+              self.characterPreview.clearPreview();
+              if (type === 'trail' || type === 'monster') self.characterPreview.previewItem(item.id, type);
+            }
+          });
+          if (giftBtn) btnWrap.appendChild(giftBtn);
         }
 
         row.appendChild(btnWrap);
@@ -1103,6 +1155,8 @@ export var settingsMethods = {
           }
         });
         btnWrap.appendChild(buy);
+        var mapGift = self._giftButton(item, function () { self.renderShop(); });
+        if (mapGift) btnWrap.appendChild(mapGift);
       }
       row.appendChild(btnWrap);
       wrap.appendChild(row);

@@ -320,6 +320,10 @@ class UI {
   }
 
   show(screenId, slideFrom) {
+    // Pro: Browse cards, My cards and the "Cards I miss" deck
+    if (screenId === 'screenCardBrowser' && !requireGate('browse_cards')) return;
+    if (screenId === 'screenMyCards' && !requireGate('my_cards')) return;
+    if (screenId === 'screenFlashcard' && this._fcPick && this._fcPick.source === 'missed' && !requireGate('missed_cards')) return;
     // Leaving the Locker: the items that wore a red dot have now been seen
     var shopEl = document.getElementById('screenShop');
     if (shopEl && shopEl.classList.contains('active') && screenId !== 'screenShop' && this._lockerFresh && this._lockerFresh.length) {

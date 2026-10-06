@@ -57,7 +57,7 @@ describe('Pro screens once switched on', () => {
   it('the paywall lists every Pro feature and puts the one just tapped first', () => {
     const o = openPaywall({ trigger: 'gate_offline_pack', feature: 'offline_pack' });
     const items = [...o.querySelectorAll('.pro-feature')];
-    expect(items.length).toBe(7);
+    expect(items.length).toBe(11);
     expect(items[0].textContent).toMatch(/Play with no connection/);
     expect(items[0].classList.contains('pro-feature-hit')).toBe(true);
     expect(o.textContent).toMatch(/Free: 300 cards/);
@@ -72,6 +72,26 @@ describe('Pro screens once switched on', () => {
     setProConfigForTest({ enabled: false });
     applyProLock(b, 'offline_pack');
     expect(b.querySelector('.pro-lock')).toBeNull();
+  });
+
+  it('a Pro member can take one free item a month, then has to wait for the next', async () => {
+    const { storage } = await import('../../js/storage.js');
+    const { proGiftState, giftMonthKey } = await import('../../js/pro.js');
+    storage.load();
+    expect(proGiftState().eligible).toBe(false);
+    document.body.innerHTML = '';
+    const { setProStatusForTest } = await import('../../js/pro.js').then((m) => ({ setProStatusForTest: m.setProDebug }));
+    setProStatusForTest(true);
+    const now = new Date(2026, 5, 15).getTime();
+    expect(proGiftState(now).available).toBe(true);
+    expect(storage.claimProGift('trail_ekg', giftMonthKey(now))).toBe(true);
+    expect(storage.ownsItem('trail_ekg')).toBe(true);
+    expect(proGiftState(now).available).toBe(false);
+    expect(storage.claimProGift('trail_fire', giftMonthKey(now))).toBe(false);
+    const july = new Date(2026, 6, 2).getTime();
+    expect(proGiftState(july).available).toBe(true);
+    expect(proGiftState(now).nextAt).toBe(new Date(2026, 6, 1).getTime());
+    setProStatusForTest(null);
   });
 
   it('the Home button shows while Pro is on sale and opens the paywall', () => {

@@ -145,6 +145,8 @@ var DEFAULTS = {
     loginStreak: 0,
     xp: 0,
     // One-time migrations: these must be listed here or they are forgotten on the next load
+    proGiftMonth: '', // 'YYYY-MM' of the last free monthly Pro gift (js/pro.js proGiftState)
+    proGiftItem: '',  // what that gift was
     modelIntroSeen: false,
     monsterDefaultSeen: false,
 
@@ -1263,6 +1265,17 @@ class Storage {
     if (owned.indexOf(itemId) < 0) {
       owned.push(itemId);
     }
+    this.save();
+    return true;
+  }
+
+  /** Take this month's Pro gift: the item becomes yours for free. False when it is already yours or the month's gift is spent. */
+  claimProGift(itemId, monthKey) {
+    var p = this.data.progression;
+    if (!itemId || !monthKey || p.proGiftMonth === monthKey || p.ownedItems.indexOf(itemId) >= 0) return false;
+    p.proGiftMonth = monthKey;
+    p.proGiftItem = itemId;
+    p.ownedItems.push(itemId);
     this.save();
     return true;
   }

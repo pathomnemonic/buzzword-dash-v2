@@ -54,7 +54,7 @@ function pctColor(p) {
 }
 
 /** A folded section: a row with an icon, a title and a short value, that opens to its content. */
-function section(id, icon, title, hint, build, gateFeature) {
+function section(id, icon, title, hint, build, gateFeature, lockedNote) {
   var d = el('details', 'perf-section');
   d.id = 'perf-' + id;
   d.open = !!_open[id];
@@ -71,8 +71,9 @@ function section(id, icon, title, hint, build, gateFeature) {
   var gated = gateFeature && !checkGate(gateFeature).allowed;
   if (gated) {
     h.textContent = '🔒 Pro';
+    d.classList.add('perf-locked');
     build = function (b) {
-      b.appendChild(el('div', 'perf-note', 'This view is part of Dx Dash Pro: the full breakdown of how you are doing and where to aim next.'));
+      b.appendChild(el('div', 'perf-note', (lockedNote || 'This view is part of Dx Dash Pro: the full breakdown of how you are doing and where to aim next.') + ' It is part of Dx Dash Pro.'));
       var go = createElement('button', { className: 'btn btn-gold btn-sm', text: 'UNLOCK PRO', attributes: { type: 'button' } });
       go.addEventListener('click', function () { requireGate(gateFeature, { trigger: 'stats_' + id }); });
       b.appendChild(go);
@@ -231,7 +232,8 @@ export function renderPerformance(container, ui) {
   var twAll = storage.get('totalWrong');
   var accAll = (tcAll + twAll) >= MIN_ANSWERS_FOR_STATS ? tcAll / (tcAll + twAll) : null;
   tiles.appendChild(tile('🎯', accAll === null ? '—' : Math.round(accAll * 100) + '%', 'Accuracy', function () { openSection('subjects'); }, accAll === null ? null : pctColor(accAll)));
-  tiles.appendChild(tile('📅', pace && pace.daysLeft >= 0 ? pace.daysLeft + 'd' : 'Set', 'To exam', function () { openSection('settings'); }));
+  var examLocked = !checkGate('analytics_detail').allowed; // (the exam date and its countdown are part of Pro)
+  tiles.appendChild(tile(examLocked ? '🔒' : '📅', examLocked ? 'Pro' : (pace && pace.daysLeft >= 0 ? pace.daysLeft + 'd' : 'Set'), 'To exam', function () { openSection('settings'); }, examLocked ? 'var(--accent-gold)' : null));
   container.appendChild(tiles);
 
   // ---------- Folded sections ----------
@@ -309,7 +311,7 @@ export function renderPerformance(container, ui) {
       });
     }
     body.appendChild(el('div', 'perf-note', 'A card is mastered after 3+ answers at 80% or better. Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
-  }, 'analytics_detail'));
+  }, 'analytics_detail', 'See your accuracy and mastery for every subject and system, so you know where to spend your time.'));
 
   var weak = cards.map(function (c) {
     var s = storage.getCardStat(c.id);
@@ -336,7 +338,7 @@ export function renderPerformance(container, ui) {
       });
       body.appendChild(row);
     });
-  }, 'analytics_detail'));
+  }, 'analytics_detail', 'See your weakest concepts, ranked, with one tap to drill them.'));
 
   secs.appendChild(section('lifetime', '🏅', 'Lifetime', storage.get('totalEncounters') + ' cards', function (body) {
     var tc = storage.get('totalCorrect');
@@ -392,7 +394,7 @@ export function renderPerformance(container, ui) {
     r2.appendChild(sel);
     body.appendChild(r2);
     body.appendChild(el('div', 'perf-note', 'ⓘ Reviews are timed by FSRS, the same algorithm Anki uses. A higher number means more reviews.'));
-  }, 'analytics_detail'));
+  }, 'analytics_detail', 'Set your exam date and get a daily target that gets you there in time.'));
 
   if (_scrollTo) {
     var target = document.getElementById('perf-' + _scrollTo);

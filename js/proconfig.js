@@ -16,7 +16,7 @@
  *              "launchAt": 0, "grandfather": [] } }
  */
 
-export var GATE_FEATURES = ['card_library', 'analytics_detail', 'custom_cards', 'anki_import', 'offline_pack', 'explanations', 'exam_sim'];
+export var GATE_FEATURES = ['card_library', 'analytics_detail', 'custom_cards', 'anki_import', 'offline_pack', 'explanations', 'exam_sim', 'missed_cards', 'browse_cards', 'my_cards'];
 export var DEFAULT_PLANS = ['dxdash_pro_yearly', 'dxdash_pro_monthly', 'dxdash_pro_pass3m', 'dxdash_pro_lifetime'];
 /** The one-time purchase that unlocks only the full card library (not the study tools). */
 export var DEFAULT_LIBRARY_PRODUCT = 'dxdash_library';
@@ -28,7 +28,10 @@ export var DEFAULT_GATES = {
   offline_pack: 'locked',
   custom_cards: { limit: 25, per: 'total' },
   explanations: { limit: 8, per: 'day' },
-  exam_sim: { limit: 1, per: 'week' }
+  exam_sim: { limit: 1, per: 'week' },
+  missed_cards: 'locked', // Flashcards → Cards I miss
+  browse_cards: 'locked', // Flashcards → Browse cards
+  my_cards: 'locked'      // Flashcards → My cards (writing cards, importing, saved decks)
 };
 
 /** @typedef {{enabled: boolean, plans: string[], library: string, gates: Object<string, any>, launchAt: number, grandfather: string[]}} ProConfig */

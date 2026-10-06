@@ -324,11 +324,11 @@ function paintLock(btn, feature) {
   btn.appendChild(tag);
   btn.setAttribute('data-pro-feature', feature);
 }
-var STATIC_LOCKS = { examBtn: 'exam_sim', addCardBtn: 'custom_cards' };
+var STATIC_LOCKS = { '#examBtn': 'exam_sim', '#addCardBtn': 'custom_cards', '#flashcardsSheet [data-source="missed"]': 'missed_cards', '#cardBrowserBtn': 'browse_cards', '#myCardsBtn': 'my_cards' };
 /** The fixed buttons that open Pro features, and any made since. */
 export function markProLocks() {
   if (typeof document === 'undefined') return;
-  Object.keys(STATIC_LOCKS).forEach(function (id) { var b = document.getElementById(id); if (b) applyProLock(b, STATIC_LOCKS[id]); });
+  Object.keys(STATIC_LOCKS).forEach(function (sel) { var b = document.querySelector(sel); if (b) applyProLock(b, STATIC_LOCKS[sel]); });
   _locks = _locks.filter(function (l) { return l.btn.isConnected; });
   _locks.forEach(function (l) { paintLock(l.btn, l.feature); });
 }

@@ -55,12 +55,16 @@ export var PRO_BENEFITS = [
  * `free` says what a free player has, so the difference is clear.
  */
 export var PRO_FEATURES = [
+  { id: 'monthly_gift', icon: '🎁', title: 'A free Locker item every month', detail: 'Pick any one hero, trail, monster or map in the shop, on the house. A new pick opens each month.', free: 'Free: buy with coins' },
   { id: 'card_library', icon: '🗂', title: '10× more cards: the whole bank', detail: 'All 3,010 cards across every subject and system, not just 300.', free: 'Free: 300 cards' },
   { id: 'explanations', icon: '💡', title: 'Every "why" explanation', detail: 'See why the answer is right and why the others are not, after every miss.', free: 'Free: 8 a day' },
   { id: 'exam_sim', icon: '⏱', title: 'Unlimited exam simulations', detail: 'Timed blocks with pacing, flagged questions and a score report.', free: 'Free: 1 a week' },
   { id: 'analytics_detail', icon: '📊', title: 'Detailed stats', detail: 'Subject and system breakdowns, weak spots, exam pacing, and export to a file.', free: 'Free: the basics' },
   { id: 'custom_cards', icon: '✏️', title: 'Unlimited custom cards', detail: 'Write your own cards for anything your course throws at you.', free: 'Free: 25 cards' },
   { id: 'anki_import', icon: '📥', title: 'Anki import', detail: 'Bring in your existing Anki decks and play them in the game.', free: 'Free: not included' },
+  { id: 'missed_cards', icon: '🩹', title: 'Cards I miss', detail: 'A flashcard deck built from the cards you get wrong most, until they stick.', free: 'Free: not included' },
+  { id: 'browse_cards', icon: '🔎', title: 'Browse every card', detail: 'Search the whole library by subject or text, flag mistakes and see your stats per card.', free: 'Free: not included' },
+  { id: 'my_cards', icon: '📝', title: 'My cards', detail: 'Your own cards, your Anki decks and saved decks, all in one place.', free: 'Free: not included' },
   { id: 'offline_pack', icon: '✈️', title: 'Play with no connection', detail: 'Download your subjects once and study on a plane, a train or bad hospital wifi.', free: 'Free: online only' }
 ];
 
@@ -403,6 +407,25 @@ export function checkGate(feature, o) {
   var now = typeof o.now === 'number' ? o.now : Date.now();
   var used = typeof o.used === 'number' ? o.used : ((readJson(USE_KEY, {})[feature] || {}).k === periodKey(gate.per, now) ? (readJson(USE_KEY, {})[feature] || {}).n || 0 : 0);
   return { allowed: used < gate.limit, mode: 'limit', limit: gate.limit, used: used, remaining: Math.max(0, gate.limit - used), per: gate.per };
+}
+
+/** The calendar month a gift belongs to, as 'YYYY-MM' (local time). */
+export function giftMonthKey(now) {
+  var d = new Date(typeof now === 'number' ? now : Date.now());
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+}
+
+/**
+ * The monthly Pro gift: one free item from the Locker, any one, each calendar month, for anyone with Pro (a trial too).
+ * @returns {{eligible: boolean, available: boolean, nextAt: number, item: string}} nextAt: when the next gift opens (ms)
+ */
+export function proGiftState(now) {
+  var t = typeof now === 'number' ? now : Date.now();
+  var d = new Date(t);
+  var nextAt = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
+  var p = (storage && storage.data && storage.data.progression) || {};
+  var eligible = proLive() && isPro(t);
+  return { eligible: eligible, available: eligible && p.proGiftMonth !== giftMonthKey(t), nextAt: nextAt, item: p.proGiftItem || '' };
 }
 
 /** Count one use of a feature (for "per day / per week" limits). */
