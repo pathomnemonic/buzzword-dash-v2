@@ -212,6 +212,57 @@ export function installAnalytics(app) {
     });
   }
 
+  // the daily card goal: changed, and met
+  wrap('addStudiedToday', function () {
+    var goal = storage.get('dailyGoal') || 20;
+    var done = storage.getStudiedToday();
+    var key = 'dx_an_goal_met';
+    try {
+      if (done >= goal && localStorage.getItem(key) !== storage.getTodayKey()) { localStorage.setItem(key, storage.getTodayKey()); track('daily_goal', { action: 'met', goal: goal, cards_today: done }); }
+    } catch (e) { /* ignore */ }
+  });
+
+  // saving problems (some happened before analytics started)
+  function reportProblem(kind, detail) { track('storage_problem', { kind: kind, detail: String(detail || '').slice(0, 40) }); }
+  (storage.problems || []).forEach(function (p) { reportProblem(p.kind, p.detail); });
+  storage.problems = [];
+  storage.onProblem = reportProblem;
+
+  // the study streak: grew, started, saved by a shield, or lost
+  var lastStreakKey = 'dx_an_streak';
+  wrap('_advanceStudyStreak', function (r) {
+    if (!r) return;
+    var kind = r.shieldUsed ? 'shield_used' : r.streak === 1 ? 'started' : 'extended';
+    if (r.counted || r.shieldUsed || r.streak === 1) track('streak_changed', { kind: kind, days: r.streak, best: r.best });
+  });
+  wrap('markQuestsComplete', function () { track('quests_all_done', { count: (safe(function () { return storage.getDailyQuestIds(storage.getTodayKey()).length; }) || 0) }); });
+  try {
+    var prevStreak = Number(localStorage.getItem(lastStreakKey)) || 0;
+    var nowStreak = safe(function () { return storage.getStreakStatus().streak; }) || 0;
+    if (prevStreak >= 2 && nowStreak === 0) track('streak_changed', { kind: 'lost', days: prevStreak, best: safe(function () { return storage.getStreakStatus().best; }) || prevStreak });
+    localStorage.setItem(lastStreakKey, String(nowStreak));
+    window.addEventListener('pagehide', function () { try { localStorage.setItem(lastStreakKey, String(safe(function () { return storage.getStreakStatus().streak; }) || 0)); } catch (e) { /* ignore */ } });
+  } catch (e) { /* ignore */ }
+
+  // a map bought in the Locker is a map unlocked
+  wrap('buyItem', function (ok, args) { if (ok && /^map_/.test(String(args[0]))) track('map_unlocked', { map: String(args[0]), via: 'purchase', level: levelFromXp(storage.get('xp') || 0).level }); });
+
+  // pop-ups and sheets opening
+  try {
+    var SHEET_IDS = { reviewOverlay: 'review', quickReviewOverlay: 'quick_review', multiplayerOverlay: 'versus', challengeSheet: 'challenge', flashcardsSheet: 'flashcards', filtersSheet: 'filters', speedSheet: 'speed', todaySheet: 'today', dailyReward: 'daily_reward', tipJar: 'tip_jar', analyticsConsent: 'consent', cardReportDialog: 'card_report' };
+    var DYNAMIC = { dailyReward: 1, tipJar: 1, analyticsConsent: 1, cardReportDialog: 1 };
+    var openSheets = {};
+    var mo = new MutationObserver(function () {
+      Object.keys(SHEET_IDS).forEach(function (id) {
+        var el = document.getElementById(id);
+        var open = DYNAMIC[id] ? !!el : !!el && el.classList.contains('active');
+        if (open && !openSheets[id]) { openSheets[id] = true; track('sheet_opened', { kind: SHEET_IDS[id], from: state.screen }); }
+        else if (!open) openSheets[id] = false;
+      });
+    });
+    mo.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+  } catch (e) { /* ignore */ }
+
   // settings: a short pause so dragging a slider is one event
   var origSet = storage.set;
   storage.set = function (key, value) {
@@ -220,6 +271,9 @@ export function installAnalytics(app) {
     try {
       if (REPORTABLE_SETTINGS[key] !== undefined && value !== prev) {
         clearTimeout(state.settingTimers[key]);
+        if (key === 'dailyGoal') track('daily_goal', { action: 'changed', goal: Number(value) || 0, cards_today: safe(function () { return storage.getStudiedToday(); }) || 0 });
+        if (key === 'reminderHour') track('reminder_state', { action: 'time_changed', hour: Number(value) || 0, native: getNativePlatform() !== 'web' });
+        if (key === 'reminders') track('reminder_state', { action: value ? 'enabled' : 'disabled', hour: safe(function () { return storage.data.settings.reminderHour; }) || 0, native: getNativePlatform() !== 'web' });
         state.settingTimers[key] = setTimeout(function () {
           track('setting_changed', { key: key, value: String(value).slice(0, 24), prev: prev === undefined ? '' : String(prev).slice(0, 24), screen: state.screen });
         }, 600);
@@ -348,6 +402,36 @@ export function reportRunEnd(summary, extra) {
     state.lastRunEnd = Date.now();
     runTracker.finish();
   } catch (e) { /* ignore */ }
+}
+
+/** The social and sharing calls on the leaderboard service, reported by what they did (never who with). */
+export function instrumentLeaderboard(lb) {
+  if (!lb || lb.__analytics) return;
+  lb.__analytics = true;
+  function ok(res) { return !!(res && res.success !== false && !(res && res.error)); }
+  function watch(name, fn) {
+    var orig = lb[name];
+    if (typeof orig !== 'function') return;
+    lb[name] = function () {
+      var args = arguments;
+      var out = orig.apply(this, args);
+      if (out && typeof out.then === 'function') out.then(function (res) { try { fn(res, args); } catch (e) { /* ignore */ } }, function () { /* the caller handles it */ });
+      return out;
+    };
+  }
+  function friend(action) { return function (res) { if (ok(res)) track('friend_event', { action: action }); }; }
+  watch('searchPlayers', function (res) { track('friend_event', { action: 'search', count: Array.isArray(res) ? res.length : 0 }); });
+  watch('sendFriendRequest', friend('request_sent'));
+  watch('acceptFriendRequest', friend('accepted'));
+  watch('declineFriendRequest', friend('declined'));
+  watch('removeFriend', friend('removed'));
+  watch('blockUser', friend('blocked'));
+  watch('createGroup', friend('group_created'));
+  watch('joinGroup', friend('group_joined'));
+  watch('giveKudos', friend('kudos_sent'));
+  watch('getFeed', function (res) { track('friend_event', { action: 'feed_opened', count: Array.isArray(res) ? res.length : 0 }); });
+  watch('publishDeck', function (res, args) { track('deck_shared', { action: ok(res) ? 'published' : 'failed', cards: Array.isArray(args[1]) ? args[1].length : 0 }); });
+  watch('fetchDeck', function (res) { track('deck_shared', { action: ok(res) ? 'fetched' : 'failed', cards: res && Array.isArray(res.cards) ? res.cards.length : 0 }); });
 }
 
 /** One drawn frame (milliseconds since the last one), for the run's frame rate. */

@@ -209,16 +209,13 @@ CREATE OR REPLACE VIEW analytics_v_landing AS
 SELECT coalesce(first_landing, '') AS landing, coalesce(first_referrer, '(none)') AS referrer, count(*) AS installs
 FROM analytics_installs GROUP BY 1, 2 ORDER BY installs DESC;
 
--- the web app's install prompt: shown -> accepted -> installed
+-- the web app's install prompt: offered -> installed
 CREATE OR REPLACE VIEW analytics_v_pwa AS
 SELECT date_trunc('week', e.ts)::date AS week, coalesce(s.browser, '') AS browser,
        count(DISTINCT e.install_id) FILTER (WHERE e.name = 'pwa_prompt_available') AS offered,
-       count(DISTINCT e.install_id) FILTER (WHERE e.name = 'pwa_prompt_shown') AS shown,
-       count(DISTINCT e.install_id) FILTER (WHERE e.name = 'pwa_prompt_choice' AND e.props ->> 'outcome' = 'accepted') AS accepted,
-       count(DISTINCT e.install_id) FILTER (WHERE e.name = 'pwa_prompt_choice' AND e.props ->> 'outcome' = 'dismissed') AS dismissed,
        count(DISTINCT e.install_id) FILTER (WHERE e.name = 'pwa_installed') AS installed
 FROM analytics_events e LEFT JOIN analytics_sessions s ON s.session_id = e.session_id
-WHERE e.name IN ('pwa_prompt_available', 'pwa_prompt_shown', 'pwa_prompt_choice', 'pwa_installed') GROUP BY 1, 2 ORDER BY 1 DESC;
+WHERE e.name IN ('pwa_prompt_available', 'pwa_installed') GROUP BY 1, 2 ORDER BY 1 DESC;
 
 -- sharing and virality: shares, referred installs, and a rough viral coefficient
 CREATE OR REPLACE VIEW analytics_v_virality AS
@@ -719,6 +716,26 @@ CREATE OR REPLACE VIEW analytics_v_nudges AS
 SELECT coalesce(props ->> 'kind', name) AS nudge, name AS source_event, count(*) AS shown, count(*) FILTER (WHERE analytics_bool(props, 'acted') OR analytics_bool(props, 'clicked')) AS acted,
        analytics_pct(count(*) FILTER (WHERE analytics_bool(props, 'acted') OR analytics_bool(props, 'clicked')), count(*)) AS acted_pct
 FROM analytics_events WHERE name IN ('nudge_shown', 'next_goal_shown', 'review_tip') GROUP BY 1, 2 ORDER BY shown DESC;
+
+-- days on which a player finished every quest, and how that spreads over the install's first weeks
+CREATE OR REPLACE VIEW analytics_v_quests_all_done AS
+SELECT ts::date AS day, count(*) AS completions, count(DISTINCT install_id) AS installs, round(avg(analytics_num(props, 'count')), 1) AS avg_quests
+FROM analytics_events WHERE name = 'quests_all_done' GROUP BY 1 ORDER BY 1 DESC;
+
+-- cloud save: how often it syncs, in which direction, and how often it fails
+CREATE OR REPLACE VIEW analytics_v_cloud_sync AS
+SELECT props ->> 'direction' AS direction, coalesce(analytics_bool(props, 'ok'), false) AS ok, count(*) AS events, count(DISTINCT install_id) AS installs
+FROM analytics_events WHERE name = 'cloud_sync' GROUP BY 1, 2 ORDER BY events DESC;
+
+-- the ranked ladder: views, promotions, demotions
+CREATE OR REPLACE VIEW analytics_v_ranked AS
+SELECT props ->> 'action' AS action, count(*) AS events, count(DISTINCT install_id) AS installs, round(avg(analytics_num(props, 'trophies')), 0) AS avg_trophies
+FROM analytics_events WHERE name = 'ranked_event' GROUP BY 1 ORDER BY events DESC;
+
+-- backups, restores and resets, and keyboard bindings
+CREATE OR REPLACE VIEW analytics_v_data_actions AS
+SELECT name, coalesce(props ->> 'action', '') AS action, coalesce(analytics_bool(props, 'ok'), true) AS ok, count(*) AS events, count(DISTINCT install_id) AS installs
+FROM analytics_events WHERE name IN ('data_action', 'keybinding_changed') GROUP BY 1, 2, 3 ORDER BY 1, events DESC;
 
 -- ==================== 12. SETTINGS AND ACCESSIBILITY ====================
 

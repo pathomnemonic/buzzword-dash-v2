@@ -4,6 +4,7 @@
  * ranked.js; this file is only screens and the match flow.
  */
 
+import { track } from './analytics/index.js';
 import { ranked, getCachedTrophies } from './ranked.js';
 import { audio } from './audio.js';
 import { getLeague, tierName, tierStep, tierProgress, describeLeagueRules } from './leagues.js';
@@ -85,6 +86,7 @@ export function renderLeagueCard(box, stats) {
 
 /** Load the stats and draw the card (shows cached trophies first). */
 export function mountLeagueCard(box) {
+  track('ranked_event', { action: 'viewed' });
   renderLeagueCard(box, null);
   ranked.settleStale();
   ranked.myStats().then(function (s) {
@@ -195,8 +197,10 @@ export function startRankedSearch(deps, content) {
   client.hostGame(function (code) {
     if (search.cancelled) return;
     show('Finding an opponent near your level…', true);
+    track('multiplayer_event', { action: 'queued', mode: 'versus' });
     ranked.findMatch(code).then(function (r) {
       if (search.cancelled) return;
+      if (r.ok) track('multiplayer_event', { action: 'match_found', mode: 'versus' });
       if (!r.ok) {
         client.disconnect();
         show(r.error, false, true);
@@ -247,7 +251,9 @@ export function finishRankedMatch(outcome) {
   if (!match) return Promise.resolve(null);
   _match = null;
   stopSearch();
+  track('multiplayer_event', { action: 'ended', mode: 'versus', result: outcome === 'win' || outcome === 'loss' || outcome === 'draw' ? outcome : 'none' });
   return ranked.report(match.matchId, outcome).then(function (r) {
+    if (r && r.ok && typeof r.delta === 'number' && r.delta !== 0) track('ranked_event', { action: r.delta > 0 ? 'promoted' : 'demoted', trophies: r.trophies });
     showResultCard(outcome, match, r);
     if (r.ok && !r.settled) waitForSettlement(outcome, match);
     return r;

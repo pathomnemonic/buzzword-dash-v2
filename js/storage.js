@@ -611,6 +611,7 @@ class Storage {
             this.data = deepMerge(parsed, DEFAULTS);
           }
           this.data.schemaVersion = SCHEMA_VERSION;
+          this._problem('migration', 'v' + (parsed.schemaVersion === undefined ? 1 : parsed.schemaVersion));
           this.save();
         } else {
           // Future version — use defaults rather than corrupt
@@ -623,6 +624,7 @@ class Storage {
       }
     } catch (e) {
       console.warn('[Storage] Corrupt data, using defaults:', e.message);
+      this._problem('corrupt', 'load');
       // Keep what was there, so it could still be recovered by hand rather than being overwritten by the fresh save
       try {
         var damaged = localStorage.getItem(STORAGE_KEY);
@@ -635,9 +637,17 @@ class Storage {
       this._ensureInvariants();
     } catch (e) {
       console.warn('[Storage] Damaged data, using defaults:', e.message);
+      this._problem('repaired', 'invariants');
       this.data = deepClone(DEFAULTS);
       this._ensureInvariants();
     }
+  }
+
+  /** Remember a saving or loading problem; analytics reads the list (it may start after the load) and the callback. */
+  _problem(kind, detail) {
+    if (!this.problems) this.problems = [];
+    if (this.problems.length < 20) this.problems.push({ kind: kind, detail: String(detail || '') });
+    if (typeof this.onProblem === 'function') { try { this.onProblem(kind, detail); } catch (e) { /* ignore */ } }
   }
 
   save() {
@@ -645,6 +655,7 @@ class Storage {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
     } catch (e) {
       console.warn('[Storage] Save failed:', e.message);
+      this._problem(/quota/i.test(String(e && (e.name || e.message))) ? 'quota' : 'other', e && e.name);
     }
     // Lets cloud sync notice changes without storage knowing about it.
     if (typeof this.onChange === 'function') {

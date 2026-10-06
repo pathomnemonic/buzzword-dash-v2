@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **102**.
+Total events: **98**.
 
 ## Acquisition
 
@@ -56,22 +56,6 @@ The browser offered to install the web app.
 
 _No properties._
 
-### `pwa_prompt_shown`
-
-The install prompt was shown to the player.
-
-| Property | Type |
-|---|---|
-| `surface` | text (≤30) |
-
-### `pwa_prompt_choice`
-
-The player accepted or dismissed the install prompt.
-
-| Property | Type |
-|---|---|
-| `outcome` | one of: accepted, dismissed |
-
 ### `pwa_installed`
 
 The web app was installed to the home screen.
@@ -96,14 +80,6 @@ The player reloaded into the new version.
 | `from_version` | text (≤20) |
 
 ## Privacy
-
-### `consent_prompt_shown`
-
-The first-run analytics question was shown.
-
-| Property | Type |
-|---|---|
-| `surface` | one of: first_run, settings |
 
 ### `consent_changed`
 
@@ -250,16 +226,6 @@ A first for this install: first run started, first answer, first correct, first 
 | `milestone` | one of: run_started, answer, correct_answer, run_ended, coin, powerup, purchase, equip, quest_claim, map_change, achievement, share, flashcards, exam, custom_card, account, level_up, study_day, streak_3, day2_return — required |
 | `seconds_since_install` | whole number |
 | `sessions_so_far` | whole number |
-
-### `tour_step`
-
-A step of the spotlight tour of the app.
-
-| Property | Type |
-|---|---|
-| `step` | text (≤24) — required |
-| `index` | whole number |
-| `outcome` | one of: viewed, completed, skipped |
 
 ## Gameplay
 

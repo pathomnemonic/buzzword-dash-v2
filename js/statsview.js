@@ -10,6 +10,7 @@
  *   Sections        Reviews coming up, Subjects (level and accuracy), Weakest concepts, Lifetime, Plan settings
  */
 
+import { track } from './analytics/index.js';
 import { createElement, setText } from './dom.js';
 import { storage } from './storage.js';
 import { CARDS, SUBJECTS } from './cardhub.js';
@@ -165,6 +166,12 @@ function openSection(id) {
  */
 export function renderPerformance(container, ui) {
   var cards = liveCards();
+  (function () {
+    var tally = { New: 0, Learning: 0, Solid: 0, Mastered: 0 };
+    var ss = storage.get('subjectStats') || {};
+    Object.keys(ss).forEach(function (k) { var lv = masteryLevel(ss[k].correct, ss[k].wrong); if (tally[lv] !== undefined) tally[lv]++; });
+    track('readiness_viewed', { subjects_new: tally.New, subjects_learning: tally.Learning, subjects_solid: tally.Solid, subjects_mastered: tally.Mastered });
+  })();
   var plan = buildStudyPlan({
     cardStats: storage.get('cardStats') || {},
     cards: cards,
@@ -348,7 +355,10 @@ export function renderPerformance(container, ui) {
     var l1 = createElement('label', { text: '📅 Exam date', attributes: { for: 'examDateInput' } });
     var input = createElement('input', { attributes: { type: 'date', id: 'examDateInput', value: storage.get('examDate') || '' } });
     input.addEventListener('change', function () {
+      var hadDate = !!storage.get('examDate');
       storage.set('examDate', /^\d{4}-\d{2}-\d{2}$/.test(input.value) ? input.value : '');
+      var daysOut = storage.get('examDate') ? Math.round((new Date(storage.get('examDate') + 'T12:00:00').getTime() - Date.now()) / 86400000) : 0;
+      track('study_plan_changed', { action: storage.get('examDate') ? (hadDate ? 'changed' : 'created') : 'cleared', days_out: Math.max(0, daysOut) });
       refreshPace();
     });
     r1.appendChild(l1);

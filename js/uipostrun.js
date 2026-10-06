@@ -5,6 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { track } from './analytics/index.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { describeRules } from './rules.js';
@@ -287,6 +288,7 @@ export var postRunMethods = {
 
     overlay.classList.add('active');
     trapFocus(overlay);
+    track('review_session', { cards: cards.length, trigger: 'postrun' });
     showCard();
 
     var revealBtn = document.getElementById('qrRevealBtn');

@@ -74,7 +74,7 @@ import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
 import { palReminder } from './companions.js';
 import { maybeAskConsent, analyticsAvailable } from './analyticsui.js';
 import { analytics } from './analytics/index.js';
-import { installAnalytics, reportRunEnd, reportFrame } from './analytics/instrument.js';
+import { installAnalytics, reportRunEnd, reportFrame, instrumentLeaderboard } from './analytics/instrument.js';
 import { track as trackEvent } from './analytics/index.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
@@ -246,6 +246,7 @@ function maybeShowMultiplayerResult() {
   multiplayerResultShown = true;
   var mode = multiplayerLocalResult.mode;
   var outcome = decideMultiplayerResult(mode, multiplayerLocalResult, multiplayerOpponentResult);
+  trackEvent('multiplayer_event', { action: 'ended', mode: mode, result: outcome === 'win' || outcome === 'loss' ? outcome : outcome === 'tie' ? 'draw' : 'none' });
   var you = multiplayerLocalResult.score;
   var them = multiplayerOpponentResult.score || 0;
   var message;
@@ -376,6 +377,7 @@ function configureMultiplayer(client, content) {
   };
 
   client.onMatchStart = function (config) {
+    trackEvent('multiplayer_event', { action: 'started', mode: (config && config.mode) || 'versus' });
     // Both peers must hold the same built-in card pool or the seeded order
     // would desync; the host's hash comes with the match config.
     import('./multiplayer.js').then(function (mod) {
@@ -425,6 +427,7 @@ function configureMultiplayer(client, content) {
   };
 
   client.onForfeit = function () {
+    trackEvent('multiplayer_event', { action: 'forfeit', mode: multiplayerLocalResult ? multiplayerLocalResult.mode : 'versus' });
     multiplayerOpponentResult = makeForfeitResult();
     if (game.running) game.requestEnd('opponent_forfeit');
     maybeShowMultiplayerResult();
@@ -632,6 +635,7 @@ function startNewChallenge() {
 function attachReviewTip() {
   if (storage.get('reviewTipSeen') || game._tutorial || game.correct + game.wrong === 0) return;
   storage.set('reviewTipSeen', true);
+  trackEvent('review_tip', { acted: false });
   setTimeout(function () {
     var target = function () { return document.querySelector('#postRunContent .post-review'); };
     if (!document.getElementById('screenPostRun') || !document.getElementById('screenPostRun').classList.contains('active')) return;
@@ -724,7 +728,7 @@ function attachNextGoal() {
     dailyDone: storage.getStudiedToday(), dailyGoal: storage.get('dailyGoal') || 20,
     cheapestWanted: wanted ? { name: wanted.name, price: wanted.price } : null
   });
-  if (goal) lines.push(goal);
+  if (goal) { lines.push(goal); trackEvent('next_goal_shown', { kind: /best score/.test(goal) ? 'best_score' : /XP to level/.test(goal) ? 'level' : /goal/.test(goal) ? 'daily_goal' : /🪙/.test(goal) ? 'item' : 'other', clicked: false }); }
   if (!lines.length) return;
   var box = document.createElement('div');
   box.className = 'post-next-goal';
@@ -866,6 +870,7 @@ function attachChallengeResult(finalScore) {
 
 /** Play a list of cards in the runner (the study plan's "Run it" button). */
 function startStudyPlanRun(cardIds) {
+  trackEvent('study_plan_changed', { action: 'run_started' });
   if (!areCardsReady()) {
     ui._showToast(loadingLine());
     loadCards().then(function () { startStudyPlanRun(cardIds); });
@@ -1345,6 +1350,7 @@ function init() {
   // --- Leaderboard (lazy) ---
   if (!isKilled('onlineFeatures')) import('./leaderboard.js').then(function (mod) {
     leaderboardModule = mod;
+    instrumentLeaderboard(mod.leaderboard);
     mod.leaderboard.init().then(function () {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);

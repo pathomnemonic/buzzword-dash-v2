@@ -23,6 +23,7 @@
  * - All untrusted content rendered with textContent / safe DOM
  */
 
+import { track } from './analytics/index.js';
 import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply } from './importguide.js';
 import { copyText } from './platform.js';
 
@@ -574,6 +575,7 @@ function importRaw(cards, options) {
     warnings.push('Only the first ' + MAX_CARDS_PER_IMPORT + ' cards were processed.');
   }
 
+  track('anki_import', { outcome: imported > 0 ? 'ok' : 'empty', cards: imported, skipped: rejected, kind: (options && options.kind) || 'file' });
   return { imported: imported, rejected: rejected, warnings: warnings };
 }
 

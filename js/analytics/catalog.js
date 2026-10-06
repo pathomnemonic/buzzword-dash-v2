@@ -35,12 +35,9 @@ export var EVENTS = {
     kind: 'e:challenge|auth|invite|share|store|other', source: 's40', share_ref: 's16'
   }],
   pwa_prompt_available: ['acquisition', 'The browser offered to install the web app.', {}],
-  pwa_prompt_shown: ['acquisition', 'The install prompt was shown to the player.', { surface: 's30' }],
-  pwa_prompt_choice: ['acquisition', 'The player accepted or dismissed the install prompt.', { outcome: 'e:accepted|dismissed' }],
   pwa_installed: ['acquisition', 'The web app was installed to the home screen.', {}],
   app_update_available: ['acquisition', 'A new version finished downloading while the app was open.', { from_version: 's20', to_build: 's20' }],
   app_update_applied: ['acquisition', 'The player reloaded into the new version.', { from_version: 's20' }],
-  consent_prompt_shown: ['privacy', 'The first-run analytics question was shown.', { surface: 'e:first_run|settings' }],
   consent_changed: ['privacy', 'The player turned analytics on or off. (Off events are the last thing sent, with consent still on.)', {
     granted: 'b!', source: 'e:prompt|settings|dnt|gpc'
   }],
@@ -74,7 +71,6 @@ export var EVENTS = {
     milestone: 'e:run_started|answer|correct_answer|run_ended|coin|powerup|purchase|equip|quest_claim|map_change|achievement|share|flashcards|exam|custom_card|account|level_up|study_day|streak_3|day2_return!',
     seconds_since_install: 'i', sessions_so_far: 'i'
   }],
-  tour_step: ['onboarding', 'A step of the spotlight tour of the app.', { step: 's24!', index: 'i', outcome: 'e:viewed|completed|skipped' }],
 
   // ───────────────────────── runs ─────────────────────────
   mode_selected: ['gameplay', 'A game mode was chosen (before it started).', { mode: 'e:' + MODES + '!', from: 's30', blocked: 'e:none|daily_done|not_enough_cards|no_webgl|cards_loading|offline' }],

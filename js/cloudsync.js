@@ -10,6 +10,7 @@
  * server refuses a write based on an older timestamp, so two devices can never
  * silently overwrite each other; the player is asked instead.
  */
+import { track } from './analytics/index.js';
 
 var META_KEY = 'bd_cloud_meta';
 var PUSH_DELAY_MS = 15000;
@@ -153,6 +154,8 @@ export class CloudSync {
       return 'error';
     }).then(function (result) {
       self._running = null;
+      if (result === 'pushed' || result === 'pulled' || result === 'error') track('cloud_sync', { direction: result === 'pulled' ? 'down' : 'up', ok: result !== 'error' });
+      else if (result === 'adopt') track('cloud_sync', { direction: 'restore', ok: true });
       return result;
     });
     return this._running;

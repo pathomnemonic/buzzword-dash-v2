@@ -35,3 +35,20 @@ describe('analytics docs and tools', function () {
     expect(mentioned.length).toBeGreaterThan(20);
   });
 });
+
+describe('analytics coverage', function () {
+  it('every event in the catalog is sent from somewhere in the app (nothing declared and never wired)', async function () {
+    var { readdirSync, statSync } = await import('node:fs');
+    var files = [];
+    (function walk(dir) {
+      readdirSync(dir).forEach(function (f) {
+        var p = dir + '/' + f;
+        if (statSync(p).isDirectory()) walk(p);
+        else if (/\.js$/.test(f) && p !== 'js/analytics/catalog.js') files.push(p);
+      });
+    })('js');
+    var src = files.map(function (f) { return readFileSync(f, 'utf8'); }).join('\n');
+    var missing = eventNames().filter(function (n) { return src.indexOf("'" + n + "'") < 0; });
+    expect(missing).toEqual([]);
+  });
+});

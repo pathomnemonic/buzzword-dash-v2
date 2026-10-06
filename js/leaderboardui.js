@@ -8,6 +8,7 @@
  * Discover (only when FEATURES.discovery is on) | Account
  */
 
+import { track } from './analytics/index.js';
 import { createElement, clearElement } from './dom.js';
 import { renderAccountPanel } from './accountui.js';
 import { FEATURES } from './features.js';
@@ -36,6 +37,7 @@ var _deps = null;
 export function mountLeaderboardScreen(container, deps) {
   _root = container;
   _deps = deps;
+  track('leaderboard_viewed', { tab: String(_state.tab || 'friends'), scope: 'screen', rank_known: false });
   render();
 }
 
@@ -103,7 +105,12 @@ function render() {
       text: t[1],
       attributes: { type: 'button', role: 'tab', 'aria-selected': _state.tab === t[0] ? 'true' : 'false' }
     });
-    b.addEventListener('click', function () { _state.tab = t[0]; render(); });
+    b.addEventListener('click', function () {
+      _state.tab = t[0];
+      track('tab_changed', { screen: 'friends', tab: String(t[0]) });
+      if (t[0] === 'feed') track('friend_event', { action: 'feed_opened' });
+      render();
+    });
     tabs.appendChild(b);
   });
   _root.appendChild(tabs);

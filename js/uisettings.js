@@ -214,9 +214,11 @@ export var settingsMethods = {
             if (!canRemind()) { self._showToast('This device cannot show notifications.'); return; }
             requestReminderPermission().then(function (res) {
               if (!res.ok) {
+                trackEvent('reminder_state', { action: res.reason === 'unsupported' ? 'unsupported' : 'permission_denied', native: isNative() });
                 self._showToast(res.reason === 'unsupported' ? 'This device cannot show notifications.' : 'Notifications were blocked. Turn them on for Dx Dash in your phone or browser settings.');
                 return;
               }
+              trackEvent('reminder_state', { action: 'permission_granted', native: isNative() });
               storage.set('reminders', true);
               toggle.classList.add('on');
               toggle.setAttribute('aria-checked', 'true');

@@ -5,6 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { track } from './analytics/index.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { openCardReport } from './cardreport.js';
 import { SUBJECTS, CARDS } from './cardhub.js';
@@ -17,6 +18,7 @@ export var browseMethods = {
   renderCardBrowser() {
     var container = document.getElementById('cardBrowserContent');
     if (!container) return;
+    if (!container.querySelector('#cbSearch')) track('card_browser', { action: 'opened' });
     var self = this;
     // Preserve existing search input if mounted
     var existingSearch = container.querySelector('#cbSearch');
@@ -30,6 +32,7 @@ export var browseMethods = {
       searchInput.value = this.cardBrowserSearch || '';
       var debouncedSearch = debounce(function () {
         self.cardBrowserSearch = searchInput.value;
+        if (searchInput.value) track('card_browser', { action: 'searched' });
         self.cardBrowserPage = 0;
         self._renderCardBrowserResults();
       }, 300);
