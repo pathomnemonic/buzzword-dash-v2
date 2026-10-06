@@ -1,57 +1,93 @@
-# Dx Dash Pro (built, dormant, launch later)
+# Dx Dash Pro (ships with the first release)
 
-Pro is a subscription for the study tools. It is **fully built and invisible**: until it is switched on there is no Pro screen, no Settings row, no limit on any feature, and the store is not asked about subscriptions. Launching is mostly a config change, no app release needed (apart from store setup, which needs the app on a track once).
+Pro is on from day one. The reasoning, prices and numbers are in [MONETIZATION-STRATEGY.md](MONETIZATION-STRATEGY.md). This page is how it works and how to set it up.
 
-Files: `js/pro.js` (who has Pro, gates, buying), `js/proui.js` (paywall and Settings row), `js/proconfig.js` (the remote switches), `js/iap.js` (the store connection, shared with the tip jar), `database/pro.sql` (web payments, codes, seats), `docs/TIP-JAR.md` (the same store setup for tips).
+**Free:** the whole game, friends, leaderboards, and **300 cards (20 per subject)**.
+**Pro:** all 3,010 cards plus the study tools (detailed stats, Anki import, unlimited custom cards, every explanation, unlimited exam-sim blocks, offline pack).
+**Full Library:** a cheaper one-time purchase that unlocks only the cards.
 
-## What it gates (you choose, in the remote config)
+Files: `js/pro.js` (who has Pro, gates, buying), `js/proui.js` (paywall, "unlock all cards" strip, Settings row), `js/proconfig.js` (defaults and the remote switches), `js/iap.js` (the store connection shared with the tip jar), `js/freecards.js` (the 300 free card ids), `js/cardhub.js` (the playable pool follows the lock), `database/pro.sql` (web payments, codes, school seats), `tools/pick-free-cards.mjs` (how the 300 were chosen).
 
-Five features can be limited. Each is `open` (default), `"locked"` (Pro only) or `{ "limit": N, "per": "day" | "week" | "total" }`:
+## The rule that protects you: it only limits when there is a way to pay
 
-| feature | what it limits | `total` means |
+`proLive()` is true only when Pro is switched on **and** something can be bought:
+- **Phone apps:** once the store answered with the Pro products (the answer is remembered for the next launch).
+- **Web:** when `VITE_PRO_WEB_URL` (a Stripe Payment Link) is set at build time.
+Otherwise nothing is limited and no Pro screen shows. So a local build, a store listing whose products are not set up yet, or the web before you add a payment link all behave as fully free. Nobody is ever locked out of something they cannot buy.
+
+## Products to create (ids must match)
+
+| id | Type | Suggested US price |
 |---|---|---|
-| `custom_cards` | creating your own cards | cards in total |
-| `anki_import` | importing a deck | cards in one import |
-| `offline_pack` | the "play with no connection" download | n/a (use `locked`) |
-| `explanations` | the "why" teaching text after a missed card in Study | uses per `day` / `week` |
-| `exam_sim` | starting an exam-sim block | blocks per `day` / `week` |
+| `dxdash_pro_yearly` | auto-renewing subscription, **7-day free trial** offer for new subscribers | 39.99 / year |
+| `dxdash_pro_pass3m` | auto-renewing subscription, 3-month period | 14.99 |
+| `dxdash_pro_monthly` | auto-renewing subscription, 1 month | 6.99 |
+| `dxdash_pro_lifetime` | **non-consumable** (one purchase) | 79.99 |
+| `dxdash_library` | **non-consumable** (one purchase) | 14.99 |
+| `dxdash_tip_small` / `_medium` / `_large` | consumable tips (see TIP-JAR.md) | 1.99 / 4.99 / 9.99 |
 
-Everything else stays free. **Do not gate things people already have and use** without thinking: use `launchAt` + `grandfather` so players who installed before launch keep chosen features free.
+**Google Play:** Monetize → Subscriptions (one subscription "Dx Dash Pro" with three base plans yearly / 3-month / monthly; add the free-trial offer to the yearly base plan), In-app products for Lifetime and Library. **Apple:** one subscription group "Dx Dash Pro" holding the three subscriptions (introductory offer = free trial on yearly), non-consumable in-app purchases for Lifetime and Library; accept the Paid Applications agreement, tax and bank details; attach the purchases to the version you submit and add a review screenshot of the paywall. Both stores need a build uploaded (internal track / TestFlight) before purchases work.
 
-## Launching, step by step
+## Web payments, codes and seats
 
-1. **Store products.** Create three auto-renewing subscriptions in both stores (ids must match):
-   - `dxdash_pro_yearly` (suggested 29.99/yr, with a 7-day free trial offer for new subscribers)
-   - `dxdash_pro_monthly` (4.99/mo)
-   - `dxdash_pro_pass3m` (14.99 for 3 months; a 3-month plan on Google, a non-renewing choice is not supported here: use a 3-month subscription period)
-   Google Play: Monetize → Subscriptions (base plans and offers; set the trial as an offer on the yearly base plan). Apple: App Store Connect → Subscriptions → a subscription group (introductory offer = free trial), plus the Paid Applications agreement, tax and bank details. Both need the app uploaded (internal track / TestFlight) at least once, and a review screenshot of the Pro screen for Apple.
-2. **Server (web payments, codes, schools).** Run `database/pro.sql` in the Supabase SQL editor. Hand out codes: `INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch');`. For a web checkout create a Stripe Payment Link and set `VITE_PRO_WEB_URL` for the web build; a Stripe webhook (checkout.session.completed) calls `pro_grant(client_reference_id::uuid, 365, 'yearly', 'stripe')` with the service key. Players on the web are sent to the link with their account id attached.
-3. **Switch on.** Edit `public/remote-config.json`:
-   ```json
-   "pro": { "enabled": true,
-            "plans": ["dxdash_pro_yearly", "dxdash_pro_monthly", "dxdash_pro_pass3m"],
-            "gates": { "custom_cards": { "limit": 50, "per": "total" }, "offline_pack": "locked",
-                       "explanations": { "limit": 5, "per": "day" }, "exam_sim": { "limit": 2, "per": "week" } },
-            "launchAt": 1790000000000, "grandfather": ["custom_cards"] }
-   ```
-   (`launchAt` is milliseconds since 1970 of launch time.) Players pick it up next time the app opens. To pull Pro back: `"enabled": false`: every limit disappears at once.
-   Alternatively build with `VITE_FEATURE_PRO=1` to force it on (testing).
-4. **Paperwork, the same day:** add a "Subscriptions" paragraph to `public/privacy.html` and `public/terms.html` (price, auto-renewal, trial, how to cancel in the store, refunds handled by the store), update the Play Data safety / App Store privacy forms (purchase history is handled by the store, not collected by the app), and add the subscription disclosure text Apple requires near the buy button (the paywall already shows price, period, trial and "cancel any time in your store account").
-5. **Watch it:** `analytics_v_paywall` (what opened the paywall and how many bought), `analytics_v_pro_revenue`, `analytics_v_pro_gates` (which limits are hit most: raise or lower them), `analytics_v_pro_users`, and `pro_v_active` / `pro_v_codes` in the database. Test price or wording with the experiment system: define `pro_paywall` in `analytics.experiments` and read `variant('pro_paywall')`.
+1. Run `database/pro.sql` in the Supabase SQL editor.
+2. Create a Stripe Payment Link (yearly) and set `VITE_PRO_WEB_URL` for the web build. The app appends the account id as `client_reference_id`. A Stripe webhook for `checkout.session.completed` calls `pro_grant('<client_reference_id>', 365, 'yearly', 'stripe')` with the service key (a small Supabase Edge Function).
+3. Promo and seat codes: `INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch week');`. Players enter them on the paywall ("Have a code?"). Use for creators, ambassadors, schools.
 
-## Trying it before launch
+## Changing what is limited (no release)
 
-- **Debug build** (`?debug=1`): `window.__pro.setProDebug(true)` pretends to have Pro, `false` pretends not to, `null` clears it. Turn Pro on locally by serving a `remote-config.json` with `"pro": {"enabled": true, ...}` or building with `VITE_FEATURE_PRO=1`.
-- **Phone:** use a License tester (Play) or a Sandbox tester (Apple). The paywall lists the store's own prices; buying and Restore purchases work against the test account.
+Edit `public/remote-config.json`:
+```json
+"pro": {
+  "enabled": true,
+  "plans": ["dxdash_pro_yearly", "dxdash_pro_pass3m", "dxdash_pro_monthly", "dxdash_pro_lifetime"],
+  "library": "dxdash_library",
+  "gates": {
+    "card_library": "locked",
+    "analytics_detail": "locked",
+    "anki_import": "locked",
+    "offline_pack": "locked",
+    "custom_cards": { "limit": 25, "per": "total" },
+    "explanations": { "limit": 8, "per": "day" },
+    "exam_sim": { "limit": 1, "per": "week" }
+  }
+}
+```
+A gate is `"open"`, `"locked"`, or `{ "limit": N, "per": "day" | "week" | "total" }`. `"enabled": false` switches Pro off entirely (everything free). `launchAt` plus `grandfather` keeps chosen features free for people who installed earlier (not needed at first release).
 
-## How Pro status is decided
+## Shared games use the free cards for everyone
 
-- Phone: an active store subscription (`store.owned`) for any of the configured plans.
-- Server: `get_my_pro()` for the signed-in account (web payment, code, seat).
-- The best answer is saved on the device; if the stores/server cannot be reached it is trusted for 3 days, then lapses. A purchase that just completed is trusted at once.
-- The app cannot grant itself Pro: tables are closed to it, `redeem_pro_code` is rate-limited (10 wrong guesses an hour), and only `pro_grant` (owner/service role) can add time.
+The Daily, challenges, the weekly Gauntlet and Versus deal from the free 300 for every player, so a Pro player and a free player always see the same questions and Versus can verify both phones hold the same pool. (Study, Endless, Flashcards and the exam sim use everything a player owns.)
 
-## Not included (decide at launch)
+## The free 300
 
-- Server-side receipt validation (a determined user with a rooted phone could fake a local purchase; the cost is a few tips-worth of lost revenue, and RevenueCat/Iaptic can be added later without changing the screens).
-- Family sharing, upgrade/downgrade proration copy, and win-back offers: set in the store consoles.
+Chosen by `tools/pick-free-cards.mjs`: 20 per subject, spread across the three difficulty levels and the question types, never flashcard-only cards. The list in `js/freecards.js` is **fixed**: do not regenerate it after launch, or cards move in and out of the free set. A test checks it is 300 distinct existing cards, 20 per subject.
+
+## Where players meet Pro
+
+- A **"300 of 3,010 cards free · UNLOCK"** strip on the subject picker, the card browser and every third results screen.
+- Locked sections of Stats ("🔒 Pro") and the report export.
+- A limit being hit (Anki import, offline pack, the 26th custom card, the 9th explanation of the day, the second exam block of the week).
+- Settings → About & help → Dx Dash Pro.
+Never during a run, never on first launch.
+
+## Trying it
+
+- `?debug=1`: `window.__pro.setProDebug(true|false|null)` pretends to have Pro or not; `localStorage.dx_pro_force_sell = '1'` pretends the web can sell (to see the paywall and limits without a payment link).
+- Phone: a License tester (Play) or Sandbox tester (Apple). The paywall lists the store's own prices; Buy and Restore work against the test account.
+
+## How status is decided
+
+Phone: an active store subscription or the Lifetime purchase (`store.owned`), and the Library purchase for cards. Server: `get_my_pro()` for the signed-in account. The best answer is saved on the device and trusted for 3 days offline (Lifetime never expires). A purchase that just completed is trusted at once. The app cannot grant itself Pro: the tables are closed to it and `redeem_pro_code` allows 10 wrong guesses an hour.
+
+## Analytics
+
+`paywall_viewed`, `paywall_action` (plan_selected, purchase_started, purchased, cancelled, failed, restore_*, code_*, web_opened, closed), `pro_gate_hit`, `pro_status`. Views: `analytics_v_paywall` (funnel by trigger and variant), `analytics_v_pro_revenue`, `analytics_v_pro_gates`, `analytics_v_pro_users`, and in the database `pro_v_active`, `pro_v_codes`.
+
+## Paperwork the same day
+
+The Subscriptions paragraphs are already in `public/privacy.html` and `public/terms.html`, and `store/` has the product list for both consoles. Still do by hand: (price, auto-renewal, trial, cancel in the store, refunds are the store's), update the Play Data safety and App Store privacy forms (purchases are handled by the store), and keep the disclosure text next to the buy button (price, period, trial, "cancel any time in your store account").
+
+## Not included
+
+Server-side receipt validation (add RevenueCat or Iaptic later without changing the screens), family sharing, win-back and upgrade offers (set in the store consoles), and a Library-to-Pro upgrade credit.

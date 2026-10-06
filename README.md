@@ -469,4 +469,5 @@ The soft glowing specks that float across the track are off by default (Settings
 First-party, anonymous, opt-in usage analytics (no third-party SDK). Events go to this project's Supabase database and are read with SQL views.
 See [docs/ANALYTICS-GUIDE.md](docs/ANALYTICS-GUIDE.md) (setup, what to look at, launch checklist) and [docs/ANALYTICS.md](docs/ANALYTICS.md) (every event, generated from the code).
 - Tip jar (in-app purchases for tips): [docs/TIP-JAR.md](docs/TIP-JAR.md)
-- Dx Dash Pro (subscription, built but dormant): [docs/PRO.md](docs/PRO.md)
+- Dx Dash Pro (subscription, Library and Lifetime; ships on, with 300 free cards): [docs/PRO.md](docs/PRO.md), pricing rationale in [docs/MONETIZATION-STRATEGY.md](docs/MONETIZATION-STRATEGY.md)
+- Marketing package (strategy, 24 ad scripts, copy, rendered ads and videos, production plan, channel playbooks, measurement, compliance): [docs/marketing/](docs/marketing/README.md)

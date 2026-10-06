@@ -3,14 +3,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 vi.mock('../../js/native.js', () => ({ isNative: () => true, getNativePlatform: () => 'android' }));
 
 import { setProConfigForTest } from '../../js/remoteconfig.js';
-import { resetProForTest } from '../../js/pro.js';
+import { resetProForTest, setSellableForTest } from '../../js/pro.js';
 import { setIapForTest, createIap } from '../../js/iap.js';
 import { openPaywall, renderProSettings, installProUi, setProUiDeps } from '../../js/proui.js';
 
 function fakePlugin(owned = []) {
   const handlers = {}; const products = {}; const own = new Set(owned);
   const plugin = {
-    Platform: { GOOGLE_PLAY: 'p', APPLE_APPSTORE: 'a' }, ProductType: { CONSUMABLE: 'c', PAID_SUBSCRIPTION: 's' }, ErrorCode: { PAYMENT_CANCELLED: 1 }, registered: [],
+    Platform: { GOOGLE_PLAY: 'p', APPLE_APPSTORE: 'a' }, ProductType: { CONSUMABLE: 'c', PAID_SUBSCRIPTION: 's', NON_CONSUMABLE: 'n' }, ErrorCode: { PAYMENT_CANCELLED: 1 }, registered: [],
     store: {
       register(l) { plugin.registered.push(...l); },
       when() { const w = { approved(cb) { handlers.approved = cb; return w; }, finished(cb) { handlers.finished = cb; return w; } }; return w; },
@@ -29,9 +29,10 @@ beforeEach(() => {
   resetProForTest();
   setProConfigForTest(null);
   setIapForTest(null);
+  setSellableForTest(false);
 });
 
-describe('Pro screens while dormant', () => {
+describe('Pro screens while there is nothing to buy (or Pro is off)', () => {
   it('open nothing and add nothing', () => {
     expect(openPaywall({ trigger: 'settings' })).toBeNull();
     const box = document.createElement('div');
@@ -48,6 +49,7 @@ describe('Pro screens while dormant', () => {
 
 describe('Pro screens once switched on', () => {
   beforeEach(() => {
+    setSellableForTest(true);
     setProConfigForTest({ enabled: true, gates: { offline_pack: 'locked' } });
     setProUiDeps({ toast: () => {} });
   });
@@ -63,7 +65,7 @@ describe('Pro screens once switched on', () => {
     expect(buttons.length).toBe(3);
     expect(buttons[0].textContent).toMatch(/Yearly/);
     expect(buttons[0].textContent).toMatch(/\$\d+\.99/);
-    expect(o.textContent).toMatch(/Unlimited custom cards/);
+    expect(o.textContent).toMatch(/All 3,010 cards |Free gives you/);
     expect(o.querySelector('input[aria-label="Promo code"]')).toBeTruthy();
     expect(o.textContent).toMatch(/Restore purchases/);
     o.querySelector('#proPaywallClose').click();

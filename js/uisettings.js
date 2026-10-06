@@ -371,10 +371,12 @@ export var settingsMethods = {
       var reportBtns2 = createElement('div');
       var copyReport = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Copy', attributes: { type: 'button', id: 'copyStudyReport' } });
       copyReport.addEventListener('click', function () {
+        if (!requireGate('analytics_detail', { trigger: 'export_report' })) return;
         copyText(reportToText(buildStudyReport(storage.data))).then(function (ok) { self._showToast(ok ? 'Study report copied.' : 'Could not copy. Try the spreadsheet instead.'); });
       });
       var csvReport = createElement('button', { className: 'btn btn-outline btn-sm', text: 'CSV', attributes: { type: 'button', id: 'csvStudyReport' } });
       csvReport.addEventListener('click', function () {
+        if (!requireGate('analytics_detail', { trigger: 'export_csv' })) return;
         var blob = new Blob([reportToCsv(buildStudyReport(storage.data))], { type: 'text/csv' });
         saveFile(blob, 'dx-dash-study-report-' + new Date().toISOString().slice(0, 10) + '.csv').then(function (how) {
           self._showToast(how === 'failed' ? 'Could not save the file.' : 'Study report saved.');
@@ -906,7 +908,7 @@ export var settingsMethods = {
                 if (type === 'trail' || type === 'monster') self.characterPreview.previewItem(item.id, type);
               }
             } else {
-              self._showToast('Not enough coins!');
+              self._showToast('Need more coins! Keep running.');
             }
           });
           btnWrap.appendChild(buyBtn);
@@ -1093,7 +1095,7 @@ export var settingsMethods = {
             self._showToast(item.name + ' unlocked. It is now in your map rotation.');
             self.renderShop();
           } else {
-            self._showToast('Not enough coins!');
+            self._showToast('Need more coins! Keep running.');
           }
         });
         btnWrap.appendChild(buy);

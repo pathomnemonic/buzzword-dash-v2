@@ -42,7 +42,7 @@ Category: **Reference, News or Educational** (or "Utility, Productivity, Communi
 - Violence: **No** (cartoon monsters chase a character; nothing is depicted being harmed). If the form insists on a choice, pick "mild cartoon/fantasy violence".
 - Sexuality, language, controlled substances, gambling: **No**.
 - Users can interact or exchange content: **Yes** (friend requests, display names, a feed of run summaries and kudos; no free-text messaging, no photos or files).
-- Shares the user's location: **No**. Digital purchases: **No**. Unrestricted web access: **No**.
+- Shares the user's location: **No**. Digital purchases: **Yes** (Pro subscriptions, a lifetime unlock, a library unlock and optional tips, all through Google Play Billing). Unrestricted web access: **No**.
 Expected result: Everyone / PEGI 3 / low rating.
 
 ## Target audience and content
@@ -61,3 +61,9 @@ Provide: in-app path (Friends → Account → Delete my account) and the web lin
 ## Declarations you may be asked for
 - Permissions: network, vibration, and notifications (the optional daily study reminder, which the player turns on; Android 13+ asks them first). No sensitive permissions.
 - Foreground services, exact alarms, photo/video permissions: **not used**.
+
+## Subscriptions and in-app products (Play Console > Monetize)
+Create these in Play Console with exactly these product IDs, then activate them:
+- Subscription `dxdash_pro_yearly` (base plan yearly, a 7-day free trial offer recommended), `dxdash_pro_monthly` (monthly), `dxdash_pro_pass3m` (auto-renewing 3-month base plan).
+- One-time products `dxdash_pro_lifetime`, `dxdash_library`, and the tip consumables `dxdash_tip_small`, `dxdash_tip_medium`, `dxdash_tip_large`.
+Subscription disclosure requirements: the paywall shows price, billing period, trial length and "cancel anytime in Google Play". Link the Privacy Policy and Terms. The in-app list of what free vs Pro includes is in docs/PRO.md.

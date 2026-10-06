@@ -21,8 +21,9 @@
  * Per Sections 19, 30 and 31 of the architecture contract [2].
  */
 
+import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -32,7 +33,7 @@ import { storage, STORAGE_DEFAULTS } from './storage.js';
 import { checkDataSanity } from './sanity.js';
 import { loadRemoteConfig, isKilled } from './remoteconfig.js';
 import { audio, MENU_THEME } from './audio.js';
-import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady } from './cardhub.js';
+import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady, seededPool, setLibraryUnlocked } from './cardhub.js';
 import { bonusSubjectFor, bonusCoinsFor, nextGoalLine } from './progress.js';
 import { discoveryIdFor, markExplored } from './discoverydots.js';
 import { mountFitScreens } from './fitscreen.js';
@@ -362,7 +363,7 @@ function configureMultiplayer(client, content) {
               startAt: Date.now() + 2500,
               seed: Math.floor(Math.random() * 2147483646) + 1,
               subjects: storage.get('selectedSubjects'),
-              cardPoolHash: mod.hashCardPool(CARDS)
+              cardPoolHash: mod.hashCardPool(seededPool())
             });
             client.sendMatchStart();
             scheduleVersusStart({ startAt: cfg.startAt, mode: cfg.mode, config: cfg.modeConfig });
@@ -383,7 +384,7 @@ function configureMultiplayer(client, content) {
     // Both peers must hold the same built-in card pool or the seeded order
     // would desync; the host's hash comes with the match config.
     import('./multiplayer.js').then(function (mod) {
-      if (config.cardPoolHash && config.cardPoolHash !== mod.hashCardPool(CARDS)) {
+      if (config.cardPoolHash && config.cardPoolHash !== mod.hashCardPool(seededPool())) {
         client.sendForfeit('Card pool mismatch');
         showMultiplayerMessage('Card sets differ between players — refresh both browsers and retry.', 'var(--accent-red)');
         return;
@@ -461,7 +462,7 @@ function startTournament() {
   Promise.all([import('./challenge.js'), import('./multiplayer.js')]).then(function (mods) {
     var challenge = mods[0];
     var seed = challenge.tournamentSeed(challenge.isoWeekKey());
-    var plan = mods[1].buildEncounterPlan({ seed: seed, cards: CARDS, count: challenge.TOURNAMENT_SIZE });
+    var plan = mods[1].buildEncounterPlan({ seed: seed, cards: seededPool(), count: challenge.TOURNAMENT_SIZE });
     launchRun('tournament', plan.map(function (entry) { return entry.cardId; }), { challengeCount: challenge.TOURNAMENT_SIZE, allowContinue: false, lives: GAUNTLET_LIVES });
   }).catch(function (e) {
     reportError(e, { system: 'tournament', operation: 'start', recoverable: true });
@@ -551,7 +552,7 @@ function shareChallenge(challenge) {
         n: challenge.n,
         from: storage.get('profileName') || 'A friend',
         score: challenge.myScore || 0,
-        hash: mp.hashCardPool(CARDS),
+        hash: mp.hashCardPool(seededPool()),
         ids: challenge.ids || null
       });
       var text = 'Beat my Dx Dash score of ' + (challenge.myScore || 0) + '!';
@@ -606,7 +607,7 @@ function handleChallengeLink() {
     history.replaceState(null, '', window.location.pathname + window.location.search);
     return import('./multiplayer.js').then(function (mp) {
       // A link that carries its card ids plays those cards even after the card set has changed
-      if (!challenge.ids && challenge.hash && challenge.hash !== mp.hashCardPool(CARDS)) {
+      if (!challenge.ids && challenge.hash && challenge.hash !== mp.hashCardPool(seededPool())) {
         ui._showToast('This challenge uses a different card set. Ask your friend to update the game.');
         return;
       }
@@ -668,6 +669,7 @@ function attachTipPrompt() {
     toast: function (m) { ui._showToast(m); }
   });
   if (asked) return;
+  if ((storage.data.settings.runsFinished || 0) % 3 === 0) renderLibraryBanner(content, 'postrun');
   var shouldShow = shouldShowTipPrompt({
     tipUrl: getTipUrl(),
     iap: tipJarReady(),
@@ -895,7 +897,7 @@ function startMode(mode) {
   if (!webglOk) { ui._showToast('The runner needs WebGL, which is not available here. Try Flashcards or the Exam Sim!'); return; }
   if (mode === 'tournament') { startTournament(); return; }
   if (mode === 'daily' && storage.get('dailyDone')) {
-    ui._showToast('Daily round already completed today! Come back tomorrow.', 2200);
+    ui._showToast('Daily already cleared! New one drops tomorrow.', 2200);
     return;
   }
 
@@ -927,7 +929,7 @@ function startMode(mode) {
       return;
     }
     import('./multiplayer.js').then(function (mod) {
-      var plan = mod.buildEncounterPlan({ seed: challengeSeed, cards: CARDS, count: challengeCount });
+      var plan = mod.buildEncounterPlan({ seed: challengeSeed, cards: seededPool(), count: challengeCount });
       var ids = plan.map(function (entry) { return entry.cardId; });
       if (activeChallenge) activeChallenge.ids = ids; // so the link this player shares carries the same cards
       launchRun('challenge', ids, { challengeCount: challengeCount, allowContinue: false });
@@ -943,7 +945,7 @@ function startMode(mode) {
   if (mode === 'daily') {
     var now = new Date();
     var dayKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-    var dailyOrder = createDailyOrder({ dateKey: dayKey, eligibleCardIds: uniqueByAnswer(CARDS).map(function (c) { return c.id; }), count: 15 });
+    var dailyOrder = createDailyOrder({ dateKey: dayKey, eligibleCardIds: uniqueByAnswer(seededPool()).map(function (c) { return c.id; }), count: 15 });
     launchRun('daily', dailyOrder.slice(), { dailyEncounterCount: 15 });
     return;
   }
@@ -953,7 +955,7 @@ function startMode(mode) {
     import('./multiplayer.js').then(function (mod) {
       // Built-in pool only: both peers hold the same one (hash-verified at match
       // start), whereas per-user subject filters / custom cards would differ.
-      var plan = mod.buildEncounterPlan({ seed: mpSeed, cards: CARDS, count: 100 });
+      var plan = mod.buildEncounterPlan({ seed: mpSeed, cards: seededPool(), count: 100 });
       launchRun(mode, plan.map(function (entry) { return entry.cardId; }), multiplayerModeConfig);
     }).catch(function (err) {
       reportError(err, { system: 'multiplayer', operation: 'seededCardOrder', recoverable: true });
@@ -1112,7 +1114,7 @@ function finalizeRun(gameRef) {
   (result.completedQuestIds || []).forEach(function (id) { var qd = QUESTS.filter(function (x) { return x.id === id; })[0]; trackEvent('quest_completed', { id: id, category: qd ? qd.category : '', reward: qd ? qd.reward : 0 }); });
   if (result.completedQuestIds && result.completedQuestIds.length > 0) {
     var titles = result.completedQuestIds.map(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; return q ? q.title : ''; }).filter(Boolean);
-    if (titles.length) ui.showNotice('✅ Quest complete: ' + titles.join(', ') + '. Claim your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
+    if (titles.length) ui.showNotice('🏆 QUEST CLEARED: ' + titles.join(', ') + '! Grab your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
   }
 
   // --- Leaderboard submission ---
@@ -1215,6 +1217,7 @@ function fillProfileAccount() {
 function init() {
   // Load the question database in the background; screens that show counts refresh when it arrives
   loadCards().then(function () {
+    setLibraryUnlocked(libraryUnlocked());
     ui.renderHome();
     ui.renderSubjects();
   }).catch(function (e) {
@@ -1235,7 +1238,7 @@ function init() {
   }
   storage.load();
   // Switches for mechanics that turn out broken in the field (see remoteconfig.js); the saved copy applies at once
-  loadRemoteConfig().then(function () { trackEvent('remote_config', { killed: [], experiments: 0, ok: true }); }).catch(function () { trackEvent('remote_config', { ok: false }); /* the saved copy stays */ });
+  loadRemoteConfig().then(function () { trackEvent('remote_config', { killed: [], experiments: 0, ok: true }); document.dispatchEvent(new CustomEvent('dx:pro-changed')); }).catch(function () { trackEvent('remote_config', { ok: false }); /* the saved copy stays */ });
   // Badges added or fixed in an update are awarded to anyone who already qualifies, shown a little after launch
   setTimeout(function () {
     try {
@@ -1278,8 +1281,12 @@ function init() {
   installGlobalErrorHandlers();
   try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
   registerProProducts(); // (before the store starts: the tip jar and Pro share one connection)
+  var syncLibrary = function () { setLibraryUnlocked(libraryUnlocked()); if (areCardsReady()) { ui.renderHome(); ui.renderSubjects(); } };
+  document.addEventListener('dx:pro-changed', syncLibrary);
+  document.addEventListener('dx:library-changed', syncLibrary);
   installProUi({ toast: function (m) { ui._showToast(m); } });
   refreshPro();
+  probeSellable(); // is there anything to buy? (Pro only limits things when there is)
   probeTipJar(); // phone apps: find out whether the store has the tip products
   watchBattery(); // a nearly flat phone steps Auto graphics down a tier
   watchConnection(function (msg) { ui.showNotice(msg, { ms: 4500 }); });
@@ -1726,7 +1733,7 @@ function init() {
             startRankedSearch({
               client: module.multiplayer,
               configure: configureMultiplayer,
-              cardPoolHash: function () { return module.hashCardPool(CARDS); },
+              cardPoolHash: function () { return module.hashCardPool(seededPool()); },
               startMatch: scheduleVersusStart,
               onBack: function (message) {
                 mpBtn.click();

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dx Dash — the board-study game you'll actually open</title>
+<meta name="description" content="Run, dodge and answer real USMLE and COMLEX style questions. 300 questions free, no ads. Unlock all 3,010 with Pro.">
+<meta property="og:title" content="Dx Dash — same phone time, actually studying">
+<meta property="og:description" content="An endless runner where the gates are board-style answers. 300 questions free, no ads.">
+<meta property="og:image" content="../og.png">
+<link rel="icon" href="../icon.svg">
+<style>
+@font-face{font-family:"Jersey 10";src:url("jersey-10-latin-400-normal.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"Press Start 2P";src:url("press-start-2p-latin-400-normal.woff2") format("woff2");font-display:swap}
+:root{--bg:#0b1230;--ink:#fff;--gold:#ffd23f;--green:#5af0a0;--navy:#14183f;--card:#1a2058;--muted:#b9c1ee}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(1100px 800px at 15% -10%,#2a2570,#0b1230 60%);background-color:var(--bg);color:var(--ink);font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+h1,h2,.pix{font-family:"Jersey 10",system-ui,sans-serif;font-weight:400;letter-spacing:.01em;line-height:1}
+h1{font-size:clamp(54px,11vw,104px);margin:0 0 18px;text-shadow:0 5px 0 rgba(0,0,0,.45)}
+h1 b{color:var(--gold);font-weight:400}
+h2{font-size:clamp(38px,6vw,56px);margin:0 0 14px}
+.logo{font-family:"Press Start 2P",monospace;color:var(--gold);font-size:16px;text-shadow:0 3px 0 var(--navy);padding:22px 0;display:block;text-decoration:none}
+.hero{display:grid;gap:30px;grid-template-columns:1.1fr .9fr;align-items:center;padding:10px 0 50px}
+.lede{font-size:21px;color:var(--muted);max-width:30em}
+.btn{display:inline-block;font-family:"Jersey 10",sans-serif;font-size:32px;text-transform:uppercase;letter-spacing:.04em;text-decoration:none;background:var(--gold);color:var(--navy);border:5px solid var(--navy);border-radius:999px;box-shadow:0 7px 0 var(--navy);padding:10px 34px;margin:6px 10px 14px 0}
+.btn.alt{background:var(--green)}
+.btn:active{transform:translateY(3px);box-shadow:0 4px 0 var(--navy)}
+.phone{border-radius:44px;background:#05060f;padding:10px;box-shadow:0 0 0 5px #1b1f4a,0 30px 80px rgba(0,0,0,.55),0 0 90px rgba(255,210,63,.18);max-width:330px;margin:0 auto}
+.phone img{display:block;width:100%;border-radius:34px}
+.note{font-size:14px;color:var(--muted);margin-top:6px}
+section{padding:46px 0}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:3px solid #2b3380;border-radius:20px;padding:20px;box-shadow:0 6px 0 #0a0f33}
+.card h3{font-family:"Jersey 10";font-weight:400;font-size:30px;margin:0 0 6px;color:var(--gold)}
+.card p{margin:0;color:#dbe0ff}
+.shots{display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.tiers{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.tier{background:var(--card);border:3px solid #2b3380;border-radius:20px;padding:22px}
+.tier.hot{border-color:var(--gold)}
+.tier h3{font-family:"Jersey 10";font-weight:400;font-size:36px;margin:0}
+.tier ul{padding-left:20px;color:#dbe0ff}
+.fine{font-size:13px;color:#8e97c9;padding:30px 0 50px}
+footer a{margin-right:16px}
+@media(max-width:780px){.hero{grid-template-columns:1fr}.phone{max-width:260px}}
+@media(prefers-reduced-motion:no-preference){.phone{animation:bob 4s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-8px)}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="logo" href="./">DX DASH</a>
+  <div class="hero">
+    <div>
+      <h1>Same phone time. <b>Actually studying.</b></h1>
+      <p class="lede">Dx Dash is an endless runner where the gates are answers to real USMLE and COMLEX style clinical vignettes. Short runs, instant feedback, a monster on your heels. 300 questions free, no ads.</p>
+      <a class="btn" id="play" href="../">Play free</a>
+      <a class="btn alt" href="#pricing">See Pro</a>
+      <p class="note">Plays right in your browser. No sign-up needed.</p>
+    </div>
+    <div class="phone"><img src="run.png" alt="Dx Dash gameplay: a runner choosing between three answer gates under a clinical vignette"></div>
+  </div>
+
+  <section>
+    <h2>Why it sticks</h2>
+    <div class="grid">
+      <div class="card"><h3>Replace the scroll</h3><p>Your thumbs are already moving. Point them at something that counts.</p></div>
+      <div class="card"><h3>3,010 real cards</h3><p>15 subjects, with an explanation whenever you miss one.</p></div>
+      <div class="card"><h3>Smart repetition</h3><p>FSRS spaced repetition brings misses back right before you would forget them.</p></div>
+      <div class="card"><h3>A streak that forgives</h3><p>Daily goal, streak shields, a weekly Gauntlet and friends to race.</p></div>
+      <div class="card"><h3>Built for fried brains</h3><p>Short runs, big rewards, reduced-motion mode, a dyslexia font and colorblind-safe lanes.</p></div>
+      <div class="card"><h3>No ads. Ever.</h3><p>Free to start. Pro is optional and never required to keep your streak.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>A look inside</h2>
+    <div class="shots">
+      <div class="phone"><img src="home.png" alt="Home screen with Play button and daily goal" loading="lazy"></div>
+      <div class="phone"><img src="locker.png" alt="The on-call locker with heroes, trails, maps and monsters" loading="lazy"></div>
+      <div class="phone"><img src="stats.png" alt="Study dashboard with due reviews and subject accuracy" loading="lazy"></div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <h2>Free to start. Pro when you are ready.</h2>
+    <div class="tiers">
+      <div class="tier"><h3>Free</h3><ul><li>300 questions, 20 in every subject</li><li>Every game mode and map</li><li>Streaks, friends, leaderboards</li><li>No ads</li></ul></div>
+      <div class="tier hot"><h3>Pro</h3><ul><li>All 3,010 questions</li><li>Detailed analytics and weak-spot reports</li><li>Anki deck import and custom cards</li><li>Offline subject packs, explanations, exam simulator</li></ul><p class="note">Monthly, yearly, a 3-month dedicated pass, or Lifetime. Prices are shown in the app, in your currency.</p></div>
+    </div>
+  </section>
+
+  <section style="text-align:center">
+    <h2>Make the next five minutes count.</h2>
+    <a class="btn" id="play2" href="../">Play free</a>
+  </section>
+
+  <footer class="fine">
+    <a href="../privacy.html">Privacy</a><a href="../terms.html">Terms</a><a href="../delete-account.html">Delete account</a>
+    <p>Dx Dash is an independent study aid. It is not affiliated with or endorsed by NBME, FSMB or NBOME. USMLE is a joint program of the FSMB and NBME; COMLEX-USA is a program of the NBOME. It does not diagnose, treat or give medical advice.</p>
+  </footer>
+</div>
+<script>
+/* Carry the campaign tags (utm_*, r, ref, click ids) into the app so installs and runs are attributed. */
+(function () {
+  var q = location.search;
+  if (!q) return;
+  ['play', 'play2'].forEach(function (id) {
+    var a = document.getElementById(id);
+    if (a) a.href = '../' + q + (location.hash || '');
+  });
+})();
+</script>
+</body>
+</html>

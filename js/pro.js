@@ -1,18 +1,20 @@
 /**
- * pro.js — Dx Dash Pro, the optional subscription: who has it, what is limited without it, and how it is bought.
+ * pro.js — Dx Dash Pro: who has it, what is limited without it, and how it is bought.
  *
- * DORMANT BY DEFAULT. Until Pro is switched on (FEATURES.pro in the build, or "pro.enabled" in the remote config,
- * see proconfig.js) every function here says "yes, allowed", no screen shows anything, and the store is not asked.
- * That is the point: it can be shipped and tested long before it is launched, and launched without a release.
+ * Pro ships ON (see proconfig.js for what it limits and how the remote file changes that). Free players get 300
+ * hand-spread cards plus the game; Pro (a subscription, or a one-time Lifetime purchase) unlocks the whole library and
+ * the study tools; a one-time "Full Library" purchase unlocks just the cards.
+ *
+ * It only limits things when there is a way to pay: in the phone apps once the store answered with the products, on the
+ * web when a payment link is set (VITE_PRO_WEB_URL). A build with no way to pay (a local build, a store with the
+ * products not set up yet) limits nothing and shows no Pro screens, so nobody is ever locked out of something they
+ * cannot buy. `proLive()` is that test; everything below uses it.
  *
  * Where Pro comes from:
- *   - the store (phone apps): an active Google Play / App Store subscription, read from the store itself;
+ *   - the store (phone apps): an active subscription or the Lifetime purchase, read from the store itself;
  *   - the server (database/pro.sql): a web payment, a promo code, a school seat, granted to the player's account.
  * The result is kept on the device so Pro keeps working offline (a store or server answer is trusted for 3 days
- * without a fresh check).
- *
- * What it limits is chosen in the remote config ("gates"), so launch day is a config change. `requireGate` is what
- * features call before they do something that may be Pro-only.
+ * without a fresh check; Lifetime does not expire).
  */
 
 import { FEATURES } from './features.js';
@@ -20,34 +22,80 @@ import { proConfig } from './remoteconfig.js';
 import { GATE_FEATURES } from './proconfig.js';
 import { getIap } from './iap.js';
 import { storage } from './storage.js';
+import { isNative } from './native.js';
 import { track } from './analytics/index.js';
 
 var CACHE_KEY = 'dx_pro';
 var USE_KEY = 'dx_pro_use';
 var DEBUG_KEY = 'dx_pro_debug';
+var SELL_KEY = 'dx_pro_sell';
+var LIB_KEY = 'dx_pro_lib';
+var FOREVER = 100 * 365 * 24 * 60 * 60 * 1000;
 var GRACE_MS = 3 * 24 * 60 * 60 * 1000;
 
 export var PRO_PLAN_INFO = {
-  dxdash_pro_yearly: { label: 'Yearly', blurb: 'Best value', rank: 1 },
-  dxdash_pro_monthly: { label: 'Monthly', blurb: 'Cancel any time', rank: 2 },
-  dxdash_pro_pass3m: { label: '3-month Dedicated Pass', blurb: 'For your exam window', rank: 3 }
+  dxdash_pro_yearly: { label: 'Yearly', blurb: 'BEST VALUE', rank: 1 },
+  dxdash_pro_pass3m: { label: '3-Month Dedicated Pass', blurb: 'For your exam window', rank: 2 },
+  dxdash_pro_monthly: { label: 'Monthly', blurb: 'Cancel any time', rank: 3 },
+  dxdash_pro_lifetime: { label: 'Lifetime', blurb: 'Pay once, keep it', rank: 4 }
 };
 
 /** What Pro gives (shown on the paywall). Keep in step with the gates in proconfig.js. */
 export var PRO_BENEFITS = [
-  'Unlimited custom cards and Anki imports',
-  'Every "why" explanation for the cards you miss',
-  'Unlimited exam-sim blocks, with full reports',
+  'All 3,010 cards (free is 300)',
+  'Detailed stats: subjects, weak spots, exam pacing, export',
+  'Anki import and unlimited custom cards',
+  'Every "why" explanation, unlimited exam-sim blocks',
   'Play with no connection (offline pack)',
-  'Support a solo developer who keeps the game free'
+  'Keeps a solo developer making the game'
 ];
 
 function store() { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; } }
 function readJson(key, fallback) { try { var s = store(); var raw = s && s.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; } }
 function writeJson(key, value) { try { var s = store(); if (s) s.setItem(key, JSON.stringify(value)); } catch (e) { /* storage full: this session still has it */ } }
 
-/** True when Pro is switched on at all (build flag or remote config). Everything else is inert while this is false. */
-export function proEnabled() { return !!FEATURES.pro || !!proConfig().enabled; }
+/** True when Pro is switched on in the config (it is, by default; the remote file can switch it off). */
+export function proEnabled() { return !!proConfig().enabled; }
+
+var _sellable = false;
+function savedSellable() { try { var s = store(); return !!(s && s.getItem(SELL_KEY) === '1'); } catch (e) { return false; } }
+
+/** Is there a way to pay right now? Phone: the store has the products. Web: a payment link is set. */
+export function proSellable() { return _sellable || savedSellable() || !!FEATURES.pro; }
+
+/** Pro limits things and shows its screens only when it is on AND something can be bought (or Pro is already owned). */
+export function proLive() { return proEnabled() && (proSellable() || cachedActive()); }
+
+/** Tests: pretend the store has the products (or not). */
+export function setSellableForTest(on) { _sellable = !!on; try { var s = store(); if (s) s.removeItem(SELL_KEY); } catch (e) { /* ignore */ } }
+
+function setSellable(on) { _sellable = !!on; try { var s = store(); if (s) s.setItem(SELL_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ } }
+
+/**
+ * Find out whether anything can be bought and remember the answer for the next launch. Phone: asks the store. Web: is a
+ * payment link set. Safe to call any time.
+ */
+export function probeSellable(deps) {
+  deps = deps || {};
+  if (!proEnabled()) return Promise.resolve(false);
+  var iap = deps.iap || getIap();
+  if (!isNative()) {
+    // (a debug page can pretend the web can sell, to try the screens)
+    var forced = false;
+    try { forced = /[?&]debug=1(&|$)/.test(location.search) && store().getItem('dx_pro_force_sell') === '1'; } catch (e) { forced = false; }
+    var web = !!proWebUrl('x') || forced;
+    setSellable(web);
+    return Promise.resolve(web);
+  }
+  return proPlans(iap).then(function (plans) {
+    var ok = plans.length > 0 || !!iap.product(proConfig().library);
+    setSellable(ok);
+    if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
+    return ok;
+  }).catch(function () { return false; });
+}
+
+function cachedActive() { var c = readJson(CACHE_KEY, null); return !!(c && c.active); }
 
 /** Debug builds (?debug=1): force Pro on or off to try the screens. Never persists past the tab being cleared. */
 export function setProDebug(on) { try { var s = store(); if (s) { if (on === null) s.removeItem(DEBUG_KEY); else s.setItem(DEBUG_KEY, on ? '1' : '0'); } } catch (e) { /* ignore */ } }
@@ -106,12 +154,16 @@ export function refreshPro(deps) {
   var now = typeof deps.now === 'number' ? deps.now : Date.now();
   var iap = deps.iap || getIap();
   var asked = 0;
+  var libraryOwned = null;
   var found = [];
   var jobs = [];
   jobs.push(iap.start().then(function (ok) {
     if (!ok) return;
     asked++;
-    proConfig().plans.forEach(function (id) { if (iap.owned(id)) found.push({ source: 'store', active: true, plan: planName(id) }); });
+    proConfig().plans.forEach(function (id) {
+      if (iap.owned(id)) found.push({ source: 'store', active: true, plan: planName(id), until: /lifetime/.test(id) ? Date.now() + FOREVER : undefined });
+    });
+    libraryOwned = iap.owned(proConfig().library);
   }).catch(function () { /* the store did not answer */ }));
   var lb = deps.lb;
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
@@ -124,6 +176,9 @@ export function refreshPro(deps) {
     var before = isPro(now);
     var next = combineStatus(found, readJson(CACHE_KEY, null), { now: now, fresh: asked > 0 });
     writeJson(CACHE_KEY, next);
+    var libBefore = libraryUnlocked();
+    if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned });
+    if (libraryUnlocked() !== libBefore && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:library-changed'));
     if (isPro(now) !== before && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
     return proStatus();
   });
@@ -131,7 +186,43 @@ export function refreshPro(deps) {
 
 /** Register the Pro products with the store connection. Call before the store starts (see main.js). */
 export function registerProProducts() {
-  getIap().add(proConfig().plans.map(function (id) { return { id: id, kind: 'subscription' }; }));
+  var cfg = proConfig();
+  getIap().add(cfg.plans.map(function (id) { return { id: id, kind: /lifetime/.test(id) ? 'nonconsumable' : 'subscription' }; }).concat([{ id: cfg.library, kind: 'nonconsumable' }]));
+}
+
+/** Did this player buy the one-time Full Library unlock? */
+export function ownsLibrary() { return !!readJson(LIB_KEY, { owned: false }).owned; }
+
+/** May this player use every card? (Always yes while Pro is not live, with Pro, or after buying the Full Library.) */
+export function libraryUnlocked() {
+  if (!proLive()) return true;
+  var cfg = proConfig();
+  if (!cfg.gates.card_library) return true;
+  return isPro() || ownsLibrary();
+}
+
+/** Buy the one-time Full Library unlock. */
+export function buyLibrary(deps) {
+  deps = deps || {};
+  var iap = deps.iap || getIap();
+  return iap.order(proConfig().library).then(function (res) {
+    if (res.ok) {
+      writeJson(LIB_KEY, { owned: true });
+      if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:library-changed'));
+    }
+    return res;
+  });
+}
+
+/** The Full Library offer from the store: {id, price, micros, currency}, or null. */
+export function libraryOffer(iap) {
+  iap = iap || getIap();
+  return iap.start().then(function (ok) {
+    if (!ok) return null;
+    var id = proConfig().library;
+    var pr = iap.price(id);
+    return pr && iap.product(id) ? { id: id, price: pr.price, micros: pr.micros, currency: pr.currency } : null;
+  });
 }
 
 /** The plans the store offers right now: [{id, label, blurb, price, micros, currency, trialDays, period}], best value first. */
@@ -210,11 +301,12 @@ function periodKey(per, now) {
 export function checkGate(feature, o) {
   o = o || {};
   var open = { allowed: true, mode: 'open' };
-  if (!proEnabled() || GATE_FEATURES.indexOf(feature) < 0) return open;
+  if (!proLive() || GATE_FEATURES.indexOf(feature) < 0) return open;
   var cfg = proConfig();
   var gate = cfg.gates[feature];
   if (!gate) return open;
   if (isPro(o.now)) return open;
+  if (feature === 'card_library' && ownsLibrary()) return open;
   var first = o.firstRunAt || (storage && storage.data && storage.data.settings && storage.data.settings.firstRunAt) || 0;
   if (cfg.launchAt && first && first < cfg.launchAt && cfg.grandfather.indexOf(feature) >= 0) return open;
   if (gate === 'locked') return { allowed: false, mode: 'locked' };
@@ -225,7 +317,7 @@ export function checkGate(feature, o) {
 
 /** Count one use of a feature (for "per day / per week" limits). */
 export function recordUse(feature, now) {
-  if (!proEnabled()) return;
+  if (!proLive()) return;
   var gate = proConfig().gates[feature];
   if (!gate || gate === 'locked' || gate.per === 'total') return;
   var t = typeof now === 'number' ? now : Date.now();

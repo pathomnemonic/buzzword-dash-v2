@@ -5,6 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { renderLibraryBanner } from './proui.js';
 import { track } from './analytics/index.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { openCardReport } from './cardreport.js';
@@ -89,6 +90,7 @@ export var browseMethods = {
     var resultsContainer = document.getElementById('cbResults');
     if (!resultsContainer) return;
     clearElement(resultsContainer);
+    renderLibraryBanner(resultsContainer, 'card_browser');
 
     var self = this;
     var allCards = CARDS.concat(customCards.getAll());

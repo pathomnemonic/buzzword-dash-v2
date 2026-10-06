@@ -9,7 +9,7 @@
 import { isNative, getNativePlatform } from './native.js';
 
 /**
- * @typedef {{id: string, kind: 'consumable'|'subscription'}} ProductDef
+ * @typedef {{id: string, kind: 'consumable'|'subscription'|'nonconsumable'}} ProductDef
  * @param {{loadPlugin: function(): Promise<any>, platform: string}} deps
  *   loadPlugin resolves the plugin module ({ store, ProductType, Platform, ErrorCode }), or null when there is none
  */
@@ -40,7 +40,7 @@ export function createIap(deps) {
         if (!platform || !defs.length) return false;
         plugin = mod;
         mod.store.register(defs.map(function (d) {
-          return { id: d.id, type: d.kind === 'subscription' ? mod.ProductType.PAID_SUBSCRIPTION : mod.ProductType.CONSUMABLE, platform: platform };
+          return { id: d.id, type: d.kind === 'subscription' ? mod.ProductType.PAID_SUBSCRIPTION : d.kind === 'nonconsumable' ? mod.ProductType.NON_CONSUMABLE : mod.ProductType.CONSUMABLE, platform: platform };
         }));
         // Approved: acknowledge (finish) it at once, so a tip can be given again and a subscription is confirmed to the store
         mod.store.when().approved(function (t) { t.finish(); }).finished(function (t) {

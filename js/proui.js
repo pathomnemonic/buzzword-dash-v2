@@ -1,6 +1,6 @@
 /**
- * proui.js — the screens for Dx Dash Pro: the paywall, and the Settings row. Dormant until Pro is switched on
- * (see pro.js): `installProUi` does nothing and `renderProSettings` adds nothing while it is off.
+ * proui.js — the screens for Dx Dash Pro: the paywall, the "unlock all cards" banner and the Settings row. Nothing here
+ * shows unless Pro is live (see pro.js proLive: switched on and something can actually be bought).
  */
 
 import { createElement, setText } from './dom.js';
@@ -10,7 +10,8 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proEnabled, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, PRO_BENEFITS } from './pro.js';
+import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, PRO_BENEFITS, libraryOffer, buyLibrary, libraryUnlocked } from './pro.js';
+import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
 var _toast = function () {};
@@ -22,8 +23,17 @@ export function setProUiDeps(deps) {
 }
 
 function planLine(p) {
+  if (/lifetime/.test(p.id)) return p.price + ' once';
   var per = /^P1Y$/.test(p.period) ? ' / year' : /^P1M$/.test(p.period) ? ' / month' : /^P3M$/.test(p.period) ? ' for 3 months' : '';
   return p.price + per;
+}
+
+/** "about $3.33 a month" for a yearly or 3-month plan (only when the currency is known). */
+function perMonth(p) {
+  var months = /^P1Y$/.test(p.period) ? 12 : /^P3M$/.test(p.period) ? 3 : 0;
+  if (!months || !p.micros) return '';
+  var each = p.micros / 1000000 / months;
+  try { return 'about ' + new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'USD' }).format(each) + ' a month'; } catch (e) { return ''; }
 }
 
 /**
@@ -31,7 +41,7 @@ function planLine(p) {
  * @param {{trigger?: string, feature?: string}} [o]
  */
 export function openPaywall(o) {
-  if (!proEnabled() || typeof document === 'undefined') return null;
+  if (!proLive() || typeof document === 'undefined') return null;
   o = o || {};
   var old = document.getElementById('proPaywall');
   if (old) old.remove();
@@ -43,7 +53,8 @@ export function openPaywall(o) {
   if (isPro()) {
     box.appendChild(createElement('p', { text: 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
   } else {
-    box.appendChild(createElement('p', { text: 'Study smarter, and keep the game free for everyone.' }));
+    var counts = libraryCounts();
+    box.appendChild(createElement('p', { text: counts.total ? 'Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards. Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' }));
     var ul = createElement('ul');
     ul.style.cssText = 'margin:6px 0 10px 18px;padding:0;text-align:left;font-size:13px;line-height:1.5';
     PRO_BENEFITS.forEach(function (t) { ul.appendChild(createElement('li', { text: t })); });
@@ -66,8 +77,11 @@ export function openPaywall(o) {
         if (!plans.length) { setText(status, 'Pro is not available right now. Please try again later.'); return; }
         setText(status, plans.some(function (p) { return p.trialDays > 0; }) ? 'Cancel any time in your store account. Free trial applies to new subscribers.' : 'Cancel any time in your store account.');
         plans.forEach(function (p, i) {
-          var label = p.label + '  ·  ' + planLine(p) + (p.trialDays ? '  ·  ' + p.trialDays + '-day free trial' : '');
-          var b = createElement('button', { className: 'btn ' + (i === 0 ? 'btn-gold' : 'btn-primary') + ' btn-block', text: label, attributes: { type: 'button', 'data-plan': p.id } });
+          var lines = [(p.blurb === 'BEST VALUE' ? '★ ' : '') + p.label + '  ·  ' + planLine(p)];
+          var sub = [p.trialDays ? p.trialDays + '-DAY FREE TRIAL' : '', perMonth(p), p.blurb && p.blurb !== 'BEST VALUE' ? p.blurb : (p.blurb ? 'BEST VALUE' : '')].filter(Boolean).join('  ·  ');
+          if (sub) lines.push(sub);
+          var b = createElement('button', { className: 'btn ' + (i === 0 ? 'btn-gold' : 'btn-primary') + ' btn-block pro-plan', attributes: { type: 'button', 'data-plan': p.id } });
+          lines.forEach(function (t, li) { b.appendChild(createElement('span', { className: li ? 'pro-plan-sub' : 'pro-plan-main', text: t })); });
           b.addEventListener('click', function () {
             var d = { plan: p.id, price: p.price, micros: p.micros, currency: p.currency, trial_days: p.trialDays };
             act('plan_selected', d);
@@ -77,6 +91,27 @@ export function openPaywall(o) {
             buyPlan(p.id, { lb: _lb }).then(function (res) {
               [].forEach.call(list.children, function (x) { x.disabled = false; });
               if (res.ok) { act('purchased', d); setText(status, 'Welcome to Pro! 🎉'); _toast('Welcome to Dx Dash Pro!'); setTimeout(cleanup, 1200); }
+              else if (res.cancelled) { act('cancelled', d); setText(status, ''); }
+              else { act('failed', d); setText(status, 'That did not go through. You have not been charged.'); }
+            });
+          });
+          list.appendChild(b);
+        });
+        // the cheaper way in for someone who only wants the cards
+        libraryOffer().then(function (lib) {
+          if (!lib || libraryUnlocked()) return;
+          var counts = libraryCounts();
+          var b = createElement('button', { className: 'btn btn-outline btn-block pro-plan', attributes: { type: 'button', 'data-plan': 'library' } });
+          b.appendChild(createElement('span', { className: 'pro-plan-main', text: 'Just the cards  ·  ' + lib.price + ' once' }));
+          b.appendChild(createElement('span', { className: 'pro-plan-sub', text: 'ALL ' + counts.total.toLocaleString() + ' CARDS, NO TOOLS' }));
+          b.addEventListener('click', function () {
+            var d = { plan: 'library', price: lib.price, micros: lib.micros, currency: lib.currency };
+            act('plan_selected', d);
+            act('purchase_started', d);
+            [].forEach.call(list.children, function (x) { x.disabled = true; });
+            buyLibrary().then(function (res) {
+              [].forEach.call(list.children, function (x) { x.disabled = false; });
+              if (res.ok) { act('purchased', d); setText(status, 'Library unlocked! 🎉'); _toast('All cards unlocked!'); setTimeout(cleanup, 1200); }
               else if (res.cancelled) { act('cancelled', d); setText(status, ''); }
               else { act('failed', d); setText(status, 'That did not go through. You have not been charged.'); }
             });
@@ -162,7 +197,7 @@ export function openPaywall(o) {
 
 /** Settings → About & help: "Dx Dash Pro" with the status, only once Pro is switched on. */
 export function renderProSettings(container) {
-  if (!proEnabled() || !container) return;
+  if (!proLive() || !container) return;
   var row = createElement('div', { className: 'setting-row', attributes: { 'data-setting': 'pro' } });
   var label = createElement('div');
   label.style.flex = '1';
@@ -186,4 +221,30 @@ export function installProUi(deps) {
     var d = (e && e.detail) || {};
     openPaywall({ trigger: 'gate_' + String(d.trigger || d.feature || 'feature').slice(0, 20), feature: d.feature });
   });
+}
+
+
+/**
+ * A small "unlock all the cards" strip: shows how many cards are free and opens the paywall. Adds nothing when the whole
+ * library is open (Pro owned, or nothing to buy).
+ * @param {HTMLElement} container
+ * @param {string} [trigger] what to call it in analytics
+ * @returns {HTMLElement|null}
+ */
+export function renderLibraryBanner(container, trigger) {
+  if (!container || !proLive() || libraryUnlocked()) return null;
+  var counts = libraryCounts();
+  if (!counts.total) return null;
+  var old = container.querySelector('.library-banner');
+  if (old) old.remove();
+  var box = createElement('div', { className: 'library-banner', attributes: { role: 'note' } });
+  var text = createElement('div', { className: 'library-banner-text' });
+  text.appendChild(createElement('strong', { text: '🔒 ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards free' }));
+  text.appendChild(createElement('span', { text: 'Unlock the whole bank and every study tool.' }));
+  box.appendChild(text);
+  var btn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'UNLOCK', attributes: { type: 'button' } });
+  btn.addEventListener('click', function () { openPaywall({ trigger: trigger || 'library_banner', feature: 'card_library' }); });
+  box.appendChild(btn);
+  container.insertBefore(box, container.firstChild);
+  return box;
 }

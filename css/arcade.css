@@ -61,12 +61,20 @@
   --tile-3: linear-gradient(180deg, #7fe6ff, #2dbff0);
   --tile-4: linear-gradient(180deg, #c49bff, #8b52f0);
   --lane-1: #ff9ccb; --lane-2: #ffe14a; --lane-3: #7fe6ff;
-  --font-display: "Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI Black", "Roboto Black", system-ui, sans-serif;
+  /* video-game type: Jersey 10 for the whole interface, Press Start 2P for the odd big arcade moment, and a plain
+     readable face for long passages (the clues, explanations and teaching text) so studying stays easy on the eyes */
+  --font-display: "Jersey 10", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --font-pixel: "Press Start 2P", "Jersey 10", monospace;
+  --font-read: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
 }
 
+@font-face { font-family: "Jersey 10"; font-weight: 400; font-style: normal; font-display: swap; size-adjust: 118%; src: url("fonts/jersey-10-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Press Start 2P"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/press-start-2p-latin-400-normal.woff2") format("woff2"); }
+
 html, body {
-  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-display);
 }
+button, input, select, textarea { font-family: inherit; }
 
 /* ---------- screens ---------- */
 
@@ -2269,3 +2277,38 @@ body.is-dying .side-card { opacity: 0; }
 }
 .quest-swap:active { transform: translateY(2px); box-shadow: none; }
 .quest-swap-short { color: var(--accent-orange, #ff8a1f); font-weight: 800; }
+
+/* Dx Dash Pro: the plan buttons and the "unlock all cards" strip */
+.pro-plan { display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.2; }
+.pro-plan-main { font-weight: 900; }
+.pro-plan-sub { font-size: 10px; letter-spacing: .06em; opacity: .9; }
+.library-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; padding: 10px 12px; border: 3px solid var(--ink); border-radius: var(--radius-md); background: linear-gradient(90deg, rgba(255, 201, 51, .25), rgba(255, 140, 0, .18)); box-shadow: 0 3px 0 var(--ink); }
+.library-banner-text { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.library-banner-text strong { font-size: 13px; }
+
+
+/* ---------- video-game feel ---------- */
+/* the passages you actually read keep the plain face: the clues and answers wherever they show (the run, the card browser,
+   flashcards, the exam, the reviews, the tutorial), explanations and stories */
+#buzzText, #teachEl, #cbResults, #cardBrowserContent .card-browser-item, #flashcardContent, #examContent, #reviewOverlay, #reviewFullList,
+#quickReviewOverlay, #screenMyCards #customCardList, .report-card, .story-long, .prompt-text, .tut-q, .tut-clue, .tutorial-overlay .tut-text,
+.explain-text, .post-review-item, #postRunContent .review-card, #customCardList {
+  font-family: var(--font-read);
+}
+body.dyslexia #buzzText, body.dyslexia #teachEl, body.dyslexia #cbResults, body.dyslexia #flashcardContent, body.dyslexia #examContent, body.dyslexia #reviewOverlay,
+body.dyslexia #reviewFullList, body.dyslexia #quickReviewOverlay, body.dyslexia .report-card, body.dyslexia .story-long { font-family: "OpenDyslexic", "Comic Sans MS", sans-serif; }
+#cbResults button, #flashcardContent button, #examContent button, #reviewOverlay button, #quickReviewOverlay button { font-family: var(--font-display); }
+/* the arcade touches: chunky capital labels on buttons and tabs, pixel numbers on scores and coins, a pressed-in click */
+.btn, .locker-tab, .mode-btn, .tab-btn, .nav-btn { text-transform: uppercase; letter-spacing: .08em; }
+.btn-sm { letter-spacing: .06em; }
+#shopCoins, .coin-count, .hud-score, #hudScore, .post-stat-value, .xp-level, .home-level .level-num, .dr-title, .rk-trophies, .rk-delta {
+  font-family: var(--font-pixel);
+  letter-spacing: 0;
+}
+.dr-title, .rk-delta { font-size: .8em; line-height: 1.3; }
+h1, h2 { text-transform: uppercase; letter-spacing: .06em; }
+.library-banner-text strong, .pro-plan-main { text-transform: uppercase; letter-spacing: .05em; }
+img.pixel, canvas { image-rendering: auto; }
+.library-banner, .library-banner * { font-family: var(--font-display); }
+.library-banner-text span { font-size: 13px; opacity: .9; }
+.report-box a { color: var(--accent-cyan, #7fe6ff); }

@@ -60,7 +60,7 @@ Data collected, **not used for tracking**:
 | User content → Other user content (display name, shared run summaries, kudos) | Yes | App functionality |
 | Usage data → Product interaction (scores, progress) | Yes | App functionality |
 | Diagnostics → Crash data, Performance data (only if the player switches it on) | **No** | App functionality (bug fixing) |
-| Purchases → Purchase history: **not collected** (the store handles payment; the app only learns whether a tip went through, anonymously) | - | - |
+| Purchases → Purchase history: **collected, not linked** (the store handles payment; the app learns only which products you own, plus anonymous paywall and purchase events if you opted in to statistics) | **No** | App functionality, Analytics |
 | Usage data → Product interaction (anonymous usage statistics: modes, questions, screens; asked on first launch, can be switched off) | **No** (a random install ID, never the account) | Analytics |
 | Identifiers → Device ID (the random install ID the app makes for itself; not the advertising identifier) | **No** | Analytics |
 | Diagnostics → Performance data, Other diagnostic data (frame rate, load times, errors; same switch) | **No** | Analytics |
@@ -71,7 +71,11 @@ Tracking: **No**. Third-party advertising: **No**.
 - Notes for the reviewer:
 ```
 Dx Dash is a study game for US medical licensing exam prep (USMLE/COMLEX). No account is needed: tap PLAY on the Home screen. A short interactive tutorial runs the first time (the x in the corner closes it).
-The optional tip jar (Settings > About & help > Leave a tip) sells three consumable in-app purchases (dxdash_tip_small, dxdash_tip_medium, dxdash_tip_large). They are thank-you tips and unlock nothing.
+In-app purchases (all optional; the app is fully playable free with 300 questions):
+- Auto-renewable subscription group "Dx Dash Pro": dxdash_pro_yearly, dxdash_pro_monthly, dxdash_pro_pass3m (auto-renewing, 3-month period); yearly has a 7-day introductory free trial.
+- Non-consumable: dxdash_pro_lifetime (all Pro features), dxdash_library (unlocks the full 3,010-question library only).
+- Consumable tip jar (Settings > About & help > Leave a tip): dxdash_tip_small, dxdash_tip_medium, dxdash_tip_large. Tips unlock nothing.
+To see the paywall: Stats tab > tap any locked "Pro" section, or Settings > About & help > Dx Dash Pro > See Pro. "Restore purchases" is on the paywall and in that Settings row. Subscription terms, price and renewal are shown on the paywall, with links to the Privacy Policy and Terms.
 Online features (Friends, feed, groups, ranked) are optional and use an anonymous guest account created automatically, or an email account. Account deletion: Friends > Account > Delete my account.
 User safety: players can report and block other players (the flag and block icons next to a name in Friends). There is no chat and no free text between users. Reports are reviewed by the developer and abusive accounts are removed.
 The app is an educational aid and contains a medical-education disclaimer (Settings > About, and in the Terms). It does not provide medical advice.

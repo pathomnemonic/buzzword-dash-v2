@@ -10,6 +10,7 @@
  *   Sections        Reviews coming up, Subjects (level and accuracy), Weakest concepts, Lifetime, Plan settings
  */
 
+import { checkGate, requireGate } from './pro.js';
 import { track } from './analytics/index.js';
 import { createElement, setText } from './dom.js';
 import { storage } from './storage.js';
@@ -53,7 +54,7 @@ function pctColor(p) {
 }
 
 /** A folded section: a row with an icon, a title and a short value, that opens to its content. */
-function section(id, icon, title, hint, build) {
+function section(id, icon, title, hint, build, gateFeature) {
   var d = el('details', 'perf-section');
   d.id = 'perf-' + id;
   d.open = !!_open[id];
@@ -66,6 +67,17 @@ function section(id, icon, title, hint, build) {
   var body = el('div', 'perf-body');
   d.appendChild(body);
   var built = false;
+  // Pro: a locked section shows what it holds and a way in, instead of the numbers
+  var gated = gateFeature && !checkGate(gateFeature).allowed;
+  if (gated) {
+    h.textContent = '🔒 Pro';
+    build = function (b) {
+      b.appendChild(el('div', 'perf-note', 'This view is part of Dx Dash Pro: the full breakdown of how you are doing and where to aim next.'));
+      var go = createElement('button', { className: 'btn btn-gold btn-sm', text: 'UNLOCK PRO', attributes: { type: 'button' } });
+      go.addEventListener('click', function () { requireGate(gateFeature, { trigger: 'stats_' + id }); });
+      b.appendChild(go);
+    };
+  }
   function ensure() { if (!built) { built = true; build(body); } }
   d._ensure = ensure;
   if (d.open) ensure();
@@ -297,7 +309,7 @@ export function renderPerformance(container, ui) {
       });
     }
     body.appendChild(el('div', 'perf-note', 'A card is mastered after 3+ answers at 80% or better. Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
-  }));
+  }, 'analytics_detail'));
 
   var weak = cards.map(function (c) {
     var s = storage.getCardStat(c.id);
@@ -324,7 +336,7 @@ export function renderPerformance(container, ui) {
       });
       body.appendChild(row);
     });
-  }));
+  }, 'analytics_detail'));
 
   secs.appendChild(section('lifetime', '🏅', 'Lifetime', storage.get('totalEncounters') + ' cards', function (body) {
     var tc = storage.get('totalCorrect');
@@ -380,7 +392,7 @@ export function renderPerformance(container, ui) {
     r2.appendChild(sel);
     body.appendChild(r2);
     body.appendChild(el('div', 'perf-note', 'ⓘ Reviews are timed by FSRS, the same algorithm Anki uses. A higher number means more reviews.'));
-  }));
+  }, 'analytics_detail'));
 
   if (_scrollTo) {
     var target = document.getElementById('perf-' + _scrollTo);

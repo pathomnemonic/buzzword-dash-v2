@@ -34,6 +34,7 @@
  * - Agent 18 (card hub): CARDS, SUBJECTS, EXAM_FILTERS, QUESTION_TYPES
  */
 
+import { renderLibraryBanner } from './proui.js';
 import { requireGate } from './pro.js';
 import { shareLink, track as shareTrack } from './analytics/index.js';
 import { renderPal } from './palui.js';
@@ -718,6 +719,7 @@ class UI {
     var container = document.getElementById('subjectScroll');
     if (!container) return;
     var self = this;
+    if (container.parentNode) renderLibraryBanner(container.parentNode, 'subjects');
 
     // Note element for empty selection
     var noteEl = document.getElementById('subjectNote');
@@ -2120,7 +2122,7 @@ class UI {
     }
     if (result.completedQuestIds && result.completedQuestIds.length > 0) {
       var titles = result.completedQuestIds.map(function (id) { var q = QUESTS.filter(function (x) { return x.id === id; })[0]; return q ? q.title : ''; }).filter(Boolean);
-      if (titles.length) this.showNotice('\u2705 Quest complete: ' + titles.join(', ') + '. Claim your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
+      if (titles.length) this.showNotice('\uD83C\uDFC6 QUEST CLEARED: ' + titles.join(', ') + '! Grab your coins in Quests.', { color: 'var(--accent-gold)', ms: 4500 });
     }
   }
 

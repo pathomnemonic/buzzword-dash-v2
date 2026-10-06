@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { sanitizeProConfig, defaultProConfig, GATE_FEATURES } from '../../js/proconfig.js';
+import { sanitizeProConfig, defaultProConfig, GATE_FEATURES, DEFAULT_GATES } from '../../js/proconfig.js';
 import { setProConfigForTest, proConfig, sanitizeConfig } from '../../js/remoteconfig.js';
 import {
   combineStatus, isPro, proStatus, checkGate, recordUse, requireGate, refreshPro, proPlans, buyPlan, restorePro, redeemCode,
-  proEnabled, setProDebug, resetProForTest, proWebUrl
+  proEnabled, proLive, setSellableForTest, setProDebug, resetProForTest, proWebUrl, libraryUnlocked, buyLibrary, libraryOffer, ownsLibrary, registerProProducts
 } from '../../js/pro.js';
 import { createIap, isoDays } from '../../js/iap.js';
 import { cleanEvent } from '../../js/analytics/catalog.js';
@@ -11,7 +11,7 @@ import { cleanEvent } from '../../js/analytics/catalog.js';
 const DAY = 86400000;
 const NOW = new Date('2026-11-10T12:00:00').getTime(); // a Tuesday
 
-beforeEach(() => { resetProForTest(); setProConfigForTest(null); localStorage.clear(); });
+beforeEach(() => { resetProForTest(); setProConfigForTest(null); localStorage.clear(); setSellableForTest(true); });
 
 /** A fake store plugin shaped like capacitor-plugin-cdv-purchase, with subscriptions. */
 function fakePlugin(o) {
@@ -21,7 +21,7 @@ function fakePlugin(o) {
   const products = {};
   const plugin = {
     Platform: { GOOGLE_PLAY: 'android-playstore', APPLE_APPSTORE: 'ios-appstore' },
-    ProductType: { CONSUMABLE: 'consumable', PAID_SUBSCRIPTION: 'paid subscription' },
+    ProductType: { CONSUMABLE: 'consumable', PAID_SUBSCRIPTION: 'paid subscription', NON_CONSUMABLE: 'non consumable' },
     ErrorCode: { PAYMENT_CANCELLED: 6777006 },
     registered: [],
     restored: 0,
@@ -55,39 +55,60 @@ const iapFor = (plugin, platform = 'android') => createIap({ platform, loadPlugi
 function withPlans(iap) { iap.add(proConfig().plans.map((id) => ({ id, kind: 'subscription' }))); return iap; }
 
 describe('pro config (remote file)', () => {
-  it('is off and empty by default, and survives any shape of file', () => {
-    expect(defaultProConfig()).toMatchObject({ enabled: false, gates: {}, launchAt: 0, grandfather: [] });
-    [null, undefined, 5, 'x', [], {}, { enabled: 'yes' }, { gates: 3 }].forEach((bad) => expect(sanitizeProConfig(bad).enabled).toBe(false));
+  it('ships on, with the default free-vs-Pro gates', () => {
+    const d = defaultProConfig();
+    expect(d.enabled).toBe(true);
+    expect(d.gates).toEqual(DEFAULT_GATES);
+    expect(d.gates.card_library).toBe('locked');
+    expect(d.plans).toContain('dxdash_pro_lifetime');
+    expect(d.library).toBe('dxdash_library');
   });
-  it('keeps only known gates, valid limits and valid plan ids', () => {
-    const c = sanitizeProConfig({ enabled: true, plans: ['dxdash_pro_yearly', 'BAD ID', 7], gates: { custom_cards: { limit: 50, per: 'total' }, offline_pack: 'locked', explanations: { limit: 5, per: 'day' }, bogus: 'locked', exam_sim: { limit: -1 } }, launchAt: 1790000000000, grandfather: ['custom_cards', 'nope'] });
-    expect(c.enabled).toBe(true);
+  it('survives any shape of file by keeping the defaults', () => {
+    [null, undefined, 5, 'x', [], {}, { enabled: 'yes' }, { gates: 3 }].forEach((bad) => expect(sanitizeProConfig(bad)).toEqual(defaultProConfig()));
+  });
+  it('the file can switch Pro off, open a gate, change a limit and keep only valid ids', () => {
+    const c = sanitizeProConfig({ enabled: false, plans: ['dxdash_pro_yearly', 'BAD ID', 7], library: 'my_library', gates: { custom_cards: { limit: 50, per: 'total' }, offline_pack: 'open', explanations: { limit: 5, per: 'day' }, bogus: 'locked', exam_sim: { limit: -1 } }, launchAt: 1790000000000, grandfather: ['custom_cards', 'nope'] });
+    expect(c.enabled).toBe(false);
     expect(c.plans).toEqual(['dxdash_pro_yearly']);
-    expect(c.gates).toEqual({ custom_cards: { limit: 50, per: 'total' }, offline_pack: 'locked', explanations: { limit: 5, per: 'day' } });
+    expect(c.library).toBe('my_library');
+    expect(c.gates.custom_cards).toEqual({ limit: 50, per: 'total' });
+    expect(c.gates.offline_pack).toBeUndefined();
+    expect(c.gates.explanations).toEqual({ limit: 5, per: 'day' });
+    expect(c.gates.exam_sim).toEqual(DEFAULT_GATES.exam_sim); // an invalid entry keeps the default
     expect(c.grandfather).toEqual(['custom_cards']);
     expect(Object.keys(c.gates).every((k) => GATE_FEATURES.includes(k))).toBe(true);
   });
   it('rides in the same file as the kill switches and analytics', () => {
-    expect(sanitizeConfig({ killed: ['hazards'], pro: { enabled: true } }).pro.enabled).toBe(true);
-    expect(sanitizeConfig({ killed: [] }).pro.enabled).toBe(false);
+    expect(sanitizeConfig({ killed: ['hazards'], pro: { enabled: false } }).pro.enabled).toBe(false);
+    expect(sanitizeConfig({ killed: [] }).pro.enabled).toBe(true);
   });
 });
 
-describe('dormant: invisible and harmless until switched on', () => {
-  it('everything is allowed, nothing is counted, no paywall event fires, Pro is false', () => {
-    expect(proEnabled()).toBe(false);
-    expect(isPro()).toBe(false);
+describe('only limits things when there is a way to pay', () => {
+  it('with nothing to buy (a local build, products not set up in the store) nothing is limited and nothing is shown', () => {
+    setSellableForTest(false);
+    expect(proEnabled()).toBe(true);
+    expect(proLive()).toBe(false);
     GATE_FEATURES.forEach((f) => expect(checkGate(f, { used: 99999 })).toEqual({ allowed: true, mode: 'open' }));
+    expect(libraryUnlocked()).toBe(true);
     const events = [];
     document.addEventListener('dx:pro-gate', (e) => events.push(e));
-    expect(requireGate('custom_cards', { used: 1e6 })).toBe(true);
+    expect(requireGate('offline_pack')).toBe(true);
     expect(events).toEqual([]);
   });
-  it('even a configured gate does nothing while enabled is false', () => {
-    setProConfigForTest({ enabled: false, gates: { offline_pack: 'locked' } });
-    expect(checkGate('offline_pack')).toEqual({ allowed: true, mode: 'open' });
+  it('once something can be bought the gates apply', () => {
+    expect(proLive()).toBe(true);
+    expect(checkGate('offline_pack').allowed).toBe(false);
+    expect(libraryUnlocked()).toBe(false);
   });
-  it('does not ask the store or the server', async () => {
+  it('switched off in the config: nothing is limited even when something can be bought', () => {
+    setProConfigForTest({ enabled: false });
+    expect(proLive()).toBe(false);
+    expect(checkGate('offline_pack')).toEqual({ allowed: true, mode: 'open' });
+    expect(libraryUnlocked()).toBe(true);
+  });
+  it('does not ask the store while switched off', async () => {
+    setProConfigForTest({ enabled: false });
     const plugin = fakePlugin({ owned: ['dxdash_pro_yearly'] });
     const st = await refreshPro({ iap: withPlans(iapFor(plugin)), now: NOW });
     expect(st.active).toBe(false);
@@ -174,12 +195,11 @@ describe('gates', () => {
 });
 
 describe('buying', () => {
-  beforeEach(() => setProConfigForTest({ enabled: true }));
 
   it('lists the store plans best value first, with local prices and any free trial', async () => {
     const iap = withPlans(iapFor(fakePlugin({ trial: true })));
     const plans = await proPlans(iap);
-    expect(plans.map((p) => p.id)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_monthly', 'dxdash_pro_pass3m']);
+    expect(plans.map((p) => p.id)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_pass3m', 'dxdash_pro_monthly', 'dxdash_pro_lifetime']);
     expect(plans[0]).toMatchObject({ currency: 'USD', trialDays: 7, period: 'P1Y' });
     expect(plans[1].trialDays).toBe(0);
   });
@@ -249,3 +269,38 @@ describe('analytics for Pro', () => {
 });
 
 vi.stubEnv('VITE_PRO_WEB_URL', '');
+
+describe('the full library: lifetime, and the one-time cards unlock', () => {
+  it('a free player has the free cards only; the Full Library purchase or Pro opens all', async () => {
+    expect(libraryUnlocked()).toBe(false);
+    const iap = withPlans(iapFor(fakePlugin()));
+    registerProProducts(); // (registers on the app's own connection; not used here)
+    iap.add([{ id: 'dxdash_library', kind: 'nonconsumable' }]);
+    await iap.start();
+    const offer = await libraryOffer(iap);
+    expect(offer).toMatchObject({ id: 'dxdash_library', currency: 'USD' });
+    const res = await buyLibrary({ iap });
+    expect(res.ok).toBe(true);
+    expect(ownsLibrary()).toBe(true);
+    expect(libraryUnlocked()).toBe(true);
+    expect(checkGate('card_library').allowed).toBe(true);
+    // the library unlock does not unlock the study tools
+    expect(checkGate('offline_pack').allowed).toBe(false);
+  });
+  it('Lifetime is Pro that does not run out', async () => {
+    const plugin = fakePlugin({ owned: ['dxdash_pro_lifetime'] });
+    const iap = withPlans(iapFor(plugin));
+    const st = await refreshPro({ iap, now: NOW });
+    expect(st).toMatchObject({ active: true, plan: 'lifetime' });
+    expect(st.until).toBeGreaterThan(NOW + 50 * 365 * DAY);
+    expect(libraryUnlocked()).toBe(true);
+    expect(isPro(NOW + 10 * 365 * DAY)).toBe(true);
+  });
+  it('registers the lifetime and the library as one-time purchases and the rest as subscriptions', async () => {
+    const plugin = fakePlugin();
+    const iap = iapFor(plugin);
+    iap.add([{ id: 'a', kind: 'subscription' }, { id: 'b', kind: 'nonconsumable' }]);
+    await iap.start();
+    expect(plugin.registered.map((d) => d.type)).toEqual(['paid subscription', 'non consumable']);
+  });
+});
