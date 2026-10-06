@@ -25,12 +25,14 @@ function countCalls(root) {
   return { calls, tris };
 }
 
-describe('the ten bright maps', () => {
+describe('the bright maps', () => {
   it('are all there, each with a world module, music, a hazard and a place in the Locker', () => {
     expect(worlds.map((s) => s.name).sort()).toEqual([
-      'Anatomy Amusement Park', 'Aquarium Imaging Center', 'Cafeteria Carnival', 'Holiday Wards', 'Neonatal Cloud Nursery',
-      'Pediatric Playland', 'Pharmacy Pop Factory', 'Rooftop Helipad Resort', 'Sunshine Rehab Garden', 'Vet and Farm Clinic'
-    ]);
+      'Anatomy Amusement Park', 'Aquarium Imaging Center', 'Candy Lab', 'Cafeteria Carnival', 'Cardiac Pulse', 'Cellular Matrix',
+      'DNA Helix Tunnel', 'Defibrillator Shock', 'Holiday Wards', 'Neon ER', 'Neonatal Cloud Nursery', 'Neural Highway',
+      'Pediatric Playland', 'Pharmacy Pop Factory', 'Prescription Sunset', 'Rooftop Helipad Resort', 'Skeletal Corridor',
+      'Sunshine Rehab Garden', 'Surgical Theater', 'Vascular Rush', 'Vet and Farm Clinic', 'X-Ray Vision'
+    ].sort());
     worlds.forEach((s) => {
       expect(isWorld(s), s.name).toBe(true);
       expect(worldOf(s), s.name).toBe(WORLDS[s.world]);
@@ -40,6 +42,18 @@ describe('the ten bright maps', () => {
       expect(s.fog && s.fog.far, s.name + ' fog').toBeGreaterThan(100);
       expect(LOCKER_ITEMS.some((i) => i.skinId === s.id), s.name + ' for sale').toBe(true);
     });
+  });
+
+  it('every map is bright and cheerful, not dark: light haze, a lit sky and strong ambient light', () => {
+    const lum = (hex) => ((hex >> 16) & 255) * 0.2126 / 255 + ((hex >> 8) & 255) * 0.7152 / 255 + (hex & 255) * 0.0722 / 255;
+    worlds.forEach((s) => {
+      expect(lum(s.colors.bg), s.name + ' haze').toBeGreaterThan(0.55);
+      expect(s.light.ambient + s.light.hemi, s.name + ' light').toBeGreaterThanOrEqual(1.2);
+      expect(s.wallType, s.name).toBe('world');
+    });
+    // the old dark body maps are gone: the maps that were once neon-on-black are worlds now
+    ['Neural Highway', 'Vascular Rush', 'Neon ER', 'Surgical Theater', 'Candy Lab', 'Prescription Sunset', 'Skeletal Corridor', 'Cellular Matrix', 'DNA Helix Tunnel', 'Cardiac Pulse', 'X-Ray Vision', 'Defibrillator Shock']
+      .forEach((n) => expect(SKINS.find((s) => s.name === n).world, n).toBeTruthy());
   });
 
   it('none of them is free from the start: they are rewards, and a new player never rotates into one', () => {

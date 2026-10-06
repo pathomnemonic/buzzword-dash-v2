@@ -7,7 +7,7 @@
 
 export var UNLOCK_EVERY = 5;
 
-/** Map item ids in the order they unlock: the bright ones first, then the original outdoor and body maps. */
+/** Map item ids in the order they unlock: the cheaper maps first, the most elaborate last. Every one is a bright, animated world. */
 export var MAP_ORDER = [
   'map_pediatric_playland', 'map_sunshine_rehab_garden', 'map_vet_and_farm_clinic', 'map_holiday_wards',
   'map_cafeteria_carnival', 'map_neonatal_cloud_nursery', 'map_anatomy_amusement_park', 'map_pharmacy_pop_factory',

@@ -21,6 +21,18 @@ import { aquarium } from './maps/aquarium.js';
 import { rooftop } from './maps/rooftop.js';
 import { farm } from './maps/farm.js';
 import { holiday } from './maps/holiday.js';
+import { neural } from './maps/neural.js';
+import { vascular } from './maps/vascular.js';
+import { neoner } from './maps/neoner.js';
+import { theater } from './maps/theater.js';
+import { candylab } from './maps/candylab.js';
+import { sunset } from './maps/sunset.js';
+import { skeletal } from './maps/skeletal.js';
+import { cellular } from './maps/cellular.js';
+import { dna } from './maps/dna.js';
+import { cardiac } from './maps/cardiac.js';
+import { xray } from './maps/xray.js';
+import { defib } from './maps/defib.js';
 
 /** Every world module, by id. Each is { bay, center?, arch?, ground?, extras? } (see the Playland for the shape). */
 export var WORLDS = {
@@ -33,7 +45,19 @@ export var WORLDS = {
   aquarium: aquarium,
   rooftop: rooftop,
   farm: farm,
-  holiday: holiday
+  holiday: holiday,
+  neural: neural,
+  vascular: vascular,
+  neoner: neoner,
+  theater: theater,
+  candylab: candylab,
+  sunset: sunset,
+  skeletal: skeletal,
+  cellular: cellular,
+  dna: dna,
+  cardiac: cardiac,
+  xray: xray,
+  defib: defib
 };
 
 export function worldOf(skin) {

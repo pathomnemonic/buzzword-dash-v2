@@ -77,7 +77,8 @@ function scaleNote(scale, baseNote, index) {
 // ===== SKIN MUSIC CONFIGURATIONS =====
 
 export const SKIN_MUSIC = {
-  'Neural Highway': {
+  // the menu track (it used to be the Neural Highway's tune): a mellow minor-key synth groove
+  'Dx Dash Menu': {
     bpm: 128, key: 48, scale: 'cMinorPentatonic',
     bassPattern: [0, 0, -1, 0, 2, 2, -1, 3, 0, 0, -1, 2, 3, 3, -1, 0],
     melodyPattern: [4, 5, 7, -1, 5, 4, -1, 7, 8, 7, 5, -1, 4, 5, -1, 7],
@@ -89,150 +90,129 @@ export const SKIN_MUSIC = {
       hat:   [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]
     },
     filterFreq: 2000, filterQ: 2
-  },
-  'Vascular Rush': {
-    bpm: 140, key: 45, scale: 'cMinor',
-    bassPattern: [0, 0, 0, -1, 0, 3, -1, 2, 0, 0, 0, -1, 3, 2, -1, 0],
-    melodyPattern: [7, 8, 10, 7, -1, 8, 10, 12, 10, 8, 7, -1, 5, 7, 8, -1],
-    chordIntervals: [[0, 3, 7], [3, 7, 10], [0, 3, 7], [5, 8, 12]],
-    bassType: 'sawtooth', melodyType: 'square', padType: 'triangle',
-    drumPattern: {
-      kick:  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-      snare: [0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1],
-      hat:   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    },
-    filterFreq: 3000, filterQ: 1
-  },
-  'Skeletal Corridor': {
-    bpm: 100, key: 40, scale: 'cDorian',
-    bassPattern: [0, -1, -1, 2, 0, -1, 3, -1, 5, -1, -1, 3, 2, -1, 0, -1],
-    melodyPattern: [7, -1, 5, -1, 3, 5, -1, -1, 7, -1, 8, -1, 7, 5, -1, -1],
-    chordIntervals: [[0, 3, 7], [0, 3, 7], [5, 9, 12], [3, 7, 10]],
-    bassType: 'triangle', melodyType: 'triangle', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0]
-    },
-    filterFreq: 1500, filterQ: 3
-  },
-  'Cellular Matrix': {
-    bpm: 120, key: 52, scale: 'cMajorPentatonic',
-    bassPattern: [0, -1, 2, -1, 0, -1, 4, -1, 2, -1, 0, -1, 4, -1, 2, -1],
-    melodyPattern: [4, 5, 7, 9, 7, 5, 4, -1, 5, 7, 9, 11, 9, 7, 5, -1],
-    chordIntervals: [[0, 4, 7], [0, 4, 7], [2, 5, 9], [4, 7, 11]],
-    bassType: 'sine', melodyType: 'sine', padType: 'triangle',
-    drumPattern: {
-      kick:  [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0]
-    },
-    filterFreq: 4000, filterQ: 1
-  },
-  'Neon ER': {
-    bpm: 138, key: 48, scale: 'cMinor',
-    bassPattern: [0, 0, -1, 0, 3, 3, -1, 5, 3, 3, -1, 0, 7, 5, -1, 3],
-    melodyPattern: [7, 10, 12, -1, 10, 7, 12, -1, 7, 10, 12, 14, 12, 10, 7, -1],
-    chordIntervals: [[0, 3, 7], [3, 7, 10], [5, 8, 12], [0, 3, 7]],
-    bassType: 'sawtooth', melodyType: 'sawtooth', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,1]
-    },
-    filterFreq: 2500, filterQ: 3
-  },
-  'DNA Helix Tunnel': {
-    bpm: 132, key: 50, scale: 'cMinorPentatonic',
-    bassPattern: [0, -1, 0, 2, -1, 2, 3, -1, 5, -1, 3, 2, -1, 0, 2, -1],
-    melodyPattern: [5, 7, 8, 10, 12, 10, 8, 7, 5, 7, 8, 10, 8, 7, 5, -1],
-    chordIntervals: [[0, 3, 7], [2, 5, 9], [3, 7, 10], [0, 3, 7]],
-    bassType: 'triangle', melodyType: 'sawtooth', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1]
-    },
-    filterFreq: 2200, filterQ: 2
-  },
-  'Prescription Sunset': {
-    bpm: 90, key: 48, scale: 'cMajorPentatonic',
-    bassPattern: [0, -1, -1, 0, -1, 2, -1, -1, 4, -1, -1, 2, -1, 0, -1, -1],
-    melodyPattern: [7, -1, 9, 7, -1, -1, 5, -1, 4, -1, 5, 7, -1, -1, 9, -1],
-    chordIntervals: [[0, 4, 7], [2, 5, 9], [4, 7, 11], [0, 4, 7]],
-    bassType: 'triangle', melodyType: 'triangle', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0]
-    },
-    filterFreq: 1800, filterQ: 1
-  },
-  'Cardiac Pulse': {
-    bpm: 125, key: 45, scale: 'cMinor',
-    bassPattern: [0, 0, -1, -1, 0, 0, -1, -1, 3, 3, -1, -1, 2, 2, -1, -1],
-    melodyPattern: [7, -1, 8, 7, -1, 5, -1, 7, 8, -1, 10, 8, -1, 7, -1, 5],
-    chordIntervals: [[0, 3, 7], [0, 3, 7], [3, 7, 10], [2, 5, 8]],
-    bassType: 'sine', melodyType: 'sawtooth', padType: 'triangle',
-    drumPattern: {
-      kick:  [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0]
-    },
-    filterFreq: 2000, filterQ: 2
-  },
-  'Surgical Theater': {
-    bpm: 118, key: 52, scale: 'cMajor',
-    bassPattern: [0, -1, 0, -1, 2, -1, 2, -1, 4, -1, 4, -1, 2, -1, 0, -1],
-    melodyPattern: [7, 9, 11, -1, 9, 7, -1, 11, 12, 11, 9, -1, 7, 9, -1, -1],
-    chordIntervals: [[0, 4, 7], [2, 5, 9], [4, 7, 11], [0, 4, 7]],
-    bassType: 'sine', melodyType: 'triangle', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    },
-    filterFreq: 3500, filterQ: 1
-  },
-  'Candy Lab': {
-    bpm: 145, key: 55, scale: 'cMajorPentatonic',
-    bassPattern: [0, 0, 2, 2, 4, 4, 2, 2, 0, 0, 4, 4, 2, 2, 0, 0],
-    melodyPattern: [7, 9, 11, 9, 7, 9, 11, 14, 11, 9, 7, 9, 11, 9, 7, -1],
-    chordIntervals: [[0, 4, 7], [4, 7, 11], [0, 4, 7], [2, 5, 9]],
-    bassType: 'square', melodyType: 'square', padType: 'triangle',
-    drumPattern: {
-      kick:  [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],
-      snare: [0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1],
-      hat:   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-    },
-    filterFreq: 5000, filterQ: 0.5
-  },
-  'X-Ray Vision': {
-    bpm: 108, key: 43, scale: 'cDorian',
-    bassPattern: [0, -1, -1, 0, -1, -1, 2, -1, 3, -1, -1, 2, -1, -1, 0, -1],
-    melodyPattern: [7, -1, -1, 8, -1, 7, -1, -1, 5, -1, -1, 7, -1, 8, -1, -1],
-    chordIntervals: [[0, 3, 7], [0, 3, 7], [3, 5, 10], [2, 5, 9]],
-    bassType: 'sine', melodyType: 'sine', padType: 'sine',
-    drumPattern: {
-      kick:  [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
-      snare: [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0],
-      hat:   [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0]
-    },
-    filterFreq: 1200, filterQ: 4
-  },
-  'Defibrillator Shock': {
-    bpm: 136, key: 48, scale: 'cBlues',
-    bassPattern: [0, 0, 0, -1, 3, 3, -1, 5, 3, 3, -1, 0, 5, 3, -1, 0],
-    melodyPattern: [5, 7, 8, 10, -1, 8, 7, 5, 7, 8, 10, 12, -1, 10, 8, 7],
-    chordIntervals: [[0, 3, 6, 7], [0, 3, 7], [3, 6, 10], [0, 3, 7]],
-    bassType: 'sawtooth', melodyType: 'sawtooth', padType: 'triangle',
-    drumPattern: {
-      kick:  [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0],
-      snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1],
-      hat:   [1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0]
-    },
-    filterFreq: 3000, filterQ: 2
   }
+};
+
+// Music for the upgraded body-and-science maps: every one is a bright, bouncy major-key tune with its own style
+SKIN_MUSIC['Neural Highway'] = {
+  // arcade synth-pop: a bouncing square bass under sparkling pentatonic arpeggios
+  bpm: 132, key: 52, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, 0, 2, -1, 0, 4, -1, 0, -1, 0, 2, -1, 3, 2, -1],
+  melodyPattern: [9, 12, 14, 12, 9, 12, 16, -1, 14, 12, 9, 12, 14, 16, 12, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-5, -1, 2]],
+  bassType: 'square', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1] },
+  filterFreq: 4200, filterQ: 1
+};
+SKIN_MUSIC['Vascular Rush'] = {
+  // splash-park surf rock: a driving galloping bass and a twangy lead
+  bpm: 148, key: 50, scale: 'cMixolydian',
+  bassPattern: [0, 0, 0, -1, 0, 0, 3, -1, 4, 4, 4, -1, 3, 3, 2, -1],
+  melodyPattern: [12, -1, 14, 12, -1, 9, 12, -1, 14, 16, 14, -1, 12, 9, -1, 7],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-2, 2, 5], [-5, -1, 2]],
+  bassType: 'sawtooth', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1], hat: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] },
+  filterFreq: 3800, filterQ: 1
+};
+SKIN_MUSIC['Skeletal Corridor'] = {
+  // spooky-fun ska: bouncy walking bass, off-beat stabs and a cheeky xylophone tune
+  bpm: 126, key: 48, scale: 'cDorian',
+  bassPattern: [0, -1, 2, -1, 3, -1, 2, -1, 4, -1, 3, -1, 2, -1, 0, -1],
+  melodyPattern: [12, -1, 14, 15, -1, 14, 12, -1, 10, -1, 12, 14, -1, 12, 10, -1],
+  chordIntervals: [[0, 3, 7], [0, 3, 7], [3, 7, 10], [-2, 2, 5]],
+  bassType: 'triangle', melodyType: 'triangle', padType: 'square',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0], hat: [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1] },
+  filterFreq: 3200, filterQ: 1.5
+};
+SKIN_MUSIC['Cellular Matrix'] = {
+  // bubbly marimba: round, plinky notes that pop like bubbles
+  bpm: 116, key: 57, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, -1, 2, -1, -1, 4, -1, 0, -1, -1, 2, -1, 4, 2, -1],
+  melodyPattern: [12, -1, 9, 12, -1, 14, -1, 12, 9, -1, 12, -1, 14, 16, -1, 12],
+  chordIntervals: [[0, 4, 7], [-3, 0, 4], [-5, -1, 2], [0, 4, 7]],
+  bassType: 'sine', melodyType: 'sine', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,1] },
+  filterFreq: 3600, filterQ: 0.5
+};
+SKIN_MUSIC['Neon ER'] = {
+  // 1950s diner rock and roll: a boogie-woogie bass and a jumping piano-ish lead
+  bpm: 152, key: 45, scale: 'cMixolydian',
+  bassPattern: [0, -1, 2, -1, 4, -1, 5, -1, 4, -1, 2, -1, 0, -1, 2, -1],
+  melodyPattern: [12, 14, 12, 11, 12, -1, 9, -1, 12, 14, 16, 14, 12, -1, 11, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-2, 2, 5], [-5, -1, 2]],
+  bassType: 'triangle', melodyType: 'square', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1] },
+  filterFreq: 3400, filterQ: 1
+};
+SKIN_MUSIC['DNA Helix Tunnel'] = {
+  // carnival disco: rising and falling arpeggios that spiral like the helix
+  bpm: 126, key: 55, scale: 'cMajor',
+  bassPattern: [0, -1, 0, -1, 4, -1, 4, -1, 5, -1, 5, -1, 3, -1, 4, -1],
+  melodyPattern: [9, 11, 12, 14, 16, 14, 12, 11, 9, 11, 12, 14, 12, 11, 9, 7],
+  chordIntervals: [[0, 4, 7], [-3, 0, 4], [-1, 2, 5], [0, 4, 7]],
+  bassType: 'sawtooth', melodyType: 'triangle', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] },
+  filterFreq: 3800, filterQ: 1
+};
+SKIN_MUSIC['Prescription Sunset'] = {
+  // beach bossa nova: a lazy offbeat bass, soft chords and a breezy melody
+  bpm: 100, key: 50, scale: 'cMajor',
+  bassPattern: [0, -1, -1, 4, 0, -1, -1, 4, 3, -1, -1, 5, 4, -1, -1, 2],
+  melodyPattern: [11, -1, 9, -1, 12, -1, 11, 9, -1, 7, -1, 9, 11, -1, -1, -1],
+  chordIntervals: [[0, 4, 7, 11], [-3, 0, 4, 7], [-4, 0, 3, 7], [-5, -1, 2, 5]],
+  bassType: 'triangle', melodyType: 'sine', padType: 'sine',
+  drumPattern: { kick: [1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0], snare: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], hat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] },
+  filterFreq: 2800, filterQ: 0.5
+};
+SKIN_MUSIC['Cardiac Pulse'] = {
+  // heartbeat dance-pop: a lub-dub kick under a sweet valentine hook
+  bpm: 118, key: 53, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, -1, 0, -1, -1, 2, -1, 4, -1, -1, 4, -1, -1, 2, -1],
+  melodyPattern: [12, -1, 14, -1, 16, -1, 14, 12, 9, -1, 12, -1, 14, -1, -1, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-5, -1, 2]],
+  bassType: 'sine', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0] },
+  filterFreq: 3600, filterQ: 0.5
+};
+SKIN_MUSIC['Surgical Theater'] = {
+  // a ragtime showtune: oom-pah bass and a flourish-heavy piano lead, curtain up
+  bpm: 140, key: 48, scale: 'cMajor',
+  bassPattern: [0, -1, 4, -1, 0, -1, 4, -1, 3, -1, 5, -1, 4, -1, 2, -1],
+  melodyPattern: [12, -1, 16, 14, 12, -1, 11, 9, 12, -1, 16, 17, 16, 14, 12, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-1, 2, 5]],
+  bassType: 'triangle', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0], hat: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0] },
+  filterFreq: 3600, filterQ: 1
+};
+SKIN_MUSIC['Candy Lab'] = {
+  // a music-box candy waltz: tinkling high bells over a sweet, skipping bass
+  bpm: 112, key: 62, scale: 'cMajorPentatonic',
+  bassPattern: [0, -1, 2, -1, 4, -1, 2, -1, 0, -1, 2, -1, 4, -1, 7, -1],
+  melodyPattern: [14, 12, 14, 16, -1, 14, 12, -1, 9, 12, 14, -1, 12, 9, -1, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-5, -1, 2]],
+  bassType: 'sine', melodyType: 'triangle', padType: 'sine',
+  drumPattern: { kick: [1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], snare: [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], hat: [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1] },
+  filterFreq: 4600, filterQ: 0.5
+};
+SKIN_MUSIC['X-Ray Vision'] = {
+  // disco funk: a slapping bass line, choppy chords and a glittering synth hook
+  bpm: 124, key: 50, scale: 'cDorian',
+  bassPattern: [0, -1, 0, 3, -1, 0, 5, -1, 0, -1, 0, 3, -1, 2, 3, -1],
+  melodyPattern: [12, -1, 15, 14, -1, 12, -1, 10, 12, -1, 15, -1, 17, 15, 14, -1],
+  chordIntervals: [[0, 3, 7, 10], [0, 3, 7, 10], [3, 7, 10], [2, 5, 9]],
+  bassType: 'sawtooth', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0], hat: [1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1] },
+  filterFreq: 3400, filterQ: 2
+};
+SKIN_MUSIC['Defibrillator Shock'] = {
+  // electro-surf chiptune: a buzzing saw bass and a zippy square lead
+  bpm: 158, key: 52, scale: 'cMajor',
+  bassPattern: [0, 0, 7, 0, 0, 0, 7, 0, 5, 5, 4, 5, 3, 3, 2, 3],
+  melodyPattern: [12, 14, 16, 14, 12, 14, 16, 19, 17, 16, 14, 16, 12, 14, 16, -1],
+  chordIntervals: [[0, 4, 7], [0, 4, 7], [-3, 0, 4], [-1, 2, 5]],
+  bassType: 'sawtooth', melodyType: 'square', padType: 'triangle',
+  drumPattern: { kick: [1,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0], snare: [0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1], hat: [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] },
+  filterFreq: 4600, filterQ: 1
 };
 
 // ===== SHARED NOISE BUFFER (reused, not recreated) =====
@@ -426,7 +406,7 @@ class MusicGenerator {
   constructor(ctx, outputNode, skinName, settingsGetter) {
     this.ctx = ctx;
     this.skinName = skinName;
-    this.config = SKIN_MUSIC[skinName] || SKIN_MUSIC['Neural Highway'];
+    this.config = SKIN_MUSIC[skinName] || SKIN_MUSIC[MENU_THEME];
     this.scale = SCALES[this.config.scale] || SCALES.cMinorPentatonic;
     this.playing = false;
     this.schedulerTimer = null;
@@ -748,7 +728,7 @@ class MusicGenerator {
 
 
 /** The track on the Home screen and in menus (a run plays its map's own track). */
-export var MENU_THEME = 'Neural Highway';
+export var MENU_THEME = 'Dx Dash Menu';
 
 // ===== MAIN AUDIO ENGINE =====
 
@@ -1791,7 +1771,7 @@ class AudioEngine {
     if (!this.ctx) return;
     this.ambientPlaying = true;
 
-    var skinName = skinId || 'Neural Highway';
+    var skinName = skinId || MENU_THEME;
     this._startEnvironmentalFX(skinName);
   }
 

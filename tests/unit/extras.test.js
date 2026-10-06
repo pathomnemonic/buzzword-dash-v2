@@ -22,10 +22,10 @@ describe('map hazards', () => {
   it('waits for a few encounters, then runs for its duration and cools down', () => {
     const hz = new HazardManager();
     hz.cooldown = 0;
-    expect(hz.maybeStart('Neon ER', 1, () => 0)).toBeNull();      // too early
-    expect(hz.maybeStart('Neon ER', 5, () => 0.9)).toBeNull();    // unlucky roll
-    expect(hz.maybeStart('Neon ER', 5, () => 0)).toBe('surge');
-    expect(hz.maybeStart('Neon ER', 6, () => 0)).toBeNull();      // already active
+    expect(hz.maybeStart('Hospital Hallway', 1, () => 0)).toBeNull();      // too early
+    expect(hz.maybeStart('Hospital Hallway', 5, () => 0.9)).toBeNull();    // unlucky roll
+    expect(hz.maybeStart('Hospital Hallway', 5, () => 0)).toBe('surge');
+    expect(hz.maybeStart('Hospital Hallway', 6, () => 0)).toBeNull();      // already active
 
     const fx = hz.update(0.5);
     expect(fx.type).toBe('surge');
@@ -33,7 +33,7 @@ describe('map hazards', () => {
     const end = hz.update(HAZARDS.surge.duration);
     expect(end.ended).toBe(true);
     expect(hz.type).toBeNull();
-    expect(hz.maybeStart('Neon ER', 9, () => 0)).toBeNull();      // cooling down
+    expect(hz.maybeStart('Hospital Hallway', 9, () => 0)).toBeNull();      // cooling down
   });
 
   it('only the surge changes speed; others never alter it', () => {
@@ -204,7 +204,7 @@ describe('adaptive music', () => {
     const { MusicGenerator } = await import('../../js/audio.js');
     const node = () => ({ connect() {}, gain: { value: 1 }, frequency: { value: 0, setTargetAtTime() {} }, Q: { value: 0 } });
     const ctx = { currentTime: 0, createGain: node, createBiquadFilter: node };
-    const gen = new MusicGenerator(ctx, node(), 'Neon ER', () => ({ masterVolume: 1, musicVolume: 1 }));
+    const gen = new MusicGenerator(ctx, node(), 'Hospital Hallway', () => ({ masterVolume: 1, musicVolume: 1 }));
     const calls = { bass: 0, melody: 0, hat: 0 };
     gen._playDrums = () => {};
     gen._playPad = () => {};

@@ -11,23 +11,23 @@
  */
 
 export var HAZARD_BY_SKIN = {
-  'Neural Highway': 'blackout',
-  'Vascular Rush': 'pulse',
-  'Skeletal Corridor': 'quake',
-  'Cellular Matrix': 'fog',
-  'Neon ER': 'surge',
   'Hospital Hallway': 'surge',
   'Operating Room': 'blackout',
   'Research Lab': 'glitch',
   'Ambulance Bay': 'flare',
-  'DNA Helix Tunnel': 'fog',
+  // the bright maps only ever get the gentle ones: a speed surge, a bright flare, a signal glitch or a pulse
+  'Neural Highway': 'glitch',
+  'Vascular Rush': 'surge',
+  'Skeletal Corridor': 'pulse',
+  'Cellular Matrix': 'pulse',
+  'Neon ER': 'flare',
+  'DNA Helix Tunnel': 'glitch',
   'Prescription Sunset': 'flare',
   'Cardiac Pulse': 'pulse',
-  'Surgical Theater': 'blackout',
-  'Candy Lab': 'glitch',
-  'X-Ray Vision': 'glitch',
+  'Surgical Theater': 'flare',
+  'Candy Lab': 'surge',
+  'X-Ray Vision': 'flare',
   'Defibrillator Shock': 'surge',
-  // the bright maps only ever get the gentle ones: a speed surge or a bright flare
   'Pediatric Playland': 'surge',
   'Sunshine Rehab Garden': 'flare',
   'Cafeteria Carnival': 'surge',

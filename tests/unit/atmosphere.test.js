@@ -5,12 +5,23 @@ import { buildTrack } from '../../js/game/track.js';
 import { updateAnimators } from '../../js/game/mapfx.js';
 import { ATMOSPHERES, allowedAtmospheres, pickAtmosphere, applyAtmosphere } from '../../js/game/atmosphere.js';
 
-const open = SKINS.filter((s) => s.world && !['playland', 'cafeteria', 'pharmacy', 'aquarium'].includes(s.world));
+const INDOOR_WORLDS = ['playland', 'cafeteria', 'pharmacy', 'aquarium', 'neural', 'vascular', 'neoner', 'theater', 'candylab', 'skeletal', 'cellular', 'dna', 'cardiac', 'xray', 'defib'];
+const open = SKINS.filter((s) => s.world && !INDOOR_WORLDS.includes(s.world) && !s.fixedSky);
 
 describe('time of day and weather', () => {
   it('only the open-air maps get a sky to change', () => {
     expect(open.map((s) => s.name).sort()).toEqual(['Anatomy Amusement Park', 'Holiday Wards', 'Neonatal Cloud Nursery', 'Rooftop Helipad Resort', 'Sunshine Rehab Garden', 'Vet and Farm Clinic']);
     expect(pickAtmosphere(SKINS.find((s) => s.name === 'Hospital Hallway'))).toBeNull();
+  });
+
+  it('the Prescription Sunset keeps its sunset: no random time of day or weather', () => {
+    const sunset = SKINS.find((s) => s.name === 'Prescription Sunset');
+    expect(sunset.fixedSky).toBe(true);
+    expect(allowedAtmospheres(sunset)).toEqual([]);
+    expect(pickAtmosphere(sunset)).toBeNull();
+    const top = sunset.sky.top;
+    applyAtmosphere(sunset, 'rain');
+    expect(sunset.sky.top).toBe(top);
   });
 
   it('picks every kind of day over enough runs, snow only in a Holiday Wards winter', () => {

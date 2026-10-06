@@ -25,7 +25,7 @@ describe('scrolling corridor', () => {
 
   it('keeps the far end covered while scrolling (no gap ahead of the player)', () => {
     const root = new THREE.Group();
-    const refs = buildTrack(root, SKINS[0], { quality: 'low', reducedMotion: true });
+    const refs = buildTrack(root, SKINS.find((s) => s.name === 'Operating Room'), { quality: 'low', reducedMotion: true });
     const wall = refs.scrollers[0];
     updateScrollers(refs.scrollers, wall.spacing * 0.99);
     let farthest = 0;
