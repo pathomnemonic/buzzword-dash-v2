@@ -63,12 +63,14 @@
   --lane-1: #ff9ccb; --lane-2: #ffe14a; --lane-3: #7fe6ff;
   /* video-game type: Jersey 10 only for big titles and score moments (small pixel text was hard to read), the readable face for everything else, Press Start 2P for the odd big arcade moment, and a plain
      readable face for long passages (the clues, explanations and teaching text) so studying stays easy on the eyes */
-  --font-display: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
   --font-title: "Jersey 10", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
   --font-pixel: "Press Start 2P", "Jersey 10", monospace;
   --font-read: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
 }
 
+@font-face { font-family: "Fredoka"; font-weight: 400 600; font-style: normal; font-display: swap; src: url("fonts/fredoka-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Fredoka"; font-weight: 700 900; font-style: normal; font-display: swap; src: url("fonts/fredoka-latin-700-normal.woff2") format("woff2"); }
 @font-face { font-family: "Jersey 10"; font-weight: 400; font-style: normal; font-display: swap; size-adjust: 118%; src: url("fonts/jersey-10-latin-400-normal.woff2") format("woff2"); }
 @font-face { font-family: "Press Start 2P"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/press-start-2p-latin-400-normal.woff2") format("woff2"); }
 

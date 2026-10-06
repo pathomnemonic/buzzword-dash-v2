@@ -516,6 +516,7 @@ export var settingsMethods = {
         'Hospital, lab and ambulance set pieces, from Poly Pizza (CC BY 3.0): Wheelchair and Ambulance by Poly by Google; IV stand by Daisuke Takeoka; Doctor and Ambulance by jeremy; Wet Floor Sign by J-Toastie; Microscope and Lab Desk by Colonel Cthulu; Science Tubes by Ryan Donaldson; Fire Extinguisher by Jarlan Perez.',
         'Doctor, nurse and paramedic: Quaternius characters (CC0).',
         'Scout: KayKit Adventurers Rogue by Kay Lousberg (CC0), www.kaylousberg.com.',
+        'Interface font: Fredoka (SIL Open Font License 1.1); big titles: Jersey 10 and Press Start 2P (SIL Open Font License 1.1).',
         'Dyslexia-friendly font: OpenDyslexic by Abbie Gonzalez (SIL Open Font License 1.1).'
       ].forEach(function (t) { creditsBody.appendChild(createElement('div', { className: 'howto-item', text: t })); });
       credits.appendChild(creditsBody);
