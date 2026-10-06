@@ -36,7 +36,9 @@ export function getTipUrl() {
   if (isNative()) return '';
   /** @type {Record<string, any>} */
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
-  var url = env.VITE_TIP_URL || '';
+  var url = String(env.VITE_TIP_URL || '').trim();
+  // a link pasted without its https:// (ko-fi.com/name) still works
+  if (url && !/^[a-z][a-z0-9+.-]*:/i.test(url)) url = 'https://' + url;
   return isValidTipUrl(url) ? url : '';
 }
 
