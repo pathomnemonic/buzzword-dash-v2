@@ -8,13 +8,13 @@ import { enableCoinInstancing, disableCoinInstancing, spawnCoinBatch, spawnCoins
 import { VISUAL_SPEED } from '../../js/game/enginedefs.js';
 
 describe('the rising chime', () => {
-  it('starts on the base note and climbs with every coin in a chain, up to two octaves', () => {
+  it('starts on the base note and climbs with every coin in a chain, up to one semitone', () => {
     expect(chimeRatio(0)).toBe(1);
     let prev = 1;
-    for (let n = 1; n <= 10; n++) { expect(chimeRatio(n)).toBeGreaterThan(prev); prev = chimeRatio(n); }
-    expect(chimeRatio(5)).toBeCloseTo(2, 5); // an octave up on the sixth coin
-    expect(chimeRatio(10)).toBeCloseTo(4, 5);
-    expect(chimeRatio(40)).toBe(chimeRatio(10)); // the top note holds
+    for (let n = 1; n <= 6; n++) { expect(chimeRatio(n)).toBeGreaterThan(prev); prev = chimeRatio(n); }
+    expect(chimeRatio(6)).toBeCloseTo(Math.pow(2, 1 / 12), 5); // a single semitone at the most
+    expect(chimeRatio(1)).toBeLessThan(1.01); // the first step is barely there
+    expect(chimeRatio(40)).toBe(chimeRatio(6)); // the top note holds
     expect(chimeRatio(-3)).toBe(1);
     expect(chimeRatio(NaN)).toBe(1);
   });

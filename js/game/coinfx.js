@@ -14,13 +14,14 @@
 /** Seconds after a coin during which the next one continues the chain (and the chime keeps climbing). */
 export var CHAIN_WINDOW = 1.1;
 
-/** Semitones above the first note, a major pentatonic climb so every note sounds good with the last. */
-var LADDER = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+/** How far the chime climbs: a sixth of a semitone per coin, and it stops at half a tone, so it only just brightens. */
+export var CHIME_STEP_SEMITONES = 1 / 6;
+export var CHIME_MAX_SEMITONES = 1;
 
 /** The pitch multiplier for the nth coin of a chain (0 is the first). The top note repeats. */
 export function chimeRatio(chain) {
   var n = Math.max(0, Math.floor(Number(chain) || 0));
-  var semis = LADDER[Math.min(n, LADDER.length - 1)];
+  var semis = Math.min(CHIME_MAX_SEMITONES, n * CHIME_STEP_SEMITONES);
   return Math.pow(2, semis / 12);
 }
 
