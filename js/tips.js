@@ -32,7 +32,7 @@ export function isValidTipUrl(url) {
 
 /** @returns {string} the configured tip URL, or '' if none/invalid or inside the store apps */
 export function getTipUrl() {
-  // Apple and Google restrict external payment links inside apps: tips are web-only
+  // Apple and Google restrict external payment links inside apps: the apps use the in-app tip jar instead (tipjar.js)
   if (isNative()) return '';
   /** @type {Record<string, any>} */
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
@@ -44,6 +44,7 @@ export function getTipUrl() {
  * Decide whether to show the post-run tip note.
  * @param {object} input
  * @param {string} input.tipUrl
+ * @param {boolean} [input.iap] - the phone app's in-app tip jar is available (no link needed)
  * @param {boolean} input.optedOut - the player chose "don't ask again"
  * @param {number} input.totalRuns
  * @param {number} input.lastPromptAt - ms timestamp of the last prompt (0 if never)
@@ -53,7 +54,7 @@ export function getTipUrl() {
  * @returns {boolean}
  */
 export function shouldShowTipPrompt(input) {
-  if (!isValidTipUrl(input.tipUrl)) return false;
+  if (!input.iap && !isValidTipUrl(input.tipUrl)) return false;
   if (input.optedOut) return false;
   if (input.totalRuns < MIN_RUNS) return false;
   if (input.now - (input.lastPromptAt || 0) < COOLDOWN_MS) return false;

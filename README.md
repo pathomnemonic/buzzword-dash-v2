@@ -468,3 +468,4 @@ The soft glowing specks that float across the track are off by default (Settings
 
 First-party, anonymous, opt-in usage analytics (no third-party SDK). Events go to this project's Supabase database and are read with SQL views.
 See [docs/ANALYTICS-GUIDE.md](docs/ANALYTICS-GUIDE.md) (setup, what to look at, launch checklist) and [docs/ANALYTICS.md](docs/ANALYTICS.md) (every event, generated from the code).
+- Tip jar (in-app purchases for tips): [docs/TIP-JAR.md](docs/TIP-JAR.md)

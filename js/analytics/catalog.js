@@ -176,7 +176,8 @@ export var EVENTS = {
   // ───────────────────────── feedback, ratings, money ─────────────────────────
   rating_prompt: ['growth', 'The "enjoying Dx Dash?" prompt and where it led.', { step: 'e:shown|enjoying_yes|enjoying_no|store_opened|feedback_opened|dismissed|later!', trigger: 's30', runs_total: 'i', days_since_install: 'i' }],
   feedback_sent: ['growth', 'Feedback was sent (never the text).', { mood: 'e:unhappy|idea|bug', length: 'i', has_contact: 'b', ok: 'b' }],
-  tip_prompt: ['monetization', 'The tip jar: shown, clicked, dismissed.', { step: 'e:shown|clicked|dismissed|opened_settings!', trigger: 's30', runs_total: 'i', days_since_install: 'i' }],
+  tip_purchase: ['monetization', 'An in-app tip (phone apps only): started, completed, cancelled or failed, with the store price.', { outcome: 'e:started|completed|cancelled|failed!', product: 's40', price: 's16', micros: 'i', currency: 's3' }],
+  tip_prompt: ['monetization', 'The tip jar: shown, clicked, dismissed.', { step: 'e:shown|clicked|dismissed|opened_settings|opened_jar!', trigger: 's30', runs_total: 'i', days_since_install: 'i' }],
   next_goal_shown: ['engagement', 'The "next goal" nudge after a run.', { kind: 's24', clicked: 'b' }],
   nudge_shown: ['engagement', 'Any in-app nudge or smart prompt, and whether it worked.', { kind: 's30!', acted: 'b' }],
   review_tip: ['engagement', 'The one-time pointer at the review section.', { acted: 'b' }],

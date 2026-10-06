@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **101**.
+Total events: **102**.
 
 ## Acquisition
 
@@ -1043,13 +1043,25 @@ Feedback was sent (never the text).
 
 ## Monetization
 
+### `tip_purchase`
+
+An in-app tip (phone apps only): started, completed, cancelled or failed, with the store price.
+
+| Property | Type |
+|---|---|
+| `outcome` | one of: started, completed, cancelled, failed — required |
+| `product` | text (≤40) |
+| `price` | text (≤16) |
+| `micros` | whole number |
+| `currency` | text (≤3) |
+
 ### `tip_prompt`
 
 The tip jar: shown, clicked, dismissed.
 
 | Property | Type |
 |---|---|
-| `step` | one of: shown, clicked, dismissed, opened_settings — required |
+| `step` | one of: shown, clicked, dismissed, opened_settings, opened_jar — required |
 | `trigger` | text (≤30) |
 | `runs_total` | whole number |
 | `days_since_install` | whole number |

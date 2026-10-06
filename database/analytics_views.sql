@@ -704,6 +704,13 @@ CREATE OR REPLACE VIEW analytics_v_tip_funnel AS
 SELECT props ->> 'step' AS step, coalesce(props ->> 'trigger', '') AS trigger, count(*) AS events, count(DISTINCT install_id) AS installs, round(avg(analytics_num(props, 'runs_total')), 1) AS avg_runs, round(avg(analytics_num(props, 'days_since_install')), 1) AS avg_days
 FROM analytics_events WHERE name = 'tip_prompt' GROUP BY 1, 2 ORDER BY events DESC;
 
+-- tips bought in the phone apps: by product and outcome, and the money that came in (completed tips only, by currency; before the store's cut)
+CREATE OR REPLACE VIEW analytics_v_tip_revenue AS
+SELECT coalesce(props ->> 'product', '') AS product, coalesce(props ->> 'currency', '') AS currency, props ->> 'outcome' AS outcome,
+       count(*) AS events, count(DISTINCT install_id) AS installs,
+       CASE WHEN props ->> 'outcome' = 'completed' THEN round(sum(analytics_num(props, 'micros')) / 1000000.0, 2) END AS total
+FROM analytics_events WHERE name = 'tip_purchase' GROUP BY 1, 2, 3 ORDER BY 1, 3;
+
 CREATE OR REPLACE VIEW analytics_v_reminders AS
 SELECT props ->> 'action' AS action, coalesce(analytics_bool(props, 'native'), false) AS native, count(*) AS events, count(DISTINCT install_id) AS installs, round(avg(analytics_num(props, 'hour')), 1) AS avg_hour
 FROM analytics_events WHERE name = 'reminder_state' GROUP BY 1, 2 ORDER BY events DESC;

@@ -21,6 +21,8 @@
  * Per Sections 19, 30 and 31 of the architecture contract [2].
  */
 
+import { probeTipJar, tipJarReady } from './tipjar.js';
+import { openTipJar } from './tipui.js';
 import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage, STORAGE_DEFAULTS } from './storage.js';
@@ -662,6 +664,7 @@ function attachTipPrompt() {
   if (asked) return;
   var shouldShow = shouldShowTipPrompt({
     tipUrl: getTipUrl(),
+    iap: tipJarReady(),
     optedOut: !!storage.get('tipPromptOff'),
     totalRuns: storage.data.history.recentRuns.length,
     lastPromptAt: storage.get('lastTipPromptAt') || 0,
@@ -691,7 +694,7 @@ function attachTipPrompt() {
     b.addEventListener('click', onClick);
     row.appendChild(b);
   }
-  makeButton('\u2615 Leave a tip', 'btn-gold', function () { trackEvent('tip_prompt', Object.assign({ step: 'clicked' }, tipFacts)); openTipPage(); box.remove(); });
+  makeButton('\u2615 Leave a tip', 'btn-gold', function () { trackEvent('tip_prompt', Object.assign({ step: 'clicked' }, tipFacts)); if (tipJarReady()) openTipJar(function (m) { ui._showToast(m); }); else openTipPage(); box.remove(); });
   makeButton('Not now', 'btn-outline', function () { trackEvent('tip_prompt', Object.assign({ step: 'dismissed' }, tipFacts)); box.remove(); });
   makeButton('Don\u2019t ask again', 'btn-outline', function () { storage.set('tipPromptOff', true); box.remove(); });
   box.appendChild(row);
@@ -1271,6 +1274,7 @@ function init() {
   }
   installGlobalErrorHandlers();
   try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
+  probeTipJar(); // phone apps: find out whether the store has the tip products
   watchBattery(); // a nearly flat phone steps Auto graphics down a tier
   watchConnection(function (msg) { ui.showNotice(msg, { ms: 4500 }); });
   // Anonymous crash and slow-frame reports, only for players who switched them on in Settings

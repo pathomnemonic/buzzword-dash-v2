@@ -5,6 +5,8 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { tipJarReady } from './tipjar.js';
+import { openTipJar } from './tipui.js';
 import { track as trackEvent } from './analytics/index.js';
 import { renderAnalyticsSettings } from './analyticsui.js';
 import { storyFor } from './stories.js';
@@ -514,7 +516,7 @@ export var settingsMethods = {
       content.appendChild(credits);
 
       // Optional tip link (only when a tip page is configured at build time)
-      if (getTipUrl()) {
+      if (getTipUrl() || tipJarReady()) {
         var tipRow = createElement('div', { className: 'setting-row' });
         var tipLabel = createElement('div');
         tipLabel.style.flex = '1';
@@ -522,7 +524,7 @@ export var settingsMethods = {
         tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
         tipRow.appendChild(tipLabel);
         var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
-        tipBtn.addEventListener('click', function () { trackEvent('tip_prompt', { step: 'opened_settings' }); openTipPage(); });
+        tipBtn.addEventListener('click', function () { trackEvent('tip_prompt', { step: 'opened_settings' }); if (tipJarReady()) openTipJar(function (m) { self._showToast(m); }); else openTipPage(); });
         tipRow.appendChild(tipBtn);
         content.appendChild(tipRow);
       }
