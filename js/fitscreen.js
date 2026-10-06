@@ -60,6 +60,13 @@ function fitScreenNow(screen, parts) {
   var wrap = parts.wrap;
   var cs = getComputedStyle(scroll);
   var avail = scroll.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  // A section the player opened: keep the size the screen already had and let it scroll, however much room zoom 1 would
+  // leave. (Re-fitting with the section open made the whole screen shrink the moment it opened, and grow when it closed.)
+  if (screen._fitZoom && parts.wrap.querySelector('details[open]')) {
+    var held = Math.max(1, Math.min(Number(screen._fitZoom) || 1, Math.max(1, scroll.clientWidth / MIN_EFFECTIVE_WIDTH)));
+    wrap.style.zoom = String(Math.round(held * 1000) / 1000);
+    return held;
+  }
   wrap.style.zoom = '1';
   var h = wrap.getBoundingClientRect().height;
   var widthCap0 = Math.max(1, scroll.clientWidth / MIN_EFFECTIVE_WIDTH);
