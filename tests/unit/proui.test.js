@@ -5,7 +5,7 @@ vi.mock('../../js/native.js', () => ({ isNative: () => true, getNativePlatform: 
 import { setProConfigForTest } from '../../js/remoteconfig.js';
 import { resetProForTest, setSellableForTest } from '../../js/pro.js';
 import { setIapForTest, createIap } from '../../js/iap.js';
-import { openPaywall, renderProSettings, installProUi, setProUiDeps } from '../../js/proui.js';
+import { openPaywall, renderProSettings, installProUi, setProUiDeps, mountProButton } from '../../js/proui.js';
 
 function fakePlugin(owned = []) {
   const handlers = {}; const products = {}; const own = new Set(owned);
@@ -52,6 +52,24 @@ describe('Pro screens once switched on', () => {
     setSellableForTest(true);
     setProConfigForTest({ enabled: true, gates: { offline_pack: 'locked' } });
     setProUiDeps({ toast: () => {} });
+  });
+
+  it('the paywall lists every Pro feature and puts the one just tapped first', () => {
+    const o = openPaywall({ trigger: 'gate_offline_pack', feature: 'offline_pack' });
+    const items = [...o.querySelectorAll('.pro-feature')];
+    expect(items.length).toBe(7);
+    expect(items[0].textContent).toMatch(/Play with no connection/);
+    expect(items[0].classList.contains('pro-feature-hit')).toBe(true);
+    expect(o.textContent).toMatch(/Free: 300 cards/);
+  });
+
+  it('the Home button shows while Pro is on sale and opens the paywall', () => {
+    document.body.innerHTML = '<button id="homeProBtn" hidden><span id="homeProText"></span></button>';
+    const btn = mountProButton();
+    expect(btn.hidden).toBe(false);
+    expect(btn.textContent).toMatch(/Go Pro/);
+    btn.click();
+    expect(document.getElementById('proPaywall')).toBeTruthy();
   });
 
   it('the paywall shows the benefits, the store prices and a way out', async () => {

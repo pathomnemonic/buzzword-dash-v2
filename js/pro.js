@@ -50,6 +50,20 @@ export var PRO_BENEFITS = [
   'Keeps a solo developer making the game'
 ];
 
+/**
+ * What Pro gives, one entry per gate in proconfig.js (id = the gate), for the detail list in the Pro popup.
+ * `free` says what a free player has, so the difference is clear.
+ */
+export var PRO_FEATURES = [
+  { id: 'card_library', icon: '🗂', title: 'The whole card bank', detail: 'All 3,010 cards across every subject and system.', free: 'Free: 300 cards' },
+  { id: 'explanations', icon: '💡', title: 'Every "why" explanation', detail: 'See why the answer is right and why the others are not, after every miss.', free: 'Free: 8 a day' },
+  { id: 'exam_sim', icon: '⏱', title: 'Unlimited exam simulations', detail: 'Timed blocks with pacing, flagged questions and a score report.', free: 'Free: 1 a week' },
+  { id: 'analytics_detail', icon: '📊', title: 'Detailed stats', detail: 'Subject and system breakdowns, weak spots, exam pacing, and export to a file.', free: 'Free: the basics' },
+  { id: 'custom_cards', icon: '✏️', title: 'Unlimited custom cards', detail: 'Write your own cards for anything your course throws at you.', free: 'Free: 25 cards' },
+  { id: 'anki_import', icon: '📥', title: 'Anki import', detail: 'Bring in your existing Anki decks and play them in the game.', free: 'Free: not included' },
+  { id: 'offline_pack', icon: '✈️', title: 'Play with no connection', detail: 'Download your subjects once and study on a plane, a train or bad hospital wifi.', free: 'Free: online only' }
+];
+
 function store() { try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch (e) { return null; } }
 function readJson(key, fallback) { try { var s = store(); var raw = s && s.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; } }
 function writeJson(key, value) { try { var s = store(); if (s) s.setItem(key, JSON.stringify(value)); } catch (e) { /* storage full: this session still has it */ } }

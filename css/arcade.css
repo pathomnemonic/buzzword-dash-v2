@@ -2326,3 +2326,18 @@ img.pixel, canvas { image-rendering: auto; }
 .btn { font-size: max(1em, 17px); }
 .btn-sm { font-size: max(1em, 15px); }
 body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "OpenDyslexic", "Comic Sans MS", sans-serif; letter-spacing: 0; }
+
+
+/* Pro: the small gold button on Home, and the "what you get" list in the Pro popup */
+.top-btn-pro { color: #3a2600; background: linear-gradient(180deg, #ffe27a, #ffb52e); border: 2px solid #8a5a00; border-radius: 12px; font-size: 18px; padding: 0 10px; min-width: 44px; box-shadow: 0 2px 0 #8a5a00; }
+.top-btn-pro[hidden] { display: none; }
+.top-btn-pro.pro-on { background: linear-gradient(180deg, #b8f5c8, #5fd88a); border-color: #1f7a45; box-shadow: 0 2px 0 #1f7a45; }
+.top-btn-pro .top-btn-text { font-weight: 800; }
+@media (max-width: 420px) { .home-topbar .top-btn-pro .top-btn-text { display: inline; font-size: 10px; } }
+.pro-features { display: grid; gap: 6px; margin: 8px 0 10px; padding: 0; list-style: none; text-align: left; }
+.pro-feature { display: grid; grid-template-columns: 30px 1fr; gap: 8px; align-items: start; padding: 7px 9px; border-radius: 12px; background: rgba(255,255,255,.07); border: 2px solid transparent; }
+.pro-feature-icon { font-size: 22px; line-height: 1.1; text-align: center; }
+.pro-feature-title { font-weight: 800; font-size: 14px; }
+.pro-feature-detail { font-size: 12.5px; line-height: 1.4; opacity: .85; }
+.pro-feature.pro-feature-hit { border-color: var(--accent-gold, #ffd24a); background: rgba(255,210,74,.14); }
+.pro-feature-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 8px; background: var(--accent-gold, #ffd24a); color: #3a2600; font-size: 10px; font-weight: 800; text-transform: uppercase; }

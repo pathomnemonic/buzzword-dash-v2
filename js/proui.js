@@ -10,7 +10,7 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_BENEFITS, libraryUnlocked } from './pro.js';
+import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_FEATURES, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
@@ -36,6 +36,25 @@ function perMonth(p) {
   try { return 'about ' + new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'USD' }).format(each) + ' a month'; } catch (e) { return ''; }
 }
 
+
+/** The "what Pro gets you" list; the feature the player just tapped (if any) goes first and is marked. */
+function featureList(hit) {
+  var ul = createElement('ul', { className: 'pro-features' });
+  var items = PRO_FEATURES.slice().sort(function (a, b) { return (b.id === hit ? 1 : 0) - (a.id === hit ? 1 : 0); });
+  items.forEach(function (f) {
+    var li = createElement('li', { className: 'pro-feature' + (f.id === hit ? ' pro-feature-hit' : '') });
+    li.appendChild(createElement('span', { className: 'pro-feature-icon', text: f.icon, attributes: { 'aria-hidden': 'true' } }));
+    var body = createElement('div');
+    var t = createElement('div', { className: 'pro-feature-title', text: f.title });
+    if (f.id === hit) t.appendChild(createElement('span', { className: 'pro-feature-tag', text: 'You tapped this' }));
+    body.appendChild(t);
+    body.appendChild(createElement('div', { className: 'pro-feature-detail', text: f.detail + ' ' + f.free + '.' }));
+    li.appendChild(body);
+    ul.appendChild(li);
+  });
+  return ul;
+}
+
 /**
  * Open the Pro screen. Does nothing while Pro is dormant.
  * @param {{trigger?: string, feature?: string}} [o]
@@ -56,10 +75,10 @@ export function openPaywall(o) {
   } else {
     var counts = libraryCounts();
     box.appendChild(createElement('p', { text: counts.total ? 'Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards. Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' }));
-    var ul = createElement('ul');
-    ul.style.cssText = 'margin:6px 0 10px 18px;padding:0;text-align:left;font-size:13px;line-height:1.5';
-    PRO_BENEFITS.forEach(function (t) { ul.appendChild(createElement('li', { text: t })); });
-    box.appendChild(ul);
+    box.appendChild(featureList(o.feature));
+    var thanks = createElement('p', { text: 'Pro also keeps a solo developer making the game. 💜' });
+    thanks.style.cssText = 'font-size:12px;opacity:.8;margin:2px 0 6px';
+    box.appendChild(thanks);
     if (!(_lb && _lb.isAuthenticated && _lb.isAuthenticated()) || (_lb.isGuest && _lb.isGuest())) {
       var tr = createElement('p', { text: '🎁 New here? Create a free account (Friends → Account) and get a 7-day Pro trial: no card, nothing to cancel.' });
       tr.style.cssText = 'font-size:13px;font-weight:800;margin:6px 0';
@@ -219,6 +238,7 @@ export function openPaywall(o) {
   document.body.appendChild(overlay);
   trapFocus(overlay);
   close.focus();
+  overlay.scrollTop = 0; box.scrollTop = 0; setTimeout(function () { overlay.scrollTop = 0; box.scrollTop = 0; }, 0); // (focusing the last button must not scroll the list of benefits out of sight)
   return overlay;
 }
 
@@ -238,12 +258,38 @@ export function renderProSettings(container) {
   container.appendChild(row);
 }
 
+/** The small gold button on Home: shows while Pro can be bought or owned, turns green when Pro is on, and opens the Pro popup. */
+export function mountProButton() {
+  if (typeof document === 'undefined') return null;
+  var btn = document.getElementById('homeProBtn');
+  if (!btn || btn.getAttribute('data-mounted')) return btn;
+  btn.setAttribute('data-mounted', '1');
+  var text = document.getElementById('homeProText');
+  var paint = function () {
+    var live = proLive();
+    btn.hidden = !live;
+    if (!live) return;
+    var st = proStatus();
+    btn.classList.toggle('pro-on', !!st.active);
+    var label = st.active ? (st.trial ? 'Trial' : 'Pro') : 'Go Pro';
+    if (text) setText(text, label);
+    btn.setAttribute('aria-label', st.active ? (st.trial ? 'Dx Dash Pro trial: see details' : 'Dx Dash Pro: active') : 'Go Pro: see what Pro gets you');
+  };
+  btn.addEventListener('click', function () { openPaywall({ trigger: 'home_button' }); });
+  ['dx:pro-changed', 'dx:pro-trial-started'].forEach(function (ev) { document.addEventListener(ev, paint); });
+  paint();
+  setTimeout(paint, 1500);
+  setTimeout(paint, 6000);
+  return btn;
+}
+
 var _installed = false;
 /** Listen for gates being hit, and keep the screens in step. Call once at start-up. */
 export function installProUi(deps) {
   if (deps) setProUiDeps(deps);
   if (_installed || typeof document === 'undefined') return;
   _installed = true;
+  mountProButton();
   document.addEventListener('dx:pro-gate', function (e) {
     var d = (e && e.detail) || {};
     openPaywall({ trigger: 'gate_' + String(d.trigger || d.feature || 'feature').slice(0, 20), feature: d.feature });
