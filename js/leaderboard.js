@@ -568,6 +568,27 @@ var leaderboard = {
     return getUserId();
   },
 
+  /** Is this a guest (no email yet)? Web Pro belongs to an account, so a guest is told to sign up to keep it. */
+  isGuest: function () {
+    return !!(_session && _session.user && (_session.user.is_anonymous || !_session.user.email));
+  },
+
+  /**
+   * Ask the web-payments function (supabase/functions/pro-checkout): 'prices', 'checkout' ({plan}) or 'portal'.
+   * Always resolves: { plans } | { url } | { error }.
+   */
+  proFunction: function (action, extra) {
+    if (!_client) return Promise.resolve({ error: 'Web payments are not available right now.' });
+    return _client.functions.invoke('pro-checkout', { body: Object.assign({ action: action }, extra || {}) }).then(function (res) {
+      if (res.error) {
+        var ctx = res.error.context;
+        if (ctx && typeof ctx.json === 'function') return ctx.json().then(function (j) { return { error: (j && j.error) || res.error.message }; }, function () { return { error: res.error.message }; });
+        return { error: res.error.message };
+      }
+      return res.data || {};
+    }).catch(function (e) { return { error: (e && e.message) || 'Could not reach the payment service.' }; });
+  },
+
   /**
    * Submit a verified score from a completed run.
    * Architecture §27.3: Profile bests use maximum values (server-side GREATEST).

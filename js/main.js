@@ -23,7 +23,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro, probeSellable, libraryUnlocked } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -1280,6 +1280,17 @@ function init() {
   }
   installGlobalErrorHandlers();
   try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
+  // the website's payment page sends the player back with ?pro=success or ?pro=cancelled; read it, then tidy the address
+  var webPayReturn = '';
+  try {
+    var retParams = new URLSearchParams(location.search);
+    if (retParams.has('pro')) {
+      webPayReturn = retParams.get('pro');
+      retParams.delete('pro');
+      var rest = retParams.toString();
+      history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+    }
+  } catch (e) { webPayReturn = ''; }
   registerProProducts(); // (before the store starts: the tip jar and Pro share one connection)
   var syncLibrary = function () { setLibraryUnlocked(libraryUnlocked()); if (areCardsReady()) { ui.renderHome(); ui.renderSubjects(); } };
   document.addEventListener('dx:pro-changed', syncLibrary);
@@ -1361,6 +1372,22 @@ function init() {
     instrumentLeaderboard(mod.leaderboard);
     setProUiDeps({ lb: mod.leaderboard });
     mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); });
+    if (webPayReturn === 'success') {
+      // back from Stripe: the payment reaches the server a moment later, so keep asking for a little while
+      mod.leaderboard.init().then(function () {
+        var waited = 0;
+        var go = function () {
+          if (!mod.leaderboard.isAuthenticated() && waited < 8000) { waited += 500; setTimeout(go, 500); return; }
+          ui._showToast('Thank you! Setting up your purchase…', 3000);
+          waitForWebPayment(mod.leaderboard).then(function (r) {
+            ui._showToast(r.active ? 'Welcome to Dx Dash Pro! 🎉' : r.library ? 'All cards unlocked! 🎉' : 'Payment received. It can take a minute to show: open Settings → Dx Dash Pro and tap Check again.', 4000);
+          });
+        };
+        go();
+      });
+    } else if (webPayReturn === 'cancelled') {
+      ui._showToast('No problem, nothing was charged.', 2500);
+    }
     mod.leaderboard.init().then(function () {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);

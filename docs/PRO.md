@@ -12,7 +12,7 @@ Files: `js/pro.js` (who has Pro, gates, buying), `js/proui.js` (paywall, "unlock
 
 `proLive()` is true only when Pro is switched on **and** something can be bought:
 - **Phone apps:** once the store answered with the Pro products (the answer is remembered for the next launch).
-- **Web:** when `VITE_PRO_WEB_URL` (a Stripe Payment Link) is set at build time.
+- **Web:** when `VITE_PRO_WEB_CHECKOUT=1` (the Stripe checkout functions are live; see Web payments below), or the older `VITE_PRO_WEB_URL` (a single Stripe Payment Link).
 Otherwise nothing is limited and no Pro screen shows. So a local build, a store listing whose products are not set up yet, or the web before you add a payment link all behave as fully free. Nobody is ever locked out of something they cannot buy.
 
 ## Products to create (ids must match)
@@ -30,9 +30,30 @@ Otherwise nothing is limited and no Pro screen shows. So a local build, a store 
 
 ## Web payments, codes and seats
 
-1. Run `database/pro.sql` in the Supabase SQL editor.
-2. Create a Stripe Payment Link (yearly) and set `VITE_PRO_WEB_URL` for the web build. The app appends the account id as `client_reference_id`. A Stripe webhook for `checkout.session.completed` calls `pro_grant('<client_reference_id>', 365, 'yearly', 'stripe')` with the service key (a small Supabase Edge Function).
-3. Promo and seat codes: `INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch week');`. Players enter them on the paywall ("Have a code?"). Use for creators, ambassadors, schools.
+On the website the paywall shows your real Stripe prices and sends the player to Stripe's own payment page. Stripe then tells a small server function, which turns Pro on in the database; the page asks again when the player comes back. Nothing about payment is stored in the app. All five products work: yearly (with the 7-day trial), 3-month pass, monthly, Lifetime and the one-time Full Library unlock. Renewals extend Pro by themselves, cancelling is done on Stripe's page (Settings → Dx Dash Pro → Manage), and a full refund of Lifetime or the Library takes it back.
+
+**One-time setup (about an hour):**
+
+1. **Database.** Run `database/pro.sql` in the Supabase SQL editor (safe to run again).
+2. **Stripe products.** In Stripe (start in Test mode) create five Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time), Full Library (one time). Copy each **Price id** (`price_...`). Turn on the customer portal (Settings → Billing → Customer portal) so people can cancel.
+3. **Deploy the two functions** (needs the [Supabase CLI](https://supabase.com/docs/guides/cli), logged in and linked to your project):
+   ```
+   supabase functions deploy pro-checkout
+   supabase functions deploy stripe-webhook --no-verify-jwt
+   ```
+4. **Function secrets** (Supabase dashboard → Edge Functions → Secrets, or `supabase secrets set ...`):
+   `STRIPE_SECRET_KEY` (Stripe → Developers → API keys), `SITE_URL` (your site address with no slash, e.g. `https://pathomnemonic.github.io/buzzword-dash-v2`), and one Price id each: `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_PASS3M`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_LIFETIME`, `STRIPE_PRICE_LIBRARY` (leave out any you do not want to sell). Optional `STRIPE_TRIAL_DAYS` (default 7 for yearly; 0 turns the trial off).
+5. **Webhook.** In Stripe → Developers → Webhooks add the endpoint `https://<your-project>.supabase.co/functions/v1/stripe-webhook`, choose the events `checkout.session.completed`, `invoice.paid` and `charge.refunded`, and save its **Signing secret** as the function secret `STRIPE_WEBHOOK_SECRET`.
+6. **Switch it on.** In GitHub add the repository variable `VITE_PRO_WEB_CHECKOUT` = `1` (Settings → Secrets and variables → Actions → Variables) and re-run the deploy. Until you do, the website behaves as fully free with no Pro screens. (`VITE_SUPABASE_URL` must be set too; it already is for the leaderboard.)
+7. **Test.** With Stripe in Test mode, open the site, tap a locked section → a plan → pay with card `4242 4242 4242 4242` (any future date and CVC). You should land back on the game with "Welcome to Dx Dash Pro!". Then switch Stripe to Live mode, swap the live key, Price ids and webhook secret into the function secrets, and you are selling.
+
+Notes: web Pro belongs to an **account**, so a guest is told to create one first (Friends → Account) or they lose it with their browser data. A subscription runs to the end of the paid period plus two days of grace. The same person can also hold Pro from the phone stores; whichever ends last wins. You see everything in Stripe, and who has Pro in the database views `pro_v_active`.
+
+Files: `supabase/functions/pro-checkout` (prices, start checkout, billing portal), `supabase/functions/stripe-webhook`, `supabase/functions/_shared/billing.js` (all the rules, unit-tested in `tests/unit/billing.test.js`), `database/pro.sql`, and in the app `js/pro.js` (`webPlans`, `webBuy`, `webManage`, `waitForWebPayment`) and `js/proui.js` (the website paywall).
+
+The old way, a single Stripe Payment Link in `VITE_PRO_WEB_URL`, still works if you set that instead (no plan choice, no Manage button; you call `pro_grant` yourself or from your own webhook).
+
+**Promo and seat codes:** `INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch week');`. Players enter them on the paywall ("Have a code?"). Use for creators, ambassadors, schools.
 
 ## Changing what is limited (no release)
 

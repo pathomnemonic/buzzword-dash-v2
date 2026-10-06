@@ -39,6 +39,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
           VITE_FEATURE_COHORTS: ${{ vars.VITE_FEATURE_COHORTS }}
+          # Pro on the website: set to 1 once the Stripe functions in supabase/functions are deployed (docs/PRO.md)
+          VITE_PRO_WEB_CHECKOUT: ${{ vars.VITE_PRO_WEB_CHECKOUT }}
           # Optional: your tip page (Ko-fi, Buy Me a Coffee, GitHub Sponsors, Stripe link)
           VITE_TIP_URL: ${{ vars.VITE_TIP_URL || secrets.VITE_TIP_URL }}
           VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}

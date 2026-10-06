@@ -46,21 +46,46 @@ CREATE TABLE IF NOT EXISTS pro_attempts (
   PRIMARY KEY (user_id, hour)
 );
 
+-- web payments (Stripe): who paid, which Stripe customer is whose, and which webhook events were already handled
+CREATE TABLE IF NOT EXISTS pro_library (
+  user_id uuid PRIMARY KEY,
+  source text NOT NULL DEFAULT 'manual',
+  granted_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS pro_stripe_customers (
+  customer_id text PRIMARY KEY,
+  user_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS pro_stripe_customers_user ON pro_stripe_customers (user_id);
+CREATE TABLE IF NOT EXISTS pro_stripe_events (
+  event_id text PRIMARY KEY,
+  kind text,
+  handled_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE pro_library ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pro_stripe_customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pro_stripe_events ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_library, pro_stripe_customers, pro_stripe_events FROM PUBLIC, anon, authenticated;
+
 ALTER TABLE pro_entitlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_attempts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON pro_entitlements, pro_codes, pro_redemptions, pro_attempts FROM PUBLIC, anon, authenticated;
 
--- Do I have Pro right now? { active, until, plan, source, trial }
+-- Do I have Pro right now? { active, until, plan, source, trial, library }
+-- (library: I bought the one-time Full Library unlock, which opens every card but not the study tools)
 CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
-DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE;
+DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean;
 BEGIN
-  IF me IS NULL THEN RETURN jsonb_build_object('active', false); END IF;
+  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false); END IF;
+  lib := EXISTS (SELECT 1 FROM pro_library WHERE user_id = me);
   SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
-  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false); END IF;
-  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial);
+  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib); END IF;
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'library', lib);
 END $$;
 
 -- Give Pro for some days (adds to what is left). Service role / SQL editor only.
@@ -112,6 +137,68 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'until', new_until, 'days', c.days);
 END $$;
 
+-- Set Pro to last until an exact moment (a web subscription: the end of the period just paid). Never shortens a longer
+-- lifetime or code grant. Service role only.
+CREATE OR REPLACE FUNCTION pro_grant_until(p_user uuid, p_until timestamptz, p_plan text DEFAULT 'pro', p_source text DEFAULT 'stripe', p_trial boolean DEFAULT false) RETURNS timestamptz
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE new_until timestamptz;
+BEGIN
+  IF p_until IS NULL OR p_until > now() + interval '3651 days' THEN RAISE EXCEPTION 'until is out of range'; END IF;
+  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at)
+  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'stripe'), p_until, coalesce(p_trial, false), now())
+  ON CONFLICT (user_id) DO UPDATE SET
+    until = greatest(e.until, excluded.until),
+    plan = CASE WHEN excluded.until >= e.until THEN excluded.plan ELSE e.plan END,
+    source = CASE WHEN excluded.until >= e.until THEN excluded.source ELSE e.source END,
+    trial = excluded.trial AND excluded.until >= e.until,
+    updated_at = now()
+  RETURNING until INTO new_until;
+  RETURN new_until;
+END $$;
+
+-- The one-time Full Library unlock (every card, no tools). Service role only.
+CREATE OR REPLACE FUNCTION pro_grant_library(p_user uuid, p_source text DEFAULT 'stripe') RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  INSERT INTO pro_library (user_id, source) VALUES (p_user, coalesce(p_source, 'stripe')) ON CONFLICT (user_id) DO NOTHING;
+$$;
+
+-- Take a refunded Full Library unlock back. Service role only.
+CREATE OR REPLACE FUNCTION pro_revoke_library(p_user uuid) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  DELETE FROM pro_library WHERE user_id = p_user;
+$$;
+
+-- Remember that a Stripe customer is this player, and which Stripe user a renewal belongs to. Service role only.
+CREATE OR REPLACE FUNCTION pro_link_customer(p_customer text, p_user uuid) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  INSERT INTO pro_stripe_customers (customer_id, user_id) VALUES (p_customer, p_user) ON CONFLICT (customer_id) DO NOTHING;
+$$;
+CREATE OR REPLACE FUNCTION pro_customer_user(p_customer text) RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT user_id FROM pro_stripe_customers WHERE customer_id = p_customer;
+$$;
+CREATE OR REPLACE FUNCTION pro_user_customer(p_user uuid) RETURNS text
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT customer_id FROM pro_stripe_customers WHERE user_id = p_user ORDER BY created_at DESC LIMIT 1;
+$$;
+
+-- True the first time an event id is seen, false for a repeat (Stripe sends some events more than once). Service role only.
+CREATE OR REPLACE FUNCTION pro_event_once(p_event text, p_kind text) RETURNS boolean
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO pro_stripe_events (event_id, kind) VALUES (p_event, p_kind);
+  RETURN true;
+EXCEPTION WHEN unique_violation THEN
+  RETURN false;
+END $$;
+
+REVOKE ALL ON FUNCTION pro_grant_until(uuid, timestamptz, text, text, boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_grant_library(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_revoke_library(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_link_customer(text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_customer_user(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_user_customer(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_event_once(text, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;

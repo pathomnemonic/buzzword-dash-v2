@@ -83,7 +83,7 @@ export function probeSellable(deps) {
     // (a debug page can pretend the web can sell, to try the screens)
     var forced = false;
     try { forced = /[?&]debug=1(&|$)/.test(location.search) && store().getItem('dx_pro_force_sell') === '1'; } catch (e) { forced = false; }
-    var web = !!proWebUrl('x') || forced;
+    var web = webCheckoutEnabled() || !!proWebUrl('x') || forced;
     setSellable(web);
     return Promise.resolve(web);
   }
@@ -169,6 +169,7 @@ export function refreshPro(deps) {
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
     jobs.push(lb.getMyPro().then(function (r) {
       asked++;
+      if (r && r.library && !isNative()) libraryOwned = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial });
     }).catch(function () { /* offline */ }));
   }
@@ -280,6 +281,68 @@ export function proWebUrl(userId) {
   var base = String(env.VITE_PRO_WEB_URL || '');
   if (!/^https:\/\//.test(base)) return '';
   return userId ? base + (base.indexOf('?') >= 0 ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(userId) : base;
+}
+
+/**
+ * Can the website take payments through the checkout function? Needs a server (Supabase) and the switch
+ * VITE_PRO_WEB_CHECKOUT=1 (set once the Stripe side and the functions in supabase/functions are live).
+ */
+export function webCheckoutEnabled() {
+  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+  return String(env.VITE_PRO_WEB_CHECKOUT || '') === '1' && !!env.VITE_SUPABASE_URL && !isNative();
+}
+
+/** The plans the website can sell now (real prices from Stripe), in the order the phone paywall shows them: [{id, label, blurb, price, micros, currency, trialDays, period}]. */
+export function webPlans(lb) {
+  if (!lb || !lb.proFunction) return Promise.resolve({ plans: [], library: null });
+  return lb.proFunction('prices').then(function (r) {
+    var all = (r && r.plans) || [];
+    var cfg = proConfig();
+    var plans = all.filter(function (p) { return cfg.plans.indexOf(p.id) >= 0; }).map(function (p) {
+      var info = PRO_PLAN_INFO[p.id] || { label: planName(p.id), blurb: '', rank: 9 };
+      return Object.assign({}, p, { label: info.label, blurb: info.blurb, rank: info.rank });
+    }).sort(function (a, b) { return a.rank - b.rank; });
+    var lib = all.filter(function (p) { return p.id === cfg.library; })[0] || null;
+    return { plans: plans, library: lib, error: r && r.error };
+  });
+}
+
+/** Send the player to Stripe to pay for a plan (or the library). Resolves {ok: false, error} if it could not start; on success the page leaves. */
+export function webBuy(productId, lb, nav) {
+  if (!lb || !lb.proFunction) return Promise.resolve({ ok: false, error: 'Web payments are not available right now.' });
+  if (!lb.isAuthenticated || !lb.isAuthenticated()) return Promise.resolve({ ok: false, error: 'Signing in is needed first. Open Friends → Account, then try again.' });
+  return lb.proFunction('checkout', { plan: productId }).then(function (r) {
+    if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
+    return { ok: false, error: (r && r.error) || 'Could not start the payment.' };
+  });
+}
+
+/** Open Stripe's page for cancelling or changing a web subscription. */
+export function webManage(lb, nav) {
+  if (!lb || !lb.proFunction) return Promise.resolve({ ok: false, error: 'Not available right now.' });
+  return lb.proFunction('portal').then(function (r) {
+    if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true }; }
+    return { ok: false, error: (r && r.error) || 'Could not open the billing page.' };
+  });
+}
+
+/**
+ * The player just came back from paying (?pro=success). The payment reaches the server a moment later (Stripe tells it),
+ * so ask a few times. Resolves the final status; stops as soon as Pro (or the library) shows up.
+ */
+export function waitForWebPayment(lb, o) {
+  o = o || {};
+  var tries = o.tries || 10;
+  var every = o.every === undefined ? 2500 : o.every;
+  var wait = o.wait || function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var startedLib = libraryUnlocked();
+  function once(n) {
+    return refreshPro({ lb: lb }).then(function (st) {
+      if (st.active || (libraryUnlocked() && !startedLib) || n <= 1) return { active: st.active, library: ownsLibrary(), tries: tries - n + 1 };
+      return wait(every).then(function () { return once(n - 1); });
+    });
+  }
+  return once(tries);
 }
 
 // ───────────── gates ─────────────

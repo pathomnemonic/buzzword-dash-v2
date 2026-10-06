@@ -49,6 +49,16 @@ export default [
   },
 
   // Service worker
+  // Supabase Edge Functions run in Deno
+  {
+    files: ['supabase/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.es2021, Deno: 'readonly', Response: 'readonly', fetch: 'readonly', console: 'readonly', crypto: 'readonly', TextEncoder: 'readonly', URLSearchParams: 'readonly', Intl: 'readonly' }
+    }
+  },
+
   {
     files: ['public/sw.js'],
     languageOptions: {

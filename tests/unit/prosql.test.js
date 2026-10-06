@@ -88,4 +88,45 @@ describe('Dx Dash Pro backend', () => {
     expect(active.reduce((n, r) => n + Number(r.users), 0)).toBeGreaterThanOrEqual(1);
     expect((await db.query("SELECT used FROM pro_v_codes WHERE code = 'LAUNCH30'")).rows[0].used).toBe(1);
   });
+
+  describe('web payments', () => {
+    const C = '33333333-3333-4333-8333-333333333333';
+    const D = '44444444-4444-4444-8444-444444444444';
+
+    it('a paid period lasts exactly until its end and never shortens a longer grant', async () => {
+      await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe')", [C]);
+      let r = (await one(C, 'SELECT get_my_pro() AS r')).r;
+      expect(r).toMatchObject({ active: true, plan: 'monthly', source: 'stripe', library: false });
+      const first = new Date(r.until).getTime();
+      await db.query("SELECT pro_grant_until($1, now() + interval '10 days', 'monthly', 'stripe')", [C]); // an older renewal arriving late
+      expect(new Date((await one(C, 'SELECT get_my_pro() AS r')).r.until).getTime()).toBe(first);
+      await db.query("SELECT pro_grant_until($1, now() + interval '3650 days', 'lifetime', 'stripe')", [C]);
+      r = (await one(C, 'SELECT get_my_pro() AS r')).r;
+      expect(r.plan).toBe('lifetime');
+      await expect(db.query("SELECT pro_grant_until($1, now() + interval '9999 days')", [C])).rejects.toThrow();
+    });
+
+    it('the one-time library unlock opens the cards without turning Pro on, and can be taken back', async () => {
+      await db.query("SELECT pro_grant_library($1)", [D]);
+      await db.query("SELECT pro_grant_library($1)", [D]); // twice is fine
+      expect((await one(D, 'SELECT get_my_pro() AS r')).r).toEqual({ active: false, library: true });
+      await db.query("SELECT pro_revoke_library($1)", [D]);
+      expect((await one(D, 'SELECT get_my_pro() AS r')).r.library).toBe(false);
+    });
+
+    it('remembers which Stripe customer is whose, and sees each webhook event only once', async () => {
+      await db.query("SELECT pro_link_customer('cus_123', $1)", [C]);
+      expect((await db.query("SELECT pro_customer_user('cus_123') AS u")).rows[0].u).toBe(C);
+      expect((await db.query("SELECT pro_user_customer($1) AS c", [C])).rows[0].c).toBe('cus_123');
+      expect((await db.query("SELECT pro_customer_user('cus_nope') AS u")).rows[0].u).toBeNull();
+      expect((await db.query("SELECT pro_event_once('evt_1', 'checkout.session.completed') AS ok")).rows[0].ok).toBe(true);
+      expect((await db.query("SELECT pro_event_once('evt_1', 'checkout.session.completed') AS ok")).rows[0].ok).toBe(false);
+    });
+
+    it('the app itself can run none of them', async () => {
+      for (const sql of ["SELECT pro_grant_until('" + A + "', now() + interval '1 day')", "SELECT pro_grant_library('" + A + "')", "SELECT pro_link_customer('x', '" + A + "')", "SELECT pro_event_once('e', 'k')", 'SELECT * FROM pro_library', 'SELECT * FROM pro_stripe_customers']) {
+        expect(await rejects(A, sql), sql).toBe(true);
+      }
+    });
+  });
 });
