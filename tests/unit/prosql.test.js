@@ -22,9 +22,10 @@ beforeAll(async () => {
   await db.exec(`
     CREATE SCHEMA auth;
     CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('app.uid', true), '')::uuid $$;
+    CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT jsonb_build_object('is_anonymous', coalesce(nullif(current_setting('app.anon', true), ''), 'false')::boolean) $$;
     CREATE ROLE authenticated NOLOGIN; CREATE ROLE anon NOLOGIN;
     GRANT USAGE ON SCHEMA public, auth TO authenticated, anon;
-    GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated, anon;
+    GRANT EXECUTE ON FUNCTION auth.uid(), auth.jwt() TO authenticated, anon;
   `);
   for (let i = 0; i < 2; i++) await db.exec(readFileSync('database/pro.sql', 'utf8')); // safe to run twice
 }, 60000);
@@ -89,6 +90,44 @@ describe('Dx Dash Pro backend', () => {
     expect((await db.query("SELECT used FROM pro_v_codes WHERE code = 'LAUNCH30'")).rows[0].used).toBe(1);
   });
 
+  describe('the free trial', () => {
+    const T1 = '55555555-5555-4555-8555-555555555555';
+    const T2 = '66666666-6666-4666-8666-666666666666';
+    const G = '77777777-7777-4777-8777-777777777777';
+    const guest = async (sql) => { await db.exec("SET app.anon = 'true'"); try { return await one(G, sql); } finally { await db.exec("SET app.anon = 'false'"); } };
+
+    it('is offered to a signed-in account, once, and gives seven days', async () => {
+      expect((await one(T1, 'SELECT get_my_pro() AS r')).r).toMatchObject({ active: false, trial_available: true });
+      const r = (await one(T1, 'SELECT start_my_trial() AS r')).r;
+      expect(r).toMatchObject({ ok: true, days: 7 });
+      const days = (new Date(r.until).getTime() - Date.now()) / 86400000;
+      expect(days).toBeGreaterThan(6.9);
+      expect(days).toBeLessThan(7.1);
+      expect((await one(T1, 'SELECT get_my_pro() AS r')).r).toMatchObject({ active: true, trial: true, plan: 'trial', source: 'trial', trial_available: false });
+      expect((await one(T1, 'SELECT start_my_trial() AS r')).r.ok).toBe(false);
+    });
+
+    it('is never offered again after it ends', async () => {
+      await db.query("UPDATE pro_entitlements SET until = now() - interval '1 hour' WHERE user_id = $1", [T1]);
+      expect((await one(T1, 'SELECT get_my_pro() AS r')).r).toMatchObject({ active: false, trial_available: false });
+      expect((await one(T1, 'SELECT start_my_trial() AS r')).r.error).toMatch(/already been used/);
+    });
+
+    it('is not for a guest, someone not signed in, or someone who already has Pro', async () => {
+      expect((await guest('SELECT get_my_pro() AS r')).r.trial_available).toBe(false);
+      expect((await guest('SELECT start_my_trial() AS r')).r).toMatchObject({ ok: false });
+      expect((await one(null, 'SELECT start_my_trial() AS r')).r.ok).toBe(false);
+      await db.query("SELECT pro_grant($1, 30, 'monthly', 'stripe')", [T2]);
+      expect((await one(T2, 'SELECT start_my_trial() AS r')).r.error).toMatch(/already have Pro/);
+      expect((await one(T2, 'SELECT get_my_pro() AS r')).r.trial_available).toBe(false);
+    });
+
+    it('cannot be read or granted by the app directly', async () => {
+      expect(await rejects(T1, 'SELECT * FROM pro_trials')).toBe(true);
+      expect(await rejects(T1, "INSERT INTO pro_trials (user_id) VALUES ('" + T1 + "')")).toBe(true);
+    });
+  });
+
   describe('web payments', () => {
     const C = '33333333-3333-4333-8333-333333333333';
     const D = '44444444-4444-4444-8444-444444444444';
@@ -109,7 +148,7 @@ describe('Dx Dash Pro backend', () => {
     it('the one-time library unlock opens the cards without turning Pro on, and can be taken back', async () => {
       await db.query("SELECT pro_grant_library($1)", [D]);
       await db.query("SELECT pro_grant_library($1)", [D]); // twice is fine
-      expect((await one(D, 'SELECT get_my_pro() AS r')).r).toEqual({ active: false, library: true });
+      expect((await one(D, 'SELECT get_my_pro() AS r')).r).toMatchObject({ active: false, library: true });
       await db.query("SELECT pro_revoke_library($1)", [D]);
       expect((await one(D, 'SELECT get_my_pro() AS r')).r.library).toBe(false);
     });

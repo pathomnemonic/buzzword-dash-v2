@@ -5,9 +5,8 @@ import { setIapForTest, createIap } from '../../js/iap.js';
 import { openPaywall, setProUiDeps } from '../../js/proui.js';
 
 const PRICES = [
-  { id: 'dxdash_pro_monthly', price: '$6.99', micros: 6990000, currency: 'USD', period: 'P1M', trialDays: 0 },
-  { id: 'dxdash_pro_yearly', price: '$39.99', micros: 39990000, currency: 'USD', period: 'P1Y', trialDays: 7 },
-  { id: 'dxdash_library', price: '$14.99', micros: 14990000, currency: 'USD', period: '', trialDays: 0 }
+  { id: 'dxdash_pro_monthly', price: '$3.49', micros: 3490000, currency: 'USD', period: 'P1M', trialDays: 0 },
+  { id: 'dxdash_pro_yearly', price: '$19.99', micros: 19990000, currency: 'USD', period: 'P1Y', trialDays: 0 }
 ];
 const tick = () => new Promise((r) => setTimeout(r, 10));
 
@@ -63,11 +62,11 @@ describe('Pro on the website', () => {
     expect(libraryUnlocked()).toBe(false);
   });
 
-  it('lists the plans best value first, with the library offer apart', async () => {
-    const r = await webPlans(fakeLb());
+  it('lists the plans best value first, and offers no Full Library', async () => {
+    const r = await webPlans(fakeLb({ proFunction: async () => ({ plans: [...PRICES, { id: 'dxdash_library', price: '$7.49', micros: 7490000, currency: 'USD', period: '', trialDays: 0 }] }) }));
     expect(r.plans.map((p) => p.id)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_monthly']);
-    expect(r.plans[0]).toMatchObject({ label: 'Yearly', blurb: 'BEST VALUE', price: '$39.99' });
-    expect(r.library.id).toBe('dxdash_library');
+    expect(r.plans[0]).toMatchObject({ label: 'Yearly', blurb: 'BEST VALUE', price: '$19.99' });
+    expect(r.library).toBeNull();
     expect((await webPlans(null)).plans).toEqual([]);
   });
 
@@ -111,6 +110,36 @@ describe('Pro on the website', () => {
     expect(none.tries).toBe(3);
   });
 
+  it('gives every signed-in account the free trial once, and nothing to a guest or someone who had it', async () => {
+    await probeSellable();
+    let started = 0;
+    let used = false;
+    const lb = fakeLb({
+      getMyPro: async () => (started ? { active: true, until: new Date(Date.now() + 7 * 86400000).toISOString(), plan: 'trial', source: 'trial', trial: true, trial_available: false } : { active: false, library: false, trial_available: !used }),
+      startProTrial: async () => { started++; return { ok: true, days: 7 }; }
+    });
+    const events = [];
+    document.addEventListener('dx:pro-trial-started', () => events.push(1), { once: true });
+    const st = await refreshPro({ lb });
+    expect(started).toBe(1);
+    expect(st).toMatchObject({ active: true, trial: true });
+    expect(events.length).toBe(1);
+    // already used: it is not started again
+    resetProForTest();
+    started = 0; used = true;
+    const lb2 = fakeLb({ getMyPro: async () => ({ active: false, library: false, trial_available: false }), startProTrial: async () => { started++; return { ok: true }; } });
+    expect((await refreshPro({ lb: lb2 })).active).toBe(false);
+    expect(started).toBe(0);
+  });
+
+  it('does not start the trial before Pro is live (nothing to buy yet), so it is not used up unseen', async () => {
+    vi.stubEnv('VITE_PRO_WEB_CHECKOUT', '');
+    await probeSellable();
+    let started = 0;
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => ({ active: false, trial_available: true }), startProTrial: async () => { started++; return { ok: true }; } }) });
+    expect(started).toBe(0);
+  });
+
   it('a library-only buyer opens every card but gets no Pro', async () => {
     await probeSellable();
     expect(libraryUnlocked()).toBe(false);
@@ -121,27 +150,31 @@ describe('Pro on the website', () => {
 });
 
 describe('the website paywall', () => {
-  it('shows real prices, a trial note, the library offer and a sign-up tip for a guest, and starts checkout on tap', async () => {
+  it('shows real prices and a sign-up tip for a guest (with the free trial), no library offer, and starts checkout on tap', async () => {
     await probeSellable();
     const lb = fakeLb({ isGuest: () => true });
     setProUiDeps({ lb });
-    const go = vi.fn();
-    const orig = window.location;
     openPaywall({ trigger: 'test' });
     await tick(); await tick();
     const plans = [...document.querySelectorAll('#proPaywall .pro-plan')].map((b) => b.getAttribute('data-plan'));
-    expect(plans).toEqual(['dxdash_pro_yearly', 'dxdash_pro_monthly', 'library']);
+    expect(plans).toEqual(['dxdash_pro_yearly', 'dxdash_pro_monthly']);
     const text = document.getElementById('proPaywall').textContent;
-    expect(text).toMatch(/\$39\.99 \/ year/);
-    expect(text).toMatch(/7-DAY FREE TRIAL/);
+    expect(text).toMatch(/\$19\.99 \/ year/);
+    expect(text).toMatch(/7-day Pro trial/);
     expect(text).toMatch(/Stripe/);
-    expect(text).toMatch(/create an account/i);
     expect(text).toMatch(/Cancel any time/i);
-    expect(window.location).toBe(orig);
-    document.querySelector('#proPaywall [data-plan="library"]').click();
+    expect(text).not.toMatch(/Just the cards/);
+    document.querySelector('#proPaywall [data-plan="dxdash_pro_yearly"]').click();
     await tick();
-    expect(lb.calls.pop()).toEqual(['checkout', { plan: 'dxdash_library' }]);
-    void go;
+    expect(lb.calls.pop()).toEqual(['checkout', { plan: 'dxdash_pro_yearly' }]);
+  });
+
+  it('does not push the trial on someone who has an account', async () => {
+    await probeSellable();
+    setProUiDeps({ lb: fakeLb() });
+    openPaywall({ trigger: 'test' });
+    await tick(); await tick();
+    expect(document.getElementById('proPaywall').textContent).not.toMatch(/7-day Pro trial/);
   });
 
   it('says so plainly when the payment service is not answering', async () => {

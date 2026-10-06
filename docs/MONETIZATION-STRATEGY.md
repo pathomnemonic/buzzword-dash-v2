@@ -25,13 +25,12 @@ Prices are for the US storefront. Other storefronts use the stores' price tiers,
 
 | Product id | What | Price | Role |
 |---|---|---|---|
-| `dxdash_pro_yearly` | Pro, auto-renewing, **7-day free trial** | **$19.99 / year** (about $1.67 a month) | The default. Priced between Quizlet ($35.99) and Duolingo ($59.99). |
+| `dxdash_pro_yearly` | Pro, auto-renewing (the 7-day trial is the account's, see below) | **$19.99 / year** (about $1.67 a month) | The default. Priced between Quizlet ($35.99) and Duolingo ($59.99). |
 | `dxdash_pro_pass3m` | Pro for 3 months, auto-renewing | **$7.49 / 3 months** (about $2.50 a month) | The exam-window plan; low commitment. |
 | `dxdash_pro_monthly` | Pro, monthly | **$3.49 / month** | The anchor that makes Yearly look like a 52% saving. |
 | `dxdash_pro_lifetime` | Pro, one purchase, never expires | **$39.99** | Two years of the yearly plan; Brainscape sells lifetime at $199.99. Captures students who will not subscribe. |
-| `dxdash_library` | **Full Library only** (all 3,010 cards, none of the tools), one purchase | **$7.49** | The cheap way in for someone who only wants more cards; also the "additional cost to unlock all cards". |
 
-Why a cheaper library tier exists: it converts people who would never pay $19.99, it sets a visible price ladder (good, better, best), and a library-only buyer is the best candidate for a later upgrade to Pro.
+**Update:** the cheaper "Full Library only" tier is no longer offered (one clear thing to buy converts better than a ladder). Instead every signed-in account gets a **free 7-day Pro trial with no card**, started automatically the first time the app sees it; guests get none, which is the nudge to make an account. The trial is the account's, so there is no store or Stripe trial on top.
 
 Why Lifetime exists despite cannibalising recurring revenue: with education annual renewal at about 24%, a lifetime buyer is worth more than the average yearly buyer's second year, and it removes the cancellation churn problem. It is capped at four plans on screen (the config limit) so the paywall stays readable.
 

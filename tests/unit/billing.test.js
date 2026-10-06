@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -21,12 +21,13 @@ function fake(over) {
 }
 
 describe('products and prices', () => {
-  it('knows the five products by id or plan name, and which ones have a price set', () => {
-    expect(Object.keys(PRODUCTS)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_pass3m', 'dxdash_pro_monthly', 'dxdash_pro_lifetime', 'dxdash_library']);
+  it('sells four products, found by id or plan name, and shows the ones with a price set', () => {
+    expect(Object.keys(PRODUCTS)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_pass3m', 'dxdash_pro_monthly', 'dxdash_pro_lifetime']);
     expect(productFor('yearly').id).toBe('dxdash_pro_yearly');
-    expect(productFor('dxdash_library').def.plan).toBe('library');
     expect(productFor('nope')).toBeNull();
-    expect(configuredProducts(ENV)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_lifetime', 'dxdash_library']);
+    expect(productFor('dxdash_library')).toBeNull();                      // the Full Library is not sold any more...
+    expect(anyProductFor('dxdash_library').def.plan).toBe('library');     // ...but an old purchase or refund is still understood
+    expect(configuredProducts(ENV)).toEqual(['dxdash_pro_yearly', 'dxdash_pro_lifetime']);
   });
 
   it('turns a Stripe price into what the paywall shows (same shape as the stores)', () => {
@@ -34,23 +35,23 @@ describe('products and prices', () => {
     expect(periodOf({ recurring: { interval: 'month', interval_count: 3 } })).toBe('P3M');
     expect(periodOf({})).toBe('');
     const y = describePrice('dxdash_pro_yearly', { unit_amount: 3999, currency: 'usd', recurring: { interval: 'year', interval_count: 1 } }, ENV);
-    expect(y).toMatchObject({ id: 'dxdash_pro_yearly', price: '$39.99', micros: 39990000, currency: 'USD', period: 'P1Y', trialDays: 7 });
-    expect(describePrice('dxdash_pro_yearly', { unit_amount: 3999, currency: 'usd', recurring: { interval: 'year' } }, { STRIPE_TRIAL_DAYS: '0' }).trialDays).toBe(0);
-    expect(describePrice('dxdash_library', { unit_amount: 1499, currency: 'usd' }, ENV)).toMatchObject({ period: '', trialDays: 0 });
+    expect(y).toMatchObject({ id: 'dxdash_pro_yearly', price: '$39.99', micros: 39990000, currency: 'USD', period: 'P1Y', trialDays: 0 });
+    expect(describePrice('dxdash_pro_lifetime', { unit_amount: 7999, currency: 'usd' })).toMatchObject({ period: '', trialDays: 0 });
   });
 });
 
 describe('checkout', () => {
-  it('builds a subscription session that carries the player, the plan and a trial for a first-time subscriber', () => {
+  it('builds a subscription session that carries the player and the plan (no Stripe trial: the free trial is belongs to the account)', () => {
     const f = checkoutParams('yearly', 'u1', ENV, {});
-    expect(f).toMatchObject({ mode: 'subscription', client_reference_id: 'u1', 'line_items[0][price]': 'price_y', success_url: 'https://me.github.io/dx/?pro=success', cancel_url: 'https://me.github.io/dx/?pro=cancelled', 'metadata[plan]': 'yearly', 'subscription_data[metadata][user_id]': 'u1', 'subscription_data[trial_period_days]': '7' });
-    expect(checkoutParams('yearly', 'u1', ENV, { hadTrial: true })['subscription_data[trial_period_days]']).toBeUndefined();
+    expect(f).toMatchObject({ mode: 'subscription', client_reference_id: 'u1', 'line_items[0][price]': 'price_y', success_url: 'https://me.github.io/dx/?pro=success', cancel_url: 'https://me.github.io/dx/?pro=cancelled', 'metadata[plan]': 'yearly', 'subscription_data[metadata][user_id]': 'u1' });
+    expect(checkoutParams('yearly', 'u1', ENV, {})['subscription_data[trial_period_days]']).toBeUndefined();
     expect(checkoutParams('yearly', 'u1', ENV, { customer: 'cus_1' }).customer).toBe('cus_1');
   });
 
   it('builds a one-time session whose charge can be traced for a refund, and refuses bad requests', () => {
-    const f = checkoutParams('dxdash_library', 'u1', ENV, {});
-    expect(f).toMatchObject({ mode: 'payment', 'payment_intent_data[metadata][plan]': 'library', 'payment_intent_data[metadata][user_id]': 'u1' });
+    const f = checkoutParams('dxdash_pro_lifetime', 'u1', ENV, {});
+    expect(f).toMatchObject({ mode: 'payment', 'payment_intent_data[metadata][plan]': 'lifetime', 'payment_intent_data[metadata][user_id]': 'u1' });
+    expect(() => checkoutParams('dxdash_library', 'u1', ENV)).toThrow(/Unknown/);
     expect(() => checkoutParams('monthly', 'u1', ENV)).toThrow(/not for sale/);
     expect(() => checkoutParams('wat', 'u1', ENV)).toThrow(/Unknown/);
     expect(() => checkoutParams('yearly', '', ENV)).toThrow(/Sign in/);

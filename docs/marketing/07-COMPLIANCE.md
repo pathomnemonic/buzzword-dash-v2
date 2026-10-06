@@ -43,7 +43,7 @@ This is a practical checklist, not legal advice. Platform policies change often:
 - State the price, billing period and trial length clearly **wherever you advertise a trial**; "free" must mean free for a defined period, with the renewal price stated.
 - Auto-renewal disclosure on the paywall (it has it), cancel path in the store settings (the paywall and Settings link to it), no dark patterns: a clear "No thanks" and a restore button exist.
 - **Apple external purchase links:** in the US, Apple's rules on linking to external payments have been in litigation; the app's web checkout (`VITE_PRO_WEB_URL`) is off unless you set it. Check the current rules before using it in the iOS app. Google Play has its own "alternative billing" rules.
-- **Introductory offers:** the 7-day free trial on yearly must be configured in the stores; the ad's claim must match what the store shows.
+- **The free trial:** every signed-in account gets 7 days of Pro from our server (no card). Say "free 7-day trial when you make an account" in ads, never "free trial, cancel any time" (there is nothing to cancel); it is not a store introductory offer.
 - **Refunds** are the store's job; do not promise a refund policy of your own in ads unless you honour it.
 
 ## 6. Children and age

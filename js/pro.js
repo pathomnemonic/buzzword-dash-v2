@@ -155,6 +155,7 @@ export function refreshPro(deps) {
   var iap = deps.iap || getIap();
   var asked = 0;
   var libraryOwned = null;
+  var trialStarted = false;
   var found = [];
   var jobs = [];
   jobs.push(iap.start().then(function (ok) {
@@ -168,6 +169,18 @@ export function refreshPro(deps) {
   var lb = deps.lb;
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
     jobs.push(lb.getMyPro().then(function (r) {
+      // every account (not a guest) gets one free 7-day trial: start it the first time we see it is unused
+      if (r && !r.active && r.trial_available && lb.startProTrial && proLive()) {
+        return lb.startProTrial().then(function (t) {
+          if (t && t.ok) {
+            trialStarted = true;
+            return lb.getMyPro();
+          }
+          return r;
+        }).catch(function () { return r; });
+      }
+      return r;
+    }).then(function (r) {
       asked++;
       if (r && r.library && !isNative()) libraryOwned = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial });
@@ -181,6 +194,7 @@ export function refreshPro(deps) {
     if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned });
     if (libraryUnlocked() !== libBefore && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:library-changed'));
     if (isPro(now) !== before && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
+    if (trialStarted && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-trial-started'));
     return proStatus();
   });
 }
@@ -188,7 +202,7 @@ export function refreshPro(deps) {
 /** Register the Pro products with the store connection. Call before the store starts (see main.js). */
 export function registerProProducts() {
   var cfg = proConfig();
-  getIap().add(cfg.plans.map(function (id) { return { id: id, kind: /lifetime/.test(id) ? 'nonconsumable' : 'subscription' }; }).concat([{ id: cfg.library, kind: 'nonconsumable' }]));
+  getIap().add(cfg.plans.map(function (id) { return { id: id, kind: /lifetime/.test(id) ? 'nonconsumable' : 'subscription' }; }));
 }
 
 /** Did this player buy the one-time Full Library unlock? */
@@ -302,8 +316,7 @@ export function webPlans(lb) {
       var info = PRO_PLAN_INFO[p.id] || { label: planName(p.id), blurb: '', rank: 9 };
       return Object.assign({}, p, { label: info.label, blurb: info.blurb, rank: info.rank });
     }).sort(function (a, b) { return a.rank - b.rank; });
-    var lib = all.filter(function (p) { return p.id === cfg.library; })[0] || null;
-    return { plans: plans, library: lib, error: r && r.error };
+    return { plans: plans, library: null, error: r && r.error };
   });
 }
 

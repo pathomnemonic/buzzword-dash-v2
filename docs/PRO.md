@@ -19,30 +19,33 @@ Otherwise nothing is limited and no Pro screen shows. So a local build, a store 
 
 | id | Type | Suggested US price |
 |---|---|---|
-| `dxdash_pro_yearly` | auto-renewing subscription, **7-day free trial** offer for new subscribers | 19.99 / year |
+| `dxdash_pro_yearly` | auto-renewing subscription | 19.99 / year |
 | `dxdash_pro_pass3m` | auto-renewing subscription, 3-month period | 7.49 |
 | `dxdash_pro_monthly` | auto-renewing subscription, 1 month | 3.49 |
 | `dxdash_pro_lifetime` | **non-consumable** (one purchase) | 39.99 |
-| `dxdash_library` | **non-consumable** (one purchase) | 7.49 |
 | `dxdash_tip_small` / `_medium` / `_large` | consumable tips (see TIP-JAR.md) | 1.99 / 4.99 / 9.99 |
 
-**Google Play:** Monetize → Subscriptions (one subscription "Dx Dash Pro" with three base plans yearly / 3-month / monthly; add the free-trial offer to the yearly base plan), In-app products for Lifetime and Library. **Apple:** one subscription group "Dx Dash Pro" holding the three subscriptions (introductory offer = free trial on yearly), non-consumable in-app purchases for Lifetime and Library; accept the Paid Applications agreement, tax and bank details; attach the purchases to the version you submit and add a review screenshot of the paywall. Both stores need a build uploaded (internal track / TestFlight) before purchases work.
+**Google Play:** Monetize → Subscriptions (one subscription "Dx Dash Pro" with three base plans yearly / 3-month / monthly; no store trial offer, the free trial is the account's, see below), an In-app product for Lifetime. **Apple:** one subscription group "Dx Dash Pro" holding the three subscriptions (no introductory offer), a non-consumable in-app purchase for Lifetime; accept the Paid Applications agreement, tax and bank details; attach the purchases to the version you submit and add a review screenshot of the paywall. Both stores need a build uploaded (internal track / TestFlight) before purchases work.
+
+## The free trial (every account)
+
+Everyone who signs in with an account (not a guest) gets **7 days of Pro, once, with no card and nothing to cancel**. The app starts it by itself the first time it sees the account has not had one (`start_my_trial()` in `database/pro.sql`; one row per account in `pro_trials`), on the website and in the phone apps alike, and only once Pro is live. Guests do not get it: it is the reason to create an account. When it ends the player goes back to the free version (300 cards) and can subscribe. Because the trial is the account's, do not also add a trial to the store subscriptions or to Stripe.
 
 ## Web payments, codes and seats
 
-On the website the paywall shows your real Stripe prices and sends the player to Stripe's own payment page. Stripe then tells a small server function, which turns Pro on in the database; the page asks again when the player comes back. Nothing about payment is stored in the app. All five products work: yearly (with the 7-day trial), 3-month pass, monthly, Lifetime and the one-time Full Library unlock. Renewals extend Pro by themselves, cancelling is done on Stripe's page (Settings → Dx Dash Pro → Manage), and a full refund of Lifetime or the Library takes it back.
+On the website the paywall shows your real Stripe prices and sends the player to Stripe's own payment page. Stripe then tells a small server function, which turns Pro on in the database; the page asks again when the player comes back. Nothing about payment is stored in the app. Four products work: yearly, 3-month pass, monthly and Lifetime. (There is no Full Library offer any more; Pro is the one thing for sale.) Renewals extend Pro by themselves, cancelling is done on Stripe's page (Settings → Dx Dash Pro → Manage), and a full refund of Lifetime takes it back.
 
 **One-time setup (about an hour):**
 
 1. **Database.** Run `database/pro.sql` in the Supabase SQL editor (safe to run again).
-2. **Stripe products.** In Stripe (start in Test mode) create five Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time), Full Library (one time). Copy each **Price id** (`price_...`). Turn on the customer portal (Settings → Billing → Customer portal) so people can cancel.
+2. **Stripe products.** In Stripe (start in Test mode) create four Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time). Do not add a free trial in Stripe: the trial is built into accounts. Copy each **Price id** (`price_...`). Turn on the customer portal (Settings → Billing → Customer portal) so people can cancel.
 3. **Deploy the two functions** (needs the [Supabase CLI](https://supabase.com/docs/guides/cli), logged in and linked to your project):
    ```
    supabase functions deploy pro-checkout
    supabase functions deploy stripe-webhook --no-verify-jwt
    ```
 4. **Function secrets** (Supabase dashboard → Edge Functions → Secrets, or `supabase secrets set ...`):
-   `STRIPE_SECRET_KEY` (Stripe → Developers → API keys), `SITE_URL` (your site address with no slash, e.g. `https://pathomnemonic.github.io/buzzword-dash-v2`), and one Price id each: `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_PASS3M`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_LIFETIME`, `STRIPE_PRICE_LIBRARY` (leave out any you do not want to sell). Optional `STRIPE_TRIAL_DAYS` (default 7 for yearly; 0 turns the trial off).
+   `STRIPE_SECRET_KEY` (Stripe → Developers → API keys), `SITE_URL` (your site address with no slash, e.g. `https://pathomnemonic.github.io/buzzword-dash-v2`), and one Price id each: `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_PASS3M`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_LIFETIME` (leave out any you do not want to sell).
 5. **Webhook.** In Stripe → Developers → Webhooks add the endpoint `https://<your-project>.supabase.co/functions/v1/stripe-webhook`, choose the events `checkout.session.completed`, `invoice.paid` and `charge.refunded`, and save its **Signing secret** as the function secret `STRIPE_WEBHOOK_SECRET`.
 6. **Switch it on.** In GitHub add the repository variable `VITE_PRO_WEB_CHECKOUT` = `1` (Settings → Secrets and variables → Actions → Variables) and re-run the deploy. Until you do, the website behaves as fully free with no Pro screens. (`VITE_SUPABASE_URL` must be set too; it already is for the leaderboard.)
 7. **Test.** With Stripe in Test mode, open the site, tap a locked section → a plan → pay with card `4242 4242 4242 4242` (any future date and CVC). You should land back on the game with "Welcome to Dx Dash Pro!". Then switch Stripe to Live mode, swap the live key, Price ids and webhook secret into the function secrets, and you are selling.

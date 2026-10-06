@@ -1372,6 +1372,7 @@ function init() {
     instrumentLeaderboard(mod.leaderboard);
     setProUiDeps({ lb: mod.leaderboard });
     mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); });
+    document.addEventListener('dx:pro-trial-started', function () { ui._showToast('Your free 7-day Pro trial has started! 🎉', 4000); });
     if (webPayReturn === 'success') {
       // back from Stripe: the payment reaches the server a moment later, so keep asking for a little while
       mod.leaderboard.init().then(function () {

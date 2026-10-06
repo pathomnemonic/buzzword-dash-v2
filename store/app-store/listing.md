@@ -72,8 +72,8 @@ Tracking: **No**. Third-party advertising: **No**.
 ```
 Dx Dash is a study game for US medical licensing exam prep (USMLE/COMLEX). No account is needed: tap PLAY on the Home screen. A short interactive tutorial runs the first time (the x in the corner closes it).
 In-app purchases (all optional; the app is fully playable free with 300 questions):
-- Auto-renewable subscription group "Dx Dash Pro": dxdash_pro_yearly, dxdash_pro_monthly, dxdash_pro_pass3m (auto-renewing, 3-month period); yearly has a 7-day introductory free trial.
-- Non-consumable: dxdash_pro_lifetime (all Pro features), dxdash_library (unlocks the full 3,010-question library only).
+- Auto-renewable subscription group "Dx Dash Pro": dxdash_pro_yearly, dxdash_pro_monthly, dxdash_pro_pass3m (auto-renewing, 3-month period). No store trial: every signed-in account gets a free 7-day Pro trial from our own server, with no payment details.
+- Non-consumable: dxdash_pro_lifetime (all Pro features).
 - Consumable tip jar (Settings > About & help > Leave a tip): dxdash_tip_small, dxdash_tip_medium, dxdash_tip_large. Tips unlock nothing.
 To see the paywall: Stats tab > tap any locked "Pro" section, or Settings > About & help > Dx Dash Pro > See Pro. "Restore purchases" is on the paywall and in that Settings row. Subscription terms, price and renewal are shown on the paywall, with links to the Privacy Policy and Terms.
 Online features (Friends, feed, groups, ranked) are optional and use an anonymous guest account created automatically, or an email account. Account deletion: Friends > Account > Delete my account.

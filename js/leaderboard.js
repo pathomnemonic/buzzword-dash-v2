@@ -1088,6 +1088,15 @@ var leaderboard = {
     });
   },
 
+  /** Start the free 7-day trial every signed-in (not guest) account gets once. Resolves {ok, until, days} or {ok: false, error}. */
+  startProTrial: function () {
+    return leaderboard._rpc('start_my_trial', {}).then(function (r) {
+      if (!r.success) return { ok: false, error: r.error || 'Could not start the trial.' };
+      var d = r.data;
+      return d && typeof d === 'object' && !Array.isArray(d) ? d : { ok: false, error: 'Could not start the trial.' };
+    });
+  },
+
   /** Redeem a promo or seat code. Resolves to {ok, until, days} or {ok: false, error}. */
   redeemProCode: function (code) {
     return leaderboard._rpc('redeem_pro_code', { p_code: String(code || '').slice(0, 40) }).then(function (r) {

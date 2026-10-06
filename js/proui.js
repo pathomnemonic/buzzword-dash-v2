@@ -10,7 +10,7 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_BENEFITS, libraryOffer, buyLibrary, libraryUnlocked } from './pro.js';
+import { proLive, isPro, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_BENEFITS, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
@@ -51,7 +51,8 @@ export function openPaywall(o) {
   var box = createElement('div', { className: 'report-box' });
   box.appendChild(createElement('h2', { text: '⚡ Dx Dash Pro' }));
   if (isPro()) {
-    box.appendChild(createElement('p', { text: 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
+    var st0 = proStatus();
+    box.appendChild(createElement('p', { text: st0.trial ? 'Your free trial is on. Enjoy every card and tool!' + (st0.until ? ' It ends ' + new Date(st0.until).toLocaleDateString() + '.' : '') : 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
   } else {
     var counts = libraryCounts();
     box.appendChild(createElement('p', { text: counts.total ? 'Free gives you ' + counts.free + ' of ' + counts.total.toLocaleString() + ' cards. Pro opens the whole bank and every study tool.' : 'Study smarter with every card and every study tool.' }));
@@ -59,6 +60,11 @@ export function openPaywall(o) {
     ul.style.cssText = 'margin:6px 0 10px 18px;padding:0;text-align:left;font-size:13px;line-height:1.5';
     PRO_BENEFITS.forEach(function (t) { ul.appendChild(createElement('li', { text: t })); });
     box.appendChild(ul);
+    if (!(_lb && _lb.isAuthenticated && _lb.isAuthenticated()) || (_lb.isGuest && _lb.isGuest())) {
+      var tr = createElement('p', { text: '🎁 New here? Create a free account (Friends → Account) and get a 7-day Pro trial: no card, nothing to cancel.' });
+      tr.style.cssText = 'font-size:13px;font-weight:800;margin:6px 0';
+      box.appendChild(tr);
+    }
   }
   var list = createElement('div');
   list.style.cssText = 'display:grid;gap:8px;margin:10px 0';
@@ -97,27 +103,6 @@ export function openPaywall(o) {
           });
           list.appendChild(b);
         });
-        // the cheaper way in for someone who only wants the cards
-        libraryOffer().then(function (lib) {
-          if (!lib || libraryUnlocked()) return;
-          var counts = libraryCounts();
-          var b = createElement('button', { className: 'btn btn-outline btn-block pro-plan', attributes: { type: 'button', 'data-plan': 'library' } });
-          b.appendChild(createElement('span', { className: 'pro-plan-main', text: 'Just the cards  ·  ' + lib.price + ' once' }));
-          b.appendChild(createElement('span', { className: 'pro-plan-sub', text: 'ALL ' + counts.total.toLocaleString() + ' CARDS, NO TOOLS' }));
-          b.addEventListener('click', function () {
-            var d = { plan: 'library', price: lib.price, micros: lib.micros, currency: lib.currency };
-            act('plan_selected', d);
-            act('purchase_started', d);
-            [].forEach.call(list.children, function (x) { x.disabled = true; });
-            buyLibrary().then(function (res) {
-              [].forEach.call(list.children, function (x) { x.disabled = false; });
-              if (res.ok) { act('purchased', d); setText(status, 'Library unlocked! 🎉'); _toast('All cards unlocked!'); setTimeout(cleanup, 1200); }
-              else if (res.cancelled) { act('cancelled', d); setText(status, ''); }
-              else { act('failed', d); setText(status, 'That did not go through. You have not been charged.'); }
-            });
-          });
-          list.appendChild(b);
-        });
       });
     } else if (webCheckoutEnabled()) {
       // the website: real prices from Stripe, and a hop to Stripe's own payment page
@@ -126,7 +111,7 @@ export function openPaywall(o) {
       webPlans(_lb).then(function (res) {
         var plans = res.plans;
         track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: plans.map(function (p) { return p.id; }), variant: variant('pro_paywall'), pro: false });
-        if (!plans.length && !res.library) { setText(status, res.error ? 'Pro is not available right now. ' + res.error : 'Pro is not available right now. Please try again later.'); return; }
+        if (!plans.length) { setText(status, res.error ? 'Pro is not available right now. ' + res.error : 'Pro is not available right now. Please try again later.'); return; }
         var notes = ['Payment is handled by Stripe. Subscriptions renew automatically; cancel any time from Settings → Dx Dash Pro → Manage.'];
         if (plans.some(function (p) { return p.trialDays > 0; })) notes.unshift('Free trial applies to new subscribers.');
         if (guest) notes.push('Tip: create an account (Friends → Account) first, so Pro follows you to other devices.');
@@ -152,14 +137,6 @@ export function openPaywall(o) {
           b.addEventListener('click', function () { buy(p.id, { plan: p.id, price: p.price, micros: p.micros, currency: p.currency, trial_days: p.trialDays }); });
           list.appendChild(b);
         });
-        if (res.library && !libraryUnlocked()) {
-          var counts = libraryCounts();
-          var lb2 = createElement('button', { className: 'btn btn-outline btn-block pro-plan', attributes: { type: 'button', 'data-plan': 'library' } });
-          lb2.appendChild(createElement('span', { className: 'pro-plan-main', text: 'Just the cards  ·  ' + res.library.price + ' once' }));
-          lb2.appendChild(createElement('span', { className: 'pro-plan-sub', text: 'ALL ' + counts.total.toLocaleString() + ' CARDS, NO TOOLS' }));
-          lb2.addEventListener('click', function () { buy(res.library.id, { plan: 'library', price: res.library.price, micros: res.library.micros, currency: res.library.currency }); });
-          list.appendChild(lb2);
-        }
       });
     } else {
       track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: false });

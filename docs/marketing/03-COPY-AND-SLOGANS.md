@@ -49,7 +49,7 @@ Avoid: "guaranteed", "pass the boards", "score higher", "cure", "fix your focus"
 > • No ads
 >
 > DX DASH PRO
-> Unlock all cards and every study tool. Plans: yearly (with a 7-day free trial), 3-month pass, monthly, or one-time lifetime. Or buy just the full card library once. Subscriptions renew automatically unless cancelled at least 24 hours before the period ends; manage or cancel in your store account settings.
+> Unlock all cards and every study tool. Plans: yearly, 3-month pass, monthly, or one-time lifetime. Or buy just the full card library once. Subscriptions renew automatically unless cancelled at least 24 hours before the period ends; manage or cancel in your store account settings.
 >
 > Dx Dash is a study aid for educational purposes and is not affiliated with or endorsed by NBME, FSMB, NBOME or any exam owner. It does not provide medical advice.
 
@@ -116,7 +116,7 @@ Brand: `dx dash`. Discovery keywords: `usmle study`, `step 1`, `step 2 ck`, `com
 **Day 2:** `Your streak is 2 days. Keep it kind.` (include the shield explanation)
 **Exam-window (when the user set an exam date):** `Your exam is in 30 days. Here's a 5-minute-a-day plan.` (uses the in-app study plan)
 **Lapsed (14 days):** `The monster misses you.` · soft, one tap to a run.
-**Pro (after 3 paywall views, once):** `Unlock all 3,010 cards. 7-day free trial.` · include price and cancel info.
+**Pro (after 3 paywall views, once):** `Unlock all 3,010 cards. Free 7-day trial when you make an account.` · include price and cancel info.
 All emails: one-click unsubscribe; no medical claims.
 
 **Local push (already built):** the daily reminder at the user's chosen time; keep copy playful: `Your daily 20 is waiting. The monster is bored.`

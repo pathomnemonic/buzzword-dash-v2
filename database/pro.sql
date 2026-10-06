@@ -52,6 +52,11 @@ CREATE TABLE IF NOT EXISTS pro_library (
   source text NOT NULL DEFAULT 'manual',
   granted_at timestamptz NOT NULL DEFAULT now()
 );
+-- the free trial every signed-in (not guest) account gets once
+CREATE TABLE IF NOT EXISTS pro_trials (
+  user_id uuid PRIMARY KEY,
+  started_at timestamptz NOT NULL DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS pro_stripe_customers (
   customer_id text PRIMARY KEY,
   user_id uuid NOT NULL,
@@ -64,6 +69,8 @@ CREATE TABLE IF NOT EXISTS pro_stripe_events (
   handled_at timestamptz NOT NULL DEFAULT now()
 );
 
+ALTER TABLE pro_trials ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_trials FROM PUBLIC, anon, authenticated;
 ALTER TABLE pro_library ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_stripe_customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_stripe_events ENABLE ROW LEVEL SECURITY;
@@ -75,17 +82,42 @@ ALTER TABLE pro_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_attempts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON pro_entitlements, pro_codes, pro_redemptions, pro_attempts FROM PUBLIC, anon, authenticated;
 
--- Do I have Pro right now? { active, until, plan, source, trial, library }
--- (library: I bought the one-time Full Library unlock, which opens every card but not the study tools)
+-- Is the caller a guest (anonymous sign-in, no account)? Guests get no trial: it is the reason to create an account.
+CREATE OR REPLACE FUNCTION pro_is_guest() RETURNS boolean
+LANGUAGE sql STABLE SET search_path = public AS $$
+  SELECT coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false)
+$$;
+
+-- Do I have Pro right now? { active, until, plan, source, trial, library, trial_available }
+-- (library: I hold the one-time Full Library unlock from before it was withdrawn, which opens every card but not the tools;
+--  trial_available: I have an account, have never had the free trial and have no Pro, so the app may start it)
 CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
-DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean;
+DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean; can_trial boolean;
 BEGIN
-  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false); END IF;
+  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false, 'trial_available', false); END IF;
   lib := EXISTS (SELECT 1 FROM pro_library WHERE user_id = me);
+  can_trial := NOT pro_is_guest() AND NOT EXISTS (SELECT 1 FROM pro_trials WHERE user_id = me);
   SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
-  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib); END IF;
-  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'library', lib);
+  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial); END IF;
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'library', lib, 'trial_available', false);
+END $$;
+
+-- Start my free trial: seven days of Pro, once per account, for a signed-in (not guest) player who has no Pro.
+CREATE OR REPLACE FUNCTION start_my_trial() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE me uuid := auth.uid(); new_until timestamptz;
+BEGIN
+  IF me IS NULL THEN RETURN jsonb_build_object('ok', false, 'error', 'Sign in first.'); END IF;
+  IF pro_is_guest() THEN RETURN jsonb_build_object('ok', false, 'error', 'Create an account to get your free trial.'); END IF;
+  IF EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = me AND until > now()) THEN RETURN jsonb_build_object('ok', false, 'error', 'You already have Pro.'); END IF;
+  BEGIN
+    INSERT INTO pro_trials (user_id) VALUES (me);
+  EXCEPTION WHEN unique_violation THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'The free trial has already been used.');
+  END;
+  new_until := pro_grant_until(me, now() + interval '7 days', 'trial', 'trial', true);
+  RETURN jsonb_build_object('ok', true, 'until', new_until, 'days', 7);
 END $$;
 
 -- Give Pro for some days (adds to what is left). Service role / SQL editor only.
@@ -204,6 +236,8 @@ REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC
 REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
+REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION start_my_trial() TO authenticated;
 GRANT EXECUTE ON FUNCTION redeem_pro_code(text) TO authenticated;
 
 -- Owner views: who has Pro, and how codes are doing

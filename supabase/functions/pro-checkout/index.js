@@ -7,8 +7,7 @@
 //
 // Deploy:  supabase functions deploy pro-checkout
 // Secrets: STRIPE_SECRET_KEY, SITE_URL (https://yourname.github.io/buzzword-dash-v2), and one Price id per product:
-//   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME, STRIPE_PRICE_LIBRARY (any you do not sell can be left out)
-//   optional STRIPE_TRIAL_DAYS (default 7, used on the yearly plan; 0 turns it off)
+//   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { PRODUCTS, configuredProducts, describePrice, checkoutParams } from '../_shared/billing.js';
@@ -17,7 +16,6 @@ var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
 Object.keys(PRODUCTS).forEach(function (id) { env[PRODUCTS[id].env] = Deno.env.get(PRODUCTS[id].env) || ''; });
 env.SITE_URL = Deno.env.get('SITE_URL') || '';
-env.STRIPE_TRIAL_DAYS = Deno.env.get('STRIPE_TRIAL_DAYS');
 var admin = createClient(Deno.env.get('SUPABASE_URL') || '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '', { auth: { persistSession: false } });
 
 var CORS = {
@@ -42,7 +40,7 @@ var _prices = { at: 0, list: [] };
 async function prices() {
   if (Date.now() - _prices.at < 5 * 60 * 1000) return _prices.list;
   var list = [];
-  for (var id of configuredProducts(env)) list.push(describePrice(id, await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env])), env));
+  for (var id of configuredProducts(env)) list.push(describePrice(id, await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env]))));
   _prices = { at: Date.now(), list: list };
   return list;
 }
@@ -72,7 +70,7 @@ Deno.serve(async function (req) {
     }
 
     if (body.action === 'checkout') {
-      var params = checkoutParams(body.plan, user.id, env, { customer: customerId || undefined, hadTrial: !!customerId });
+      var params = checkoutParams(body.plan, user.id, env, { customer: customerId || undefined });
       if (!params.customer) params.customer_email = user.email || undefined;
       Object.keys(params).forEach(function (k) { if (params[k] === undefined) delete params[k]; });
       var session = await stripe('checkout/sessions', params);

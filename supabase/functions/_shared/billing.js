@@ -5,14 +5,18 @@
  * and hand everything else to this file. It runs in Deno (the functions) and in Node (the unit tests).
  */
 
-/** The products, in the same ids the phone apps use. `env` is the secret holding that product's Stripe Price id. */
+/**
+ * The products, in the same ids the phone apps use. `env` is the secret holding that product's Stripe Price id.
+ * (There is no trial here: every signed-in account gets a free 7-day trial from the database, with no card; see start_my_trial.
+ *  The one-time Full Library unlock is no longer sold; it stays listed so an old purchase or refund is still understood.)
+ */
 export var PRODUCTS = {
-  dxdash_pro_yearly: { plan: 'yearly', kind: 'subscription', env: 'STRIPE_PRICE_YEARLY', trial: true },
+  dxdash_pro_yearly: { plan: 'yearly', kind: 'subscription', env: 'STRIPE_PRICE_YEARLY' },
   dxdash_pro_pass3m: { plan: 'pass3m', kind: 'subscription', env: 'STRIPE_PRICE_PASS3M' },
   dxdash_pro_monthly: { plan: 'monthly', kind: 'subscription', env: 'STRIPE_PRICE_MONTHLY' },
-  dxdash_pro_lifetime: { plan: 'lifetime', kind: 'payment', env: 'STRIPE_PRICE_LIFETIME' },
-  dxdash_library: { plan: 'library', kind: 'payment', env: 'STRIPE_PRICE_LIBRARY' }
+  dxdash_pro_lifetime: { plan: 'lifetime', kind: 'payment', env: 'STRIPE_PRICE_LIFETIME' }
 };
+var LEGACY = { dxdash_library: { plan: 'library', kind: 'payment', env: 'STRIPE_PRICE_LIBRARY' } };
 
 /** A subscription stays on this long past its paid period, so a late renewal does not lock anyone out for a day. */
 export var GRACE_SECONDS = 2 * 24 * 60 * 60;
@@ -33,6 +37,14 @@ export function productFor(planOrId) {
   return id ? { id: id, def: PRODUCTS[id] } : null;
 }
 
+/** Like productFor, but also knows the withdrawn Full Library (so an old library purchase or refund is still handled). */
+export function anyProductFor(planOrId) {
+  var p = productFor(planOrId);
+  if (p) return p;
+  var key = String(planOrId || '');
+  return key === 'library' || key === 'dxdash_library' ? { id: 'dxdash_library', def: LEGACY.dxdash_library } : null;
+}
+
 /** ISO period for a Stripe recurring price: P1Y, P1M, P3M, or '' for a one-time price. */
 export function periodOf(price) {
   var r = price && price.recurring;
@@ -46,14 +58,12 @@ export function periodOf(price) {
 }
 
 /** What the app shows for a product: the same shape the phone paywall gets from the store. */
-export function describePrice(id, price, env) {
-  var def = PRODUCTS[id];
+export function describePrice(id, price) {
   var cents = Number(price && price.unit_amount) || 0;
   var currency = String((price && price.currency) || 'usd').toUpperCase();
   var money;
   try { money = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(cents / 100); } catch { money = (cents / 100).toFixed(2) + ' ' + currency; }
-  var trial = def.trial ? Number((env && env.STRIPE_TRIAL_DAYS) === undefined ? 7 : env.STRIPE_TRIAL_DAYS) || 0 : 0;
-  return { id: id, price: money, micros: cents * 10000, currency: currency, period: periodOf(price), trialDays: trial };
+  return { id: id, price: money, micros: cents * 10000, currency: currency, period: periodOf(price), trialDays: 0 };
 }
 
 /** The unix time a subscription's current paid period ends (Stripe moved this onto the items in newer API versions). */
@@ -94,8 +104,6 @@ export function checkoutParams(planOrId, userId, env, opts) {
   if (p.def.kind === 'subscription') {
     f['subscription_data[metadata][user_id]'] = userId;
     f['subscription_data[metadata][plan]'] = p.def.plan;
-    var trial = p.def.trial ? Number((env && env.STRIPE_TRIAL_DAYS) === undefined ? 7 : env.STRIPE_TRIAL_DAYS) || 0 : 0;
-    if (trial > 0 && !(opts && opts.hadTrial)) f['subscription_data[trial_period_days]'] = String(trial);
   } else {
     // (carried onto the charge, so a refund can be matched back to the purchase)
     f['payment_intent_data[metadata][user_id]'] = userId;
@@ -159,7 +167,7 @@ export async function handleEvent(event, deps) {
 
   if (event.type === 'checkout.session.completed') {
     var userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
-    var p = productFor(obj.metadata && obj.metadata.plan);
+    var p = anyProductFor(obj.metadata && obj.metadata.plan);
     if (!userId || !p) return { handled: false };
     if (obj.payment_status !== 'paid' && obj.payment_status !== 'no_payment_required') return { handled: false };
     if (obj.customer) await rpc('pro_link_customer', { p_customer: obj.customer, p_user: userId });
