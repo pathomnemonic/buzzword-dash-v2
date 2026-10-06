@@ -86,7 +86,7 @@ export var EVENTS = {
     seeded: 'b', start_screen: 'e:' + SCREENS, minutes_since_last_run: 'i', coins: 'i', level: 'i', streak_days: 'i'
   }],
   run_end: ['gameplay', 'A run ended: the full result. The most important event for product and balance work.', {
-    run_id: 's40!', mode: 'e:' + MODES + '!', reason: 'e:out_of_lives|manual_end|no_matching_cards|daily_complete|challenge_complete|timer_expired|sudden_death_elimination|race_finished|opponent_forfeit|match_decided|local_forfeit|disconnected|app_closed|other',
+    run_id: 's40!', mode: 'e:' + MODES + '!', reason: 'e:out_of_lives|manual_end|no_matching_cards|daily_complete|challenge_complete|timer_expired|sudden_death_elimination|race_finished|opponent_forfeit|match_decided|local_forfeit|disconnected|fatal_error|app_closed|other',
     duration_s: 'i', active_s: 'i', paused_s: 'i', pauses: 'i', score: 'i', answered: 'i', correct: 'i', wrong: 'i', accuracy: 'n', best_streak: 'i', streak_end: 'i',
     avg_decision_ms: 'i', median_decision_ms: 'i', fastest_decision_ms: 'i', slowest_decision_ms: 'i', rushes: 'i', auto_pilots: 'i',
     obstacles_jumped: 'i', obstacles_slid: 'i', obstacles_hit: 'i', lives_start: 'i', lives_lost: 'i', lives_lost_gate: 'i', lives_lost_obstacle: 'i',

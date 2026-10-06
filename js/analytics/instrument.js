@@ -105,8 +105,7 @@ export function installAnalytics(app) {
     return {
       run_id: runId, mode: game.mode, run_number: (safe(function () { return storage.data.settings.runsFinished; }) || 0) + 1, map: game.currentSkin ? game.currentSkin.name : '',
       hero: eq.skin || '', monster: eq.monster || '', trail: eq.trail || '', speed_dial: game.userSpeed, lives: game.lives, subjects_selected: selected.length, subjects_total: app.subjectCount || 15,
-      exam_filters: safe(function () { return storage.getSelectedExams(); }) || [], pool_size: game.cardPool ? game.cardPool.length : 0,
-      custom_rules: game._rules && game._rules.custom ? [].concat(game._rules.hazardsOff ? ['hazards_off'] : [], game._rules.monsterOff ? ['monster_off'] : [], (game._rules.disabledPowerups || []).map(function (p) { return 'no_' + p; })) : [],
+      exam_filters: safe(function () { return storage.getSelectedExams(); }) || [],       custom_rules: game._rules && game._rules.custom ? [].concat(game._rules.hazardsOff ? ['hazards_off'] : [], game._rules.monsterOff ? ['monster_off'] : [], (game._rules.disabledPowerups || []).map(function (p) { return 'no_' + p; })) : [],
       relaxed_pace: !!st('relaxedPace'), ranked: !(game._rules && game._rules.custom), dash_control: st('dashControl') || 'auto', camera: st('cameraView') || 'default', tier: SAFE_TIER() || 'medium',
       music: st('musicOn') !== false, sfx: st('sfxEnabled') !== false, haptics: st('hapticsEnabled') !== false, tts: !!st('ttsEnabled'), night: !!st('nightMode'), colorblind: !!st('colorblindMode'),
       dyslexia: !!st('dyslexiaFont'), lefty: st('handedness') === 'left', reduced_motion: !!st('reducedMotion'), online: typeof navigator === 'undefined' ? true : navigator.onLine !== false,

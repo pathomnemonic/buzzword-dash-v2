@@ -60,6 +60,9 @@ Data collected, **not used for tracking**:
 | User content → Other user content (display name, shared run summaries, kudos) | Yes | App functionality |
 | Usage data → Product interaction (scores, progress) | Yes | App functionality |
 | Diagnostics → Crash data, Performance data (only if the player switches it on) | **No** | App functionality (bug fixing) |
+| Usage data → Product interaction (anonymous usage statistics: modes, questions, screens; asked on first launch, can be switched off) | **No** (a random install ID, never the account) | Analytics |
+| Identifiers → Device ID (the random install ID the app makes for itself; not the advertising identifier) | **No** | Analytics |
+| Diagnostics → Performance data, Other diagnostic data (frame rate, load times, errors; same switch) | **No** | Analytics |
 Tracking: **No**. Third-party advertising: **No**.
 
 ## App Review information

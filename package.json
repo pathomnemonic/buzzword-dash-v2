@@ -22,7 +22,9 @@
     "app:assets": "node tools/make-app-assets.mjs && capacitor-assets generate --android",
     "app:build": "node tools/build-app.mjs",
     "app:android": "node tools/build-app.mjs android",
-    "preflight": "node tools/preflight.mjs"
+    "preflight": "node tools/preflight.mjs",
+    "analytics:docs": "node tools/analytics-docs.mjs",
+    "analytics:report": "node tools/analytics-report.mjs"
   },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",

@@ -463,3 +463,8 @@ Android build):
 Earning (about 50 coins for each minute on the track): a right answer pays 2 coins plus 1 for every 3 in your streak, and each coin picked up on the track is 1 (5 under Score Frenzy). Daily quests are a bonus on top: 20 to 70 coins each, so a full day of six is worth roughly 150 to 350 coins, a few minutes of play. The daily login reward, weekly goal (250) and Weekly Gauntlet clear (150) are small thank-yous. Prices run from 300 (caps) to 8,000 (the dearest heroes), so a first trail or map is a few days of casual play and the dearest items about a week. `tests/unit/economy.test.js` keeps these in proportion: change a price or a reward and it tells you if the balance has drifted.
 
 The soft glowing specks that float across the track are off by default (Settings > Look > Floating glow particles).
+
+## Analytics
+
+First-party, anonymous, opt-in usage analytics (no third-party SDK). Events go to this project's Supabase database and are read with SQL views.
+See [docs/ANALYTICS-GUIDE.md](docs/ANALYTICS-GUIDE.md) (setup, what to look at, launch checklist) and [docs/ANALYTICS.md](docs/ANALYTICS.md) (every event, generated from the code).

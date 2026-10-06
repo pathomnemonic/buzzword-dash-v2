@@ -225,6 +225,7 @@ class Game {
 
     // Coin/powerup tracking
     this.runCoinsCollected = 0;
+    this.runCoinsMissed = 0; // coins that went past uncollected (for analytics)
     this.runPowerupsCollected = 0;
     this.obstaclesJumped = 0;
     this.obstaclesSlid = 0;
@@ -881,7 +882,7 @@ class Game {
     this.encounterStartTime = 0; this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;
     this.isNewBest = false; this._runEnded = false; this._runSummary = null;
-    this.runCoinsCollected = 0; this.runPowerupsCollected = 0;
+    this.runCoinsCollected = 0; this.runPowerupsCollected = 0; this.runCoinsMissed = 0;
     this.obstaclesJumped = 0; this.obstaclesSlid = 0;
 
     this.encountersUntilTransition = 10;
@@ -1610,6 +1611,7 @@ class Game {
       }
 
       if (c.position.z > 3 * VISUAL_SPEED) {
+        if (c.userData.type === 'coin') this.runCoinsMissed++;
         removeAndDispose(this.scene, c);
         this.coinMeshes.splice(ci, 1);
         continue;

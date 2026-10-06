@@ -26,12 +26,16 @@ Do you provide a way for users to request that their data be deleted? **Yes.** I
 | App activity → **App interactions** (scores, streaks, runs shared to the feed, kudos, progress) | Yes | No | Yes | App functionality |
 | App activity → **Other user-generated content** (decks a player chooses to share by code; feedback a player chooses to write, with an optional reply email) | Yes | No | Yes | App functionality (feedback: developer communications) |
 | Device or other IDs (network address seen by the multiplayer connection service and the other player) | Yes | **Yes** (PeerJS connection service and the opponent) | Yes (only in live multiplayer) | App functionality |
+| App activity → **App interactions** (anonymous usage statistics: modes played, questions answered, screens, settings) | Yes | No | **Yes (asked on first launch; can be switched off in Settings → Data)** | Analytics |
+| App activity → **Other actions** / **In-app search history**: not collected | | | | |
+| Device or other IDs → **a random install identifier** (generated on the device, not an advertising ID, not linked to the account) | Yes | No | **Yes (same switch)** | Analytics |
 | App info and performance → **Crash logs** | Yes | No | **Yes (off by default; the player switches it on)** | Analytics (bug fixing) |
 | App info and performance → **Diagnostics** | Yes | No | **Yes (same switch)** | Analytics (bug fixing) |
 
 Everything else (location, contacts, photos, files, financial, health, messages, audio, web browsing, search history, installed apps): **not collected**.
 "Shared" is **No** for everything except the live-multiplayer network address: Supabase is a service provider that hosts the data for us, which Google does not count as sharing.
 Crash/diagnostic data is not linked to the user (no ID is stored with it).
+Anonymous usage statistics use a random install identifier, are processed by our own Supabase project (not shared with any analytics vendor), and can be deleted by the player (Settings → Data → Delete my analytics data), so answer "Yes" to "data can be deleted" for them as well.
 
 ## Content rating (IARC questionnaire)
 Category: **Reference, News or Educational** (or "Utility, Productivity, Communication, or Other" if Education is not offered). Then answer:

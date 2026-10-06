@@ -70,7 +70,8 @@ import { ComboTracker, musicMood } from './game/combo.js';
 import { GOLD_REWARD_COINS } from './game/mapmastery.js';
 import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
 import { palReminder } from './companions.js';
-import { maybeAskConsent } from './analyticsui.js';
+import { maybeAskConsent, analyticsAvailable } from './analyticsui.js';
+import { analytics } from './analytics/index.js';
 import { installAnalytics, reportRunEnd, reportFrame } from './analytics/instrument.js';
 import { track as trackEvent } from './analytics/index.js';
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
@@ -1220,6 +1221,8 @@ function init() {
     window.__ui = ui;
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
+    window.__analytics = analytics;
+    window.__analyticsAvailable = analyticsAvailable;
     window.__storage = storage;
     window.__dataProblems = function () { return checkDataSanity(storage.data, STORAGE_DEFAULTS); };
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
