@@ -45,6 +45,7 @@ export var postRunMethods = {
     var skinInfo = game.currentSkin ? ' • Track: ' + game.currentSkin.name : '';
     var runSummary = game.getRunSummary ? game.getRunSummary() : null;
     var customNote = runSummary && runSummary.custom ? ' • Custom rules: ' + describeRules(runSummary.rules && Object.assign({ custom: true }, runSummary.rules)) + ' (not ranked)' : '';
+    if (runSummary && Number(runSummary.userSpeed) < 1) customNote += ' • Slower than 1× (not ranked)';
     var metaP = createElement('p', { text: 'Speed: ' + game.userSpeed + '×' + skinInfo + (game.continued ? ' (continued)' : '') + customNote });
     metaP.style.cssText = 'color:var(--text-muted);font-size:12px';
     header.appendChild(metaP);

@@ -683,6 +683,8 @@ class UI {
     var current = storage.get('userSpeed') || 1;
     dial.value = String(speedIndex(current));
     var shown = SPEED_STEPS[speedIndex(current)];
+    var note = document.getElementById('speedNote');
+    if (note) note.hidden = shown >= 1;
     setText(val, shown + '×');
     var btnVal = document.getElementById('speedBtnValue');
     if (btnVal) setText(btnVal, shown + '×');
@@ -690,6 +692,7 @@ class UI {
     dial.addEventListener('input', function () {
       var v = SPEED_STEPS[Math.max(0, Math.min(SPEED_STEPS.length - 1, parseInt(dial.value, 10) || 0))];
       storage.set('userSpeed', v);
+      if (note) note.hidden = v >= 1;
       setText(val, v + '×');
       if (btnVal) setText(btnVal, v + '×');
     });

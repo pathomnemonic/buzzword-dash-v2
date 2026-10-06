@@ -98,3 +98,13 @@ describe('speed-up as you go', () => {
     expect(normalizeSpeedRamp(null)).toEqual({ on: true, every: 20, step: 0.5 });
   });
 });
+
+describe('slower-than-1x runs', () => {
+  it('are practice: never ranked, while 1x and faster still are', () => {
+    expect(isRankedRun({ custom: false, userSpeed: 0.5 })).toBe(false);
+    expect(isRankedRun({ custom: false, userSpeed: 0.25 })).toBe(false);
+    expect(isRankedRun({ custom: false, userSpeed: 1 })).toBe(true);
+    expect(isRankedRun({ custom: false, userSpeed: 7 })).toBe(true);
+    expect(isRankedRun({ custom: false })).toBe(true);
+  });
+});

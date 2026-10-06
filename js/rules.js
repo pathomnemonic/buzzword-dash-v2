@@ -83,7 +83,8 @@ export function getRunRules(mode, prefs) {
 
 /** Whether a finished run may appear on leaderboards. */
 export function isRankedRun(summary) {
-  return !(summary && summary.custom);
+  // (a speed below 1× is a calmer, easier track: practice, not a ranked score)
+  return !(summary && (summary.custom || Number(summary.userSpeed) < 1));
 }
 
 /** One line describing the changed rules, for the results screen. */
