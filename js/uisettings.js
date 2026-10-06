@@ -939,7 +939,7 @@ export var settingsMethods = {
     if (rawTab === 'customize') this._heroColorsOpen = true;
     this._lockerTab = tab;
     // The Locker opens as one calm screen (the display, the tabs and what you wear). Tapping a tab opens its list
-    // below, and the page then scrolls; tapping the open tab again folds it away. (Undefined counts as open, for
+    // below (the page stays where it is: it never scrolls by itself); tapping the open tab again folds it away. (Undefined counts as open, for
     // callers that draw a particular tab directly.)
     var listOpen = this._lockerOpen === undefined || rawTab === 'customize' ? true : !!this._lockerOpen;
     if (rawTab === 'customize') this._lockerOpen = true;
@@ -960,10 +960,6 @@ export var settingsMethods = {
         if (listOpen && self._lockerTab === t[0]) self._lockerOpen = false;
         else { self._lockerTab = t[0]; self._lockerOpen = true; trackEvent('tab_changed', { screen: 'shop', tab: String(t[0]) }); }
         self.renderShop();
-        if (self._lockerOpen) {
-          var bar = document.querySelector('#shopItems .locker-tabs');
-          if (bar && bar.scrollIntoView) bar.scrollIntoView({ block: 'start' });
-        }
         // changing tab sets the display to what suits it: your hero with the trail you wear, the monster you have
         // equipped, or a map
         self._syncLockerPreview();
