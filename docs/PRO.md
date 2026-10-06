@@ -19,11 +19,11 @@ Otherwise nothing is limited and no Pro screen shows. So a local build, a store 
 
 | id | Type | Suggested US price |
 |---|---|---|
-| `dxdash_pro_yearly` | auto-renewing subscription, **7-day free trial** offer for new subscribers | 39.99 / year |
-| `dxdash_pro_pass3m` | auto-renewing subscription, 3-month period | 14.99 |
-| `dxdash_pro_monthly` | auto-renewing subscription, 1 month | 6.99 |
-| `dxdash_pro_lifetime` | **non-consumable** (one purchase) | 79.99 |
-| `dxdash_library` | **non-consumable** (one purchase) | 14.99 |
+| `dxdash_pro_yearly` | auto-renewing subscription, **7-day free trial** offer for new subscribers | 19.99 / year |
+| `dxdash_pro_pass3m` | auto-renewing subscription, 3-month period | 7.49 |
+| `dxdash_pro_monthly` | auto-renewing subscription, 1 month | 3.49 |
+| `dxdash_pro_lifetime` | **non-consumable** (one purchase) | 39.99 |
+| `dxdash_library` | **non-consumable** (one purchase) | 7.49 |
 | `dxdash_tip_small` / `_medium` / `_large` | consumable tips (see TIP-JAR.md) | 1.99 / 4.99 / 9.99 |
 
 **Google Play:** Monetize → Subscriptions (one subscription "Dx Dash Pro" with three base plans yearly / 3-month / monthly; add the free-trial offer to the yearly base plan), In-app products for Lifetime and Library. **Apple:** one subscription group "Dx Dash Pro" holding the three subscriptions (introductory offer = free trial on yearly), non-consumable in-app purchases for Lifetime and Library; accept the Paid Applications agreement, tax and bank details; attach the purchases to the version you submit and add a review screenshot of the paywall. Both stores need a build uploaded (internal track / TestFlight) before purchases work.

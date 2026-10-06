@@ -25,13 +25,13 @@ Prices are for the US storefront. Other storefronts use the stores' price tiers,
 
 | Product id | What | Price | Role |
 |---|---|---|---|
-| `dxdash_pro_yearly` | Pro, auto-renewing, **7-day free trial** | **$39.99 / year** (about $3.33 a month) | The default. Priced between Quizlet ($35.99) and Duolingo ($59.99). |
-| `dxdash_pro_pass3m` | Pro for 3 months, auto-renewing | **$14.99 / 3 months** (about $5 a month) | The exam-window plan; low commitment. |
-| `dxdash_pro_monthly` | Pro, monthly | **$6.99 / month** | The anchor that makes Yearly look like a 52% saving. |
-| `dxdash_pro_lifetime` | Pro, one purchase, never expires | **$79.99** | Two years of the yearly plan; Brainscape sells lifetime at $199.99. Captures students who will not subscribe. |
-| `dxdash_library` | **Full Library only** (all 3,010 cards, none of the tools), one purchase | **$14.99** | The cheap way in for someone who only wants more cards; also the "additional cost to unlock all cards". |
+| `dxdash_pro_yearly` | Pro, auto-renewing, **7-day free trial** | **$19.99 / year** (about $1.67 a month) | The default. Priced between Quizlet ($35.99) and Duolingo ($59.99). |
+| `dxdash_pro_pass3m` | Pro for 3 months, auto-renewing | **$7.49 / 3 months** (about $2.50 a month) | The exam-window plan; low commitment. |
+| `dxdash_pro_monthly` | Pro, monthly | **$3.49 / month** | The anchor that makes Yearly look like a 52% saving. |
+| `dxdash_pro_lifetime` | Pro, one purchase, never expires | **$39.99** | Two years of the yearly plan; Brainscape sells lifetime at $199.99. Captures students who will not subscribe. |
+| `dxdash_library` | **Full Library only** (all 3,010 cards, none of the tools), one purchase | **$7.49** | The cheap way in for someone who only wants more cards; also the "additional cost to unlock all cards". |
 
-Why a cheaper library tier exists: it converts people who would never pay $39.99, it sets a visible price ladder (good, better, best), and a library-only buyer is the best candidate for a later upgrade to Pro.
+Why a cheaper library tier exists: it converts people who would never pay $19.99, it sets a visible price ladder (good, better, best), and a library-only buyer is the best candidate for a later upgrade to Pro.
 
 Why Lifetime exists despite cannibalising recurring revenue: with education annual renewal at about 24%, a lifetime buyer is worth more than the average yearly buyer's second year, and it removes the cancellation churn problem. It is capped at four plans on screen (the config limit) so the paywall stays readable.
 
