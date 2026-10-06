@@ -1,0 +1,10 @@
+# Only used by `supabase functions deploy`. The functions are plain JavaScript, so name the entrypoints.
+project_id = "buzzword-dash"
+
+[functions.pro-checkout]
+entrypoint = "./functions/pro-checkout/index.js"
+verify_jwt = false
+
+[functions.stripe-webhook]
+entrypoint = "./functions/stripe-webhook/index.js"
+verify_jwt = false

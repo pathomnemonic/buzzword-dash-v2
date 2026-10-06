@@ -41,8 +41,8 @@ On the website the paywall shows your real Stripe prices and sends the player to
 2. **Stripe products.** In Stripe (start in Test mode) create four Products with a Price each, matching the table above: yearly (recurring every year), 3-month pass (recurring every 3 months), monthly (recurring monthly), Lifetime (one time). Do not add a free trial in Stripe: the trial is built into accounts. Copy each **Price id** (`price_...`). The customer portal (where subscribers cancel) needs no setup: the function creates its own settings the first time someone taps Manage subscription, unless you have saved your own in the Dashboard.
 3. **Deploy the two functions** (needs the [Supabase CLI](https://supabase.com/docs/guides/cli), logged in and linked to your project):
    ```
-   supabase functions deploy pro-checkout
-   supabase functions deploy stripe-webhook --no-verify-jwt
+   supabase functions deploy pro-checkout --use-api
+   supabase functions deploy stripe-webhook --use-api
    ```
 4. **Function secrets** (Supabase dashboard → Edge Functions → Secrets, or `supabase secrets set ...`):
    `STRIPE_SECRET_KEY` (Stripe → Developers → API keys), `SITE_URL` (your site address with no slash, e.g. `https://pathomnemonic.github.io/buzzword-dash-v2`), and one Price id each: `STRIPE_PRICE_YEARLY`, `STRIPE_PRICE_PASS3M`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_LIFETIME` (leave out any you do not want to sell).
