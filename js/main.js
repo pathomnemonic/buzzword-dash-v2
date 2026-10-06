@@ -21,6 +21,9 @@
  * Per Sections 19, 30 and 31 of the architecture contract [2].
  */
 
+import * as proModule from './pro.js';
+import { registerProProducts, refreshPro } from './pro.js';
+import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
 import { game } from './game/engine.js';
@@ -1230,6 +1233,7 @@ function init() {
     window.__useRankedTestClient = useRankedTestClient;
     window.__audio = audio;
     window.__analytics = analytics;
+    window.__pro = proModule;
     window.__analyticsAvailable = analyticsAvailable;
     window.__storage = storage;
     window.__dataProblems = function () { return checkDataSanity(storage.data, STORAGE_DEFAULTS); };
@@ -1279,6 +1283,9 @@ function init() {
   }
   installGlobalErrorHandlers();
   try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
+  registerProProducts(); // (before the store starts: the tip jar and Pro share one connection)
+  installProUi({ toast: function (m) { ui._showToast(m); } });
+  refreshPro();
   probeTipJar(); // phone apps: find out whether the store has the tip products
   watchBattery(); // a nearly flat phone steps Auto graphics down a tier
   watchConnection(function (msg) { ui.showNotice(msg, { ms: 4500 }); });
@@ -1351,6 +1358,8 @@ function init() {
   if (!isKilled('onlineFeatures')) import('./leaderboard.js').then(function (mod) {
     leaderboardModule = mod;
     instrumentLeaderboard(mod.leaderboard);
+    setProUiDeps({ lb: mod.leaderboard });
+    mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); });
     mod.leaderboard.init().then(function () {
       if (pendingDeepLink) { handleDeepLink(pendingDeepLink); pendingDeepLink = null; }
       startCloudSync(mod.leaderboard);

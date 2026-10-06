@@ -34,6 +34,7 @@
  * - Agent 18 (card hub): CARDS, SUBJECTS, EXAM_FILTERS, QUESTION_TYPES
  */
 
+import { requireGate } from './pro.js';
 import { shareLink, track as shareTrack } from './analytics/index.js';
 import { renderPal } from './palui.js';
 import { setText, createElement, clearElement } from './dom.js';
@@ -1200,7 +1201,8 @@ class UI {
     // there is no time to read it, and the end-of-run review has it.
     if (!wasCorrect && (this._teachOnMiss || this._teachOnMiss === undefined)) {
       var tb = document.getElementById('teachEl');
-      setText(tb, missExplanation(card, choice));
+      if (requireGate('explanations', { record: true, passive: true })) setText(tb, missExplanation(card, choice));
+      else setText(tb, '🔒 Unlock every explanation with Dx Dash Pro');
       shareTrack('explain_viewed', { card_id: card.id, source: this.flashcardMode && this._flashcardActive && this._flashcardActive() ? 'flashcards' : 'study' });
       tb.classList.add('show');
     }
@@ -1814,6 +1816,7 @@ class UI {
     };
     var errEl = document.getElementById('cardErrors');
     var editId = document.getElementById('cardEditId').value;
+    if (!editId && !requireGate('custom_cards', { used: customCards.getAll().length })) return;
     var result = editId ? customCards.update(editId, cardData) : customCards.add(cardData);
     if (!result.success) {
       clearElement(errEl);

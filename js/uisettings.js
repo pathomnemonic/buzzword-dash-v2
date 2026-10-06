@@ -5,6 +5,8 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
+import { requireGate } from './pro.js';
+import { renderProSettings } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
 import { track as trackEvent } from './analytics/index.js';
@@ -339,6 +341,7 @@ export var settingsMethods = {
         packRow.appendChild(packLabel);
         var packBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: storage.get('offlinePackAt') ? 'Update' : 'Download', attributes: { type: 'button', id: 'offlinePackBtn' } });
         packBtn.addEventListener('click', function () {
+          if (!requireGate('offline_pack')) return;
           packBtn.disabled = true;
           setText(packState, 'Downloading… 0%');
           downloadPack({
@@ -517,6 +520,7 @@ export var settingsMethods = {
       credits.appendChild(creditsBody);
       content.appendChild(credits);
 
+      renderProSettings(content); // (nothing until Pro is switched on)
       // Optional tip link (only when a tip page is configured at build time)
       if (getTipUrl() || tipJarReady()) {
         var tipRow = createElement('div', { className: 'setting-row' });

@@ -23,6 +23,7 @@
  * - All untrusted content rendered with textContent / safe DOM
  */
 
+import { requireGate } from './pro.js';
 import { track } from './analytics/index.js';
 import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply } from './importguide.js';
 import { copyText } from './platform.js';
@@ -526,6 +527,7 @@ function importRaw(cards, options) {
   }
 
   var customCards = _dependencies.customCards;
+  if (!requireGate('anki_import', { used: cards.length })) return { imported: 0, rejected: 0, warnings: ['Importing a deck this size needs Dx Dash Pro.'] };
 
   var limit = Math.min(cards.length, MAX_CARDS_PER_IMPORT);
   var batch = [];

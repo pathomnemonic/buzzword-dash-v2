@@ -13,10 +13,12 @@
  */
 
 import { sanitizeExperiments } from './analytics/experiments.js';
+import { sanitizeProConfig, defaultProConfig } from './proconfig.js';
 
 export var KILLABLE = ['hazards', 'monster', 'powerups', 'mapChanges', 'rush', 'onlineFeatures'];
 var CACHE_KEY = 'dx_remote_config';
 var _killed = [];
+var _pro = defaultProConfig();
 var _analytics = { enabled: true, sample: 1, killed: [], rates: {}, flushMs: 15000, experiments: {} };
 
 /**
@@ -42,12 +44,15 @@ export function sanitizeAnalyticsConfig(raw) {
 }
 
 export function analyticsConfig() { return _analytics; }
+/** The Dx Dash Pro switches (everything off unless the file turns Pro on; see proconfig.js). */
+export function proConfig() { return _pro; }
+export function setProConfigForTest(raw) { _pro = sanitizeProConfig(raw); }
 export function setAnalyticsConfigForTest(raw) { _analytics = sanitizeAnalyticsConfig(raw); }
 
 /** Only known names survive; anything else in the file is ignored. */
 export function sanitizeConfig(raw) {
   var list = raw && typeof raw === 'object' && Array.isArray(raw.killed) ? raw.killed : [];
-  return { killed: KILLABLE.filter(function (n) { return list.indexOf(n) >= 0; }), analytics: sanitizeAnalyticsConfig(raw && raw.analytics) };
+  return { killed: KILLABLE.filter(function (n) { return list.indexOf(n) >= 0; }), analytics: sanitizeAnalyticsConfig(raw && raw.analytics), pro: sanitizeProConfig(raw && raw.pro) };
 }
 
 export function isKilled(name) { return _killed.indexOf(name) >= 0; }
@@ -69,7 +74,7 @@ export function applyKillSwitch(rules, allPowerups) {
 }
 
 function readCache(store) {
-  try { return sanitizeConfig(JSON.parse(store.getItem(CACHE_KEY))); } catch (e) { return { killed: [], analytics: sanitizeAnalyticsConfig(null) }; }
+  try { return sanitizeConfig(JSON.parse(store.getItem(CACHE_KEY))); } catch (e) { return { killed: [], analytics: sanitizeAnalyticsConfig(null), pro: defaultProConfig() }; }
 }
 
 /**
@@ -84,6 +89,7 @@ export function loadRemoteConfig(deps) {
   var cached = readCache(store);
   _killed = cached.killed;
   _analytics = cached.analytics;
+  _pro = cached.pro;
   if (!fetchFn) return Promise.resolve(_killed);
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
   var url = deps.url || env.VITE_REMOTE_CONFIG_URL || 'remote-config.json';
@@ -96,6 +102,7 @@ export function loadRemoteConfig(deps) {
       var cfg = sanitizeConfig(raw);
       _killed = cfg.killed;
       _analytics = cfg.analytics;
+      _pro = cfg.pro;
       try { store.setItem(CACHE_KEY, JSON.stringify(cfg)); } catch (e) { /* storage full: this session still has it */ }
     }
     return _killed;

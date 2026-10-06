@@ -35,6 +35,7 @@ Dx Dash has its own first-party analytics. No third-party SDK, no ad networks: e
 | Does it run well on real devices? | `fps`, `load_times`, `tier_changes`, `devices`, `screens_and_hardware`, `connection` |
 | Is it crashing? | `errors`, `crash_free`, `reliability_other`, `versions`, `updates` |
 | Did the ratings/tip prompts work? | `rating_funnel`, `tip_funnel`, `tip_revenue`, `feedback`, `nudges`, `reminders` |
+| Is Pro (when launched) selling? Which limits convert? | `paywall` (funnel by trigger), `pro_revenue`, `pro_gates`, `pro_users` |
 | Do people use accounts, friends, ranked, cloud save? | `ranked`, `cloud_sync`, `quests_all_done`, `data_actions` |
 | Did an experiment win? | `experiments` |
 | Can I trust the numbers? | `event_volume`, `data_health`, `ingest_lag`, `consent` |

@@ -21,6 +21,10 @@
  *
  * studyBuddies: the Home-screen pet (js/companions.js, js/palui.js) and its Pals tab in the Locker. It is shelved for now: the
  * code, the buddy items and the saved choice are all kept, so it comes back untouched. Build with VITE_FEATURE_STUDY_BUDDIES=1.
+ *
+ * pro: Dx Dash Pro, the subscription (js/pro.js, docs/PRO.md). Built and tested but dormant: nothing is visible and no feature
+ * is limited. Turn it on in the build with VITE_FEATURE_PRO=1, or without a release with "pro": {"enabled": true} in
+ * public/remote-config.json (which also says what is gated).
  */
 
 function flag(value) {
@@ -32,5 +36,6 @@ export var FEATURES = {
   globalLeaderboard: flag(import.meta.env && import.meta.env.VITE_FEATURE_GLOBAL_LEADERBOARD),
   discovery: flag(import.meta.env && import.meta.env.VITE_FEATURE_DISCOVERY),
   characterVoices: flag(import.meta.env && import.meta.env.VITE_FEATURE_CHARACTER_VOICES),
-  studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES)
+  studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES),
+  pro: flag(import.meta.env && import.meta.env.VITE_FEATURE_PRO)
 };

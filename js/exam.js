@@ -9,6 +9,7 @@
  * prediction of a licensing-exam score.
  */
 
+import { requireGate } from './pro.js';
 import { track } from './analytics/index.js';
 import { createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
@@ -203,6 +204,7 @@ function renderSetup() {
 }
 
 function startExam(cards, count, pace) {
+  if (!requireGate('exam_sim', { record: true })) return;
   var questions = buildExam(cards, count);
   _state = {
     id: 'exam_' + Date.now() + '_' + Math.floor(Math.random() * 10000),

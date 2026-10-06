@@ -737,6 +737,39 @@ CREATE OR REPLACE VIEW analytics_v_data_actions AS
 SELECT name, coalesce(props ->> 'action', '') AS action, coalesce(analytics_bool(props, 'ok'), true) AS ok, count(*) AS events, count(DISTINCT install_id) AS installs
 FROM analytics_events WHERE name IN ('data_action', 'keybinding_changed') GROUP BY 1, 2, 3 ORDER BY 1, events DESC;
 
+-- Dx Dash Pro: the paywall funnel by what opened it (shown -> plan chosen -> purchase started -> bought), per experiment variant
+CREATE OR REPLACE VIEW analytics_v_paywall AS
+WITH v AS (SELECT coalesce(props ->> 'trigger', '') AS trigger, coalesce(props ->> 'variant', '') AS variant, count(*) AS views, count(DISTINCT install_id) AS viewers
+           FROM analytics_events WHERE name = 'paywall_viewed' GROUP BY 1, 2),
+a AS (SELECT coalesce(props ->> 'trigger', '') AS trigger,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'plan_selected') AS chose_plan,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'purchase_started') AS started,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'purchased') AS bought,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'cancelled') AS cancelled,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'failed') AS failed,
+             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' IN ('code_ok', 'restore_ok')) AS redeemed_or_restored
+      FROM analytics_events WHERE name = 'paywall_action' GROUP BY 1)
+SELECT v.trigger, v.variant, v.views, v.viewers, a.chose_plan, a.started, a.bought, analytics_pct(a.bought, v.viewers) AS buy_pct_of_viewers, a.cancelled, a.failed, a.redeemed_or_restored
+FROM v LEFT JOIN a USING (trigger) ORDER BY v.views DESC;
+
+-- Dx Dash Pro: purchases by plan and currency, with the revenue before the store's cut (a trial that did not convert is not counted: the store tells you that)
+CREATE OR REPLACE VIEW analytics_v_pro_revenue AS
+SELECT date_trunc('week', ts)::date AS week, coalesce(props ->> 'plan', '') AS plan, coalesce(props ->> 'currency', '') AS currency,
+       count(*) AS purchases, count(DISTINCT install_id) AS buyers,
+       round(sum(analytics_num(props, 'micros')) / 1000000.0, 2) AS gross, coalesce(sum(analytics_num(props, 'trial_days')) FILTER (WHERE analytics_num(props, 'trial_days') > 0), 0) AS trial_days_offered
+FROM analytics_events WHERE name = 'paywall_action' AND props ->> 'action' = 'purchased' GROUP BY 1, 2, 3 ORDER BY 1 DESC, 4 DESC;
+
+-- Dx Dash Pro: which limits free players hit, and how often
+CREATE OR REPLACE VIEW analytics_v_pro_gates AS
+SELECT props ->> 'feature' AS feature, props ->> 'mode' AS mode, count(*) AS hits, count(DISTINCT install_id) AS installs, round(avg(analytics_num(props, 'used')), 1) AS avg_used, max(analytics_num(props, 'limit')) AS gate_limit
+FROM analytics_events WHERE name = 'pro_gate_hit' GROUP BY 1, 2 ORDER BY hits DESC;
+
+-- Dx Dash Pro: how many installs have it (latest status of each install), by source and plan
+CREATE OR REPLACE VIEW analytics_v_pro_users AS
+WITH latest AS (SELECT DISTINCT ON (install_id) install_id, props FROM analytics_events WHERE name = 'pro_status' ORDER BY install_id, ts DESC)
+SELECT coalesce(analytics_bool(props, 'active'), false) AS active, coalesce(props ->> 'source', '') AS source, coalesce(props ->> 'plan', '') AS plan, coalesce(analytics_bool(props, 'trial'), false) AS trial, count(*) AS installs
+FROM latest GROUP BY 1, 2, 3, 4 ORDER BY installs DESC;
+
 -- ==================== 12. SETTINGS AND ACCESSIBILITY ====================
 
 -- the latest value each install chose for each setting, and how many chose each

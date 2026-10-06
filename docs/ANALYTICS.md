@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **98**.
+Total events: **102**.
 
 ## Acquisition
 
@@ -1008,6 +1008,55 @@ Feedback was sent (never the text).
 | `ok` | true/false |
 
 ## Monetization
+
+### `paywall_viewed`
+
+The Dx Dash Pro screen was opened (only once Pro is launched).
+
+| Property | Type |
+|---|---|
+| `trigger` | text (≤30) |
+| `feature` | text (≤24) |
+| `plans` | list of short text |
+| `variant` | text (≤20) |
+| `pro` | true/false |
+
+### `paywall_action`
+
+What the player did on the Pro screen, with the plan and the store price.
+
+| Property | Type |
+|---|---|
+| `action` | one of: plan_selected, purchase_started, purchased, cancelled, failed, restore_started, restore_ok, restore_none, code_ok, code_failed, web_opened, manage_opened, closed — required |
+| `plan` | text (≤24) |
+| `trigger` | text (≤30) |
+| `price` | text (≤16) |
+| `micros` | whole number |
+| `currency` | text (≤3) |
+| `trial_days` | whole number |
+
+### `pro_gate_hit`
+
+A free player reached a Pro limit (a locked feature, or the daily/weekly/total limit).
+
+| Property | Type |
+|---|---|
+| `feature` | text (≤24) — required |
+| `mode` | one of: limit, locked |
+| `used` | whole number |
+| `limit` | whole number |
+
+### `pro_status`
+
+Whether this install has Pro, at the start of a session (only once Pro is launched).
+
+| Property | Type |
+|---|---|
+| `active` | true/false — required |
+| `source` | one of: store, server, code, debug, none |
+| `plan` | text (≤24) |
+| `trial` | true/false |
+| `days_left` | whole number |
 
 ### `tip_purchase`
 

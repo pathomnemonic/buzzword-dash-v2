@@ -172,6 +172,13 @@ export var EVENTS = {
   // ───────────────────────── feedback, ratings, money ─────────────────────────
   rating_prompt: ['growth', 'The "enjoying Dx Dash?" prompt and where it led.', { step: 'e:shown|enjoying_yes|enjoying_no|store_opened|feedback_opened|dismissed|later!', trigger: 's30', runs_total: 'i', days_since_install: 'i' }],
   feedback_sent: ['growth', 'Feedback was sent (never the text).', { mood: 'e:unhappy|idea|bug', length: 'i', has_contact: 'b', ok: 'b' }],
+  paywall_viewed: ['monetization', 'The Dx Dash Pro screen was opened (only once Pro is launched).', { trigger: 's30', feature: 's24', plans: 'sa', variant: 's20', pro: 'b' }],
+  paywall_action: ['monetization', 'What the player did on the Pro screen, with the plan and the store price.', {
+    action: 'e:plan_selected|purchase_started|purchased|cancelled|failed|restore_started|restore_ok|restore_none|code_ok|code_failed|web_opened|manage_opened|closed!',
+    plan: 's24', trigger: 's30', price: 's16', micros: 'i', currency: 's3', trial_days: 'i'
+  }],
+  pro_gate_hit: ['monetization', 'A free player reached a Pro limit (a locked feature, or the daily/weekly/total limit).', { feature: 's24!', mode: 'e:limit|locked', used: 'i', limit: 'i' }],
+  pro_status: ['monetization', 'Whether this install has Pro, at the start of a session (only once Pro is launched).', { active: 'b!', source: 'e:store|server|code|debug|none', plan: 's24', trial: 'b', days_left: 'i' }],
   tip_purchase: ['monetization', 'An in-app tip (phone apps only): started, completed, cancelled or failed, with the store price.', { outcome: 'e:started|completed|cancelled|failed!', product: 's40', price: 's16', micros: 'i', currency: 's3' }],
   tip_prompt: ['monetization', 'The tip jar: shown, clicked, dismissed.', { step: 'e:shown|clicked|dismissed|opened_settings|opened_jar!', trigger: 's30', runs_total: 'i', days_since_install: 'i' }],
   next_goal_shown: ['engagement', 'The "next goal" nudge after a run.', { kind: 's24', clicked: 'b' }],

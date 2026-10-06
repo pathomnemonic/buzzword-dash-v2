@@ -1,0 +1,130 @@
+-- ================================================================
+-- Dx Dash Pro: who has it, and the codes that grant it. Safe to run again.
+--
+-- Pro bought in the phone apps lives in the store (Google Play / App Store) and is read from there. This file is for
+-- everything else: web payments (a Stripe webhook or you, with the service key, calls pro_grant), promo and
+-- ambassador codes, and school or group seats (hand out codes). The app can only ask "do I have Pro?" and "redeem
+-- this code"; it cannot grant itself anything.
+--
+-- Handing out a code (SQL editor):
+--   INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch week');
+-- Granting by hand / from a webhook (service role):
+--   SELECT pro_grant('<user uuid>', 365, 'yearly', 'stripe');
+-- ================================================================
+
+CREATE TABLE IF NOT EXISTS pro_entitlements (
+  user_id uuid PRIMARY KEY,
+  plan text NOT NULL DEFAULT 'pro',
+  source text NOT NULL DEFAULT 'manual',
+  until timestamptz NOT NULL,
+  trial boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS pro_codes (
+  code text PRIMARY KEY CHECK (code = upper(code) AND code ~ '^[A-Z0-9_-]{4,32}$'),
+  days integer NOT NULL CHECK (days BETWEEN 1 AND 3650),
+  max_uses integer NOT NULL DEFAULT 1 CHECK (max_uses >= 1),
+  used integer NOT NULL DEFAULT 0,
+  expires_at timestamptz,
+  note text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS pro_redemptions (
+  code text NOT NULL REFERENCES pro_codes (code) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
+  redeemed_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (code, user_id)
+);
+
+-- failed guesses per user per hour (stops code guessing)
+CREATE TABLE IF NOT EXISTS pro_attempts (
+  user_id uuid NOT NULL,
+  hour timestamptz NOT NULL,
+  n integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (user_id, hour)
+);
+
+ALTER TABLE pro_entitlements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pro_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pro_redemptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pro_attempts ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_entitlements, pro_codes, pro_redemptions, pro_attempts FROM PUBLIC, anon, authenticated;
+
+-- Do I have Pro right now? { active, until, plan, source, trial }
+CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
+DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE;
+BEGIN
+  IF me IS NULL THEN RETURN jsonb_build_object('active', false); END IF;
+  SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
+  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false); END IF;
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial);
+END $$;
+
+-- Give Pro for some days (adds to what is left). Service role / SQL editor only.
+CREATE OR REPLACE FUNCTION pro_grant(p_user uuid, p_days integer, p_plan text DEFAULT 'pro', p_source text DEFAULT 'manual', p_trial boolean DEFAULT false) RETURNS timestamptz
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE new_until timestamptz;
+BEGIN
+  IF p_days IS NULL OR p_days < 1 OR p_days > 3650 THEN RAISE EXCEPTION 'days must be 1 to 3650'; END IF;
+  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at)
+  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), now() + make_interval(days => p_days), coalesce(p_trial, false), now())
+  ON CONFLICT (user_id) DO UPDATE SET
+    until = greatest(e.until, now()) + make_interval(days => p_days),
+    plan = excluded.plan, source = excluded.source, trial = excluded.trial AND e.until > now(), updated_at = now()
+  RETURNING until INTO new_until;
+  RETURN new_until;
+END $$;
+
+-- End someone's Pro now. Service role / SQL editor only.
+CREATE OR REPLACE FUNCTION pro_revoke(p_user uuid) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user;
+$$;
+
+-- Redeem a code: { ok, until } or { ok: false, error }. Ten wrong guesses an hour is the limit.
+CREATE OR REPLACE FUNCTION redeem_pro_code(p_code text) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  me uuid := auth.uid();
+  c pro_codes%ROWTYPE;
+  h timestamptz := date_trunc('hour', now());
+  tries integer;
+  new_until timestamptz;
+BEGIN
+  IF me IS NULL THEN RETURN jsonb_build_object('ok', false, 'error', 'Sign in first.'); END IF;
+  INSERT INTO pro_attempts (user_id, hour, n) VALUES (me, h, 0) ON CONFLICT DO NOTHING;
+  SELECT n INTO tries FROM pro_attempts WHERE user_id = me AND hour = h;
+  IF tries >= 10 THEN RETURN jsonb_build_object('ok', false, 'error', 'Too many tries. Please wait an hour.'); END IF;
+  SELECT * INTO c FROM pro_codes WHERE code = upper(trim(coalesce(p_code, ''))) FOR UPDATE;
+  IF NOT FOUND OR (c.expires_at IS NOT NULL AND c.expires_at < now()) OR c.used >= c.max_uses THEN
+    UPDATE pro_attempts SET n = n + 1 WHERE user_id = me AND hour = h;
+    RETURN jsonb_build_object('ok', false, 'error', 'That code is not valid.');
+  END IF;
+  IF EXISTS (SELECT 1 FROM pro_redemptions WHERE code = c.code AND user_id = me) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'You already used that code.');
+  END IF;
+  INSERT INTO pro_redemptions (code, user_id) VALUES (c.code, me);
+  UPDATE pro_codes SET used = used + 1 WHERE code = c.code;
+  new_until := pro_grant(me, c.days, 'pro', 'code', false);
+  RETURN jsonb_build_object('ok', true, 'until', new_until, 'days', c.days);
+END $$;
+
+REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
+GRANT EXECUTE ON FUNCTION redeem_pro_code(text) TO authenticated;
+
+-- Owner views: who has Pro, and how codes are doing
+CREATE OR REPLACE VIEW pro_v_active AS
+SELECT plan, source, trial, count(*) AS users, min(until) AS first_ends, max(until) AS last_ends
+FROM pro_entitlements WHERE until > now() GROUP BY 1, 2, 3 ORDER BY users DESC;
+
+CREATE OR REPLACE VIEW pro_v_codes AS
+SELECT code, days, max_uses, used, expires_at, note, created_at FROM pro_codes ORDER BY created_at DESC;
+
+REVOKE ALL ON pro_v_active, pro_v_codes FROM PUBLIC, anon, authenticated;

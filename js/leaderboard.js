@@ -1057,6 +1057,25 @@ var leaderboard = {
     });
   },
 
+  // ===== DX DASH PRO (database/pro.sql) =====
+
+  /** Do I have Pro from the server (web payment, a code, a school seat)? Resolves to {active, until, plan, source, trial}. */
+  getMyPro: function () {
+    return leaderboard._rpc('get_my_pro', {}).then(function (r) {
+      var d = r.success ? r.data : null;
+      return d && typeof d === 'object' && !Array.isArray(d) ? d : { active: false };
+    });
+  },
+
+  /** Redeem a promo or seat code. Resolves to {ok, until, days} or {ok: false, error}. */
+  redeemProCode: function (code) {
+    return leaderboard._rpc('redeem_pro_code', { p_code: String(code || '').slice(0, 40) }).then(function (r) {
+      if (!r.success) return { ok: false, error: r.error || 'Could not check that code.' };
+      var d = r.data;
+      return d && typeof d === 'object' && !Array.isArray(d) ? d : { ok: false, error: 'Could not check that code.' };
+    });
+  },
+
   // ===== TOURNAMENT STANDING =====
 
   /** The player's rank among everyone who scored this season, or null. */

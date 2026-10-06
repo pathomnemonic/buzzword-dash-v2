@@ -8,6 +8,7 @@
 
 import { analytics, track, trackOnce, startAnalytics, setAppHooks } from './index.js';
 import { analyticsConfig } from '../remoteconfig.js';
+import { proEnabled, proStatus } from '../pro.js';
 import { createRunTracker } from './runtracker.js';
 import { REPORTABLE_SETTINGS } from './catalog.js';
 import { setErrorObserver } from '../errors.js';
@@ -341,6 +342,7 @@ export function installAnalytics(app) {
     try {
       var snap = snapshot(storage, { custom: app.customCardCount ? app.customCardCount() : 0, subjects: app.subjectCount });
       track('user_snapshot', snap);
+      if (proEnabled()) { var ps = proStatus(); track('pro_status', { active: ps.active, source: ps.active ? (ps.source === 'store' || ps.source === 'code' || ps.source === 'server' ? ps.source : 'debug') : 'none', plan: ps.plan, trial: ps.trial, days_left: ps.until ? Math.max(0, Math.round((ps.until - Date.now()) / 86400000)) : 0 }); }
       if (snap.streak_days >= 3) milestone('streak_3');
       if (snap.days_since_install >= 1 && snap.runs_total > 0) milestone('day2_return');
       if (snap.answered_total > 0 && storage.getStudiedToday() > 0) milestone('study_day');

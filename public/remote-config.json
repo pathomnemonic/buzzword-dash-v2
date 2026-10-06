@@ -1,1 +1,1 @@
-{ "killed": [], "analytics": { "enabled": true, "sample": 1, "killed": [], "rates": { "obstacle_outcome": 0.2 }, "experiments": {} } }
+{ "killed": [], "analytics": { "enabled": true, "sample": 1, "killed": [], "rates": { "obstacle_outcome": 0.2 }, "experiments": {} }, "pro": { "enabled": false, "gates": {} } }
