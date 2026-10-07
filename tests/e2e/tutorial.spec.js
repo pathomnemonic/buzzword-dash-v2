@@ -58,7 +58,10 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await page.locator('#tutNextBtn').click();
     await step(page, 'left');
     await page.evaluate(() => document.getElementById('ans2').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
-    await expect(page.locator('#tutorialCoach .coach-feedback')).toContainText(/just the choices.*right gate/);
+    await expect(page.locator('#tutorialCoach .coach-feedback')).toContainText(/just labels.*right gate/);
+    // a red pop-up says so, so the labels are never mistaken for buttons
+    await expect(page.locator('.tut-dont')).toContainText(/DON.T TAP HERE/);
+    await expect(page.locator('.tut-dont')).toBeVisible();
     await expect(page.locator('#ans2')).toHaveClass(/tut-nudge/);
     await step(page, 'left'); // and the step did not move on
   });
@@ -122,7 +125,7 @@ test.describe('Interactive tutorial (on the real track)', () => {
     await expect(page.locator('#tourOverlay')).toBeVisible({ timeout: 60000 });
     expect(await page.evaluate(() => window.__game._state)).toBe('ended');
     const coinsBefore = await page.evaluate(() => window.__storage.get('coins'));
-    expect(coinsBefore).toBeGreaterThanOrEqual(500); // exactly enough for the first trail the tour buys
+    expect(coinsBefore).toBeGreaterThanOrEqual(300); // exactly enough for the first trail the tour buys (the cheapest one)
     await walkTour(page);
     // the tour had them buy and wear a trail
     expect(await page.evaluate(() => window.__storage.get('coins'))).toBeLessThan(coinsBefore);

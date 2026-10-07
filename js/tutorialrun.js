@@ -383,7 +383,7 @@ export function startGameTutorial(env) {
     setTimeout(function () { if (mine.parentNode) mine.parentNode.removeChild(mine); }, 2400);
     choice.classList.add('tut-nudge');
     clearTimeout(nudgeTimer);
-    nudgeTimer = setTimeout(function () { choice.classList.remove('tut-nudge'); }, 800);
+    nudgeTimer = setTimeout(function () { choice.classList.remove('tut-nudge'); }, 1600);
   }
   if (answerRow) {
     answerRow.classList.add('tut-tappable');
