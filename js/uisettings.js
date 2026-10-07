@@ -5,7 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
-import { requireGate, proGiftState } from './pro.js';
+import { requireGate, proGiftState, buyPremiumItem, itemPriceLabel, hasAccount } from './pro.js';
 import { renderProTab, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -741,9 +741,12 @@ export var settingsMethods = {
    * @param {function(): void} done what to do after it is claimed (equip, redraw)
    * @returns {HTMLElement|null}
    */
+  /** The leaderboard service (the account), once it is ready. */
+  _lb() { return this.getLeaderboard ? this.getLeaderboard() : null; },
+
   _giftButton(item, done) {
     var self = this;
-    if (!proGiftState().available || storage.ownsItem(item.id)) return null;
+    if (!proGiftState().available || storage.ownsItem(item.id) || item.premium) return null;
     var btn = createElement('button', { className: 'btn btn-gift btn-sm', text: '🎁 FREE', attributes: { type: 'button', 'aria-label': 'Use your monthly Pro gift on ' + item.name } });
     var armed = false;
     var timer = null;
@@ -787,7 +790,7 @@ export var settingsMethods = {
       var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
       if (filter) items = items.filter(filter);
       // cheapest first (free ones on top), so what you can afford is always at the top of the list
-      items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return (a.it.price - b.it.price) || (a.idx - b.idx); }).map(function (x) { return x.it; });
+      items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return ((a.it.premium ? 1e9 : a.it.price) - (b.it.premium ? 1e9 : b.it.price)) || (a.idx - b.idx); }).map(function (x) { return x.it; });
       if (type === 'skin') {
         items = items.filter(function (i) {
           if (i.id === 'avatar_golden' && !storage.hasAchievement('ach_golden_doctor')) return false;
@@ -937,6 +940,43 @@ export var settingsMethods = {
             if (self.onEquipChange) self.onEquipChange();
           });
           btnWrap.appendChild(equipBtn);
+        } else if (item.premium) {
+          // sold for real money only: the dollar price is on the button, and it asks twice before leaving for the payment page
+          var priceText = itemPriceLabel(item);
+          var moneyBtn = createElement('button', {
+            className: 'btn btn-money btn-sm',
+            text: priceText ? '💎 ' + priceText : '💎 Soon',
+            attributes: { type: 'button', 'data-premium': item.id, 'aria-label': 'Buy ' + item.name + (priceText ? ' for ' + priceText : '') + ' with real money' }
+          });
+          if (!priceText) moneyBtn.disabled = true;
+          var armedMoney = false;
+          var moneyTimer = null;
+          moneyBtn.addEventListener('click', function () {
+            if (!hasAccount(self._lb())) {
+              self._showToast('Create a free account first, so what you buy stays with you.');
+              if (self.onOpenAccount) self.onOpenAccount();
+              return;
+            }
+            if (!armedMoney) {
+              armedMoney = true;
+              setText(moneyBtn, 'Buy for ' + priceText + '? Tap again');
+              moneyTimer = setTimeout(function () { armedMoney = false; setText(moneyBtn, '💎 ' + priceText); }, 4000);
+              return;
+            }
+            clearTimeout(moneyTimer);
+            moneyBtn.disabled = true;
+            setText(moneyBtn, 'One moment…');
+            trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'started' });
+            buyPremiumItem(item, self._lb()).then(function (r) {
+              if (r && r.ok && r.owned) { self._showToast('💎 ' + item.name + ' is yours!'); self.renderShop(); return; }
+              if (r && r.ok) return; // the page is leaving for Stripe
+              moneyBtn.disabled = false; armedMoney = false; setText(moneyBtn, '💎 ' + priceText);
+              if (r && r.cancelled) return;
+              trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'failed' });
+              self._showToast((r && r.error) || 'That did not go through. You have not been charged.');
+            });
+          });
+          btnWrap.appendChild(moneyBtn);
         } else {
           var buyBtn = createElement('button', {
             className: 'btn btn-gold btn-sm',

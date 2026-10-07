@@ -208,12 +208,15 @@ describe('trying to break it: a member who has paid keeps Pro through hiccups', 
     expect(synced).toBe(1);
   });
 
-  it('a failed check is tried again next time', async () => {
+  it('a failed check is tried again a little later, not at once', async () => {
     await probeSellable();
     let synced = 0;
     const lb = fakeLb({ proFunction: async (a) => { if (a === 'sync') { synced++; return { ok: false, error: 'down' }; } return { error: 'no' }; } });
-    await refreshPro({ lb });
-    await refreshPro({ lb });
+    const t0 = Date.now();
+    await refreshPro({ lb, now: t0 });
+    await refreshPro({ lb, now: t0 + 60000 });          // a minute later: not again yet
+    expect(synced).toBe(1);
+    await refreshPro({ lb, now: t0 + 11 * 60000 });     // ten minutes on: tried again
     expect(synced).toBe(2);
   });
 });

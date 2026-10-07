@@ -9,7 +9,7 @@ describe('study buddies', () => {
   it('are in the Locker: one free, the rest priced low to high, plus "no buddy"', () => {
     const items = LOCKER_ITEMS.filter((i) => i.type === 'pal');
     expect(items.map((i) => i.id)).toContain(NO_PAL);
-    expect(items.filter((i) => i.price === 0).map((i) => i.id).sort()).toEqual([DEFAULT_PAL, NO_PAL].sort());
+    expect(items.filter((i) => i.price === 0 && !i.premium).map((i) => i.id).sort()).toEqual([DEFAULT_PAL, NO_PAL].sort());
     expect(PALS.length).toBeGreaterThanOrEqual(8);
     expect(new Set(PALS.map((p) => p.emoji)).size).toBe(PALS.length);
     expect(getPal('pal_owl').name).toBe('Night Shift');

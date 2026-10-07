@@ -2493,3 +2493,84 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 .pro-what { margin: 10px 0 0; font-size: 13px; letter-spacing: 1px; color: var(--accent-gold, #ffd24a); }
 .pro-sub-line { margin: 0; }
 .pro-sub-ending { color: #ff9aa9; font-weight: 800; }
+
+.btn-money { background: linear-gradient(180deg, #7fe3ff, #2a9fe0); color: #05263a; border: 3px solid var(--ink); }
+.btn-money:disabled { opacity: .6; }
+.premium-note { margin: 4px 0 6px; font-size: 12px; font-weight: 800; color: #8fe0ff; }
+
+/* the bonus subject card at the top of Quests */
+.bonus-card { border-color: var(--accent-gold, #ffd24a); }
+.bonus-detail { font-size: 11.5px; line-height: 1.3; opacity: .92; }
+@media (max-height: 640px) { .bonus-detail { font-size: 10.5px; } }
+
+
+/* ---------- playful icons: each button's picture does its own small thing now and then (transform only, so it is cheap) ---------- */
+.ico, .nav-icon, .hpb-icon { display: inline-block; transform-origin: 50% 60%; }
+.side-icon { display: inline-block; overflow: hidden; line-height: 1.15; padding: 0 2px; } /* (clips the car as it drives off) */
+
+/* the speed car: sits still, then drives off to the right and rolls back in from the left */
+@keyframes icoCar { 0%, 84% { transform: translateX(0); opacity: 1; } 91% { transform: translateX(34px); opacity: 0; } 91.1% { transform: translateX(-34px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+.ico-car { animation: icoCar 9s ease-in infinite; animation-delay: 2s; }
+/* the filter knobs: a quick twist one way, then the other */
+@keyframes icoKnobs { 0%, 78% { transform: rotate(0); } 84% { transform: rotate(-22deg); } 91% { transform: rotate(18deg); } 96% { transform: rotate(-6deg); } 100% { transform: rotate(0); } }
+.ico-knobs { animation: icoKnobs 8s ease-in-out infinite; animation-delay: 1s; }
+/* the settings gear: one full turn */
+@keyframes icoGear { 0%, 80% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+.ico-gear { animation: icoGear 12s ease-in-out infinite; animation-delay: 3s; }
+/* the coin: spins on its edge */
+@keyframes icoCoin { 0%, 88% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
+.ico-coin { animation: icoCoin 7s ease-in-out infinite; animation-delay: 0.5s; }
+/* the star: a twinkle */
+@keyframes icoStar { 0%, 86% { transform: scale(1) rotate(0); filter: none; } 92% { transform: scale(1.35) rotate(35deg); filter: brightness(1.4); } 100% { transform: scale(1) rotate(72deg); filter: none; } }
+.ico-star { animation: icoStar 10s ease-in-out infinite; animation-delay: 4s; }
+/* friends: the two heads lean together and wave */
+@keyframes icoFriends { 0%, 80% { transform: rotate(0); } 85% { transform: rotate(-9deg) translateX(-1px); } 90% { transform: rotate(9deg) translateX(1px); } 95% { transform: rotate(-5deg); } 100% { transform: rotate(0); } }
+.ico-friends { animation: icoFriends 11s ease-in-out infinite; animation-delay: 5s; }
+/* the controller: a quick button-mashing wiggle */
+@keyframes icoPad { 0%, 82% { transform: rotate(0) scale(1); } 86% { transform: rotate(-12deg) scale(1.1); } 90% { transform: rotate(10deg) scale(1.1); } 94% { transform: rotate(-8deg) scale(1.05); } 100% { transform: rotate(0) scale(1); } }
+.ico-pad { animation: icoPad 9s ease-in-out infinite; animation-delay: 6s; }
+/* the card: flips over */
+@keyframes icoCards { 0%, 82% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
+.ico-cards { animation: icoCards 10s ease-in-out infinite; animation-delay: 2.5s; }
+/* the flag: waves */
+@keyframes icoFlag { 0%, 80% { transform: rotate(0) skewX(0); } 85% { transform: rotate(-14deg) skewX(-8deg); } 90% { transform: rotate(10deg) skewX(8deg); } 95% { transform: rotate(-8deg) skewX(-4deg); } 100% { transform: rotate(0) skewX(0); } }
+.ico-flag { animation: icoFlag 8.5s ease-in-out infinite; animation-delay: 4.5s; }
+/* the question mark: two little hops */
+@keyframes icoQ { 0%, 85% { transform: translateY(0); } 89% { transform: translateY(-5px); } 93% { transform: translateY(0); } 96% { transform: translateY(-3px); } 100% { transform: translateY(0); } }
+.ico-q { animation: icoQ 7.5s ease-in-out infinite; animation-delay: 1.5s; }
+/* the Go Pro bolt: a flicker */
+@keyframes icoBolt { 0%, 70% { transform: scale(1); filter: none; } 74% { transform: scale(1.25) rotate(-8deg); filter: brightness(1.3); } 78% { transform: scale(.95); } 82% { transform: scale(1.2) rotate(6deg); filter: brightness(1.3); } 90%, 100% { transform: scale(1); filter: none; } }
+.hpb-icon { animation: icoBolt 5s ease-in-out infinite; }
+/* the tab bar */
+@keyframes navBars { 0%, 84% { transform: scaleY(1); } 90% { transform: scaleY(1.3); } 96% { transform: scaleY(.9); } 100% { transform: scaleY(1); } }
+@keyframes navSwing { 0%, 80% { transform: rotate(0); } 86% { transform: rotate(12deg); } 92% { transform: rotate(-10deg); } 97% { transform: rotate(4deg); } 100% { transform: rotate(0); } }
+@keyframes navHop { 0%, 86% { transform: translateY(0); } 91% { transform: translateY(-5px); } 96% { transform: translateY(0); } 98% { transform: translateY(-2px); } 100% { transform: translateY(0); } }
+@keyframes navTilt { 0%, 82% { transform: rotate(0); } 88% { transform: rotate(-9deg); } 94% { transform: rotate(7deg); } 100% { transform: rotate(0); } }
+@keyframes navNod { 0%, 84% { transform: translateY(0); } 89% { transform: translateY(2px); } 94% { transform: translateY(-1px); } 100% { transform: translateY(0); } }
+.nav-item[data-screen="screenStats"] .nav-icon { animation: navBars 10s ease-in-out infinite; animation-delay: 1s; transform-origin: 50% 100%; }
+.nav-item[data-screen="screenShop"] .nav-icon { animation: navSwing 12s ease-in-out infinite; animation-delay: 3s; transform-origin: 50% 0; }
+.nav-item[data-screen="screenHome"] .nav-icon { animation: navHop 9s ease-in-out infinite; animation-delay: 5s; }
+.nav-item[data-screen="screenQuests"] .nav-icon { animation: navTilt 11s ease-in-out infinite; animation-delay: 7s; }
+.nav-item[data-screen="screenProfile"] .nav-icon { animation: navNod 13s ease-in-out infinite; animation-delay: 9s; }
+/* nothing moves for people who ask for less motion */
+@media (prefers-reduced-motion: reduce) {
+  .ico, .nav-icon, .hpb-icon { animation: none !important; }
+}
+
+.bonus-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+@media (max-height: 640px) {
+  .quest-intro { display: none; }
+  #screenQuests h2 { font-size: 18px; margin: 0 0 2px; }
+  .bonus-detail { font-size: 10px; line-height: 1.2; }
+  #questList .quest-item { padding: 2px 8px; margin: 2px 0; }
+  .quest-title { font-size: 11px; }
+}
+@media (max-height: 600px) {
+  #screenQuests h2 { font-size: 16px; margin: 0 0 1px; }
+  #questList .quest-bar { height: 6px; margin: 1px 0; }
+  .quest-item .btn, .quest-item .btn-sm { min-height: 28px; }
+  #questList .quest-item .quest-swap { width: 28px; height: 28px; }
+}
+
+/* money must be unmistakable: prices use the plain reading face, never the pixel one (where a 9 can look like an 8) */
+.btn-money, .pro-plan-main, .pro-plan-sub { font-family: var(--font-read); font-weight: 800; letter-spacing: .02em; text-transform: none; }

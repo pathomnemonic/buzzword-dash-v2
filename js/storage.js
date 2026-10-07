@@ -20,6 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
+import { isPremiumItem } from '../supabase/functions/_shared/premium.js';
 import { mapUnlockLevel } from './game/mapunlocks.js';
 import { levelFromXp } from './progress.js';
 import { repairData, sanitizeCollections } from './sanity.js';
@@ -1257,6 +1258,7 @@ class Storage {
   }
 
   buyItem(itemId, price) {
+    if (isPremiumItem(itemId)) return false; // premium items are sold for real money only (js/pro.js buyPremiumItem)
     var coins = this.data.progression.coins;
     if (coins < price) return false;
     this.data.progression.coins = coins - price;
@@ -1271,7 +1273,7 @@ class Storage {
   /** Take the one-time Pro gift: the item becomes yours for free. False when it is already yours or the gift is already spent. */
   claimProGift(itemId) {
     var p = this.data.progression;
-    if (!itemId || p.proGiftItem || p.ownedItems.indexOf(itemId) >= 0) return false;
+    if (!itemId || isPremiumItem(itemId) || p.proGiftItem || p.ownedItems.indexOf(itemId) >= 0) return false;
     p.proGiftItem = itemId;
     p.ownedItems.push(itemId);
     this.save();

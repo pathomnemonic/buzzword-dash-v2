@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, itemCheckoutParams, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -251,5 +251,60 @@ describe('a payment is never lost to a missing field, a free renewal or an odd o
     expect(await verifyStripeSignature(body, sig, 'whsec_x', NOW + 3600)).toBe(false);
     expect(await verifyStripeSignature(body, '', 'whsec_x', NOW)).toBe(false);
     expect(await verifyStripeSignature(body, sig, '', NOW)).toBe(false);
+  });
+});
+
+
+describe('premium Locker items (real money)', () => {
+  const itemSession = (over) => ({ type: 'checkout.session.completed', data: { object: Object.assign({ client_reference_id: 'u1', payment_status: 'paid', customer: 'cus_1', metadata: { kind: 'item', item_id: 'trail_rainbow', user_id: 'u1' } }, over || {}) } });
+
+  it('a checkout charges the catalog price, once, in dollars, and creates a customer so it can be found again', () => {
+    const f = itemCheckoutParams('trail_rainbow', 'u1', ENV, { name: 'Rainbow' });
+    expect(f['mode']).toBe('payment');
+    expect(f['line_items[0][price_data][unit_amount]']).toBe('199');
+    expect(f['line_items[0][price_data][currency]']).toBe('usd');
+    expect(f['metadata[item_id]']).toBe('trail_rainbow');
+    expect(f['payment_intent_data[metadata][kind]']).toBe('item');
+    expect(f['customer_creation']).toBe('always');
+    expect(f['success_url']).toBe('https://me.github.io/dx/?pro=success&item=trail_rainbow');
+    expect(itemCheckoutParams('trail_rainbow', 'u1', ENV, { customer: 'cus_9' }).customer_creation).toBeUndefined();
+  });
+
+  it('refuses things that are not for sale, a missing member or a bad site address', () => {
+    expect(() => itemCheckoutParams('trail_ekg', 'u1', ENV)).toThrow(/not for sale/);
+    expect(() => itemCheckoutParams('trail_rainbow', '', ENV)).toThrow(/Sign in/);
+    expect(() => itemCheckoutParams('trail_rainbow', 'u1', { SITE_URL: 'http://x' })).toThrow(/site address/);
+  });
+
+  it('a paid item is granted (and a repeat of the event is harmless)', async () => {
+    const { calls, deps } = fake();
+    expect(await handleEvent(itemSession(), deps)).toEqual({ handled: true, action: 'item' });
+    await handleEvent(itemSession(), deps);
+    expect(calls.filter((c) => c[0] === 'pro_grant_item').map((c) => c[1])).toEqual([
+      { p_user: 'u1', p_item: 'trail_rainbow', p_source: 'stripe' }, { p_user: 'u1', p_item: 'trail_rainbow', p_source: 'stripe' }
+    ]);
+    expect(calls[0]).toEqual(['pro_link_customer', { p_customer: 'cus_1', p_user: 'u1' }]);
+  });
+
+  it('an unpaid session, or one with no member, grants nothing', async () => {
+    const { calls, deps } = fake();
+    expect((await handleEvent(itemSession({ payment_status: 'unpaid' }), deps)).handled).toBe(false);
+    expect((await handleEvent(itemSession({ client_reference_id: '', metadata: { kind: 'item', item_id: 'trail_rainbow' } }), deps)).handled).toBe(false);
+    expect(calls).toEqual([]);
+  });
+
+  it('someone who paid always gets the item, even if the catalog changed since', async () => {
+    const { calls, deps } = fake();
+    await handleEvent(itemSession({ metadata: { kind: 'item', item_id: 'trail_retired', user_id: 'u1' } }), deps);
+    expect(calls.some((c) => c[0] === 'pro_grant_item' && c[1].p_item === 'trail_retired')).toBe(true);
+  });
+
+  it('a full refund takes back that item only; a partial one takes nothing; a subscription is untouched', async () => {
+    const { calls, deps } = fake();
+    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, metadata: { kind: 'item', item_id: 'trail_rainbow', user_id: 'u1' } } } }, deps);
+    expect(calls).toEqual([['pro_revoke_item', { p_user: 'u1', p_item: 'trail_rainbow' }]]);
+    const t = fake();
+    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: false, metadata: { kind: 'item', item_id: 'trail_rainbow', user_id: 'u1' } } } }, t.deps);
+    expect(t.calls).toEqual([]);
   });
 });

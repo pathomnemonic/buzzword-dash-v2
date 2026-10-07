@@ -15,7 +15,8 @@ import { ACHIEVEMENTS, ACHIEVEMENT_IDS, ACHIEVEMENT_GROUPS, QUESTS, QUEST_SWAP_C
 import { localDateKey } from './uihelpers.js';
 import { renderStreakCalendar } from './streakcalendar.js';
 import { renderLevelChip } from './rewardsui.js';
-import { levelFromXp, rankForLevel } from './progress.js';
+import { levelFromXp, rankForLevel, bonusSubjectFor, BONUS_COINS_PER_CORRECT, BONUS_COINS_CAP } from './progress.js';
+import { SUBJECTS } from './cardmeta.js';
 
 export var profileMethods = {
 
@@ -390,6 +391,26 @@ export var profileMethods = {
         missedBox.appendChild(b);
       });
       container.appendChild(missedBox);
+    }
+
+    // Today's bonus subject, with what it pays and how much of today's bonus is already earned
+    var bonusSubject = bonusSubjectFor(today, SUBJECTS);
+    if (bonusSubject) {
+      var paid = storage.get('bonusCoins') || {};
+      var earned = paid.date === today ? Math.min(BONUS_COINS_CAP, Number(paid.coins) || 0) : 0;
+      var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      var bonusBox = createElement('div', { className: 'quest-item bonus-card', attributes: { id: 'bonusCard' } });
+      var bonusTop = createElement('div', { className: 'bonus-top' });
+      bonusTop.appendChild(createElement('div', { className: 'quest-title', text: '\u2B50 Bonus subject today: ' + bonusSubject }));
+      bonusTop.appendChild(createElement('div', { className: 'quest-reward', text: earned >= BONUS_COINS_CAP ? 'Maxed \u2705' : earned + '/' + BONUS_COINS_CAP + ' \uD83E\uDE99' }));
+      bonusBox.appendChild(bonusTop);
+      bonusBox.appendChild(createElement('div', { className: 'bonus-detail', text: '+' + BONUS_COINS_PER_CORRECT + ' \uD83E\uDE99 for every right answer in ' + bonusSubject + ', up to ' + BONUS_COINS_CAP + ' a day. Tomorrow: ' + bonusSubjectFor(localDateKey(tomorrow), SUBJECTS) + '.' }));
+      var bonusBar = createElement('div', { className: 'quest-bar', attributes: { role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(BONUS_COINS_CAP), 'aria-valuenow': String(earned), 'aria-label': 'Bonus coins earned today' } });
+      var bonusFill = createElement('div', { className: 'quest-fill' });
+      bonusFill.style.width = Math.round(earned / BONUS_COINS_CAP * 100) + '%';
+      bonusBar.appendChild(bonusFill);
+      bonusBox.appendChild(bonusBar);
+      container.appendChild(bonusBox);
     }
 
     var todays = storage.getDailyQuests();

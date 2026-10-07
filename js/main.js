@@ -23,7 +23,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, requireGate, checkGate, checkCancelFollowThrough } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, waitForWebItem, requireGate, checkGate, checkCancelFollowThrough } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -893,6 +893,10 @@ function startStudyPlanRun(cardIds) {
 }
 
 /** After someone went to cancel: tell them what really happened. */
+ui.getLeaderboard = function () { return leaderboardModule ? leaderboardModule.leaderboard : null; };
+ui.onOpenAccount = function () { if (profileCorner) profileCorner.open(); };
+document.addEventListener('dx:items-granted', function () { try { ui.renderShop(); } catch (e) { /* the Locker draws next time it opens */ } });
+
 function announceCancel(r) {
   var when = r.endsAt ? new Date(r.endsAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : '';
   if (r.cancelled) ui._showToast(r.none ? 'Your subscription has ended.' : 'Your cancellation went through. You keep Pro' + (when ? ' until ' + when : ' until the end of the period you paid for') + '.', 6000);
@@ -1300,10 +1304,13 @@ function init() {
   try { installAnalytics({ game: game, storage: storage, ui: ui, customCards: customCards, customCardCount: function () { return customCards.getAll().length; }, subjectCount: SUBJECTS.length }); } catch (e) { reportError(e, { system: 'analytics', operation: 'install', recoverable: true }); }
   // the website's payment page sends the player back with ?pro=success or ?pro=cancelled; read it, then tidy the address
   var webPayReturn = '';
+  var webPayItem = '';
   try {
     var retParams = new URLSearchParams(location.search);
     if (retParams.has('pro')) {
       webPayReturn = retParams.get('pro');
+      webPayItem = /^[a-z0-9_]{3,64}$/.test(retParams.get('item') || '') ? retParams.get('item') : '';
+      retParams.delete('item');
       retParams.delete('pro');
       var rest = retParams.toString();
       history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
@@ -1391,7 +1398,22 @@ function init() {
     setProUiDeps({ lb: mod.leaderboard });
     mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); if (webPayReturn !== 'billing') checkCancelFollowThrough(mod.leaderboard).then(function (r) { if (r) announceCancel(r); }); });
     document.addEventListener('dx:pro-trial-started', function () { ui._showToast('Your free 7-day Pro trial has started! 🎉', 4000); });
-    if (webPayReturn === 'success') {
+    if (webPayReturn === 'success' && webPayItem) {
+      // back from paying for a Locker item: wait for it to show up
+      mod.leaderboard.init().then(function () {
+        var waited = 0;
+        var go = function () {
+          if (!mod.leaderboard.isAuthenticated() && waited < 8000) { waited += 500; setTimeout(go, 500); return; }
+          ui._showToast('Thank you! Adding your item…', 3000);
+          waitForWebItem(mod.leaderboard, webPayItem).then(function (r) {
+            var it = LOCKER_ITEMS.filter(function (x) { return x.id === webPayItem; })[0];
+            ui._showToast(r.owned ? '💎 ' + (it ? it.name : 'Your item') + ' is yours! Find it in the Locker.' : 'Payment received. It can take a minute to show: open the Locker in a moment.', 5000);
+            if (r.owned && ui.renderShop) ui.renderShop();
+          });
+        };
+        go();
+      });
+    } else if (webPayReturn === 'success') {
       // back from Stripe: the payment reaches the server a moment later, so keep asking for a little while
       mod.leaderboard.init().then(function () {
         var waited = 0;

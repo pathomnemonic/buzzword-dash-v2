@@ -136,9 +136,6 @@ export var homeMethods = {
     bar.appendChild(fill);
     el.appendChild(bar);
     el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards.' + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
-    // the line under the title: today's bonus subject
-    var tag = document.querySelector('.home-tagline');
-    if (tag) tag.textContent = '⭐ Bonus today: ' + bonusSubjectFor(localDateKey(new Date()), SUBJECTS);
   },
 
   /** The first-week checklist: seven small steps, each with a button that takes you there. */

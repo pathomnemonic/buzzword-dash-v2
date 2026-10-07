@@ -38,21 +38,19 @@ async function layoutProblems(page) {
 }
 
 for (const [w, h] of PHONES) {
-  test(`Home at ${w}x${h}: nothing hidden, nothing under the tab bar, bonus subject and Go Pro visible`, async ({ page }) => {
+  test(`Home at ${w}x${h}: nothing hidden, nothing under the tab bar, Go Pro visible, no bonus-subject clutter`, async ({ page }) => {
     await page.addInitScript(() => { try { localStorage.setItem('dx_pro_force_sell', '1'); } catch (e) { /* no storage */ } });
     await open(page, w, h);
     await page.evaluate(() => window.__ui.show('screenHome'));
     await page.waitForTimeout(500);
     const r = await page.evaluate(() => {
       const box = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { top: b.top, bottom: b.bottom, shown: b.height > 0 && getComputedStyle(e).display !== 'none' }; };
-      return { nav: document.getElementById('bottomNav').getBoundingClientRect().top, bonus: box('.home-header .home-tagline'), banner: box('#homeProBanner'), play: box('.btn-play'), modes: box('.mode-row'), howTo: box('#howToPlayBtn'), topbar: box('.home-topbar') };
+      return { nav: document.getElementById('bottomNav').getBoundingClientRect().top, banner: box('#homeProBanner'), play: box('.btn-play'), modes: box('.mode-row'), howTo: box('#howToPlayBtn'), topbar: box('.home-topbar') };
     });
-    expect(r.bonus && r.bonus.shown, 'the "Bonus today" line must show at every size').toBe(true);
     expect(r.banner && r.banner.shown, 'the Go Pro button must show').toBe(true);
     for (const k of ['play', 'modes', 'howTo']) expect(r[k].bottom, k + ' must end clear of the tab bar (not touching it)').toBeLessThanOrEqual(r.nav - 10);
     // the pieces are in order and do not overlap
     expect(r.banner.bottom).toBeLessThanOrEqual(r.play.top + 2);
-    expect(r.bonus.bottom).toBeLessThanOrEqual(r.banner.top + 2);
     expect(r.topbar.top).toBeGreaterThanOrEqual(0);
     expect(await layoutProblems(page)).toEqual([]);
   });
@@ -221,4 +219,18 @@ test('badge names are readable, earned or not', async ({ page }) => {
   }));
   expect(r.length).toBeGreaterThan(3);
   for (const b of r) { expect(b.shown, b.text).toBe(true); expect(b.op, b.text + ' is too faint').toBeGreaterThanOrEqual(0.85); expect(b.fs, b.text).toBeGreaterThanOrEqual(10); }
+});
+
+// ───────── prices must be readable ─────────
+test('a premium item\'s price is shown in the plain reading font, not the pixel one', async ({ page }) => {
+  await open(page, 390, 780);
+  await page.evaluate(() => window.__ui.show('screenShop'));
+  await page.waitForTimeout(900);
+  await page.locator('#shopItems [role="tab"]', { hasText: 'Trails' }).first().click();
+  await page.waitForTimeout(600);
+  const r = await page.evaluate(() => { const b = document.querySelector('[data-premium]'); if (!b) return null; const cs = getComputedStyle(b); return { text: b.textContent, font: cs.fontFamily, size: parseFloat(cs.fontSize) }; });
+  expect(r, 'a premium item with a price button is in the Trails list').not.toBeNull();
+  expect(r.text).toMatch(/\$\d+\.\d\d/);
+  expect(r.font).not.toMatch(/Jersey|Press Start/i);
+  expect(r.size).toBeGreaterThanOrEqual(12);
 });

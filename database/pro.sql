@@ -24,6 +24,16 @@ CREATE TABLE IF NOT EXISTS pro_entitlements (
 -- The monthly Locker gift counts its months from here.
 ALTER TABLE pro_entitlements ADD COLUMN IF NOT EXISTS started_at timestamptz NOT NULL DEFAULT now();
 
+-- Locker items bought with real money (the premium items). One row per member and item; kept for good unless refunded.
+CREATE TABLE IF NOT EXISTS pro_items (
+  user_id uuid NOT NULL,
+  item_id text NOT NULL CHECK (item_id ~ '^[a-z0-9_]{3,64}$'),
+  source text NOT NULL DEFAULT 'stripe',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, item_id)
+);
+ALTER TABLE pro_items ENABLE ROW LEVEL SECURITY;
+
 CREATE TABLE IF NOT EXISTS pro_codes (
   code text PRIMARY KEY CHECK (code = upper(code) AND code ~ '^[A-Z0-9_-]{4,32}$'),
   days integer NOT NULL CHECK (days BETWEEN 1 AND 3650),
@@ -83,7 +93,7 @@ ALTER TABLE pro_entitlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_redemptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pro_attempts ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON pro_entitlements, pro_codes, pro_redemptions, pro_attempts FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON pro_entitlements, pro_codes, pro_redemptions, pro_attempts, pro_items FROM PUBLIC, anon, authenticated;
 
 -- Is the caller a guest (anonymous sign-in, no account)? Guests get no trial: it is the reason to create an account.
 CREATE OR REPLACE FUNCTION pro_is_guest() RETURNS boolean
@@ -96,14 +106,15 @@ $$;
 --  trial_available: I have an account, have never had the free trial and have no Pro, so the app may start it)
 CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
-DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean; can_trial boolean;
+DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean; can_trial boolean; its jsonb;
 BEGIN
-  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false, 'trial_available', false); END IF;
+  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false, 'trial_available', false, 'items', '[]'::jsonb); END IF;
+  its := coalesce((SELECT jsonb_agg(item_id ORDER BY created_at) FROM pro_items WHERE user_id = me), '[]'::jsonb);
   lib := EXISTS (SELECT 1 FROM pro_library WHERE user_id = me);
   can_trial := NOT pro_is_guest() AND NOT EXISTS (SELECT 1 FROM pro_trials WHERE user_id = me);
   SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
-  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial); END IF;
-  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'since', r.started_at, 'library', lib, 'trial_available', false);
+  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial, 'items', its); END IF;
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'since', r.started_at, 'library', lib, 'trial_available', false, 'items', its);
 END $$;
 
 -- Start my free trial: seven days of Pro, once per account, for a signed-in (not guest) player who has no Pro.
@@ -143,6 +154,24 @@ END $$;
 CREATE OR REPLACE FUNCTION pro_revoke(p_user uuid) RETURNS void
 LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
   UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user;
+$$;
+
+-- Give a member a premium Locker item they paid for (safe to repeat). Service role only.
+CREATE OR REPLACE FUNCTION pro_grant_item(p_user uuid, p_item text, p_source text DEFAULT 'stripe') RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  INSERT INTO pro_items (user_id, item_id, source) VALUES (p_user, p_item, coalesce(p_source, 'stripe')) ON CONFLICT (user_id, item_id) DO NOTHING;
+$$;
+
+-- Take back a premium item after a full refund. Service role only.
+CREATE OR REPLACE FUNCTION pro_revoke_item(p_user uuid, p_item text) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  DELETE FROM pro_items WHERE user_id = p_user AND item_id = p_item;
+$$;
+
+-- Does this member already own this premium item? Service role only (the checkout function uses it to stop a double purchase).
+CREATE OR REPLACE FUNCTION pro_has_item(p_user uuid, p_item text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM pro_items WHERE user_id = p_user AND item_id = p_item);
 $$;
 
 -- Take back only a particular plan (a refunded lifetime must not end a subscription the same person also holds). Service role only.
@@ -246,6 +275,9 @@ REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
 REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC;

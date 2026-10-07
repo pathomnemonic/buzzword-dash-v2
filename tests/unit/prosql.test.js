@@ -99,6 +99,32 @@ describe('Dx Dash Pro backend', () => {
     expect((new Date(r.until).getTime() - Date.now()) / 86400000).toBeGreaterThan(58);
   });
 
+  it('premium items: granted once whatever happens, listed to their owner only, kept when Pro lapses, taken back only on refund', async () => {
+    const H = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+    const J = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+    expect((await one(H, 'SELECT get_my_pro() AS r')).r.items).toEqual([]);
+    await db.query("SELECT pro_grant_item($1, 'trail_rainbow', 'stripe')", [H]);
+    await db.query("SELECT pro_grant_item($1, 'trail_rainbow', 'stripe')", [H]); // the same event twice
+    await db.query("SELECT pro_grant_item($1, 'gear_wings', 'stripe')", [H]);
+    expect((await one(H, 'SELECT get_my_pro() AS r')).r.items).toEqual(['trail_rainbow', 'gear_wings']);
+    expect((await one(J, 'SELECT get_my_pro() AS r')).r.items).toEqual([]); // not shared
+    // they are reported whether or not Pro is active, and survive a lapse
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [H]);
+    expect((await one(H, 'SELECT get_my_pro() AS r')).r.items.length).toBe(2);
+    await db.query("UPDATE pro_entitlements SET until = now() - interval '1 day' WHERE user_id = $1", [H]);
+    const lapsed = (await one(H, 'SELECT get_my_pro() AS r')).r;
+    expect(lapsed.active).toBe(false);
+    expect(lapsed.items.length).toBe(2);
+    // players cannot read the table or grant themselves anything
+    expect(await rejects(H, 'SELECT * FROM pro_items')).toBe(true);
+    expect(await rejects(H, "SELECT pro_grant_item('" + H + "', 'avatar_m_king', 'x')")).toBe(true);
+    expect(await rejects(H, "SELECT pro_revoke_item('" + H + "', 'gear_wings')")).toBe(true);
+    // a refund takes back that one item
+    await db.query("SELECT pro_revoke_item($1, 'trail_rainbow')", [H]);
+    expect((await one(H, 'SELECT get_my_pro() AS r')).r.items).toEqual(['gear_wings']);
+    expect((await db.query("SELECT pro_has_item($1, 'gear_wings') AS h", [H])).rows[0].h).toBe(true);
+  });
+
   it('redeems a code once per person, up to its limit', async () => {
     await db.exec("INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 1, 'test')");
     expect((await one(null, "SELECT redeem_pro_code('LAUNCH30') AS r")).r.ok).toBe(false);

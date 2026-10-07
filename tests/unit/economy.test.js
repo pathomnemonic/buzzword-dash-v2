@@ -17,7 +17,8 @@ const CASUAL_MINUTES_PER_DAY = 15;
 const dayOfPlay = COINS_PER_MINUTE * CASUAL_MINUTES_PER_DAY; // about 2,250
 
 const dayKeys = Array.from({ length: 90 }, (_, i) => { const d = new Date(2026, 9, 1 + i, 12); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); });
-const paid = LOCKER_ITEMS.filter((i) => i.price > 0);
+// (an item sold for real money keeps its old coin value here, so the coin economy is judged on the whole range)
+const paid = LOCKER_ITEMS.filter((i) => i.price > 0 || i.premium).map((i) => (i.premium ? { ...i, price: i.coinValue } : i));
 
 describe('quest rewards are a bonus, not the main income', () => {
   it('no single quest pays more than a few minutes of play', () => {

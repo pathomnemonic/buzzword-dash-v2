@@ -126,8 +126,12 @@ describe('buying and choosing maps', () => {
       const idsOf = (root) => [...root.querySelectorAll('.shop-item')].map((r) => (r.querySelector('[data-preview]') && r.querySelector('[data-preview]').dataset.preview) || r.dataset.map);
       const lists = groups.length > 1 && groups.some((g) => g.querySelectorAll('.shop-item').length) ? groups : [document.getElementById('shopItems')];
       lists.forEach((g) => {
-        const prices = idsOf(g).filter(Boolean).map(price);
+        // (premium items, sold for real money, come last and have no coin price)
+        const ids = idsOf(g).filter(Boolean);
+        const coinIds = ids.filter((id) => !LOCKER_ITEMS.find((i) => i.id === id).premium);
+        const prices = coinIds.map(price);
         expect(prices, tab).toEqual([...prices].sort((a, b) => a - b));
+        expect(ids.slice(ids.length - (ids.length - coinIds.length)).every((id) => LOCKER_ITEMS.find((i) => i.id === id).premium), tab + ': premium items sit at the bottom').toBe(true);
       });
     });
   });

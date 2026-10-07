@@ -4,7 +4,7 @@ _Generated from `js/analytics/catalog.js` by `npm run analytics:docs`. Do not ed
 
 Every event also carries (outside its properties): a unique id, the time, a sequence number, the install id and the session id, plus any experiment variants the install is in. Device, version and first/last-touch attribution are stored once per session. See [ANALYTICS-GUIDE.md](ANALYTICS-GUIDE.md) for how to use the data.
 
-Total events: **103**.
+Total events: **104**.
 
 ## Acquisition
 
@@ -1043,6 +1043,15 @@ After a member went to cancel: what the billing system says (cancelled, or still
 |---|---|
 | `cancelled` | true/false — required |
 | `ends_at` | text (≤10) |
+
+### `premium_item`
+
+A premium (real-money) Locker item: the buy button was pressed and confirmed, or the purchase failed to start.
+
+| Property | Type |
+|---|---|
+| `item` | text (≤40) |
+| `action` | one of: started, failed |
 
 ### `pro_gift_claimed`
 

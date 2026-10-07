@@ -195,14 +195,14 @@
 
       <!-- Top bar: settings (left), coins, ranks, account (right) -->
       <div class="home-topbar">
-        <button class="top-btn" id="settingsBtn" type="button" aria-label="Settings">⚙</button>
+        <button class="top-btn" id="settingsBtn" type="button" aria-label="Settings"><span class="ico ico-gear" aria-hidden="true">⚙</span></button>
         <div class="home-coins" id="homeCoinsDisplay" aria-label="Your coins and best score">
-          <span aria-hidden="true">🪙</span> <span id="homeCoins">300</span>
+          <span class="ico ico-coin" aria-hidden="true">🪙</span> <span id="homeCoins">300</span>
           <span class="home-coins-sep" aria-hidden="true">|</span>
-          <span aria-hidden="true">⭐</span> <span id="homeBest">0</span>
+          <span class="ico ico-star" aria-hidden="true">⭐</span> <span id="homeBest">0</span>
         </div>
         <button class="top-btn top-btn-label" id="leaderboardBtn" type="button" aria-label="Friends, feed and groups">
-          <span aria-hidden="true">👥</span><span class="top-btn-text">Friends</span>
+          <span class="ico ico-friends" aria-hidden="true">👥</span><span class="top-btn-text">Friends</span>
         </button>
         <button class="home-profile-btn" id="profileCornerBtn" type="button" aria-label="Profile and account">
           <span class="hp-avatar" id="profileCornerAvatar" aria-hidden="true">👤</span>
@@ -219,7 +219,6 @@
 
       <header class="home-header">
         <h1>Dx Dash</h1>
-        <p class="home-tagline">Run the list.</p>
       </header>
 
       <!-- Go Pro: a wide gold button, shown while Pro can be bought (or a trial is running) -->
@@ -232,7 +231,7 @@
       <!-- PRIMARY ACTION, with the two things you set before a run on either side -->
       <div class="play-row">
         <button class="side-btn" id="filtersBtn" type="button" aria-haspopup="dialog" aria-controls="filtersSheet">
-          <span class="side-icon" aria-hidden="true">🎛</span>
+          <span class="side-icon" aria-hidden="true"><span class="ico ico-knobs">🎛</span></span>
           <span class="side-label">Filters</span>
           <span class="filters-summary" id="filtersSummary">All subjects</span>
         </button>
@@ -243,7 +242,7 @@
           </button>
         </div>
         <button class="side-btn" id="speedBtn" type="button" aria-haspopup="dialog" aria-controls="speedSheet">
-          <span class="side-icon" aria-hidden="true">🏎</span>
+          <span class="side-icon" aria-hidden="true"><span class="ico ico-car">🏎</span></span>
           <span class="side-label">Speed</span>
           <span class="filters-summary" id="speedBtnValue">1×</span>
         </button>
@@ -251,21 +250,21 @@
       <div class="play-sub">
         <button class="pal-buddy" id="palBuddy" type="button" aria-label="Your study buddy" hidden></button>
         <div class="pal-bubble" id="palBubble" role="status" aria-live="polite"></div>
-        <button class="link-btn" id="howToPlayBtn" type="button">❓ How to play</button>
+        <button class="link-btn" id="howToPlayBtn" type="button"><span class="ico ico-q" aria-hidden="true">❓</span> How to play</button>
       </div>
 
       <!-- Three ways to play, each with its own popup or screen -->
       <div class="mode-row" role="group" aria-label="Ways to play">
         <button class="mode-btn" id="multiplayerBtn" type="button">
-          <span class="mode-btn-icon" aria-hidden="true">🎮</span>
+          <span class="mode-btn-icon" aria-hidden="true"><span class="ico ico-pad">🎮</span></span>
           <span class="mode-btn-label">Versus</span>
         </button>
         <button class="mode-btn" id="homeFlashcardsBtn" type="button" aria-haspopup="dialog" aria-controls="flashcardsSheet">
-          <span class="mode-btn-icon" aria-hidden="true">🃏</span>
+          <span class="mode-btn-icon" aria-hidden="true"><span class="ico ico-cards">🃏</span></span>
           <span class="mode-btn-label">Flashcards</span>
         </button>
         <button class="mode-btn" id="homeChallengeBtn" type="button" aria-haspopup="dialog" aria-controls="challengeSheet">
-          <span class="mode-btn-icon" aria-hidden="true">🏁</span>
+          <span class="mode-btn-icon" aria-hidden="true"><span class="ico ico-flag">🏁</span></span>
           <span class="mode-btn-label">Challenge</span>
         </button>
       </div>

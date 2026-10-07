@@ -10,7 +10,8 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
+import { isPremiumItem } from '../_shared/premium.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -120,11 +121,21 @@ Deno.serve(async function (req) {
           granted.push(g.plan);
         }
         // a lifetime purchase (and not refunded)
-        var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=20&expand[]=data.payment_intent.latest_charge');
+        var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=100&expand[]=data.payment_intent.latest_charge');
         var life = ((sessions && sessions.data) || []).filter(function (x) {
           var ch = x.payment_intent && x.payment_intent.latest_charge;
           return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !ch.refunded;
         })[0];
+        // premium items bought with this customer (and not refunded)
+        var bought = ((sessions && sessions.data) || []).filter(function (x) {
+          var ch = x.payment_intent && x.payment_intent.latest_charge;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !ch.refunded;
+        });
+        for (var it of bought) {
+          var ir = await admin.rpc('pro_grant_item', { p_user: user.id, p_item: it.metadata.item_id, p_source: 'stripe' });
+          if (ir.error) throw new Error(ir.error.message);
+          granted.push('item:' + it.metadata.item_id);
+        }
         if (life) {
           var lr = await admin.rpc('pro_grant_until', { p_user: user.id, p_until: new Date((now + LIFETIME_DAYS * 86400 - 86400) * 1000).toISOString(), p_plan: 'lifetime', p_source: 'stripe', p_trial: false });
           if (lr.error) throw new Error(lr.error.message);
@@ -135,6 +146,26 @@ Deno.serve(async function (req) {
         return json({ ok: false, error: 'Could not check with Stripe just now.' }, 502);
       }
       return json({ ok: true, granted: granted });
+    }
+
+    // A premium Locker item (a one-time purchase, priced from premium.js)
+    if (body.action === 'item') {
+      var itemId = String(body.item || '');
+      if (!isPremiumItem(itemId)) return json({ error: 'That item is not for sale.' }, 400);
+      var owns = await admin.rpc('pro_has_item', { p_user: user.id, p_item: itemId });
+      if (owns && owns.data === true) return json({ error: 'You already own this item.' }, 409);
+      var staleCust = function (e) { return /no such customer/i.test((e && e.message) || ''); };
+      var buildItem = function (cust) {
+        var pr = itemCheckoutParams(itemId, user.id, env, { customer: cust || undefined, name: String(body.name || '') });
+        if (!pr.customer) pr.customer_email = user.email || undefined;
+        Object.keys(pr).forEach(function (k) { if (pr[k] === undefined) delete pr[k]; });
+        return pr;
+      };
+      var itemSession;
+      try { itemSession = await stripe('checkout/sessions', buildItem(customerId)); } catch (e) {
+        if (customerId && staleCust(e)) itemSession = await stripe('checkout/sessions', buildItem('')); else throw e;
+      }
+      return json({ url: itemSession.url });
     }
 
     if (body.action === 'checkout') {

@@ -16,8 +16,8 @@ test.describe('Dx Dash Pro', () => {
     await page.waitForFunction(() => window.__pro, null, { timeout: 15000 });
     expect(await page.evaluate(() => window.__pro.proLive())).toBe(false);
     expect(await page.evaluate(() => window.__cards.length)).toBeGreaterThan(3000);
-    await openSettingsSection(page, 'about');
-    await expect(page.locator('[data-setting="pro"]')).toHaveCount(0);
+    await page.evaluate(() => window.__ui.show('screenSettings'));
+    await expect(page.locator('.settings-card[data-section="pro"]')).toHaveCount(0); // no Pro page until something can be bought
     await page.evaluate(() => window.__ui.show('screenHome'));
     await expect(page.locator('.library-banner')).toHaveCount(0);
   });
@@ -28,8 +28,10 @@ test.describe('Dx Dash Pro', () => {
     await page.waitForFunction(() => window.__pro, null, { timeout: 15000 });
     await expect.poll(() => page.evaluate(() => window.__pro.proLive()), { timeout: 8000 }).toBe(true);
     await expect.poll(() => page.evaluate(() => window.__cards.length), { timeout: 8000 }).toBe(300);
-    await openSettingsSection(page, 'about');
-    await expect(page.locator('[data-setting="pro"]')).toHaveCount(1);
+    await openSettingsSection(page, 'pro');
+    await expect(page.locator('.pro-tab')).toHaveCount(1); // the Dx Dash Pro page: what Pro gets you
+    await expect(page.locator('.pro-tab')).toContainText(/WHAT YOU GET/);
+    await expect(page.locator('#proTabGet')).toBeVisible();
     await page.evaluate(() => window.__ui.show('screenHome'));
     // the offline pack is Pro only: asking opens the paywall
     await openSettingsSection(page, 'data');

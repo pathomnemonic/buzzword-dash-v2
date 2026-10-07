@@ -10,6 +10,8 @@
  * (There is no trial here: every signed-in account gets a free 7-day trial from the database, with no card; see start_my_trial.
  *  The one-time Full Library unlock is no longer sold; it stays listed so an old purchase or refund is still understood.)
  */
+import { premiumCents } from './premium.js';
+
 export var PRODUCTS = {
   dxdash_pro_yearly: { plan: 'yearly', kind: 'subscription', env: 'STRIPE_PRICE_YEARLY' },
   dxdash_pro_pass3m: { plan: 'pass3m', kind: 'subscription', env: 'STRIPE_PRICE_PASS3M' },
@@ -155,6 +157,35 @@ export function checkoutParams(planOrId, userId, env, opts) {
   return f;
 }
 
+/**
+ * The Stripe Checkout Session for a premium Locker item (a one-time payment, priced from premium.js: no per-item setup in Stripe).
+ * Throws a readable message for a bad request.
+ */
+export function itemCheckoutParams(itemId, userId, env, opts) {
+  var cents = premiumCents(itemId);
+  if (!cents) throw new Error('That item is not for sale.');
+  if (!userId) throw new Error('Sign in first.');
+  var site = String((env && env.SITE_URL) || '').replace(/\/+$/, '');
+  if (!/^https:\/\//.test(site)) throw new Error('The site address is not set up.');
+  var f = {};
+  f['mode'] = 'payment';
+  f['client_reference_id'] = userId;
+  f['line_items[0][price_data][currency]'] = 'usd';
+  f['line_items[0][price_data][unit_amount]'] = String(cents);
+  f['line_items[0][price_data][product_data][name]'] = String((opts && opts.name) || itemId).slice(0, 80) + ' (Dx Dash Locker item)';
+  f['line_items[0][quantity]'] = '1';
+  f['success_url'] = site + '/?pro=success&item=' + encodeURIComponent(itemId);
+  f['cancel_url'] = site + '/?pro=cancelled';
+  f['metadata[kind]'] = 'item';
+  f['metadata[item_id]'] = itemId;
+  f['metadata[user_id]'] = userId;
+  f['payment_intent_data[metadata][kind]'] = 'item';
+  f['payment_intent_data[metadata][item_id]'] = itemId;
+  f['payment_intent_data[metadata][user_id]'] = userId;
+  if (opts && opts.customer) f['customer'] = opts.customer; else f['customer_creation'] = 'always';
+  return f;
+}
+
 /** Settings for the Stripe billing portal, used when none are saved in the Dashboard: cancel at the end of the period, update the card, see invoices. */
 export function portalConfig(env) {
   var site = String((env && env.SITE_URL) || '').replace(/\/+$/, '');
@@ -226,6 +257,17 @@ export async function handleEvent(event, deps) {
   if (!obj) return { handled: false };
   var rpc = deps.rpc;
 
+  if (event.type === 'checkout.session.completed' && obj.metadata && obj.metadata.kind === 'item') {
+    var itemUser = obj.client_reference_id || obj.metadata.user_id;
+    var itemId = obj.metadata.item_id;
+    if (!itemUser || !itemId) return { handled: false };
+    if (obj.payment_status !== 'paid' && obj.payment_status !== 'no_payment_required') return { handled: false };
+    if (obj.customer) await rpc('pro_link_customer', { p_customer: obj.customer, p_user: itemUser });
+    // (granted whatever the catalog says now: someone who paid for it always gets it)
+    await rpc('pro_grant_item', { p_user: itemUser, p_item: itemId, p_source: 'stripe' });
+    return { handled: true, action: 'item' };
+  }
+
   if (event.type === 'checkout.session.completed') {
     var userId = obj.client_reference_id || (obj.metadata && obj.metadata.user_id);
     var p = anyProductFor(obj.metadata && obj.metadata.plan);
@@ -260,6 +302,7 @@ export async function handleEvent(event, deps) {
   if (event.type === 'charge.refunded') {
     var m = obj.metadata || {};
     if (!obj.refunded || !m.user_id) return { handled: false }; // only a full refund takes anything back
+    if (m.kind === 'item' && m.item_id) { await rpc('pro_revoke_item', { p_user: m.user_id, p_item: m.item_id }); return { handled: true, action: 'item_refunded' }; }
     if (m.plan === 'library') { await rpc('pro_revoke_library', { p_user: m.user_id }); return { handled: true, action: 'library_refunded' }; }
     if (m.plan === 'lifetime') { await rpc('pro_revoke_plan', { p_user: m.user_id, p_plan: 'lifetime' }); return { handled: true, action: 'lifetime_refunded' }; } // (only a lifetime: a subscription or a trial on the same account stays)
     return { handled: false };
