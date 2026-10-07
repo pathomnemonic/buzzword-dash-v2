@@ -120,6 +120,17 @@ export function mountFitScreens() {
   window.addEventListener('orientationchange', schedule);
   document.addEventListener('dx:screen-shown', schedule);
   document.addEventListener('dx:attention-changed', schedule);
+  // if a phone browser zoomed the page in around a text field, zoom back out once the field is left
+  document.addEventListener('focusout', function () {
+    setTimeout(function () {
+      var vv = window.visualViewport;
+      var meta = document.querySelector('meta[name="viewport"]');
+      if (!vv || !meta || vv.scale <= 1.02) return;
+      var original = meta.getAttribute('content');
+      meta.setAttribute('content', original + ', maximum-scale=1');
+      setTimeout(function () { meta.setAttribute('content', original); }, 150);
+    }, 120);
+  });
   if (typeof MutationObserver === 'function') {
     var busy = false;
     var mo = new MutationObserver(function () { if (!busy) schedule(); });

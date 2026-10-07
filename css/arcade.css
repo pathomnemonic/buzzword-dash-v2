@@ -2611,3 +2611,8 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 /* pinned badge names always show: they wrap to two lines instead of being cut to dots or hidden */
 .showcase-badge { border-radius: 16px; }
 .showcase-name { white-space: normal; line-height: 1.1; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* phones zoom the whole page in when a text field under 16px gets focus, and then it stays zoomed: never let a field be that small */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+}

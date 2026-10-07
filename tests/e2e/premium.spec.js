@@ -63,3 +63,19 @@ test.describe('premium Locker items', () => {
     await expect(page.locator('[data-premium="trail_fire"]')).toContainText('Soon', { timeout: 8000 });
   });
 });
+
+test('premium maps show a dollar price (never "level 0" or coins) and are not owned', async ({ page }) => {
+  await openApp(page, '/?debug=1');
+  await page.evaluate(() => window.__ui.show('screenShop'));
+  await page.waitForTimeout(900);
+  await page.locator('#shopItems [role="tab"]', { hasText: 'Maps' }).first().click();
+  await page.waitForTimeout(700);
+  for (const id of ['map_dna_helix_tunnel', 'map_aquarium_imaging_center']) {
+    const row = page.locator('[data-map="' + id + '"]');
+    await expect(row).toContainText(/Premium/);
+    await expect(row).not.toContainText(/level 0/i);
+    await expect(row).not.toContainText('🪙');
+    await expect(row.locator('[data-premium]')).toHaveCount(1);
+  }
+  expect(await page.evaluate(() => { const s = window.__ui; return typeof s; })).toBe('object');
+});

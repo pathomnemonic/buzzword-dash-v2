@@ -946,43 +946,7 @@ export var settingsMethods = {
         } else if (item.premium) {
           // sold for real money only: the dollar price is on the button, and it asks twice before leaving for the payment page.
           // Every tap says something, so it never looks like nothing happened.
-          var priceText = itemPriceLabel(item);
-          var soon = !priceText || !itemsAvailable();
-          var moneyBtn = createElement('button', {
-            className: 'btn btn-money btn-sm',
-            text: soon ? '💎 Soon' : '💎 ' + priceText,
-            attributes: { type: 'button', 'data-premium': item.id, 'aria-label': soon ? item.name + ' is coming soon' : 'Buy ' + item.name + ' for ' + priceText + ' with real money' }
-          });
-          var armedMoney = false;
-          var moneyTimer = null;
-          moneyBtn.addEventListener('click', function () {
-            if (soon) { self._showToast('💎 ' + item.name + ' is coming soon. Nothing was charged.', 3500); return; }
-            if (!hasAccount(self._lb())) {
-              self._showToast('Create a free account first, so what you buy stays with you.', 4000);
-              if (self.onOpenAccount) self.onOpenAccount();
-              return;
-            }
-            if (!armedMoney) {
-              armedMoney = true;
-              setText(moneyBtn, 'Buy for ' + priceText + '? Tap again');
-              moneyTimer = setTimeout(function () { armedMoney = false; setText(moneyBtn, '💎 ' + priceText); }, 5000);
-              return;
-            }
-            clearTimeout(moneyTimer);
-            moneyBtn.disabled = true;
-            setText(moneyBtn, 'Opening checkout…');
-            trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'started' });
-            buyPremiumItem(item, self._lb()).then(function (r) {
-              if (r && r.ok && r.owned) { self._showToast('💎 ' + item.name + ' is yours!'); self.renderShop(); return; }
-              if (r && r.ok) return; // the page is leaving for Stripe
-              moneyBtn.disabled = false; armedMoney = false;
-              if (r && r.cancelled) { setText(moneyBtn, '💎 ' + priceText); return; }
-              trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'failed' });
-              self._showToast((r && r.error) || 'That did not go through. You have not been charged.', 5000);
-              if (!itemsAvailable()) self.renderShop(); else setText(moneyBtn, '💎 ' + priceText);
-            });
-          });
-          btnWrap.appendChild(moneyBtn);
+          btnWrap.appendChild(self._moneyButton(item));
         } else {
           var buyBtn = createElement('button', {
             className: 'btn btn-gold btn-sm',
@@ -1143,7 +1107,7 @@ export var settingsMethods = {
     wrap.appendChild(intro);
 
     // in the order they unlock
-    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).sort(function (a, b) { return (mapUnlockLevel(a.id) || 999) - (mapUnlockLevel(b.id) || 999); }).forEach(function (item) {
+    LOCKER_ITEMS.filter(function (i) { return i.type === 'map'; }).sort(function (a, b) { return (a.premium ? 1e6 : 0) + (mapUnlockLevel(a.id) || 999) - ((b.premium ? 1e6 : 0) + (mapUnlockLevel(b.id) || 999)); }).forEach(function (item) {
       var owned = storage.ownsItem(item.id);
       var skin = SKINS.filter(function (s) { return s.id === item.skinId; })[0];
       var isFavorite = !!skin && storage.get('preferredMap') === skin.name;
@@ -1159,7 +1123,7 @@ export var settingsMethods = {
       nameWrap.firstChild.style.cssText = 'font-size:13px;font-weight:700';
       var unlockAt = mapUnlockLevel(item.id);
       var reached = unlockAt > 0 && levelFromXp(storage.get('xp') || 0).level >= unlockAt;
-      var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc + (owned ? (reached && storage.data.progression.ownedItems.indexOf(item.id) < 0 ? ' · Unlocked at level ' + unlockAt : '') : ' · Unlocks at level ' + unlockAt + ' (or buy it now)') });
+      var descLine = createElement('div', { className: 'setting-sublabel', text: item.desc + (owned ? (reached && storage.data.progression.ownedItems.indexOf(item.id) < 0 ? ' · Unlocked at level ' + unlockAt : '') : (item.premium ? ' · Premium: sold for real money' : ' · Unlocks at level ' + unlockAt + ' (or buy it now)')) });
       descLine.style.cssText = 'font-size:11px;line-height:1.3;margin-top:2px';
       nameWrap.appendChild(descLine);
       if (storage.secretFound(item.name)) nameWrap.firstChild.appendChild(createElement('span', { text: ' 🔎', attributes: { title: 'You found this map\'s secret', 'aria-label': 'Secret found' } }));
@@ -1189,6 +1153,8 @@ export var settingsMethods = {
           self.renderShop();
         });
         btnWrap.appendChild(fav);
+      } else if (item.premium) {
+        btnWrap.appendChild(self._moneyButton(item));
       } else {
         var buy = createElement('button', { className: 'btn btn-gold btn-sm', text: '🪙 ' + item.price, attributes: { type: 'button', 'aria-label': 'Buy ' + item.name + ' for ' + item.price + ' coins' } });
         buy.addEventListener('click', function () {
@@ -1210,6 +1176,48 @@ export var settingsMethods = {
       wrap.appendChild(row);
     });
     return wrap;
+  },
+
+  /** The real-money button of a premium item (a price, a confirming tap, then the payment page; "Soon" when it cannot be bought yet). */
+  _moneyButton(item) {
+    var self = this;
+    var priceText = itemPriceLabel(item);
+    var soon = !priceText || !itemsAvailable();
+    var moneyBtn = createElement('button', {
+      className: 'btn btn-money btn-sm',
+      text: soon ? '💎 Soon' : '💎 ' + priceText,
+      attributes: { type: 'button', 'data-premium': item.id, 'aria-label': soon ? item.name + ' is coming soon' : 'Buy ' + item.name + ' for ' + priceText + ' with real money' }
+    });
+    var armedMoney = false;
+    var moneyTimer = null;
+    moneyBtn.addEventListener('click', function () {
+      if (soon) { self._showToast('💎 ' + item.name + ' is coming soon. Nothing was charged.', 3500); return; }
+      if (!hasAccount(self._lb())) {
+        self._showToast('Create a free account first, so what you buy stays with you.', 4000);
+        if (self.onOpenAccount) self.onOpenAccount();
+        return;
+      }
+      if (!armedMoney) {
+        armedMoney = true;
+        setText(moneyBtn, 'Buy for ' + priceText + '? Tap again');
+        moneyTimer = setTimeout(function () { armedMoney = false; setText(moneyBtn, '💎 ' + priceText); }, 5000);
+        return;
+      }
+      clearTimeout(moneyTimer);
+      moneyBtn.disabled = true;
+      setText(moneyBtn, 'Opening checkout…');
+      trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'started' });
+      buyPremiumItem(item, self._lb()).then(function (r) {
+        if (r && r.ok && r.owned) { self._showToast('💎 ' + item.name + ' is yours!'); self.renderShop(); return; }
+        if (r && r.ok) return; // the page is leaving for Stripe
+        moneyBtn.disabled = false; armedMoney = false;
+        if (r && r.cancelled) { setText(moneyBtn, '💎 ' + priceText); return; }
+        trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'failed' });
+        self._showToast((r && r.error) || 'That did not go through. You have not been charged.', 5000);
+        if (!itemsAvailable()) self.renderShop(); else setText(moneyBtn, '💎 ' + priceText);
+      });
+    });
+    return moneyBtn;
   },
 
   /**
