@@ -49,7 +49,7 @@ for (const [w, h] of PHONES) {
     });
     expect(r.bonus && r.bonus.shown, 'the "Bonus today" line must show at every size').toBe(true);
     expect(r.banner && r.banner.shown, 'the Go Pro button must show').toBe(true);
-    for (const k of ['play', 'modes', 'howTo']) expect(r[k].bottom, k + ' must end above the tab bar').toBeLessThanOrEqual(r.nav + 1);
+    for (const k of ['play', 'modes', 'howTo']) expect(r[k].bottom, k + ' must end clear of the tab bar (not touching it)').toBeLessThanOrEqual(r.nav - 10);
     // the pieces are in order and do not overlap
     expect(r.banner.bottom).toBeLessThanOrEqual(r.play.top + 2);
     expect(r.bonus.bottom).toBeLessThanOrEqual(r.banner.top + 2);
@@ -79,9 +79,32 @@ for (const [w, h] of PHONES) {
       }, sheet);
       expect(r.top, sheet).toBeGreaterThanOrEqual(-1);
       expect(r.bottom <= h + 1 || r.scrolls, sheet + ' must fit or scroll inside itself').toBe(true);
+      if (sheet === 'challengeSheet' || sheet === 'flashcardsSheet') {
+        const over = await page.evaluate((id) => { const c = document.querySelector('#' + id + ' .sheet-card'); return c.scrollHeight - c.clientHeight; }, sheet);
+        expect(over, sheet + ': every mode must be visible at once, with no scrolling').toBeLessThanOrEqual(1);
+      }
       expect(await layoutProblems(page), sheet).toEqual([]);
       await page.evaluate(() => window.__ui.closeSheets());
     }
+  });
+}
+
+// Larger text (Android's font size setting) and a phone's bottom safe area make the tab bar taller and the buttons bigger.
+// Home must still keep its bottom buttons clear of the tab bar.
+for (const [w, h, scale, safe] of [[360, 640, 1.15, 0], [360, 640, 1.3, 0], [360, 600, 1.3, 0], [390, 780, 1.3, 34], [390, 844, 1, 34], [320, 568, 1.15, 0]]) {
+  test(`Home keeps clear of the tab bar at ${w}x${h} with ${Math.round(scale * 100)}% text and a ${safe}px bottom inset`, async ({ page }) => {
+    await page.addInitScript(() => { try { localStorage.setItem('dx_pro_force_sell', '1'); } catch (e) { /* no storage */ } });
+    await open(page, w, h);
+    await page.evaluate(([k, inset]) => {
+      document.documentElement.style.setProperty('--safe-bottom', inset + 'px');
+      const els = [...document.body.querySelectorAll('*')];
+      const sizes = els.map((e) => parseFloat(getComputedStyle(e).fontSize));
+      els.forEach((e, i) => { e.style.fontSize = sizes[i] * k + 'px'; });
+    }, [scale, safe]);
+    await page.evaluate(() => window.__ui.show('screenHome'));
+    await page.waitForTimeout(900);
+    const r = await page.evaluate(() => { const nav = document.getElementById('bottomNav').getBoundingClientRect().top; const g = (s) => nav - document.querySelector(s).getBoundingClientRect().bottom; return { modes: g('.mode-row'), howTo: g('#howToPlayBtn'), play: g('.btn-play') }; });
+    for (const k of ['modes', 'howTo', 'play']) expect(r[k], k + ' must clear the tab bar').toBeGreaterThanOrEqual(10);
   });
 }
 

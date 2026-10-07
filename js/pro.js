@@ -34,6 +34,8 @@ var FOREVER = 100 * 365 * 24 * 60 * 60 * 1000;
 var GRACE_MS = 3 * 24 * 60 * 60 * 1000;
 var STORE_DOUBT_MS = 6 * 60 * 60 * 1000;
 var SYNC_KEY = 'dx_pro_synced';
+var TRIAL_KEY = 'dx_pro_trialavail';
+var CANCEL_KEY = 'dx_pro_cancel_started';
 var SYNC_EVERY_MS = 12 * 60 * 60 * 1000;
 
 export var PRO_PLAN_INFO = {
@@ -59,7 +61,7 @@ export var PRO_BENEFITS = [
  */
 export var PRO_FEATURES = [
   { id: 'card_library', icon: '🗂', title: '10× more cards: the whole bank', detail: 'All 3,010 cards across every subject and system, not just 300.', free: 'Free: 300 cards' },
-  { id: 'monthly_gift', icon: '🎁', title: 'A free Locker item every month', detail: 'Pick any one hero, trail, monster or map in the shop, on the house. A new pick opens each month.', free: 'Free: buy with coins' },
+  { id: 'monthly_gift', icon: '🎁', title: 'A free Locker item', detail: 'Pick any one hero, trail, monster or map in the shop, on the house.', free: 'Free: buy with coins' },
   { id: 'mode_study', icon: '📖', title: 'Study mode', detail: 'Relaxed runs with a teaching point after every answer and no lives lost.', free: 'Free: not included' },
   { id: 'mode_weakness', icon: '🎯', title: 'Weakness mode', detail: 'Runs built from the cards you miss most, until they stick.', free: 'Free: not included' },
   { id: 'mp_modes', icon: '⚔️', title: 'Every Versus mode', detail: 'Sudden Death and Race, on top of High Score.', free: 'Free: High Score only' },
@@ -118,6 +120,9 @@ export function probeSellable(deps) {
     return ok;
   }).catch(function () { return false; });
 }
+
+/** Did the server last say this account can still start its free 7-day trial? */
+export function trialAvailable() { return !!readJson(TRIAL_KEY, { available: false }).available; }
 
 function dueForSync(now) { var s = store(); var at = s ? Number(s.getItem(SYNC_KEY)) || 0 : 0; return !at || now - at > SYNC_EVERY_MS || at > now; }
 function markSynced(now) { try { var s = store(); if (s) s.setItem(SYNC_KEY, String(now)); } catch (e) { /* ignore */ } }
@@ -219,6 +224,7 @@ export function refreshPro(deps) {
       if (!r || r.error) return; // no answer: keep what we had (never read a failed call as "no Pro")
       asked++;
       serverSaidNo = !r.active;
+      writeJson(TRIAL_KEY, { available: !!r.trial_available });
       if (r && r.library && !isNative()) libraryOwned = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
     }).catch(function () { /* offline */ }));
@@ -335,9 +341,47 @@ export function canCancel() {
   return !!st.active && !st.trial && /^(yearly|monthly|pass3m)$/.test(st.plan);
 }
 
+var _subState = null;
+/**
+ * What the billing system really says about this member's subscription (web only; the stores do not tell us).
+ * Resolves { known, renewing, cancelling, endsAt } and never guesses: when it cannot find out, known is false.
+ */
+export function subscriptionState(lb, o) {
+  o = o || {};
+  if (isNative() || !lb || !lb.proFunction || !hasAccount(lb)) return Promise.resolve({ known: false });
+  if (!o.force && _subState && Date.now() - _subState.at < 5 * 60 * 1000) return Promise.resolve(_subState.value);
+  return lb.proFunction('subscription').then(function (r) {
+    if (!r || !r.ok) return { known: false };
+    var v = r.status === 'none'
+      ? { known: true, renewing: false, cancelling: false, endsAt: 0, none: true }
+      : { known: true, renewing: !r.cancel_at_period_end, cancelling: !!r.cancel_at_period_end, endsAt: r.ends ? new Date(r.ends).getTime() : 0 };
+    _subState = { at: Date.now(), value: v };
+    return v;
+  }).catch(function () { return { known: false }; });
+}
+
+/**
+ * The member went to cancel earlier: did they actually do it? Looks at the billing system, tells them the truth either way,
+ * and forgets the note. Resolves null when there was nothing to check or the answer is not known yet (it asks again later).
+ */
+export function checkCancelFollowThrough(lb) {
+  var s = store();
+  var at = s ? Number(s.getItem(CANCEL_KEY)) || 0 : 0;
+  if (!at) return Promise.resolve(null);
+  if (Date.now() - at > 3 * 86400000) { try { s.removeItem(CANCEL_KEY); } catch (e) { /* ignore */ } return Promise.resolve(null); }
+  return subscriptionState(lb, { force: true }).then(function (v) {
+    if (!v.known) return null;
+    try { s.removeItem(CANCEL_KEY); } catch (e) { /* ignore */ }
+    try { track('subscription_cancel_check', { cancelled: !!v.cancelling || !!v.none, ends_at: v.endsAt ? new Date(v.endsAt).toISOString().slice(0, 10) : '' }); } catch (e) { /* ignore */ }
+    return { cancelled: !!v.cancelling || !!v.none, endsAt: v.endsAt, none: !!v.none };
+  });
+}
+
 /** Take a subscriber to where they cancel: the store's subscriptions page in the apps, Stripe's cancel step on the web. */
 export function cancelSubscription(lb, nav) {
   if (isNative()) { getIap().manage(); return Promise.resolve({ ok: true }); }
+  // remember that they went to cancel, so on coming back we can check whether they did (and never assume)
+  try { var s = store(); if (s) s.setItem(CANCEL_KEY, String(Date.now())); } catch (e) { /* ignore */ }
   return webManage(lb, nav, { cancel: true });
 }
 
@@ -466,38 +510,17 @@ export function checkGate(feature, o) {
   return { allowed: used < gate.limit, mode: 'limit', limit: gate.limit, used: used, remaining: Math.max(0, gate.limit - used), per: gate.per };
 }
 
-/** `n` months after `anchor` (ms), on the same day of the month, or the last day of a shorter month. */
-export function addMonths(anchor, n) {
-  var a = new Date(anchor);
-  var y = a.getFullYear(), m = a.getMonth() + n;
-  var last = new Date(y, m + 1, 0).getDate();
-  return new Date(y, m, Math.min(a.getDate(), last), a.getHours(), a.getMinutes(), a.getSeconds()).getTime();
-}
-
 /**
- * Which gift month `now` falls in, counted from when Pro began: the start of that month and the start of the next (ms).
- * A member who started on the 12th gets a new gift on the 12th of each month.
- */
-export function giftPeriod(since, now) {
-  var a = new Date(since), b = new Date(now);
-  var k = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
-  if (addMonths(since, k) > now) k--;
-  if (k < 0) k = 0;
-  return { start: addMonths(since, k), next: addMonths(since, k + 1), key: new Date(addMonths(since, k)).toISOString().slice(0, 10) };
-}
-
-/**
- * The monthly Pro gift: one free item from the Locker, any one, for each month since Pro began (a trial counts too).
- * @returns {{eligible: boolean, available: boolean, nextAt: number, key: string, item: string}} nextAt: when the next gift opens (ms)
+ * The Pro gift: one free item from the Locker, any one (except the premium ones sold for money), once, for anyone who
+ * pays for Pro. It is not available during the free trial, and it is used for good once taken.
+ * @returns {{eligible: boolean, available: boolean, used: boolean, item: string}}
  */
 export function proGiftState(now) {
   var t = typeof now === 'number' ? now : Date.now();
   var p = (storage && storage.data && storage.data.progression) || {};
-  var since = proStatus().since;
-  var eligible = proLive() && isPro(t) && !proStatus().trial && since > 0; // (not during the free trial)
-  if (!eligible) return { eligible: false, available: false, nextAt: 0, key: '', item: p.proGiftItem || '' };
-  var per = giftPeriod(since, t);
-  return { eligible: true, available: p.proGiftMonth !== per.key, nextAt: per.next, key: per.key, item: p.proGiftItem || '' };
+  var eligible = proLive() && isPro(t) && !proStatus().trial;
+  var used = !!p.proGiftItem;
+  return { eligible: eligible, available: eligible && !used, used: used, item: p.proGiftItem || '' };
 }
 
 /** Count one use of a feature (for "per day / per week" limits). */

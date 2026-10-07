@@ -177,6 +177,7 @@ export var EVENTS = {
     plan: 's24', trigger: 's30', price: 's16', micros: 'i', currency: 's3', trial_days: 'i'
   }],
   pro_gate_hit: ['monetization', 'A free player reached a Pro limit (a locked feature, or the daily/weekly/total limit).', { feature: 's24!', mode: 'e:limit|locked', used: 'i', limit: 'i' }],
+  subscription_cancel_check: ['monetization', 'After a member went to cancel: what the billing system says (cancelled, or still renewing).', { cancelled: 'b!', ends_at: 's10' }],
   pro_gift_claimed: ['monetization', 'A Pro member used their free monthly Locker item.', { item: 's40' }],
   pro_status: ['monetization', 'Whether this install has Pro, at the start of a session (only once Pro is launched).', { active: 'b!', source: 'e:store|server|code|debug|none', plan: 's24', trial: 'b', days_left: 'i' }],
   tip_purchase: ['monetization', 'An in-app tip (phone apps only): started, completed, cancelled or failed, with the store price.', { outcome: 'e:started|completed|cancelled|failed!', product: 's40', price: 's16', micros: 'i', currency: 's3' }],

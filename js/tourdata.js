@@ -139,7 +139,7 @@ export function buildTourSteps(ctx) {
       text: 'Sound, colors, camera, controls and game rules live here. You can replay this tour any time from Settings, then About, then How to play.' },
     !live ? null : { id: 'pro', title: 'Dx Dash Pro', target: '#homeProBanner', press: 'next',
       skipIf: function () { var b = document.getElementById('homeProBanner'); return !b || b.hidden; },
-      text: '⚡ Playing is complete without it. Pro is for when you want more: 10× more cards (3,010 instead of 300), every explanation, detailed stats, Cards I miss, Browse cards, My cards, Anki import and offline play, plus one free Locker item of your choice every month. Every new account gets a free 7-day trial, so you can try it all. Tap this button any time to see what is inside.' },
+      text: '⚡ Playing is complete without it. Pro is for when you want more: 10× more cards (3,010 instead of 300), every explanation, detailed stats, Cards I miss, Browse cards, My cards, Anki import and offline play, plus one free Locker item of your choice. Every new account gets a free 7-day trial, so you can try it all. Tap this button any time to see what is inside.' },
 
     { id: 'stats-tab', title: 'Stats', target: tab('screenStats'), press: 'pass',
       text: 'Now the tabs along the bottom. Open Stats.' },
@@ -149,7 +149,7 @@ export function buildTourSteps(ctx) {
     { id: 'locker-tab', title: 'Locker', target: tab('screenShop'), press: 'pass',
       text: 'Next, the Locker, where your coins go.' },
     { id: 'locker', title: 'Your hero', target: '#characterPreviewContainer', press: 'next', interactive: true,
-      text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Under it are the tabs, and what you are wearing, with Change colors for heroes that can be recolored.' + pro('Pro members also pick any one item free every month: look for the green 🎁 FREE button.') },
+      text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Under it are the tabs, and what you are wearing, with Change colors for heroes that can be recolored.' + pro('Paying Pro members also pick any one item free: look for the green 🎁 FREE button.') },
     { id: 'extras-tab', title: 'Trails', target: lockerTabButton('Trails'), press: 'pass',
       text: 'The Locker starts folded so it fits one screen: tap a tab to open its list, and tap it again to fold it away. Trails stream behind your runner. (Heroes are the characters, Maps are new worlds to run in, and Monsters chase you when you slip.) Open Trails.' },
     // The tour always uses the cheapest trail. It never hands out coins: a new player starts with enough for it, and a

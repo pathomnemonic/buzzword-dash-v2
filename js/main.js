@@ -23,7 +23,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, requireGate, checkGate } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, requireGate, checkGate, checkCancelFollowThrough } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -892,6 +892,13 @@ function startStudyPlanRun(cardIds) {
   launchRun('study', cardIds, { planCardIds: cardIds.slice(), allowContinue: false });
 }
 
+/** After someone went to cancel: tell them what really happened. */
+function announceCancel(r) {
+  var when = r.endsAt ? new Date(r.endsAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : '';
+  if (r.cancelled) ui._showToast(r.none ? 'Your subscription has ended.' : 'Your cancellation went through. You keep Pro' + (when ? ' until ' + when : ' until the end of the period you paid for') + '.', 6000);
+  else ui._showToast('You did not finish cancelling, so your subscription is still active' + (when ? ' and renews on ' + when : '') + '. Open Settings → Dx Dash Pro to cancel.', 7000);
+}
+
 function startMode(mode) {
   // Pro: Study and Weakness (the other ways to play are free, Exam Sim and the extra Versus modes ask for Pro themselves)
   if (mode === 'study' && !requireGate('mode_study')) return;
@@ -1382,7 +1389,7 @@ function init() {
     leaderboardModule = mod;
     instrumentLeaderboard(mod.leaderboard);
     setProUiDeps({ lb: mod.leaderboard });
-    mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); });
+    mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); if (webPayReturn !== 'billing') checkCancelFollowThrough(mod.leaderboard).then(function (r) { if (r) announceCancel(r); }); });
     document.addEventListener('dx:pro-trial-started', function () { ui._showToast('Your free 7-day Pro trial has started! 🎉', 4000); });
     if (webPayReturn === 'success') {
       // back from Stripe: the payment reaches the server a moment later, so keep asking for a little while
@@ -1397,6 +1404,9 @@ function init() {
         };
         go();
       });
+    } else if (webPayReturn === 'billing') {
+      // back from the billing page: say what is actually true about the subscription
+      mod.leaderboard.init().then(function () { return checkCancelFollowThrough(mod.leaderboard); }).then(function (r) { if (r) announceCancel(r); });
     } else if (webPayReturn === 'cancelled') {
       ui._showToast('No problem, nothing was charged.', 2500);
     }

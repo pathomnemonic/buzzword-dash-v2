@@ -10,7 +10,7 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, hasAccount, canCancel, cancelSubscription, PRO_FEATURES, libraryUnlocked } from './pro.js';
+import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, hasAccount, canCancel, cancelSubscription, trialAvailable, subscriptionState, proGiftState, PRO_FEATURES, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
@@ -75,6 +75,9 @@ export function openPaywall(o) {
   var st0 = proStatus();
   // Someone on the free trial still needs a way to buy: they see the plans too, with their trial's end date
   var needsPlan = !isPro() || !!st0.trial;
+  // Two steps: first what Pro gets you (with the free trial and a "See pricing" button), then the plans
+  var pricing = needsPlan && !!o.pricing;
+  var features = needsPlan && !pricing;
   var counts = libraryCounts();
   if (isPro() && st0.trial) {
     var daysLeft = st0.until ? Math.max(0, Math.ceil((st0.until - Date.now()) / 86400000)) : 0;
@@ -83,23 +86,19 @@ export function openPaywall(o) {
     box.appendChild(tl);
   } else if (isPro()) {
     box.appendChild(createElement('p', { text: 'You have Pro. Thank you for supporting Dx Dash! 💜' }));
+  } else if (pricing) {
+    box.appendChild(createElement('p', { text: 'Choose your plan', className: 'pro-step-title' }));
   } else {
     var headline = createElement('p', { text: counts.total ? 'Go Pro for ' + moreCards(counts) + ' cards, plus every mode and study tool.' : 'Study smarter with every card, every mode and every study tool.' });
     headline.style.cssText = 'font-weight:800;font-size:16px';
     box.appendChild(headline);
-    if (!(_lb && _lb.isAuthenticated && _lb.isAuthenticated()) || (_lb.isGuest && _lb.isGuest())) {
-      var tr = createElement('p', { text: '🎁 New here? Create a free account (Friends → Account) and get a 7-day Pro trial: no card, nothing to cancel.' });
-      tr.style.cssText = 'font-size:13px;font-weight:800;margin:6px 0';
-      box.appendChild(tr);
-    }
   }
   var list = createElement('div');
   list.style.cssText = 'display:grid;gap:8px;margin:10px 0';
   var status = createElement('div', { className: 'setting-sublabel', attributes: { role: 'status' } });
   box.appendChild(list);
   box.appendChild(status);
-  if (needsPlan) {
-    // the plans come first, so the way to buy is the first thing under the headline; what it gets you follows
+  if (features) {
     var whatHead = createElement('h3', { text: 'WHAT YOU GET' });
     whatHead.style.cssText = 'margin:14px 0 2px;font-size:13px;letter-spacing:1px;color:var(--accent-gold,#ffd24a)';
     box.appendChild(whatHead);
@@ -114,14 +113,37 @@ export function openPaywall(o) {
   var act = function (action, extra) { track('paywall_action', Object.assign({ action: action, trigger: trigger }, extra || {})); };
 
   var needsAccount = needsPlan && !hasAccount(_lb);
-  if (needsPlan) {
+  if (features) {
+    track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: isPro() });
+    // the free trial is a button of its own, so nobody can miss it
+    if (!isPro() && (needsAccount || trialAvailable())) {
+      var trialBtn = createElement('button', { className: 'btn btn-green btn-block pro-trial-btn', attributes: { type: 'button', id: 'proTrialBtn' } });
+      trialBtn.appendChild(createElement('span', { className: 'pro-plan-main', text: '🎁 START YOUR 7-DAY FREE TRIAL' }));
+      trialBtn.appendChild(createElement('span', { className: 'pro-plan-sub', text: needsAccount ? 'Free account, no card, nothing to cancel' : 'No card, nothing to cancel' }));
+      trialBtn.addEventListener('click', function () {
+        if (needsAccount) { act('trial_account', {}); cleanup(); _openAccount(); return; }
+        act('trial_start', {});
+        trialBtn.disabled = true;
+        setText(status, 'Starting your trial…');
+        refreshPro({ lb: _lb }).then(function (st) { trialBtn.disabled = false; if (st.active) { act('trial_started', {}); _toast('Your free 7-day Pro trial has started! 🎉'); cleanup(); } else setText(status, 'Could not start the trial just now. Please try again.'); });
+      });
+      list.appendChild(trialBtn);
+    }
+    var seePricing = createElement('button', { className: 'btn btn-gold btn-block', text: '💳 SEE PRICING', attributes: { type: 'button', id: 'proSeePricing' } });
+    seePricing.addEventListener('click', function () { act('see_pricing', {}); openPaywall(Object.assign({}, o, { pricing: true })); });
+    list.appendChild(seePricing);
+  }
+  if (pricing) {
+    var back = createElement('button', { className: 'btn btn-outline btn-sm', text: '‹ What you get', attributes: { type: 'button', id: 'proBack' } });
+    back.addEventListener('click', function () { openPaywall(Object.assign({}, o, { pricing: false })); });
+    box.insertBefore(back, box.firstChild.nextSibling);
     if (needsAccount) {
       // buying needs a real account (not a guest): the plans stay out of sight until there is one
       track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: false });
       var gate = createElement('div', { className: 'pro-account-gate' });
-      gate.appendChild(createElement('strong', { text: 'Create a free account to subscribe' }));
-      gate.appendChild(createElement('span', { text: 'So your Pro follows you to every device. A new account also gets a free 7-day trial first: no card, nothing to cancel. It takes under a minute.' }));
-      var mk = createElement('button', { className: 'btn btn-gold btn-block', text: 'Create free account', attributes: { type: 'button', id: 'proCreateAccount' } });
+      gate.appendChild(createElement('strong', { text: 'Create a free account to start' }));
+      gate.appendChild(createElement('span', { text: 'So your Pro follows you to every device. A new account gets a free 7-day trial first: no card, nothing to cancel. It takes under a minute.' }));
+      var mk = createElement('button', { className: 'btn btn-gold btn-block', text: 'Create free account + start trial', attributes: { type: 'button', id: 'proCreateAccount' } });
       mk.addEventListener('click', function () { act('account_needed', {}); cleanup(); _openAccount(); });
       gate.appendChild(mk);
       list.appendChild(gate);
@@ -234,9 +256,12 @@ export function openPaywall(o) {
       });
       box.appendChild(restore);
     }
-  } else {
+  } else if (!needsPlan) {
     track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: true });
     var paidSub = canCancel();
+    var subLine = createElement('p', { className: 'setting-sublabel pro-sub-line' });
+    box.appendChild(subLine);
+    fillSubscriptionLine(subLine);
     var manageable = isNative() || (webCheckoutEnabled() && proStatus().source === 'server' && paidSub);
     if (manageable) {
       if (paidSub) {
@@ -280,6 +305,59 @@ export function openPaywall(o) {
   close.focus();
   overlay.scrollTop = 0; box.scrollTop = 0; setTimeout(function () { overlay.scrollTop = 0; box.scrollTop = 0; }, 0); // (focusing the last button must not scroll the list of benefits out of sight)
   return overlay;
+}
+
+/** Fill in whether the subscription renews or is set to end, from the billing system itself (never from what we assume). */
+function fillSubscriptionLine(el) {
+  if (!canCancel()) return;
+  subscriptionState(_lb).then(function (v) {
+    if (!v || !v.known || v.none) return;
+    var when = v.endsAt ? new Date(v.endsAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+    if (v.cancelling) { setText(el, '⚠ Cancelled: Pro ends ' + (when || 'at the end of the period you paid for') + '. You keep everything until then.'); el.classList.add('pro-sub-ending'); }
+    else if (v.renewing) setText(el, 'Renews ' + (when ? 'on ' + when : 'automatically') + '.');
+  });
+}
+
+/**
+ * The "Dx Dash Pro" page in Settings, for everyone: what Pro gets you (with the free trial) for a free player, or the
+ * membership, the gift and billing for a member.
+ */
+export function renderProTab(container) {
+  if (!container) return;
+  if (!proLive()) { container.appendChild(createElement('p', { className: 'setting-sublabel', text: 'Dx Dash Pro is not available right now.' })); return; }
+  var st = proStatus();
+  var box = createElement('div', { className: 'pro-tab' });
+  var counts = libraryCounts();
+  if (st.active && !st.trial) {
+    box.appendChild(createElement('p', { className: 'pro-step-title', text: '⚡ You have Dx Dash Pro. Thank you! 💜' }));
+    var sub = createElement('p', { className: 'setting-sublabel pro-sub-line' });
+    box.appendChild(sub);
+    fillSubscriptionLine(sub);
+    var gs = proGiftState();
+    if (gs.eligible) box.appendChild(createElement('p', { className: 'setting-sublabel', text: gs.available ? '🎁 Your Pro gift is waiting: open the Locker and tap 🎁 FREE on any item.' : '🎁 You have used your Pro gift.' }));
+    if (canCancel()) {
+      var cancel = createElement('button', { className: 'btn btn-outline btn-block pro-cancel', text: 'Cancel subscription', attributes: { type: 'button', id: 'proSettingsCancel' } });
+      cancel.addEventListener('click', function () { cancel.disabled = true; cancelSubscription(_lb).then(function (r) { cancel.disabled = false; if (!(r && r.ok)) _toast((r && r.error) || 'Could not open the cancel page.'); }); });
+      box.appendChild(cancel);
+      var mg = createElement('button', { className: 'btn btn-outline btn-block', text: 'Manage subscription', attributes: { type: 'button' } });
+      mg.addEventListener('click', function () { openPaywall({ trigger: 'settings_tab' }); });
+      box.appendChild(mg);
+    }
+    box.appendChild(createElement('h3', { text: 'WHAT YOU HAVE', className: 'pro-what' }));
+  } else {
+    if (st.active && st.trial) {
+      var daysLeft = st.until ? Math.max(0, Math.ceil((st.until - Date.now()) / 86400000)) : 0;
+      box.appendChild(createElement('p', { className: 'pro-step-title', text: 'Your free trial is on' + (daysLeft ? ': ' + daysLeft + (daysLeft === 1 ? ' day' : ' days') + ' left' : '') + '.' }));
+    } else {
+      box.appendChild(createElement('p', { className: 'pro-step-title', text: counts.total ? 'Go Pro for ' + moreCards(counts) + ' cards, plus every mode and study tool.' : 'Study smarter with every card, every mode and every study tool.' }));
+    }
+    var get = createElement('button', { className: 'btn btn-gold btn-block', text: st.active ? '💳 SEE PRICING' : '⚡ GET PRO', attributes: { type: 'button', id: 'proTabGet' } });
+    get.addEventListener('click', function () { openPaywall({ trigger: 'settings_tab', pricing: st.active }); });
+    box.appendChild(get);
+    box.appendChild(createElement('h3', { text: 'WHAT YOU GET', className: 'pro-what' }));
+  }
+  box.appendChild(featureList(''));
+  container.appendChild(box);
 }
 
 /** Settings → About & help: "Dx Dash Pro" with the status, only once Pro is switched on. */

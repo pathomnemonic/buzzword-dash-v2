@@ -2465,3 +2465,31 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 .pro-account-gate strong { font-size: 16px; }
 .pro-account-gate span { font-size: 13px; line-height: 1.4; }
 .pro-cancel { border-color: #ff6b81; color: #ff9aa9; }
+
+
+/* ---------- Home keeps clear of the tab bar however tall the bar is (see ui.js syncNavHeight / fitHomeLayout) ---------- */
+#screenHome .home-layout { padding-bottom: calc(var(--nav-h, 76px) + 14px); }
+#screenHome .home-layout.home-fit .btn-play { width: var(--play-size) !important; height: var(--play-size) !important; }
+
+/* ---------- pop-ups show every mode without scrolling: Pro modes sit last, and the entries tighten as the phone gets shorter ---------- */
+@media (max-height: 860px) {
+  .se-body em { display: none; }
+  .sheet-entry { padding: 5px 9px; }
+  .se-body span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+}
+@media (max-height: 580px) {
+  .se-body span { -webkit-line-clamp: 1; }
+  .sheet-list { gap: 4px; }
+  .sheet-card h2 { font-size: 17px; }
+}
+
+.pro-step-title { font-weight: 800; font-size: 16px; margin: 4px 0 0; }
+.pro-trial-btn { background: linear-gradient(180deg, #8bf5a8, #2fc965); color: #06361b; border-color: var(--ink); animation: hpbGlow 2.6s ease-in-out infinite; }
+.pro-trial-btn .pro-plan-main { font-size: 16px; }
+.pro-trial-btn .pro-plan-sub { color: #0b4d28; font-weight: 800; }
+@media (prefers-reduced-motion: reduce) { .pro-trial-btn { animation: none; } }
+
+.pro-tab { display: grid; gap: 8px; }
+.pro-what { margin: 10px 0 0; font-size: 13px; letter-spacing: 1px; color: var(--accent-gold, #ffd24a); }
+.pro-sub-line { margin: 0; }
+.pro-sub-ending { color: #ff9aa9; font-weight: 800; }

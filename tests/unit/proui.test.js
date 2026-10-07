@@ -59,11 +59,11 @@ describe('Pro screens once switched on', () => {
     const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
     iap.add(['dxdash_pro_yearly'].map((id) => ({ id, kind: 'subscription' })));
     setIapForTest(iap);
-    const o = openPaywall({ trigger: 'home_button' });
+    const o = openPaywall({ trigger: 'home_button', pricing: true });
     await tick();
     expect(o.querySelectorAll('button[data-plan]').length).toBe(0);
     expect(o.querySelector('#proCreateAccount')).toBeTruthy();
-    expect(o.textContent).toMatch(/Create a free account to subscribe/);
+    expect(o.textContent).toMatch(/Create a free account to start/);
   });
 
   it('a paying subscriber gets a Cancel subscription button; a trial or a lifetime owner does not', () => {
@@ -74,6 +74,29 @@ describe('Pro screens once switched on', () => {
     expect(openPaywall({ trigger: 'settings' }).querySelector('#proCancel')).toBeNull();
     put({ plan: 'lifetime', trial: false });
     expect(openPaywall({ trigger: 'settings' }).querySelector('#proCancel')).toBeNull();
+  });
+
+  it('clicking Go Pro shows what Pro gets you first, with the free trial as a button, then the pricing', async () => {
+    setProUiDeps({ toast: () => {}, lb: { isAuthenticated: () => true, isGuest: () => true }, openAccount: vi.fn() });
+    const o = openPaywall({ trigger: 'home_button' });
+    expect(o.querySelectorAll('.pro-feature').length).toBeGreaterThan(8);
+    expect(o.querySelector('#proTrialBtn').textContent).toMatch(/7-DAY FREE TRIAL/);
+    expect(o.querySelector('#proSeePricing')).toBeTruthy();
+    expect(o.querySelectorAll('button[data-plan]').length).toBe(0); // no prices yet
+    o.querySelector('#proSeePricing').click();
+    const p2 = document.getElementById('proPaywall');
+    expect(p2.querySelectorAll('.pro-feature').length).toBe(0);
+    expect(p2.querySelector('#proBack')).toBeTruthy();
+    p2.querySelector('#proBack').click();
+    expect(document.getElementById('proPaywall').querySelector('#proTrialBtn')).toBeTruthy();
+  });
+
+  it('the trial button sends someone without an account to create one', async () => {
+    const openAccount = vi.fn();
+    setProUiDeps({ toast: () => {}, lb: { isAuthenticated: () => true, isGuest: () => true }, openAccount });
+    openPaywall({ trigger: 'home_button' }).querySelector('#proTrialBtn').click();
+    expect(openAccount).toHaveBeenCalled();
+    expect(document.getElementById('proPaywall')).toBeNull();
   });
 
   it('the paywall lists every Pro feature and puts the one just tapped first', () => {
@@ -96,30 +119,23 @@ describe('Pro screens once switched on', () => {
     expect(b.querySelector('.pro-lock')).toBeNull();
   });
 
-  it('a Pro member can take one free item per month counted from when Pro began, then waits for the next', async () => {
+  it('a paying Pro member can take one free item, once, and never during the free trial', async () => {
     const { storage } = await import('../../js/storage.js');
-    const { proGiftState, giftPeriod, addMonths } = await import('../../js/pro.js');
+    const { proGiftState } = await import('../../js/pro.js');
     storage.load();
     expect(proGiftState().eligible).toBe(false);
-    const since = new Date(2026, 0, 12, 9, 30).getTime(); // joined on the 12th
-    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'yearly', trial: false, until: new Date(2027, 0, 12).getTime(), provenAt: new Date(2026, 2, 20).getTime(), since }));
-    const mar20 = new Date(2026, 2, 20).getTime();
-    const g = proGiftState(mar20);
-    expect(g.available).toBe(true);
-    expect(g.nextAt).toBe(new Date(2026, 3, 12, 9, 30).getTime()); // next one opens April 12th, not April 1st
-    expect(storage.claimProGift('trail_pills', g.key)).toBe(true);
+    const put = (o) => localStorage.setItem('dx_pro', JSON.stringify(Object.assign({ active: true, source: 'server', plan: 'yearly', trial: false, until: Date.now() + 86400000 * 200, provenAt: Date.now(), since: Date.now() - 1000 }, o)));
+    put({ plan: 'trial', trial: true });
+    expect(proGiftState().eligible).toBe(false); // not during the trial
+    put({});
+    expect(proGiftState().available).toBe(true);
+    expect(storage.claimProGift('trail_pills')).toBe(true);
     expect(storage.ownsItem('trail_pills')).toBe(true);
-    expect(proGiftState(mar20).available).toBe(false);
-    // not during the free trial
-    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'trial', trial: true, until: new Date(2027, 0, 12).getTime(), provenAt: mar20, since }));
-    expect(proGiftState(new Date(2026, 3, 13).getTime()).eligible).toBe(false);
-    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'yearly', trial: false, until: new Date(2027, 0, 12).getTime(), provenAt: mar20, since }));
-    expect(storage.claimProGift('trail_fire', proGiftState(mar20).key)).toBe(false);
-    expect(proGiftState(new Date(2026, 3, 11).getTime()).available).toBe(false); // the day before
-    expect(proGiftState(new Date(2026, 3, 13).getTime()).available).toBe(true);  // after the 12th
-    // a 31st start lands on the last day of a shorter month
-    expect(new Date(addMonths(new Date(2026, 0, 31).getTime(), 1)).getDate()).toBe(28);
-    expect(giftPeriod(since, since).key).toBe(giftPeriod(since, since + 86400000).key);
+    expect(proGiftState()).toMatchObject({ eligible: true, available: false, used: true, item: 'trail_pills' });
+    expect(storage.claimProGift('trail_fire')).toBe(false); // spent for good, not "next month"
+    expect(storage.ownsItem('trail_fire')).toBe(false);
+    const later = Date.now() + 400 * 86400000;
+    expect(proGiftState(later).available).toBe(false);
   });
 
   it('the Home button shows while Pro is on sale and opens the paywall', () => {
@@ -136,14 +152,13 @@ describe('Pro screens once switched on', () => {
     const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
     iap.add(['dxdash_pro_yearly', 'dxdash_pro_monthly', 'dxdash_pro_pass3m'].map((id) => ({ id, kind: 'subscription' })));
     setIapForTest(iap);
-    const o = openPaywall({ trigger: 'settings' });
+    const o = openPaywall({ trigger: 'settings', pricing: true });
     expect(o).toBeTruthy();
     await tick();
     const buttons = [...o.querySelectorAll('button[data-plan]')];
     expect(buttons.length).toBe(3);
     expect(buttons[0].textContent).toMatch(/Yearly/);
     expect(buttons[0].textContent).toMatch(/\$\d+\.99/);
-    expect(o.textContent).toMatch(/All 3,010 cards |Free gives you/);
     expect(o.querySelector('input[aria-label="Promo code"]')).toBeTruthy();
     expect(o.textContent).toMatch(/Restore purchases/);
     o.querySelector('#proPaywallClose').click();
@@ -155,14 +170,13 @@ describe('Pro screens once switched on', () => {
     const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
     iap.add(['dxdash_pro_yearly', 'dxdash_pro_monthly'].map((id) => ({ id, kind: 'subscription' })));
     setIapForTest(iap);
-    const o = openPaywall({ trigger: 'home_button' });
+    const first = openPaywall({ trigger: 'home_button' });
+    expect(first.textContent).toMatch(/free trial is on: 3 days left/);
+    expect(first.querySelector('#proSeePricing')).toBeTruthy();
+    first.querySelector('#proSeePricing').click();
     await tick();
-    expect(o.textContent).toMatch(/free trial is on: 3 days left/);
+    const o = document.getElementById('proPaywall');
     expect(o.querySelectorAll('button[data-plan]').length).toBe(2);
-    // the plans sit above the list of what Pro gets you
-    const firstPlan = o.querySelector('button[data-plan]');
-    const features = o.querySelector('.pro-features');
-    expect(firstPlan.compareDocumentPosition(features) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('every mode but Versus High Score is a Pro gate, closed by default', async () => {
@@ -185,7 +199,7 @@ describe('Pro screens once switched on', () => {
     const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
     iap.add([{ id: 'dxdash_pro_monthly', kind: 'subscription' }]);
     setIapForTest(iap);
-    const o = openPaywall({ trigger: 'settings' });
+    const o = openPaywall({ trigger: 'settings', pricing: true });
     await tick();
     o.querySelector('button[data-plan]').click();
     await tick(); await tick();

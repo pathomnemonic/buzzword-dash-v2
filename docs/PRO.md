@@ -117,13 +117,11 @@ The Subscriptions paragraphs are already in `public/privacy.html` and `public/te
 Server-side receipt validation (add RevenueCat or Iaptic later without changing the screens), family sharing, win-back and upgrade offers (set in the store consoles), and a Library-to-Pro upgrade credit.
 
 
-## The monthly Locker gift
+## The Pro gift
 
-Anyone with Pro (not during the free 7-day trial) can take one free Locker item of their choice each month. The months are counted from when
-their Pro began (`pro_entitlements.started_at`, returned by `get_my_pro()` as `since`): a member who joined on the 12th gets
-a new pick on the 12th of every month. The start date is kept across renewals, and begins again after a lapse or when a
-trial turns into a purchase (so the first gift comes with the first purchase). Re-run `database/pro.sql` after updating (it adds the column; running it again is safe).
-
+Anyone who pays for Pro (not during the free 7-day trial) can take one free Locker item of their choice, once, ever.
+It is tracked in the player's save (`progression.proGiftItem`), so it needs no database change. Items sold for real
+money (see "Premium items" below) cannot be taken as the gift.
 
 ## Safety nets: paying members are never left without Pro
 

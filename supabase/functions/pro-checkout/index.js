@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor, grantsFromSubscriptions } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -70,7 +70,7 @@ Deno.serve(async function (req) {
 
     if (body.action === 'portal') {
       if (!customerId) return json({ error: 'No web subscription found for this account.' }, 404);
-      var ret = { customer: customerId, return_url: env.SITE_URL + '/' };
+      var ret = { customer: customerId, return_url: env.SITE_URL + '/?pro=billing' };
       // "Cancel": open Stripe's page straight at the cancel step for their subscription (falls back to the normal page)
       var cancelFlow = null;
       if (body.cancel) {
@@ -91,6 +91,18 @@ Deno.serve(async function (req) {
         try { portal = await attempt(Object.assign({ configuration: cfg.id }, cancelFlow || {})); } catch { portal = await attempt({ configuration: cfg.id }); }
       }
       return json({ url: portal.url });
+    }
+
+    // What Stripe says about this member's subscription right now: is it renewing, or set to end? (The app never assumes
+    // that tapping Cancel meant cancelling: it asks, and tells the member what is actually true.)
+    if (body.action === 'subscription') {
+      if (!customerId) return json({ ok: true, status: 'none' });
+      var found;
+      try { found = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=10'); } catch (e) { console.error('pro-checkout subscription failed', e && e.message); return json({ ok: false, error: 'Could not check with Stripe just now.' }, 502); }
+      var liveSub = ((found && found.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due'].indexOf(x.status) >= 0; })[0];
+      if (!liveSub) return json({ ok: true, status: 'none' });
+      var endSec = periodEnd(liveSub);
+      return json({ ok: true, status: liveSub.status, cancel_at_period_end: !!liveSub.cancel_at_period_end || !!liveSub.cancel_at, ends: endSec ? new Date(endSec * 1000).toISOString() : '', plan: (liveSub.metadata && liveSub.metadata.plan) || '' });
     }
 
     // Put right a member whose payment event never reached us: ask Stripe what this customer holds and grant it.

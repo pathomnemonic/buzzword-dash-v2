@@ -35,7 +35,7 @@
  */
 
 import { renderLibraryBanner } from './proui.js';
-import { requireGate } from './pro.js';
+import { requireGate, proLive, isPro } from './pro.js';
 import { shareLink, track as shareTrack } from './analytics/index.js';
 import { renderPal } from './palui.js';
 import { setText, createElement, clearElement } from './dom.js';
@@ -323,6 +323,7 @@ class UI {
   }
 
   show(screenId, slideFrom) {
+    if (screenId === 'screenHome') window.setTimeout(scheduleHomeFit, 60);
     // Pro: Browse cards, My cards and the "Cards I miss" deck
     if (screenId === 'screenCardBrowser' && !requireGate('browse_cards')) return;
     if (screenId === 'screenMyCards' && !requireGate('my_cards')) return;
@@ -1741,7 +1742,8 @@ class UI {
 
   /** The groups on the Settings screen: a list of cards, each opening its own page. */
   _settingsSections() {
-    return [
+    var pro = proLive() ? [{ id: 'pro', icon: '⚡', title: 'Dx Dash Pro', desc: isPro() ? 'Your membership, your gift and billing' : 'What Pro gets you, and the free 7-day trial' }] : [];
+    return pro.concat([
       { id: 'sound', icon: '🔊', title: 'Sound', desc: 'Music, effects, volume and reading aloud' },
       { id: 'look', icon: '🎨', title: 'Look & performance', desc: 'Colors, camera, graphics and frame rate' },
       { id: 'keys', icon: '⌨️', title: 'Keyboard', desc: 'Choose the keys for moving, dashing and Auto-Pilot' },
@@ -1749,7 +1751,7 @@ class UI {
       { id: 'rules', icon: '🎛️', title: 'Your rules', desc: 'Turn power-ups, hazards and the monster off' },
       { id: 'data', icon: '💾', title: 'Backup & data', desc: 'Save, restore, export or reset your progress' },
       { id: 'about', icon: 'ℹ️', title: 'About & help', desc: 'How to play, legal pages and support' }
-    ];
+    ]);
   }
 
 
@@ -2347,4 +2349,47 @@ class UI {
 Object.assign(UI.prototype, postRunMethods, settingsMethods, studyMethods, browseMethods, profileMethods, homeMethods);
 
 export var ui = new UI();
+
+/** The tab bar's real height (it grows with the phone's safe area and with larger text), so Home can keep clear of it. */
+export function syncNavHeight() {
+  if (typeof document === 'undefined') return;
+  var nav = document.getElementById('bottomNav');
+  if (!nav) return;
+  var h = Math.ceil(nav.getBoundingClientRect().height);
+  if (h > 0) document.documentElement.style.setProperty('--nav-h', h + 'px');
+}
+
+/**
+ * Keep everything on Home above the tab bar. If the content is taller than the room (larger text, a short phone, a
+ * Pro button that was not there before), PLAY gets a little smaller until it fits.
+ */
+export function fitHomeLayout() {
+  if (typeof document === 'undefined') return;
+  var layout = document.querySelector('#screenHome .home-layout');
+  var play = layout && layout.querySelector('.btn-play');
+  if (!layout || !play || !document.getElementById('screenHome').classList.contains('active')) return;
+  syncNavHeight();
+  layout.classList.remove('home-fit');
+  layout.style.removeProperty('--play-size');
+  var over = function () { return layout.scrollHeight - layout.clientHeight; };
+  if (over() <= 0) return;
+  var size = play.getBoundingClientRect().width || 120;
+  layout.classList.add('home-fit');
+  for (var guard = 0; guard < 40 && over() > 0 && size > 56; guard++) {
+    size -= 3;
+    layout.style.setProperty('--play-size', size + 'px');
+  }
+}
+
+var _homeFitFrame = null;
+export function scheduleHomeFit() {
+  if (typeof window === 'undefined' || _homeFitFrame) return;
+  _homeFitFrame = window.requestAnimationFrame(function () { _homeFitFrame = null; fitHomeLayout(); });
+}
+if (typeof window !== 'undefined') {
+  ['resize', 'orientationchange', 'dx:pro-changed', 'dx:pro-trial-started', 'load'].forEach(function (ev) { window.addEventListener(ev, scheduleHomeFit); document.addEventListener(ev, scheduleHomeFit); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleHomeFit);
+  window.setTimeout(scheduleHomeFit, 600); window.setTimeout(scheduleHomeFit, 2500);
+  if (typeof ResizeObserver !== 'undefined') window.addEventListener('DOMContentLoaded', function () { var nav = document.getElementById('bottomNav'); if (nav) new ResizeObserver(scheduleHomeFit).observe(nav); });
+}
 if (typeof window !== 'undefined') window.addEventListener('resize', function () { ui.fitQuestionHud(); });

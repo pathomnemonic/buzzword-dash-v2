@@ -281,14 +281,6 @@
       <h2>🏁 Challenge</h2>
       <p class="sheet-intro">Pick how you want to play. PLAY on Home is a regular run.</p>
       <div class="sheet-list">
-        <button class="sheet-entry" data-mode="study" type="button">
-          <span class="se-icon" aria-hidden="true">📖</span>
-          <span class="se-body"><strong>Study</strong><span>Relaxed practice with a teaching point after every answer.</span><em>Solo · no lives lost · no pressure</em></span>
-        </button>
-        <button class="sheet-entry" data-mode="weakness" type="button">
-          <span class="se-icon" aria-hidden="true">🎯</span>
-          <span class="se-body"><strong>Weakness</strong><span>Drill the cards you miss most, until they stick.</span><em>Solo · your missed cards · extra room from the monster</em></span>
-        </button>
         <button class="sheet-entry" data-mode="daily" type="button">
           <span class="se-icon" aria-hidden="true">📅</span>
           <span class="se-body"><strong>Daily 15</strong><span>A quick habit: today's 15 cards, one try a day. Counts toward your study streak.</span><em>Everyone gets the same 15 · resets daily · no leaderboard</em></span>
@@ -301,13 +293,21 @@
           <span class="se-icon" aria-hidden="true">🤝</span>
           <span class="se-body"><strong>Friend challenge</strong><span>Play 15 fresh cards, then send a link. Friends play the same cards and compare scores.</span><em>You and friends · any time · no sign-up needed</em></span>
         </button>
-        <button class="sheet-entry" id="examBtn" type="button">
-          <span class="se-icon" aria-hidden="true">📝</span>
-          <span class="se-body"><strong>Exam Sim</strong><span>A timed block of questions, like the real exam. No runner, no hints.</span><em>Solo · timed · full review at the end</em></span>
-        </button>
         <button class="sheet-entry" id="cohortsBtn" type="button" hidden>
           <span class="se-icon" aria-hidden="true">🛡️</span>
           <span class="se-body"><strong>Cohorts</strong><span>Team up with classmates and compete against other cohorts each week.</span><em>Teams · weekly war</em></span>
+        </button>
+        <button class="sheet-entry" data-mode="study" type="button">
+          <span class="se-icon" aria-hidden="true">📖</span>
+          <span class="se-body"><strong>Study</strong><span>Relaxed practice with a teaching point after every answer.</span><em>Solo · no lives lost · no pressure</em></span>
+        </button>
+        <button class="sheet-entry" data-mode="weakness" type="button">
+          <span class="se-icon" aria-hidden="true">🎯</span>
+          <span class="se-body"><strong>Weakness</strong><span>Drill the cards you miss most, until they stick.</span><em>Solo · your missed cards · extra room from the monster</em></span>
+        </button>
+        <button class="sheet-entry" id="examBtn" type="button">
+          <span class="se-icon" aria-hidden="true">📝</span>
+          <span class="se-body"><strong>Exam Sim</strong><span>A timed block of questions, like the real exam. No runner, no hints.</span><em>Solo · timed · full review at the end</em></span>
         </button>
       </div>
       <button class="btn btn-outline btn-block sheet-close" type="button">✕ Close</button>
@@ -328,13 +328,13 @@
           <span class="se-icon" aria-hidden="true">⏰</span>
           <span class="se-body"><strong>Review due cards</strong><span id="fcDueText">Cards that are ready to see again, most overdue first.</span><em>Spaced repetition</em></span>
         </button>
-        <button class="sheet-entry" data-source="missed" type="button">
-          <span class="se-icon" aria-hidden="true">🩹</span>
-          <span class="se-body"><strong>Cards I miss</strong><span id="fcMissedText">The cards you get wrong the most.</span><em>Targeted practice</em></span>
-        </button>
         <button class="sheet-entry" data-source="fresh" type="button">
           <span class="se-icon" aria-hidden="true">🆕</span>
           <span class="se-body"><strong>New cards</strong><span id="fcFreshText">Cards you have not seen yet.</span><em>Discover something new</em></span>
+        </button>
+        <button class="sheet-entry" data-source="missed" type="button">
+          <span class="se-icon" aria-hidden="true">🩹</span>
+          <span class="se-body"><strong>Cards I miss</strong><span id="fcMissedText">The cards you get wrong the most.</span><em>Targeted practice</em></span>
         </button>
         <button class="sheet-entry" id="cardBrowserBtn" type="button">
           <span class="se-icon" aria-hidden="true">🔎</span>

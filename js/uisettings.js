@@ -6,7 +6,7 @@
  */
 
 import { requireGate, proGiftState } from './pro.js';
-import { renderProSettings, applyProLock } from './proui.js';
+import { renderProTab, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
 import { track as trackEvent } from './analytics/index.js';
@@ -306,6 +306,8 @@ export var settingsMethods = {
       ROWS[current.id].forEach(function (s) { content.appendChild(buildRow(s)); });
     }
 
+    if (current.id === 'pro') renderProTab(content);
+
     if (current.id === 'keys') {
       this._renderKeySettings(content);
     }
@@ -525,7 +527,6 @@ export var settingsMethods = {
       credits.appendChild(creditsBody);
       content.appendChild(credits);
 
-      renderProSettings(content); // (nothing until Pro is switched on)
       // Optional tip link (only when a tip page is configured at build time)
       if (getTipUrl() || tipJarReady()) {
         var tipRow = createElement('div', { className: 'setting-row' });
@@ -754,12 +755,12 @@ export var settingsMethods = {
         return;
       }
       clearTimeout(timer);
-      if (!storage.claimProGift(item.id, proGiftState().key)) { self._showToast('Your gift is already used this month.'); self.renderShop(); return; }
+      if (!storage.claimProGift(item.id)) { self._showToast('Your Pro gift is already used.'); self.renderShop(); return; }
       audio.play('buy');
       trackEvent('pro_gift_claimed', { item: String(item.id).slice(0, 40) });
       var earned = storage.afterPurchase();
       if (earned.length) self.showAchievementNotification(earned);
-      self._showToast('🎁 ' + item.name + ' is yours. Your Pro gift is back next month!');
+      self._showToast('🎁 ' + item.name + ' is yours. Enjoy your Pro gift!');
       done();
     });
     return btn;
@@ -775,9 +776,10 @@ export var settingsMethods = {
       giftBar.hidden = !gs.eligible;
       giftBar.classList.toggle('shop-gift-used', gs.eligible && !gs.available);
       if (gs.eligible) {
+        var usedOn = LOCKER_ITEMS.filter(function (i) { return i.id === gs.item; })[0];
         setText(giftBar, gs.available
-          ? '🎁 Your Pro gift: pick any one item below and tap 🎁 FREE. It is on the house, once a month, counted from when you joined Pro.'
-          : '🎁 Pro gift used for now. Your next free pick opens ' + new Date(gs.nextAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) + '.');
+          ? '🎁 Your Pro gift: pick any one item below and tap 🎁 FREE. It is on the house, once.'
+          : '🎁 You used your Pro gift' + (usedOn ? ' on ' + usedOn.name : '') + '. Thank you for supporting Dx Dash!');
       }
     }
 
