@@ -279,3 +279,20 @@ test('Home has no league / rank line, only the logo and what you can tap', async
   expect(await page.locator('#homeLeague').count()).toBe(0);
   expect(await page.locator('.home-tagline').count()).toBe(0);
 });
+
+test('pinned badges on the profile always show their names', async ({ page }) => {
+  for (const [w, h] of [[360, 640], [390, 780], [360, 560]]) {
+    await open(page, w, h);
+    await page.evaluate(() => window.__ui.show('screenProfile'));
+    await page.waitForTimeout(600);
+    const r = await page.evaluate(() => {
+      const host = document.getElementById('profileShowcaseHost');
+      host.innerHTML = '';
+      const sc = document.createElement('div'); sc.className = 'profile-showcase'; sc.style.setProperty('--cols', '3');
+      ['First Steps', 'Flashcard Student', 'Golden Doctor'].forEach((n) => { const c = document.createElement('div'); c.className = 'showcase-badge'; c.innerHTML = '<span class="showcase-icon">⭐</span><span class="showcase-name"></span>'; c.lastChild.textContent = n; sc.appendChild(c); });
+      host.appendChild(sc);
+      return [...sc.querySelectorAll('.showcase-name')].map((n) => ({ t: n.textContent, h: n.getBoundingClientRect().height, w: n.getBoundingClientRect().width, d: getComputedStyle(n).display }));
+    });
+    for (const n of r) { expect(n.d, n.t + ' at ' + w + 'x' + h).not.toBe('none'); expect(n.h, n.t).toBeGreaterThan(8); expect(n.w, n.t).toBeGreaterThan(30); }
+  }
+});
