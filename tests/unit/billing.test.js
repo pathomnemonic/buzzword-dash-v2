@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, portalConfig, invoiceSubscriptionId, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -130,13 +130,14 @@ describe('what a payment does', () => {
     expect(t.calls.map((c) => c[0])).toEqual(['pro_link_customer', 'pro_grant_library']);
   });
 
-  it('a renewal extends Pro; a free-trial invoice and unpaid sessions do nothing', async () => {
+  it('a renewal extends Pro (even a free one, from a coupon); unpaid sessions do nothing', async () => {
     let t = fake();
     const paid = { id: 'e2', type: 'invoice.paid', data: { object: { subscription: 'sub_1', customer: 'cus_1', amount_paid: 3999 } } };
     expect((await handleEvent(paid, t.deps)).action).toBe('renewal');
     expect(t.calls[0][0]).toBe('pro_grant_until');
     t = fake();
-    expect((await handleEvent({ ...paid, data: { object: { ...paid.data.object, amount_paid: 0 } } }, t.deps)).handled).toBe(false);
+    expect((await handleEvent({ ...paid, data: { object: { ...paid.data.object, amount_paid: 0 } } }, t.deps)).action).toBe('renewal');
+    t = fake();
     expect((await handleEvent(session('yearly', { payment_status: 'unpaid' }), t.deps)).handled).toBe(false);
     expect(t.calls).toEqual([]);
   });
@@ -154,7 +155,7 @@ describe('what a payment does', () => {
     expect(t.calls[0]).toEqual(['pro_revoke_library', { p_user: 'u1' }]);
     t = fake();
     expect((await handleEvent(refund('lifetime', true), t.deps)).action).toBe('lifetime_refunded');
-    expect(t.calls[0][0]).toBe('pro_revoke');
+    expect(t.calls[0][0]).toBe('pro_revoke_plan');
     t = fake();
     expect((await handleEvent(refund('library', false), t.deps)).handled).toBe(false);
     expect((await handleEvent({ id: 'x', type: 'customer.created', data: { object: {} } }, t.deps)).handled).toBe(false);
@@ -166,5 +167,89 @@ describe('what a payment does', () => {
     expect(periodEnd({ items: { data: [{ current_period_end: 7 }, { current_period_end: 9 }] } })).toBe(9);
     expect(subscriptionUntil({ current_period_end: NOW - 10 * 86400 }, NOW)).toBe('');
     expect(subscriptionUntil({ current_period_end: NOW + 100 }, NOW)).toMatch(/Z$/);
+  });
+});
+
+
+// ───────────────────────── trying to break it: a paying member must never be left without Pro ─────────────────────────
+describe('a payment is never lost to a missing field, a free renewal or an odd order of events', () => {
+  const session = (over) => ({ type: 'checkout.session.completed', data: { object: Object.assign({ client_reference_id: 'u1', payment_status: 'paid', customer: 'cus_1', subscription: 'sub_1', metadata: { user_id: 'u1', plan: 'monthly' } }, over || {}) } });
+
+  it('a new subscription with no period end in the answer still gets one paid period', async () => {
+    const { calls, deps } = fake({ getSubscription: async () => ({ id: 'sub_1', status: 'active', metadata: { user_id: 'u1', plan: 'monthly' } }) });
+    expect(await handleEvent(session(), deps)).toEqual({ handled: true, action: 'subscription' });
+    const grant = calls.find((c) => c[0] === 'pro_grant_until')[1];
+    const days = (new Date(grant.p_until).getTime() / 1000 - NOW) / 86400;
+    expect(days).toBeGreaterThan(32);
+    expect(days).toBeLessThan(35);
+  });
+
+  it('but a subscription that is not live gives nothing', () => {
+    ['canceled', 'incomplete', 'incomplete_expired', 'unpaid'].forEach((status) => expect(subscriptionUntil({ status, metadata: { plan: 'monthly' } }, NOW)).toBe(''));
+  });
+
+  it('a renewal that cost nothing (a 100% coupon) still renews', async () => {
+    const { calls, deps } = fake({ getSubscription: async () => ({ id: 'sub_1', status: 'active', current_period_end: NOW + 30 * 86400, metadata: { user_id: 'u1', plan: 'monthly' } }) });
+    const out = await handleEvent({ type: 'invoice.paid', data: { object: { amount_paid: 0, subscription: 'sub_1', customer: 'cus_1' } } }, deps);
+    expect(out).toEqual({ handled: true, action: 'renewal' });
+    expect(calls[0][0]).toBe('pro_grant_until');
+  });
+
+  it('an invoice for a subscription that has ended grants nothing', async () => {
+    const { deps } = fake({ getSubscription: async () => ({ id: 'sub_1', status: 'canceled', current_period_end: NOW + 30 * 86400, metadata: { user_id: 'u1', plan: 'monthly' } }) });
+    expect((await handleEvent({ type: 'invoice.paid', data: { object: { amount_paid: 349, subscription: 'sub_1' } } }, deps)).handled).toBe(false);
+  });
+
+  it('a late payment still counts: past due is paid for until its period ends', () => {
+    expect(subscriptionUntil({ status: 'past_due', current_period_end: NOW + 5 * 86400, metadata: { plan: 'monthly' } }, NOW)).toBeTruthy();
+  });
+
+  it('the same event twice, or two events in either order, give the same result', async () => {
+    const run = async (events) => { const { calls, deps } = fake(); for (const e of events) await handleEvent(e, deps); return calls.filter((c) => c[0] === 'pro_grant_until').map((c) => c[1].p_until).sort().pop(); };
+    const inv = { type: 'invoice.paid', data: { object: { amount_paid: 349, subscription: 'sub_1', customer: 'cus_1' } } };
+    expect(await run([session(), inv])).toBe(await run([inv, session()]));
+    expect(await run([session(), session(), inv, inv])).toBe(await run([session()]));
+  });
+
+  it('a refund of a lifetime takes back only the lifetime, never a subscription held as well', async () => {
+    const { calls, deps } = fake();
+    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, metadata: { user_id: 'u1', plan: 'lifetime' } } } }, deps);
+    expect(calls).toEqual([['pro_revoke_plan', { p_user: 'u1', p_plan: 'lifetime' }]]);
+  });
+
+  it('a partial refund, or a refund of a subscription, takes nothing back', async () => {
+    const { calls, deps } = fake();
+    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: false, metadata: { user_id: 'u1', plan: 'lifetime' } } } }, deps);
+    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, metadata: { user_id: 'u1', plan: 'monthly' } } } }, deps);
+    expect(calls).toEqual([]);
+  });
+
+  it('a one-time purchase gets a Stripe customer, so it can be found again; a returning customer is reused', () => {
+    expect(checkoutParams('lifetime', 'u1', ENV).customer_creation).toBe('always');
+    expect(checkoutParams('lifetime', 'u1', ENV, { customer: 'cus_9' }).customer_creation).toBeUndefined();
+    expect(checkoutParams('yearly', 'u1', ENV).customer_creation).toBeUndefined();
+  });
+
+  it('what Stripe says someone holds becomes grants (for putting right a lost event)', () => {
+    const subs = [
+      { status: 'active', current_period_end: NOW + 20 * 86400, metadata: { plan: 'yearly', user_id: 'u1' } },
+      { status: 'canceled', current_period_end: NOW + 20 * 86400, metadata: { plan: 'monthly', user_id: 'u1' } },
+      { status: 'trialing', current_period_end: NOW + 3 * 86400, metadata: { plan: 'monthly', user_id: 'u1' } }
+    ];
+    const g = grantsFromSubscriptions(subs, NOW);
+    expect(g.map((x) => x.plan)).toEqual(['yearly', 'monthly']);
+    expect(g[1].trial).toBe(true);
+    expect(grantsFromSubscriptions([{ status: 'active', current_period_end: NOW - 10 * 86400, metadata: { plan: 'yearly' } }], NOW)).toEqual([]); // long over
+  });
+
+  it('a signed event is accepted, an altered or stale one is not', async () => {
+    const body = JSON.stringify({ id: 'evt_1', type: 'invoice.paid' });
+    const sig = 't=' + NOW + ',v1=' + (await signPayload(body, 'whsec_x', NOW));
+    expect(await verifyStripeSignature(body, sig, 'whsec_x', NOW)).toBe(true);
+    expect(await verifyStripeSignature(body + ' ', sig, 'whsec_x', NOW)).toBe(false);
+    expect(await verifyStripeSignature(body, sig, 'whsec_other', NOW)).toBe(false);
+    expect(await verifyStripeSignature(body, sig, 'whsec_x', NOW + 3600)).toBe(false);
+    expect(await verifyStripeSignature(body, '', 'whsec_x', NOW)).toBe(false);
+    expect(await verifyStripeSignature(body, sig, '', NOW)).toBe(false);
   });
 });

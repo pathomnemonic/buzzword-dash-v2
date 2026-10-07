@@ -150,6 +150,74 @@ describe('Pro on the website', () => {
   });
 });
 
+describe('trying to break it: a member who has paid keeps Pro through hiccups', () => {
+  const putPaid = (extra) => localStorage.setItem('dx_pro', JSON.stringify(Object.assign({ active: true, source: 'server', plan: 'yearly', trial: false, until: Date.now() + 200 * 86400000, provenAt: Date.now() - 3600000, since: Date.now() - 86400000 }, extra)));
+
+  it('a server error is not read as "no Pro"', async () => {
+    putPaid();
+    await probeSellable();
+    expect(isPro()).toBe(true);
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => ({ error: true }) }) });
+    expect(isPro()).toBe(true);
+  });
+
+  it('a call that fails outright, or the network being down, keeps Pro too', async () => {
+    putPaid();
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => { throw new Error('offline'); } }) });
+    expect(isPro()).toBe(true);
+  });
+
+  it('only a real answer of "no" (a refund, or the end of the period) takes Pro away', async () => {
+    putPaid();
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => ({ active: false, library: false }) }) });
+    expect(isPro()).toBe(false);
+  });
+
+  it('a store purchase survives one wrong "not owned" answer from the store', async () => {
+    putPaid({ source: 'store', plan: 'monthly', provenAt: Date.now() - 600000 });
+    const iap = { start: async () => true, owned: () => false, product: () => null, add() {} };
+    await refreshPro({ iap });
+    expect(isPro()).toBe(true);
+    putPaid({ source: 'store', plan: 'monthly', provenAt: Date.now() - 7 * 3600000 });
+    await refreshPro({ iap });
+    expect(isPro()).toBe(false); // it keeps saying so for hours, and the paid period is over: now it goes
+  });
+
+  it('a member whose payment event never arrived is put right by asking Stripe', async () => {
+    await probeSellable();
+    let synced = 0;
+    let granted = false;
+    const lb = fakeLb({
+      getMyPro: async () => (granted ? { active: true, until: new Date(Date.now() + 86400000 * 300).toISOString(), plan: 'yearly', source: 'stripe', since: new Date().toISOString() } : { active: false, library: false }),
+      proFunction: async (action) => { if (action === 'sync') { synced++; granted = true; return { ok: true, granted: ['yearly'] }; } return { error: 'no' }; }
+    });
+    await refreshPro({ lb });
+    expect(synced).toBe(1);
+    expect(isPro()).toBe(true);
+  });
+
+  it('that check runs at most twice a day, and never for a guest', async () => {
+    await probeSellable();
+    let synced = 0;
+    const mk = (over) => fakeLb(Object.assign({ proFunction: async (a) => { if (a === 'sync') { synced++; return { ok: true, granted: [] }; } return { error: 'no' }; } }, over || {}));
+    await refreshPro({ lb: mk() });
+    await refreshPro({ lb: mk() });
+    expect(synced).toBe(1);
+    localStorage.removeItem('dx_pro_synced');
+    await refreshPro({ lb: mk({ isGuest: () => true }) });
+    expect(synced).toBe(1);
+  });
+
+  it('a failed check is tried again next time', async () => {
+    await probeSellable();
+    let synced = 0;
+    const lb = fakeLb({ proFunction: async (a) => { if (a === 'sync') { synced++; return { ok: false, error: 'down' }; } return { error: 'no' }; } });
+    await refreshPro({ lb });
+    await refreshPro({ lb });
+    expect(synced).toBe(2);
+  });
+});
+
 describe('the website paywall', () => {
   it('a guest is asked to create an account first (with the free trial) and sees no plans', async () => {
     await probeSellable();

@@ -1084,7 +1084,8 @@ var leaderboard = {
   getMyPro: function () {
     return leaderboard._rpc('get_my_pro', {}).then(function (r) {
       var d = r.success ? r.data : null;
-      return d && typeof d === 'object' && !Array.isArray(d) ? d : { active: false };
+      // an answer that did not come (a network or server hiccup) is NOT "no Pro": the caller must keep what it had
+      return d && typeof d === 'object' && !Array.isArray(d) ? d : { error: true };
     });
   },
 

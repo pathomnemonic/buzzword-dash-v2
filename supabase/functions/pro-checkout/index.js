@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, portalConfig, productFor, grantsFromSubscriptions } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -93,16 +93,58 @@ Deno.serve(async function (req) {
       return json({ url: portal.url });
     }
 
+    // Put right a member whose payment event never reached us: ask Stripe what this customer holds and grant it.
+    // (Safe to repeat: a grant never shortens what someone already has.)
+    if (body.action === 'sync') {
+      if (!customerId) return json({ ok: true, granted: [] });
+      var granted = [];
+      try {
+        var all = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=10');
+        var now = Math.floor(Date.now() / 1000);
+        var grants = grantsFromSubscriptions(all && all.data, now);
+        for (var g of grants) {
+          var r = await admin.rpc('pro_grant_until', { p_user: user.id, p_until: g.until, p_plan: g.plan, p_source: 'stripe', p_trial: g.trial });
+          if (r.error) throw new Error(r.error.message);
+          granted.push(g.plan);
+        }
+        // a lifetime purchase (and not refunded)
+        var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=20&expand[]=data.payment_intent.latest_charge');
+        var life = ((sessions && sessions.data) || []).filter(function (x) {
+          var ch = x.payment_intent && x.payment_intent.latest_charge;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !ch.refunded;
+        })[0];
+        if (life) {
+          var lr = await admin.rpc('pro_grant_until', { p_user: user.id, p_until: new Date((now + LIFETIME_DAYS * 86400 - 86400) * 1000).toISOString(), p_plan: 'lifetime', p_source: 'stripe', p_trial: false });
+          if (lr.error) throw new Error(lr.error.message);
+          granted.push('lifetime');
+        }
+      } catch (e) {
+        console.error('pro-checkout sync failed', e && e.message);
+        return json({ ok: false, error: 'Could not check with Stripe just now.' }, 502);
+      }
+      return json({ ok: true, granted: granted });
+    }
+
     if (body.action === 'checkout') {
       var wanted = productFor(body.plan);
+      // a customer saved while Stripe was in test mode does not exist in live mode: start fresh rather than fail to sell
+      var staleCustomer = function (e) { return /no such customer/i.test((e && e.message) || ''); };
       if (customerId && wanted && wanted.def.kind === 'subscription') {
-        var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=active&limit=1');
-        if (live && live.data && live.data.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+        try {
+          var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=active&limit=1');
+          if (live && live.data && live.data.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+        } catch (e) { if (staleCustomer(e)) customerId = ''; else throw e; }
       }
-      var params = checkoutParams(body.plan, user.id, env, { customer: customerId || undefined });
-      if (!params.customer) params.customer_email = user.email || undefined;
-      Object.keys(params).forEach(function (k) { if (params[k] === undefined) delete params[k]; });
-      var session = await stripe('checkout/sessions', params);
+      var build = function (cust) {
+        var params = checkoutParams(body.plan, user.id, env, { customer: cust || undefined });
+        if (!params.customer) params.customer_email = user.email || undefined;
+        Object.keys(params).forEach(function (k) { if (params[k] === undefined) delete params[k]; });
+        return params;
+      };
+      var session;
+      try { session = await stripe('checkout/sessions', build(customerId)); } catch (e) {
+        if (customerId && staleCustomer(e)) session = await stripe('checkout/sessions', build('')); else throw e;
+      }
       return json({ url: session.url });
     }
     return json({ error: 'Unknown request.' }, 400);

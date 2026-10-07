@@ -32,6 +32,9 @@ var SELL_KEY = 'dx_pro_sell';
 var LIB_KEY = 'dx_pro_lib';
 var FOREVER = 100 * 365 * 24 * 60 * 60 * 1000;
 var GRACE_MS = 3 * 24 * 60 * 60 * 1000;
+var STORE_DOUBT_MS = 6 * 60 * 60 * 1000;
+var SYNC_KEY = 'dx_pro_synced';
+var SYNC_EVERY_MS = 12 * 60 * 60 * 1000;
 
 export var PRO_PLAN_INFO = {
   dxdash_pro_yearly: { label: 'Yearly', blurb: 'BEST VALUE', rank: 1 },
@@ -116,6 +119,9 @@ export function probeSellable(deps) {
   }).catch(function () { return false; });
 }
 
+function dueForSync(now) { var s = store(); var at = s ? Number(s.getItem(SYNC_KEY)) || 0 : 0; return !at || now - at > SYNC_EVERY_MS || at > now; }
+function markSynced(now) { try { var s = store(); if (s) s.setItem(SYNC_KEY, String(now)); } catch (e) { /* ignore */ } }
+
 function cachedActive() { var c = readJson(CACHE_KEY, null); return !!(c && c.active); }
 
 /** Debug builds (?debug=1): force Pro on or off to try the screens. Never persists past the tab being cleared. */
@@ -136,7 +142,14 @@ export function combineStatus(found, cached, o) {
     if (!best || until > best.until) best = { source: f.source, plan: f.plan || 'pro', trial: !!f.trial, until: until, provenAt: now, since: f.since };
   });
   if (best) return { active: true, source: best.source, plan: best.plan, trial: best.trial, until: best.until, provenAt: now, since: best.since };
-  if (o.fresh) return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: now };
+  if (o.fresh) {
+    // A purchase through the store is not taken back on one "not owned" answer: the store can answer before it has loaded
+    // purchases. It has to keep saying so for a while (and the paid period has to be over) before Pro goes.
+    if (cached && cached.source === 'store' && cached.until > now && cached.provenAt && now - cached.provenAt < STORE_DOUBT_MS) {
+      return { active: true, source: 'store', plan: cached.plan || 'pro', trial: false, until: cached.until, provenAt: cached.provenAt, since: cached.since };
+    }
+    return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: now };
+  }
   // could not ask: keep the last good answer for a while
   if (cached && cached.until && cached.provenAt && (cached.until > now || cached.provenAt + GRACE_MS > now) && cached.provenAt + GRACE_MS > now) {
     return { active: true, source: cached.source || '', plan: cached.plan || 'pro', trial: !!cached.trial, until: cached.until, provenAt: cached.provenAt, since: cached.since };
@@ -177,6 +190,7 @@ export function refreshPro(deps) {
   var asked = 0;
   var libraryOwned = null;
   var trialStarted = false;
+  var serverSaidNo = false;
   var found = [];
   var jobs = [];
   jobs.push(iap.start().then(function (ok) {
@@ -202,12 +216,26 @@ export function refreshPro(deps) {
       }
       return r;
     }).then(function (r) {
+      if (!r || r.error) return; // no answer: keep what we had (never read a failed call as "no Pro")
       asked++;
+      serverSaidNo = !r.active;
       if (r && r.library && !isNative()) libraryOwned = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
     }).catch(function () { /* offline */ }));
   }
   return Promise.all(jobs).then(function () {
+    // The server says no, but this account may have paid: ask Stripe (through the checkout function) in case a payment
+    // event was lost. At most every 12 hours, and only for a real account on the website.
+    if (serverSaidNo && !found.length && webCheckoutEnabled() && hasAccount(lb) && lb.proFunction && (deps.forceSync || dueForSync(now))) {
+      return lb.proFunction('sync').then(function (res) {
+        if (res && res.ok) markSynced(now);
+        if (res && res.ok && res.granted && res.granted.length) return lb.getMyPro();
+        return null;
+      }).then(function (r) {
+        if (r && r.active) found.push({ source: 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
+      }).catch(function () { /* the next refresh tries again */ });
+    }
+  }).then(function () {
     var before = isPro(now);
     var prev = readJson(CACHE_KEY, null);
     var next = combineStatus(found, prev, { now: now, fresh: asked > 0 });
@@ -397,7 +425,7 @@ export function waitForWebPayment(lb, o) {
   var wait = o.wait || function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var startedLib = libraryUnlocked();
   function once(n) {
-    return refreshPro({ lb: lb }).then(function (st) {
+    return refreshPro({ lb: lb, forceSync: tries - n === 3 }).then(function (st) {
       if (st.active || (libraryUnlocked() && !startedLib) || n <= 1) return { active: st.active, library: ownsLibrary(), tries: tries - n + 1 };
       return wait(every).then(function () { return once(n - 1); });
     });

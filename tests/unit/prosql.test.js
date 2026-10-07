@@ -73,6 +73,32 @@ describe('Dx Dash Pro backend', () => {
     expect(Math.abs((await since()) - Date.now())).toBeLessThan(60000); // a trial turning into a purchase starts again
   });
 
+  it('a refunded lifetime takes back only the lifetime; a subscription held as well, or a trial, stays', async () => {
+    const D = '99999999-9999-4999-8999-999999999999';
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [D]);
+    await db.query('SELECT pro_revoke_plan($1, $2)', [D, 'lifetime']);
+    expect((await one(D, 'SELECT get_my_pro() AS r')).r.active).toBe(true);
+    await db.query("SELECT pro_grant_until($1, now() + interval '3649 days', 'lifetime', 'stripe', false)", [D]);
+    expect((await one(D, 'SELECT get_my_pro() AS r')).r.plan).toBe('lifetime');
+    await db.query('SELECT pro_revoke_plan($1, $2)', [D, 'lifetime']);
+    expect((await one(D, 'SELECT get_my_pro() AS r')).r.active).toBe(false);
+    expect(await rejects(D, "SELECT pro_revoke_plan('" + D + "', 'lifetime')")).toBe(true); // not callable by a player
+  });
+
+  it('grants never shorten, whatever the order: a lifetime outlasts a later subscription event, and an old event cannot undo a newer one', async () => {
+    const F = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    await db.query("SELECT pro_grant_until($1, now() + interval '3649 days', 'lifetime', 'stripe', false)", [F]);
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [F]);
+    let r = (await one(F, 'SELECT get_my_pro() AS r')).r;
+    expect(r.plan).toBe('lifetime');
+    expect((new Date(r.until).getTime() - Date.now()) / 86400000).toBeGreaterThan(3600);
+    const G = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    await db.query("SELECT pro_grant_until($1, now() + interval '60 days', 'monthly', 'stripe', false)", [G]);
+    await db.query("SELECT pro_grant_until($1, now() + interval '30 days', 'monthly', 'stripe', false)", [G]); // an older event arrives late
+    r = (await one(G, 'SELECT get_my_pro() AS r')).r;
+    expect((new Date(r.until).getTime() - Date.now()) / 86400000).toBeGreaterThan(58);
+  });
+
   it('redeems a code once per person, up to its limit', async () => {
     await db.exec("INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 1, 'test')");
     expect((await one(null, "SELECT redeem_pro_code('LAUNCH30') AS r")).r.ok).toBe(false);

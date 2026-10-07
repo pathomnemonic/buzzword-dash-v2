@@ -123,3 +123,17 @@ Anyone with Pro (not during the free 7-day trial) can take one free Locker item 
 their Pro began (`pro_entitlements.started_at`, returned by `get_my_pro()` as `since`): a member who joined on the 12th gets
 a new pick on the 12th of every month. The start date is kept across renewals, and begins again after a lapse or when a
 trial turns into a purchase (so the first gift comes with the first purchase). Re-run `database/pro.sql` after updating (it adds the column; running it again is safe).
+
+
+## Safety nets: paying members are never left without Pro
+
+- A failed or empty answer from the server is never read as "no Pro" (only a real `active: false` is), so a network or server hiccup keeps what the member had.
+- A store purchase is not taken back on one wrong "not owned" answer from the store; it has to persist for hours and the paid period has to be over.
+- Renewals extend Pro even when they cost nothing (a 100% coupon), and a subscription that arrives without a period end still gets one paid period.
+- Two payment events in either order, or the same one twice, end in the same state; a grant never shortens what someone has.
+- A refunded lifetime takes back only the lifetime (`pro_revoke_plan`), never a subscription or trial held as well.
+- If a payment event never reaches us, the app asks `pro-checkout` (action `sync`) when the server says "no Pro" (at most twice a day, and right after a purchase), which reads the customer's subscriptions and lifetime purchase from Stripe and grants what they hold. One-time purchases now create a Stripe customer so they can be found again.
+- A customer saved while Stripe was in test mode does not break live checkout: it starts fresh.
+- Buying needs a real account (not a guest), checked in the app and in `pro-checkout`.
+
+After updating: re-run `database/pro.sql`, then `supabase functions deploy pro-checkout` and `stripe-webhook`.

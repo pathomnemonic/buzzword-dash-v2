@@ -86,11 +86,40 @@ export function invoiceSubscriptionId(inv) {
   return (sub && sub.id) || '';
 }
 
-/** Until when Pro should run for a subscription, as an ISO string, or '' when it has nothing to give. */
+/** How long a plan's paid period runs, in days, for the rare subscription that arrives without a period end. */
+var PLAN_DAYS = { yearly: 366, pass3m: 93, monthly: 32 };
+var LIVE_STATUSES = ['active', 'trialing', 'past_due'];
+
+/**
+ * Until when Pro should run for a subscription, as an ISO string, or '' when it has nothing to give.
+ * Someone who has paid is never left without Pro because Stripe's answer was missing a field: when there is no period
+ * end, a live subscription gets one paid period (the next renewal event then sets the exact end).
+ */
 export function subscriptionUntil(sub, nowSec) {
+  if (!sub) return '';
   var end = periodEnd(sub);
-  if (!end || end + GRACE_SECONDS <= nowSec) return '';
+  if (!end) {
+    var plan = sub.metadata && sub.metadata.plan;
+    if (LIVE_STATUSES.indexOf(sub.status) < 0 || !PLAN_DAYS[plan]) return '';
+    end = nowSec + PLAN_DAYS[plan] * DAY;
+  }
+  if (end + GRACE_SECONDS <= nowSec) return '';
   return new Date((end + GRACE_SECONDS) * 1000).toISOString();
+}
+
+/**
+ * What a customer's subscriptions in Stripe say they should have: one { plan, until, trial } per live subscription.
+ * Used to put right a member whose payment event never reached us.
+ */
+export function grantsFromSubscriptions(subs, nowSec) {
+  var out = [];
+  (subs || []).forEach(function (sub) {
+    if (!sub || LIVE_STATUSES.indexOf(sub.status) < 0) return;
+    var plan = productFor(sub.metadata && sub.metadata.plan);
+    var until = subscriptionUntil(sub, nowSec);
+    if (plan && plan.def.kind === 'subscription' && until) out.push({ plan: plan.def.plan, until: until, trial: sub.status === 'trialing' });
+  });
+  return out;
 }
 
 /** The Stripe Checkout Session to create for a plan, as form fields. Throws a readable message for a bad request. */
@@ -119,6 +148,8 @@ export function checkoutParams(planOrId, userId, env, opts) {
     // (carried onto the charge, so a refund can be matched back to the purchase)
     f['payment_intent_data[metadata][user_id]'] = userId;
     f['payment_intent_data[metadata][plan]'] = p.def.plan;
+    // a one-time purchase also gets a Stripe customer (when there is none yet), so it can be found again if an event is lost
+    if (!(opts && opts.customer)) f['customer_creation'] = 'always';
   }
   if (opts && opts.customer) f['customer'] = opts.customer;
   return f;
@@ -215,12 +246,13 @@ export async function handleEvent(event, deps) {
 
   if (event.type === 'invoice.paid' || event.type === 'invoice.payment_succeeded') {
     var subId = invoiceSubscriptionId(obj);
-    if (!subId || !(Number(obj.amount_paid) > 0)) return { handled: false }; // a free trial's $0 invoice grants nothing extra
+    if (!subId) return { handled: false };
     var sub2 = await deps.getSubscription(subId);
+    // (a renewal that cost nothing, because of a coupon, still renews: the subscription itself says how long)
     var plan = productFor(sub2 && sub2.metadata && sub2.metadata.plan);
     var user2 = (sub2 && sub2.metadata && sub2.metadata.user_id) || (obj.customer ? await rpc('pro_customer_user', { p_customer: obj.customer }) : null);
     var until2 = subscriptionUntil(sub2, deps.now);
-    if (!user2 || !plan || !until2) return { handled: false };
+    if (!user2 || !plan || !until2 || LIVE_STATUSES.indexOf(sub2.status) < 0) return { handled: false };
     await rpc('pro_grant_until', { p_user: user2, p_until: until2, p_plan: plan.def.plan, p_source: 'stripe', p_trial: false });
     return { handled: true, action: 'renewal' };
   }
@@ -229,7 +261,7 @@ export async function handleEvent(event, deps) {
     var m = obj.metadata || {};
     if (!obj.refunded || !m.user_id) return { handled: false }; // only a full refund takes anything back
     if (m.plan === 'library') { await rpc('pro_revoke_library', { p_user: m.user_id }); return { handled: true, action: 'library_refunded' }; }
-    if (m.plan === 'lifetime') { await rpc('pro_revoke', { p_user: m.user_id }); return { handled: true, action: 'lifetime_refunded' }; }
+    if (m.plan === 'lifetime') { await rpc('pro_revoke_plan', { p_user: m.user_id, p_plan: 'lifetime' }); return { handled: true, action: 'lifetime_refunded' }; } // (only a lifetime: a subscription or a trial on the same account stays)
     return { handled: false };
   }
 

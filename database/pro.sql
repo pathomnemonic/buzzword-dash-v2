@@ -145,6 +145,12 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
   UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user;
 $$;
 
+-- Take back only a particular plan (a refunded lifetime must not end a subscription the same person also holds). Service role only.
+CREATE OR REPLACE FUNCTION pro_revoke_plan(p_user uuid, p_plan text) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user AND plan = p_plan;
+$$;
+
 -- Redeem a code: { ok, until } or { ok: false, error }. Ten wrong guesses an hour is the limit.
 CREATE OR REPLACE FUNCTION redeem_pro_code(p_code text) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -239,6 +245,7 @@ REVOKE ALL ON FUNCTION pro_event_once(text, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC;
 REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
 REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC;
