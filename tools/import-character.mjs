@@ -35,11 +35,12 @@ if (split) {
   const made = {};
   for (const node of root.listNodes()) {
     const mesh = node.getMesh();
-    const piece = (node.getName().split('_').pop() || '');
-    if (!mesh || !GROUP[piece]) continue;
+    const piece = (node.getName().match(/_(Hat|Helmet|Cape|ArmLeft|ArmRight|Body|Head(?:_Hooded)?|LegLeft|LegRight)$/) || [])[1] || '';
+    const key = piece.indexOf('Head') === 0 ? 'Head' : piece;
+    if (!mesh || !GROUP[key]) continue;
     for (const prim of mesh.listPrimitives()) {
       const base = prim.getMaterial();
-      const name = GROUP[piece];
+      const name = GROUP[key];
       if (!made[name]) { made[name] = base.clone().setName(name); }
       prim.setMaterial(made[name]);
     }

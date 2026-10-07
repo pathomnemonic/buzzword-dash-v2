@@ -624,8 +624,18 @@ var ARCHIVED_IDS = {};
 /** True for an archived character or monster (kept in code, hidden from players). */
 export function isArchivedItem(id) { return ARCHIVE_CLASSIC && ARCHIVED_IDS[id] === true; }
 
-/** What the Locker may show: everything except archived items. */
-export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedItem(i.id); });
+// Delisted heroes: these models are painted as one picture, so they can only be tinted as a whole, not piece by piece.
+// For now the shop does not sell them; a player who already owns one keeps it (the Locker still shows it to them).
+export var DELISTED_HEROES = ["avatar_m_explorer", "avatar_m_scout", "avatar_m_zombie", "avatar_m_skeleton"];
+
+/** True for a hero that is no longer sold (it stays with anyone who owns it). */
+export function isDelisted(id) { return DELISTED_HEROES.indexOf(id) >= 0; }
+
+/** The delisted heroes' shop entries, for the Locker to show to the players who own them. */
+export var DELISTED_ITEMS = SHOP_ITEMS.filter(function (i) { return isDelisted(i.id); });
+
+/** What the Locker may sell: everything except archived and delisted items. */
+export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedItem(i.id) && !isDelisted(i.id); });
 
 // Some items are sold for real money only (supabase/functions/_shared/premium.js has the list and the prices). They
 // have no coin price, so nothing that works from coin prices (affordable dots, "cheapest thing wanted") picks them up.

@@ -127,6 +127,14 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Body', materials: ['Main'], palette: METALS },
       { key: 'trim', label: 'Trim', materials: ['Grey'], palette: BRIGHTS }
     ] },
+  { id: 'avatar_m_hooded', name: 'Cath-Lab Cass', desc: 'In, through the artery, out again', file: 'characters/rogue-hooded.glb', price: 5600, icon: '🥷', color: 0x3fa98a,
+    parts: [
+      { key: 'hood', label: 'Hood', materials: ['Head'], palette: NINJA },
+      { key: 'cape', label: 'Cape', materials: ['Cape'], palette: NINJA },
+      { key: 'body', label: 'Jacket', materials: ['Body'], palette: SCRUBS },
+      { key: 'arms', label: 'Sleeves', materials: ['Arms'], palette: SCRUBS },
+      { key: 'legs', label: 'Trousers', materials: ['Legs'], palette: DARKS }
+    ] },
   { id: 'avatar_m_barbarian', name: 'Triage Bruno', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
     parts: [
       { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: EARTH },

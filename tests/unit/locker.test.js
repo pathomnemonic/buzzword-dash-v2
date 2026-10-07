@@ -104,7 +104,8 @@ describe('Locker tabs', () => {
     const paints = [...document.querySelectorAll('#shopItems [data-paint]')].map((b) => b.getAttribute('data-paint'));
     expect(paints).toContain('avatar_intern');
     expect(paints).toContain('avatar_m_nurse');
-    ['avatar_m_skeleton', 'avatar_m_zombie', 'avatar_m_scout', 'avatar_m_explorer'].forEach((id) => expect(paints).toContain(id)); // painted-texture heroes get a whole-figure color wash
+    ['avatar_m_knight', 'avatar_m_mage', 'avatar_m_barbarian', 'avatar_m_hooded'].forEach((id) => expect(paints).toContain(id)); // the new heroes recolor piece by piece
+    ['avatar_m_skeleton', 'avatar_m_zombie', 'avatar_m_scout', 'avatar_m_explorer'].forEach((id) => expect(paints).not.toContain(id)); // delisted: not sold
     expect(document.getElementById('shopItems').textContent).toMatch(/🎨 beside a hero/);
     // one it does not own yet: dimmed, and tapping it only explains
     storage.data.progression.ownedItems = storage.data.progression.ownedItems.filter((i) => i !== 'avatar_m_nurse');
@@ -122,16 +123,17 @@ describe('Locker tabs', () => {
     expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
   });
 
-  it('the painted-texture heroes offer a color wash instead of nothing', () => {
-    storage.data.progression.equipped.skin = 'avatar_m_skeleton';
+  it('the heroes that can only be washed are delisted: hidden unless you already own one', () => {
+    const names = () => document.getElementById('shopItems').textContent;
     ui._lockerTab = 'heroes';
-    ui._heroColorsOpen = true;
+    ui._heroColorsOpen = false;
     ui.renderShop();
-    expect(headings().join('|')).not.toContain('Headwear');
-    const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/Femur Fred colors/);
-    expect(text).toMatch(/Bone wash/);
-    expect(text).not.toMatch(/keeps its own look/);
+    expect(names()).not.toMatch(/Femur Fred|Decaffeinated Dan|Stat Sadie|Rural Rex/);
+    expect(names()).toMatch(/Sir Suture/);
+    storage.data.progression.ownedItems.push('avatar_m_skeleton');
+    ui.renderShop();
+    expect(names()).toMatch(/Femur Fred/); // an owner keeps it
+    expect(names()).not.toMatch(/Decaffeinated Dan/);
   });
 
   it('a classic character gets colors, clothing, headwear and gear', () => {
@@ -178,12 +180,6 @@ describe('Locker tabs', () => {
     expect(headings().join('|')).not.toContain('Trails');
   });
 
-  it('every hero now has a colors toggle', () => {
-    storage.data.progression.equipped.skin = 'avatar_m_skeleton';
-    ui._lockerTab = 'heroes';
-    ui.renderShop();
-    expect(document.getElementById('heroColorsToggle')).not.toBeNull();
-  });
 });
 
 describe('the Locker shows every hero under its own name', () => {
@@ -192,10 +188,11 @@ describe('the Locker shows every hero under its own name', () => {
     loadPage();
     const { ui } = await import('../../js/ui.js');
     const { CHARACTER_MODELS } = await import('../../js/game/modelcatalog.js');
+    const { isDelisted } = await import('../../js/game/shopdata.js');
     ui._lockerTab = 'heroes';
     ui.renderShop();
     const text = document.getElementById('shopItems').textContent;
-    CHARACTER_MODELS.forEach((m) => expect(text, m.name).toContain(m.name));
+    CHARACTER_MODELS.filter((m) => !isDelisted(m.id)).forEach((m) => expect(text, m.name).toContain(m.name));
     expect(text).not.toMatch(/\bIntern\b/);
   });
 });

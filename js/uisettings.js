@@ -15,7 +15,7 @@ import { storyFor } from './stories.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
-import { LOCKER_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
+import { LOCKER_ITEMS, DELISTED_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_RAMP_EVERY_OPTIONS, SPEED_RAMP_STEP_OPTIONS } from './rules.js';
 import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
@@ -791,6 +791,8 @@ export var settingsMethods = {
 
     var renderGroup = function (type, title, filter, note) {
       var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
+      // heroes that are no longer sold still show up for the players who own them
+      if (type === 'skin') items = items.concat(DELISTED_ITEMS.filter(function (i) { return storage.ownsItem(i.id); }));
       if (filter) items = items.filter(filter);
       // cheapest first (free ones on top), so what you can afford is always at the top of the list
       items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return ((a.it.premium ? 1e9 : a.it.price) - (b.it.premium ? 1e9 : b.it.price)) || (a.idx - b.idx); }).map(function (x) { return x.it; });

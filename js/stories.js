@@ -64,6 +64,10 @@ export var STORIES = {
     short: 'Runs on caffeine and coolant.',
     long: 'Mo hums when he thinks, and the hum gets louder around a hard case. He sees structure where others see a smudge and is very patient with anyone who asks for a rescan. He believes the human body is the best-engineered system there is, apart from the occasional wiring issue.'
   },
+  avatar_m_hooded: {
+    short: 'In, through the artery, out again.',
+    long: 'Cass works in the cath lab, where a wire the width of a hair goes up from the wrist to the heart. She is calm because everything is rehearsed, and quick because the patient is awake. The hood is for the lead apron; the quiet is just her. Colleagues say she can find a blocked vessel the way other people find a lost key.'
+  },
   avatar_m_barbarian: {
     short: 'Sorts the chaos, loudly.',
     long: 'Bruno is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
