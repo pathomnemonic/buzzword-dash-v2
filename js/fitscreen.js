@@ -97,6 +97,12 @@ function fitScreenNow(screen, parts) {
   return f;
 }
 
+/** Fit whichever one-page screen is showing, right now (so a tab is already its final size when it first paints). */
+export function fitActiveScreens() {
+  if (typeof document === 'undefined') return;
+  SCREENS.forEach(function (id) { var s = document.getElementById(id); if (s && s.classList.contains('active')) fitScreen(s); });
+}
+
 var timer = null;
 function schedule() {
   if (timer) return;

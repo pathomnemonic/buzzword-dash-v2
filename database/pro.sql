@@ -191,6 +191,8 @@ DECLARE
   new_until timestamptz;
 BEGIN
   IF me IS NULL THEN RETURN jsonb_build_object('ok', false, 'error', 'Sign in first.'); END IF;
+  -- a code is tied to one real account (an email and a password), never to a guest, so it cannot be passed around
+  IF pro_is_guest() THEN RETURN jsonb_build_object('ok', false, 'error', 'Create a free account first (Friends → Account), so the code is tied to you.'); END IF;
   INSERT INTO pro_attempts (user_id, hour, n) VALUES (me, h, 0) ON CONFLICT DO NOTHING;
   SELECT n INTO tries FROM pro_attempts WHERE user_id = me AND hour = h;
   IF tries >= 10 THEN RETURN jsonb_build_object('ok', false, 'error', 'Too many tries. Please wait an hour.'); END IF;
@@ -284,6 +286,25 @@ REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION start_my_trial() TO authenticated;
 GRANT EXECUTE ON FUNCTION redeem_pro_code(text) TO authenticated;
 
+-- Make a code (owner only: run it in the Supabase SQL editor). It returns the code to hand to one person:
+--   SELECT pro_make_code(p_days => 90, p_note => 'reviewer: Jane at Example');
+-- Each code works once, for one account with a login, then it is spent. Give p_max_uses > 1 only for a deliberate group
+-- code (a class), and p_expires_days to make it lapse. Pass p_code to choose the words yourself.
+CREATE OR REPLACE FUNCTION pro_make_code(p_days integer, p_note text DEFAULT NULL, p_max_uses integer DEFAULT 1, p_expires_days integer DEFAULT NULL, p_code text DEFAULT NULL) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE c text; h text;
+BEGIN
+  IF p_code IS NOT NULL THEN
+    c := upper(trim(p_code));
+  ELSE
+    h := upper(md5(random()::text || clock_timestamp()::text || txid_current()::text));
+    c := 'DX-' || substr(h, 1, 4) || '-' || substr(h, 5, 4) || '-' || substr(h, 9, 4);
+  END IF;
+  INSERT INTO pro_codes (code, days, max_uses, expires_at, note)
+  VALUES (c, p_days, coalesce(p_max_uses, 1), CASE WHEN p_expires_days IS NULL THEN NULL ELSE now() + make_interval(days => p_expires_days) END, p_note);
+  RETURN c;
+END $$;
+
 -- Owner views: who has Pro, and how codes are doing
 CREATE OR REPLACE VIEW pro_v_active AS
 SELECT plan, source, trial, count(*) AS users, min(until) AS first_ends, max(until) AS last_ends
@@ -292,4 +313,9 @@ FROM pro_entitlements WHERE until > now() GROUP BY 1, 2, 3 ORDER BY users DESC;
 CREATE OR REPLACE VIEW pro_v_codes AS
 SELECT code, days, max_uses, used, expires_at, note, created_at FROM pro_codes ORDER BY created_at DESC;
 
-REVOKE ALL ON pro_v_active, pro_v_codes FROM PUBLIC, anon, authenticated;
+-- who used which code, and when
+CREATE OR REPLACE VIEW pro_v_redemptions AS
+SELECT r.code, c.note, c.days, r.user_id, r.redeemed_at FROM pro_redemptions r JOIN pro_codes c USING (code) ORDER BY r.redeemed_at DESC;
+
+REVOKE ALL ON pro_v_active, pro_v_codes, pro_v_redemptions FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_make_code(integer, text, integer, integer, text) FROM PUBLIC;

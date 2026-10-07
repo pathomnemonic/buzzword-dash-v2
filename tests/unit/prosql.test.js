@@ -136,6 +136,32 @@ describe('Dx Dash Pro backend', () => {
     expect((await one(A, "SELECT redeem_pro_code('LAUNCH30') AS r")).r.ok).toBe(false);
   });
 
+  it('a code belongs to one real account: a guest cannot redeem, and a code is spent by its first account for good', async () => {
+    const G = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    const T1 = 'f1f1f1f1-f1f1-41f1-81f1-f1f1f1f1f1f1';
+    const T2 = 'f2f2f2f2-f2f2-42f2-82f2-f2f2f2f2f2f2';
+    const code = (await db.query("SELECT pro_make_code(p_days => 90, p_note => 'press: test') AS c")).rows[0].c;
+    expect(code).toMatch(/^DX-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
+    await db.exec("SET app.anon = 'true'");
+    try { expect((await one(G, "SELECT redeem_pro_code('" + code + "') AS r")).r.error).toMatch(/Create a free account/); } finally { await db.exec("SET app.anon = 'false'"); }
+    expect((await db.query('SELECT used FROM pro_codes WHERE code = $1', [code])).rows[0].used).toBe(0); // the guest did not spend it
+    expect((await one(T1, "SELECT redeem_pro_code('" + code + "') AS r")).r.ok).toBe(true);
+    expect((await one(T1, "SELECT redeem_pro_code('" + code + "') AS r")).r.error).toMatch(/already|not valid/); // not twice by the same account
+    expect((await one(T2, "SELECT redeem_pro_code('" + code + "') AS r")).r.error).toMatch(/not valid/);         // not by anyone else
+    const who = (await db.query('SELECT user_id FROM pro_v_redemptions WHERE code = $1', [code])).rows;
+    expect(who).toEqual([{ user_id: T1 }]); // and the owner can see who used it
+    expect((await one(T2, 'SELECT get_my_pro() AS r')).r.active).toBe(false);
+  });
+
+  it('only the owner can make codes, and a code can be made with your own words and an end date', async () => {
+    expect(await rejects(A, "SELECT pro_make_code(30)")).toBe(true);
+    const own = (await db.query("SELECT pro_make_code(p_days => 30, p_code => 'friends-2026', p_max_uses => 25, p_expires_days => 14, p_note => 'a class') AS c")).rows[0].c;
+    expect(own).toBe('FRIENDS-2026');
+    const row = (await db.query('SELECT max_uses, expires_at FROM pro_codes WHERE code = $1', [own])).rows[0];
+    expect(row.max_uses).toBe(25);
+    expect(new Date(row.expires_at).getTime()).toBeGreaterThan(Date.now() + 13 * 86400000);
+  });
+
   it('refuses unknown and expired codes, and stops guessing after ten wrong tries', async () => {
     await db.exec("INSERT INTO pro_codes (code, days, max_uses, expires_at) VALUES ('OLDCODE', 7, 10, now() - interval '1 day')");
     expect((await one(A, "SELECT redeem_pro_code('OLDCODE') AS r")).r.ok).toBe(false);

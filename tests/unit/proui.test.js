@@ -5,7 +5,7 @@ vi.mock('../../js/native.js', () => ({ isNative: () => true, getNativePlatform: 
 import { setProConfigForTest } from '../../js/remoteconfig.js';
 import { resetProForTest, setSellableForTest } from '../../js/pro.js';
 import { setIapForTest, createIap } from '../../js/iap.js';
-import { openPaywall, renderProSettings, installProUi, setProUiDeps, mountProButton, applyProLock } from '../../js/proui.js';
+import { openPaywall, renderProSettings, installProUi, setProUiDeps, mountProButton, applyProLock, renderRedeemRow } from '../../js/proui.js';
 
 function fakePlugin(owned = []) {
   const handlers = {}; const products = {}; const own = new Set(owned);
@@ -138,6 +138,26 @@ describe('Pro screens once switched on', () => {
     expect(proGiftState(later).available).toBe(false);
   });
 
+  it('the redeem-code box is folded away in Settings, asks for an account, and never shows on the pricing screens', async () => {
+    const box = document.createElement('div');
+    setProUiDeps({ lb: { isAuthenticated: () => true, isGuest: () => true, redeemProCode: vi.fn() }, openAccount: vi.fn() });
+    renderRedeemRow(box);
+    const fold = box.querySelector('details.redeem-fold');
+    expect(fold).toBeTruthy();
+    expect(fold.open).toBe(false);
+    expect(fold.textContent).toMatch(/one account with a login/);
+    document.body.appendChild(box);
+    box.querySelector('#redeemInput').value = 'DX-TEST-CODE-0001';
+    box.querySelector('#redeemBtn').click();
+    await tick();
+    expect(box.textContent).toMatch(/Create a free account first/);
+    expect(openPaywall({ trigger: 'x', pricing: true }).textContent).not.toMatch(/redeem|promo/i);
+    setProConfigForTest({ enabled: false });
+    const none = document.createElement('div');
+    renderRedeemRow(none);
+    expect(none.children.length).toBe(0); // nothing while Pro is off
+  });
+
   it('the Home button shows while Pro is on sale and opens the paywall', () => {
     document.body.innerHTML = '<button id="homeProBanner" hidden><strong id="homeProTitle"></strong><span id="homeProSub"></span></button>';
     const btn = mountProButton();
@@ -159,7 +179,7 @@ describe('Pro screens once switched on', () => {
     expect(buttons.length).toBe(3);
     expect(buttons[0].textContent).toMatch(/Yearly/);
     expect(buttons[0].textContent).toMatch(/\$\d+\.99/);
-    expect(o.querySelector('input[aria-label="Promo code"]')).toBeTruthy();
+    expect(o.querySelector('input[aria-label="Promo code"], input[aria-label="Redeem code"]')).toBeNull(); // codes are not on the pricing screen
     expect(o.textContent).toMatch(/Restore purchases/);
     o.querySelector('#proPaywallClose').click();
     expect(document.getElementById('proPaywall')).toBeNull();

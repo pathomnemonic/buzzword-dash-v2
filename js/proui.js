@@ -224,23 +224,7 @@ export function openPaywall(o) {
       }
     }
 
-    // codes, and purchases made before
-    var codeRow = createElement('div');
-    codeRow.style.cssText = 'display:flex;gap:6px;margin-top:6px';
-    var input = createElement('input', { attributes: { type: 'text', placeholder: 'Have a code?', 'aria-label': 'Promo code', maxlength: '32', autocapitalize: 'characters', autocomplete: 'off' } });
-    input.style.cssText = 'flex:1;padding:8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
-    var redeem = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Redeem', attributes: { type: 'button' } });
-    redeem.addEventListener('click', function () {
-      if (!input.value.trim()) return;
-      redeem.disabled = true;
-      redeemCode(input.value, _lb).then(function (r) {
-        redeem.disabled = false;
-        if (r && r.ok) { act('code_ok', {}); setText(status, 'Code accepted. Pro is on! 🎉'); setTimeout(cleanup, 1200); }
-        else { act('code_failed', {}); setText(status, (r && r.error) || 'That code is not valid.'); }
-      });
-    });
-    codeRow.appendChild(input); codeRow.appendChild(redeem);
-    box.appendChild(codeRow);
+    // purchases made before (redeem codes live, out of the way, in Settings → About & help)
     if (isNative()) {
       var restore = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Restore purchases', attributes: { type: 'button' } });
       restore.style.marginTop = '6px';
@@ -316,6 +300,41 @@ function fillSubscriptionLine(el) {
     if (v.cancelling) { setText(el, '⚠ Cancelled: Pro ends ' + (when || 'at the end of the period you paid for') + '. You keep everything until then.'); el.classList.add('pro-sub-ending'); }
     else if (v.renewing) setText(el, 'Renews ' + (when ? 'on ' + when : 'automatically') + '.');
   });
+}
+
+/**
+ * "Have a redeem code?" in Settings → About & help: folded away at the bottom, so it is there for the few people who were
+ * given a code and never in the way. A code belongs to one account with a login (not a guest).
+ */
+export function renderRedeemRow(container) {
+  if (!container || !proLive()) return;
+  var d = createElement('details', { className: 'redeem-fold', attributes: { 'data-setting': 'redeem' } });
+  d.appendChild(createElement('summary', { text: 'Have a redeem code?' }));
+  var body = createElement('div', { className: 'redeem-body' });
+  body.appendChild(createElement('p', { className: 'setting-sublabel', text: 'Only if someone gave you one. A code works once, for one account with a login, and cannot be shared.' }));
+  var row = createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;margin-top:6px';
+  var input = createElement('input', { attributes: { type: 'text', placeholder: 'Your code', 'aria-label': 'Redeem code', maxlength: '32', autocapitalize: 'characters', autocomplete: 'off', id: 'redeemInput' } });
+  input.style.cssText = 'flex:1;padding:8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
+  var go = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Redeem', attributes: { type: 'button', id: 'redeemBtn' } });
+  var msg = createElement('div', { className: 'setting-sublabel', attributes: { role: 'status' } });
+  go.addEventListener('click', function () {
+    if (!input.value.trim()) return;
+    go.disabled = true;
+    redeemCode(input.value, _lb).then(function (r) {
+      go.disabled = false;
+      if (r && r.ok) { track('paywall_action', { action: 'code_ok', trigger: 'settings' }); setText(msg, 'Code accepted. Pro is on! 🎉'); input.value = ''; }
+      else {
+        track('paywall_action', { action: 'code_failed', trigger: 'settings' });
+        setText(msg, (r && r.error) || 'That code is not valid.');
+        if (r && r.needsAccount) _openAccount();
+      }
+    });
+  });
+  row.appendChild(input); row.appendChild(go);
+  body.appendChild(row); body.appendChild(msg);
+  d.appendChild(body);
+  container.appendChild(d);
 }
 
 /**
@@ -397,8 +416,8 @@ export function mountProButton() {
     if (btn.hidden) return;
     if (st.active && st.trial) {
       var days = st.until ? Math.max(0, Math.ceil((st.until - Date.now()) / 86400000)) : 0;
-      if (title) setText(title, 'PRO TRIAL' + (days ? ' · ' + days + (days === 1 ? ' DAY' : ' DAYS') + ' LEFT' : ''));
-      if (sub) setText(sub, 'Keep 10× more cards and every study tool');
+      if (title) setText(title, 'TRIAL · ' + days + (days === 1 ? ' DAY' : ' DAYS') + ' LEFT');
+      if (sub) setText(sub, 'Keep Pro');
       btn.setAttribute('aria-label', 'Dx Dash Pro trial: keep Pro');
     } else {
       if (title) setText(title, 'GO PRO');

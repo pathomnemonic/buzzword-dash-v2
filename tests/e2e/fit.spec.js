@@ -234,3 +234,48 @@ test('a premium item\'s price is shown in the plain reading font, not the pixel 
   expect(r.font).not.toMatch(/Jersey|Press Start/i);
   expect(r.size).toBeGreaterThanOrEqual(12);
 });
+
+// ───────── switching tabs must not jump ─────────
+for (const [w, h] of [[360, 640], [390, 780], [320, 568]]) {
+  test(`switching tabs: nothing moves or changes size as a tab appears, first visit or later, at ${w}x${h}`, async ({ page }) => {
+    await open(page, w, h);
+    await page.waitForTimeout(1500);
+    const tabs = ['screenStats', 'screenShop', 'screenQuests', 'screenProfile', 'screenHome', 'screenStats', 'screenShop', 'screenQuests', 'screenProfile', 'screenHome'];
+    for (const t of tabs) {
+      await page.waitForTimeout(700);
+      const frames = await page.evaluate((id) => new Promise((resolve) => {
+        const out = []; let n = 0;
+        const sel = { screenStats: '.perf-hero', screenShop: 'h2', screenHome: '.btn-play', screenQuests: 'h2', screenProfile: 'h2' }[id];
+        document.querySelector('#bottomNav [data-screen="' + id + '"]').click();
+        const tick = () => {
+          const s = document.getElementById(id); const wrap = s.querySelector('.fit-zoom'); const el = s.querySelector(sel);
+          const r = el ? el.getBoundingClientRect() : { top: 0, height: 0, width: 0 };
+          out.push([wrap ? wrap.style.zoom : '-', Math.round(r.top), Math.round(r.height), Math.round(r.width)].join('|'));
+          if (++n < 24) requestAnimationFrame(tick); else resolve(out);
+        };
+        requestAnimationFrame(tick);
+      }), t);
+      // (the 3D hero in the Locker and the first-ever fit may create the wrapper: ignore an unwrapped first frame only)
+      const states = [...new Set(frames.filter((f) => !f.startsWith('-|')))];
+      expect(states.length, t + ' changed while appearing: ' + JSON.stringify(states)).toBeLessThanOrEqual(1);
+    }
+  });
+}
+
+// ───────── the Go Pro banner ─────────
+test('the trial banner shows "N days left" in full, even on the narrowest phone', async ({ page }) => {
+  await page.addInitScript(() => { try { localStorage.setItem('dx_pro_force_sell', '1'); localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'trial', trial: true, until: Date.now() + 7 * 86400000 - 3600000, provenAt: Date.now(), since: Date.now() })); } catch (e) { /* no storage */ } });
+  await open(page, 320, 568);
+  await page.evaluate(() => window.__ui.show('screenHome'));
+  await page.waitForTimeout(900);
+  const r = await page.evaluate(() => { const t = document.getElementById('homeProTitle'); const box = t.parentElement.getBoundingClientRect(); const tb = t.getBoundingClientRect(); return { text: t.textContent, fits: tb.right <= box.right + 1 && t.scrollWidth <= t.clientWidth + 1 }; });
+  expect(r.text).toMatch(/TRIAL · \d DAYS? LEFT/);
+  expect(r.fits, 'the words are cut off: ' + r.text).toBe(true);
+});
+
+test('Home has no league / rank line, only the logo and what you can tap', async ({ page }) => {
+  await open(page, 390, 780);
+  await page.evaluate(() => window.__ui.show('screenHome'));
+  expect(await page.locator('#homeLeague').count()).toBe(0);
+  expect(await page.locator('.home-tagline').count()).toBe(0);
+});

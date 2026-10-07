@@ -2574,3 +2574,35 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 
 /* money must be unmistakable: prices use the plain reading face, never the pixel one (where a 9 can look like an 8) */
 .btn-money, .pro-plan-main, .pro-plan-sub { font-family: var(--font-read); font-weight: 800; letter-spacing: .02em; text-transform: none; }
+
+
+/* switching tabs: a quick fade only. (The old pop-in slid and bounced the whole screen, which looked like a jump.) */
+.screen.active { animation: screenFade .14s ease-out; }
+@keyframes screenFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .screen.active { animation: none; } }
+
+
+/* ---------- Home, once more: fewer lines, smaller top, and the Pro banner's words never cut off ---------- */
+.home-topbar { min-height: 34px; gap: 5px; }
+.home-topbar .home-coins { min-height: 34px; font-size: 12.5px; }
+.home-topbar .top-btn { min-width: 34px; height: 34px; font-size: 15px; padding: 0 6px; border-radius: 11px; }
+.home-topbar .top-btn-label { font-size: 14px; }
+.home-topbar .home-profile-btn { min-width: 34px; }
+.home-topbar .home-profile-btn .hp-avatar { width: 28px; height: 28px; font-size: 15px; }
+.home-progress { padding: 3px 6px 2px; gap: 3px 5px; border-radius: 12px; }
+.home-progress .study-goal { min-height: 28px; font-size: 11.5px; }
+.home-progress .study-goal-bar { height: 6px; margin: 2px 0 1px; }
+.streak-chip { min-width: 40px; min-height: 34px; padding: 1px 6px; border-radius: 11px; }
+.streak-chip .streak-flame { font-size: 15px; }
+.streak-chip .streak-num { font-size: 12.5px; }
+.home-header h1 { font-size: clamp(20px, 4.2vh, 30px); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 0 2px 0 var(--accent-pink), 0 3px 0 var(--ink); }
+.home-pro-banner strong { flex: 0 1 auto; min-width: 0; white-space: nowrap; }
+.home-pro-banner .hpb-text { min-width: 0; }
+@media (max-width: 360px) { .home-pro-banner strong { font-size: 15px; } .home-pro-banner { padding: 3px 9px; gap: 6px; } }
+
+/* the redeem-code fold at the very bottom of About & help: small and quiet */
+.redeem-fold { margin: 22px 0 6px; font-size: 11px; opacity: .65; }
+.redeem-fold > summary { cursor: pointer; list-style: none; text-align: center; text-decoration: underline; }
+.redeem-fold > summary::-webkit-details-marker { display: none; }
+.redeem-fold[open] { opacity: .95; }
+.redeem-body { padding: 6px 4px; }

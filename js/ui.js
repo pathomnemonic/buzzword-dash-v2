@@ -36,6 +36,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import { requireGate, proLive, isPro } from './pro.js';
+import { fitActiveScreens } from './fitscreen.js';
 import { shareLink, track as shareTrack } from './analytics/index.js';
 import { renderPal } from './palui.js';
 import { setText, createElement, clearElement } from './dom.js';
@@ -390,6 +391,9 @@ class UI {
       if (isCurrent) n.setAttribute('aria-current', 'true');
       else n.removeAttribute('aria-current');
     });
+    // size the one-page screens (and Home) before the first paint, so a tab never shows at one size and then jumps to another
+    fitActiveScreens();
+    if (screenId === 'screenHome') fitHomeLayout();
   }
 
   hideAll() {

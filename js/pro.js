@@ -430,6 +430,8 @@ export function restorePro(deps) {
 /** Redeem a promo / seat code on the server (needs an account). */
 export function redeemCode(code, lb) {
   if (!lb || !lb.redeemProCode) return Promise.resolve({ ok: false, error: 'Codes need an account. Sign in first.' });
+  // a code belongs to one real account (a login), never a guest
+  if (!hasAccount(lb)) return Promise.resolve({ ok: false, needsAccount: true, error: 'Create a free account first (Friends → Account), so the code is tied to you.' });
   return lb.redeemProCode(code).then(function (r) {
     return refreshPro({ lb: lb }).then(function () { return r; });
   });

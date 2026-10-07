@@ -229,10 +229,16 @@ describe('buying', () => {
     expect(r.active).toBe(true);
   });
   it('redeems a code through the server and refreshes', async () => {
-    const lb = { isAuthenticated: () => true, redeemProCode: () => Promise.resolve({ ok: true, until: new Date(NOW + 30 * DAY).toISOString() }), getMyPro: () => Promise.resolve({ active: true, until: new Date(Date.now() + 30 * DAY).toISOString(), plan: 'pro', source: 'code' }) };
+    const lb = { isAuthenticated: () => true, isGuest: () => false, redeemProCode: () => Promise.resolve({ ok: true, until: new Date(NOW + 30 * DAY).toISOString() }), getMyPro: () => Promise.resolve({ active: true, until: new Date(Date.now() + 30 * DAY).toISOString(), plan: 'pro', source: 'code' }) };
     expect((await redeemCode('LAUNCH30', lb)).ok).toBe(true);
     expect(isPro()).toBe(true);
     expect((await redeemCode('X', null)).ok).toBe(false);
+  });
+  it('a guest cannot redeem a code: it is tied to one account with a login', async () => {
+    const asked = [];
+    const lb = { isAuthenticated: () => true, isGuest: () => true, redeemProCode: (c) => { asked.push(c); return Promise.resolve({ ok: true }); } };
+    expect(await redeemCode('LAUNCH30', lb)).toMatchObject({ ok: false, needsAccount: true });
+    expect(asked).toEqual([]);
   });
   it('the web payment link carries the account id and only https is accepted', () => {
     expect(proWebUrl('abc')).toBe('');

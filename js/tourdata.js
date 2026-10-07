@@ -89,6 +89,19 @@ function closeSheet(selector) {
   };
 }
 
+/** The Filters pop-up's folded sections, closed again (so every look starts from the same place). */
+function collapseFilterSections() {
+  var sections = document.querySelectorAll('#filtersSheet .collapsible-section');
+  for (var i = 0; i < sections.length; i++) {
+    var body = sections[i].querySelector('.collapsible-body');
+    var toggle = sections[i].querySelector('.collapsible-toggle');
+    if (body && toggle && !body.hidden && getComputedStyle(body).display !== 'none') toggle.click();
+  }
+}
+
+/** The "More filters" fold-out in the Filters pop-up. */
+function advancedToggle() { return document.querySelector('#advancedFilterContainer .collapsible-toggle'); }
+
 function closeVersus() {
   var btn = document.getElementById('mpCloseBtn');
   if (btn) btn.click();
@@ -110,8 +123,26 @@ export function buildTourSteps(ctx) {
       before: function () { if (ctx && ctx.ui) ctx.ui.show('screenHome'); } },
     { id: 'coins', title: 'Coins and best score', target: '#homeCoinsDisplay', press: 'count',
       text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score. You start with a balance to spend in the Locker in a minute.' },
-    { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'count',
-      text: 'Choose subjects, exams and question types. Everything is switched on to begin with, so you will see every question.' },
+    { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'pass', hint: 'Tap Filters to look inside',
+      text: 'Choose which questions you get. Everything is switched on to begin with, so you see every question. Open it and we will look at each filter.' },
+    { id: 'filters-subjects', title: 'Subjects', target: '#subjectToggle', press: 'pass', hint: 'Tap Subjects to open it',
+      before: collapseFilterSections,
+      text: 'Pick the subjects you want to study: cardiology this week, renal the next. Open it.' },
+    { id: 'filters-subjects-list', title: 'Switch subjects on and off', target: '#subjectBody', press: 'next',
+      text: 'Tap a subject to switch it on or off, or use Select All and Deselect All. Subjects you have mastered get a star.' + pro('Free covers a sample of every subject (300 cards); Pro opens the whole bank of 3,010.') },
+    { id: 'filters-exam', title: 'Exam filter', target: '#examFilterToggle', press: 'pass', hint: 'Tap Exam Filter to open it',
+      skipIf: function () { return !document.getElementById('examFilterToggle'); },
+      text: 'Studying for a particular exam? Narrow the questions to the ones that exam covers. Open it.' },
+    { id: 'filters-exam-body', title: 'Pick your exam', target: '#examFilterContainer', press: 'next',
+      skipIf: function () { return !document.getElementById('examFilterToggle'); },
+      text: 'Choose your exam here and only its questions come up. Leave it empty to get everything.' },
+    { id: 'filters-advanced', title: 'More filters', target: advancedToggle, press: 'pass', hint: 'Tap to open it',
+      skipIf: function () { return !advancedToggle(); },
+      text: 'A few more ways to shape your questions. Open it.' },
+    { id: 'filters-advanced-body', title: 'Type, year and high-yield', target: '#advancedFilterContainer', press: 'next',
+      skipIf: function () { return !advancedToggle(); },
+      after: function () { collapseFilterSections(); closeSheet('#filtersSheet')(); },
+      text: 'Question type picks what is asked (diagnosis, treatment, mechanism, lab and more). Year matches your stage of training. High-yield only keeps to the questions that come up most. Leave them empty to see it all.' },
     { id: 'speed', title: 'Speed', target: '#speedBtn', press: 'pass', hint: 'Tap Speed to open the dial',
       text: 'This sets how fast the track runs. Open it and have a go with the dial.' },
     { id: 'speed-dial', title: 'Set your pace', target: '.speed-dial', press: 'next', interactive: true,

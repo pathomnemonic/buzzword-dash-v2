@@ -6,7 +6,7 @@
  */
 
 import { requireGate, proGiftState, buyPremiumItem, itemPriceLabel, hasAccount } from './pro.js';
-import { renderProTab, applyProLock } from './proui.js';
+import { renderProTab, renderRedeemRow, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
 import { track as trackEvent } from './analytics/index.js';
@@ -540,6 +540,7 @@ export var settingsMethods = {
         tipRow.appendChild(tipBtn);
         content.appendChild(tipRow);
       }
+      renderRedeemRow(content); // folded away at the very bottom, and only once Pro is switched on
     }
 
     this.applySettings();

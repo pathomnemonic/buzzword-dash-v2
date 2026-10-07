@@ -37,10 +37,21 @@ describe('the tour steps', () => {
   it('every fixed target exists on the page, so no step falls back to a plain card by mistake', () => {
     const missing = steps.filter((s) => typeof s.target === 'function').filter((s) => {
       // the Locker's rows and tab buttons are drawn later; everything else is in the page already
-      return !['extras-tab', 'buy', 'equip'].includes(s.id) && !s.target();
+      return !['extras-tab', 'buy', 'equip', 'filters-advanced', 'filters-exam'].includes(s.id) && !s.target();
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
     expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview'].includes(id))).toEqual([]);
+  });
+
+  it('the tour walks through every filter, one section at a time, opening each by its real button', () => {
+    const byId = Object.fromEntries(steps.map((s) => [s.id, s]));
+    const order = ids();
+    ['filters', 'filters-subjects', 'filters-subjects-list', 'filters-exam', 'filters-exam-body', 'filters-advanced', 'filters-advanced-body'].forEach((id) => expect(order, id).toContain(id));
+    expect(order.indexOf('filters')).toBeLessThan(order.indexOf('filters-subjects'));
+    expect(order.indexOf('filters-advanced-body')).toBeLessThan(order.indexOf('speed'));
+    ['filters', 'filters-subjects', 'filters-exam', 'filters-advanced'].forEach((id) => expect(byId[id].press, id).toBe('pass'));
+    ['filters-subjects-list', 'filters-exam-body', 'filters-advanced-body'].forEach((id) => expect(byId[id].press, id).toBe('next'));
+    expect(typeof byId['filters-advanced-body'].after).toBe('function'); // it tidies up and closes the pop-up
   });
 
   it('the tour teaches the speed dial: opens the sheet, lets the player drag it, then closes it', () => {
@@ -63,6 +74,8 @@ describe('the tour steps', () => {
     const on = buildTourSteps({ ui: { show() {} } });
     expect(on.find((s) => s.id === 'pro').text).toMatch(/10× more cards/);
     expect(on.find((s) => s.id === 'challenge-btn').text).toMatch(/PRO tag/);
+    expect(on.find((s) => s.id === 'filters-subjects-list').text).toMatch(/Pro opens the whole bank/);
+    expect(off.find((s) => s.id === 'filters-subjects-list').text).not.toMatch(/Pro/);
     setSellableForTest(false);
     setProConfigForTest(null);
   });

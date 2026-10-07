@@ -56,7 +56,7 @@ Files: `supabase/functions/pro-checkout` (prices, start checkout, billing portal
 
 The old way, a single Stripe Payment Link in `VITE_PRO_WEB_URL`, still works if you set that instead (no plan choice, no Manage button; you call `pro_grant` yourself or from your own webhook).
 
-**Promo and seat codes:** `INSERT INTO pro_codes (code, days, max_uses, note) VALUES ('LAUNCH30', 30, 500, 'launch week');`. Players enter them on the paywall ("Have a code?"). Use for creators, ambassadors, schools.
+**Redeem codes** (a contingency, not a sales channel): see "Redeem codes" below. Players enter them in Settings → About & help, folded away at the very bottom ("Have a redeem code?").
 
 ## Changing what is limited (no release)
 
@@ -157,3 +157,26 @@ Anyone who already owned one before this keeps it.
 - **Adding or changing an item.** Edit `premium.js`. A new store product is needed in the apps for each new item.
 
 After updating: re-run `database/pro.sql` (it adds the `pro_items` table), then redeploy `pro-checkout` and `stripe-webhook`.
+
+
+## Redeem codes
+
+A code gives one person some days of Pro for free. They are for exceptions: an app-store or press reviewer, a creator, a
+teacher, or a member you want to make good with after a billing problem. Nothing in the app asks people to find one, and the
+entry box is folded away at the bottom of Settings → About & help, so people do not write to you for them.
+
+**Making a code** (Supabase SQL editor, one line each; it prints the code to hand over):
+
+```sql
+SELECT pro_make_code(p_days => 90, p_note => 'reviewer: Jane at Example');          -- one person, 90 days, e.g. DX-7F3A-91C2-0B4E
+SELECT pro_make_code(p_days => 30, p_note => 'sorry about the double charge', p_expires_days => 14);
+SELECT pro_make_code(p_days => 30, p_note => 'Dr Lee class', p_max_uses => 25, p_code => 'LEE-CLASS');   -- a deliberate group code
+```
+
+**How a code is protected.** It works only for an account with a login (an email and password), never a guest, and is tied to
+that account the moment it is used. By default (`p_max_uses` = 1) it works for exactly one account, once, then is spent, so
+passing it on does nothing. A person can try ten wrong codes an hour. The days are added to whatever Pro they have, never
+replacing it. Codes can have an end date.
+
+**Seeing what happened.** In the SQL editor: `SELECT * FROM pro_v_codes;` (all codes and how many times each was used) and
+`SELECT * FROM pro_v_redemptions;` (which account used which code, and when).
