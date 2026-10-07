@@ -70,14 +70,25 @@ Deno.serve(async function (req) {
 
     if (body.action === 'portal') {
       if (!customerId) return json({ error: 'No web subscription found for this account.' }, 404);
+      var ret = { customer: customerId, return_url: env.SITE_URL + '/' };
+      // "Cancel": open Stripe's page straight at the cancel step for their subscription (falls back to the normal page)
+      var cancelFlow = null;
+      if (body.cancel) {
+        try {
+          var subs = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=active&limit=1');
+          var sub = subs && subs.data && subs.data[0];
+          if (sub) cancelFlow = { 'flow_data[type]': 'subscription_cancel', 'flow_data[subscription_cancel][subscription]': sub.id };
+        } catch { cancelFlow = null; }
+      }
       var portal;
+      var attempt = function (extra) { return stripe('billing_portal/sessions', Object.assign({}, ret, extra || {})); };
       try {
-        portal = await stripe('billing_portal/sessions', { customer: customerId, return_url: env.SITE_URL + '/' });
+        try { portal = await attempt(cancelFlow); } catch (e1) { if (!cancelFlow) throw e1; portal = await attempt(); }
       } catch (e) {
         // no portal settings saved in the Stripe Dashboard yet: create ours (cancel at period end, update card, invoices), then retry
         if (!/configuration/i.test((e && e.message) || '')) throw e;
         var cfg = await stripe('billing_portal/configurations', portalConfig(env));
-        portal = await stripe('billing_portal/sessions', { customer: customerId, return_url: env.SITE_URL + '/', configuration: cfg.id });
+        try { portal = await attempt(Object.assign({ configuration: cfg.id }, cancelFlow || {})); } catch { portal = await attempt({ configuration: cfg.id }); }
       }
       return json({ url: portal.url });
     }

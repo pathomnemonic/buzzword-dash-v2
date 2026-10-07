@@ -93,9 +93,11 @@ describe('prices against earnings', () => {
     expect(maxTrail).toBeLessThan(maxHero);
   });
 
-  it('a new player starts with exactly enough coins for the one thing the tutorial has them buy (the EKG Line), and no more', () => {
-    const ekg = paid.find((i) => i.id === 'trail_ekg');
-    expect(STORAGE_DEFAULTS.progression.coins).toBe(ekg.price);
+  it('a new player starts with exactly enough coins for the one thing the tutorial has them buy (the cheapest trail, and the cheapest thing in the Locker), and no more', () => {
+    const cheapest = Math.min(...paid.map((i) => i.price));
+    const cheapestTrail = paid.filter((i) => i.type === 'trail').sort((a, b) => a.price - b.price)[0];
+    expect(cheapestTrail.price).toBe(cheapest);
+    expect(STORAGE_DEFAULTS.progression.coins).toBe(cheapestTrail.price);
   });
 
   it('a continue is cheap next to a run\'s earnings, so it is a real choice but never a trap', () => {

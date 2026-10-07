@@ -103,6 +103,9 @@ function NAV_PARENT(screenId) {
   return screenId;
 }
 
+/** The question, the answers and the explanation must end above this share of the screen's height, which is where the player's head is. */
+export var HUD_LIMIT = 0.5;
+
 /** The speed settings, slowest to fastest. 1 is the default; the first three are slower for a calmer track. */
 export var SPEED_STEPS = [0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 /** The slider position for a saved speed (the nearest setting). */
@@ -1192,6 +1195,59 @@ class UI {
     for (var i = 0; i < 3; i++) {
       setText(document.getElementById('ansText' + i), gates[i].label);
     }
+    this.fitQuestionHud();
+  }
+
+  /**
+   * Keep the question and the answers above the player. The player stands a little below the middle of the screen, so
+   * everything the HUD shows (the clue, the three answers, the explanation) has to end above HUD_LIMIT of the screen's
+   * height, whatever the font, the language or how long the card is. Over that, the text steps down a pixel at a time
+   * (the explanation first, then the clue, then the answers) to a smallest size that is still readable.
+   */
+  fitQuestionHud() {
+    if (typeof document === 'undefined') return;
+    var text = document.getElementById('buzzText');
+    var row = document.getElementById('answerRow');
+    var teach = document.getElementById('teachEl');
+    if (!text || !row) return;
+    var answers = row.querySelectorAll('.answer-choice');
+    // start from the stylesheet's sizes
+    text.style.fontSize = ''; text.style.textTransform = '';
+    if (teach) { teach.style.fontSize = ''; teach.style.maxHeight = ''; teach.style.overflow = ''; }
+    answers.forEach(function (a) { a.style.fontSize = ''; });
+    var hud = document.getElementById('hud');
+    if (!hud || hud.classList.contains('off')) return;
+    var limit = window.innerHeight * HUD_LIMIT;
+    var bottom = function () {
+      var b = 0;
+      ['buzzBox', 'answerRow', 'feedbackEl', 'teachEl'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el || !el.getClientRects().length) return;
+        if ((id === 'feedbackEl' || id === 'teachEl') && !el.textContent) return;
+        b = Math.max(b, el.getBoundingClientRect().bottom);
+      });
+      return b;
+    };
+    if (bottom() <= limit) return;
+    var parts = [
+      { els: teach ? [teach] : [], min: 10 },
+      { els: [text], min: 10 },
+      { els: [].slice.call(answers), min: 9 }
+    ].filter(function (p) { return p.els.length; });
+    parts.forEach(function (p) { p.size = parseFloat(getComputedStyle(p.els[0]).fontSize) || 14; });
+    if (text.textContent.length > 150) text.style.textTransform = 'none'; // (capitals are wider)
+    for (var guard = 0; guard < 24 && bottom() > limit; guard++) {
+      var step = parts.filter(function (p) { return p.size > p.min; })[0];
+      if (!step) break;
+      step.size -= 1;
+      step.els.forEach(function (el) { el.style.fontSize = step.size + 'px'; });
+    }
+    // an explanation longer than any real one: show what fits (the review has the whole text)
+    if (teach && teach.textContent && bottom() > limit) {
+      var room = Math.max(24, limit - teach.getBoundingClientRect().top);
+      teach.style.maxHeight = room + 'px';
+      teach.style.overflow = 'hidden';
+    }
   }
 
   hideAnswerChoices() {
@@ -1202,6 +1258,7 @@ class UI {
 
   showBuzzwords(card) {
     setText(document.getElementById('buzzText'), card.bw.join(' • '));
+    this.fitQuestionHud();
     // Revenge card banner
     var banner = document.getElementById('revengeCardBanner');
     if (banner) {
@@ -1228,12 +1285,14 @@ class UI {
       tb.classList.add('show');
     }
     this.hideAnswerChoices();
+    this.fitQuestionHud();
   }
 
   showStudyTeaching(card) {
     var tb = document.getElementById('teachEl');
     setText(tb, card.tp);
     tb.classList.add('show');
+    this.fitQuestionHud();
   }
 
   // ═══════════════════════════════════════════════════════
@@ -2288,3 +2347,4 @@ class UI {
 Object.assign(UI.prototype, postRunMethods, settingsMethods, studyMethods, browseMethods, profileMethods, homeMethods);
 
 export var ui = new UI();
+if (typeof window !== 'undefined') window.addEventListener('resize', function () { ui.fitQuestionHud(); });

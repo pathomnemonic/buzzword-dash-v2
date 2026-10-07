@@ -16,7 +16,7 @@ beforeEach(async () => {
 });
 
 // A new player starts with enough coins for a first trail (the tutorial walks them through buying one)
-const START = 500;
+const START = 300;
 
 describe('Storage — fresh defaults', () => {
   it('loads with default coin balance', () => {

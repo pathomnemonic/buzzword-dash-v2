@@ -8,6 +8,7 @@
 
 import { storage } from './storage.js';
 import { proLive } from './pro.js';
+import { LOCKER_ITEMS } from './game/shopdata.js';
 
 function q(selector) { return function () { return document.querySelector(selector); }; }
 
@@ -30,8 +31,10 @@ function trailRows() {
   return out;
 }
 
-/** The one trail the tour teaches with. It is always this one, so nobody spends coins on a different item each time. */
-export var TOUR_TRAIL_ID = 'trail_ekg';
+/** The one trail the tour teaches with: the cheapest trail in the Locker, always the same one, so nobody spends coins on a different item each time. */
+var CHEAPEST_TRAIL = LOCKER_ITEMS.filter(function (i) { return i.type === 'trail' && i.price > 0; }).sort(function (a, b) { return a.price - b.price; })[0];
+export var TOUR_TRAIL_ID = CHEAPEST_TRAIL.id;
+export var TOUR_TRAIL_NAME = CHEAPEST_TRAIL.name;
 
 /** The tour trail's row in the Locker, as { row, buy, equip, eye } (any part may be null). */
 function tourTrailRow() {
@@ -149,15 +152,15 @@ export function buildTourSteps(ctx) {
       text: 'Everything you pick shows up in this display: your hero, its colors, trails and monsters. Drag it to spin your hero around. Under it are the tabs, and what you are wearing, with Change colors for heroes that can be recolored.' + pro('Pro members also pick any one item free every month: look for the green 🎁 FREE button.') },
     { id: 'extras-tab', title: 'Trails', target: lockerTabButton('Trails'), press: 'pass',
       text: 'The Locker starts folded so it fits one screen: tap a tab to open its list, and tap it again to fold it away. Trails stream behind your runner. (Heroes are the characters, Maps are new worlds to run in, and Monsters chase you when you slip.) Open Trails.' },
-    // The tour always uses the EKG Line. It never hands out coins: a new player starts with enough for it, and a
+    // The tour always uses the cheapest trail. It never hands out coins: a new player starts with enough for it, and a
     // player who has done the tour before (or spent the coins) is taken through the same steps in a way that fits.
     { id: 'buy', title: 'Your first trail', target: affordableTrailButton, press: 'pass', hint: 'Tap to buy it',
       skipIf: function () { return !affordableTrailButton(); },
-      text: 'You started with some coins, so here is a trail to unlock: the EKG Line. Tap its price to buy it. (Tapping a row, or the eye, previews any trail or monster up in the display first.)' },
+      text: 'You started with some coins, so here is a trail to unlock: the ' + TOUR_TRAIL_NAME + '. Tap its price to buy it. (Tapping a row, or the eye, previews any trail or monster up in the display first.)' },
     { id: 'preview', title: 'Try a trail', target: trailEyeButton, press: 'pass', hint: 'Tap the eye',
       skipIf: function () { return tourTrailOwned() || !!affordableTrailButton() || !trailEyeButton(); },
       after: function (ctx) { ctx.previewedTrail = true; },
-      text: 'Trails cost coins, which you earn by running. Tap the eye to see the EKG Line behind your runner before you save up for it.' },
+      text: 'Trails cost coins, which you earn by running. Tap the eye to see the ' + TOUR_TRAIL_NAME + ' behind your runner before you save up for it.' },
     { id: 'equip', title: 'Wear it', target: equipTrailButton, press: 'pass', hint: 'Tap Equip',
       skipIf: function () { return !equipTrailButton(); },
       text: 'It is yours. Equip it to run with it.' },

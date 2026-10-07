@@ -2176,9 +2176,10 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .home-header .home-tagline, .lv-badge:not(.prestige) { background: #d10a3a; }
 
 /* tutorial: the answer labels can be tapped (they only explain themselves), and the one tapped glows */
-#answerRow.tut-tappable .answer-choice { pointer-events: auto; cursor: pointer; }
-.answer-choice.tut-nudge { outline: 3px solid var(--accent-gold, #fbbf24); box-shadow: 0 0 16px rgba(251, 191, 36, .8); }
-.coach-feedback.hint { color: var(--accent-gold, #fbbf24); }
+#answerRow.tut-tappable .answer-choice { pointer-events: auto; cursor: not-allowed; -webkit-tap-highlight-color: transparent; user-select: none; }
+.answer-choice.tut-nudge { outline: 3px solid #e0102f; animation: dontShake .35s linear 2; }
+@keyframes dontShake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.coach-feedback.hint { color: #ff6b81; }
 
 /* pinned badges: three to a row, so six sit on two tidy rows instead of wrapping onto a third */
 .profile-showcase { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); }
@@ -2367,3 +2368,100 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 .shop-gift[hidden] { display: none; }
 .shop-gift.shop-gift-used { color: var(--text-primary, #fff); background: rgba(255,255,255,.08); box-shadow: none; border-color: rgba(255,255,255,.2); font-weight: 600; }
 .btn-gift { background: linear-gradient(180deg, #b8f5c8, #5fd88a); color: #0b3a1d; border: 3px solid var(--ink); }
+
+
+/* ---------- Home, top half, tightened: the top bar, the streak and goal card, the logo and the Pro button all take less room ---------- */
+.home-topbar { min-height: 38px; gap: 6px; }
+.home-topbar .home-coins { min-height: 38px; font-size: 13px; }
+.home-topbar .top-btn { min-width: 38px; height: 38px; padding: 0 8px; font-size: 17px; border-width: 2px; border-radius: 12px; box-shadow: 0 2px 0 var(--ink); }
+.home-topbar .top-btn-label { font-size: 16px; }
+.home-topbar .home-profile-btn { min-width: 38px; }
+.home-topbar .home-profile-btn .hp-avatar { width: 32px; height: 32px; }
+.home-progress { padding: 4px 8px 3px; gap: 4px 6px; border-width: 2px; border-radius: 14px; box-shadow: 0 2px 0 var(--ink); }
+.home-progress .study-goal { min-height: 34px; }
+.home-progress .study-goal-bar { height: 8px; margin: 3px 0 2px; }
+.streak-chip { min-width: 46px; min-height: 40px; padding: 2px 8px; border-width: 2px; border-radius: 12px; box-shadow: 0 2px 0 var(--ink); }
+.streak-chip .streak-flame { font-size: 17px; }
+.streak-chip .streak-num { font-size: 14px; }
+.home-header h1 { font-size: clamp(24px, 5vh, 34px); -webkit-text-stroke: 2px var(--ink); text-shadow: 0 2px 0 var(--accent-pink), 0 4px 0 var(--ink); }
+.home-header .home-tagline { margin-top: 2px; font-size: 11px; padding: 1px 10px; border-width: 2px; box-shadow: 0 2px 0 var(--ink); }
+.home-header .home-sub { margin-top: 2px; }
+/* the Go Pro button: one slim line */
+.home-pro-banner { margin: 2px 0; padding: 4px 12px; gap: 8px; border-width: 2px; border-radius: 12px; box-shadow: 0 3px 0 #8a5a00, 0 0 14px rgba(255,200,58,.5); }
+.home-pro-banner .hpb-icon { font-size: 18px; }
+.home-pro-banner .hpb-text { flex-direction: row; align-items: baseline; gap: 8px; overflow: hidden; white-space: nowrap; }
+.home-pro-banner strong { font-size: 17px; flex: none; }
+.home-pro-banner .hpb-text span { font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; }
+.home-pro-banner .hpb-go { font-size: 18px; }
+@media (max-height: 700px) { .home-pro-banner .hpb-text span { display: inline; } .home-pro-banner { padding: 3px 10px; } }
+
+/* the tutorial's red "don't tap here" pop-up (the answer labels, and the dimmed parts of the tour) */
+.tut-dont { position: fixed; z-index: 99999; left: 50%; transform: translateX(-50%); max-width: min(320px, calc(100vw - 24px)); box-sizing: border-box; padding: 8px 14px; border-radius: 14px; text-align: center; pointer-events: none;
+  background: #e0102f; color: #fff; border: 3px solid #fff; box-shadow: 0 4px 0 #7a0016, 0 0 22px rgba(224,16,47,.8); animation: dontPop 2.3s ease-out forwards; }
+.tut-dont strong { display: block; font-family: var(--font-title, inherit); font-size: 22px; letter-spacing: .5px; line-height: 1.1; }
+.tut-dont span { display: block; font-size: 12.5px; font-weight: 800; line-height: 1.3; margin-top: 2px; }
+@keyframes dontPop { 0% { opacity: 0; transform: translateX(-50%) scale(.7); } 10% { opacity: 1; transform: translateX(-50%) scale(1.06); } 18% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tut-dont { animation: dontFade 2.3s linear forwards; } @keyframes dontFade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } } }
+
+.tour-shield { -webkit-tap-highlight-color: transparent; cursor: not-allowed; }
+
+
+/* ---------- Home: the bonus subject is always shown (it used to vanish on phones under 700px tall) ---------- */
+@media (max-height: 700px) {
+  .home-header .home-tagline { display: inline-block; }
+  .home-header h1 { font-size: clamp(22px, 4.6vh, 30px); }
+  .home-pro-banner { padding: 3px 10px; }
+}
+
+/* ---------- Stats and Quests, tightened like Home so the lists fit one screen on a small phone ---------- */
+.perf-hero { padding: 10px 12px; }
+.perf-goal-line { margin: 4px 0 3px; font-size: 12.5px; }
+.perf-next-label { margin-top: 6px; }
+.perf-next-title { font-size: 17px; margin: 1px 0 5px; }
+.perf-tiles { gap: 6px; margin-bottom: 8px; }
+.perf-tile { padding: 6px 4px; }
+.perf-tile-icon { font-size: 14px; }
+.perf-tile-value { font-size: 19px; }
+.perf-summary { padding: 8px 12px; min-height: 40px; }
+.perf-section { margin-bottom: 7px; }
+#questList .quest-item { padding: 5px 10px; margin: 3px 0; }
+.quest-bar { height: 8px; margin: 3px 0; }
+#questList .quest-bar { height: 8px; margin: 2px 0 1px; }
+.quest-intro { margin: 2px 0 4px; font-size: 11.5px; }
+@media (max-height: 640px) {
+  .quest-intro { margin: 1px 0 2px; }
+  #screenQuests h2 { margin-bottom: 2px; font-size: 20px; }
+  .perf-hero { padding: 8px 10px; }
+  .perf-next-title { font-size: 15px; }
+  .perf-tile-value { font-size: 17px; }
+  .perf-summary { padding: 6px 10px; min-height: 36px; }
+  #questList .quest-item { padding: 3px 8px; margin: 2px 0; }
+  .quest-title { font-size: 11.5px; line-height: 1.15; }
+  .quest-reward { font-size: 10.5px; }
+}
+
+
+/* ---------- text must never be cut off or washed out ---------- */
+/* a button's label wraps (and trims its spacing) instead of being clipped when the font or the phone is narrow */
+.btn { white-space: normal; line-height: 1.15; }
+.perf-step-buttons .btn, .today-next .perf-step-buttons .btn { padding-left: 8px; padding-right: 8px; letter-spacing: .03em; }
+/* locked badges stay readable: only the icon is dimmed, never the name */
+.achievement-item.locked { opacity: 1; }
+.achievement-item.locked .achievement-icon { opacity: .55; }
+.achievement-item.locked .achievement-name { color: rgba(255, 255, 255, .92); }
+.profile-badge-list .achievement-name { font-size: 11px; }
+
+@media (max-height: 640px) {
+  .profile-fold-sum { min-height: 38px; padding: 4px 12px; }
+  .profile-fold { margin-bottom: 6px; }
+  .profile-stat { padding: 3px 2px; }
+  .profile-stats-grid { gap: 4px; margin: 5px 0; }
+}
+
+.profile-actions .btn { white-space: nowrap; flex-direction: row; padding: 6px 14px; min-height: 40px; }
+.profile-vis { font-size: 12.5px; }
+
+.pro-account-gate { display: grid; gap: 8px; padding: 12px; border-radius: 14px; text-align: center; background: rgba(255,210,74,.12); border: 2px solid var(--accent-gold, #ffd24a); }
+.pro-account-gate strong { font-size: 16px; }
+.pro-account-gate span { font-size: 13px; line-height: 1.4; }
+.pro-cancel { border-color: #ff6b81; color: #ff9aa9; }

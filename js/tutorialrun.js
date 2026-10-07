@@ -326,6 +326,7 @@ export function startGameTutorial(env) {
       answerRow.querySelectorAll('.tut-nudge').forEach(function (c) { c.classList.remove('tut-nudge'); });
     }
     clearTimeout(nudgeTimer);
+    if (dontEl && dontEl.parentNode) dontEl.parentNode.removeChild(dontEl);
     if (isExitConfirmOpen()) dismissExitConfirm();
     quietHud(false);
     if (isTourOpen()) skipTour();
@@ -359,15 +360,30 @@ export function startGameTutorial(env) {
   // and point at the lane that tap would have meant.
   var answerRow = document.getElementById('answerRow');
   var nudgeTimer = null;
+  var dontEl = null;
   function onAnswerTap(e) {
     var choice = e.target && e.target.closest ? e.target.closest('.answer-choice') : null;
     if (closed || !choice) return;
     var lane = Number(String(choice.id).replace('ans', ''));
     var where = lane === 0 ? 'left' : lane === 2 ? 'right' : 'middle';
-    say('Those are just the choices. Run into the ' + where + ' gate to pick it: swipe ' + (lane === 1 ? 'to the middle lane' : where) + ' or use the arrow keys.', 'hint');
+    var how = 'Swipe ' + (lane === 1 ? 'to the middle lane' : where) + ' or use the arrow keys to run into the ' + where + ' gate.';
+    say('Those are just labels. ' + how, 'hint');
+    // a red pop-up right under the labels, so nobody mistakes them for buttons
+    if (dontEl && dontEl.parentNode) dontEl.parentNode.removeChild(dontEl);
+    dontEl = document.createElement('div');
+    dontEl.className = 'tut-dont';
+    dontEl.setAttribute('role', 'alert');
+    var r = answerRow.getBoundingClientRect();
+    dontEl.style.top = Math.round(r.bottom + 8) + 'px';
+    var b = document.createElement('strong'); b.textContent = '🚫 DON\'T TAP HERE!';
+    var sp = document.createElement('span'); sp.textContent = 'These are only labels. ' + how;
+    dontEl.appendChild(b); dontEl.appendChild(sp);
+    document.body.appendChild(dontEl);
+    var mine = dontEl;
+    setTimeout(function () { if (mine.parentNode) mine.parentNode.removeChild(mine); }, 2400);
     choice.classList.add('tut-nudge');
     clearTimeout(nudgeTimer);
-    nudgeTimer = setTimeout(function () { choice.classList.remove('tut-nudge'); }, 1600);
+    nudgeTimer = setTimeout(function () { choice.classList.remove('tut-nudge'); }, 800);
   }
   if (answerRow) {
     answerRow.classList.add('tut-tappable');

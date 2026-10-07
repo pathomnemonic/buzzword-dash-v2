@@ -72,7 +72,10 @@ describe('the tour steps', () => {
   });
 });
 
-describe('the tour always teaches with the EKG Line, and never hands out coins', () => {
+import * as shopdata from '../../js/game/shopdata.js';
+const require_items = () => shopdata;
+
+describe('the tour always teaches with the Pill Trail, and never hands out coins', () => {
   let storage, ui, steps;
   beforeEach(async () => {
     localStorage.clear();
@@ -89,23 +92,25 @@ describe('the tour always teaches with the EKG Line, and never hands out coins',
   const applies = (id, ctx = {}) => !(step(id).skipIf && step(id).skipIf(ctx));
   const rowOf = (el) => el.closest('.shop-item').textContent;
 
-  it('a new player is walked through buying the EKG Line (not the cheapest thing they can afford)', () => {
-    expect(storage.get('coins')).toBe(500);
+  it('a new player is walked through buying the Pill Trail (not the cheapest thing they can afford)', () => {
+    expect(storage.get('coins')).toBe(300);
     expect(applies('buy')).toBe(true);
-    expect(rowOf(step('buy').target())).toMatch(/EKG Line/);
+    expect(rowOf(step('buy').target())).toMatch(/Pill Trail/);
     expect(applies('preview')).toBe(false);
-    // a cheaper trail exists, and is not chosen
-    expect(rowOf(step('buy').target())).not.toMatch(/Pill Trail/);
+    // it is the cheapest trail in the Locker: nothing cheaper is passed over
+    const { LOCKER_ITEMS } = require_items();
+    const cheapest = Math.min(...LOCKER_ITEMS.filter((i) => i.type === 'trail' && i.price > 0).map((i) => i.price));
+    expect(storage.get('coins')).toBe(cheapest);
   });
 
   it('having bought it, the tour moves on to wearing it, and a second run buys nothing more', () => {
     step('buy').target().click();
-    expect(storage.ownsItem('trail_ekg')).toBe(true);
+    expect(storage.ownsItem('trail_pills')).toBe(true);
     const coinsAfter = storage.get('coins');
     ui.renderShop();
     expect(applies('buy')).toBe(false);
     // buying wears it at once, so there is nothing left to equip
-    expect(storage.get('equipped').trail).toBe('trail_ekg');
+    expect(storage.get('equipped').trail).toBe('trail_pills');
     expect(applies('equip')).toBe(false);
     ui.renderShop();
     // the tour again: nothing to buy, nothing to equip, the display step still makes sense, and no coins appear or go
@@ -117,7 +122,7 @@ describe('the tour always teaches with the EKG Line, and never hands out coins',
   });
 
   it('someone who owns it but wears something else is not pushed to equip or buy again', () => {
-    storage.data.progression.ownedItems.push('trail_ekg');
+    storage.data.progression.ownedItems.push('trail_pills');
     ui.renderShop();
     expect(applies('buy')).toBe(false);
     expect(applies('preview')).toBe(false);
@@ -130,7 +135,7 @@ describe('the tour always teaches with the EKG Line, and never hands out coins',
     ui.renderShop();
     expect(applies('buy')).toBe(false);
     expect(applies('preview')).toBe(true);
-    expect(step('preview').target().getAttribute('aria-label')).toMatch(/EKG Line/);
+    expect(step('preview').target().getAttribute('aria-label')).toMatch(/Pill Trail/);
     expect(applies('look', {})).toBe(false);
     expect(applies('look', { previewedTrail: true })).toBe(true);
     expect(storage.get('coins')).toBe(50);

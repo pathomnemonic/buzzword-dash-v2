@@ -228,11 +228,11 @@ describe('big saves', () => {
     const fake = fakeStorage(state);
     vi.stubGlobal('localStorage', fake);
     expect(() => { storage.addCoins(100); storage.finalizeRun(summary(500)); }).not.toThrow();
-    expect(storage.get('coins')).toBeGreaterThanOrEqual(600);
+    expect(storage.get('coins')).toBeGreaterThanOrEqual(400);
     expect(warn).toHaveBeenCalled();
     state.full = false;
     storage.addCoins(1);
-    expect(JSON.parse(fake.getItem(KEY)).progression.coins).toBeGreaterThanOrEqual(601);
+    expect(JSON.parse(fake.getItem(KEY)).progression.coins).toBeGreaterThanOrEqual(401);
   });
 });
 

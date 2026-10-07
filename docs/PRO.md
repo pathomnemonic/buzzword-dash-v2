@@ -119,7 +119,7 @@ Server-side receipt validation (add RevenueCat or Iaptic later without changing 
 
 ## The monthly Locker gift
 
-Anyone with Pro (a trial too) can take one free Locker item of their choice each month. The months are counted from when
+Anyone with Pro (not during the free 7-day trial) can take one free Locker item of their choice each month. The months are counted from when
 their Pro began (`pro_entitlements.started_at`, returned by `get_my_pro()` as `since`): a member who joined on the 12th gets
 a new pick on the 12th of every month. The start date is kept across renewals, and begins again after a lapse or when a
-trial turns into a purchase. Re-run `database/pro.sql` after updating (it adds the column; running it again is safe).
+trial turns into a purchase (so the first gift comes with the first purchase). Re-run `database/pro.sql` after updating (it adds the column; running it again is safe).

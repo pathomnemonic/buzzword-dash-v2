@@ -1306,7 +1306,7 @@ function init() {
   var syncLibrary = function () { setLibraryUnlocked(libraryUnlocked()); if (areCardsReady()) { ui.renderHome(); ui.renderSubjects(); } };
   document.addEventListener('dx:pro-changed', syncLibrary);
   document.addEventListener('dx:library-changed', syncLibrary);
-  installProUi({ toast: function (m) { ui._showToast(m); } });
+  installProUi({ toast: function (m) { ui._showToast(m); }, openAccount: function () { if (profileCorner) profileCorner.open(); } });
   refreshPro();
   probeSellable(); // is there anything to buy? (Pro only limits things when there is)
   probeTipJar(); // phone apps: find out whether the store has the tip products

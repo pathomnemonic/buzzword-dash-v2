@@ -51,7 +51,29 @@ describe('Pro screens once switched on', () => {
   beforeEach(() => {
     setSellableForTest(true);
     setProConfigForTest({ enabled: true, gates: { offline_pack: 'locked' } });
-    setProUiDeps({ toast: () => {} });
+    setProUiDeps({ toast: () => {}, lb: { isAuthenticated: () => true, isGuest: () => false } });
+  });
+
+  it('someone without an account is asked to create one, and sees no plans to buy', async () => {
+    setProUiDeps({ lb: { isAuthenticated: () => true, isGuest: () => true } });
+    const iap = createIap({ platform: 'android', loadPlugin: () => Promise.resolve(fakePlugin()) });
+    iap.add(['dxdash_pro_yearly'].map((id) => ({ id, kind: 'subscription' })));
+    setIapForTest(iap);
+    const o = openPaywall({ trigger: 'home_button' });
+    await tick();
+    expect(o.querySelectorAll('button[data-plan]').length).toBe(0);
+    expect(o.querySelector('#proCreateAccount')).toBeTruthy();
+    expect(o.textContent).toMatch(/Create a free account to subscribe/);
+  });
+
+  it('a paying subscriber gets a Cancel subscription button; a trial or a lifetime owner does not', () => {
+    const put = (o) => localStorage.setItem('dx_pro', JSON.stringify(Object.assign({ active: true, source: 'server', until: Date.now() + 86400000 * 200, provenAt: Date.now(), since: Date.now() - 1000 }, o)));
+    put({ plan: 'yearly', trial: false });
+    expect(openPaywall({ trigger: 'settings' }).querySelector('#proCancel')).toBeTruthy();
+    put({ plan: 'trial', trial: true });
+    expect(openPaywall({ trigger: 'settings' }).querySelector('#proCancel')).toBeNull();
+    put({ plan: 'lifetime', trial: false });
+    expect(openPaywall({ trigger: 'settings' }).querySelector('#proCancel')).toBeNull();
   });
 
   it('the paywall lists every Pro feature and puts the one just tapped first', () => {
@@ -85,9 +107,13 @@ describe('Pro screens once switched on', () => {
     const g = proGiftState(mar20);
     expect(g.available).toBe(true);
     expect(g.nextAt).toBe(new Date(2026, 3, 12, 9, 30).getTime()); // next one opens April 12th, not April 1st
-    expect(storage.claimProGift('trail_ekg', g.key)).toBe(true);
-    expect(storage.ownsItem('trail_ekg')).toBe(true);
+    expect(storage.claimProGift('trail_pills', g.key)).toBe(true);
+    expect(storage.ownsItem('trail_pills')).toBe(true);
     expect(proGiftState(mar20).available).toBe(false);
+    // not during the free trial
+    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'trial', trial: true, until: new Date(2027, 0, 12).getTime(), provenAt: mar20, since }));
+    expect(proGiftState(new Date(2026, 3, 13).getTime()).eligible).toBe(false);
+    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'server', plan: 'yearly', trial: false, until: new Date(2027, 0, 12).getTime(), provenAt: mar20, since }));
     expect(storage.claimProGift('trail_fire', proGiftState(mar20).key)).toBe(false);
     expect(proGiftState(new Date(2026, 3, 11).getTime()).available).toBe(false); // the day before
     expect(proGiftState(new Date(2026, 3, 13).getTime()).available).toBe(true);  // after the 12th

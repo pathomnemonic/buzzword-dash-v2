@@ -5,7 +5,7 @@ and they cannot make a real phone call. Run this script on at least: one low-end
 Android, one iPhone from the last three years, and one older iPhone. Write down model, OS version and result.
 
 ## 1. First launch (5 min)
-- Fresh install: tutorial plays, starting coins are 500, the tutorial lets you buy the EKG Line.
+- Fresh install: tutorial plays, starting coins are 300, the tutorial lets you buy the Pill Trail.
 - Daily reward appears once, after the tutorial, never on top of a run.
 - Offline: switch to airplane mode, open the app, play a full run, answer a flashcard, finish an exam block. All work.
 

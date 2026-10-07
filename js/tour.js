@@ -261,6 +261,30 @@ export function startTour(opts) {
     return !!(el.closest && el.closest('#tutExitConfirm'));
   }
 
+  // A tap on the dimmed part: say so in red, near the finger, so it is never taken for a button
+  var dontEl = null;
+  var dontTimer = null;
+  function dontTapHere(e) {
+    var pt = (e.touches && e.touches[0]) || e;
+    var y = typeof pt.clientY === 'number' ? pt.clientY : 80;
+    if (!dontEl) {
+      dontEl = document.createElement('div');
+      dontEl.className = 'tut-dont';
+      dontEl.setAttribute('role', 'alert');
+      document.body.appendChild(dontEl);
+    }
+    dontEl.textContent = '';
+    var b = document.createElement('strong'); b.textContent = '🚫 DON\'T TAP HERE!';
+    var sp = document.createElement('span'); sp.textContent = targetEl ? 'Tap the glowing spot to go on.' : 'Press Next to go on.';
+    dontEl.appendChild(b); dontEl.appendChild(sp);
+    var view = window.innerHeight || 600;
+    dontEl.style.top = Math.round(Math.max(8, Math.min(view - 90, y + 16))) + 'px';
+    // restart the animation
+    dontEl.style.animation = 'none'; void dontEl.offsetWidth; dontEl.style.animation = '';
+    clearTimeout(dontTimer);
+    dontTimer = setTimeout(function () { if (dontEl && dontEl.parentNode) dontEl.parentNode.removeChild(dontEl); dontEl = null; }, 2400);
+  }
+
   // A press on the highlighted element: count it (and swallow it) or let it through, then move on
   function onPress(e) {
     if (closed || !current || internal) return;
@@ -268,6 +292,7 @@ export function startTour(opts) {
     // this also stops a press that arrives by the keyboard (Tab to a button behind the tour, then Enter or Space)
     if (e.target && !inBounds(e.target)) {
       if (e.type === 'click' || e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+      if (e.type === 'pointerdown' || e.type === 'touchstart') dontTapHere(e);
       return;
     }
     if (!targetEl) return;
@@ -315,6 +340,8 @@ export function startTour(opts) {
     st.end(result);
     clearTimeout(advanceTimer);
     if (frame !== null) window.cancelAnimationFrame(frame);
+    clearTimeout(dontTimer);
+    if (dontEl && dontEl.parentNode) dontEl.parentNode.removeChild(dontEl);
     pressEvents.forEach(function (t) { document.removeEventListener(t, onPress, true); });
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', onResize);

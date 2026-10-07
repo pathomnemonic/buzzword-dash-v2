@@ -10,16 +10,18 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, PRO_FEATURES, libraryUnlocked } from './pro.js';
+import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, hasAccount, canCancel, cancelSubscription, PRO_FEATURES, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
 var _toast = function () {};
+var _openAccount = function () {};
 
 /** Hand the screens what they need from the rest of the app. */
 export function setProUiDeps(deps) {
   if (deps.lb !== undefined) _lb = deps.lb;
   if (deps.toast) _toast = deps.toast;
+  if (deps.openAccount) _openAccount = deps.openAccount;
 }
 
 function planLine(p) {
@@ -111,8 +113,19 @@ export function openPaywall(o) {
   var cleanup = function () { releaseFocusTrap(); overlay.remove(); if (opener && opener.focus) { try { opener.focus(); } catch (e) { /* gone */ } } };
   var act = function (action, extra) { track('paywall_action', Object.assign({ action: action, trigger: trigger }, extra || {})); };
 
+  var needsAccount = needsPlan && !hasAccount(_lb);
   if (needsPlan) {
-    if (isNative()) {
+    if (needsAccount) {
+      // buying needs a real account (not a guest): the plans stay out of sight until there is one
+      track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: false });
+      var gate = createElement('div', { className: 'pro-account-gate' });
+      gate.appendChild(createElement('strong', { text: 'Create a free account to subscribe' }));
+      gate.appendChild(createElement('span', { text: 'So your Pro follows you to every device. A new account also gets a free 7-day trial first: no card, nothing to cancel. It takes under a minute.' }));
+      var mk = createElement('button', { className: 'btn btn-gold btn-block', text: 'Create free account', attributes: { type: 'button', id: 'proCreateAccount' } });
+      mk.addEventListener('click', function () { act('account_needed', {}); cleanup(); _openAccount(); });
+      gate.appendChild(mk);
+      list.appendChild(gate);
+    } else if (isNative()) {
       setText(status, 'Loading prices…');
       proPlans().then(function (plans) {
         track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: plans.map(function (p) { return p.id; }), variant: variant('pro_paywall'), pro: false });
@@ -223,18 +236,28 @@ export function openPaywall(o) {
     }
   } else {
     track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: true });
-    if (isNative()) {
+    var paidSub = canCancel();
+    var manageable = isNative() || (webCheckoutEnabled() && proStatus().source === 'server' && paidSub);
+    if (manageable) {
+      if (paidSub) {
+        var cancelBtn = createElement('button', { className: 'btn btn-outline btn-block pro-cancel', text: 'Cancel subscription', attributes: { type: 'button', id: 'proCancel' } });
+        cancelBtn.addEventListener('click', function () {
+          act('cancel_opened', {});
+          cancelBtn.disabled = true;
+          setText(status, 'Opening the cancel page…');
+          cancelSubscription(_lb).then(function (r) { cancelBtn.disabled = false; setText(status, r && r.ok ? 'Cancel any time. You keep Pro until the end of what you have paid for.' : (r && r.error) || 'Could not open the cancel page.'); });
+        });
+        box.appendChild(cancelBtn);
+        box.appendChild(createElement('p', { className: 'setting-sublabel', text: 'Cancelling is one tap here. You keep Pro until the end of the period you paid for, and nothing is charged after that.' }));
+      }
       var manage = createElement('button', { className: 'btn btn-outline btn-block', text: 'Manage subscription', attributes: { type: 'button' } });
-      manage.addEventListener('click', function () { act('manage_opened', {}); getIap().manage(); });
-      box.appendChild(manage);
-    } else if (webCheckoutEnabled() && proStatus().source === 'server') {
-      var wmanage = createElement('button', { className: 'btn btn-outline btn-block', text: 'Manage subscription', attributes: { type: 'button' } });
-      wmanage.addEventListener('click', function () {
+      manage.addEventListener('click', function () {
         act('manage_opened', {});
-        wmanage.disabled = true;
-        webManage(_lb).then(function (r) { wmanage.disabled = false; if (!r.ok) setText(status, r.error); });
+        if (isNative()) { getIap().manage(); return; }
+        manage.disabled = true;
+        webManage(_lb).then(function (r) { manage.disabled = false; if (!r.ok) setText(status, r.error); });
       });
-      box.appendChild(wmanage);
+      box.appendChild(manage);
     }
   }
 
@@ -272,6 +295,11 @@ export function renderProSettings(container) {
   var btn = createElement('button', { className: 'btn btn-gold btn-sm', text: st.active ? 'Manage' : 'See Pro', attributes: { type: 'button' } });
   btn.addEventListener('click', function () { openPaywall({ trigger: 'settings' }); });
   row.appendChild(btn);
+  if (canCancel()) {
+    var cancel = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Cancel', attributes: { type: 'button', id: 'proSettingsCancel', 'aria-label': 'Cancel my Pro subscription' } });
+    cancel.addEventListener('click', function () { cancel.disabled = true; cancelSubscription(_lb).then(function (r) { cancel.disabled = false; if (!(r && r.ok)) _toast((r && r.error) || 'Could not open the cancel page.'); }); });
+    row.appendChild(cancel);
+  }
   container.appendChild(row);
 }
 

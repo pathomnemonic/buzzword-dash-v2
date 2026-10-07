@@ -77,6 +77,7 @@ describe('Pro on the website', () => {
     expect(go).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay_1');
     expect(lb.calls.pop()).toEqual(['checkout', { plan: 'dxdash_pro_yearly' }]);
     expect((await webBuy('x', fakeLb({ isAuthenticated: () => false }), go)).error).toMatch(/Signing in/);
+    expect(await webBuy('x', fakeLb({ isGuest: () => true }), go)).toMatchObject({ ok: false, needsAccount: true }); // a guest cannot buy
     expect((await webBuy('x', fakeLb({ proFunction: async () => ({ error: 'Nope' }) }), go))).toEqual({ ok: false, error: 'Nope' });
     expect((await webBuy('x', fakeLb({ proFunction: async () => ({ url: 'http://evil' }) }), go)).ok).toBe(false); // only https pages
     expect(go).toHaveBeenCalledTimes(1);
@@ -150,9 +151,23 @@ describe('Pro on the website', () => {
 });
 
 describe('the website paywall', () => {
-  it('shows real prices and a sign-up tip for a guest (with the free trial), no library offer, and starts checkout on tap', async () => {
+  it('a guest is asked to create an account first (with the free trial) and sees no plans', async () => {
     await probeSellable();
     const lb = fakeLb({ isGuest: () => true });
+    setProUiDeps({ lb });
+    openPaywall({ trigger: 'test' });
+    await tick(); await tick();
+    expect(document.querySelectorAll('#proPaywall .pro-plan').length).toBe(0);
+    const text = document.getElementById('proPaywall').textContent;
+    expect(text).toMatch(/Create a free account to subscribe/);
+    expect(text).toMatch(/7-day trial/);
+    expect(document.getElementById('proCreateAccount')).toBeTruthy();
+    expect(lb.calls.filter((c) => c[0] === 'checkout')).toEqual([]);
+  });
+
+  it('shows real prices to someone with an account, no library offer, and starts checkout on tap', async () => {
+    await probeSellable();
+    const lb = fakeLb();
     setProUiDeps({ lb });
     openPaywall({ trigger: 'test' });
     await tick(); await tick();
@@ -160,7 +175,6 @@ describe('the website paywall', () => {
     expect(plans).toEqual(['dxdash_pro_yearly', 'dxdash_pro_monthly']);
     const text = document.getElementById('proPaywall').textContent;
     expect(text).toMatch(/\$19\.99 \/ year/);
-    expect(text).toMatch(/7-day Pro trial/);
     expect(text).toMatch(/Stripe/);
     expect(text).toMatch(/Cancel any time/i);
     expect(text).not.toMatch(/Just the cards/);

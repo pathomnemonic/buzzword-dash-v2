@@ -119,7 +119,7 @@ var DEFAULTS = {
 
   // --- Progression ---
   progression: {
-    coins: 500, // exactly the EKG Line, the one thing the tutorial has a new player buy (never more; see economy.test.js)
+    coins: 300, // exactly the cheapest trail (Pills), the one thing the tutorial has a new player buy (never more; see economy.test.js)
     totalCoinsEarned: 100,
     bestScore: 0,
     bestStreak: 0,

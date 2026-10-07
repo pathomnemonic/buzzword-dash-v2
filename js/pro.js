@@ -301,6 +301,18 @@ export function buyPlan(id, deps) {
   });
 }
 
+/** Can this player cancel? A paying subscriber (not a trial, a code or a lifetime purchase). */
+export function canCancel() {
+  var st = proStatus();
+  return !!st.active && !st.trial && /^(yearly|monthly|pass3m)$/.test(st.plan);
+}
+
+/** Take a subscriber to where they cancel: the store's subscriptions page in the apps, Stripe's cancel step on the web. */
+export function cancelSubscription(lb, nav) {
+  if (isNative()) { getIap().manage(); return Promise.resolve({ ok: true }); }
+  return webManage(lb, nav, { cancel: true });
+}
+
 /** Restore purchases made on another phone or before a reinstall. */
 export function restorePro(deps) {
   deps = deps || {};
@@ -349,20 +361,26 @@ export function webPlans(lb) {
   });
 }
 
+/** Is this a signed-in player with a real account (not a guest)? Buying needs one, so Pro follows them to every device. */
+export function hasAccount(lb) {
+  return !!(lb && lb.isAuthenticated && lb.isAuthenticated() && !(lb.isGuest && lb.isGuest()));
+}
+
 /** Send the player to Stripe to pay for a plan (or the library). Resolves {ok: false, error} if it could not start; on success the page leaves. */
 export function webBuy(productId, lb, nav) {
   if (!lb || !lb.proFunction) return Promise.resolve({ ok: false, error: 'Web payments are not available right now.' });
-  if (!lb.isAuthenticated || !lb.isAuthenticated()) return Promise.resolve({ ok: false, error: 'Signing in is needed first. Open Friends → Account, then try again.' });
+  if (!lb.isAuthenticated || !lb.isAuthenticated()) return Promise.resolve({ ok: false, needsAccount: true, error: 'Signing in is needed first. Open Friends → Account, then try again.' });
+  if (!hasAccount(lb)) return Promise.resolve({ ok: false, needsAccount: true, error: 'Create a free account first (Friends → Account), so Pro stays with you.' });
   return lb.proFunction('checkout', { plan: productId }).then(function (r) {
     if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
     return { ok: false, error: (r && r.error) || 'Could not start the payment.' };
   });
 }
 
-/** Open Stripe's page for cancelling or changing a web subscription. */
-export function webManage(lb, nav) {
+/** Open Stripe's page for cancelling or changing a web subscription (`cancel`: straight to the cancel step). */
+export function webManage(lb, nav, opts) {
   if (!lb || !lb.proFunction) return Promise.resolve({ ok: false, error: 'Not available right now.' });
-  return lb.proFunction('portal').then(function (r) {
+  return lb.proFunction('portal', opts && opts.cancel ? { cancel: true } : undefined).then(function (r) {
     if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true }; }
     return { ok: false, error: (r && r.error) || 'Could not open the billing page.' };
   });
@@ -448,7 +466,7 @@ export function proGiftState(now) {
   var t = typeof now === 'number' ? now : Date.now();
   var p = (storage && storage.data && storage.data.progression) || {};
   var since = proStatus().since;
-  var eligible = proLive() && isPro(t) && since > 0;
+  var eligible = proLive() && isPro(t) && !proStatus().trial && since > 0; // (not during the free trial)
   if (!eligible) return { eligible: false, available: false, nextAt: 0, key: '', item: p.proGiftItem || '' };
   var per = giftPeriod(since, t);
   return { eligible: true, available: p.proGiftMonth !== per.key, nextAt: per.next, key: per.key, item: p.proGiftItem || '' };
