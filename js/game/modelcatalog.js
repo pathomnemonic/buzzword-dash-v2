@@ -127,6 +127,33 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Body', materials: ['Main'], palette: METALS },
       { key: 'trim', label: 'Trim', materials: ['Grey'], palette: BRIGHTS }
     ] },
+  { id: 'avatar_m_barbarian', name: 'Triage Bruno', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
+    parts: [
+      { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: EARTH },
+      { key: 'cape', label: 'Cape', materials: ['Cape'], palette: DARKS },
+      { key: 'body', label: 'Vest', materials: ['Body'], palette: HIVIS },
+      { key: 'arms', label: 'Arms', materials: ['Arms'], palette: HIVIS },
+      { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+    ] },
+  { id: 'avatar_m_knight', name: 'Sir Suture', desc: 'Steady hands, shining armor', file: 'characters/knight.glb', price: 6300, icon: '🛡️', color: 0x9aa4b0,
+    parts: [
+      { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: METALS },
+      { key: 'cape', label: 'Cape', materials: ['Cape'], palette: ROYAL },
+      { key: 'body', label: 'Armor', materials: ['Body'], palette: METALS },
+      { key: 'arms', label: 'Arms', materials: ['Arms'], palette: METALS },
+      { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+    ] },
+  { id: 'avatar_m_mage', name: 'Professor Pathos', desc: 'Reads the slides nobody else can', file: 'characters/mage.glb', price: 7650, icon: '🔮', color: 0x6a3aa8,
+    parts: [
+      { key: 'headwear', label: 'Hat', materials: ['Headwear'], palette: ROBES },
+      { key: 'cape', label: 'Cape', materials: ['Cape'], palette: ROBES },
+      { key: 'body', label: 'Robe', materials: ['Body'], palette: ROBES },
+      { key: 'arms', label: 'Arms', materials: ['Arms'], palette: ROBES },
+      { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+    ] },
   { id: 'avatar_m_king', name: 'Attending Arthur', desc: 'The crown suits them', file: 'characters/king.glb', price: 11200, icon: '👑', color: 0xd4a83a,
     parts: [
       { key: 'tunic', label: 'Tunic & boots', materials: ['Metal'], palette: ROYAL },

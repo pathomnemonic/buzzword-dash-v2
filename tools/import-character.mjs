@@ -13,7 +13,9 @@ import { dedup, prune, quantize, meshopt, resample, sparse } from '@gltf-transfo
 import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import { resolveClipName } from '../js/game/clipnames.js';
 
-const [src, dest, ...remove] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const split = argv.includes('--split'); // give each body piece (hat, cape, arms, body, head, legs) its own material, so each can be recolored
+const [src, dest, ...remove] = argv.filter((a) => a !== '--split');
 if (!src || !dest) { console.error('usage: node tools/import-character.mjs <source.glb> <dest.glb> [NodeToRemove ...]'); process.exit(1); }
 
 await MeshoptEncoder.ready;
@@ -27,6 +29,23 @@ for (const node of root.listNodes()) {
   if (remove.includes(node.getName())) { node.dispose(); removed++; }
 }
 
+if (split) {
+  // KayKit characters are separate meshes sharing one swatch texture. A material per piece lets the game tint each piece.
+  const GROUP = { Hat: 'Headwear', Helmet: 'Headwear', Cape: 'Cape', ArmLeft: 'Arms', ArmRight: 'Arms', Body: 'Body', Head: 'Head', LegLeft: 'Legs', LegRight: 'Legs' };
+  const made = {};
+  for (const node of root.listNodes()) {
+    const mesh = node.getMesh();
+    const piece = (node.getName().split('_').pop() || '');
+    if (!mesh || !GROUP[piece]) continue;
+    for (const prim of mesh.listPrimitives()) {
+      const base = prim.getMaterial();
+      const name = GROUP[piece];
+      if (!made[name]) { made[name] = base.clone().setName(name); }
+      prim.setMaterial(made[name]);
+    }
+  }
+}
+
 const names = root.listAnimations().map((a) => a.getName());
 const keep = new Set();
 for (const state of ['run', 'jump', 'slide', 'celebrate', 'death', 'idle', 'wave']) {
@@ -38,7 +57,7 @@ for (const anim of root.listAnimations()) {
   if (!keep.has(anim.getName())) { anim.dispose(); dropped++; }
 }
 // resample drops keyframes that do not change the motion; this pack bakes a key on every frame
-await doc.transform(resample(), dedup(), prune(), sparse(), quantize(), prune(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
+await doc.transform(resample(), dedup({ keepUniqueNames: true }), prune(), sparse(), quantize(), prune(), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
 // Accessors that nothing uses any more (the dropped clips' keyframes) would still be written out
 let orphans = 0;
 for (const accessor of root.listAccessors()) {

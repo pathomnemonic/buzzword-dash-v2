@@ -43,6 +43,9 @@ export var PROFILES = {
   avatar_m_wizard:     { name: 'Pharmacist Pip',      kit: 'voice',    f0: 112, size: 0.97, bright: 0.9 },
   avatar_m_alien:      { name: 'Anatomy Abe',         kit: 'alien',    f0: 520, size: 1.3,  bright: 1.4 },
   avatar_m_robot:      { name: 'MRI Mo',     kit: 'robot',    f0: 330, size: 1.0,  bright: 1.0 },
+  avatar_m_barbarian:  { name: 'Triage Bruno',      kit: 'voice',    f0: 92,  size: 0.88, bright: 0.8 },
+  avatar_m_knight:     { name: 'Sir Suture',        kit: 'voice',    f0: 108, size: 0.94, bright: 0.85 },
+  avatar_m_mage:       { name: 'Professor Pathos',  kit: 'voice',    f0: 168, size: 1.08, bright: 1.05 },
   avatar_m_king:       { name: 'Attending Arthur',          kit: 'voice',    f0: 118, size: 0.96, bright: 0.9 }
 };
 

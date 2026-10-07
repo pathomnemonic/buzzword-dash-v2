@@ -64,6 +64,18 @@ export var STORIES = {
     short: 'Runs on caffeine and coolant.',
     long: 'Mo hums when he thinks, and the hum gets louder around a hard case. He sees structure where others see a smudge and is very patient with anyone who asks for a rescan. He believes the human body is the best-engineered system there is, apart from the occasional wiring issue.'
   },
+  avatar_m_barbarian: {
+    short: 'Sorts the chaos, loudly.',
+    long: 'Bruno is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
+  },
+  avatar_m_knight: {
+    short: 'Steady hands, shining armor.',
+    long: 'Sir Suture is the surgeon who has never once rushed a closure. The theatre goes quiet when the stitches start, because the stitches are the point. They say the armor is just a very thorough gown. Trainees remember the one rule: slow is smooth, and smooth is fast.'
+  },
+  avatar_m_mage: {
+    short: 'Reads the slides nobody else can.',
+    long: 'Professor Pathos looks at a smear on glass and sees the whole story of a disease. The other doctors bring questions; the professor answers with a slide and a raised eyebrow. They are rarely seen outside the lab, and always on time for the one conference that matters. A cup of tea is always cooling next to the microscope.'
+  },
   avatar_m_king: {
     short: 'The crown suits them.',
     long: 'Arthur has been running the service so long that the residents call the pager system "the court". They are fair, funny and impossible to bluff. Teaching rounds with them are an event because they ask the one question you hoped they would not. Everyone who has trained under them remembers the first thing they got wrong.'
