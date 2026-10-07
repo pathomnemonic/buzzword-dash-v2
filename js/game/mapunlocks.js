@@ -5,6 +5,8 @@
  * (5, 10, 15, ...), in the order below. A player who does not want to wait can buy any map early in the Locker.
  */
 
+import { isPremiumItem } from '../../supabase/functions/_shared/premium.js';
+
 export var UNLOCK_EVERY = 5;
 
 /** Map item ids in the order they unlock: the cheaper maps first, the most elaborate last. Every one is a bright, animated world. */
@@ -19,6 +21,12 @@ export var MAP_ORDER = [
 
 /** The level a map unlocks at, or 0 for a map that is not part of the rewards (the four free ones). */
 export function mapUnlockLevel(itemId) {
+  if (isPremiumItem(itemId)) return 0; // sold for money, not a level reward any more
+  return legacyMapUnlockLevel(itemId);
+}
+
+/** Where a map unlocked before some became premium (kept so players who had already reached it keep it). */
+export function legacyMapUnlockLevel(itemId) {
   var i = MAP_ORDER.indexOf(itemId);
   return i < 0 ? 0 : (i + 1) * UNLOCK_EVERY;
 }

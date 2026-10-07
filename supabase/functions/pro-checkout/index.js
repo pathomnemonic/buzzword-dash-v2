@@ -148,12 +148,20 @@ Deno.serve(async function (req) {
       return json({ ok: true, granted: granted });
     }
 
+    // What this deployment can do. The app asks first, so it never offers something the backend cannot deliver.
+    if (body.action === 'capabilities') {
+      var probe = await admin.rpc('pro_has_item', { p_user: user.id, p_item: 'probe' });
+      return json({ ok: true, items: !probe.error });
+    }
+
     // A premium Locker item (a one-time purchase, priced from premium.js)
     if (body.action === 'item') {
       var itemId = String(body.item || '');
       if (!isPremiumItem(itemId)) return json({ error: 'That item is not for sale.' }, 400);
+      // Never take money the backend cannot turn into the item: if its database is not ready, stop before Stripe is touched.
       var owns = await admin.rpc('pro_has_item', { p_user: user.id, p_item: itemId });
-      if (owns && owns.data === true) return json({ error: 'You already own this item.' }, 409);
+      if (owns.error) { console.error('pro-checkout item: database not ready', owns.error.message); return json({ error: 'Locker items are not switched on just yet. You have not been charged.' }, 503); }
+      if (owns.data === true) return json({ error: 'You already own this item.' }, 409);
       var staleCust = function (e) { return /no such customer/i.test((e && e.message) || ''); };
       var buildItem = function (cust) {
         var pr = itemCheckoutParams(itemId, user.id, env, { customer: cust || undefined, name: String(body.name || '') });

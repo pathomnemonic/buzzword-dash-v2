@@ -5,7 +5,7 @@
  * `this` is the UI controller and nothing about how they are called has changed.
  */
 
-import { requireGate, proGiftState, buyPremiumItem, itemPriceLabel, hasAccount } from './pro.js';
+import { requireGate, proGiftState, buyPremiumItem, itemPriceLabel, itemsAvailable, probeItems, hasAccount } from './pro.js';
 import { renderProTab, renderRedeemRow, applyProLock } from './proui.js';
 import { tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -774,6 +774,8 @@ export var settingsMethods = {
     var self = this;
     var shopCoinsEl = document.getElementById('shopCoins');
     if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
+    var lbNow = this._lb();
+    if (!this._itemsProbed && lbNow && hasAccount(lbNow)) { this._itemsProbed = true; probeItems(lbNow); document.addEventListener('dx:items-capability', function () { var shop = document.getElementById('screenShop'); if (shop && shop.classList.contains('active')) self.renderShop(); }); }
     var giftBar = document.getElementById('shopGiftBar');
     if (giftBar) {
       var gs = proGiftState();
@@ -942,39 +944,42 @@ export var settingsMethods = {
           });
           btnWrap.appendChild(equipBtn);
         } else if (item.premium) {
-          // sold for real money only: the dollar price is on the button, and it asks twice before leaving for the payment page
+          // sold for real money only: the dollar price is on the button, and it asks twice before leaving for the payment page.
+          // Every tap says something, so it never looks like nothing happened.
           var priceText = itemPriceLabel(item);
+          var soon = !priceText || !itemsAvailable();
           var moneyBtn = createElement('button', {
             className: 'btn btn-money btn-sm',
-            text: priceText ? '💎 ' + priceText : '💎 Soon',
-            attributes: { type: 'button', 'data-premium': item.id, 'aria-label': 'Buy ' + item.name + (priceText ? ' for ' + priceText : '') + ' with real money' }
+            text: soon ? '💎 Soon' : '💎 ' + priceText,
+            attributes: { type: 'button', 'data-premium': item.id, 'aria-label': soon ? item.name + ' is coming soon' : 'Buy ' + item.name + ' for ' + priceText + ' with real money' }
           });
-          if (!priceText) moneyBtn.disabled = true;
           var armedMoney = false;
           var moneyTimer = null;
           moneyBtn.addEventListener('click', function () {
+            if (soon) { self._showToast('💎 ' + item.name + ' is coming soon. Nothing was charged.', 3500); return; }
             if (!hasAccount(self._lb())) {
-              self._showToast('Create a free account first, so what you buy stays with you.');
+              self._showToast('Create a free account first, so what you buy stays with you.', 4000);
               if (self.onOpenAccount) self.onOpenAccount();
               return;
             }
             if (!armedMoney) {
               armedMoney = true;
               setText(moneyBtn, 'Buy for ' + priceText + '? Tap again');
-              moneyTimer = setTimeout(function () { armedMoney = false; setText(moneyBtn, '💎 ' + priceText); }, 4000);
+              moneyTimer = setTimeout(function () { armedMoney = false; setText(moneyBtn, '💎 ' + priceText); }, 5000);
               return;
             }
             clearTimeout(moneyTimer);
             moneyBtn.disabled = true;
-            setText(moneyBtn, 'One moment…');
+            setText(moneyBtn, 'Opening checkout…');
             trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'started' });
             buyPremiumItem(item, self._lb()).then(function (r) {
               if (r && r.ok && r.owned) { self._showToast('💎 ' + item.name + ' is yours!'); self.renderShop(); return; }
               if (r && r.ok) return; // the page is leaving for Stripe
-              moneyBtn.disabled = false; armedMoney = false; setText(moneyBtn, '💎 ' + priceText);
-              if (r && r.cancelled) return;
+              moneyBtn.disabled = false; armedMoney = false;
+              if (r && r.cancelled) { setText(moneyBtn, '💎 ' + priceText); return; }
               trackEvent('premium_item', { item: String(item.id).slice(0, 40), action: 'failed' });
-              self._showToast((r && r.error) || 'That did not go through. You have not been charged.');
+              self._showToast((r && r.error) || 'That did not go through. You have not been charged.', 5000);
+              if (!itemsAvailable()) self.renderShop(); else setText(moneyBtn, '💎 ' + priceText);
             });
           });
           btnWrap.appendChild(moneyBtn);

@@ -9,12 +9,21 @@
  * before it became premium keeps it.
  */
 export var PREMIUM_ITEMS = {
-  avatar_m_king: 499,
-  monster_m_dragon: 299,
-  pal_dragon: 199,
-  trail_rainbow: 199,
-  cloth_cape_rainbow: 299,
-  gear_wings: 299
+  // heroes
+  avatar_m_king: 299,      // Attending Arthur
+  avatar_m_alien: 249,     // Anatomy Abe
+  avatar_m_robot: 249,     // MRI Mo
+  avatar_m_wizard: 199,    // Pharmacist Pip
+  avatar_m_ninja: 199,     // Night-Shift Nico
+  // the monster
+  monster_m_dragon: 149,   // Dragon Lecturer
+  // maps
+  map_aquarium_imaging_center: 149,
+  map_dna_helix_tunnel: 149,
+  // trails
+  trail_fire: 99,          // Fire Trail
+  trail_neural: 99,        // Neural Sparks
+  trail_blood: 99          // Blood Cells
 };
 
 /** Is this item sold for money only? */

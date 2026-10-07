@@ -20,8 +20,8 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { isPremiumItem } from '../supabase/functions/_shared/premium.js';
-import { mapUnlockLevel } from './game/mapunlocks.js';
+import { isPremiumItem, PREMIUM_ITEMS } from '../supabase/functions/_shared/premium.js';
+import { mapUnlockLevel, legacyMapUnlockLevel } from './game/mapunlocks.js';
 import { levelFromXp } from './progress.js';
 import { repairData, sanitizeCollections } from './sanity.js';
 import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetween } from './studystreak.js';
@@ -146,6 +146,7 @@ var DEFAULTS = {
     loginStreak: 0,
     xp: 0,
     // One-time migrations: these must be listed here or they are forgotten on the next load
+    premiumKept: false, // one-time: premium maps a player had already unlocked by level were kept for them
     proGiftItem: '',  // the item the one-time Pro gift was spent on (js/pro.js proGiftState); empty until it is used
     modelIntroSeen: false,
     monsterDefaultSeen: false,
@@ -789,6 +790,17 @@ class Storage {
     if (!d.settings.glowDefaultSeen) {
       d.settings.glowDefaultSeen = true;
       d.settings.glowEffects = false;
+    }
+
+    // Some items became premium (sold for money). Whatever a player already had stays theirs: maps they had already reached
+    // by level are written into what they own, once; anything bought with coins is already in that list.
+    if (!d.progression.premiumKept) {
+      d.progression.premiumKept = true;
+      var lvNow = levelFromXp(d.progression.xp || 0).level;
+      Object.keys(PREMIUM_ITEMS).forEach(function (id) {
+        var at = legacyMapUnlockLevel(id);
+        if (at > 0 && lvNow >= at && d.progression.ownedItems.indexOf(id) < 0) d.progression.ownedItems.push(id);
+      });
     }
 
     // The starting monster is now an animated 3D one (the Ghost). Players still on the

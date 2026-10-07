@@ -211,7 +211,8 @@ describe('retired duplicate characters', () => {
     expect(owned).toContain('avatar_m_robot');                       // the robot they paid for, in its other form
     expect(storage.data.progression.equipped.skin).toBe('avatar_intern');
     // 400 + 1000 back (they already had Dr. Dash), and 9000 less the price of the robot they are given instead
-    const robot = SHOP_ITEMS.find((i) => i.id === 'avatar_m_robot').price;
+    const robotItem = SHOP_ITEMS.find((i) => i.id === 'avatar_m_robot');
+    const robot = robotItem.premium ? robotItem.coinValue : robotItem.price; // (MRI Mo is now sold for money; the refund still counts its old coin value)
     expect(storage.data.progression.coins).toBe(100 + 400 + 1000 + Math.max(0, 9000 - robot));
     // running it again changes nothing
     storage._ensureInvariants();

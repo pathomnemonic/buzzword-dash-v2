@@ -11,7 +11,7 @@ describe('maps in the Locker', () => {
     expect(maps.map((m) => m.skinId).sort()).toEqual(outdoor.map((s) => s.id).sort());
     maps.forEach((m) => {
       expect(m.id).toBe(mapItemId(SKINS.find((s) => s.id === m.skinId)));
-      expect(m.price).toBeGreaterThan(0);
+      expect(m.price > 0 || m.premium).toBe(true); // (a map sold for real money has a dollar price instead)
       expect(m.name).toBe(SKINS.find((s) => s.id === m.skinId).name);
     });
     expect(SKINS.filter(isIndoorSkin).length).toBeGreaterThanOrEqual(4);
@@ -148,8 +148,34 @@ describe('maps as level rewards', () => {
   it('every non-free map unlocks at a level, one more every five levels, and the four rooms never do', async () => {
     const { MAP_ORDER, mapUnlockLevel } = await import('../../js/game/mapunlocks.js');
     expect(MAP_ORDER.slice().sort()).toEqual(maps.map((m) => m.id).sort());
-    MAP_ORDER.forEach((id, i) => expect(mapUnlockLevel(id)).toBe((i + 1) * 5));
+    const { isPremiumItem } = await import('../../supabase/functions/_shared/premium.js');
+    const { legacyMapUnlockLevel } = await import('../../js/game/mapunlocks.js');
+    // (a map sold for money is no longer a level reward; the others keep the level they always had)
+    MAP_ORDER.forEach((id, i) => { expect(legacyMapUnlockLevel(id)).toBe((i + 1) * 5); expect(mapUnlockLevel(id)).toBe(isPremiumItem(id) ? 0 : (i + 1) * 5); });
     expect(mapUnlockLevel('map_hospital_hallway')).toBe(0);
+  });
+
+  it('a premium map is not given by level, but one a player had already reached stays theirs (once)', async () => {
+    const { xpAtLevel } = await import('../../js/progress.js');
+    storage.set('xp', xpAtLevel(100));
+    expect(storage.ownsItem('map_aquarium_imaging_center')).toBe(false); // level alone no longer gives it
+    expect(storage.ownsItem('map_dna_helix_tunnel')).toBe(false);
+    // an older save (before premium) whose owner had already reached those levels keeps both
+    const old = JSON.parse(JSON.stringify(storage.data));
+    old.progression.xp = xpAtLevel(100);
+    old.progression.premiumKept = false;
+    old.progression.ownedItems = old.progression.ownedItems.filter((i) => !i.startsWith('map_'));
+    localStorage.setItem('buzzword_dash_v1', JSON.stringify(old));
+    storage.load();
+    expect(storage.ownsItem('map_aquarium_imaging_center')).toBe(true);
+    expect(storage.ownsItem('map_dna_helix_tunnel')).toBe(true);
+    // and a newcomer who levels up later is not given them
+    const fresh = JSON.parse(JSON.stringify(old));
+    fresh.progression.xp = 0; fresh.progression.premiumKept = true; fresh.progression.ownedItems = fresh.progression.ownedItems.filter((i) => !i.startsWith('map_'));
+    localStorage.setItem('buzzword_dash_v1', JSON.stringify(fresh));
+    storage.load();
+    storage.set('xp', xpAtLevel(100));
+    expect(storage.ownsItem('map_aquarium_imaging_center')).toBe(false);
   });
 
   it('reaching the level makes the map yours; before that it can still be bought', async () => {

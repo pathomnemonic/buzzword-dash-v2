@@ -117,7 +117,7 @@ describe('animated glTF avatar', () => {
     const avatar = AVATARS.find((a) => a.id === 'avatar_m_robot');
     expect(avatar.isModel).toBe(true);
     expect(avatar.modelUrl).toBe('models/characters/robot.glb');
-    expect(SHOP_ITEMS.some((i) => i.id === 'avatar_m_robot' && i.price > 0)).toBe(true);
+    expect(SHOP_ITEMS.some((i) => i.id === 'avatar_m_robot' && (i.price > 0 || i.premium))).toBe(true);
     // The second robot was a duplicate and is gone
     expect(AVATARS.some((a) => a.id === 'avatar_robopro')).toBe(false);
   });

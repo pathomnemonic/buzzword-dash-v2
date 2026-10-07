@@ -141,8 +141,10 @@ After updating: re-run `database/pro.sql`, then `supabase functions deploy pro-c
 
 A few Locker items are sold for money only, with a dollar price on the button (`supabase/functions/_shared/premium.js` lists
 them and the prices; the app and the payment function read the same list, so the button and the charge always agree):
-the King hero ($4.99), the Dragon monster, the Rainbow Cape, Angel Wings ($2.99 each), the Dragon buddy and the Rainbow trail
-($1.99 each). They sort to the bottom of their list, cannot be bought with coins, and cannot be taken as the Pro gift.
+five heroes (Attending Arthur $2.99; Anatomy Abe, MRI Mo $2.49; Pharmacist Pip, Night-Shift Nico $1.99), the Dragon Lecturer
+monster ($1.49), two maps (Aquarium Imaging Center, DNA Helix Tunnel, $1.49) and three trails (Fire, Neural Sparks, Red Blood
+Cells, $0.99). They sort to the bottom of their list, cannot be bought with coins, and cannot be taken as the Pro gift.
+Anyone who already owned one, or had reached the level that used to unlock one of the maps, keeps it (a one-time migration).
 Anyone who already owned one before this keeps it.
 
 - **How a purchase works.** On the website, tapping the price twice opens a Stripe Checkout page created by `pro-checkout`
@@ -150,7 +152,9 @@ Anyone who already owned one before this keeps it.
   (`pro_grant_item`, stored in the `pro_items` table) and `get_my_pro()` lists the member's items, which the app merges
   into their Locker on every refresh. In the phone apps each item is a one-time store product named
   `dxdash_item_<item id>` (create them in Play Console / App Store Connect); until the store lists one, its button
-  reads "Soon" and is disabled.
+  reads "Soon" and is disabled. On the web, the app first asks `pro-checkout` (action `capabilities`) whether it
+  supports items; an older deployment shows "Soon" and nobody is sent to pay for something it cannot deliver. Every tap says
+  something (price confirm, sign-in prompt, "coming soon", or an explained failure).
 - **Safety.** A member needs a real account to buy (so the item stays with them), a double purchase is refused, the grant is
   safe to repeat, a lost payment event is put right by the `sync` action (it also finds items), and the app only ever
   adds items: a failed or empty answer cannot remove one. A full refund takes the item back on the server.

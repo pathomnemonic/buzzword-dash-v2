@@ -484,6 +484,31 @@ export function webBuy(productId, lb, nav) {
   });
 }
 
+var _itemsCap = null; // null: not known yet, true: the backend can sell items, false: it cannot (an older deployment)
+/** Can real-money items be sold right now? Optimistic until the backend says otherwise. */
+export function itemsAvailable() { return _itemsCap !== false; }
+
+/**
+ * Ask the payment function whether it can sell Locker items (an older deployment answers "Unknown request" or says its
+ * database is not ready). Asked once in a while; the Locker shows "Soon" instead of a price when the answer is no, so
+ * nobody is ever offered a purchase that cannot be delivered.
+ */
+export function probeItems(lb) {
+  if (isNative() || !lb || !lb.proFunction || !hasAccount(lb)) return Promise.resolve(itemsAvailable());
+  if (_itemsCap === true) return Promise.resolve(true);
+  return lb.proFunction('capabilities').then(function (r) {
+    var next = r && r.ok ? r.items === true : (r && /unknown request|not set up|not switched on/i.test(r.error || '') ? false : null);
+    if (next !== null && next !== _itemsCap) {
+      _itemsCap = next;
+      if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:items-capability'));
+    }
+    return itemsAvailable();
+  }).catch(function () { return itemsAvailable(); });
+}
+
+/** Tests: forget what was learned about the backend. */
+export function resetItemsForTest() { _itemsCap = null; }
+
 /** The price shown on a premium item's button: dollars on the website, the store's own price in the phone apps ('' until it is known). */
 export function itemPriceLabel(item) {
   if (!item || !item.premium) return '';
@@ -511,7 +536,9 @@ export function buyPremiumItem(item, lb, nav) {
   if (!lb.proFunction) return Promise.resolve({ ok: false, error: 'Payments are not available right now.' });
   return lb.proFunction('item', { item: item.id, name: item.name }).then(function (r) {
     if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
-    return { ok: false, error: (r && r.error) || 'Could not start the payment.' };
+    var msg = (r && r.error) || 'Could not start the payment.';
+    if (/unknown request/i.test(msg)) { _itemsCap = false; msg = 'Locker items are not switched on just yet. You have not been charged.'; }
+    return { ok: false, error: msg };
   });
 }
 
