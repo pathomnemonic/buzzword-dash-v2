@@ -129,7 +129,8 @@ export var CHARACTER_MODELS = [
     ] },
   { id: 'avatar_m_hooded', name: 'Cath-Lab Cass', desc: 'In, through the artery, out again', file: 'characters/rogue-hooded.glb', price: 5600, icon: '🥷', color: 0x3fa98a,
     parts: [
-      { key: 'hood', label: 'Hood', materials: ['Head'], palette: NINJA },
+      { key: 'hood', label: 'Hood', materials: ['Head'], palette: NINJA, flat: true },
+      { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES },
       { key: 'cape', label: 'Cape', materials: ['Cape'], palette: NINJA },
       { key: 'body', label: 'Jacket', materials: ['Body'], palette: SCRUBS },
       { key: 'arms', label: 'Sleeves', materials: ['Arms'], palette: SCRUBS },
@@ -142,7 +143,8 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Vest', materials: ['Body'], palette: HIVIS },
       { key: 'arms', label: 'Arms', materials: ['Arms'], palette: HIVIS },
       { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
-      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+      { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Head'], palette: HAIR_COLORS, flat: true }
     ] },
   { id: 'avatar_m_knight', name: 'Sir Suture', desc: 'Steady hands, shining armor', file: 'characters/knight.glb', price: 6300, icon: '🛡️', color: 0x9aa4b0,
     parts: [
@@ -151,7 +153,7 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Armor', materials: ['Body'], palette: METALS },
       { key: 'arms', label: 'Arms', materials: ['Arms'], palette: METALS },
       { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
-      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+      { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES }
     ] },
   { id: 'avatar_m_mage', name: 'Professor Pathos', desc: 'Reads the slides nobody else can', file: 'characters/mage.glb', price: 7650, icon: '🔮', color: 0x6a3aa8,
     parts: [
@@ -160,7 +162,8 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Robe', materials: ['Body'], palette: ROBES },
       { key: 'arms', label: 'Arms', materials: ['Arms'], palette: ROBES },
       { key: 'legs', label: 'Legs', materials: ['Legs'], palette: DARKS },
-      { key: 'skin', label: 'Skin', materials: ['Head'], palette: SKIN_TONES }
+      { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Head'], palette: HAIR_COLORS, flat: true }
     ] },
   { id: 'avatar_m_king', name: 'Attending Arthur', desc: 'The crown suits them', file: 'characters/king.glb', price: 11200, icon: '👑', color: 0xd4a83a,
     parts: [

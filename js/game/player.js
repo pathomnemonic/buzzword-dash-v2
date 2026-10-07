@@ -1108,7 +1108,7 @@ export function modelTints(avatar) {
     var tints = [];
     (avatar.parts || []).forEach(function (part) {
         var hex = chosen[part.key];
-        if (hex) tints.push({ names: part.materials, color: hex });
+        if (hex) tints.push({ names: part.materials, color: hex, flat: !!part.flat });
     });
     return tints;
 }

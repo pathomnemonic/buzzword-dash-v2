@@ -125,14 +125,15 @@ function applyTint(root, tints) {
   tints.forEach(function (t) {
     if (!t || !t.names || !t.color) return;
     var c = new THREE.Color(t.color);
-    t.names.forEach(function (n) { byName[n] = c; });
+    t.names.forEach(function (n) { byName[n] = { color: c, flat: !!t.flat }; });
   });
   root.traverse(function (o) {
     if (!o.isMesh || !o.material || Array.isArray(o.material)) return;
-    var c = byName[o.material.name];
-    if (!c) return;
+    var hit = byName[o.material.name];
+    if (!hit) return;
     var m = o.material.clone();
-    m.color.copy(c);
+    m.color.copy(hit.color);
+    if (hit.flat) m.map = null; // a flat piece (hair, a hood) takes the exact color; a painted one is only tinted
     m.userData.shared = false;
     o.material = m;
   });
