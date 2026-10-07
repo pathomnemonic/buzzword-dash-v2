@@ -71,7 +71,9 @@ export var CHARACTER_MODELS = [
       { key: 'shirt', label: 'Shirt', materials: ['Shirt'], palette: BRIGHTS },
       { key: 'sleeves', label: 'Sleeves', materials: ['UnderShirt'], palette: EARTH },
       { key: 'pants', label: 'Pants', materials: ['Pants'], palette: EARTH },
-      { key: 'boots', label: 'Boots', materials: ['Boots'], palette: DARKS }
+      { key: 'boots', label: 'Boots', materials: ['Boots'], palette: DARKS },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
   { id: 'avatar_m_explorer', name: 'Rural Rex', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 2100, icon: '🏹', color: 0xc9a06a,
     parts: [
@@ -81,13 +83,16 @@ export var CHARACTER_MODELS = [
     parts: [
       { key: 'shirt', label: 'Shirt', materials: ['Green'], palette: BRIGHTS },
       { key: 'pants', label: 'Pants', materials: ['Brown'], palette: EARTH },
-      { key: 'pack', label: 'Backpack', materials: ['LightGreen'], palette: HIVIS }
+      { key: 'pack', label: 'Backpack', materials: ['LightGreen'], palette: HIVIS },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
   { id: 'avatar_m_rogue', name: 'Dark-Room Dex', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 3200, icon: '🗡️', color: 0x55506a,
     parts: [
       { key: 'cloak', label: 'Hood & cloak', materials: ['DarkBrown'], palette: ROBES },
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
-      { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
+      { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
     ] },
   { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 3850, icon: '🏹', color: 0x3fa98a,
     parts: [
@@ -169,7 +174,10 @@ export var CHARACTER_MODELS = [
     parts: [
       { key: 'tunic', label: 'Tunic & boots', materials: ['Metal'], palette: ROYAL },
       { key: 'trousers', label: 'Trousers', materials: ['DarkBrown'], palette: DARKS },
-      { key: 'sleeves', label: 'Sleeves', materials: ['Blue'], palette: ROYAL }
+      { key: 'sleeves', label: 'Sleeves', materials: ['Blue'], palette: ROYAL },
+      { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
+      { key: 'hair', label: 'Hair & beard', materials: ['Hair_White'], palette: HAIR_COLORS },
+      { key: 'crown', label: 'Crown', materials: ['Gold'], palette: METALS }
     ] }
 ];
 
