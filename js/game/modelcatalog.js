@@ -33,12 +33,14 @@ var ROBES = swatches([['Midnight', 0x24306a], ['Violet', 0x6a3aa8], ['Crimson', 
 var NINJA = swatches([['Black', 0x15161a], ['Crimson', 0xa82a2a], ['Navy', 0x1f2f5a], ['Forest', 0x2a5a3a], ['Violet', 0x4a2a6a], ['Snow', 0xe8eef2]]);
 var SKIN_TONES = swatches([['Fair', 0xf3d2b6], ['Light', 0xe6b48c], ['Tan', 0xc98f62], ['Brown', 0xa8734d], ['Deep', 0x6f4630], ['Ebony', 0x4a2e20]]);
 var HAIR_COLORS = swatches([['Black', 0x15110f], ['Dark brown', 0x3b2418], ['Auburn', 0x7a3a22], ['Blonde', 0xe0c070], ['Ginger', 0xb4521f], ['Silver', 0xb8bcc4], ['Pink', 0xe86fa0], ['Blue', 0x3a7ae0]]);
+// for characters painted as one picture: the whole figure takes the tint, so the choices are light enough to stay readable
+var WASH = swatches([['Rose', 0xff9fbd], ['Sky', 0x9fd0ff], ['Mint', 0x9fffcf], ['Sunny', 0xffe58a], ['Peach', 0xffb98a], ['Lilac', 0xcfa8ff], ['Ice', 0xd8f0ff]]);
 var SHOES = swatches([['White', 0xf2f2f2], ['Black', 0x1d1f24], ['Pink', 0xe86fa0], ['Sky', 0x7fb8f0], ['Red', 0xd93030]]);
 
 /**
  * The animated 3D characters. `parts` are the pieces of a character a player can recolor (each part
  * is one or more of the model's materials), with a palette that suits that piece. Characters whose
- * model is a single painted texture (the Ranger, the Zombie, the Skeleton) have no parts.
+ * model is a single painted texture (Rural Rex, Stat Sadie, Decaffeinated Dan, Femur Fred) get one part that tints the whole figure.
  * Names stay plain where the model is not a medical character.
  */
 export var CHARACTER_MODELS = [
@@ -71,7 +73,10 @@ export var CHARACTER_MODELS = [
       { key: 'pants', label: 'Pants', materials: ['Pants'], palette: EARTH },
       { key: 'boots', label: 'Boots', materials: ['Boots'], palette: DARKS }
     ] },
-  { id: 'avatar_m_explorer', name: 'Rural Rex', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 2100, icon: '🏹', color: 0xc9a06a },
+  { id: 'avatar_m_explorer', name: 'Rural Rex', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 2100, icon: '🏹', color: 0xc9a06a,
+    parts: [
+      { key: 'tint', label: 'Field wash', materials: ['Atlas'], palette: WASH }
+    ] },
   { id: 'avatar_m_adventurer', name: 'Locum Lou', desc: 'Runs toward the unknown', file: 'characters/adventurer.glb', price: 2650, icon: '🎒', color: 0x8a6a3a,
     parts: [
       { key: 'shirt', label: 'Shirt', materials: ['Green'], palette: BRIGHTS },
@@ -84,14 +89,23 @@ export var CHARACTER_MODELS = [
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
       { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH }
     ] },
-  { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 3850, icon: '🏹', color: 0x3fa98a },
-  { id: 'avatar_m_zombie', name: 'Decaffeinated Dan', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 4550, icon: '🧟', color: 0x6a9a5a },
+  { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 3850, icon: '🏹', color: 0x3fa98a,
+    parts: [
+      { key: 'tint', label: 'Scout wash', materials: ['rogue_texture'], palette: WASH }
+    ] },
+  { id: 'avatar_m_zombie', name: 'Decaffeinated Dan', desc: 'Shuffles along at its own pace', file: 'characters/zombie.glb', price: 4550, icon: '🧟', color: 0x6a9a5a,
+    parts: [
+      { key: 'tint', label: 'Ghoul wash', materials: ['Atlas'], palette: WASH }
+    ] },
   { id: 'avatar_m_ninja', name: 'Night-Shift Nico', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 5250, icon: '🥷', color: 0x333344,
     parts: [
       { key: 'outfit', label: 'Outfit', materials: ['Ninja_Main'], palette: NINJA },
       { key: 'sash', label: 'Sash', materials: ['Belt'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_skeleton', name: 'Femur Fred', desc: 'Rattles along with a spring in its step', file: 'characters/skeleton.glb', price: 5950, icon: '💀', color: 0xe8e4d0 },
+  { id: 'avatar_m_skeleton', name: 'Femur Fred', desc: 'Rattles along with a spring in its step', file: 'characters/skeleton.glb', price: 5950, icon: '💀', color: 0xe8e4d0,
+    parts: [
+      { key: 'tint', label: 'Bone wash', materials: ['Atlas.003', 'Material.002'], palette: WASH }
+    ] },
   { id: 'avatar_m_orc', name: 'Gurney Grog', desc: 'Big, green and unbothered', file: 'characters/orc.glb', price: 5950, icon: '🪓', color: 0x5a7a3a,
     parts: [
       { key: 'skin', label: 'Skin', materials: ['Orc_Main'], palette: ORC },

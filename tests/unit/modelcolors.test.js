@@ -93,3 +93,16 @@ describe('each character is customized in its own way', () => {
     });
   });
 });
+
+describe('every hero can be recolored', () => {
+  it('has at least one part, and each part names materials that really exist in its model file', async () => {
+    const fs = await import('node:fs');
+    for (const m of CHARACTER_MODELS) {
+      expect((m.parts || []).length, m.name).toBeGreaterThan(0);
+      const buf = fs.readFileSync('public/models/' + m.file);
+      const len = buf.readUInt32LE(12);
+      const names = (JSON.parse(buf.slice(20, 20 + len).toString('utf8')).materials || []).map((x) => x.name);
+      for (const part of m.parts) for (const mat of part.materials) expect(names, m.name + ' / ' + part.label + ' / ' + mat).toContain(mat);
+    }
+  });
+});

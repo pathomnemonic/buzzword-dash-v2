@@ -104,7 +104,7 @@ describe('Locker tabs', () => {
     const paints = [...document.querySelectorAll('#shopItems [data-paint]')].map((b) => b.getAttribute('data-paint'));
     expect(paints).toContain('avatar_intern');
     expect(paints).toContain('avatar_m_nurse');
-    expect(paints).not.toContain('avatar_m_skeleton'); // a single painted texture: nothing to recolor
+    ['avatar_m_skeleton', 'avatar_m_zombie', 'avatar_m_scout', 'avatar_m_explorer'].forEach((id) => expect(paints).toContain(id)); // painted-texture heroes get a whole-figure color wash
     expect(document.getElementById('shopItems').textContent).toMatch(/🎨 beside a hero/);
     // one it does not own yet: dimmed, and tapping it only explains
     storage.data.progression.ownedItems = storage.data.progression.ownedItems.filter((i) => i !== 'avatar_m_nurse');
@@ -122,18 +122,16 @@ describe('Locker tabs', () => {
     expect(document.getElementById('shopItems').textContent).toMatch(/Dr\. Dash colors/);
   });
 
-  it('another character has nothing to customize, and the screen says why', () => {
-    storage.data.progression.equipped.skin = 'avatar_m_skeleton'; // animated 3D, no scrubs
+  it('the painted-texture heroes offer a color wash instead of nothing', () => {
+    storage.data.progression.equipped.skin = 'avatar_m_skeleton';
     ui._lockerTab = 'heroes';
     ui._heroColorsOpen = true;
     ui.renderShop();
     expect(headings().join('|')).not.toContain('Headwear');
-    expect(headings().join('|')).not.toContain('Clothing');
-    expect(headings().join('|')).not.toContain('Gear');
     const text = document.getElementById('shopItems').textContent;
-    expect(text).toMatch(/This hero keeps its own look/);
-    expect(text).not.toMatch(/classic|3D/i);
-    expect(document.querySelector('#shopItems').textContent).not.toMatch(/Hair\s*Skin\s*Coat/);
+    expect(text).toMatch(/Femur Fred colors/);
+    expect(text).toMatch(/Bone wash/);
+    expect(text).not.toMatch(/keeps its own look/);
   });
 
   it('a classic character gets colors, clothing, headwear and gear', () => {
@@ -180,12 +178,11 @@ describe('Locker tabs', () => {
     expect(headings().join('|')).not.toContain('Trails');
   });
 
-  it('a hero with no colors to change says so instead of offering a toggle', () => {
+  it('every hero now has a colors toggle', () => {
     storage.data.progression.equipped.skin = 'avatar_m_skeleton';
     ui._lockerTab = 'heroes';
     ui.renderShop();
-    expect(document.getElementById('heroColorsToggle')).toBeNull();
-    expect(document.getElementById('shopItems').textContent).toMatch(/keeps its own look/);
+    expect(document.getElementById('heroColorsToggle')).not.toBeNull();
   });
 });
 
