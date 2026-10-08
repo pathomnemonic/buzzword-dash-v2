@@ -11,10 +11,10 @@
 export var PREMIUM_ITEMS = {
   // heroes
   avatar_m_king: 299,      // Attending Arthur
-  avatar_m_alien: 249,     // Anatomy Abe
+  avatar_m_alien: 249,     // Anatomy Abby
   avatar_m_robot: 249,     // MRI Mo
   avatar_m_wizard: 199,    // Pharmacist Pip
-  avatar_m_ninja: 199,     // Night-Shift Nico
+  avatar_m_ninja: 199,     // Night-Shift Nina
   // the monster
   monster_m_dragon: 149,   // Dragon Lecturer
   // maps

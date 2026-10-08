@@ -33,7 +33,7 @@ test.describe('Personalization', () => {
 
     await expect(page.getByText('You are wearing')).toBeVisible();
     await page.locator('#heroColorsToggle').click();
-    await expect(page.getByText(/Pager Pete colors/)).toBeVisible();
+    await expect(page.getByText(/Pager Penny colors/)).toBeVisible();
     await expect(page.locator('.color-part')).toHaveCount(4);
     await page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]').click();
     await expect(page.locator('.color-part[data-part="top"] .scrub-swatch[title="Maroon"]')).toHaveAttribute('aria-pressed', 'true');

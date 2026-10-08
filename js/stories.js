@@ -6,7 +6,7 @@
 export var STORIES = {
   avatar_intern: {
     short: 'Day one on the wards, pager already going off.',
-    long: 'Pete graduated last week and has never been more certain of anything and less certain of everything else. His pager buzzes the second he sits down. He has learned that a confident walk gets him through most doors, and a good question gets him through the rest. His dream is to be the intern the nurses ask for by name.'
+    long: 'Penny graduated last week and has never been more certain of anything and less certain of everything else. Her pager buzzes the second she sits down. She has learned that a confident walk gets her through most doors, and a good question gets her through the rest. Her dream is to be the intern the nurses ask for by name.'
   },
   avatar_m_nurse: {
     short: 'Calm in every code, even when the room is not.',
@@ -18,11 +18,11 @@ export var STORIES = {
   },
   avatar_m_intern: {
     short: 'Always up for a trek.',
-    long: 'Finn did his training in places the map barely covers, with a backpack of supplies and not much else. He learned to diagnose by observation first, because the scanner was three days away. He is cheerful about everything, including bad weather and worse roads. He is convinced every hospital would run better with a little more walking.'
+    long: 'Fiona did her training in places the map barely covers, with a backpack of supplies and not much else. She learned to diagnose by observation first, because the scanner was three days away. She is cheerful about everything, including bad weather and worse roads. She is convinced every hospital would run better with a little more walking.'
   },
   avatar_m_explorer: {
     short: 'Sharp eyes, steady stride.',
-    long: 'Rex is the only doctor for a hundred miles, which makes him the cardiologist, the paediatrician and the vet on a bad week. He has a gift for spotting the one detail that does not fit. People drive an hour to see him and consider it a bargain. He believes the best clinical skill is patience, and he has plenty.'
+    long: 'Roxy is the only doctor for a hundred miles, which makes her the cardiologist, the paediatrician and the vet on a bad week. She has a gift for spotting the one detail that does not fit. People drive an hour to see her and consider it a bargain. She believes the best clinical skill is patience, and she has plenty.'
   },
   avatar_m_adventurer: {
     short: 'New ward every week, never lost.',
@@ -30,27 +30,27 @@ export var STORIES = {
   },
   avatar_m_rogue: {
     short: 'Quick, quiet and a little shady.',
-    long: 'Dex is the radiologist who reads films in the dark and is somehow always right. He answers calls in four words or fewer. The residents joke that he sees the diagnosis before the scan finishes loading. He insists the secret is simply looking at the whole image, including the corners nobody checks.'
+    long: 'Dee is the radiologist who reads films in the dark and is somehow always right. She answers calls in four words or fewer. The residents joke that she sees the diagnosis before the scan finishes loading. She insists the secret is simply looking at the whole image, including the corners nobody checks.'
   },
   avatar_m_scout: {
     short: 'Never met a result she could not explain.',
     long: 'Sadie keeps a notebook of every question she has missed, with the reason next to it. She says the mistakes are the best textbook she owns. She is quick with a smile and quicker with a number. She will stop mid-shift to walk a confused student through a test result, and she only counts a number as understood once she can say what it would change.'
   },
   avatar_m_zombie: {
-    short: 'Shuffles along at his own pace.',
-    long: 'Dan is on hour thirty-one of a shift and running on fumes and vending-machine biscuits. He moves slowly, but he has never missed a lab value in his life. Colleagues leave coffee outside his door like an offering. Somehow he still gets there first, and the speed puzzles everyone.'
+    short: 'Shuffles along at her own pace.',
+    long: 'Dana is on hour thirty-one of a shift and running on fumes and vending-machine biscuits. She moves slowly, but she has never missed a lab value in her life. Colleagues leave coffee outside her door like an offering. Somehow she still gets there first, and the speed puzzles everyone.'
   },
   avatar_m_ninja: {
     short: 'Silent and swift.',
-    long: 'Nico owns the hospital between midnight and six. He knows every sound the building makes and which ones matter. Patients sleep better when he is on, though they never see him arrive. He has an unsettling habit of knowing something is wrong a few minutes before the monitors do.'
+    long: 'Nina owns the hospital between midnight and six. She knows every sound the building makes and which ones matter. Patients sleep better when she is on, though they never see her arrive. She has an unsettling habit of knowing something is wrong a few minutes before the monitors do.'
   },
   avatar_m_skeleton: {
-    short: 'Rattles along with a spring in his step.',
-    long: 'Fred is an anatomy model who got tired of standing in the corner. He knows every bone by its proper name and gets offended when people say "the big one in the thigh". He rattles when he runs, which the team finds either charming or terrifying. His proudest day was being used to teach a surgeon something new.'
+    short: 'Rattles along with a spring in her step.',
+    long: 'Freda is an anatomy model who got tired of standing in the corner. She knows every bone by its proper name and gets offended when people say "the big one in the thigh". She rattles when she runs, which the team finds either charming or terrifying. Her proudest day was being used to teach a surgeon something new.'
   },
   avatar_m_orc: {
     short: 'Big, green and unbothered.',
-    long: 'Grog is the porter who can move anything, anywhere, at any hour. Nothing surprises him: a rogue trolley, a stuck lift, a fire drill. He talks little and is rarely wrong about where a patient needs to go. The consultants will tell you quietly that he runs the hospital.'
+    long: 'Greta is the porter who can move anything, anywhere, at any hour. Nothing surprises her: a rogue trolley, a stuck lift, a fire drill. She talks little and is rarely wrong about where a patient needs to go. The consultants will tell you quietly that she runs the hospital.'
   },
   avatar_m_wizard: {
     short: 'Conjures a spell or two.',
@@ -58,11 +58,11 @@ export var STORIES = {
   },
   avatar_m_alien: {
     short: 'Here to observe the humans.',
-    long: 'Abe arrived from far away and is fascinated by how people are built. He asks excellent questions that start with "why would anyone design it this way". He has labelled everything in the break room. His notes on the brachial plexus are unfortunately better than the textbook\'s.'
+    long: 'Abby arrived from far away and is fascinated by how people are built. She asks excellent questions that start with "why would anyone design it this way". She has labelled everything in the break room. Her notes on the brachial plexus are unfortunately better than the textbook\'s.'
   },
   avatar_m_robot: {
     short: 'Runs on caffeine and coolant.',
-    long: 'Mo hums when he thinks, and the hum gets louder around a hard case. He sees structure where others see a smudge and is very patient with anyone who asks for a rescan. He believes the human body is the best-engineered system there is, apart from the occasional wiring issue.'
+    long: 'Mo hums when she thinks, and the hum gets louder around a hard case. She sees structure where others see a smudge and is very patient with anyone who asks for a rescan. She believes the human body is the best-engineered system there is, apart from the occasional wiring issue.'
   },
   avatar_m_hooded: {
     short: 'In, through the artery, out again.',
@@ -70,19 +70,19 @@ export var STORIES = {
   },
   avatar_m_barbarian: {
     short: 'Sorts the chaos, loudly.',
-    long: 'Bruno is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
+    long: 'Bree is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is her normal Tuesday. She keeps a tally of which patients are hungrier than they are sick. People who argue with her find out quickly that she is usually right, and usually kind about it.'
   },
   avatar_m_knight: {
     short: 'Steady hands, shining armor.',
-    long: 'Sir Suture is the surgeon who has never once rushed a closure. The theatre goes quiet when the stitches start, because the stitches are the point. They say the armor is just a very thorough gown. Trainees remember the one rule: slow is smooth, and smooth is fast.'
+    long: 'Dame Suture is the surgeon who has never once rushed a closure. The theatre goes quiet when the stitches start, because the stitches are the point. They say the armor is just a very thorough gown. Trainees remember her one rule: slow is smooth, and smooth is fast.'
   },
   avatar_m_mage: {
     short: 'Reads the slides nobody else can.',
-    long: 'Professor Pathos looks at a smear on glass and sees the whole story of a disease. The other doctors bring questions; the professor answers with a slide and a raised eyebrow. They are rarely seen outside the lab, and always on time for the one conference that matters. A cup of tea is always cooling next to the microscope.'
+    long: 'Professor Pathos looks at a smear on glass and sees the whole story of a disease. The other doctors bring questions; the professor answers with a slide and a raised eyebrow. She is rarely seen outside the lab, and always on time for the one conference that matters. A cup of tea is always cooling next to her microscope.'
   },
   avatar_m_king: {
-    short: 'The crown suits them.',
-    long: 'Arthur has been running the service so long that the residents call the pager system "the court". They are fair, funny and impossible to bluff. Teaching rounds with them are an event because they ask the one question you hoped they would not. Everyone who has trained under them remembers the first thing they got wrong.'
+    short: 'The crown suits him.',
+    long: 'Arthur has been running the service so long that the residents call the pager system "the court". He is fair, funny and impossible to bluff. Teaching rounds with him are an event because he asks the one question you hoped he would not. Everyone who has trained under him remembers the first thing they got wrong.'
   },
   monster_m_ghost: {
     short: 'Every chapter you meant to review.',
