@@ -2619,3 +2619,9 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 
 /* a build with no backend has no Versus, Friends or leaderboards (see features.js) */
 .no-backend #leaderboardBtn, .no-backend #multiplayerBtn { display: none !important; }
+
+/* no-backend build: close up the gaps the left-out features would have filled */
+.no-backend .home-layout .mode-row { grid-template-columns: repeat(2, 1fr); }
+.no-backend .profile-vis, .no-backend #profileAccountBox { display: none !important; }
+.no-backend .profile-actions { justify-content: center; }
+.no-backend .profile-actions .btn { width: 100%; }
