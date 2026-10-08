@@ -36,11 +36,11 @@ describe('the 3D roster has no repeats', () => {
     SHOP_ITEMS.forEach((i) => expect(i.name, i.id).not.toMatch(/animated 3D/i));
   });
 
-  it('every character has its own name (the roster is all themed: Pager Penny, Dr. Dash, Femur Freda...)', () => {
+  it('every character has its own name (the roster is all themed: Pager Pete, Dr. Dash, Femur Freda...)', () => {
     const names = CHARACTER_MODELS.map((m) => m.name);
     expect(new Set(names).size).toBe(names.length);
     names.forEach((n) => expect(n.trim().length).toBeGreaterThan(2));
-    ['Pager Penny', 'Dr. Dash', 'Field Medic Fiona', 'Rural Roxy', 'Locum Lou', 'Dark-Room Dee', 'Stat Sadie', 'Night-Shift Nina', 'Femur Freda', 'Decaffeinated Dana', 'Gurney Greta', 'Pharmacist Pip', 'Anatomy Abby', 'MRI Mo', 'Attending Arthur'].forEach((n) => expect(names).toContain(n));
+    ['Pager Pete', 'Dr. Dash', 'Field Medic Finn', 'Rural Rex', 'Locum Lou', 'Dark-Room Dex', 'Stat Sadie', 'Night-Shift Nico', 'Femur Freda', 'Decaffeinated Dana', 'Gurney Greta', 'Pharmacist Pip', 'Anatomy Abby', 'MRI Mo', 'Attending Arthur'].forEach((n) => expect(names).toContain(n));
   });
 });
 

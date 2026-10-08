@@ -40,11 +40,11 @@ var SHOES = swatches([['White', 0xf2f2f2], ['Black', 0x1d1f24], ['Pink', 0xe86fa
 /**
  * The animated 3D characters. `parts` are the pieces of a character a player can recolor (each part
  * is one or more of the model's materials), with a palette that suits that piece. Characters whose
- * model is a single painted texture (Rural Roxy, Stat Sadie, Decaffeinated Dana, Femur Freda) get one part that tints the whole figure.
+ * model is a single painted texture (Rural Rex, Stat Sadie, Decaffeinated Dana, Femur Freda) get one part that tints the whole figure.
  * Names stay plain where the model is not a medical character.
  */
 export var CHARACTER_MODELS = [
-  { id: 'avatar_intern', name: 'Pager Penny', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
+  { id: 'avatar_intern', name: 'Pager Pete', desc: 'Teal scrubs, runs the list', file: 'characters/doctor.glb', price: 0, icon: '🩺', color: 0x1fa3b5,
     parts: [
       { key: 'top', label: 'Scrub top', materials: ['LightBrown'], palette: SCRUBS },
       { key: 'pants', label: 'Scrub pants', materials: ['LightBlue'], palette: SCRUBS },
@@ -66,7 +66,7 @@ export var CHARACTER_MODELS = [
       { key: 'pants', label: 'Pants', materials: ['Brown'], palette: DARKS },
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
     ] },
-  { id: 'avatar_m_intern', name: 'Field Medic Fiona', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 850, icon: '🧭', color: 0x2288dd,
+  { id: 'avatar_m_intern', name: 'Field Medic Finn', desc: 'Always up for a trek', file: 'characters/explorer.glb', price: 850, icon: '🧭', color: 0x2288dd,
     parts: [
       { key: 'shirt', label: 'Shirt', materials: ['Shirt'], palette: BRIGHTS },
       { key: 'sleeves', label: 'Sleeves', materials: ['UnderShirt'], palette: EARTH },
@@ -75,7 +75,7 @@ export var CHARACTER_MODELS = [
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
       { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
-  { id: 'avatar_m_explorer', name: 'Rural Roxy', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 2100, icon: '🏹', color: 0xc9a06a,
+  { id: 'avatar_m_explorer', name: 'Rural Rex', desc: 'Sharp eyes, steady stride', file: 'characters/matt.glb', price: 2100, icon: '🏹', color: 0xc9a06a,
     parts: [
       { key: 'tint', label: 'Field wash', materials: ['Atlas'], palette: WASH }
     ] },
@@ -87,7 +87,7 @@ export var CHARACTER_MODELS = [
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
       { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
-  { id: 'avatar_m_rogue', name: 'Dark-Room Dee', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 3200, icon: '🗡️', color: 0x55506a,
+  { id: 'avatar_m_rogue', name: 'Dark-Room Dex', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 3200, icon: '🗡️', color: 0x55506a,
     parts: [
       { key: 'cloak', label: 'Hood & cloak', materials: ['DarkBrown'], palette: ROBES },
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },
@@ -102,7 +102,7 @@ export var CHARACTER_MODELS = [
     parts: [
       { key: 'tint', label: 'Ghoul wash', materials: ['Atlas'], palette: WASH }
     ] },
-  { id: 'avatar_m_ninja', name: 'Night-Shift Nina', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 5250, icon: '🥷', color: 0x333344,
+  { id: 'avatar_m_ninja', name: 'Night-Shift Nico', desc: 'Silent and swift', file: 'characters/ninja.glb', price: 5250, icon: '🥷', color: 0x333344,
     parts: [
       { key: 'outfit', label: 'Outfit', materials: ['Ninja_Main'], palette: NINJA },
       { key: 'sash', label: 'Sash', materials: ['Belt'], palette: BRIGHTS }
@@ -141,7 +141,7 @@ export var CHARACTER_MODELS = [
       { key: 'arms', label: 'Sleeves', materials: ['Arms'], palette: SCRUBS },
       { key: 'legs', label: 'Trousers', materials: ['Legs'], palette: DARKS }
     ] },
-  { id: 'avatar_m_barbarian', name: 'Triage Bree', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
+  { id: 'avatar_m_barbarian', name: 'Triage Bruno', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
     parts: [
       { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: EARTH },
       { key: 'cape', label: 'Cape', materials: ['Cape'], palette: DARKS },

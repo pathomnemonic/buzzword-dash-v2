@@ -30,7 +30,7 @@ describe('Locker tabs', () => {
     expect(text).not.toMatch(/classic|blocky|3D/i);
     expect(text).not.toMatch(/vehicle/i);
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
-    expect(groups[0]).toContain('Pager Penny');
+    expect(groups[0]).toContain('Pager Pete');
     ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic', 'Ambulance', 'Race Car', 'Hearse'].forEach((n) => expect(text).not.toContain(n));
   });
 
@@ -44,11 +44,11 @@ describe('Locker tabs', () => {
   });
 
   it('a character gets color pickers for its own parts, but no headwear', () => {
-    storage.data.progression.equipped.skin = 'avatar_intern'; // Pager Penny
+    storage.data.progression.equipped.skin = 'avatar_intern'; // Pager Pete
     ui._lockerTab = 'heroes';
     ui._heroColorsOpen = true;
     ui.renderShop();
-    expect(document.getElementById('shopItems').textContent).toMatch(/Pager Penny colors/);
+    expect(document.getElementById('shopItems').textContent).toMatch(/Pager Pete colors/);
     const parts = [...document.querySelectorAll('#shopItems .color-part')].map((p) => p.getAttribute('data-part'));
     expect(parts).toEqual(['top', 'pants', 'skin', 'hair']);
     expect(document.querySelectorAll('#shopItems .scrub-swatch').length).toBeGreaterThan(8);
@@ -128,7 +128,7 @@ describe('Locker tabs', () => {
     ui._lockerTab = 'heroes';
     ui._heroColorsOpen = false;
     ui.renderShop();
-    expect(names()).not.toMatch(/Femur Freda|Decaffeinated Dana|Stat Sadie|Rural Roxy/);
+    expect(names()).not.toMatch(/Femur Freda|Decaffeinated Dana|Stat Sadie|Rural Rex/);
     expect(names()).toMatch(/Dame Suture/);
     storage.data.progression.ownedItems.push('avatar_m_skeleton');
     ui.renderShop();
@@ -183,7 +183,7 @@ describe('Locker tabs', () => {
 });
 
 describe('the Locker shows every hero under its own name', () => {
-  it('each row in the Heroes list carries the name from the hero catalog (including Pager Penny, the starter)', async () => {
+  it('each row in the Heroes list carries the name from the hero catalog (including Pager Pete, the starter)', async () => {
     localStorage.clear();
     loadPage();
     const { ui } = await import('../../js/ui.js');

@@ -14,7 +14,7 @@ export var PREMIUM_ITEMS = {
   avatar_m_alien: 249,     // Anatomy Abby
   avatar_m_robot: 249,     // MRI Mo
   avatar_m_wizard: 199,    // Pharmacist Pip
-  avatar_m_ninja: 199,     // Night-Shift Nina
+  avatar_m_ninja: 199,     // Night-Shift Nico
   // the monster
   monster_m_dragon: 149,   // Dragon Lecturer
   // maps

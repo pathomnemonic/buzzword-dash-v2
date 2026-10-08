@@ -6,7 +6,7 @@
 export var STORIES = {
   avatar_intern: {
     short: 'Day one on the wards, pager already going off.',
-    long: 'Penny graduated last week and has never been more certain of anything and less certain of everything else. Her pager buzzes the second she sits down. She has learned that a confident walk gets her through most doors, and a good question gets her through the rest. Her dream is to be the intern the nurses ask for by name.'
+    long: 'Pete graduated last week and has never been more certain of anything and less certain of everything else. His pager buzzes the second he sits down. He has learned that a confident walk gets him through most doors, and a good question gets him through the rest. His dream is to be the intern the nurses ask for by name.'
   },
   avatar_m_nurse: {
     short: 'Calm in every code, even when the room is not.',
@@ -18,11 +18,11 @@ export var STORIES = {
   },
   avatar_m_intern: {
     short: 'Always up for a trek.',
-    long: 'Fiona did her training in places the map barely covers, with a backpack of supplies and not much else. She learned to diagnose by observation first, because the scanner was three days away. She is cheerful about everything, including bad weather and worse roads. She is convinced every hospital would run better with a little more walking.'
+    long: 'Finn did his training in places the map barely covers, with a backpack of supplies and not much else. He learned to diagnose by observation first, because the scanner was three days away. He is cheerful about everything, including bad weather and worse roads. He is convinced every hospital would run better with a little more walking.'
   },
   avatar_m_explorer: {
     short: 'Sharp eyes, steady stride.',
-    long: 'Roxy is the only doctor for a hundred miles, which makes her the cardiologist, the paediatrician and the vet on a bad week. She has a gift for spotting the one detail that does not fit. People drive an hour to see her and consider it a bargain. She believes the best clinical skill is patience, and she has plenty.'
+    long: 'Rex is the only doctor for a hundred miles, which makes him the cardiologist, the paediatrician and the vet on a bad week. He has a gift for spotting the one detail that does not fit. People drive an hour to see him and consider it a bargain. He believes the best clinical skill is patience, and he has plenty.'
   },
   avatar_m_adventurer: {
     short: 'New ward every week, never lost.',
@@ -30,7 +30,7 @@ export var STORIES = {
   },
   avatar_m_rogue: {
     short: 'Quick, quiet and a little shady.',
-    long: 'Dee is the radiologist who reads films in the dark and is somehow always right. She answers calls in four words or fewer. The residents joke that she sees the diagnosis before the scan finishes loading. She insists the secret is simply looking at the whole image, including the corners nobody checks.'
+    long: 'Dex is the radiologist who reads films in the dark and is somehow always right. He answers calls in four words or fewer. The residents joke that he sees the diagnosis before the scan finishes loading. He insists the secret is simply looking at the whole image, including the corners nobody checks.'
   },
   avatar_m_scout: {
     short: 'Never met a result she could not explain.',
@@ -42,7 +42,7 @@ export var STORIES = {
   },
   avatar_m_ninja: {
     short: 'Silent and swift.',
-    long: 'Nina owns the hospital between midnight and six. She knows every sound the building makes and which ones matter. Patients sleep better when she is on, though they never see her arrive. She has an unsettling habit of knowing something is wrong a few minutes before the monitors do.'
+    long: 'Nico owns the hospital between midnight and six. He knows every sound the building makes and which ones matter. Patients sleep better when he is on, though they never see him arrive. He has an unsettling habit of knowing something is wrong a few minutes before the monitors do.'
   },
   avatar_m_skeleton: {
     short: 'Rattles along with a spring in her step.',
@@ -70,7 +70,7 @@ export var STORIES = {
   },
   avatar_m_barbarian: {
     short: 'Sorts the chaos, loudly.',
-    long: 'Bree is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is her normal Tuesday. She keeps a tally of which patients are hungrier than they are sick. People who argue with her find out quickly that she is usually right, and usually kind about it.'
+    long: 'Bruno is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
   },
   avatar_m_knight: {
     short: 'Steady hands, shining armor.',

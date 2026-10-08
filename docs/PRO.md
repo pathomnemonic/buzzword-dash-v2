@@ -141,7 +141,7 @@ After updating: re-run `database/pro.sql`, then `supabase functions deploy pro-c
 
 A few Locker items are sold for money only, with a dollar price on the button (`supabase/functions/_shared/premium.js` lists
 them and the prices; the app and the payment function read the same list, so the button and the charge always agree):
-five heroes (Attending Arthur $2.99; Anatomy Abby, MRI Mo $2.49; Pharmacist Pip, Night-Shift Nina $1.99), the Dragon Lecturer
+five heroes (Attending Arthur $2.99; Anatomy Abby, MRI Mo $2.49; Pharmacist Pip, Night-Shift Nico $1.99), the Dragon Lecturer
 monster ($1.49), two maps (Aquarium Imaging Center, DNA Helix Tunnel, $1.49) and three trails (Fire, Neural Sparks, Red Blood
 Cells, $0.99). They sort to the bottom of their list, cannot be bought with coins, and cannot be taken as the Pro gift.
 Anyone who already owned one, or had reached the level that used to unlock one of the maps, keeps it (a one-time migration).
