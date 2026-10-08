@@ -7,7 +7,9 @@
  * A fresh browser profile shows a full-screen onboarding overlay that
  * intercepts every click, so tests must dismiss it before interacting.
  */
-export async function openApp(page, path = '/') {
+export async function openApp(page, path = '/', opts = {}) {
+  // (the lessons behind the red dots would cover the screen whenever a test taps a menu for the first time: off unless asked for)
+  if (!opts.lessons) await page.addInitScript(() => { try { localStorage.setItem('dx_lessons_off', '1'); } catch (e) { /* ignore */ } });
   await page.goto(path);
   for (let i = 0; i < 10; i++) {
     if (!(await page.locator('#tutCloseBtn').isVisible().catch(() => false))) break;

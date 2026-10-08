@@ -38,12 +38,17 @@ test.describe('Interruptions', () => {
     await setVisibility(page, true);
     await expect.poll(() => page.evaluate(() => window.__game._state)).toBe('paused');
     await expect(page.locator('#pauseOverlay')).toHaveClass(/active/);
+    await page.waitForTimeout(500);
+    const settled = await snapshot(page);
     await page.waitForTimeout(1500);
     const during = await snapshot(page);
     expect(during.state).toBe('paused');
     expect(Math.abs(during.t - before.t)).toBeLessThan(0.6); // (a frame or two may still have run before the pause)
     expect(during.lives).toBe(before.lives);
-    expect(during.score).toBe(before.score);
+    // the score climbs with distance, so a frame or two before the pause may add a few points; once paused it stands still
+    expect(Math.abs(during.score - before.score)).toBeLessThan(40);
+    expect(during.score).toBe(settled.score);
+    expect(during.t).toBe(settled.t);
 
     await setVisibility(page, false);
     // coming back never drops the player into a moving lane: the pause screen waits for them

@@ -19,7 +19,7 @@ export function dismissExitConfirm() {
 }
 
 /**
- * @param {{onExit: function(): void, onStay?: function(): void}} opts
+ * @param {{onExit: function(): void, onStay?: function(): void, title?: string, text?: string, stayLabel?: string, exitLabel?: string, id?: string}} opts
  * @returns {boolean} false when the box is already showing
  */
 export function confirmExitTutorial(opts) {
@@ -36,21 +36,21 @@ export function confirmExitTutorial(opts) {
   box.className = 'tut-exit-box';
   var h = document.createElement('h2');
   h.id = 'tutExitTitle';
-  h.textContent = 'Exit the tutorial?';
+  h.textContent = opts.title || 'Exit the tutorial?';
   var p = document.createElement('p');
-  p.textContent = 'You can open it again any time with "How to play" on the Home screen.';
+  p.textContent = opts.text || 'You can open it again any time with "How to play" on the Home screen.';
   var buttons = document.createElement('div');
   buttons.className = 'tut-buttons';
   var stay = document.createElement('button');
   stay.type = 'button';
   stay.id = 'tutExitStay';
   stay.className = 'btn btn-primary btn-sm';
-  stay.textContent = 'Keep going';
+  stay.textContent = opts.stayLabel || 'Keep going';
   var exit = document.createElement('button');
   exit.type = 'button';
   exit.id = 'tutExitYes';
   exit.className = 'btn btn-outline btn-sm';
-  exit.textContent = 'Exit tutorial';
+  exit.textContent = opts.exitLabel || 'Exit tutorial';
   buttons.appendChild(stay);
   buttons.appendChild(exit);
   box.appendChild(h);

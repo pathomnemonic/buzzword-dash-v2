@@ -78,6 +78,8 @@ function isVisible(el) {
  * Run the tour.
  * @param {object} opts
  * @param {object[]} opts.steps
+ * @param {boolean} [opts.numbered] false hides the "Tour 2 of 5" count (a short lesson that is not a list to get through)
+ * @param {string} [opts.kind] what to call this in analytics ('tour' by default, 'lesson' for the one-screen lessons)
  * @param {object} [opts.ctx] passed to each step's before/after/skipIf
  * @param {function(): void} [opts.requestClose] called when the player presses × or Escape (to ask before leaving);
  *   without it the tour just closes
@@ -90,7 +92,7 @@ export function startTour(opts) {
   var ctx = opts.ctx || {};
   var index = -1;
   var closed = false;
-  var st = createStepTracker('tour', { firstTime: !!opts.firstTime });
+  var st = createStepTracker(opts.kind || 'tour', { firstTime: !!opts.firstTime });
   var frame = null;
   var advanceTimer = null;
   var current = null;
@@ -182,10 +184,12 @@ export function startTour(opts) {
 
   function renderCard() {
     while (card.firstChild) card.removeChild(card.firstChild);
-    var count = document.createElement('div');
-    count.className = 'tut-count';
-    count.textContent = 'Tour ' + Math.min(index + 1, steps.length) + ' of ' + steps.length;
-    card.appendChild(count);
+    if (opts.numbered !== false) {
+      var count = document.createElement('div');
+      count.className = 'tut-count';
+      count.textContent = 'Tour ' + Math.min(index + 1, steps.length) + ' of ' + steps.length;
+      card.appendChild(count);
+    }
     var h = document.createElement('h2');
     h.textContent = current.title;
     card.appendChild(h);

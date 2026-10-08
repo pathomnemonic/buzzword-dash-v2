@@ -1,8 +1,9 @@
 /**
- * tourdata.js — the steps of the spotlight tour that ends the tutorial (see tour.js).
+ * tourdata.js — the spotlight steps of the how-to-play and of the little lessons (see tour.js).
  *
- * The tour walks through the real interface: Home, then the Stats, Locker, Quests and Profile tabs. Every
- * step names the element it highlights, so a change to the page that removes one just turns that step into a
+ * The how-to-play only covers the run and the Home screen (buildTourSteps). Every other menu teaches itself the first
+ * time the player opens it, by its red dot: a short lesson of a few un-numbered steps (buildLessonSteps, LESSON_STEPS).
+ * Every step names the element it highlights, so a change to the page that removes one just turns that step into a
  * plain card with a Next button.
  */
 
@@ -114,7 +115,7 @@ function closeVersus() {
  * @param {object} ctx.ui the interface (for opening Home)
  * @returns {object[]} steps for startTour()
  */
-export function buildTourSteps(ctx) {
+export function buildAllSteps(ctx) {
   // Pro is only mentioned while it can be bought (or is owned): a quiet word on the way past, never a sales stop
   var live = proLive();
   var pro = function (text) { return live ? ' ' + text : ''; };
@@ -124,6 +125,8 @@ export function buildTourSteps(ctx) {
       before: function () { if (ctx && ctx.ui) ctx.ui.show('screenHome'); } },
     { id: 'coins', title: 'Coins and best score', target: '#homeCoinsDisplay', press: 'count',
       text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score, which climbs as you run and jumps with every right answer. You start with a balance to spend in the Locker in a minute.' },
+    { id: 'menus', title: 'There is more to find', target: '#bottomNav', press: 'next',
+      text: 'That is the Home screen. Everything else has a little red dot: Filters, Speed, Flashcards and Challenge up here, Settings, and the tabs along the bottom. Tap any of them when you feel like it and it will show you around.' },
     { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'pass', hint: 'Tap Filters to look inside',
       text: 'Choose which questions you get. Everything is switched on to begin with, so you see every question. Open it and we will look at each filter.' },
     { id: 'filters-subjects', title: 'Subjects', target: '#subjectToggle', press: 'pass', hint: 'Tap Subjects to open it',
@@ -165,6 +168,13 @@ export function buildTourSteps(ctx) {
     { id: 'challenge-btn', title: 'Challenge', target: '#homeChallengeBtn', press: 'count',
       text: 'Every other way to play lives here: Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim.' + pro('Study, Weakness and the Exam Sim are Pro, and so are two of the three Versus modes. A small gold PRO tag marks anything Pro opens up.') + ' Have a look when you are ready.' },
 
+    { id: 'challenge-sheet', title: 'Every other way to play', target: '#challengeSheet .sheet-list', press: 'next',
+      after: closeSheet('#challengeSheet'),
+      text: 'Study (relaxed, no lives lost), Weakness (drills what you miss), the Daily 15, the Weekly Gauntlet, friend challenges and the Exam Sim all live here.' + pro('Study, Weakness and the Exam Sim are Pro, and so are two of the three Versus modes. A small gold PRO tag marks anything Pro opens up.') },
+    { id: 'friends-screen', title: 'Friends', target: '#screenLeaderboard h2', press: 'next',
+      text: 'Add friends, see their highlights in the feed and make private study groups with a shared weekly goal. It needs a free account.' },
+    { id: 'settings-screen', title: 'Settings', target: '#screenSettings .settings-card', press: 'next',
+      text: 'Sound, colors, camera, controls and game rules live here, one section at a time. You can replay the how-to-play any time from About & help.' },
     { id: 'friends', title: 'Friends', target: '#leaderboardBtn', press: 'count',
       text: 'Add friends, see their highlights in the feed and make private study groups with a shared weekly goal. It needs a free account (the profile button beside it).' },
     { id: 'settings', title: 'Settings', target: '#settingsBtn', press: 'count',
@@ -219,4 +229,35 @@ export function buildTourSteps(ctx) {
     if (typeof s.target === 'string') s.target = q(s.target);
     return s;
   });
+}
+
+/** The how-to-play's spotlight steps: just the Home screen. Everything else teaches itself from its red dot. */
+export function buildTourSteps(ctx) {
+  return buildAllSteps(ctx).filter(function (s) { return s.id === 'home' || s.id === 'coins' || s.id === 'menus'; });
+}
+
+/**
+ * The lesson each red-dotted thing teaches when it is first opened, as the ids of the steps to show (after the thing
+ * itself has opened). The keys are the discovery ids of discoverydots.js.
+ */
+export var LESSON_STEPS = {
+  'home:filters': ['filters-subjects', 'filters-subjects-list', 'filters-exam', 'filters-exam-body', 'filters-advanced', 'filters-advanced-body'],
+  'home:speed': ['speed-dial'],
+  'home:versus': ['versus'],
+  'home:flashcards': ['flashcards'],
+  'home:challenge': ['challenge-sheet'],
+  'home:friends': ['friends-screen'],
+  'home:settings': ['settings-screen'],
+  'tab:stats': ['stats'],
+  'tab:locker': ['locker', 'extras-tab', 'buy', 'preview', 'equip', 'look'],
+  'tab:quests': ['quests'],
+  'tab:profile': ['profile']
+};
+
+/** The steps of one lesson (empty when that thing has none). */
+export function buildLessonSteps(id, ctx) {
+  var wanted = LESSON_STEPS[id];
+  if (!wanted) return [];
+  var all = buildAllSteps(ctx);
+  return wanted.map(function (stepId) { return all.filter(function (s) { return s.id === stepId; })[0]; }).filter(Boolean);
 }

@@ -2326,7 +2326,7 @@ class UI {
       if (firstRun) storage.set('firstRunComplete', true);
     };
     // On the real track when the runner can start (main.js provides it); the practice track otherwise
-    if (typeof this.startRealTutorial === 'function' && this.startRealTutorial({ onClose: onClose })) return;
+    if (typeof this.startRealTutorial === 'function' && this.startRealTutorial({ onClose: onClose, firstRun: firstRun })) return;
     startTutorial({ onClose: onClose });
   }
 

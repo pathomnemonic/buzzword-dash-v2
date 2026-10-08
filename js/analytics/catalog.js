@@ -60,12 +60,12 @@ export var EVENTS = {
   tab_changed: ['navigation', 'A tab inside a screen was changed (Locker tabs, Settings sections, Stats views).', { screen: 'e:' + SCREENS, tab: 's30!' }],
 
   // ───────────────────────── onboarding funnel ─────────────────────────
-  tutorial_started: ['onboarding', 'A tutorial began.', { kind: 'e:real_track|practice|tour|replay!', first_time: 'b' }],
+  tutorial_started: ['onboarding', 'A tutorial began.', { kind: 'e:real_track|practice|tour|lesson|replay!', first_time: 'b' }],
   tutorial_step: ['onboarding', 'A tutorial step was viewed, completed or skipped.', {
-    step: 's24!', index: 'i', outcome: 'e:viewed|completed|skipped|failed', attempts: 'i', ms: 'i', kind: 'e:real_track|practice|tour'
+    step: 's24!', index: 'i', outcome: 'e:viewed|completed|skipped|failed', attempts: 'i', ms: 'i', kind: 'e:real_track|practice|tour|lesson'
   }],
   tutorial_ended: ['onboarding', 'The tutorial finished or was left.', {
-    outcome: 'e:finished|exited|replaced', last_step: 's24', steps_done: 'i', ms: 'i', exit_confirm_shown: 'b', kind: 'e:real_track|practice|tour'
+    outcome: 'e:finished|exited|replaced', last_step: 's24', steps_done: 'i', ms: 'i', exit_confirm_shown: 'b', kind: 'e:real_track|practice|tour|lesson'
   }],
   first_run_milestone: ['onboarding', 'A first for this install: first run started, first answer, first correct, first purchase, first quest claim...', {
     milestone: 'e:run_started|answer|correct_answer|run_ended|coin|powerup|purchase|equip|quest_claim|map_change|achievement|share|flashcards|exam|custom_card|account|level_up|study_day|streak_3|day2_return!',

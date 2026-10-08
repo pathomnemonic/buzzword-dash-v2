@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { buildTourSteps } from '../../js/tourdata.js';
+import { buildAllSteps, buildTourSteps, buildLessonSteps, LESSON_STEPS } from '../../js/tourdata.js';
 
 describe('the tour steps', () => {
   let steps;
   beforeEach(() => {
     const html = readFileSync('index.html', 'utf8');
     document.body.innerHTML = html.slice(html.indexOf('<body'), html.indexOf('</body>')).replace(/<script[\s\S]*?<\/script>/g, '');
-    steps = buildTourSteps({ ui: { show() {} } });
+    steps = buildAllSteps({ ui: { show() {} } });
   });
   const ids = () => steps.map((s) => s.id);
 
@@ -40,7 +40,7 @@ describe('the tour steps', () => {
       return !['extras-tab', 'buy', 'equip', 'filters-advanced', 'filters-exam'].includes(s.id) && !s.target();
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
-    expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview'].includes(id))).toEqual([]);
+    expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview', 'settings-screen', 'friends-screen'].includes(id))).toEqual([]);
   });
 
   it('the tour walks through every filter, one section at a time, opening each by its real button', () => {
@@ -67,11 +67,11 @@ describe('the tour steps', () => {
     const { setSellableForTest } = await import('../../js/pro.js');
     const { setProConfigForTest } = await import('../../js/remoteconfig.js');
     setProConfigForTest({ enabled: false });
-    let off = buildTourSteps({ ui: { show() {} } });
+    let off = buildAllSteps({ ui: { show() {} } });
     expect(off.map((s) => s.text).join(' ')).not.toMatch(/Pro\b/);
     setProConfigForTest({ enabled: true, gates: { exam_sim: { limit: 1, per: 'week' } } });
     setSellableForTest(true);
-    const on = buildTourSteps({ ui: { show() {} } });
+    const on = buildAllSteps({ ui: { show() {} } });
     expect(on.find((s) => s.id === 'pro').text).toMatch(/10× more cards/);
     expect(on.find((s) => s.id === 'challenge-btn').text).toMatch(/PRO tag/);
     expect(on.find((s) => s.id === 'filters-subjects-list').text).toMatch(/Pro opens the whole bank/);
@@ -97,7 +97,7 @@ describe('the tour always teaches with the Pill Trail, and never hands out coins
     ({ storage } = await import('../../js/storage.js'));
     storage.load();
     ({ ui } = await import('../../js/ui.js'));
-    steps = buildTourSteps({ ui: { show() {} } });
+    steps = buildAllSteps({ ui: { show() {} } });
     ui._lockerTab = 'trails';
     ui.renderShop();
   });

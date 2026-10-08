@@ -16,7 +16,7 @@
 import { storage } from './storage.js';
 import { createStepTracker } from './analytics/steptracker.js';
 import { createElement, clearElement } from './dom.js';
-import { buildSteps, REFERENCE } from './tutorial.js';
+import { buildSteps } from './tutorial.js';
 import { getDashControl } from './dashcontrol.js';
 import { getControlText } from './controlhints.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
@@ -53,6 +53,9 @@ export function requestCloseGameTutorial() {
  * @param {function(string[]): void} env.begin starts the tutorial run, given the card ids to use
  * @param {string[]} env.cardIds [dash question, answer question]
  * @param {object} env.ui the interface (the tour opens Home and reads the Locker)
+ * @param {boolean} [env.firstRun] the player's very first how-to-play (only then is the account invitation shown)
+ * @param {{available: function(): boolean, render: function(HTMLElement, function(): void): void}} [env.account]
+ *   the account form, to invite the player to make an account in the second-to-last step
  * @param {function({completed: boolean, skipped: boolean}): void} [env.onClose]
  */
 export function startGameTutorial(env) {
@@ -67,7 +70,13 @@ export function startGameTutorial(env) {
   });
   // the spotlight tour comes after the practice, before the closing page
   var doneAt = steps.map(function (s) { return s.id; }).indexOf('done');
-  steps.splice(doneAt < 0 ? steps.length : doneAt, 0, { id: 'tour', kind: 'tour', title: 'App tour' });
+  var accountOffered = !!(env.firstRun && env.account && env.account.available());
+  // after the tour of Home: the invitation to make an account (second to last), then the closing page that sends the
+  // player off to the red-dotted menus (last)
+  var tail = [{ id: 'tour', kind: 'tour', title: 'App tour' }];
+  if (accountOffered) tail.push({ id: 'account', kind: 'account', title: 'Keep your progress safe' });
+  steps.splice(doneAt < 0 ? steps.length : doneAt, 0, tail[0], tail[1]);
+  steps = steps.filter(Boolean);
   var index = 0;
   var closed = false;
   var st = createStepTracker('real_track', { firstTime: !storage.get('firstRunComplete') });
@@ -193,6 +202,7 @@ export function startGameTutorial(env) {
       startTour({
         steps: buildTourSteps({ ui: env.ui }),
         ctx: { ui: env.ui },
+        numbered: false,
         requestClose: requestClose,
         onClose: function (r) {
           touring = false;
@@ -208,7 +218,7 @@ export function startGameTutorial(env) {
     var step = steps[index];
     st.view(step.id, index);
     if (step.kind === 'tour') { startTourStep(); return; }
-    var isPage = step.kind === 'info';
+    var isPage = step.kind === 'info' || step.kind === 'account';
     var target = isPage ? page : coach;
     clearElement(coach);
     clearElement(page);
@@ -220,34 +230,27 @@ export function startGameTutorial(env) {
     if (isPage) { page.classList.add('active'); trapFocus(page); } else { page.classList.remove('active'); releaseFocusTrap(); }
 
     var card = createElement('div', { className: 'tut-card coach-card', attributes: { 'data-step': step.id } });
-    card.appendChild(createElement('div', { className: 'tut-count', text: 'Step ' + (index + 1) + ' of ' + steps.length }));
     card.appendChild(createElement('h2', { text: step.title }));
     var primary = null;
 
     if (step.kind === 'info') {
       card.appendChild(createElement('p', { className: 'tut-text', text: step.text }));
-      if (step.reference) {
-        var list = createElement('ul', { className: 'tut-reference' });
-        REFERENCE.forEach(function (r) {
-          var li = createElement('li');
-          li.appendChild(createElement('strong', { text: r.icon + ' ' + r.title + '. ' }));
-          li.appendChild(document.createTextNode(r.text));
-          list.appendChild(li);
-        });
-        card.appendChild(list);
-      }
+    } else if (step.kind === 'account') {
+      card.appendChild(createElement('p', { className: 'tut-text', text: 'Make a free account and everything you earn here stays yours.' }));
+      var perks = createElement('ul', { className: 'tut-perks' });
+      ['☁ Your coins, streak, badges and unlocks follow you to any phone or computer.',
+        '🛟 Nothing is lost if you clear your browser, switch phones or reinstall.',
+        '👥 Add friends, join study groups and see their highlights.'].forEach(function (t) { perks.appendChild(createElement('li', { text: t })); });
+      card.appendChild(perks);
+      var formHost = createElement('div', { className: 'tut-account', attributes: { id: 'tutAccountForm' } });
+      card.appendChild(formHost);
+      env.account.render(formHost, function () { later(next, 600); }); // (signing in or up carries straight on)
     } else {
       if (step.prompt) card.appendChild(createElement('div', { className: 'coach-prompt', text: step.prompt, attributes: { role: 'status' } }));
       card.appendChild(createElement('p', { className: 'tut-text', text: step.text }));
       feedback = createElement('div', { className: 'coach-feedback', attributes: { 'aria-live': 'polite', role: 'status' } });
       card.appendChild(feedback);
     }
-
-    var dots = createElement('div', { className: 'tut-dots', attributes: { 'aria-hidden': 'true' } });
-    steps.forEach(function (_, i) {
-      dots.appendChild(createElement('div', { className: 'tut-dot' + (i === index ? ' active' : '') }));
-    });
-    card.appendChild(dots);
 
     var buttons = createElement('div', { className: 'tut-buttons' });
     if (step.kind === 'info') {
@@ -258,6 +261,10 @@ export function startGameTutorial(env) {
         else next();
       });
       buttons.appendChild(primary);
+    } else if (step.kind === 'account') {
+      var later_ = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Maybe later', attributes: { type: 'button', id: 'tutAccountLater' } });
+      later_.addEventListener('click', function () { askSkipAccount(); });
+      buttons.appendChild(later_);
     } else {
       var skipStep = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Skip step', attributes: { type: 'button', id: 'tutSkipStepBtn' } });
       skipStep.addEventListener('click', function () { next(); });
@@ -304,8 +311,21 @@ export function startGameTutorial(env) {
 
   // The player wants out. On the last page that just finishes; anywhere else they are asked first, because the
   // tutorial is how a new player learns the game and it is easy to press by accident.
+  // They may close the account page, but they are asked first, and told what they would be missing
+  function askSkipAccount() {
+    if (closed || isExitConfirmOpen()) return;
+    confirmExitTutorial({
+      title: 'Are you sure?',
+      text: 'Without an account, your coins, streak, badges and unlocks live on this one device only. Clear your browser or change phones and they are gone, and you cannot add friends or join study groups. It is free and takes about 20 seconds.',
+      stayLabel: 'Make my account',
+      exitLabel: 'Skip for now',
+      onExit: function () { next(); }
+    });
+  }
+
   function requestClose() {
     if (closed || isExitConfirmOpen()) return;
+    if (steps[index] && steps[index].kind === 'account') { askSkipAccount(); return; }
     var onLastPage = index === steps.length - 1 && steps[index].kind === 'info';
     if (onLastPage) { finish('completed'); return; }
     exitAsked = true;

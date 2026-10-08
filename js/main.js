@@ -35,7 +35,8 @@ import { loadRemoteConfig, isKilled } from './remoteconfig.js';
 import { audio, MENU_THEME } from './audio.js';
 import { CARDS, CARD_BY_ID, SUBJECTS, loadCards, areCardsReady, seededPool, setLibraryUnlocked } from './cardhub.js';
 import { bonusSubjectFor, bonusCoinsFor, nextGoalLine } from './progress.js';
-import { discoveryIdFor, markExplored } from './discoverydots.js';
+import { discoveryIdFor, markExplored, discoveryActive } from './discoverydots.js';
+import { startLesson, seedLessons } from './lessons.js';
 import { mountFitScreens } from './fitscreen.js';
 import { localDateKey } from './uihelpers.js';
 import { customCards } from './customcards.js';
@@ -1376,6 +1377,27 @@ function init() {
       ui: ui,
       cardIds: ids,
       onClose: opts && opts.onClose,
+      firstRun: !!(opts && opts.firstRun),
+      account: (window.__ui && window.__tutorialAccountOverride) || { // (the override is only for the browser tests, on a ?debug=1 page)
+        available: function () {
+          var lbs = leaderboardModule ? leaderboardModule.leaderboard.getStatus() : null;
+          return FEATURES.backend && !!(lbs && lbs.configured && !(lbs.email && !lbs.anonymous));
+        },
+        render: function (container, done) {
+          var lbm = leaderboardModule ? leaderboardModule.leaderboard : null;
+          function draw() {
+            var lbs = lbm ? lbm.getStatus() : null;
+            if (lbs && lbs.email && !lbs.anonymous) { done(); return; }
+            renderAccountSection(container, {
+              getLeaderboard: function () { return lbm; },
+              getCloudSync: function () { return cloudSync; },
+              toast: function (msg) { ui._showToast(msg); },
+              rerender: draw
+            });
+          }
+          draw();
+        }
+      },
       begin: function (cardIds) { launchRun('study', cardIds, { tutorial: true, allowContinue: false }); }
     });
   };
@@ -1724,6 +1746,8 @@ function init() {
     var home = document.getElementById('screenHome');
     if (home && home.classList.contains('active') && !game.running) { ui.renderHome(); document.dispatchEvent(new CustomEvent('dx:coins-changed')); }
   });
+  // Players who already know the app are not walked through the lessons behind the red dots
+  seedLessons(storage);
   // Red dots: new badges, quest rewards and the weekly reward waiting to be claimed
   updateAttentionDots(storage, storage.getDailyQuests());
   document.addEventListener('dx:attention-changed', function () { updateAttentionDots(storage, storage.getDailyQuests()); });
@@ -1736,7 +1760,11 @@ function init() {
   // A red "new" dot goes away for good the first time the player opens that menu, tab or button
   document.addEventListener('click', function (e) {
     var id = discoveryIdFor(e.target);
-    if (id && markExplored(storage, id)) document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+    if (id && markExplored(storage, id)) {
+      document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+      // the first time a red-dotted menu is opened, it shows the player around (lessons.js)
+      if (discoveryActive(storage)) startLesson(id, { ui: ui, isRunning: function () { return game.running || game.paused; } });
+    }
   }, true);
   document.addEventListener('dx:celebrate', function () { ui.showConfetti(true); });
   document.addEventListener('dx:ranked-updated', function (e) {

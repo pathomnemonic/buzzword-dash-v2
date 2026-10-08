@@ -133,10 +133,13 @@ export function openPaywall(o) {
     seePricing.addEventListener('click', function () { act('see_pricing', {}); openPaywall(Object.assign({}, o, { pricing: true })); });
     list.appendChild(seePricing);
   }
+  // A Back button at the top of every Pro screen: from the plans it returns to what Pro gets you; from anywhere else it closes
+  var back = createElement('button', { className: 'btn btn-outline btn-sm pro-back', text: '← Back', attributes: { type: 'button', id: pricing ? 'proBack' : 'proTopBack', 'aria-label': pricing ? 'Back to what you get' : 'Back' } });
+  back.addEventListener('click', function () {
+    if (pricing) { act('back', {}); openPaywall(Object.assign({}, o, { pricing: false })); } else { act('closed', {}); cleanup(); }
+  });
+  box.insertBefore(back, box.firstChild);
   if (pricing) {
-    var back = createElement('button', { className: 'btn btn-outline btn-sm', text: '‹ What you get', attributes: { type: 'button', id: 'proBack' } });
-    back.addEventListener('click', function () { openPaywall(Object.assign({}, o, { pricing: false })); });
-    box.insertBefore(back, box.firstChild.nextSibling);
     if (needsAccount) {
       // buying needs a real account (not a guest): the plans stay out of sight until there is one
       track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: false });

@@ -91,6 +91,19 @@ describe('Pro screens once switched on', () => {
     expect(document.getElementById('proPaywall').querySelector('#proTrialBtn')).toBeTruthy();
   });
 
+  it('every Pro screen has a Back button at the top: it returns from the plans, and closes from the first screen', async () => {
+    setProUiDeps({ toast: () => {}, lb: { isAuthenticated: () => true, isGuest: () => true }, openAccount: vi.fn() });
+    const first = openPaywall({ trigger: 'home_button' });
+    expect(first.querySelector('.report-box').firstElementChild.id).toBe('proTopBack'); // the very first thing in the box
+    expect(first.querySelector('#proTopBack').textContent).toMatch(/Back/);
+    first.querySelector('#proSeePricing').click();
+    const plans = document.getElementById('proPaywall');
+    expect(plans.querySelector('.report-box').firstElementChild.id).toBe('proBack');
+    plans.querySelector('#proBack').click();
+    document.getElementById('proPaywall').querySelector('#proTopBack').click();
+    expect(document.getElementById('proPaywall')).toBeNull(); // closed
+  });
+
   it('the trial button sends someone without an account to create one', async () => {
     const openAccount = vi.fn();
     setProUiDeps({ toast: () => {}, lb: { isAuthenticated: () => true, isGuest: () => true }, openAccount });

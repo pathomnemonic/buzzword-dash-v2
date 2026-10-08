@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { homeDotsNow, markExplored, isExplored, discoveryActive, menuHasNew, MENU_DISCOVERIES, HOME_DOT_LIMIT, updateDiscoveryDots, discoveryIdFor } from '../../js/discoverydots.js';
+import { homeDotsNow, markExplored, isExplored, discoveryActive, menuHasNew, MENU_DISCOVERIES, HOME_DISCOVERIES, HOME_DOT_LIMIT, updateDiscoveryDots, discoveryIdFor } from '../../js/discoverydots.js';
 import { setDot } from '../../js/attentiondots.js';
 
 function fakeStorage(data) {
@@ -15,17 +15,26 @@ describe('discovery dots', () => {
     expect(menuHasNew(s, MENU_DISCOVERIES[0])).toBe(false);
   });
 
-  it('show at most two on Home, in order, and the next one appears when one is opened', () => {
+  it('every menu and tab has a dot at once, and each goes when it is opened', () => {
     const s = fakeStorage();
     let now = homeDotsNow(s).map((d) => d.id);
-    expect(now.length).toBe(HOME_DOT_LIMIT);
-    expect(now[0]).toBe('home:flashcards');
+    expect(now.length).toBe(HOME_DISCOVERIES.length);
+    ['home:filters', 'home:speed', 'home:flashcards', 'home:challenge', 'home:settings', 'tab:stats', 'tab:locker', 'tab:quests', 'tab:profile'].forEach((id) => expect(now, id).toContain(id));
     expect(markExplored(s, 'home:flashcards')).toBe(true);
     expect(markExplored(s, 'home:flashcards')).toBe(false);
     now = homeDotsNow(s).map((d) => d.id);
     expect(now).not.toContain('home:flashcards');
-    expect(now.length).toBe(HOME_DOT_LIMIT);
+    expect(now.length).toBe(HOME_DISCOVERIES.length - 1);
     expect(isExplored(s, 'home:flashcards')).toBe(true);
+  });
+
+  it('start as soon as the how-to-play is over, not only after a first run', () => {
+    const fresh = fakeStorage();
+    expect(discoveryActive(fresh)).toBe(true); // (fakeStorage is a player who has played)
+    const justFinishedTutorial = { get: (k) => ({ firstRunComplete: true, runsFinished: 0, explored: [] }[k]), set() {} };
+    expect(discoveryActive(justFinishedTutorial)).toBe(true);
+    const brandNew = { get: (k) => ({ firstRunComplete: false, runsFinished: 0, explored: [] }[k]), set() {} };
+    expect(discoveryActive(brandNew)).toBe(false);
   });
 
   it('a menu keeps a dot on its button while any item is unopened, and loses it when all are opened', () => {

@@ -188,7 +188,7 @@ A tutorial began.
 
 | Property | Type |
 |---|---|
-| `kind` | one of: real_track, practice, tour, replay — required |
+| `kind` | one of: real_track, practice, tour, lesson, replay — required |
 | `first_time` | true/false |
 
 ### `tutorial_step`
@@ -202,7 +202,7 @@ A tutorial step was viewed, completed or skipped.
 | `outcome` | one of: viewed, completed, skipped, failed |
 | `attempts` | whole number |
 | `ms` | whole number |
-| `kind` | one of: real_track, practice, tour |
+| `kind` | one of: real_track, practice, tour, lesson |
 
 ### `tutorial_ended`
 
@@ -215,7 +215,7 @@ The tutorial finished or was left.
 | `steps_done` | whole number |
 | `ms` | whole number |
 | `exit_confirm_shown` | true/false |
-| `kind` | one of: real_track, practice, tour |
+| `kind` | one of: real_track, practice, tour, lesson |
 
 ### `first_run_milestone`
 

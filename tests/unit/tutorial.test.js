@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { buildSteps, REFERENCE, startTutorial, skipTutorial, isTutorialOpen } from '../../js/tutorial.js';
+import { buildSteps, startTutorial, skipTutorial, isTutorialOpen } from '../../js/tutorial.js';
 import { getControlText } from '../../js/controlhints.js';
 import { cornerLabel, cornerInitial } from '../../js/profilecorner.js';
 
@@ -21,9 +21,11 @@ describe('tutorial steps', () => {
     expect(keys).toMatch(/press/i);
   });
 
-  it('ends with the reference notes', () => {
-    expect(buildSteps(getControlText(false)).at(-1).reference).toBe(true);
-    expect(REFERENCE.length).toBeGreaterThanOrEqual(5);
+  it('ends by sending the player off to the red-dotted menus, with no long list to read', () => {
+    const last = buildSteps(getControlText(false)).at(-1);
+    expect(last.reference).toBeUndefined();
+    expect(last.text).toMatch(/red dots?/i);
+    expect(last.text).toMatch(/explore|try/i);
   });
 });
 

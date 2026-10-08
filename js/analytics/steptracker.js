@@ -6,7 +6,7 @@
 import { track } from './index.js';
 
 /**
- * @param {'real_track'|'practice'|'tour'} kind
+ * @param {'real_track'|'practice'|'tour'|'lesson'} kind
  * @param {{firstTime?: boolean, now?: function(): number, send?: function(string, object): *}} [o]
  */
 export function createStepTracker(kind, o) {
