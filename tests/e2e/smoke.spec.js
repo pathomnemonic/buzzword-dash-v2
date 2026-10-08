@@ -108,6 +108,7 @@ test.describe('Smoke tests', () => {
   });
 
   test('the Versus close button stays on screen on a short laptop window', async ({ page }) => {
+    test.skip(process.env.VITE_NO_BACKEND === '1', 'needs Versus or Friends, which the no-backend build does not have');
     await page.setViewportSize({ width: 1366, height: 560 });
     await openApp(page);
     await page.locator('#multiplayerBtn').click();

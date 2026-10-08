@@ -14,6 +14,7 @@ const SIZES = [
 test.describe('Home layout', () => {
   for (const size of SIZES) {
     test(`fits without scrolling on a ${size.name} (${size.width}x${size.height})`, async ({ page }) => {
+    test.skip(process.env.VITE_NO_BACKEND === '1', 'needs Versus or Friends, which the no-backend build does not have');
       await page.setViewportSize({ width: size.width, height: size.height });
       await openApp(page);
       const layout = page.locator('.home-layout');
@@ -32,6 +33,7 @@ test.describe('Home layout', () => {
   }
 
   test('Home is the middle tab, and Settings and Ranks are buttons, not tabs', async ({ page }) => {
+    test.skip(process.env.VITE_NO_BACKEND === '1', 'needs Versus or Friends, which the no-backend build does not have');
     await openApp(page);
     const tabs = await page.locator('#bottomNav .nav-item').evaluateAll((els) => els.map((e) => e.dataset.screen));
     expect(tabs).toEqual(['screenStats', 'screenShop', 'screenHome', 'screenQuests', 'screenProfile']);
@@ -122,6 +124,7 @@ test.describe('Home layout', () => {
   });
 
   test('every page has a Back button that steps back one level, and the tab screens rely on the bottom bar', async ({ page }) => {
+    test.skip(process.env.VITE_NO_BACKEND === '1', 'needs Versus or Friends, which the no-backend build does not have');
     await openApp(page);
     await page.locator('#settingsBtn').click();
     await page.locator('.settings-card[data-section="sound"]').click();

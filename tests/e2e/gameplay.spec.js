@@ -85,6 +85,7 @@ test.describe('Settings and screens', () => {
   });
 
   test('the leaderboard screen explains when it is not configured', async ({ page }) => {
+    test.skip(process.env.VITE_NO_BACKEND === '1', 'needs Versus or Friends, which the no-backend build does not have');
     await openApp(page);
     await page.locator('#leaderboardBtn').click();
     await expect(page.locator('#leaderboardContent')).toContainText(/not set up|Connecting|sign in/i);
