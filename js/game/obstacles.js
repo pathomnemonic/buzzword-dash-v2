@@ -28,7 +28,7 @@ import { buildModelCharacter, loadCharacterModel, isModelReady } from './charact
 import { modelUrl } from './modelcatalog.js';
 import { useCharacterModels } from './quality.js';
 import { VISUAL_SPEED } from './enginedefs.js';
-import { COIN_GAP, coinsForObstacle } from './coinfx.js';
+import { COIN_GAP, coinsForObstacle, jumpArc, jumpArcLength } from './coinfx.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -865,16 +865,14 @@ function spawnCoinZigzag(scene, coinMeshes, startZ) {
   return n * COIN_GAP;
 }
 
-/** An arc of coins in one lane: jump to collect them all (they are in the air, so it takes a jump). */
-function spawnCoinArc(scene, coinMeshes, startZ) {
+/** An arc of coins in one lane, on the path a jump takes at the run's speed: jump to collect them all (they are in the air, so it takes a jump). */
+function spawnCoinArc(scene, coinMeshes, startZ, speed) {
   var lane = nextCoinLane();
-  var n = 11;
-  for (var i = 0; i < n; i++) {
-    var h = Math.sin(i / (n - 1) * Math.PI);
-    addCoin(scene, coinMeshes, lane, startZ - i * 0.6, 1.2 + h * 1.75, h > 0.55);
-  }
+  var arc = jumpArc(speed, 11);
+  var half = jumpArcLength(speed) / 2;
+  for (var i = 0; i < arc.length; i++) addCoin(scene, coinMeshes, lane, startZ - (half - arc[i].dz), arc[i].y, arc[i].air);
   _lastCoinLane = lane;
-  return n * 0.6;
+  return jumpArcLength(speed) + 3; // (a little run-up and run-out, so the next batch does not start on top of the landing)
 }
 
 /**
@@ -885,9 +883,9 @@ function spawnCoinArc(scene, coinMeshes, startZ) {
  * @param {{type: string, lane: number}} info what spawnObstacle returned
  * @param {number} obstacleZ the obstacle's world z when it spawned
  */
-export function spawnCoinsForObstacle(scene, coinMeshes, info, obstacleZ) {
+export function spawnCoinsForObstacle(scene, coinMeshes, info, obstacleZ, speed) {
   if (!info) return 0;
-  var list = coinsForObstacle(info.type === 'slide' ? 'slide' : 'jump');
+  var list = coinsForObstacle(info.type === 'slide' ? 'slide' : 'jump', speed);
   var middle = obstacleZ / VISUAL_SPEED;
   for (var i = 0; i < list.length; i++) addCoin(scene, coinMeshes, info.lane, middle + list[i].dz, list[i].y, list[i].air);
   return list.length;
@@ -899,16 +897,17 @@ export function spawnCoinsForObstacle(scene, coinMeshes, info, obstacleZ) {
  * @param {THREE.Scene} scene
  * @param {THREE.Object3D[]} coinMeshes
  * @param {number} [startZ]
+ * @param {number} [speed] the run's speed, which sets how long an arc is (it follows a jump)
  * @returns {number} how long the batch is (world units), so the caller can leave a gap before the next one
  */
-export function spawnCoinBatch(scene, coinMeshes, startZ) {
+export function spawnCoinBatch(scene, coinMeshes, startZ, speed) {
   var z = startZ || (-40 - Math.random() * 20);
   // (never two lanes at the same spot: with a coin in each of two lanes you could flick between them and take both)
   var r = Math.random() * 10;
   if (r < 4) return spawnCoinLine(scene, coinMeshes, z);
   if (r < 6) return spawnCoinSwitch(scene, coinMeshes, z);
   if (r < 8) return spawnCoinZigzag(scene, coinMeshes, z);
-  return spawnCoinArc(scene, coinMeshes, z);
+  return spawnCoinArc(scene, coinMeshes, z, speed);
 }
 
 /**

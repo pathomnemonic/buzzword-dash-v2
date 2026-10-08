@@ -52,12 +52,44 @@ describe('coins that go with an obstacle', () => {
     const arc = coinsForObstacle('jump');
     expect(arc.length).toBeGreaterThanOrEqual(5);
     const peak = arc.reduce((a, c) => (c.y > a.y ? c : a));
-    expect(Math.abs(peak.dz)).toBeLessThan(0.01);
+    expect(Math.abs(peak.dz)).toBeLessThan(0.3); // (the jump's top is a little past the middle of its time in the air)
     expect(peak.air).toBe(true);
     expect(coinReachable(peak.y, 0, true)).toBe(false); // standing on the ground, the top of the arc is out of reach
     expect(coinReachable(peak.y, 3.0, true)).toBe(true);  // a full jump gets all of it
     const dzs = arc.map((c) => c.dz);
     expect(Math.min(...dzs)).toBeCloseTo(-Math.max(...dzs), 5); // balanced around the obstacle
+  });
+
+  it('the arc is the runner\'s own jump: it leaves and lands on the ground, and stretches with the run\'s speed', async () => {
+    const { jumpProfile } = await import('../../js/game/jumpphysics.js');
+    const { jumpArc, jumpArcLength, COIN_BASE_Y } = await import('../../js/game/coinfx.js');
+    const prof = jumpProfile();
+    [1.0, 1.875, 3.5].forEach((speed) => {
+      const arc = jumpArc(speed, 9);
+      const first = arc[0], last = arc[arc.length - 1];
+      expect(first.y).toBeCloseTo(COIN_BASE_Y, 1); // takeoff, at ground level
+      expect(last.y).toBeCloseTo(COIN_BASE_Y, 1);  // landing
+      expect(first.dz - last.dz).toBeCloseTo(prof.airTime * speed, 5); // as long as the jump is, at this speed
+      expect(jumpArcLength(speed)).toBeCloseTo(prof.airTime * speed, 5);
+      const peak = Math.max(...arc.map((c) => c.y));
+      expect(peak - COIN_BASE_Y).toBeGreaterThan(prof.peak * 0.9); // reaches (nearly) the top of the jump
+      expect(peak - COIN_BASE_Y).toBeLessThanOrEqual(prof.peak + 0.01);
+    });
+    // each coin sits where the runner is at that moment of the jump
+    const speed = 2.4;
+    jumpArc(speed, 9).forEach((c) => {
+      const t = prof.airTime / 2 - c.dz / speed;
+      expect(c.y).toBeCloseTo(COIN_BASE_Y + prof.heightAt(t), 5);
+    });
+  });
+
+  it('the jump the coins follow is the same one the engine takes (about a second and a quarter in the air, peaking near 3.4)', async () => {
+    const { jumpProfile } = await import('../../js/game/jumpphysics.js');
+    const p = jumpProfile();
+    expect(p.airTime).toBeGreaterThan(1.1);
+    expect(p.airTime).toBeLessThan(1.5);
+    expect(p.peak).toBeGreaterThan(3.2);
+    expect(p.peak).toBeLessThan(3.7);
   });
 
   it('an overhead obstacle gets a low trail along the ground, no jump needed', () => {

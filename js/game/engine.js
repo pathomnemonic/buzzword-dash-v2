@@ -42,6 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
+import { JUMP_SPEED, jumpStep } from './jumpphysics.js';
 import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
@@ -69,9 +70,7 @@ import { runEndMethods } from './enginerunend.js';
 // ═══════════════════════════════════════════════════════════════
 
 /** Generous timings so obstacles are comfortable to clear: about a second in the air, nearly a second of slide. */
-var JUMP_SPEED = 12;
 var TUTORIAL_OBSTACLE_DISTANCE = 10; // run units: about five seconds away at the tutorial pace
-var JUMP_GRAVITY = 22;
 var SLIDE_TIME = 1.1;
 
 class Game {
@@ -1290,10 +1289,9 @@ class Game {
 
     // Jump
     if (this.jumping) {
-      this.playerY += this.jumpVel * dt;
-      var gravity = JUMP_GRAVITY;
-      if (Math.abs(this.jumpVel) < 3) gravity = JUMP_GRAVITY * 0.6; // floaty at the top
-      this.jumpVel -= gravity * dt;
+      var jumped = jumpStep(this.playerY, this.jumpVel, dt); // (jumpphysics.js: the coin arcs follow the same curve)
+      this.playerY = jumped.y;
+      this.jumpVel = jumped.v;
       if (this.playerY <= 0) {
         this.playerY = 0;
         this.jumping = false;
@@ -1503,7 +1501,7 @@ class Game {
       var coinPowerUp = this.powerups.scoreFrenzy > 0 || this.powerups.goldRush > 0 || this.powerups.jackpot > 0;
       var self2 = this;
       this._coinTail = fillCoins(this._coinTail,
-        function (z) { return spawnCoinBatch(self2.scene, self2.coinMeshes, z); },
+        function (z) { return spawnCoinBatch(self2.scene, self2.coinMeshes, z, self2.speed); },
         function () { return coinGap(Math.random(), coinPowerUp); });
     }
 
@@ -1819,7 +1817,7 @@ class Game {
       var obstacleZ = (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED;
       var made = spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: obstacleZ });
       // a reward for getting past it: an arc over a jump, a trail under an overhead obstacle
-      if (made) spawnCoinsForObstacle(this.scene, this.coinMeshes, made, obstacleZ);
+      if (made) spawnCoinsForObstacle(this.scene, this.coinMeshes, made, obstacleZ, this.speed);
     }
   }
 

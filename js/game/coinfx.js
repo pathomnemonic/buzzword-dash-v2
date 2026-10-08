@@ -11,6 +11,8 @@
  * Distances are in pattern units (the engine multiplies them by VISUAL_SPEED).
  */
 
+import { jumpProfile } from './jumpphysics.js';
+
 /** Seconds after a coin during which the next one continues the chain (and the chime keeps climbing). */
 export var CHAIN_WINDOW = 1.1;
 
@@ -55,19 +57,44 @@ export function coinWorth(o) {
  * an overhead one gets a low trail along the ground under it, which you slide through.
  * @param {'jump'|'slide'} kind
  */
-export function coinsForObstacle(kind) {
+export function coinsForObstacle(kind, speed) {
   var out = [];
   var i;
   if (kind === 'slide') {
     for (i = -4; i <= 4; i++) out.push({ dz: i * 0.5, y: 0.7, air: false });
     return out;
   }
-  // a jump lasts about two pattern units each side of the middle; the arc peaks right over the obstacle
-  for (i = -4; i <= 4; i++) {
-    var t = (i + 4) / 8; // 0 .. 1
-    out.push({ dz: i * 0.5, y: 1.2 + Math.sin(t * Math.PI) * 1.75, air: true });
+  // the arc is the jump itself: the runner's height through a jump, laid out along the track at the run's speed
+  // (so a faster run stretches the arc), centered on the obstacle
+  return jumpArc(speed, 9);
+}
+
+/** Coin height above the ground when the runner is on it. */
+export var COIN_BASE_Y = 1.2;
+
+/**
+ * Coins along the path a jump takes: the same curve the runner follows (jumpphysics.js), at the run's current speed.
+ * The first coin is where a jump leaves the ground and the last is where it lands, so the arc is the arc the player jumps.
+ * @param {number} [speed] the run's speed in pattern units per second (1.875 when not given)
+ * @param {number} [count] how many coins
+ * @returns {Array<{dz: number, y: number, air: boolean}>} dz is relative to the middle of the jump; larger is nearer the runner
+ */
+export function jumpArc(speed, count) {
+  var sp = speed > 0 ? speed : 1.875;
+  var n = count > 1 ? count : 9;
+  var prof = jumpProfile();
+  var out = [];
+  for (var i = 0; i < n; i++) {
+    var t = (i / (n - 1)) * prof.airTime;
+    var y = COIN_BASE_Y + prof.heightAt(t);
+    out.push({ dz: (prof.airTime / 2 - t) * sp, y: y, air: y > AIR_COIN_HEIGHT });
   }
   return out;
+}
+
+/** How long (pattern units) a jump's arc is at this speed. */
+export function jumpArcLength(speed) {
+  return jumpProfile().airTime * (speed > 0 ? speed : 1.875);
 }
 
 /**
