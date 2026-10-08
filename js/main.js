@@ -1541,6 +1541,8 @@ function init() {
     }, 5000);
   };
 
+  game.onScoreTick = function () { ui.updateHudScore(game); };
+
   game.onHudUpdate = function () {
     ui.updateHud(game);
     sendMultiplayerGameState();

@@ -1116,6 +1116,11 @@ class UI {
     });
   }
 
+  /** Just the score, for the steady tick of distance points (the rest of the bar changes only on answers and pick-ups). */
+  updateHudScore(game) {
+    setText(document.getElementById('hudScore'), game.score);
+  }
+
   updateHud(game) {
     var streakPill = document.getElementById('hudStreak') && document.getElementById('hudStreak').parentElement;
     if (streakPill) {

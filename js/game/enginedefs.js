@@ -59,6 +59,9 @@ export var ANSWER_LOCK_Z = -3;
  * looks like a slow walk.
  */
 export var VISUAL_SPEED = 2.2;
+
+/** Points for every run unit of distance, so the score on screen keeps climbing the whole time (answers add to it on top). */
+export var DISTANCE_POINTS = 3;
 /** Where the exam monster starts, as a distance to catch (3 = caught). Far enough to be out of sight. */
 export var MONSTER_START_DIST = 26;
 export var OBSTACLE_GATE_GAP = 14; // units an obstacle trails behind the gate it spawns with

@@ -22,6 +22,19 @@ test.describe('Gameplay', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the score on screen climbs by itself as the runner covers distance', async ({ page }) => {
+    await openApp(page);
+    test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');
+    await page.locator('.btn-play').click();
+    await expect(page.locator('#buzzText')).not.toHaveText('GET READY', { timeout: 20000 });
+    const read = async () => parseInt(await page.locator('#hudScore').textContent(), 10) || 0;
+    const first = await read();
+    const seen = new Set([first]);
+    for (let i = 0; i < 8; i++) { await page.waitForTimeout(250); seen.add(await read()); }
+    expect(await read(), 'no answer has been given, so distance alone raised it').toBeGreaterThan(first);
+    expect(seen.size, 'it changes several times in two seconds, not in one jump').toBeGreaterThan(3);
+  });
+
   test('pause shows the pause screen and Resume takes it away', async ({ page }) => {
     await openApp(page);
     test.skip(!(await hasWebGL(page)), 'WebGL unavailable in this environment');

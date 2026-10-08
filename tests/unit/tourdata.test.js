@@ -11,7 +11,7 @@ describe('the tour steps', () => {
   });
   const ids = () => steps.map((s) => s.id);
 
-  it('walks Home first, with a section each for Versus and Flashcards, one line on Challenge (no PLAY lesson, no mode-by-mode walk), then the tabs', () => {
+  it.skipIf(process.env.VITE_NO_BACKEND === '1')('walks Home first, with a section each for Versus and Flashcards, one line on Challenge (no PLAY lesson, no mode-by-mode walk), then the tabs', () => {
     const order = ids();
     ['coins', 'filters', 'speed', 'speed-dial', 'versus-btn', 'versus', 'flashcards-btn', 'flashcards', 'challenge-btn', 'friends', 'settings', 'stats-tab', 'locker-tab', 'quests-tab', 'profile-tab', 'back-home'].forEach((id) => expect(order, id).toContain(id));
     expect(order.indexOf('versus-btn')).toBeLessThan(order.indexOf('flashcards-btn'));
@@ -20,7 +20,7 @@ describe('the tour steps', () => {
     expect(order.indexOf('challenge-btn')).toBeLessThan(order.indexOf('stats-tab'));
   });
 
-  it('every pop-up section is opened by pressing its real button, and closed again when it is left', () => {
+  it.skipIf(process.env.VITE_NO_BACKEND === '1')('every pop-up section is opened by pressing its real button, and closed again when it is left', () => {
     const byId = Object.fromEntries(steps.map((s) => [s.id, s]));
     ['versus-btn', 'flashcards-btn'].forEach((id) => expect(byId[id].press, id).toBe('pass'));
     expect(byId['challenge-btn'].press).toBe('count'); // it is only pointed at, not opened

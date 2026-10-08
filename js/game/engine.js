@@ -58,7 +58,7 @@ import { HazardManager, HAZARDS } from './hazards.js';
 export { SHOP_ITEMS, QUESTS, AVATARS, ACHIEVEMENTS, CONTINUE_COST } from './shopdata.js';
 import { CONTINUE_COST } from './shopdata.js';
 import { chooseCommittedLane } from './lanelock.js';
-import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, VISUAL_SPEED, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
+import { GAME_STATES, GAME_MODES, RUN_END_REASONS, LANE_X, ANSWER_LOCK_Z, VISUAL_SPEED, DISTANCE_POINTS, OBSTACLE_GATE_GAP, MONSTER_START_DIST, generateId, removeAndDispose, ALLOWED_TRANSITIONS, buildHeartMesh } from './enginedefs.js';
 export { GAME_STATES, GAME_MODES, RUN_END_REASONS } from './enginedefs.js';
 import { visualMethods } from './enginevisuals.js';
 import { examMonsterMethods } from './engineexam.js';
@@ -130,6 +130,7 @@ class Game {
 
     // Scoring
     this.score = 0;
+    this.distance = 0; this._distanceCarry = 0; this.distanceScore = 0; // run units covered, the fraction of a point not yet added, points earned from distance
     this.streak = 0;
     this.bestStreak = 0;
     this.multiplier = 1;
@@ -286,6 +287,7 @@ class Game {
     this.onEncounterResolve = null;
     this.onRunEnd = null;
     this.onHudUpdate = null;
+    this.onScoreTick = null;
     this.onStreakMilestone = null;
     this.onPowerupFused = null;
     this.onSecretFound = null;
@@ -847,7 +849,7 @@ class Game {
     this._slowmo = 0; this._fovKick = 0;
     this._deathStyle = null; this._deathCause = null; this._deathT = 0; this._monsterDeathFromZ = undefined;
     if (this._monsterBehavior) { this._monsterBehavior.fade = 0; this._monsterBehavior.calm = 99; this._monsterBehavior.lunge = 0; this._monsterBehavior.recoil = 0; }
-    this.score = 0; this.streak = 0; this.bestStreak = 0;
+    this.score = 0; this.distance = 0; this._distanceCarry = 0; this.distanceScore = 0; this.streak = 0; this.bestStreak = 0;
     this.multiplier = 1; this.coins = 0;
     this.encountersDone = 0; this.correct = 0; this.wrong = 0;
     this.lives = this.mode === GAME_MODES.STUDY ? 99 : (this._modeConfig.lives || 3);
@@ -1228,6 +1230,19 @@ class Game {
     }
 
     var move = currentSpeed * rushMult * dt;
+
+    // Distance counts toward the score: it ticks up with every step of the run (faster runs and Rush climb faster)
+    if (!this._tutorial && this._state === GAME_STATES.PLAYING) {
+      this.distance += move;
+      this._distanceCarry += move * DISTANCE_POINTS;
+      var whole = Math.floor(this._distanceCarry);
+      if (whole > 0) {
+        this._distanceCarry -= whole;
+        this.score += whole;
+        this.distanceScore += whole;
+        if (this.onScoreTick) this.onScoreTick(this.score);
+      }
+    }
 
     // Multiplayer timer
     if (this.mode === GAME_MODES.MP_HIGH_SCORE && this._mpTimerRemaining !== null) {
