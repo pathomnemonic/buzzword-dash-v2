@@ -87,7 +87,7 @@ export var CHARACTER_MODELS = [
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES },
       { key: 'hair', label: 'Hair', materials: ['Hair'], palette: HAIR_COLORS }
     ] },
-  { id: 'avatar_m_rogue', name: 'Dark-Room Dex', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 3200, icon: '🗡️', color: 0x55506a,
+  { id: 'avatar_m_rogue', name: 'Dark-Room Dee', desc: 'Quick, quiet and a little shady', file: 'characters/hooded.glb', price: 3200, icon: '🗡️', color: 0x55506a,
     parts: [
       { key: 'cloak', label: 'Hood & cloak', materials: ['DarkBrown'], palette: ROBES },
       { key: 'pants', label: 'Pants', materials: ['Black'], palette: DARKS },

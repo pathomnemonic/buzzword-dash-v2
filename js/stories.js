@@ -14,7 +14,7 @@ export var STORIES = {
   },
   avatar_m_paramedic: {
     short: 'Handover done before the doors open.',
-    long: 'Pat builds her story on the way in: who, what happened, what she tried, what changed. By the trauma bay it fits in thirty seconds. She trains new paramedics to present while moving, up stairs and round corners. She knows every shortcut in the building and which lift lies about its floor.'
+    long: 'Pat builds his story on the way in: who, what happened, what he tried, what changed. By the trauma bay it fits in thirty seconds. He trains new paramedics to present while moving, up stairs and round corners. He knows every shortcut in the building and which lift lies about its floor.'
   },
   avatar_m_intern: {
     short: 'Always up for a trek.',
@@ -26,11 +26,11 @@ export var STORIES = {
   },
   avatar_m_adventurer: {
     short: 'New ward every week, never lost.',
-    long: 'Lou walks into a strange hospital and asks three things: who to call, where the crash cart is, and what the regulars never write down. That half page of answers carries her through the week. She follows the unit\'s unspoken rules from day one, which is why people trust her fast. She travels light and treats every new corridor as a puzzle.'
+    long: 'Lou walks into a strange hospital and asks three things: who to call, where the crash cart is, and what the regulars never write down. That half page of answers carries him through the week. He follows the unit\'s unspoken rules from day one, which is why people trust him fast. He travels light and treats every new corridor as a puzzle.'
   },
   avatar_m_rogue: {
     short: 'Quick, quiet and a little shady.',
-    long: 'Dex is the radiologist who reads films in the dark and is somehow always right. He answers calls in four words or fewer. The residents joke that he sees the diagnosis before the scan finishes loading. He insists the secret is simply looking at the whole image, including the corners nobody checks.'
+    long: 'Dee is the radiologist who reads films in the dark and is somehow always right. She answers calls in four words or fewer. The residents joke that she sees the diagnosis before the scan finishes loading. She insists the secret is simply looking at the whole image, including the corners nobody checks.'
   },
   avatar_m_scout: {
     short: 'Never met a result she could not explain.',
