@@ -54,3 +54,16 @@ export function jumpProfile() {
   };
   return _profile;
 }
+
+// How an obstacle is cleared (engine.js applies these): from the moment it is within OBSTACLE_CLEAR_AHEAD of the runner
+// until its middle passes OBSTACLE_HIT_Z, any moment spent jumping above MIN_JUMP_CLEARANCE, or sliding, counts.
+
+/** World units before the runner where the clearing window opens. */
+export var OBSTACLE_CLEAR_AHEAD = 1.5;
+/** World units past the runner where the obstacle is judged. */
+export var OBSTACLE_HIT_Z = 0.15;
+/** How far off the ground a jump must be to count as clearing a low obstacle. */
+export var MIN_JUMP_CLEARANCE = 0.3;
+
+/** How long a slide lasts (seconds). */
+export var SLIDE_TIME = 1.1;

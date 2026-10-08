@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import {
   chimeRatio, chainContinues, CHAIN_WINDOW, coinReachable, coinWorth, coinsForObstacle, magnetX, coinGap, fillCoins, COIN_HORIZON,
-  COIN_GAP, AIR_COIN_HEIGHT, coinTouches, COIN_REACH_X, COIN_REACH_Z
+  COIN_GAP, AIR_COIN_HEIGHT, coinTouches, COIN_REACH_X, COIN_REACH_Z, arcCoinCount
 } from '../../js/game/coinfx.js';
 import { enableCoinInstancing, disableCoinInstancing, spawnCoinBatch, spawnCoinsForObstacle } from '../../js/game/obstacles.js';
 import { VISUAL_SPEED } from '../../js/game/enginedefs.js';
@@ -261,3 +261,57 @@ describe('coins cannot be scooped from two lanes by flicking between them', () =
     }
   });
 });
+
+describe('jumping and sliding clear obstacles at every speed setting', () => {
+  // the speed dial's steps (js/ui.js SPEED_STEPS); the run's speed is 1.875 × the dial, and the road moves 2.2 world units per run unit
+  const STEPS = [0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const worldSpeed = (step) => 1.875 * step * 2.2;
+
+  it('a jump started anywhere in a wide span of moments clears a low obstacle, at the slowest speed and the fastest', async () => {
+    const J = await import('../../js/game/jumpphysics.js');
+    const dt = 1 / 120;
+    STEPS.forEach((step) => {
+      const ok = [];
+      // `lead` = how long before the obstacle reaches the runner's judging spot the jump starts (negative: after it left)
+      for (let lead = -0.2; lead <= 3.2; lead += 0.02) {
+        // the obstacle is judged at t = 0; before that it is within the clearing window once t > -(AHEAD + HIT_Z) / worldSpeed
+        const windowOpen = -(J.OBSTACLE_CLEAR_AHEAD + J.OBSTACLE_HIT_Z) / worldSpeed(step);
+        let y = 0, v = J.JUMP_SPEED, cleared = false;
+        for (let t = -lead; t <= 0; t += dt) {
+          const s = J.jumpStep(y, v, dt); y = s.y; v = s.v;
+          if (y <= 0) break;
+          if (t > windowOpen && y > J.MIN_JUMP_CLEARANCE) cleared = true;
+        }
+        if (cleared) ok.push(lead);
+      }
+      const span = ok.length ? ok[ok.length - 1] - ok[0] : 0;
+      expect(span, `jump at ${step}×`).toBeGreaterThan(1.0); // over a second of "good" moments to start the jump
+      // the moment the coin arc is built around (the middle of the jump over the obstacle) is a good one
+      const ideal = jumpProfileAirHalf(J);
+      expect(ok.some((l) => Math.abs(l - ideal) < 0.05), `ideal jump at ${step}×`).toBe(true);
+    });
+  });
+
+  it('a slide started anywhere in a wide span of moments clears an overhead obstacle, at every speed', async () => {
+    const J = await import('../../js/game/jumpphysics.js');
+    STEPS.forEach((step) => {
+      const windowDuration = (J.OBSTACLE_CLEAR_AHEAD + J.OBSTACLE_HIT_Z) / worldSpeed(step);
+      // a slide started `lead` seconds before the judging moment lasts SLIDE_TIME; it counts if it overlaps the window
+      const span = windowDuration + J.SLIDE_TIME;
+      expect(span, `slide at ${step}×`).toBeGreaterThan(1.0);
+    });
+  });
+
+  it('arcs have enough coins to look like a curve at a crawl and are never a pile', () => {
+    STEPS.forEach((step) => {
+      const n = arcCoinCount(1.875 * step, 11);
+      expect(n).toBeGreaterThanOrEqual(5);
+      expect(n).toBeLessThanOrEqual(11);
+    });
+    expect(arcCoinCount(1.875 * 0.25, 11)).toBeLessThan(arcCoinCount(1.875 * 4, 11));
+  });
+});
+
+function jumpProfileAirHalf(J) {
+  return J.jumpProfile().airTime / 2;
+}

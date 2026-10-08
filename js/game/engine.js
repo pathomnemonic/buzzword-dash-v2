@@ -42,7 +42,7 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
-import { JUMP_SPEED, jumpStep } from './jumpphysics.js';
+import { JUMP_SPEED, SLIDE_TIME, jumpStep, OBSTACLE_CLEAR_AHEAD, OBSTACLE_HIT_Z, MIN_JUMP_CLEARANCE } from './jumpphysics.js';
 import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
@@ -71,7 +71,6 @@ import { runEndMethods } from './enginerunend.js';
 
 /** Generous timings so obstacles are comfortable to clear: about a second in the air, nearly a second of slide. */
 var TUTORIAL_OBSTACLE_DISTANCE = 10; // run units: about five seconds away at the tutorial pace
-var SLIDE_TIME = 1.1;
 
 class Game {
   constructor() {
@@ -1547,10 +1546,10 @@ class Game {
       // until its middle reaches them, any moment spent jumping (clear of the ground) or sliding counts as clearing
       // it, so a jump or slide timed a little early or a little late still works. Only an obstacle that arrives
       // without one of those having happened hurts.
-      if (!od.checked && od.lane === this.currentLane && ob.position.z > -1.5 && !od.cleared) {
-        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > 0.3)) od.cleared = true;
+      if (!od.checked && od.lane === this.currentLane && ob.position.z > -OBSTACLE_CLEAR_AHEAD && !od.cleared) {
+        if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > MIN_JUMP_CLEARANCE)) od.cleared = true;
       }
-      if (!od.checked && ob.position.z > 0.15) {
+      if (!od.checked && ob.position.z > OBSTACLE_HIT_Z) {
         od.checked = true;
         if (od.lane === this.currentLane) {
           var dodged = !!od.cleared;

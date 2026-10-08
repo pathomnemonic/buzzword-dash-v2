@@ -66,7 +66,7 @@ export function coinsForObstacle(kind, speed) {
   }
   // the arc is the jump itself: the runner's height through a jump, laid out along the track at the run's speed
   // (so a faster run stretches the arc), centered on the obstacle
-  return jumpArc(speed, 9);
+  return jumpArc(speed, arcCoinCount(speed, 9));
 }
 
 /** Coin height above the ground when the runner is on it. */
@@ -90,6 +90,17 @@ export function jumpArc(speed, count) {
     out.push({ dz: (prof.airTime / 2 - t) * sp, y: y, air: y > AIR_COIN_HEIGHT });
   }
   return out;
+}
+
+/**
+ * How many coins an arc gets at this speed: enough to read as a curve, but not a pile when the run is slow and the
+ * arc is short (a slow run barely moves forward during a jump, so the arc is mostly straight up).
+ * @param {number} speed
+ * @param {number} max
+ */
+export function arcCoinCount(speed, max) {
+  var worldLength = jumpArcLength(speed) * 2.2; // (2.2 = VISUAL_SPEED, world units per pattern unit)
+  return Math.max(5, Math.min(max, Math.round(worldLength / 0.7)));
 }
 
 /** How long (pattern units) a jump's arc is at this speed. */

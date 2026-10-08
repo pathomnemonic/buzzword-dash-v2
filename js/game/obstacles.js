@@ -28,7 +28,7 @@ import { buildModelCharacter, loadCharacterModel, isModelReady } from './charact
 import { modelUrl } from './modelcatalog.js';
 import { useCharacterModels } from './quality.js';
 import { VISUAL_SPEED } from './enginedefs.js';
-import { COIN_GAP, coinsForObstacle, jumpArc, jumpArcLength } from './coinfx.js';
+import { COIN_GAP, coinsForObstacle, jumpArc, jumpArcLength, arcCoinCount } from './coinfx.js';
 
 var LANE_X = [-3, 0, 3];
 
@@ -868,7 +868,7 @@ function spawnCoinZigzag(scene, coinMeshes, startZ) {
 /** An arc of coins in one lane, on the path a jump takes at the run's speed: jump to collect them all (they are in the air, so it takes a jump). */
 function spawnCoinArc(scene, coinMeshes, startZ, speed) {
   var lane = nextCoinLane();
-  var arc = jumpArc(speed, 11);
+  var arc = jumpArc(speed, arcCoinCount(speed, 11));
   var half = jumpArcLength(speed) / 2;
   for (var i = 0; i < arc.length; i++) addCoin(scene, coinMeshes, lane, startZ - (half - arc[i].dz), arc[i].y, arc[i].air);
   _lastCoinLane = lane;
