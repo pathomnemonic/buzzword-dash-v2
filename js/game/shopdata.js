@@ -706,7 +706,7 @@ export var QUESTS = [
   { id: QUEST_IDS.SPEED_15, title: 'Lightning', desc: 'Answer 15 cards correctly in under 2 seconds each', target: 15, reward: 70, category: 'speed', metric: 'quick', agg: 'sum' },
   { id: QUEST_IDS.BLINK_3, title: 'Blink', desc: 'Answer 3 cards correctly in under 1 second each', target: 3, reward: 50, category: 'speed', metric: 'blink', agg: 'sum' },
   { id: QUEST_IDS.NO_CONTINUE_15, title: 'No Second Chances', desc: 'Answer 15 cards in one run without using a continue', target: 15, reward: 40, category: 'speed', metric: 'noContinue', agg: 'max' },
-  { id: QUEST_IDS.QUICK_STREAK, title: 'Fast and Right', desc: 'Get 5 quick correct answers (under 2 s) in one run', target: 5, reward: 50, category: 'speed', metric: 'quickInRun', agg: 'max' }
+  { id: QUEST_IDS.QUICK_STREAK, title: 'Quick Pair', desc: 'Get 2 quick correct answers (under 2 s) in one run', target: 2, reward: 30, category: 'speed', metric: 'quickInRun', agg: 'max' }
 ];
 
 export var QUEST_CATEGORIES = Object.freeze(['accuracy', 'volume', 'skill', 'explore', 'mode', 'speed']);
