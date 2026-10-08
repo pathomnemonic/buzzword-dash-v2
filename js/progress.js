@@ -177,7 +177,7 @@ export function bonusCoinsFor(correctInBonus, alreadyToday) {
  */
 export function nextGoalLine(o) {
   var options = [];
-  var perCardPoints = 25;   // about what a right answer is worth in score
+  var perCardPoints = 125;  // about what a right answer is worth in score (plus the distance run while answering)
   var perCardXp = 10;
   var perCardCoins = 4;     // coins from a right answer (runs earn about this much per card, with pickups)
   if (o.best > 0 && o.score < o.best) {

@@ -1994,9 +1994,9 @@ class Storage {
 
     // Run-specific checks
     if (runData && runData.score !== undefined) {
-      award('SCORE_1000', (runData.score || 0) >= 1000);
-      award('SCORE_5000', (runData.score || 0) >= 5000);
-      award('SCORE_10000', (runData.score || 0) >= 10000);
+      award('SCORE_1000', (runData.score || 0) >= 5000);
+      award('SCORE_5000', (runData.score || 0) >= 15000);
+      award('SCORE_10000', (runData.score || 0) >= 30000);
       award('PERFECT_RUN', !!runData.completed && runData.correct >= PERFECT_RUN_MIN_CORRECT && runData.wrong === 0);
       award('GOLDEN_DOCTOR', runData.correct >= 20 && runData.wrong === 0);
       award('SPEED_MAX', !!runData.completed && (runData.userSpeed || 0) >= 10);

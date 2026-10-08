@@ -42,8 +42,9 @@ import { reportPerformance } from '../errors.js';
 import { getQuality, useSceneryModels, maxPixelRatio, lowerTier, createAdaptiveResolution, stepAdaptiveResolution, planAdaptiveStep, DENSITY_LEVELS } from './quality.js';
 import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
+import { obstaclesForGate, OBSTACLE_SPACING } from './obstaclepacing.js';
 import { JUMP_SPEED, SLIDE_TIME, jumpStep, OBSTACLE_CLEAR_AHEAD, OBSTACLE_HIT_Z, MIN_JUMP_CLEARANCE } from './jumpphysics.js';
-import { chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches } from './coinfx.js';
+import { jumpArcLength, chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches, COIN_REACH_Z } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -1633,14 +1634,22 @@ class Game {
         c.position.x = magnetX(c.position.x, this.playerGroup.position.x, c.position.z, dt);
       }
 
+      // A dash pulls in every coin between the runner and the gate, from any lane, so dashing never costs coins
+      var dashPull = this.rushPropelTimer > 0 && c.userData.type === 'coin' && !c.userData.collected && c.position.z > this.gateZ - 2 && c.position.z < 2 * VISUAL_SPEED;
+      if (dashPull) {
+        c.position.x += (this.playerGroup.position.x - c.position.x) * Math.min(1, dt * 14);
+        c.userData.dashPulled = true;
+      }
+
       // A coin is taken where the runner actually is, in the moment it passes: not in the lane they have asked for,
       // not over a long stretch. So flicking between lanes cannot scoop up coins from both. (Power-ups and hearts are
       // more forgiving, as they always were.)
       if (c.userData.type === 'coin') {
-        if (!c.userData.collected && c.position.z > -3 && c.position.z < 3) {
+        if (!c.userData.collected && c.position.z > -3 && c.position.z < 3 + (c.userData.dashPulled ? 8 : 0)) {
           var magnetOn = this.powerups.magnet > 0;
-          var touched = coinTouches(c.position.x - this.playerGroup.position.x, c.position.z);
-          if (touched && (magnetOn || coinReachable(c.position.y, this.playerY, c.userData.air))) {
+          // (a coin a dash pulled in is taken as the runner passes it, however fast that was)
+          var touched = c.userData.dashPulled ? c.position.z > -COIN_REACH_Z : coinTouches(c.position.x - this.playerGroup.position.x, c.position.z);
+          if (touched && (magnetOn || c.userData.dashPulled || coinReachable(c.position.y, this.playerY, c.userData.air))) {
             c.userData.collected = true;
             this._pickUpCoin(c);
             removeAndDispose(this.scene, c);
@@ -1827,11 +1836,17 @@ class Game {
     // Obstacles use any lane (so they give nothing away about the answer), but they trail well behind
     // the gate: they only arrive after the answer has been locked in, never right at the gate.
     this._spawnEncounter();
-    if (this.mode !== GAME_MODES.STUDY && Math.random() < 0.4) {
-      var obstacleZ = (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED;
-      var made = spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: obstacleZ });
-      // a reward for getting past it: an arc over a jump, a trail under an overhead obstacle
-      if (made) spawnCoinsForObstacle(this.scene, this.coinMeshes, made, obstacleZ, this.speed);
+    if (this.mode !== GAME_MODES.STUDY) {
+      // The run gets busier the further it goes (obstaclepacing.js), up to a cap. Obstacles that come together are spaced
+      // apart, in the same or another lane, each with its own reward (an arc over a jump, a trail under an overhead one).
+      var count = obstaclesForGate(this.correct + this.wrong);
+      var baseZ = (this._gateSpawnZ || -50 * VISUAL_SPEED) - OBSTACLE_GATE_GAP * VISUAL_SPEED;
+      var spacing = Math.max(OBSTACLE_SPACING, Math.min(17, jumpArcLength(this.speed) + 3));
+      for (var oi2 = 0; oi2 < count; oi2++) {
+        var obstacleZ = baseZ - oi2 * spacing * VISUAL_SPEED;
+        var made = spawnObstacle(this.scene, this.obstacleMeshes, null, { spawnZ: obstacleZ });
+        if (made) spawnCoinsForObstacle(this.scene, this.coinMeshes, made, obstacleZ, this.speed);
+      }
     }
   }
 

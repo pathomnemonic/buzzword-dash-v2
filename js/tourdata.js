@@ -123,7 +123,7 @@ export function buildTourSteps(ctx) {
       target: null, press: 'next',
       before: function () { if (ctx && ctx.ui) ctx.ui.show('screenHome'); } },
     { id: 'coins', title: 'Coins and best score', target: '#homeCoinsDisplay', press: 'count',
-      text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score. You start with a balance to spend in the Locker in a minute.' },
+      text: '🪙 Coins come from runs, quests and the daily reward. ⭐ is your best score, which climbs as you run and jumps with every right answer. You start with a balance to spend in the Locker in a minute.' },
     { id: 'filters', title: 'Filters', target: '#filtersBtn', press: 'pass', hint: 'Tap Filters to look inside',
       text: 'Choose which questions you get. Everything is switched on to begin with, so you see every question. Open it and we will look at each filter.' },
     { id: 'filters-subjects', title: 'Subjects', target: '#subjectToggle', press: 'pass', hint: 'Tap Subjects to open it',
@@ -154,7 +154,7 @@ export function buildTourSteps(ctx) {
       text: 'Race a friend live, with the same questions at the same moment. Open it.' },
     { id: 'versus', title: 'Racing a friend', target: '#mpContent', press: 'next',
       after: closeVersus,
-      text: 'Host Game makes a five-letter room code; your friend types it under Join Game. Then you pick a mode: highest score, Sudden Death (first miss loses) or a race to a number of right answers. Signed-in players can also find a ranked match and earn trophies.' },
+      text: 'Host Game makes a five-letter room code; your friend types it under Join Game. Then you pick a mode: highest score, Sudden Death (first miss loses) or a race to a number of right answers.' },
 
     { id: 'flashcards-btn', title: 'Flashcards', target: '#homeFlashcardsBtn', press: 'pass', hint: 'Tap Flashcards to look inside',
       text: 'Calm study with no runner and no lives. Open it.' },

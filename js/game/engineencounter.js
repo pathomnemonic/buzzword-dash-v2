@@ -12,7 +12,7 @@ import { monsterOnAnswer, monsterPolicy } from './monsterbehavior.js';
 import { HAZARDS } from './hazards.js';
 import { chooseCommittedLane } from './lanelock.js';
 import { isFlourish } from './combo.js';
-import { GAME_MODES, RUN_END_REASONS, VISUAL_SPEED, ANSWER_LOCK_Z, LANE_X, removeAndDispose } from './enginedefs.js';
+import { GAME_MODES, RUN_END_REASONS, SCORE_SCALE, VISUAL_SPEED, ANSWER_LOCK_Z, LANE_X, removeAndDispose } from './enginedefs.js';
 
 export var encounterMethods = {
 
@@ -275,6 +275,7 @@ card = pickResult ? pickResult.card : null;
       pointsEarned = (10 + this.streak * 2) * this.multiplier * mult;
       if (this.rushBonus > 0) pointsEarned += this.rushBonus;
       pointsEarned += Math.floor(this.userSpeed * 3);
+      pointsEarned *= SCORE_SCALE;
       this.score += pointsEarned;
 
       var coinMult = (this.powerups.scoreFrenzy > 0 ? 5 : 1) * (this.powerups.goldRush > 0 ? 2 : 1);

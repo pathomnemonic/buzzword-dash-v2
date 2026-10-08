@@ -1756,7 +1756,7 @@ function init() {
       var content = document.getElementById('mpContent');
       if (!overlay || !content) return;
       overlay.classList.add('active');
-      var rankedOn = ranked.isAvailable();
+      var rankedOn = FEATURES.rankedMatches && ranked.isAvailable(); // (hidden for now: Versus is by room code only, see features.js)
       content.innerHTML =
         (rankedOn ? '<div class="rk-card" id="rkCard"></div>' +
           '<button class="btn btn-primary btn-block" id="mpRankedBtn" type="button">⚔️ Find Ranked Match</button>' +

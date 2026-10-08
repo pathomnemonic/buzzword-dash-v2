@@ -26,6 +26,9 @@
  * is limited. Turn it on in the build with VITE_FEATURE_PRO=1, or without a release with "pro": {"enabled": true} in
  * public/remote-config.json (which also says what is gated).
  *
+ * rankedMatches: "Find Ranked Match", league trophies and the Top Players board. Built and tested, but hidden until there are enough
+ * players to find a match quickly. Versus works with a room code only for now. Build with VITE_FEATURE_RANKED_MATCHES=1 to release it.
+ *
  * backend: false in a build made with VITE_NO_BACKEND=1 (the standalone copy of the game that has no Supabase or Stripe behind it).
  * That build has no Dx Dash Pro, no real-money items (those become ordinary coin items again, with their old level
  * unlocks), and no accounts, friends or leaderboards (no Supabase address is given, so they are not reachable).
@@ -42,5 +45,6 @@ export var FEATURES = {
   discovery: flag(import.meta.env && import.meta.env.VITE_FEATURE_DISCOVERY),
   characterVoices: flag(import.meta.env && import.meta.env.VITE_FEATURE_CHARACTER_VOICES),
   studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES),
+  rankedMatches: flag(import.meta.env && import.meta.env.VITE_FEATURE_RANKED_MATCHES),
   pro: flag(import.meta.env && import.meta.env.VITE_FEATURE_PRO)
 };

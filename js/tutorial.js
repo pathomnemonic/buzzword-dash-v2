@@ -37,10 +37,10 @@ var SAMPLE = {
 /** Things worth knowing, shown on the last page. */
 export var REFERENCE = [
   { icon: '🏎️', title: 'Speed = points', text: 'Use the speed dial on Home. Faster speeds earn more points per correct answer.' },
-  { icon: '🔥', title: 'Streak', text: 'Correct answers build your streak. Every 5 in a row raises your score multiplier, up to 8×.' },
+  { icon: '🔥', title: 'Score and streak', text: 'Your score climbs with every step you run, and right answers add a big bonus. Correct answers build your streak: every 5 in a row raises your score multiplier, up to 8×. Obstacles come more often the further you get.' },
   { icon: '❤️', title: 'Lives', text: 'You start with 3. Wrong answers and obstacles cost one. At 1 life, look for hearts on the track.' },
   { icon: '🪙', title: 'Coins and the Locker', text: 'Grab coins and power-up orbs, then spend coins in the Locker on characters, hats, trails and gear.' },
-  { icon: '🎯', title: 'Game modes', text: 'Endless runs until you are out of lives. Study loses no lives and teaches after each question. Weakness drills the cards you miss. Daily is today\'s 15-card challenge. Versus races a friend live, or play ranked.' },
+  { icon: '🎯', title: 'Game modes', text: 'Endless runs until you are out of lives. Study loses no lives and teaches after each question. Weakness drills the cards you miss. Daily is today\'s 15-card challenge. Versus races a friend live with a room code.' },
   { icon: '📝', title: 'Your own cards', text: 'Make cards in My Cards, import Anki decks, or study the same cards as flashcards.' },
   { icon: '🧠', title: 'Smart reviews', text: 'Cards come back just before you would forget them, scheduled with FSRS, the same algorithm Anki uses.' }
 ];
@@ -72,7 +72,7 @@ export function buildSteps(controls, dashControl) {
       text: 'Read the clue, then ' + c.intro + '. Stay in a lane for a moment to lock it in.' },
     { id: 'rush', kind: 'action', action: 'rush', title: 'Rush', dashButton: t && dashControl === 'button',
       prompt: t ? (dashControl === 'button' ? '⚡ Tap the Dash button' : '👆👆 Double-tap') : 'Press ' + keysPhrase('rush'),
-      text: 'Now that you can pick a lane: sure of the answer? Dash through the gate for bonus points. Obstacles cannot hurt you while you dash.' },
+      text: 'Now that you can pick a lane: sure of the answer? Dash through the gate for bonus points. Obstacles cannot hurt you while you dash, and it pulls in every coin on the way.' },
     { id: 'done', kind: 'info', icon: '🎉', title: 'You are ready!',
       text: 'A few last things to know. You can replay this any time from Settings → About → How to play, or the How to Play button on Home.',
       reference: true, button: 'Start playing' }

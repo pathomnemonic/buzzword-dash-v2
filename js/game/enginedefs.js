@@ -60,8 +60,12 @@ export var ANSWER_LOCK_Z = -3;
  */
 export var VISUAL_SPEED = 2.2;
 
-/** Points for every run unit of distance, so the score on screen keeps climbing the whole time (answers add to it on top). */
-export var DISTANCE_POINTS = 3;
+/** Points for every run unit of distance, so the score on screen keeps climbing the whole time (answers add to it on top).
+ *  About 19 points a second at the normal pace: always well ahead of the coins collected (a few a second). */
+export var DISTANCE_POINTS = 10;
+
+/** Points for a right answer are the old values times this, so an answer is worth a few seconds of running, not a blip. */
+export var SCORE_SCALE = 5;
 /** Where the exam monster starts, as a distance to catch (3 = caught). Far enough to be out of sight. */
 export var MONSTER_START_DIST = 26;
 export var OBSTACLE_GATE_GAP = 14; // units an obstacle trails behind the gate it spawns with

@@ -77,7 +77,7 @@ describe('daily quests', () => {
   it('one rich run completes a quest from every run-based category', () => {
     storage.finalizeRun(run({
       bestStreak: 21, coinsCollected: 750, powerupsCollected: 6, rushesUsed: 7, obstaclesJumped: 14, obstaclesSlid: 14,
-      encountersCompleted: 52, correct: 52, wrong: 0, score: 3500, dailyCompleted: true, mode: 'study',
+      encountersCompleted: 52, correct: 52, wrong: 0, score: 13000, dailyCompleted: true, mode: 'study',
       encounters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((x) => enc(x, true, 700)).concat(Array.from({ length: 10 }, () => enc('A', true, 1500)))
     }));
     ['q_streak20', 'q_clean15', 'q_acc90', 'q_50enc', 'q_50correct', 'q_score3000', 'q_200coins', 'q_5powerups', 'q_jump12', 'q_slide12',
