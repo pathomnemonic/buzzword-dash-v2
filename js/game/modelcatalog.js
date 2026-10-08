@@ -141,7 +141,7 @@ export var CHARACTER_MODELS = [
       { key: 'arms', label: 'Sleeves', materials: ['Arms'], palette: SCRUBS },
       { key: 'legs', label: 'Trousers', materials: ['Legs'], palette: DARKS }
     ] },
-  { id: 'avatar_m_barbarian', name: 'Triage Bruno', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
+  { id: 'avatar_m_barbarian', name: 'Triage Theo', desc: 'Sorts the chaos, loudly', file: 'characters/barbarian.glb', price: 4200, icon: '🪖', color: 0xa8502a,
     parts: [
       { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: EARTH },
       { key: 'cape', label: 'Cape', materials: ['Cape'], palette: DARKS },
@@ -151,7 +151,7 @@ export var CHARACTER_MODELS = [
       { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES },
       { key: 'hair', label: 'Hair', materials: ['Head'], palette: HAIR_COLORS, flat: true }
     ] },
-  { id: 'avatar_m_knight', name: 'Dame Suture', desc: 'Steady hands, shining armor', file: 'characters/knight.glb', price: 6300, icon: '🛡️', color: 0x9aa4b0,
+  { id: 'avatar_m_knight', name: 'Surgeon Sue', desc: 'Steady hands, shining armor', file: 'characters/knight.glb', price: 6300, icon: '🛡️', color: 0x9aa4b0,
     parts: [
       { key: 'headwear', label: 'Helmet', materials: ['Headwear'], palette: METALS },
       { key: 'cape', label: 'Cape', materials: ['Cape'], palette: ROYAL },

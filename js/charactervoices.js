@@ -44,8 +44,8 @@ export var PROFILES = {
   avatar_m_alien:      { name: 'Anatomy Abby',         kit: 'alien',    f0: 520, size: 1.3,  bright: 1.4 },
   avatar_m_robot:      { name: 'MRI Mo',     kit: 'robot',    f0: 330, size: 1.0,  bright: 1.0 },
   avatar_m_hooded:     { name: 'Cath-Lab Cass',     kit: 'voice',    f0: 240, size: 1.2,  bright: 1.2 },
-  avatar_m_barbarian:  { name: 'Triage Bruno',      kit: 'voice',    f0: 92,  size: 0.88, bright: 0.8 },
-  avatar_m_knight:     { name: 'Dame Suture',        kit: 'voice',    f0: 205, size: 0.94, bright: 0.85 },
+  avatar_m_barbarian:  { name: 'Triage Theo',      kit: 'voice',    f0: 92,  size: 0.88, bright: 0.8 },
+  avatar_m_knight:     { name: 'Surgeon Sue',        kit: 'voice',    f0: 205, size: 0.94, bright: 0.85 },
   avatar_m_mage:       { name: 'Professor Pathos',  kit: 'voice',    f0: 223, size: 1.08, bright: 1.05 },
   avatar_m_king:       { name: 'Attending Arthur',          kit: 'voice',    f0: 118, size: 0.96, bright: 0.9 }
 };

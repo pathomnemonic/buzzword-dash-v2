@@ -70,11 +70,11 @@ export var STORIES = {
   },
   avatar_m_barbarian: {
     short: 'Sorts the chaos, loudly.',
-    long: 'Bruno is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
+    long: 'Theo is the charge nurse who can triage a waiting room with one look and a very clear voice. Eight ambulances at once is his normal Tuesday. He keeps a tally of which patients are hungrier than they are sick. People who argue with him find out quickly that he is usually right, and usually kind about it.'
   },
   avatar_m_knight: {
     short: 'Steady hands, shining armor.',
-    long: 'Dame Suture is the surgeon who has never once rushed a closure. The theatre goes quiet when the stitches start, because the stitches are the point. They say the armor is just a very thorough gown. Trainees remember her one rule: slow is smooth, and smooth is fast.'
+    long: 'Sue is the surgeon who has never once rushed a closure. The theatre goes quiet when the stitches start, because the stitches are the point. They say the armor is just a very thorough gown. Trainees remember her one rule: slow is smooth, and smooth is fast.'
   },
   avatar_m_mage: {
     short: 'Reads the slides nobody else can.',

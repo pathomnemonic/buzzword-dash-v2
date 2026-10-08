@@ -31,7 +31,7 @@ describe('Locker tabs', () => {
     expect(text).not.toMatch(/vehicle/i);
     const groups = [...document.querySelectorAll('#shopItems h3')].map((h) => h.parentElement.textContent);
     expect(groups[0]).toContain('Pager Pete');
-    ['Nurse', 'Surgeon', 'Skeleton', 'Zombie Resident', 'Robot Medic', 'Ambulance', 'Race Car', 'Hearse'].forEach((n) => expect(text).not.toContain(n));
+    ['Nurse', 'Surgeon Sage', 'Skeleton', 'Zombie Resident', 'Robot Medic', 'Ambulance', 'Race Car', 'Hearse'].forEach((n) => expect(text).not.toContain(n));
   });
 
   it('the old monsters are archived too', () => {
@@ -129,7 +129,7 @@ describe('Locker tabs', () => {
     ui._heroColorsOpen = false;
     ui.renderShop();
     expect(names()).not.toMatch(/Femur Freda|Decaffeinated Dana|Stat Sadie|Rural Rex/);
-    expect(names()).toMatch(/Dame Suture/);
+    expect(names()).toMatch(/Surgeon Sue/);
     storage.data.progression.ownedItems.push('avatar_m_skeleton');
     ui.renderShop();
     expect(names()).toMatch(/Femur Freda/); // an owner keeps it
