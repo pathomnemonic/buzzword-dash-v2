@@ -9,7 +9,9 @@
  *     and the button that opens that menu keeps a dot while any of them is unopened.
  */
 
-/** Things on Home and the tab bar, most worth trying first. */
+import { FEATURES } from './features.js';
+
+/** Things on Home and the tab bar, most worth trying first. (Versus and Friends need the backend, so a build without one has neither.) */
 export var HOME_DISCOVERIES = [
   { id: 'home:flashcards', selector: '#homeFlashcardsBtn', label: 'Flashcards: try them' },
   { id: 'home:challenge', selector: '#homeChallengeBtn', label: 'Challenge modes: try one' },
@@ -18,7 +20,7 @@ export var HOME_DISCOVERIES = [
   { id: 'home:friends', selector: '#leaderboardBtn', label: 'Friends: see what they are up to' },
   { id: 'home:speed', selector: '#speedBtn', label: 'Speed: faster runs score more' },
   { id: 'tab:quests', selector: '.nav-item[data-screen="screenQuests"]', label: 'Quests: daily goals' }
-];
+].filter(function (d) { return FEATURES.backend || (d.id !== 'home:versus' && d.id !== 'home:friends'); });
 /** At most this many of those show at once. */
 export var HOME_DOT_LIMIT = 2;
 

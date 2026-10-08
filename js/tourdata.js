@@ -9,6 +9,7 @@
 import { storage } from './storage.js';
 import { proLive } from './pro.js';
 import { LOCKER_ITEMS } from './game/shopdata.js';
+import { FEATURES } from './features.js';
 
 function q(selector) { return function () { return document.querySelector(selector); }; }
 
@@ -211,7 +212,10 @@ export function buildTourSteps(ctx) {
 
     { id: 'back-home', title: 'Back to Home', target: tab('screenHome'), press: 'pass',
       text: 'That is everything. Tap Home to finish.' }
-  ].filter(Boolean).map(function (s) {
+  ].filter(Boolean).filter(function (s) {
+    // (Versus and Friends need the backend: a build without one has neither button, so the tour skips them)
+    return FEATURES.backend || (s.id !== 'versus-btn' && s.id !== 'versus' && s.id !== 'friends');
+  }).map(function (s) {
     if (typeof s.target === 'string') s.target = q(s.target);
     return s;
   });

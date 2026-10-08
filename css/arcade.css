@@ -2616,3 +2616,6 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 @media (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
 }
+
+/* a build with no backend has no Versus, Friends or leaderboards (see features.js) */
+.no-backend #leaderboardBtn, .no-backend #multiplayerBtn { display: none !important; }

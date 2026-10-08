@@ -79,6 +79,9 @@ import { maybeAskConsent, analyticsAvailable } from './analyticsui.js';
 import { analytics } from './analytics/index.js';
 import { installAnalytics, reportRunEnd, reportFrame, instrumentLeaderboard } from './analytics/instrument.js';
 import { track as trackEvent } from './analytics/index.js';
+
+// A build with no backend (VITE_NO_BACKEND=1) has no Versus, Friends or leaderboards: CSS hides their buttons.
+if (!FEATURES.backend) document.documentElement.classList.add('no-backend');
 import { isRankedActive, isSearching, startRankedSearch, cancelRanked, finishRankedMatch, mountLeagueCard, mountTopPlayers, refreshHomeBadge } from './rankedui.js';
 
 // ===== Lazy-loaded module references =====
