@@ -84,7 +84,7 @@ function readJson(key, fallback) { try { var s = store(); var raw = s && s.getIt
 function writeJson(key, value) { try { var s = store(); if (s) s.setItem(key, JSON.stringify(value)); } catch (e) { /* storage full: this session still has it */ } }
 
 /** True when Pro is switched on in the config (it is, by default; the remote file can switch it off). */
-export function proEnabled() { return !!proConfig().enabled; }
+export function proEnabled() { return FEATURES.backend && !!proConfig().enabled; }
 
 var _sellable = false;
 function savedSellable() { try { var s = store(); return !!(s && s.getItem(SELL_KEY) === '1'); } catch (e) { return false; } }

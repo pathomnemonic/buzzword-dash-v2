@@ -6,6 +6,7 @@
  */
 
 import { isPremiumItem } from '../../supabase/functions/_shared/premium.js';
+import { FEATURES } from '../features.js';
 
 export var UNLOCK_EVERY = 5;
 
@@ -21,7 +22,7 @@ export var MAP_ORDER = [
 
 /** The level a map unlocks at, or 0 for a map that is not part of the rewards (the four free ones). */
 export function mapUnlockLevel(itemId) {
-  if (isPremiumItem(itemId)) return 0; // sold for money, not a level reward any more
+  if (FEATURES.backend && isPremiumItem(itemId)) return 0; // sold for money, not a level reward any more
   return legacyMapUnlockLevel(itemId);
 }
 

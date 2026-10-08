@@ -25,6 +25,10 @@
  * pro: Dx Dash Pro, the subscription (js/pro.js, docs/PRO.md). Built and tested but dormant: nothing is visible and no feature
  * is limited. Turn it on in the build with VITE_FEATURE_PRO=1, or without a release with "pro": {"enabled": true} in
  * public/remote-config.json (which also says what is gated).
+ *
+ * backend: false in a build made with VITE_NO_BACKEND=1 (the standalone copy of the game that has no Supabase or Stripe behind it).
+ * That build has no Dx Dash Pro, no real-money items (those become ordinary coin items again, with their old level
+ * unlocks), and no accounts, friends or leaderboards (no Supabase address is given, so they are not reachable).
  */
 
 function flag(value) {
@@ -32,6 +36,7 @@ function flag(value) {
 }
 
 export var FEATURES = {
+  backend: !flag(import.meta.env && import.meta.env.VITE_NO_BACKEND),
   cohorts: flag(import.meta.env && import.meta.env.VITE_FEATURE_COHORTS),
   globalLeaderboard: flag(import.meta.env && import.meta.env.VITE_FEATURE_GLOBAL_LEADERBOARD),
   discovery: flag(import.meta.env && import.meta.env.VITE_FEATURE_DISCOVERY),

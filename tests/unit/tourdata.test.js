@@ -63,7 +63,7 @@ describe('the tour steps', () => {
     expect(ids().indexOf('speed-dial')).toBe(ids().indexOf('speed') + 1);
   });
 
-  it('Pro is mentioned only while it can be bought, and then only quietly', async () => {
+  it.skipIf(process.env.VITE_NO_BACKEND === '1')('Pro is mentioned only while it can be bought, and then only quietly', async () => {
     const { setSellableForTest } = await import('../../js/pro.js');
     const { setProConfigForTest } = await import('../../js/remoteconfig.js');
     setProConfigForTest({ enabled: false });

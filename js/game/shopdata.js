@@ -18,6 +18,7 @@
  */
 
 import { isPremiumItem, premiumCents } from '../../supabase/functions/_shared/premium.js';
+import { FEATURES } from '../features.js';
 import { CHARACTER_MODELS, MONSTER_MODELS } from './modelcatalog.js';
 import { PALS, NO_PAL } from '../companions.js';
 
@@ -640,7 +641,7 @@ export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedIte
 // Some items are sold for real money only (supabase/functions/_shared/premium.js has the list and the prices). They
 // have no coin price, so nothing that works from coin prices (affordable dots, "cheapest thing wanted") picks them up.
 LOCKER_ITEMS.forEach(function (i) {
-  if (isPremiumItem(i.id)) { i.coinValue = i.price; i.price = 0; i.premium = true; i.usdCents = premiumCents(i.id); }
+  if (FEATURES.backend && isPremiumItem(i.id)) { i.coinValue = i.price; i.price = 0; i.premium = true; i.usdCents = premiumCents(i.id); }
 });
 
 // ═══════════════════════════════════════════════════════════

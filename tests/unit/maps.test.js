@@ -145,7 +145,7 @@ describe('maps as level rewards', () => {
     storage.load();
   });
 
-  it('every non-free map unlocks at a level, one more every five levels, and the four rooms never do', async () => {
+  it.skipIf(process.env.VITE_NO_BACKEND === '1')('every non-free map unlocks at a level, one more every five levels, and the four rooms never do', async () => {
     const { MAP_ORDER, mapUnlockLevel } = await import('../../js/game/mapunlocks.js');
     expect(MAP_ORDER.slice().sort()).toEqual(maps.map((m) => m.id).sort());
     const { isPremiumItem } = await import('../../supabase/functions/_shared/premium.js');
@@ -155,7 +155,7 @@ describe('maps as level rewards', () => {
     expect(mapUnlockLevel('map_hospital_hallway')).toBe(0);
   });
 
-  it('a premium map is not given by level, but one a player had already reached stays theirs (once)', async () => {
+  it.skipIf(process.env.VITE_NO_BACKEND === '1')('a premium map is not given by level, but one a player had already reached stays theirs (once)', async () => {
     const { xpAtLevel } = await import('../../js/progress.js');
     storage.set('xp', xpAtLevel(100));
     expect(storage.ownsItem('map_aquarium_imaging_center')).toBe(false); // level alone no longer gives it
