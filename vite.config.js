@@ -98,6 +98,7 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
+      env: { VITE_FEATURE_LOCKER_ITEMS: '1' },
       environment: 'jsdom',
       include: ['tests/unit/**/*.test.{js,mjs}'],
       exclude: ['tests/e2e/**'],

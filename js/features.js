@@ -29,6 +29,10 @@
  * rankedMatches: "Find Ranked Match", league trophies and the Top Players board. Built and tested, but hidden until there are enough
  * players to find a match quickly. Versus works with a room code only for now. Build with VITE_FEATURE_RANKED_MATCHES=1 to release it.
  *
+ * lockerItems: buying the real-money Locker items (heroes, maps, trails, a monster). Built and tested, but their buttons read "Soon" and nothing
+ * can be bought until this is on, so the first release sells only Dx Dash Pro. Build with VITE_FEATURE_LOCKER_ITEMS=1 to sell them (docs/PRO.md
+ * has the store products and the backend steps). Tests build with it on.
+ *
  * backend: false in a build made with VITE_NO_BACKEND=1 (the standalone copy of the game that has no Supabase or Stripe behind it).
  * That build has no Dx Dash Pro, no real-money items (those become ordinary coin items again, with their old level
  * unlocks), and no accounts, friends or leaderboards (no Supabase address is given, so they are not reachable).
@@ -46,5 +50,6 @@ export var FEATURES = {
   characterVoices: flag(import.meta.env && import.meta.env.VITE_FEATURE_CHARACTER_VOICES),
   studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES),
   rankedMatches: flag(import.meta.env && import.meta.env.VITE_FEATURE_RANKED_MATCHES),
-  pro: flag(import.meta.env && import.meta.env.VITE_FEATURE_PRO)
+  pro: flag(import.meta.env && import.meta.env.VITE_FEATURE_PRO),
+  lockerItems: flag(import.meta.env && import.meta.env.VITE_FEATURE_LOCKER_ITEMS)
 };

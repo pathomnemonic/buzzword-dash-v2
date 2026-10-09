@@ -130,6 +130,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # (the browser tests exercise buying a Locker item; the shipped builds in deploy.yml and android.yml leave it off)
+          VITE_FEATURE_LOCKER_ITEMS: '1'
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

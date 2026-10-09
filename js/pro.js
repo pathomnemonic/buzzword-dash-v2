@@ -574,7 +574,7 @@ export function webBuy(productId, lb, nav) {
 
 var _itemsCap = null; // null: not known yet, true: the backend can sell items, false: it cannot (an older deployment)
 /** Can real-money items be sold right now? Optimistic until the backend says otherwise. */
-export function itemsAvailable() { return _itemsCap !== false; }
+export function itemsAvailable() { return FEATURES.lockerItems && _itemsCap !== false; }
 
 /**
  * Ask the payment function whether it can sell Locker items (an older deployment answers "Unknown request" or says its
@@ -582,7 +582,7 @@ export function itemsAvailable() { return _itemsCap !== false; }
  * nobody is ever offered a purchase that cannot be delivered.
  */
 export function probeItems(lb) {
-  if (isNative() || !lb || !lb.proFunction || !hasAccount(lb)) return Promise.resolve(itemsAvailable());
+  if (!FEATURES.lockerItems || isNative() || !lb || !lb.proFunction || !hasAccount(lb)) return Promise.resolve(itemsAvailable());
   if (_itemsCap === true) return Promise.resolve(true);
   return lb.proFunction('capabilities').then(function (r) {
     var next = r && r.ok ? r.items === true : (r && /unknown request|not set up|not switched on/i.test(r.error || '') ? false : null);
@@ -611,6 +611,7 @@ export function itemPriceLabel(item) {
  */
 export function buyPremiumItem(item, lb, nav) {
   if (!item || !item.premium) return Promise.resolve({ ok: false, error: 'That item is not for sale.' });
+  if (!FEATURES.lockerItems) return Promise.resolve({ ok: false, error: 'That item is coming soon. Nothing was charged.' });
   if (!hasAccount(lb)) return Promise.resolve({ ok: false, needsAccount: true, error: 'Create a free account first (Friends → Account), so what you buy stays with you.' });
   if (storage.ownsItem(item.id)) return Promise.resolve({ ok: false, error: 'You already own this item.' });
   if (isNative()) {

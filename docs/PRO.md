@@ -137,7 +137,9 @@ money (see "Premium items" below) cannot be taken as the gift.
 After updating: re-run `database/pro.sql`, then `supabase functions deploy pro-checkout` and `stripe-webhook`.
 
 
-## Premium items (real money)
+## Premium items (real money): switched off for the first release
+
+The items below are built and tested, but their buttons read "Soon" and nothing can be bought until the build sets `VITE_FEATURE_LOCKER_ITEMS=1` (`js/features.js`). The shipped builds (`deploy.yml`, `android.yml`, `codemagic.yaml`) leave it off, so the first release sells only Pro; the CI browser tests build with it on so the feature stays tested. To sell them later: create the store products (table below), do the web backend steps (`pro.sql`, `lockdown.sql`, redeploy `pro-checkout` and `stripe-webhook`), set the variable to `1` in the workflows, and ship an update.
 
 A few Locker items are sold for money only, with a dollar price on the button (`supabase/functions/_shared/premium.js` lists
 them and the prices; the app and the payment function read the same list, so the button and the charge always agree):

@@ -51,7 +51,8 @@ Do these now while testers run; none of them wait for the 14 days.
    - Government apps, financial features, news: **No**
 4. **Monetize with Play → Products** (only possible after the first bundle upload, which you have done):
    - **Subscriptions**: create three, product ids exactly `dxdash_pro_yearly`, `dxdash_pro_pass3m`, `dxdash_pro_monthly`, each with one auto-renewing base plan (1 year, 3 months, 1 month), prices as in `docs/PRO.md`, **no free trial**. Activate each.
-   - **In-app products**: `dxdash_pro_lifetime`, `dxdash_tip_small`, `dxdash_tip_medium`, `dxdash_tip_large`, and the 11 `dxdash_item_*` items, ids and prices from the tables in `docs/PRO.md`. Activate each.
+   - **In-app products**: `dxdash_pro_lifetime` (and, optionally, the three tips `dxdash_tip_small`, `dxdash_tip_medium`, `dxdash_tip_large`), ids and prices from `docs/PRO.md`. Activate each.
+   - **The Locker items (`dxdash_item_*`) are not needed for this launch.** Their buttons show "Soon" and nothing can be bought, because the build leaves `VITE_FEATURE_LOCKER_ITEMS` off. When you want to sell them: create the 11 products (table in `docs/PRO.md`), finish the website backend steps, build with that variable set to `1`, and ship an update.
    - You also need a **merchant account** (Payments profile): Play Console → **Setup → Payments profile**, add tax and bank details.
 5. **Setup → License testing**: add your testers' Gmail addresses (or a Google Group) so their test purchases are free and cancel quickly. Ask 2–3 testers to try a purchase and a restore.
 6. **App access, Government, Advertising ID**: declare the Advertising ID as **not used** (the app does not read it).
