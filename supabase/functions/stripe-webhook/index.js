@@ -26,6 +26,7 @@ async function stripeGet(path) {
   return res.json();
 }
 function getCharge(id) { return stripeGet('charges/' + encodeURIComponent(id)); }
+async function listSubscriptions(customer) { var r = await stripeGet('subscriptions?customer=' + encodeURIComponent(customer) + '&status=all&limit=10'); return (r && r.data) || []; }
 function getInvoice(id) { return stripeGet('invoices/' + encodeURIComponent(id)); }
 /** Has this payment already been refunded, or is it in dispute? (A late "completed" event must not hand it back.) */
 async function isPaymentReturned(paymentIntentId) {
@@ -48,7 +49,7 @@ Deno.serve(async function (req) {
   var event;
   try { event = JSON.parse(raw); } catch { return new Response('bad json', { status: 400 }); }
   try {
-    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, getCharge: getCharge, getInvoice: getInvoice, isPaymentReturned: isPaymentReturned, now: now });
+    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, getCharge: getCharge, getInvoice: getInvoice, listSubscriptions: listSubscriptions, isPaymentReturned: isPaymentReturned, now: now });
     if (out.handled) await rpc('pro_event_once', { p_event: event.id, p_kind: event.type }); // (a record for the owner; repeats are harmless)
     return new Response(JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {

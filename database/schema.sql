@@ -154,7 +154,8 @@ CREATE INDEX IF NOT EXISTS match_invites_to_idx ON match_invites (to_user, statu
 -- caller), without exposing who blocked whom.
 CREATE OR REPLACE FUNCTION has_block_between(a uuid, b uuid) RETURNS boolean
 LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
-  SELECT EXISTS (
+  -- (only about the caller: asking about two other people's blocks would reveal who blocked whom)
+  SELECT auth.uid() IN (a, b) AND EXISTS (
     SELECT 1 FROM friend_blocks
     WHERE (blocker_id = a AND blocked_id = b) OR (blocker_id = b AND blocked_id = a)
   );

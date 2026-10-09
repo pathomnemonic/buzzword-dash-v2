@@ -327,7 +327,23 @@ async function takeBack(ch, deps, why) {
   if (buy.plan === 'library') { await rpc('pro_revoke_library', { p_user: buy.user }); return { handled: true, action: 'library_' + why }; }
   // (only the plan that was paid for: a lifetime refund must not end a subscription, or a trial, on the same account)
   await rpc('pro_revoke_plan', { p_user: buy.user, p_plan: buy.plan });
+  await restoreHeldSubscriptions(buy.user, buy.plan, deps);
   return { handled: true, action: buy.plan + '_' + why };
+}
+
+/**
+ * A member keeps one Pro record, so taking a plan back can also take away a subscription they still pay for (a refunded
+ * lifetime sits on top of a monthly one). Ask Stripe what they still hold and put it back.
+ */
+async function restoreHeldSubscriptions(user, revokedPlan, deps) {
+  if (!deps.listSubscriptions) return;
+  var customer = await deps.rpc('pro_user_customer', { p_user: user });
+  if (!customer) return;
+  var subs = await deps.listSubscriptions(customer);
+  var grants = grantsFromSubscriptions(subs, deps.now).filter(function (g) { return g.plan !== revokedPlan; });
+  for (var i = 0; i < grants.length; i++) {
+    await deps.rpc('pro_grant_until', { p_user: user, p_until: grants[i].until, p_plan: grants[i].plan, p_source: 'stripe', p_trial: grants[i].trial });
+  }
 }
 
 async function giveBack(ch, deps) {
