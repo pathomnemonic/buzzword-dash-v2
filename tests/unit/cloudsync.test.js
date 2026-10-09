@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { decideSync, summarize, isFresh, CloudSync } from '../../js/cloudsync.js';
+import { decideSync, summarize, isFresh, isPoorer, CloudSync } from '../../js/cloudsync.js';
 
 const played = (answered, coins = answered * 2, best = 100) => ({
   schemaVersion: 2,
@@ -43,6 +43,15 @@ describe('decideSync', () => {
     expect(decideSync({ local: played(6), remote: remote(played(9)), meta: null, userId: 'u1', dirty: false })).toBe('conflict');
     // A record from a different account never counts as a link.
     expect(decideSync({ local: played(6), remote: remote(played(9)), meta: { userId: 'other', remoteUpdatedAt: 't1' }, userId: 'u1', dirty: false })).toBe('conflict');
+  });
+
+  it('never swaps a bigger save for a smaller one, or writes a smaller one over a bigger one, without asking', () => {
+    // another device (or a wiped one) put a smaller save in the cloud: do not pull it over a bigger local save
+    expect(decideSync({ local: played(50), remote: remote(played(3), 't2'), meta, userId: 'u1', dirty: false })).toBe('conflict');
+    // this device is smaller than the cloud though it thinks it is up to date: do not push it
+    expect(decideSync({ local: played(3), remote: remote(played(50)), meta, userId: 'u1', dirty: true })).toBe('conflict');
+    // growing normally is unaffected
+    expect(decideSync({ local: played(51), remote: remote(played(50)), meta, userId: 'u1', dirty: true })).toBe('push');
   });
 
   it('quietly links identical saves', () => {
@@ -176,5 +185,13 @@ describe('CloudSync carries the player\'s own cards', () => {
     const a = makeDeps({ local: played(5), cloud: null, cards: big });
     await a.sync.sync();
     expect(a.calls.push[0].data.customCards).toBeUndefined();
+  });
+});
+
+describe('isPoorer', () => {
+  it('is true only when nothing is ahead and something is behind', () => {
+    expect(isPoorer(summarize(played(3)), summarize(played(50)))).toBe(true);
+    expect(isPoorer(summarize(played(50)), summarize(played(3)))).toBe(false);
+    expect(isPoorer(summarize(played(5)), summarize(played(5)))).toBe(false);
   });
 });

@@ -209,7 +209,7 @@ export function getCharacterParts(id) {
 
 export var MONSTER_MODELS = [
   { id: 'monster_m_ghost', name: 'Ghost of Boards Past', file: 'monsters/ghost.glb', price: 0, icon: '👻', color: 0x9aa8ff, flying: true, look: { color: 0x9fb4ff, emissive: 0x1a2a66, opacity: 0.62 } },
-  { id: 'monster_m_skull', name: 'Flying Skull', file: 'monsters/skull.glb', price: 2650, icon: '☠️', color: 0xff9a4a, flying: true, look: { color: 0xffc08a, emissive: 0x5a1a00 } },
+  { id: 'monster_m_skull', name: 'Flying Skull', file: 'monsters/skull.glb', price: 1550, icon: '☠️', color: 0xff9a4a, flying: true, look: { color: 0xffc08a, emissive: 0x5a1a00 } },
   { id: 'monster_m_yeti', name: 'Snowy Specialist', file: 'monsters/yeti.glb', price: 2250, icon: '🦍', color: 0xdfe8f0, flying: false },
   { id: 'monster_m_brute', name: 'Brute Force', file: 'monsters/brute.glb', price: 3150, icon: '👹', color: 0x8a5a4a, flying: false },
   { id: 'monster_m_demon', name: 'Imp of Differentials', file: 'monsters/demon.glb', price: 4200, icon: '😈', color: 0xcc3344, flying: false },

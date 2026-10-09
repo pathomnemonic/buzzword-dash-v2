@@ -81,3 +81,38 @@ describe('the last-good copy', () => {
     expect(localStorage.getItem(LAST)).toBeNull();
   });
 });
+
+describe('storage keys and newer saves', () => {
+  beforeEach(fresh);
+
+  it('files each site under its own path so another copy of the game on the same host cannot touch it', async () => {
+    const { storageKeyFor } = await import('../../js/storage.js');
+    expect(storageKeyFor('/')).toBe('buzzword_dash_v1');
+    expect(storageKeyFor('/buzzword-dash-v2/')).toBe('buzzword_dash_v1@buzzword-dash-v2');
+    expect(storageKeyFor('/buzzword-dash/')).not.toBe(storageKeyFor('/buzzword-dash-v2/'));
+  });
+
+  it('never saves over a save from a newer version of the game, and keeps a copy of it', () => {
+    const newer = JSON.stringify({ schemaVersion: 99, progression: { totalEncounters: 500, bestScore: 9000, xp: 5000 } });
+    localStorage.setItem(KEY, newer);
+    storage.load();
+    storage.save();
+    storage.data.progression.coins = 5;
+    storage.save();
+    expect(localStorage.getItem(KEY)).toBe(newer);
+    expect(localStorage.getItem(KEY + '_newer')).toBe(newer);
+    // starting over is a deliberate choice, and saving resumes
+    storage.reset('all_local');
+    expect(JSON.parse(localStorage.getItem(KEY)).schemaVersion).toBe(2);
+  });
+
+  it('keeps the current save aside before a cloud save or a backup file replaces it', () => {
+    liveIn(storage);
+    storage.save();
+    const incoming = JSON.parse(JSON.stringify(storage.data));
+    incoming.progression.totalEncounters = 0; incoming.progression.bestScore = 0; incoming.progression.xp = 0; incoming.profile.name = '';
+    storage._snapshotAt = Date.now();
+    expect(storage.applyRemoteData(incoming).ok).toBe(true);
+    expect(JSON.parse(localStorage.getItem(LAST)).progression.totalEncounters).toBe(120);
+  });
+});

@@ -90,7 +90,7 @@ export var STORIES = {
   },
   monster_m_skull: {
     short: 'It grins at every lucky guess.',
-    long: 'Not a ghost: a solid, ember-lit skull that has been through a few too many night shifts. It circles above anyone who picks an answer they cannot explain. A wrong guess earns a snap of the jaw. A right one earns a hot-eyed grin, because it knows how often luck runs out. It only leaves when it sees you understand why. A step up from the ghost, and priced like one.'
+    long: 'Not a ghost: a solid, ember-lit skull that has been through a few too many night shifts. It circles above anyone who picks an answer they cannot explain. A wrong guess earns a snap of the jaw. A right one earns a hot-eyed grin, because it knows how often luck runs out. It only leaves when it sees you understand why. The first monster worth saving up for after the free ghost.'
   },
   monster_m_yeti: {
     short: 'Calm, enormous, and has read everything.',

@@ -32,6 +32,11 @@ export function isFresh(data) {
   return s.answered === 0 && s.best === 0;
 }
 
+/** True when save `a` is plainly behind save `b`: nothing it counts is ahead, and something is behind. Lifetime counts only grow. */
+export function isPoorer(a, b) {
+  return a.answered <= b.answered && a.coins <= b.coins && (a.answered < b.answered || a.coins < b.coins);
+}
+
 function sameSummary(a, b) {
   return a.answered === b.answered && a.coins === b.coins && a.best === b.best;
 }
@@ -55,8 +60,16 @@ export function decideSync(input) {
 
   var meta = input.meta;
   if (meta && meta.userId === input.userId && meta.remoteUpdatedAt) {
-    if (meta.remoteUpdatedAt === remote.updatedAt) return input.dirty ? 'push' : 'noop';
-    return input.dirty ? 'conflict' : 'pull';
+    var ls = summarize(local);
+    var rs = summarize(remote.data);
+    if (meta.remoteUpdatedAt === remote.updatedAt) {
+      if (!input.dirty) return 'noop';
+      // never write a smaller save over a bigger one without asking
+      return isPoorer(ls, rs) ? 'conflict' : 'push';
+    }
+    if (input.dirty) return 'conflict';
+    // never swap a bigger save here for a smaller one from the cloud without asking
+    return isPoorer(rs, ls) ? 'conflict' : 'pull';
   }
   // Never synced together: identical saves are simply linked, otherwise ask.
   if (sameSummary(summarize(local), summarize(remote.data))) return 'adopt';
@@ -154,6 +167,12 @@ export class CloudSync {
       return 'error';
     }).then(function (result) {
       self._running = null;
+      // A quiet failure is how progress ends up only on one device: say so, once, when it keeps happening
+      self._failures = result === 'error' ? (self._failures || 0) + 1 : 0;
+      if (self._failures >= 2 && !self._warned && typeof self.deps.toast === 'function') {
+        self._warned = true;
+        self.deps.toast('Your progress is not reaching your account (' + self.error + '). Keep a backup file until it is fixed.');
+      }
       if (result === 'pushed' || result === 'pulled' || result === 'error') track('cloud_sync', { direction: result === 'pulled' ? 'down' : 'up', ok: result !== 'error' });
       else if (result === 'adopt') track('cloud_sync', { direction: 'restore', ok: true });
       return result;
@@ -264,6 +283,16 @@ export class CloudSync {
       // Dismissed: leave both untouched, ask again next time.
       self.state = 'idle';
       return 'deferred';
+    });
+  }
+
+  /** Bring back the richest save the account ever had, then reconcile with this device. @returns {Promise<string>} */
+  restoreEarlierCloudSave() {
+    var self = this;
+    return this.deps.leaderboard.restoreBackupSave().then(function (res) {
+      if (!res.success) throw new Error(res.error || 'Could not restore');
+      if (!res.updatedAt) return 'none';
+      return self.sync().then(function () { return 'restored'; });
     });
   }
 

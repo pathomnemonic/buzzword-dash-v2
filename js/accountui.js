@@ -220,6 +220,12 @@ function renderSignedIn(body, deps, status) {
     body.appendChild(button('Sync now', function () {
       return deps.cloudSync.sync().then(function () { deps.rerender(); });
     }));
+    body.appendChild(button('Restore my biggest earlier save', function () {
+      return deps.cloudSync.restoreEarlierCloudSave().then(function (r) {
+        deps.toast(r === 'none' ? 'No earlier save is kept for this account yet.' : 'Restored your biggest earlier save.');
+        deps.rerender();
+      }).catch(function (e) { deps.toast((e && e.message) || 'Could not restore.'); });
+    }));
   }
 
   var heading = createElement('div', { text: 'Change password' });

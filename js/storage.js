@@ -31,7 +31,16 @@ import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
-var STORAGE_KEY = 'buzzword_dash_v1';
+// Every site on one host (github.io/<name>/) shares the same browser storage, so a save is filed under its own site's
+// path. Another copy of the game on the same host (an older version, a test site) can then never read it or overwrite it.
+var LEGACY_KEY = 'buzzword_dash_v1';
+
+/** The storage key for a site served from `base` ("/" keeps the original key). */
+export function storageKeyFor(base) {
+  var slug = String(base || '/').replace(/^\/+|\/+$/g, '').replace(/[^A-Za-z0-9_.-]+/g, '-');
+  return slug ? LEGACY_KEY + '@' + slug : LEGACY_KEY;
+}
+var STORAGE_KEY = storageKeyFor(typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.BASE_URL : '/');
 // A second copy of the last save that had real progress in it. An empty or reset save never replaces it, so a save that
 // is lost, damaged or overwritten can still be put back (see Storage.recoverable and restoreLastGood).
 var LASTGOOD_KEY = STORAGE_KEY + '_lastgood';
@@ -607,8 +616,17 @@ class Storage {
   // --- Core load/save ---
 
   load() {
+    this._protectNewer = false;
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw && STORAGE_KEY !== LEGACY_KEY) {
+        // First time on this site's own key: bring the earlier shared save across (copied, never moved)
+        var legacy = localStorage.getItem(LEGACY_KEY);
+        if (legacy && hasProgress(legacy)) {
+          localStorage.setItem(STORAGE_KEY, legacy);
+          raw = legacy;
+        }
+      }
       if (raw) {
         var parsed = JSON.parse(raw);
 
@@ -632,7 +650,10 @@ class Storage {
           // Future version — use defaults rather than corrupt
           console.warn('[Storage] Future schema version detected, using defaults');
           this.data = deepClone(DEFAULTS);
-          // Don't save — preserve the future data in case of downgrade
+          // Never write over a save from a newer version: keep a copy, and stop saving until the player chooses to start over
+          this._protectNewer = true;
+          this._problem('newer', 'v' + parsed.schemaVersion);
+          try { localStorage.setItem(STORAGE_KEY + '_newer', raw); } catch (e4) { /* storage full or unavailable */ }
         }
       } else {
         this.data = deepClone(DEFAULTS);
@@ -672,6 +693,14 @@ class Storage {
     } catch (e) { this.recoverable = null; }
   }
 
+  /** Keep the current save aside before it is replaced by a cloud save, an imported backup or a reset. */
+  _keepAside() {
+    try {
+      var cur = localStorage.getItem(STORAGE_KEY);
+      if (cur && hasProgress(cur)) localStorage.setItem(LASTGOOD_KEY, cur);
+    } catch (e) { /* storage full or unavailable */ }
+  }
+
   /** Put back the last save that had real progress (after the player agrees). */
   restoreLastGood() {
     try {
@@ -700,6 +729,7 @@ class Storage {
   }
 
   save() {
+    if (this._protectNewer) return; // the stored save belongs to a newer version of the game: leave it alone
     try {
       var json = JSON.stringify(this.data);
       // never let an empty save quietly replace real progress: keep the old one aside first; and keep a fresh copy of a
@@ -2287,6 +2317,7 @@ class Storage {
     if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
       return { ok: false, error: 'The cloud save is from a newer version of the game. Refresh and try again.' };
     }
+    this._keepAside();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -2315,6 +2346,7 @@ class Storage {
     if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
       return { ok: false, error: 'Backup is from an incompatible version.' };
     }
+    this._keepAside();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -2332,6 +2364,7 @@ class Storage {
    */
   reset(scope) {
     if (!scope) scope = 'all_local';
+    this._protectNewer = false; // starting over is a deliberate choice, so saving resumes
 
 
     switch (scope) {
@@ -2361,6 +2394,7 @@ class Storage {
         this.data = deepClone(DEFAULTS);
         // Also clear custom cards storage
         try { localStorage.removeItem('buzzword_dash_custom_cards'); } catch (e) { /* best-effort */ }
+        try { localStorage.removeItem(STORAGE_KEY + '_newer'); } catch (e) { /* best-effort */ }
         break;
     }
 

@@ -492,6 +492,21 @@ var leaderboard = {
   },
 
   /**
+   * Put the richest save the account ever had back as the cloud save (it is kept server-side whenever a smaller save
+   * replaces it). Resolves with updatedAt null when there is nothing kept.
+   * @returns {Promise<{success: boolean, updatedAt?: string|null, error: string|null}>}
+   */
+  restoreBackupSave: function () {
+    if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
+    return _client.rpc('restore_backup_save').then(function (res) {
+      if (res.error) return { success: false, error: res.error.message };
+      return { success: true, updatedAt: res.data || null, error: null };
+    }).catch(function (e) {
+      return { success: false, error: e.message };
+    });
+  },
+
+  /**
    * Describe the current account for the UI.
    * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, pendingEmail: string, error: string|null}}
    */
