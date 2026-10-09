@@ -63,7 +63,17 @@ const setup = async (opts) => {
   await closeTutorial();
   await page.waitForTimeout(2500);
 };
+const hideDots = async () => {
+  await page.evaluate(() => {
+    const ids = ['home:filters', 'home:speed', 'home:flashcards', 'home:challenge', 'home:versus', 'home:friends', 'home:settings', 'home:streak', 'home:today',
+      'tab:stats', 'tab:locker', 'tab:quests', 'tab:profile', 'settings:keys', 'settings:look', 'settings:rules', 'settings:study', 'locker:heroes', 'locker:trails', 'locker:maps', 'locker:monsters'];
+    if (window.__storage) window.__storage.set('explored', ids); // (the red "new" dots would clutter a picture)
+    document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+  });
+  await page.waitForTimeout(400);
+};
 const save = async (name) => {
+  await hideDots();
   const buf = await page.screenshot({ timeout: 180000 });
   fs.writeFileSync(`${outDir}/${name}.png`, buf);
   console.log('wrote ' + name);

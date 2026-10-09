@@ -20,7 +20,7 @@ Do you provide a way for users to request that their data be deleted? **Yes.** I
 
 | Data type | Collected | Shared | Optional | Why | 
 |---|---|---|---|---|
-| Personal info → **Email address** | Yes | No | Yes (only if an account is made) | Account management |
+| Personal info → **Email address** (only if an account is made: by email, or with Google, Apple or Microsoft sign-in, which hand over the email address and an account id, never a password) | Yes | No | Yes | Account management |
 | Personal info → **Name** (display name) | Yes | No | Yes | App functionality (shown to friends) |
 | Personal info → **User IDs** | Yes | No | Yes | App functionality, account management |
 | App activity → **App interactions** (scores, streaks, runs shared to the feed, kudos, progress) | Yes | No | Yes | App functionality |

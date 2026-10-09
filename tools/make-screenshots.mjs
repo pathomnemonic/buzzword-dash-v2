@@ -16,7 +16,7 @@ const outDir = 'assets/store/screenshots';
 fs.mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
-const page = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 // (the little lessons behind the red dots would cover the screen when a tab is tapped for the first time)
 await page.addInitScript(() => { try { localStorage.setItem('dx_lessons_off', '1'); } catch { /* ignore */ } });
 await page.goto(base + '/?debug=1');
@@ -45,8 +45,21 @@ const skip = async () => {
 await skip();
 await page.waitForTimeout(2500);
 
+
+// The red "new" dots on every button would clutter a picture: mark everything as already opened
+const hideDots = async (pg) => {
+  await pg.evaluate(() => {
+    const ids = ['home:filters', 'home:speed', 'home:flashcards', 'home:challenge', 'home:versus', 'home:friends', 'home:settings', 'home:streak', 'home:today',
+      'tab:stats', 'tab:locker', 'tab:quests', 'tab:profile', 'settings:keys', 'settings:look', 'settings:rules', 'settings:study', 'locker:heroes', 'locker:trails', 'locker:maps', 'locker:monsters'];
+    if (window.__storage) window.__storage.set('explored', ids);
+    document.dispatchEvent(new CustomEvent('dx:attention-changed'));
+  });
+  await pg.waitForTimeout(400);
+};
+
 const frames = [];
 const snap = async (name, caption, sub, from) => {
+  if (!from) await hideDots(page);
   const buf = await (from || page).screenshot({ timeout: 180000 });
   frames.push({ name, caption, sub, buf });
   console.log('captured ' + name);
