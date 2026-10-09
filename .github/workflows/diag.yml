@@ -1,0 +1,22 @@
+name: Browser diagnostic (temporary)
+on:
+  push:
+    paths: ['.github/workflows/diag.yml', 'tests/e2e/zzdiag.spec.js']
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.project }}
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: x
+      - run: npx playwright test --project=${{ matrix.project }} tests/e2e/zzdiag.spec.js --retries=0
