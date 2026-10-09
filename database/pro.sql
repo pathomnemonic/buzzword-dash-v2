@@ -199,6 +199,20 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
   UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user AND plan = p_plan;
 $$;
 
+-- Forget a member's payment records when their account is deleted (these tables hold a user id but, unlike the rest of the
+-- app's data, do not cascade from the login). Service role / the delete function only.
+CREATE OR REPLACE FUNCTION pro_forget_user(p_user uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM pro_entitlements WHERE user_id = p_user;
+  DELETE FROM pro_items WHERE user_id = p_user;
+  DELETE FROM pro_library WHERE user_id = p_user;
+  DELETE FROM pro_trials WHERE user_id = p_user;
+  DELETE FROM pro_redemptions WHERE user_id = p_user;
+  DELETE FROM pro_attempts WHERE user_id = p_user;
+  DELETE FROM pro_stripe_customers WHERE user_id = p_user;
+END $$;
+
 -- Redeem a code: { ok, until } or { ok: false, error }. Ten wrong guesses an hour is the limit.
 CREATE OR REPLACE FUNCTION redeem_pro_code(p_code text) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -299,6 +313,7 @@ REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC, anon, authentica
 REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_forget_user(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
 REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC, anon, authenticated;

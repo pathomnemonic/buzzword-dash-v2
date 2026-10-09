@@ -71,12 +71,12 @@ BEGIN
     ('activity_events',   '',       'SELECT, INSERT, DELETE'),
     ('card_reports',      '',       'SELECT, INSERT'),
     ('friend_blocks',     '',       'SELECT, INSERT, DELETE'),
-    ('friends',           '',       'SELECT, INSERT, UPDATE, DELETE'),
+    ('friends',           '',       'SELECT, INSERT, UPDATE (status), DELETE'),   -- (only the status: never who the two people are)
     ('group_members',     '',       'SELECT'),
     ('leaderboard_alltime', 'SELECT', 'SELECT'),
     ('leaderboard_best',  'SELECT', 'SELECT'),
-    ('match_invites',     '',       'SELECT, INSERT, UPDATE'),
-    ('player_profiles',   'SELECT', 'SELECT, INSERT, UPDATE'),
+    ('match_invites',     '',       'SELECT, INSERT, UPDATE (status)'),
+    ('player_profiles',   'SELECT', 'SELECT'),                       -- (written only through upsert_player_profile, which keeps bests from going down)
     ('player_saves',      '',       'SELECT, DELETE'),
     ('scores',            'SELECT', 'SELECT, INSERT'),
     ('shared_decks',      '',       'SELECT, DELETE'),

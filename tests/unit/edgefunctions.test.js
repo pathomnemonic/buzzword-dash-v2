@@ -183,6 +183,7 @@ describe('pro-checkout: deleting an account', () => {
     expect(r.status).toBe(200);
     expect(stripeCalls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['subscriptions/sub_live', 'subscriptions/sub_due']);
     expect(deleted).toEqual(['u1']);
+    expect(db.map((c) => c[0])).toContain('pro_forget_user');
   });
 
   it('does NOT delete the account when the subscription could not be cancelled, so nothing keeps charging', async () => {

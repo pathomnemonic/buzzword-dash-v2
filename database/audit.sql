@@ -42,6 +42,11 @@ UNION ALL
 SELECT 'table a signed-in player can truncate or re-shape', name FROM rels
   WHERE has_table_privilege('authenticated', oid, 'TRUNCATE') OR has_table_privilege('authenticated', oid, 'TRIGGER') OR has_table_privilege('authenticated', oid, 'REFERENCES')
 UNION ALL
+SELECT 'a signed-in player can change who is in a friendship or an invite, or write a profile directly', name FROM rels
+  WHERE (name = 'friends' AND (has_column_privilege('authenticated', oid, 'requester_id', 'UPDATE') OR has_column_privilege('authenticated', oid, 'addressee_id', 'UPDATE')))
+     OR (name = 'match_invites' AND (has_column_privilege('authenticated', oid, 'from_user', 'UPDATE') OR has_column_privilege('authenticated', oid, 'to_user', 'UPDATE')))
+     OR (name = 'player_profiles' AND (has_table_privilege('authenticated', oid, 'INSERT') OR has_table_privilege('authenticated', oid, 'UPDATE')))
+UNION ALL
 SELECT 'table without row security', name FROM rels WHERE relkind IN ('r', 'p') AND NOT relrowsecurity
 UNION ALL
 SELECT 'payment or owner data a player can reach', name FROM rels

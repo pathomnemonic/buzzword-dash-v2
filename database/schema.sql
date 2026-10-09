@@ -905,6 +905,10 @@ BEGIN
       RAISE EXCEPTION 'You have a subscription that is still billing. Cancel it first (Settings, Dx Dash Pro, Manage subscription), then delete your account.';
     END IF;
   END IF;
+  -- their payment records go too (those tables do not cascade from the login)
+  IF to_regprocedure('public.pro_forget_user(uuid)') IS NOT NULL THEN
+    EXECUTE 'SELECT public.pro_forget_user($1)' USING uid;
+  END IF;
   DELETE FROM auth.users WHERE id = uid;
 END;
 $$;

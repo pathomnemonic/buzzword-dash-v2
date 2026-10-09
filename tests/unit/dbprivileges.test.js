@@ -62,7 +62,7 @@ const OPEN_TO_ALL = ['count_consent', 'delete_analytics', 'ingest_analytics'];
 const MUST_BE_CLOSED = [
   'pro_grant', 'pro_grant_until', 'pro_grant_item', 'pro_grant_library', 'pro_revoke', 'pro_revoke_plan', 'pro_revoke_item',
   'pro_revoke_library', 'pro_has_item', 'pro_make_code', 'pro_event_once', 'pro_link_customer', 'pro_customer_user',
-  'pro_user_customer', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
+  'pro_user_customer', 'pro_forget_user', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
 ];
 
 describe('with the database files run in order, then lockdown.sql', () => {
@@ -164,16 +164,64 @@ describe('an attacker with a normal account', () => {
     await as(B, () => db.query(`SELECT force_save('{"coins":900}'::jsonb, 40)`));
     expect(await denied(A, `UPDATE player_saves SET data = '{}'`)).toBe(true);
     expect((await as(A, () => db.query('SELECT data FROM player_saves'))).rows).toHaveLength(0);
-    expect((await as(A, () => db.query(`UPDATE player_profiles SET player_name = 'hax' WHERE user_id = '${B}'`))).affectedRows).toBe(0);
+    expect(await denied(A, `UPDATE player_profiles SET player_name = 'hax' WHERE user_id = '${B}'`)).toBe(true);
     expect(await denied(A, `INSERT INTO scores (user_id, player_name, score, mode) VALUES ('${B}', 'x', 1, 'endless')`)).toBe(false); // refused by row security, not a missing privilege
     expect((await as(A, () => db.query(`SELECT count(*)::int AS n FROM scores WHERE user_id = '${B}'`))).rows[0].n).toBe(0);
   });
 });
 
+describe('an attacker cannot forge friendships, invites or profile records', () => {
+  let db;
+  const C = '33333333-3333-4333-8333-333333333333';
+  const as = async (user, fn) => {
+    await db.exec(`SET app.uid = '${user}'; SET ROLE authenticated;`);
+    try { return await fn(); } finally { await db.exec('RESET ROLE'); }
+  };
+  const fails = async (user, sql) => { try { await as(user, () => db.query(sql)); return false; } catch (e) { return true; } };
+  beforeAll(async () => {
+    db = await supabaseLikeDb();
+    await db.exec(`INSERT INTO auth.users VALUES ('${C}', 'c@example.com')`);
+    await load(db, ORDER.concat(['lockdown']));
+    await as(A, () => db.query(`INSERT INTO friends (requester_id, addressee_id) VALUES ('${A}', '${B}')`)); // A asks B
+  }, 90000);
+
+  it('the person asked can accept or decline, but cannot rewrite who the friendship is between', async () => {
+    expect(await fails(B, `UPDATE friends SET requester_id = '${C}', status = 'accepted'`)).toBe(true);   // would make C "friends" with B without C agreeing
+    expect(await fails(B, `UPDATE friends SET addressee_id = '${C}'`)).toBe(true);
+    await as(B, () => db.query(`UPDATE friends SET status = 'accepted'`));
+    expect((await db.query(`SELECT requester_id, status FROM friends`)).rows[0]).toMatchObject({ requester_id: A, status: 'accepted' });
+    expect((await as(C, () => db.query(`SELECT count(*)::int AS n FROM friends`))).rows[0].n).toBe(0);
+  });
+
+  it('nobody else can touch the friendship', async () => {
+    expect((await as(C, () => db.query(`UPDATE friends SET status = 'declined'`))).affectedRows).toBe(0);
+    expect((await as(A, () => db.query(`UPDATE friends SET status = 'declined'`))).affectedRows).toBe(0); // (the asker cannot answer for B)
+  });
+
+  it('invites can be answered but not re-addressed', async () => {
+    await as(A, () => db.query(`INSERT INTO match_invites (from_user, to_user, room_code) VALUES ('${A}', '${B}', 'ABCDE')`));
+    expect(await fails(B, `UPDATE match_invites SET from_user = '${C}', status = 'accepted'`)).toBe(true);
+    expect(await fails(A, `UPDATE match_invites SET to_user = '${C}', status = 'cancelled'`)).toBe(true);
+    await as(B, () => db.query(`UPDATE match_invites SET status = 'accepted'`));
+  });
+
+  it('a profile can only be written through the function that keeps bests from going down', async () => {
+    await as(A, () => db.query(`SELECT upsert_player_profile('${A}', 'Alice', 'avatar_intern', '{}', 100, 5, true)`));
+    expect(await fails(A, `UPDATE player_profiles SET best_score = 999999999`)).toBe(true);
+    expect(await fails(A, `INSERT INTO player_profiles (user_id, player_name) VALUES ('${C}', 'Fake')`)).toBe(true);
+    await as(A, () => db.query(`SELECT upsert_player_profile('${A}', 'Alice', 'avatar_intern', '{}', 10, 1, true)`));
+    expect((await db.query(`SELECT best_score FROM player_profiles WHERE user_id = '${A}'`)).rows[0].best_score).toBe(100); // (bests never go down)
+  });
+});
+
 describe('each file on its own already closes what it owns (so a missed lockdown step is not a hole)', () => {
-  it('keeps the payment and internal functions closed without lockdown.sql', async () => {
+  it('keeps the payment and internal functions closed without lockdown.sql, and friendships cannot be re-pointed', async () => {
     const db = await supabaseLikeDb();
     await load(db, ORDER);
+    const colUpdate = async (t, c) => (await db.query(`SELECT has_column_privilege('authenticated', 'public.${t}', '${c}', 'UPDATE') AS x`)).rows[0].x;
+    expect(await colUpdate('friends', 'requester_id')).toBe(false);
+    expect(await colUpdate('friends', 'status')).toBe(true);
+    expect(await colUpdate('match_invites', 'to_user')).toBe(false);
     for (const role of ['anon', 'authenticated']) {
       const got = await callable(db, role);
       expect(MUST_BE_CLOSED.filter((n) => got.includes(n)), role).toEqual([]);
@@ -238,7 +286,13 @@ describe('deleting an account while a subscription is still billing', () => {
     expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${A}'`)).rows[0].n).toBe(1);
 
     await db.query(`SELECT pro_grant_until('${B}', now() + interval '3000 days', 'lifetime', 'stripe', false)`);
+    await db.query(`SELECT pro_grant_item('${B}', 'trail_fire', 'stripe', 'pi_1')`);
+    await db.query(`SELECT pro_link_customer('cus_B', '${B}')`);
     await as(B, () => db.query('SELECT delete_my_account()'));
     expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${B}'`)).rows[0].n).toBe(0);
+    // ... and their payment records went with them
+    for (const t of ['pro_entitlements', 'pro_items', 'pro_stripe_customers']) {
+      expect((await db.query(`SELECT count(*)::int AS n FROM ${t} WHERE user_id = '${B}'`)).rows[0].n, t).toBe(0);
+    }
   });
 });

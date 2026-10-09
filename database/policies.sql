@@ -336,3 +336,11 @@ GRANT EXECUTE ON FUNCTION ranked_report(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION ranked_settle_stale() TO authenticated;
 GRANT EXECUTE ON FUNCTION ranked_my_stats() TO authenticated;
 GRANT EXECUTE ON FUNCTION ranked_top(integer) TO authenticated;
+
+-- ==================== WHAT A SIGNED-IN PLAYER MAY CHANGE ====================
+-- Row security says WHICH rows; these say WHICH COLUMNS. Without them the person who was asked to be a friend could
+-- rewrite who the friendship is between (making a stranger their "friend" without that stranger agreeing), and anyone
+-- could write their own profile's best score directly instead of through upsert_player_profile.
+REVOKE UPDATE ON friends, match_invites FROM anon, authenticated;
+GRANT UPDATE (status) ON friends, match_invites TO authenticated;
+REVOKE INSERT, UPDATE ON player_profiles FROM anon, authenticated;

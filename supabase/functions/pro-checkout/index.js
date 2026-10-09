@@ -111,6 +111,8 @@ Deno.serve(async function (req) {
           }
         }
       }
+      var forgot = await admin.rpc('pro_forget_user', { p_user: user.id });
+      if (forgot && forgot.error) { console.error('pro-checkout delete: could not clear payment records', forgot.error.message); return json({ error: 'Could not delete the account. Please try again.' }, 500); }
       var gone = await admin.auth.admin.deleteUser(user.id);
       if (gone && gone.error) { console.error('pro-checkout delete: could not delete user', gone.error.message); return json({ error: 'Could not delete the account. Please try again.' }, 500); }
       return json({ ok: true, cancelled: customerId ? true : false });
