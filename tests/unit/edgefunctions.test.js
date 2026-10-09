@@ -4,12 +4,15 @@
 // to check the wiring that the rule tests in billing.test.js cannot see: who is let in, what is charged, what is granted.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { generateKeyPairSync } from 'node:crypto';
 import { signPayload } from '../../supabase/functions/_shared/billing.js';
 import { PREMIUM_ITEMS } from '../../supabase/functions/_shared/premium.js';
 
+const APPLE_KEY = generateKeyPairSync('ec', { namedCurve: 'P-256' }).privateKey.export({ type: 'pkcs8', format: 'pem' });
 const SECRET = 'whsec_test';
 const ENVV = {
   STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: SECRET, SITE_URL: 'https://me.github.io/dx',
+  APPLE_TEAM_ID: 'TEAM123456', APPLE_KEY_ID: 'KEY1234567', APPLE_PRIVATE_KEY: APPLE_KEY, APPLE_CLIENT_ID: 'com.example.web',
   STRIPE_PRICE_YEARLY: 'price_y', STRIPE_PRICE_LIFETIME: 'price_l', SUPABASE_URL: 'http://db', SUPABASE_SERVICE_ROLE_KEY: 'svc'
 };
 
@@ -23,6 +26,8 @@ let stripeReply;
 let customerId;   // the member's Stripe customer id ('' for none)
 let deleted;       // users deleted through the auth admin API
 let cancelFails;
+let appleToken;    // the stored Apple token for the member ('' for none)
+let appleStatus;   // what Apple answers to a revoke
 
 vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({
   createClient: () => ({
@@ -31,6 +36,7 @@ vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({
       db.push([name, args]);
       if (name === 'pro_has_item') return dbReady ? { data: owned.includes(args.p_item), error: null } : { data: null, error: { message: 'function does not exist' } };
       if (name === 'pro_user_customer') return { data: customerId, error: null };
+      if (name === 'apple_token_get') return { data: appleToken, error: null };
       return { data: null, error: null };
     },
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: held }) }) }) })
@@ -47,10 +53,14 @@ async function boot(file) {
 }
 
 beforeEach(() => {
-  db = []; stripeCalls = []; owned = []; held = null; dbReady = true; customerId = ''; deleted = []; cancelFails = false;
-  users = { good: { id: 'u1', email: 'a@example.com', is_anonymous: false }, guest: { id: 'g1', email: '', is_anonymous: true } };
+  db = []; stripeCalls = []; owned = []; held = null; dbReady = true; customerId = ''; deleted = []; cancelFails = false; appleToken = ''; appleStatus = 200;
+  users = { apple: { id: 'ua', email: 'p@example.com', is_anonymous: false, identities: [{ provider: 'apple' }] }, good: { id: 'u1', email: 'a@example.com', is_anonymous: false }, guest: { id: 'g1', email: '', is_anonymous: true } };
   stripeReply = (path) => ({ id: 'cs_1', url: 'https://checkout.stripe.com/pay/cs_1', data: [] });
   globalThis.fetch = vi.fn(async (url, init) => {
+    if (String(url).startsWith('https://appleid.apple.com/')) {
+      stripeCalls.push({ path: 'APPLE ' + String(url).replace('https://appleid.apple.com/', ''), method: init.method, body: Object.fromEntries(new URLSearchParams(init.body)) });
+      return { ok: appleStatus < 400, status: appleStatus, text: async () => (appleStatus < 400 ? '' : '{"error":"server_error"}'), json: async () => ({}) };
+    }
     const path = String(url).replace('https://api.stripe.com/v1/', '');
     stripeCalls.push({ path, method: (init && init.method) || 'GET', body: init && init.body ? Object.fromEntries(new URLSearchParams(init.body)) : null });
     if (cancelFails && init && init.method === 'DELETE') return { ok: false, status: 500, json: async () => ({ error: { message: 'stripe is down' } }) };
@@ -211,5 +221,54 @@ describe('pro-checkout: deleting an account', () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     await call(h, { action: 'delete_account', user_id: 'victim', id: 'victim' }, 'good');
     expect(deleted).toEqual(['u1']);
+  });
+});
+
+
+describe('pro-checkout: Sign in with Apple and account deletion', () => {
+  const call = async (h, body, jwt) => {
+    const res = await h(post(body, jwt ? { authorization: 'Bearer ' + jwt } : {}));
+    return { status: res.status, body: await res.json() };
+  };
+
+  it('keeps an Apple token only for an Apple login', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    expect((await call(h, { action: 'apple_token', refresh_token: 'r_abcdefghijk' }, 'apple')).status).toBe(200);
+    expect(db.find((c) => c[0] === 'apple_token_save')[1]).toEqual({ p_user: 'ua', p_token: 'r_abcdefghijk' });
+    db.length = 0;
+    expect((await call(h, { action: 'apple_token', refresh_token: 'r_abcdefghijk' }, 'good')).status).toBe(400);   // (not an Apple login)
+    expect((await call(h, { action: 'apple_token', refresh_token: 'x' }, 'apple')).status).toBe(400);
+    expect((await call(h, { action: 'apple_token', refresh_token: 'r_abcdefghijk' }, 'guest')).status).toBe(403);
+    expect(db.filter((c) => c[0] === 'apple_token_save')).toEqual([]);
+  });
+
+  it('revokes the Apple login before deleting the account', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    appleToken = 'r_stored_token';
+    const r = await call(h, { action: 'delete_account' }, 'apple');
+    expect(r.status).toBe(200);
+    const sent = stripeCalls.find((c) => c.path === 'APPLE auth/revoke');
+    expect(sent.body).toMatchObject({ client_id: 'com.example.web', token: 'r_stored_token', token_type_hint: 'refresh_token' });
+    expect(sent.body.client_secret.split('.')).toHaveLength(3);
+    expect(deleted).toEqual(['ua']);
+  });
+
+  it('does NOT delete the account when Apple cannot be reached, because Apple requires the revoke', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    appleToken = 'r_stored_token'; appleStatus = 500;
+    const r = await call(h, { action: 'delete_account' }, 'apple');
+    expect(r.status).toBe(502);
+    expect(r.body.error).toMatch(/nothing was deleted/i);
+    expect(deleted).toEqual([]);
+  });
+
+  it('still deletes an Apple login that has no stored token (signed in before this existed), and never calls Apple for anyone else', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    appleToken = '';
+    expect((await call(h, { action: 'delete_account' }, 'apple')).status).toBe(200);
+    expect(stripeCalls.some((c) => String(c.path).startsWith('APPLE'))).toBe(false);
+    appleToken = 'r_other';
+    expect((await call(h, { action: 'delete_account' }, 'good')).status).toBe(200);
+    expect(stripeCalls.some((c) => String(c.path).startsWith('APPLE'))).toBe(false);
   });
 });

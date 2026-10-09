@@ -211,7 +211,29 @@ BEGIN
   DELETE FROM pro_redemptions WHERE user_id = p_user;
   DELETE FROM pro_attempts WHERE user_id = p_user;
   DELETE FROM pro_stripe_customers WHERE user_id = p_user;
+  DELETE FROM apple_tokens WHERE user_id = p_user;
 END $$;
+
+-- The Sign in with Apple token of an account, kept only so that deleting the account can revoke it (an App Store rule).
+-- Service role only; it is removed with the account.
+CREATE TABLE IF NOT EXISTS apple_tokens (
+  user_id uuid PRIMARY KEY,
+  refresh_token text NOT NULL,
+  saved_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE apple_tokens ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON apple_tokens FROM PUBLIC, anon, authenticated;
+CREATE OR REPLACE FUNCTION apple_token_save(p_user uuid, p_token text) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  INSERT INTO apple_tokens (user_id, refresh_token) VALUES (p_user, p_token)
+  ON CONFLICT (user_id) DO UPDATE SET refresh_token = excluded.refresh_token, saved_at = now();
+$$;
+CREATE OR REPLACE FUNCTION apple_token_get(p_user uuid) RETURNS text
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT refresh_token FROM apple_tokens WHERE user_id = p_user;
+$$;
+REVOKE ALL ON FUNCTION apple_token_save(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION apple_token_get(uuid) FROM PUBLIC, anon, authenticated;
 
 -- Redeem a code: { ok, until } or { ok: false, error }. Ten wrong guesses an hour is the limit.
 CREATE OR REPLACE FUNCTION redeem_pro_code(p_code text) RETURNS jsonb

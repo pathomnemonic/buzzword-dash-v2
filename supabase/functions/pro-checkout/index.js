@@ -12,11 +12,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
 import { isPremiumItem } from '../_shared/premium.js';
+import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin } from '../_shared/applesignin.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
 Object.keys(PRODUCTS).forEach(function (id) { env[PRODUCTS[id].env] = Deno.env.get(PRODUCTS[id].env) || ''; });
 env.SITE_URL = Deno.env.get('SITE_URL') || '';
+var appleEnv = {};
+['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY', 'APPLE_CLIENT_ID'].forEach(function (k) { appleEnv[k] = Deno.env.get(k) || ''; });
 var admin = createClient(Deno.env.get('SUPABASE_URL') || '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '', { auth: { persistSession: false } });
 
 var CORS = {
@@ -94,6 +97,15 @@ Deno.serve(async function (req) {
       return json({ url: portal.url });
     }
 
+    // Keep the Sign in with Apple token so that deleting the account can revoke it (an App Store rule). Only Apple logins.
+    if (body.action === 'apple_token') {
+      var tok = String(body.refresh_token || '');
+      if (!hasAppleLogin(user) || tok.length < 10 || tok.length > 4000) return json({ error: 'Nothing to keep.' }, 400);
+      var saved = await admin.rpc('apple_token_save', { p_user: user.id, p_token: tok });
+      if (saved && saved.error) { console.error('pro-checkout apple_token failed', saved.error.message); return json({ error: 'Could not save.' }, 500); }
+      return json({ ok: true });
+    }
+
     // Delete the account for good. A subscription that is still billing is cancelled first (immediately, no further
     // charge), and if that cannot be done the account is NOT deleted, so nobody keeps paying for an account that is gone.
     if (body.action === 'delete_account') {
@@ -109,6 +121,25 @@ Deno.serve(async function (req) {
             console.error('pro-checkout delete: could not cancel', sb.id, e && e.message);
             return json({ error: 'Could not cancel your subscription, so nothing was deleted. Please try again, or cancel it under Manage subscription first.' }, 502);
           }
+        }
+      }
+      // Apple requires that deleting an account also revokes its Sign in with Apple login. If Apple cannot be reached, nothing is deleted.
+      if (hasAppleLogin(user)) {
+        var appleTok = await admin.rpc('apple_token_get', { p_user: user.id });
+        if (appleTok && appleTok.data && appleConfigured(appleEnv)) {
+          try {
+            var ares = await fetch('https://appleid.apple.com/auth/revoke', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams(await appleRevokeForm(appleEnv, appleTok.data, Math.floor(Date.now() / 1000))).toString()
+            });
+            if (!revokeSucceeded({ status: ares.status, body: await ares.text().catch(function () { return ''; }) })) throw new Error('Apple said ' + ares.status);
+          } catch (e) {
+            console.error('pro-checkout delete: could not revoke Apple login', e && e.message);
+            return json({ error: 'Could not sign you out of Apple just now, so nothing was deleted. Please try again.' }, 502);
+          }
+        } else {
+          console.warn('pro-checkout delete: Apple login has no stored token or the APPLE_* secrets are not set; deleting without revoking');
         }
       }
       var forgot = await admin.rpc('pro_forget_user', { p_user: user.id });

@@ -62,7 +62,7 @@ const OPEN_TO_ALL = ['count_consent', 'delete_analytics', 'ingest_analytics'];
 const MUST_BE_CLOSED = [
   'pro_grant', 'pro_grant_until', 'pro_grant_item', 'pro_grant_library', 'pro_revoke', 'pro_revoke_plan', 'pro_revoke_item',
   'pro_revoke_library', 'pro_has_item', 'pro_make_code', 'pro_event_once', 'pro_link_customer', 'pro_customer_user',
-  'pro_user_customer', 'pro_forget_user', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
+  'pro_user_customer', 'pro_forget_user', 'apple_token_save', 'apple_token_get', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
 ];
 
 describe('with the database files run in order, then lockdown.sql', () => {

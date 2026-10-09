@@ -223,6 +223,12 @@ var leaderboard = {
       var authSubscription = _client.auth.onAuthStateChange(function (event, session) {
         _session = session;
         _userId = session && session.user ? session.user.id : null;
+        // Sign in with Apple hands over a token only now, at sign-in. Keep it (server side, never in the page) so that
+        // deleting the account can revoke the Apple login, which the App Store requires.
+        if (event === 'SIGNED_IN' && session && session.provider_refresh_token && providerOf(session.user) === 'apple') {
+          var appleToken = session.provider_refresh_token;
+          setTimeout(function () { leaderboard.proFunction('apple_token', { refresh_token: appleToken }); }, 0);
+        }
         // Deferred so listeners never run inside the Supabase auth lock.
         setTimeout(function () {
           _authListeners.slice().forEach(function (fn) {

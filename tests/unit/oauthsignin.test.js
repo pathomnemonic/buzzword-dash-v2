@@ -231,3 +231,38 @@ describe('emailed sign-in links', () => {
     expect(await lb.getAuthSettings()).toBeNull();
   });
 });
+
+describe('keeping the Sign in with Apple token for account deletion', () => {
+  let listener;
+  let invoked;
+  async function bootApple() {
+    vi.resetModules();
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://x.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
+    invoked = [];
+    window.supabase = { createClient: () => ({
+      auth: {
+        onAuthStateChange: (fn) => { listener = fn; return { data: { subscription: { unsubscribe() {} } } }; },
+        getSession: async () => ({ data: { session: { user: { id: 'u1', email: 'a@b.co' } } } })
+      },
+      functions: { invoke: async (name, o) => { invoked.push(o.body); return { data: { ok: true } }; } }
+    }) };
+    const { leaderboard } = await import('../../js/leaderboard.js');
+    await leaderboard.init();
+  }
+  afterEach(() => { vi.unstubAllEnvs(); delete window.supabase; });
+
+  it('sends it to the server at sign-in, only for an Apple login, and never keeps it in the page', async () => {
+    await bootApple();
+    listener('SIGNED_IN', { user: { id: 'u1', email: 'a@b.co', app_metadata: { provider: 'apple' } }, provider_refresh_token: 'r_apple_token_1' });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(invoked).toEqual([{ action: 'apple_token', refresh_token: 'r_apple_token_1' }]);
+
+    invoked.length = 0;
+    listener('SIGNED_IN', { user: { id: 'u1', email: 'a@b.co', app_metadata: { provider: 'google' } }, provider_refresh_token: 'r_google' });
+    listener('TOKEN_REFRESHED', { user: { id: 'u1', email: 'a@b.co', app_metadata: { provider: 'apple' } }, provider_refresh_token: 'r_again' });
+    listener('SIGNED_IN', { user: { id: 'u1', email: 'a@b.co', app_metadata: { provider: 'apple' } } }); // (no token this time)
+    await new Promise((r) => setTimeout(r, 10));
+    expect(invoked).toEqual([]);
+  });
+});
