@@ -217,11 +217,65 @@ describe('a payment is never lost to a missing field, a free renewal or an odd o
     expect(calls).toEqual([['pro_revoke_plan', { p_user: 'u1', p_plan: 'lifetime' }]]);
   });
 
-  it('a partial refund, or a refund of a subscription, takes nothing back', async () => {
+  it('a partial refund takes nothing back', async () => {
     const { calls, deps } = fake();
     await handleEvent({ type: 'charge.refunded', data: { object: { refunded: false, metadata: { user_id: 'u1', plan: 'lifetime' } } } }, deps);
-    await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, metadata: { user_id: 'u1', plan: 'monthly' } } } }, deps);
     expect(calls).toEqual([]);
+  });
+
+  it('a full refund of the invoice that paid for the current period ends that subscription; an older invoice does not', async () => {
+    const sub = { id: 'sub_1', status: 'active', current_period_end: NOW + 30 * 86400, latest_invoice: 'in_new', metadata: { user_id: 'u1', plan: 'monthly' } };
+    const mk = (invoice) => fake({ getInvoice: async () => ({ id: invoice, parent: { subscription_details: { subscription: 'sub_1' } } }), getSubscription: async () => sub });
+    let t = mk('in_new');
+    const out = await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, invoice: 'in_new', metadata: {} } } }, t.deps);
+    expect(out.action).toBe('monthly_refunded');
+    expect(t.calls).toEqual([['pro_revoke_plan', { p_user: 'u1', p_plan: 'monthly' }]]);
+    t = mk('in_old');
+    expect((await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, invoice: 'in_old', metadata: {} } } }, t.deps)).handled).toBe(false);
+    expect(t.calls).toEqual([]);
+  });
+
+  it('a payment that finishes later (a bank debit) gives the purchase, exactly like one that finished at once', async () => {
+    const t = fake();
+    const ev = { type: 'checkout.session.async_payment_succeeded', data: { object: { client_reference_id: 'u1', payment_status: 'paid', customer: 'cus_1', metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } } } };
+    expect((await handleEvent(ev, t.deps)).action).toBe('item');
+    expect(t.calls.map((c) => c[0])).toEqual(['pro_link_customer', 'pro_grant_item']);
+    const unpaid = fake();
+    ev.data.object.payment_status = 'unpaid';
+    expect((await handleEvent(ev, unpaid.deps)).handled).toBe(false);
+    expect(unpaid.calls).toEqual([]);
+  });
+
+  it('a purchase that was already refunded is not handed back by a late "completed" event', async () => {
+    const t = fake({ isPaymentReturned: async () => true });
+    const ev = { type: 'checkout.session.completed', data: { object: { client_reference_id: 'u1', payment_status: 'paid', payment_intent: 'pi_1', metadata: { plan: 'lifetime', user_id: 'u1' } } } };
+    expect(await handleEvent(ev, t.deps)).toEqual({ handled: false, action: 'already_returned' });
+    expect(t.calls).toEqual([]);
+    const item = { type: 'checkout.session.completed', data: { object: { client_reference_id: 'u1', payment_status: 'paid', payment_intent: 'pi_2', metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } } } };
+    expect((await handleEvent(item, t.deps)).handled).toBe(false);
+    expect(t.calls).toEqual([]);
+  });
+
+  it('a chargeback takes the purchase back, a lost one keeps it taken, and a won one gives it again', async () => {
+    const charge = { id: 'ch_1', metadata: { user_id: 'u1', plan: 'lifetime' } };
+    const dispute = (type, status) => ({ type, data: { object: { charge: 'ch_1', status } } });
+    let t = fake({ getCharge: async () => charge });
+    expect((await handleEvent(dispute('charge.dispute.created'), t.deps)).action).toBe('lifetime_disputed');
+    expect(t.calls).toEqual([['pro_revoke_plan', { p_user: 'u1', p_plan: 'lifetime' }]]);
+    t = fake({ getCharge: async () => charge });
+    expect((await handleEvent(dispute('charge.dispute.closed', 'lost'), t.deps)).action).toBe('lifetime_disputed');
+    t = fake({ getCharge: async () => charge });
+    expect((await handleEvent(dispute('charge.dispute.closed', 'won'), t.deps)).action).toBe('lifetime_restored');
+    expect(t.calls[0][0]).toBe('pro_grant_until');
+    // an item, too
+    t = fake({ getCharge: async () => ({ id: 'ch_2', metadata: { user_id: 'u1', kind: 'item', item_id: 'trail_fire' } }) });
+    await handleEvent(dispute('charge.dispute.created'), t.deps);
+    await handleEvent(dispute('charge.dispute.closed', 'won'), t.deps);
+    expect(t.calls.map((c) => c[0])).toEqual(['pro_revoke_item', 'pro_grant_item']);
+    // a charge we cannot match to anyone changes nothing
+    t = fake({ getCharge: async () => ({ id: 'ch_3', metadata: {} }) });
+    expect((await handleEvent(dispute('charge.dispute.created'), t.deps)).handled).toBe(false);
+    expect(t.calls).toEqual([]);
   });
 
   it('a one-time purchase gets a Stripe customer, so it can be found again; a returning customer is reused', () => {

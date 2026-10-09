@@ -178,12 +178,17 @@ Deno.serve(async function (req) {
 
     if (body.action === 'checkout') {
       var wanted = productFor(body.plan);
+      if (!wanted) return json({ error: 'Unknown plan.' }, 400);
+      // someone who holds Pro for life has nothing left to buy: stop before Stripe is touched
+      var held = await admin.from('pro_entitlements').select('plan, until').eq('user_id', user.id).maybeSingle();
+      if (held && held.data && held.data.plan === 'lifetime' && new Date(held.data.until).getTime() > Date.now()) return json({ error: 'You already have Pro for life.' }, 409);
       // a customer saved while Stripe was in test mode does not exist in live mode: start fresh rather than fail to sell
       var staleCustomer = function (e) { return /no such customer/i.test((e && e.message) || ''); };
       if (customerId && wanted && wanted.def.kind === 'subscription') {
         try {
-          var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=active&limit=1');
-          if (live && live.data && live.data.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+          var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=10');
+          var running = ((live && live.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due'].indexOf(x.status) >= 0; });
+          if (running.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
         } catch (e) { if (staleCustomer(e)) customerId = ''; else throw e; }
       }
       var build = function (cust) {

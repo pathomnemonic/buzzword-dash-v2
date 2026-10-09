@@ -3,7 +3,8 @@
 // Deploy:  supabase functions deploy stripe-webhook --no-verify-jwt
 // Secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (Supabase sets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY itself)
 // In Stripe: Developers -> Webhooks -> add https://<project>.supabase.co/functions/v1/stripe-webhook and send
-//   checkout.session.completed, invoice.paid and charge.refunded.
+//   checkout.session.completed, checkout.session.async_payment_succeeded, invoice.paid, charge.refunded,
+//   charge.dispute.created and charge.dispute.closed.
 // Every request is checked against the webhook signing secret first; anything unsigned is refused.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -17,6 +18,20 @@ async function getSubscription(id) {
   var res = await fetch('https://api.stripe.com/v1/subscriptions/' + encodeURIComponent(id), { headers: { Authorization: 'Bearer ' + STRIPE_KEY } });
   if (!res.ok) throw new Error('Stripe said ' + res.status + ' for the subscription');
   return res.json();
+}
+
+async function stripeGet(path) {
+  var res = await fetch('https://api.stripe.com/v1/' + path, { headers: { Authorization: 'Bearer ' + STRIPE_KEY } });
+  if (!res.ok) throw new Error('Stripe said ' + res.status + ' for ' + path.split('?')[0]);
+  return res.json();
+}
+function getCharge(id) { return stripeGet('charges/' + encodeURIComponent(id)); }
+function getInvoice(id) { return stripeGet('invoices/' + encodeURIComponent(id)); }
+/** Has this payment already been refunded, or is it in dispute? (A late "completed" event must not hand it back.) */
+async function isPaymentReturned(paymentIntentId) {
+  var pi = await stripeGet('payment_intents/' + encodeURIComponent(paymentIntentId) + '?expand[]=latest_charge');
+  var ch = pi && pi.latest_charge;
+  return !!(ch && typeof ch === 'object' && (ch.refunded || ch.disputed));
 }
 
 async function rpc(name, args) {
@@ -33,7 +48,7 @@ Deno.serve(async function (req) {
   var event;
   try { event = JSON.parse(raw); } catch { return new Response('bad json', { status: 400 }); }
   try {
-    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, now: now });
+    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, getCharge: getCharge, getInvoice: getInvoice, isPaymentReturned: isPaymentReturned, now: now });
     if (out.handled) await rpc('pro_event_once', { p_event: event.id, p_kind: event.type }); // (a record for the owner; repeats are harmless)
     return new Response(JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {
