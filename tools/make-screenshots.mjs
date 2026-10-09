@@ -4,7 +4,12 @@
 //   npm run build && npx vite preview --port 4190 &   (then)
 //   node tools/make-screenshots.mjs [http://localhost:4190]
 //
-// Writes assets/store/screenshots/NN-name.png (1080x1920).
+// Writes assets/store/screenshots/NN-name.png (1080x1920), plus the phone App Store sets.
+//
+//   DEVICE=tablet node tools/make-screenshots.mjs [url]
+//
+// does the same on an iPad-sized screen and writes the iPad sets (assets/store/ipad-13, ipad-12.9) and the Google Play
+// tablet sets (assets/store/play-tablet-7, play-tablet-10).
 
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
@@ -12,11 +17,12 @@ import fs from 'node:fs';
 import { BG, CYAN } from './brand.mjs';
 
 const base = process.argv[2] || 'http://localhost:4190';
-const outDir = 'assets/store/screenshots';
+const TABLET = process.env.DEVICE === 'tablet';
+const outDir = TABLET ? 'assets/store/ipad-13' : 'assets/store/screenshots';
 fs.mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+const page = await browser.newPage({ viewport: TABLET ? { width: 1032, height: 1376 } : { width: 390, height: 844 }, deviceScaleFactor: TABLET ? 1.5 : 2, hasTouch: true, isMobile: true });
 // (the little lessons behind the red dots would cover the screen when a tab is tapped for the first time)
 await page.addInitScript(() => { try { localStorage.setItem('dx_lessons_off', '1'); } catch { /* ignore */ } });
 await page.goto(base + '/?debug=1');
@@ -114,7 +120,7 @@ const endRun = async () => {
 const run = async (opts, name, caption, sub, waitMs) => {
   for (let attempt = 0; attempt < 6; attempt++) {
     await setup(opts);
-    await page.locator('.btn-play').click();
+    await page.locator('.btn-play').click({ timeout: 180000 });
     await page.waitForTimeout(waitMs);
     const text = await gateText();
     if (!ODD.test(text) && /\S/.test(text.replace(/\|/g, ''))) {
@@ -181,7 +187,7 @@ const multiplayerShot = async (name, caption, sub) => {
 
 const results = async (opts, name, caption, sub) => {
   await setup(opts);
-  await page.locator('.btn-play').click();
+  await page.locator('.btn-play').click({ timeout: 180000 });
   await page.waitForTimeout(50000);
   await endRun();
   await page.waitForTimeout(1500);
@@ -195,7 +201,7 @@ await run({ skin: 'avatar_m_nurse', monster: 'monster_m_demon', subjects: ['Infe
   'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
 await run({ skin: 'avatar_intern', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
   'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
-await multiplayerShot('multiplayer', 'Challenge a friend. Live.', 'Head-to-head, no account needed');
+if (!TABLET) await multiplayerShot('multiplayer', 'Challenge a friend. Live.', 'Head-to-head, no account needed');
 await results({ skin: 'avatar_intern', monster: 'monster_m_yeti', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
   'review', 'Learn from every miss', 'Quick explanations, then it comes back');
 
@@ -231,10 +237,15 @@ await snap('rewards', 'Earn rewards as you improve', 'Coins from correct answers
 
 await browser.close();
 
-for (const old of fs.readdirSync(outDir)) if (old.endsWith('.png')) fs.unlinkSync(outDir + '/' + old);
 
-// Google Play takes 1080x1920; the App Store wants exact sizes (6.9-inch: 1290x2796, 6.5-inch: 1284x2778)
-const SIZES = [
+// Google Play takes 1080x1920; the App Store wants exact sizes (6.9-inch: 1290x2796, 6.5-inch: 1284x2778).
+// Tablets: iPad 13-inch 2064x2752 (it scales down for the 12.9-inch slot, 2048x2732), Play 7-inch and 10-inch tablets.
+const SIZES = TABLET ? [
+  { dir: 'assets/store/ipad-13', W: 2064, H: 2752, CAP: 480, PAD: 120 },
+  { dir: 'assets/store/ipad-12.9', W: 2048, H: 2732, CAP: 480, PAD: 120 },
+  { dir: 'assets/store/play-tablet-10', W: 1600, H: 2560, CAP: 400, PAD: 100 },
+  { dir: 'assets/store/play-tablet-7', W: 1200, H: 1920, CAP: 300, PAD: 80 }
+] : [
   { dir: outDir, W: 1080, H: 1920, CAP: 330, PAD: 70 },
   { dir: 'assets/store/appstore', W: 1290, H: 2796, CAP: 400, PAD: 80 },
   { dir: 'assets/store/appstore-6.5', W: 1284, H: 2778, CAP: 400, PAD: 80 }
@@ -249,7 +260,7 @@ for (const size of SIZES) {
     const shotH = H - CAP - PAD - 40;
     const shot = await sharp(f.buf).resize(shotW, shotH, { fit: 'cover', position: 'top' })
       .composite([{ input: Buffer.from(`<svg width="${shotW}" height="${shotH}"><rect width="${shotW}" height="${shotH}" rx="56" fill="#fff"/></svg>`), blend: 'dest-in' }]).png().toBuffer();
-    const fs0 = Math.min(86, Math.floor((W - 120) / (f.caption.length * 0.62)));
+    const fs0 = Math.min(TABLET ? Math.round(W / 15) : 86, Math.floor((W - 120) / (f.caption.length * 0.62)));
     const font = 'font-family="Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif" font-weight="900" text-anchor="middle"';
     const label = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${CAP}">
       <g transform="translate(${W / 2} ${CAP * 0.46}) skewX(-8)">
@@ -257,7 +268,7 @@ for (const size of SIZES) {
         <text x="0" y="0" ${font} font-size="${fs0}" fill="#ffd23f" stroke="#1b0a40" stroke-width="10" stroke-linejoin="round">${f.caption}</text>
         <text x="0" y="0" ${font} font-size="${fs0}" fill="#ffd23f">${f.caption}</text>
       </g>
-      <text x="${W / 2}" y="${CAP * 0.73}" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
+      <text x="${W / 2}" y="${CAP * 0.73}" font-family="Arial, Helvetica, sans-serif" font-size="${TABLET ? Math.round(W / 29) : 44}" font-weight="700" fill="${CYAN}" text-anchor="middle">${f.sub}</text></svg>`);
     await sharp({ create: { width: W, height: H, channels: 4, background: BG } })
       .composite([{ input: label, top: 0, left: 0 }, { input: shot, top: CAP, left: PAD }])
       .png().toFile(`${size.dir}/${String(n++).padStart(2, '0')}-${f.name}.png`);

@@ -34,7 +34,7 @@ export async function closeTutorial(page) {
 export async function dismissDailyReward(page) {
   const overlay = page.locator('#dailyReward');
   try {
-    await overlay.waitFor({ state: 'visible', timeout: 8000 });
+    await overlay.waitFor({ state: 'visible', timeout: 15000 });
   } catch {
     return;
   }

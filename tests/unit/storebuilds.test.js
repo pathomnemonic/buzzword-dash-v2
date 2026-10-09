@@ -28,9 +28,12 @@ describe('both store builds', () => {
     for (const name of imported) expect(pkg.dependencies[name], name + ' is imported but not a dependency').toBeTruthy();
   });
 
-  it('run the same web build, and the iPhone build is portrait only like the phone layout', () => {
+  it('run the same web build; the iPhone stays upright and the iPad turns any way (iPhone and iPad both targeted)', () => {
     expect(codemagic).toMatch(/npx vite build/);
     expect(codemagic).toMatch(/UIInterfaceOrientationPortrait/);
+    expect(codemagic).toMatch(/UISupportedInterfaceOrientations~ipad/);
+    expect(codemagic).toMatch(/UIInterfaceOrientationLandscapeLeft/);
+    expect(codemagic).toMatch(/TARGETED_DEVICE_FAMILY"\] = "1,2"/);
     expect(codemagic).toMatch(/cap sync ios/);
   });
 
@@ -44,9 +47,12 @@ describe('both store builds', () => {
     expect(lines.slice(Math.max(0, i - 3), i).join('\n')).toMatch(/android/);
   });
 
-  it('Android: runs on Chromebooks and tablets (no touch screen or portrait requirement) and can be resized', () => {
+  it('Android: runs on Chromebooks and tablets (no touch screen or portrait requirement), can be resized, and only phones are held upright', () => {
     expect(manifest).toMatch(/android\.hardware\.touchscreen"\s+android:required="false"/);
     expect(manifest).toMatch(/android\.hardware\.screen\.portrait"\s+android:required="false"/);
     expect(manifest).toMatch(/android:resizeableActivity="true"/);
+    expect(manifest).not.toMatch(/android:screenOrientation="portrait"/);
+    const main = readFileSync('android/app/src/main/java/com/pathomnemonic/dxdash/MainActivity.java', 'utf8');
+    expect(main).toMatch(/smallestScreenWidthDp < 600/);
   });
 });

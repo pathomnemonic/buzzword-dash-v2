@@ -1959,7 +1959,7 @@ select:focus-visible {
 
 /* ==================== RESPONSIVE ==================== */
 @media (min-width: 768px) {
-  .screen-scroll { max-width: 500px; }
+  .screen-scroll { max-width: 640px; }
   #buzzText { font-size: 18px; }
   .answer-choice { font-size: 13px; padding: 10px 6px; }
   #characterPreviewContainer { height: 260px; }

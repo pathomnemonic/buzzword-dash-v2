@@ -57,7 +57,7 @@ First release of Dx Dash: run the list and learn the diagnosis. 3,000+ board-sty
 | Feature graphic | `assets/store/feature-graphic.png` | 1024 × 500 |
 | Phone screenshots (upload all, in order) | `assets/store/screenshots/*.png` | 1080 × 1920 |
 
-Tablet screenshots are optional; skip them.
+Tablet screenshots (the app is made for tablets and Chromebooks too, and Google ranks apps with them higher on large screens): 7-inch tablet `assets/store/play-tablet-7/` (1200 × 1920), 10-inch tablet `assets/store/play-tablet-10/` (1600 × 2560). Upload all of each, in order.
 
 ## Contact details (Store settings)
 - Website: `https://pathomnemonic.github.io/buzzword-dash-v2/`

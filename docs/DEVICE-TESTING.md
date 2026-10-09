@@ -2,7 +2,7 @@
 
 Automated tests run in Chromium with software graphics. They cannot tell you how the game feels or performs on a phone,
 and they cannot make a real phone call. Run this script on at least: one low-end Android (2 to 3 GB RAM), one recent
-Android, one iPhone from the last three years, and one older iPhone. Write down model, OS version and result.
+Android, one iPhone from the last three years, one older iPhone, and one tablet (an iPad, or an Android tablet or foldable if you can). On the tablet also check: the app turns with the device, nothing is cut off in either direction, the tab bar sits at the bottom, a run shows the question and answers above the runner, and in iPad Split View (half the screen) it still fits. Write down model, OS version and result.
 
 ## 1. First launch (5 min)
 - Fresh install: tutorial plays, starting coins are 300, the tutorial lets you buy the Pill Trail.

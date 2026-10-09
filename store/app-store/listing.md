@@ -39,7 +39,7 @@ Primary: **Education**. Secondary: **Games → Trivia** (or Medical; Education i
 `2026 <your name>`
 
 ## Screenshots
-Upload the 6.9-inch set (required) from `assets/store/appstore/` (1290 × 2796). If App Store Connect also asks for 6.5-inch, use `assets/store/appstore-6.5/` (1284 × 2778). iPad screenshots are only needed if you allow iPad; the guide builds iPhone-only.
+Upload the 6.9-inch set (required) from `assets/store/appstore/` (1290 × 2796). If App Store Connect also asks for 6.5-inch, use `assets/store/appstore-6.5/` (1284 × 2778). The app runs on iPad too, so also upload the iPad set: 13-inch from `assets/store/ipad-13/` (2064 × 2752); if App Store Connect asks for the 12.9-inch slot, use `assets/store/ipad-12.9/` (2048 × 2732).
 
 ## App icon
 `assets/store/appstore-icon-1024.png` (1024 × 1024, no transparency). The build also embeds its own icons from `assets/`.

@@ -1566,8 +1566,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .perf-goal-done { color: var(--accent-green); font-size: 12px; }
 .perf-next-label { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--text-muted); margin-top: 12px; }
 .perf-next-title { font-size: 20px; font-weight: 900; margin: 2px 0 8px; text-shadow: 0 2px 0 var(--ink); }
-.perf-step-buttons { display: flex; gap: 8px; }
-.perf-step-buttons .btn { flex: 1; }
+.perf-step-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.perf-step-buttons .btn { flex: 1 1 auto; white-space: nowrap; }
 .perf-more { margin-top: 10px; }
 .perf-more > summary { font-size: 12px; font-weight: 800; color: var(--text-secondary); cursor: pointer; padding: 6px 0; list-style: none; }
 .perf-more > summary::-webkit-details-marker { display: none; }
@@ -1641,8 +1641,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* Today popup: the next study step with its buttons */
 .today-next { background: var(--grad-card); border: var(--border-card); border-radius: var(--radius-md); box-shadow: var(--shadow-card); padding: 10px 12px 12px; margin: 8px 0 12px; }
 .today-next-title { font-size: 15px; font-weight: 900; margin-bottom: 8px; }
-.today-next .perf-step-buttons { display: flex; gap: 8px; }
-.today-next .perf-step-buttons .btn { flex: 1; }
+.today-next .perf-step-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.today-next .perf-step-buttons .btn { flex: 1 1 auto; white-space: nowrap; }
 
 
 /* ---------- results page: one screen, no scrolling. The review list scrolls inside itself. ---------- */
@@ -2632,3 +2632,8 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 .tut-account { text-align: left; max-height: 36vh; overflow-y: auto; margin: 6px 0; padding: 2px; }
 
 .pro-back { margin: 0 0 8px; }
+
+/* ---------- portrait tablets (iPad mini to iPad Pro, Android 7-10 in): Home uses the width instead of a phone-sized strip ---------- */
+@media (min-width: 700px) and (max-width: 999px) and (orientation: portrait) {
+  .home-layout { max-width: 640px; }
+}

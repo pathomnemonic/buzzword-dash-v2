@@ -31,13 +31,20 @@ workflows:
           npx cap add ios
           npx cap sync ios
           npx capacitor-assets generate --ios
-      - name: Portrait only, export compliance, email-link scheme, build number
+      - name: Orientations (iPhone upright, iPad any way), export compliance, email-link scheme, build number
         script: |
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations" $PLIST || true
           /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations array" $PLIST
           /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations:0 string UIInterfaceOrientationPortrait" $PLIST
+          # iPad: all four ways up, so it can be held and docked any way and passes Apple's iPad review
           /usr/libexec/PlistBuddy -c "Delete :UISupportedInterfaceOrientations~ipad" $PLIST || true
+          /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad array" $PLIST
+          i=0
+          for o in UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight; do
+            /usr/libexec/PlistBuddy -c "Add :UISupportedInterfaceOrientations~ipad:$i string $o" $PLIST
+            i=$((i+1))
+          done
           /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" $PLIST || true
           # The email links (confirm account, reset password) reopen the app through this web-address-like scheme;
           # without it they do nothing on an iPhone (the same scheme is in the Android manifest and js/native.js)
@@ -48,7 +55,7 @@ workflows:
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" $PLIST
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string com.pathomnemonic.dxdash" $PLIST
           cd ios/App && agvtool new-version -all $BUILD_NUMBER
-      - name: Privacy manifest (App Store requirement) and iPhone-only
+      - name: Privacy manifest (App Store requirement) and iPhone + iPad
         script: |
           # Apple wants a privacy manifest for the app itself; ios-config/PrivacyInfo.xcprivacy matches the App Privacy answers
           plutil -lint ios-config/PrivacyInfo.xcprivacy
@@ -60,7 +67,7 @@ workflows:
             group = proj.main_group.find_subpath("App", true)
             ref = group.new_file("PrivacyInfo.xcprivacy")
             target.resources_build_phase.add_file_reference(ref, true)
-            target.build_configurations.each { |c| c.build_settings["TARGETED_DEVICE_FAMILY"] = "1" }  # iPhone only: no iPad screenshots or layout review needed
+            target.build_configurations.each { |c| c.build_settings["TARGETED_DEVICE_FAMILY"] = "1,2" }  # iPhone and iPad (the layout adapts; iPad screenshots are in assets/store/ipad)
             proj.save'
       - name: Set up code signing
         script: |
