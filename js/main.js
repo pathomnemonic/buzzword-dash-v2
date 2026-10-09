@@ -1219,6 +1219,43 @@ function maybeRerollTheme() {
   refreshTheme();
 }
 
+/** "We found your earlier progress": restore it, or start fresh (the earlier copy is then forgotten). */
+function askToRestoreProgress(found) {
+  var overlay = document.createElement('div');
+  overlay.id = 'restoreProgress';
+  overlay.className = 'tut-exit';
+  overlay.setAttribute('role', 'alertdialog');
+  overlay.setAttribute('aria-modal', 'true');
+  var box = document.createElement('div');
+  box.className = 'tut-exit-box';
+  var h = document.createElement('h2');
+  h.textContent = 'Welcome back! Restore your progress?';
+  var p = document.createElement('p');
+  p.textContent = 'Your game started empty, but an earlier copy of your progress is still on this device: ' + found.answered.toLocaleString() + ' cards answered, ' + found.coins.toLocaleString() + ' coins, about level ' + Math.max(1, found.level) + '. Restore it?';
+  var buttons = document.createElement('div');
+  buttons.className = 'tut-buttons';
+  var yes = document.createElement('button');
+  yes.type = 'button'; yes.id = 'restoreYes'; yes.className = 'btn btn-primary btn-sm'; yes.textContent = 'Restore my progress';
+  var no = document.createElement('button');
+  no.type = 'button'; no.id = 'restoreNo'; no.className = 'btn btn-outline btn-sm'; no.textContent = 'Start fresh';
+  buttons.appendChild(yes); buttons.appendChild(no);
+  box.appendChild(h); box.appendChild(p); box.appendChild(buttons);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  yes.addEventListener('click', function () {
+    var r = storage.restoreLastGood();
+    overlay.remove();
+    ui._showToast(r.ok ? 'Your progress is back! 🎉' : 'Could not restore it. Your game is unchanged.', 3500);
+    if (r.ok) { try { ui.renderHome(); document.dispatchEvent(new CustomEvent('dx:coins-changed')); document.dispatchEvent(new CustomEvent('dx:profile-changed')); } catch (e) { /* the page redraws on its own */ } }
+  });
+  no.addEventListener('click', function () {
+    storage.discardLastGood();
+    overlay.remove();
+    if (!storage.get('firstRunComplete')) ui.showTutorial({ firstRun: true });
+  });
+  yes.focus();
+}
+
 /** Fill the account section of the Profile tab, and add the invitation when signed out. */
 function fillProfileAccount() {
   var lb = leaderboardModule ? leaderboardModule.leaderboard : null;
@@ -1405,6 +1442,8 @@ function init() {
   // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
   // (the analytics question comes first, once, on a fresh install)
   maybeAskConsent(function () {
+    // A save that came up empty while an earlier copy with real progress is still on the device: offer it back first
+    if (storage.recoverable) { askToRestoreProgress(storage.recoverable); return; }
     if (!storage.get('firstRunComplete')) ui.showTutorial({ firstRun: true });
   });
 

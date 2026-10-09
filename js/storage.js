@@ -32,6 +32,20 @@ import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
 
 // ===== CONSTANTS =====
 var STORAGE_KEY = 'buzzword_dash_v1';
+// A second copy of the last save that had real progress in it. An empty or reset save never replaces it, so a save that
+// is lost, damaged or overwritten can still be put back (see Storage.recoverable and restoreLastGood).
+var LASTGOOD_KEY = STORAGE_KEY + '_lastgood';
+var SNAPSHOT_EVERY_MS = 10 * 60 * 1000;
+var SNAPSHOT_MAX_BYTES = 1500000;
+
+/** Does this save hold real progress (not a brand-new or reset one)? Takes the object or its JSON text. */
+function hasProgress(data) {
+  try {
+    var d = typeof data === 'string' ? JSON.parse(data) : data;
+    var p = (d && d.progression) || {};
+    return (Number(p.totalEncounters) || 0) > 0 || (Number(p.bestScore) || 0) > 0 || (Number(p.xp) || 0) > 0;
+  } catch (e) { return false; }
+}
 var SCHEMA_VERSION = 2;
 
 // ===== DEFAULT STATE =====
@@ -639,9 +653,43 @@ class Storage {
     } catch (e) {
       console.warn('[Storage] Damaged data, using defaults:', e.message);
       this._problem('repaired', 'invariants');
+      // keep what was there, so it can be recovered rather than overwritten by the next save
+      try { var broken = localStorage.getItem(STORAGE_KEY); if (broken && hasProgress(broken)) localStorage.setItem(LASTGOOD_KEY, broken); } catch (e3) { /* storage full or unavailable */ }
       this.data = deepClone(DEFAULTS);
       this._ensureInvariants();
     }
+
+    // Started empty, but an earlier copy with real progress is still there: offer it back (main.js asks)
+    this.recoverable = null;
+    try {
+      if (!hasProgress(this.data)) {
+        var lg = localStorage.getItem(LASTGOOD_KEY);
+        if (lg && hasProgress(lg)) {
+          var p = (JSON.parse(lg).progression) || {};
+          this.recoverable = { answered: Number(p.totalEncounters) || 0, coins: Number(p.coins) || 0, level: Math.floor((Number(p.xp) || 0) / 100) };
+        }
+      }
+    } catch (e) { this.recoverable = null; }
+  }
+
+  /** Put back the last save that had real progress (after the player agrees). */
+  restoreLastGood() {
+    try {
+      var lg = localStorage.getItem(LASTGOOD_KEY);
+      if (!lg || !hasProgress(lg)) return { ok: false };
+      var parsed = JSON.parse(lg);
+      if (typeof parsed.schemaVersion !== 'number' || parsed.schemaVersion > SCHEMA_VERSION) return { ok: false };
+      localStorage.setItem(STORAGE_KEY, lg);
+    } catch (e) { return { ok: false }; }
+    this.load();
+    this.recoverable = null;
+    return { ok: true };
+  }
+
+  /** The player chose to start fresh: forget the earlier copy. */
+  discardLastGood() {
+    try { localStorage.removeItem(LASTGOOD_KEY); } catch (e) { /* ignore */ }
+    this.recoverable = null;
   }
 
   /** Remember a saving or loading problem; analytics reads the list (it may start after the load) and the callback. */
@@ -653,7 +701,17 @@ class Storage {
 
   save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      var json = JSON.stringify(this.data);
+      // never let an empty save quietly replace real progress: keep the old one aside first; and keep a fresh copy of a
+      // lived-in save every few minutes
+      if (!hasProgress(this.data)) {
+        var before = localStorage.getItem(STORAGE_KEY);
+        if (before && hasProgress(before)) localStorage.setItem(LASTGOOD_KEY, before);
+      } else if (Date.now() - (this._snapshotAt || 0) > SNAPSHOT_EVERY_MS && json.length < SNAPSHOT_MAX_BYTES) {
+        this._snapshotAt = Date.now();
+        localStorage.setItem(LASTGOOD_KEY, json);
+      }
+      localStorage.setItem(STORAGE_KEY, json);
     } catch (e) {
       console.warn('[Storage] Save failed:', e.message);
       this._problem(/quota/i.test(String(e && (e.name || e.message))) ? 'quota' : 'other', e && e.name);
@@ -2275,6 +2333,7 @@ class Storage {
   reset(scope) {
     if (!scope) scope = 'all_local';
 
+
     switch (scope) {
       case 'progress':
         this.data.progression = deepClone(DEFAULTS.progression);
@@ -2306,6 +2365,12 @@ class Storage {
     }
 
     this.save();
+    // a reset of progress the player asked for must stay reset: forget the safety copy too (after the save, which would
+    // otherwise keep the old progress aside as if the reset were an accident)
+    if (scope === 'progress' || scope === 'all_local') {
+      try { localStorage.removeItem(LASTGOOD_KEY); } catch (e) { /* ignore */ }
+      this.recoverable = null;
+    }
   }
 }
 
