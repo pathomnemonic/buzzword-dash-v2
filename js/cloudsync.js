@@ -112,6 +112,8 @@ export class CloudSync {
     this._timer = null;
     this._running = null;
     this._started = false;
+    this._failures = 0;   // syncs that failed in a row
+    this._warned = false; // has the player been told this session that progress is not reaching the account
   }
 
   /** True when this player has a real (non-guest) account to sync to. */

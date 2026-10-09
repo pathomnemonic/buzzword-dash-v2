@@ -31,6 +31,7 @@ var DEFAULT_LIST = 'google,apple,azure';
 
 /** The providers to offer, in the order listed in the setting. Unknown names are ignored. */
 export function enabledProviders(setting) {
+  /** @type {Record<string, any>} */
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
   var raw = setting !== undefined ? setting : (env.VITE_AUTH_PROVIDERS !== undefined ? env.VITE_AUTH_PROVIDERS : DEFAULT_LIST);
   var seen = {};

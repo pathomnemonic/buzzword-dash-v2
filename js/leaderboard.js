@@ -622,7 +622,7 @@ var leaderboard = {
 
   /**
    * Describe the current account for the UI.
-   * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, pendingEmail: string, error: string|null}}
+   * @returns {{configured: boolean, ready: boolean, authenticated: boolean, anonymous: boolean, email: string, provider: string, pendingEmail: string, error: string|null}}
    */
   getStatus: function () {
     var user = _session && _session.user;
