@@ -97,7 +97,7 @@ Allow time for Apple: it needs the paid Apple account (6.2). Do Google first.
 1. Go to console.cloud.google.com, sign in, click the project picker (top bar) → **New project** → name it "Dx Dash" → **Create** → make sure it is selected.
 2. Left menu (☰) → **APIs & Services** → **OAuth consent screen** (new layout: **Google Auth Platform**). Click **Get started** / **Configure consent screen**.
    - App name: `Dx Dash`. User support email: your support email. Audience/User type: **External**. Developer contact: your email. Agree → **Create**.
-   - **Branding**: add the app logo (`assets/store/play-icon-512.png` works), **Application home page** = the site, **Privacy policy link** = `https://pathomnemonic.github.io/buzzword-dash-v2/privacy.html`, **Terms** = `.../terms.html`, **Authorized domains**: `github.io` and `supabase.co`.
+   - **Branding**: add the app logo (`assets/store/play-icon-512.png` works), **Application home page** = the site, **Privacy policy link** = `https://pathomnemonic.github.io/buzzword-dash-v2/privacy.html`, **Terms** = `.../terms.html`, **Authorized domains**: just `pathomnemonic.github.io` (the one Google accepts; you cannot add `supabase.co` because you do not own it, and you do not need to: the Supabase address goes in the OAuth client's redirect URI in step 3, which is checked separately).
    - **Data access / Scopes**: add only `.../auth/userinfo.email`, `.../auth/userinfo.profile` and `openid`. These need no extra Google review.
    - **Audience**: click **Publish app** / **Make external → In production** and confirm. (While it says "Testing", only listed test users can sign in.)
 3. Left menu → **Clients** (older: **Credentials → + Create credentials → OAuth client ID**) → **Create client**:
