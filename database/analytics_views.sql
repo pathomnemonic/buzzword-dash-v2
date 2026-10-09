@@ -9,6 +9,7 @@
 
 CREATE OR REPLACE FUNCTION analytics_pct(n numeric, d numeric) RETURNS numeric
 LANGUAGE sql IMMUTABLE AS $$ SELECT CASE WHEN coalesce(d, 0) = 0 THEN NULL ELSE round(100.0 * coalesce(n, 0) / d, 1) END $$;
+REVOKE ALL ON FUNCTION analytics_pct(numeric, numeric) FROM PUBLIC, anon, authenticated; -- (an internal helper, not for the app roles)
 
 -- ==================== BUILDING BLOCKS (other views are made from these) ====================
 

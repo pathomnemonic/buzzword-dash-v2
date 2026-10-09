@@ -226,7 +226,7 @@ REVOKE ALL ON buddy_listings, group_join_requests FROM PUBLIC, anon, authenticat
 REVOKE ALL ON FUNCTION set_buddy_listing(text, date, text[], text, integer, boolean), my_buddy_listing(), remove_buddy_listing(),
   find_buddies(integer), set_group_discovery(uuid, boolean, text, text), discover_groups(text, text, integer),
   join_public_group(uuid), cancel_group_request(uuid), group_requests(uuid), resolve_group_request(uuid, uuid, boolean),
-  my_groups() FROM PUBLIC;
+  my_groups() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION set_buddy_listing(text, date, text[], text, integer, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION my_buddy_listing() TO authenticated;
 GRANT EXECUTE ON FUNCTION remove_buddy_listing() TO authenticated;

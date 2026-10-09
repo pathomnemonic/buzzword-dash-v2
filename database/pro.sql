@@ -266,23 +266,23 @@ EXCEPTION WHEN unique_violation THEN
   RETURN false;
 END $$;
 
-REVOKE ALL ON FUNCTION pro_grant_until(uuid, timestamptz, text, text, boolean) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_grant_library(uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_revoke_library(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_link_customer(text, uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_customer_user(text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_user_customer(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_event_once(text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_grant_until(uuid, timestamptz, text, text, boolean) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_grant_library(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_revoke_library(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_link_customer(text, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_customer_user(text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_user_customer(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_event_once(text, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
-REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC;
+REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION start_my_trial() TO authenticated;
 GRANT EXECUTE ON FUNCTION redeem_pro_code(text) TO authenticated;
 
@@ -318,4 +318,4 @@ CREATE OR REPLACE VIEW pro_v_redemptions AS
 SELECT r.code, c.note, c.days, r.user_id, r.redeemed_at FROM pro_redemptions r JOIN pro_codes c USING (code) ORDER BY r.redeemed_at DESC;
 
 REVOKE ALL ON pro_v_active, pro_v_codes, pro_v_redemptions FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION pro_make_code(integer, text, integer, integer, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION pro_make_code(integer, text, integer, integer, text) FROM PUBLIC, anon, authenticated;

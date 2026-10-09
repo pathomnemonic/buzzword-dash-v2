@@ -326,10 +326,13 @@ $$;
 
 -- ==================== PERMISSIONS ====================
 
-REVOKE ALL ON FUNCTION ingest_analytics(jsonb) FROM PUBLIC;
-REVOKE ALL ON FUNCTION delete_analytics(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION count_consent(text, text, text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION analytics_purge(integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION ingest_analytics(jsonb) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION delete_analytics(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION count_consent(text, text, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION analytics_purge(integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION ingest_analytics(jsonb) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION delete_analytics(uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION count_consent(text, text, text, text) TO anon, authenticated;
+
+-- Internal helpers and the owner's clean-up job: never callable by the app roles (see the note in schema.sql)
+REVOKE ALL ON FUNCTION analytics_txt(jsonb, text, integer), analytics_num(jsonb, text), analytics_bool(jsonb, text) FROM PUBLIC, anon, authenticated;

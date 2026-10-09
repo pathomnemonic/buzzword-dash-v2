@@ -269,7 +269,7 @@ GRANT EXECUTE ON FUNCTION group_goal_status(uuid, text) TO authenticated;
 ALTER TABLE content_reports ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON content_reports FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON moderation_queue FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION report_content(text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION report_content(text, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION report_content(text, text, text) TO authenticated;
 
 
@@ -277,7 +277,7 @@ GRANT EXECUTE ON FUNCTION report_content(text, text, text) TO authenticated;
 
 ALTER TABLE client_diagnostics ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON client_diagnostics FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION report_diagnostic(text, text, text, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION report_diagnostic(text, text, text, text, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION report_diagnostic(text, text, text, text, text, text) TO authenticated;
 
 
@@ -286,7 +286,7 @@ GRANT EXECUTE ON FUNCTION report_diagnostic(text, text, text, text, text, text) 
 ALTER TABLE app_feedback ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON app_feedback FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON feedback_inbox FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION submit_feedback(text, text, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION submit_feedback(text, text, text, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION submit_feedback(text, text, text, text, text) TO authenticated;
 
 
@@ -328,7 +328,7 @@ ALTER TABLE ranked_reports ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON player_trophies, ranked_queue, ranked_matches, ranked_reports FROM PUBLIC, anon, authenticated;
 
 REVOKE ALL ON FUNCTION ranked_find_match(text), ranked_poll_match(), ranked_cancel(), ranked_report(uuid, text),
-  ranked_settle_stale(), ranked_my_stats(), ranked_top(integer) FROM PUBLIC;
+  ranked_settle_stale(), ranked_my_stats(), ranked_top(integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION ranked_find_match(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION ranked_poll_match() TO authenticated;
 GRANT EXECUTE ON FUNCTION ranked_cancel() TO authenticated;

@@ -324,7 +324,7 @@ BEGIN
   ON CONFLICT (week, cohort_id, user_id) DO UPDATE SET points = cohort_war_points.points + give, updated_at = now();
 END;
 $$;
-REVOKE ALL ON FUNCTION cohort_add_war_points(uuid, integer) FROM PUBLIC;
+REVOKE ALL ON FUNCTION cohort_add_war_points(uuid, integer) FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION cohort_on_match_settled() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -349,7 +349,7 @@ CREATE TRIGGER cohort_war_trg AFTER UPDATE ON ranked_matches
 
 REVOKE ALL ON FUNCTION cohort_create(text, text, text), cohort_join(text), cohort_leave(),
   cohort_set_role(uuid, text), cohort_kick(uuid), cohort_search(text, integer), my_cohort(),
-  cohort_war_standings(integer), school_standings(integer) FROM PUBLIC;
+  cohort_war_standings(integer), school_standings(integer) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION cohort_create(text, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION cohort_join(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION cohort_leave() TO authenticated;
@@ -359,3 +359,7 @@ GRANT EXECUTE ON FUNCTION cohort_search(text, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION my_cohort() TO authenticated;
 GRANT EXECUTE ON FUNCTION cohort_war_standings(integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION school_standings(integer) TO authenticated;
+
+-- Only triggers and other owner-run functions call these: the app roles must not (see the note in schema.sql)
+REVOKE ALL ON FUNCTION cohort_week(timestamptz), cohort_random_tag(), cohort_role_of(uuid, uuid), cohort_after_member_gone(),
+  cohort_on_match_settled(), cohort_add_war_points(uuid, integer) FROM PUBLIC, anon, authenticated;

@@ -900,7 +900,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION delete_my_account() FROM PUBLIC;
+REVOKE ALL ON FUNCTION delete_my_account() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION delete_my_account() TO authenticated;
 
 
@@ -1009,7 +1009,7 @@ BEGIN
   RETURN nxt - cur;
 END;
 $$;
-REVOKE ALL ON FUNCTION ranked_apply(uuid, integer, integer, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION ranked_apply(uuid, integer, integer, text) FROM PUBLIC, anon, authenticated;
 
 -- Settle a match if its reports allow it. Returns true when the match is now settled.
 CREATE OR REPLACE FUNCTION ranked_try_settle(p_match uuid) RETURNS boolean
@@ -1057,7 +1057,7 @@ BEGIN
   RETURN true;
 END;
 $$;
-REVOKE ALL ON FUNCTION ranked_try_settle(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION ranked_try_settle(uuid) FROM PUBLIC, anon, authenticated;
 
 -- Join the queue with a PeerJS room you have just opened. Returns either
 --   {role:'guest', match_id, room_code, ...}  an opponent was waiting: join their room, or
@@ -1208,3 +1208,14 @@ BEGIN
 EXCEPTION WHEN duplicate_object OR undefined_object THEN
   NULL;
 END $$;
+
+-- ==================== WHO MAY CALL THE INTERNAL FUNCTIONS ====================
+-- Supabase gives every new function to the signed-in and signed-out roles by default, and "REVOKE ... FROM PUBLIC" does
+-- not take that away. Anything below is called only by triggers or by other functions that run as the owner, never by
+-- the app, so the app roles must not be able to call it directly.
+REVOKE ALL ON FUNCTION scores_sanity(), scores_keep_best(), activity_rate_limit(),
+  ranked_league_floor(integer), ranked_delta(integer, integer, text), ranked_apply(uuid, integer, integer, text),
+  ranked_try_settle(uuid), keep_richest_save(uuid, integer) FROM PUBLIC, anon, authenticated;
+-- Helpers the row-security rules call while a signed-in player reads: signed-in only
+REVOKE ALL ON FUNCTION has_block_between(uuid, uuid), is_group_member(uuid), can_see_post(uuid, text), can_see_activity(bigint) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION has_block_between(uuid, uuid), is_group_member(uuid), can_see_post(uuid, text), can_see_activity(bigint) TO authenticated;

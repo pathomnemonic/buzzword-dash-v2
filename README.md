@@ -328,7 +328,7 @@ VITE_TIP_URL=https://ko-fi.com/yourname
 The leaderboard, friend requests and match invites use [Supabase](https://supabase.com/) (free tier).
 
 1. Create a Supabase project.
-2. In the SQL editor run `database/schema.sql`, then `database/policies.sql` (both are safe to re-run).
+2. In the SQL editor run `database/schema.sql`, then `database/policies.sql`, then any of `cohorts.sql`, `discovery.sql`, `pro.sql`, `analytics.sql`, `analytics_views.sql` you use, and **always `database/lockdown.sql` last** (all are safe to re-run). `lockdown.sql` closes every function and table to the app roles except the short lists the app needs; without it a project's default grants leave payment-only functions callable by any player.
 3. In **Authentication -> Providers**, enable **Allow anonymous sign-ins**. Players are signed in as guests automatically; they can link an email later from the Account tab.
 4. Provide your project URL and anon key, either by setting `SUPABASE_URL` / `SUPABASE_ANON_KEY` in `js/leaderboard.js`, or (preferred) with environment variables at build time:
 
