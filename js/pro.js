@@ -40,6 +40,8 @@ var CANCEL_KEY = 'dx_pro_cancel_started';
 var SYNC_EVERY_MS = 12 * 60 * 60 * 1000;
 var SYNC_RETRY_MS = 10 * 60 * 1000;
 var SYNC_TRY_KEY = 'dx_pro_sync_try';
+var PENDING_KEY = 'dx_pro_pending';
+var PENDING_MS = 3 * 24 * 60 * 60 * 1000;
 
 export var PRO_PLAN_INFO = {
   dxdash_pro_yearly: { label: 'Yearly', blurb: 'BEST VALUE', rank: 1 },
@@ -152,7 +154,38 @@ function dueForSync(now) {
   if (tried && now >= tried && now - tried < SYNC_RETRY_MS) return false; // (a failed check is not repeated at once)
   return !at || now - at > SYNC_EVERY_MS || at > now;
 }
+function syncRetryDue(now) {
+  var s = store();
+  var tried = s ? Number(s.getItem(SYNC_TRY_KEY)) || 0 : 0;
+  return !tried || now < tried || now - tried >= SYNC_RETRY_MS;
+}
 function markSynced(now) { try { var s = store(); if (s) s.setItem(SYNC_KEY, String(now)); } catch (e) { /* ignore */ } }
+
+/**
+ * A payment is on its way. Noted as soon as the player is sent to pay, so that even if they close the tab, lose the
+ * connection or the payment event is slow, every check after this one asks Stripe directly (at most every 10 minutes)
+ * until it shows up, for up to three days. Nothing paid for is ever left locked.
+ */
+export function markPaymentPending(now) {
+  writeJson(PENDING_KEY, { at: typeof now === 'number' ? now : Date.now() });
+}
+export function paymentPending(now) {
+  var p = readJson(PENDING_KEY, null);
+  var t = typeof now === 'number' ? now : Date.now();
+  return !!(p && p.at && t - p.at < PENDING_MS && p.at <= t + 60000);
+}
+export function clearPaymentPending() { try { var s = store(); if (s) s.removeItem(PENDING_KEY); } catch (e) { /* ignore */ } }
+
+/**
+ * Someone else is using this device now (signed out, or a different account signed in): what the server said about the
+ * last account's Pro is put away at once, rather than shown to the next person for days. A purchase through the phone's
+ * own store belongs to the phone's store account, not to a login, so it stays.
+ */
+export function forgetServerPro() {
+  var c = readJson(CACHE_KEY, null);
+  if (c && c.source !== 'store') { try { var s = store(); if (s) { s.removeItem(CACHE_KEY); s.removeItem(TRIAL_KEY); s.removeItem(SYNC_KEY); s.removeItem(SYNC_TRY_KEY); s.removeItem(PENDING_KEY); } } catch (e) { /* ignore */ } }
+  if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
+}
 
 function cachedActive() { var c = readJson(CACHE_KEY, null); return !!(c && c.active); }
 
@@ -261,11 +294,12 @@ export function refreshPro(deps) {
     // This account may have paid for something whose payment event never reached us: ask Stripe (through the checkout
     // function) and let it grant what is missing. At most every 12 hours (at once after a purchase), and only for a real
     // account on the website. It only ever adds.
-    if (webCheckoutEnabled() && hasAccount(lb) && lb.proFunction && (deps.forceSync || dueForSync(now))) {
+    var pending = paymentPending(now);
+    if (webCheckoutEnabled() && hasAccount(lb) && lb.proFunction && (deps.forceSync || (pending ? syncRetryDue(now) : dueForSync(now)))) {
       try { var ss = store(); if (ss) ss.setItem(SYNC_TRY_KEY, String(now)); } catch (e) { /* ignore */ }
       return lb.proFunction('sync').then(function (res) {
         if (res && res.ok) markSynced(now);
-        if (res && res.ok && res.granted && res.granted.length) return lb.getMyPro();
+        if (res && res.ok && res.granted && res.granted.length) { clearPaymentPending(); return lb.getMyPro(); }
         return null;
       }).then(function (r) {
         if (r && Array.isArray(r.items)) ownedItems = ownedItems.concat(r.items);
@@ -276,7 +310,11 @@ export function refreshPro(deps) {
     grantOwnedItems(ownedItems);
     var before = isPro(now);
     var prev = readJson(CACHE_KEY, null);
+    var uid = lb && lb.getUserId && lb.isAuthenticated && lb.isAuthenticated() ? lb.getUserId() : '';
+    // a different account's answer is not this one's to fall back on
+    if (prev && prev.source !== 'store' && prev.uid && uid && prev.uid !== uid) prev = null;
     var next = combineStatus(found, prev, { now: now, fresh: asked > 0 });
+    if (uid && next.source !== 'store') next.uid = uid;
     if (next.active && !(next.since > 0)) {
       // no start date from the server (the store, or a code): the first time this install saw Pro, kept while it carries on,
       // and begun again after a lapse or when a trial becomes a purchase
@@ -479,7 +517,7 @@ export function webBuy(productId, lb, nav) {
   if (!lb.isAuthenticated || !lb.isAuthenticated()) return Promise.resolve({ ok: false, needsAccount: true, error: 'Signing in is needed first. Open Friends → Account, then try again.' });
   if (!hasAccount(lb)) return Promise.resolve({ ok: false, needsAccount: true, error: 'Create a free account first (Friends → Account), so Pro stays with you.' });
   return lb.proFunction('checkout', { plan: productId }).then(function (r) {
-    if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
+    if (r && r.url && /^https:\/\//.test(r.url)) { markPaymentPending(); (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
     return { ok: false, error: (r && r.error) || 'Could not start the payment.' };
   });
 }
@@ -535,7 +573,7 @@ export function buyPremiumItem(item, lb, nav) {
   }
   if (!lb.proFunction) return Promise.resolve({ ok: false, error: 'Payments are not available right now.' });
   return lb.proFunction('item', { item: item.id, name: item.name }).then(function (r) {
-    if (r && r.url && /^https:\/\//.test(r.url)) { (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
+    if (r && r.url && /^https:\/\//.test(r.url)) { markPaymentPending(); (nav || function (u) { window.location.assign(u); })(r.url); return { ok: true, redirected: true }; }
     var msg = (r && r.error) || 'Could not start the payment.';
     if (/unknown request/i.test(msg)) { _itemsCap = false; msg = 'Locker items are not switched on just yet. You have not been charged.'; }
     return { ok: false, error: msg };

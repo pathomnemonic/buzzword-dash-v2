@@ -23,7 +23,7 @@
 
 import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
-import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, waitForWebItem, requireGate, checkGate, checkCancelFollowThrough } from './pro.js';
+import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, waitForWebItem, requireGate, checkGate, checkCancelFollowThrough, clearPaymentPending, forgetServerPro } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
 import { probeTipJar, tipJarReady } from './tipjar.js';
 import { openTipJar } from './tipui.js';
@@ -1460,6 +1460,11 @@ function init() {
     leaderboardModule = mod;
     instrumentLeaderboard(mod.leaderboard);
     setProUiDeps({ lb: mod.leaderboard });
+    // someone else on this device (signed out, or another account): never show them the last account's Pro
+    mod.leaderboard.onAuthEvent(function (event) {
+      if (event === 'SIGNED_OUT') forgetServerPro();
+      else if (event === 'SIGNED_IN') refreshPro({ lb: mod.leaderboard });
+    });
     mod.leaderboard.init().then(function () { refreshPro({ lb: mod.leaderboard }); if (webPayReturn !== 'billing') checkCancelFollowThrough(mod.leaderboard).then(function (r) { if (r) announceCancel(r); }); });
     document.addEventListener('dx:pro-trial-started', function () { ui._showToast('Your free 7-day Pro trial has started! 🎉', 4000); });
     if (webPayReturn === 'success' && webPayItem) {
@@ -1494,6 +1499,7 @@ function init() {
       // back from the billing page: say what is actually true about the subscription
       mod.leaderboard.init().then(function () { return checkCancelFollowThrough(mod.leaderboard); }).then(function (r) { if (r) announceCancel(r); });
     } else if (webPayReturn === 'cancelled') {
+      clearPaymentPending();
       ui._showToast('No problem, nothing was charged.', 2500);
     }
     mod.leaderboard.init().then(function () {

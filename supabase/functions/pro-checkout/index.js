@@ -124,12 +124,12 @@ Deno.serve(async function (req) {
         var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=100&expand[]=data.payment_intent.latest_charge');
         var life = ((sessions && sessions.data) || []).filter(function (x) {
           var ch = x.payment_intent && x.payment_intent.latest_charge;
-          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !ch.refunded;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !ch.refunded && !ch.disputed;
         })[0];
         // premium items bought with this customer (and not refunded)
         var bought = ((sessions && sessions.data) || []).filter(function (x) {
           var ch = x.payment_intent && x.payment_intent.latest_charge;
-          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !ch.refunded;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !ch.refunded && !ch.disputed;
         });
         for (var it of bought) {
           var ir = await admin.rpc('pro_grant_item', { p_user: user.id, p_item: it.metadata.item_id, p_source: 'stripe' });

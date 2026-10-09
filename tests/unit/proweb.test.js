@@ -319,3 +319,66 @@ describe('the website paywall', () => {
     expect(document.querySelectorAll('#proPaywall .pro-plan').length).toBe(0);
   });
 });
+
+describe('a payment on its way is never left locked, and Pro never follows the wrong person', () => {
+  const buyReady = async () => { await probeSellable(); };
+
+  it('being sent to pay is noted, so every later check asks Stripe until the purchase shows up (up to three days)', async () => {
+    await buyReady();
+    const { markPaymentPending, paymentPending } = await import('../../js/pro.js');
+    let synced = 0;
+    const lb = fakeLb({ proFunction: async (a) => { if (a === 'checkout') return { url: 'https://checkout.stripe.com/c/x' }; if (a === 'sync') { synced++; return { ok: true, granted: [] }; } return { error: 'no' }; } });
+    await webBuy('dxdash_pro_yearly', lb, () => {});
+    expect(paymentPending()).toBe(true);
+    const t0 = Date.now();
+    await refreshPro({ lb, now: t0 });
+    localStorage.setItem('dx_pro_synced', String(t0)); // (the normal twice-a-day check would say "not due")
+    await refreshPro({ lb, now: t0 + 11 * 60000 });
+    await refreshPro({ lb, now: t0 + 22 * 60000 });
+    expect(synced).toBe(3);                              // ... but a payment on its way is asked about every ten minutes
+    expect(paymentPending(t0 + 4 * 86400000)).toBe(false); // and it gives up after three days
+    markPaymentPending(t0);
+    expect(paymentPending(t0 + 86400000)).toBe(true);
+  });
+
+  it('is cleared once Stripe grants what was bought, and by coming back from a cancelled payment', async () => {
+    await buyReady();
+    const { markPaymentPending, paymentPending, clearPaymentPending } = await import('../../js/pro.js');
+    markPaymentPending();
+    let granted = false;
+    const lb = fakeLb({
+      getMyPro: async () => (granted ? { active: true, until: new Date(Date.now() + 86400000 * 300).toISOString(), plan: 'yearly', source: 'stripe' } : { active: false }),
+      proFunction: async (a) => { if (a === 'sync') { granted = true; return { ok: true, granted: ['yearly'] }; } return { error: 'no' }; }
+    });
+    await refreshPro({ lb });
+    expect(isPro()).toBe(true);
+    expect(paymentPending()).toBe(false);
+    markPaymentPending();
+    clearPaymentPending();
+    expect(paymentPending()).toBe(false);
+  });
+
+  it('the last account\'s Pro is put away when they sign out, and never carried to the next account', async () => {
+    await buyReady();
+    const { forgetServerPro } = await import('../../js/pro.js');
+    const pro = { active: true, until: new Date(Date.now() + 86400000 * 300).toISOString(), plan: 'yearly', source: 'stripe' };
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => pro, getUserId: () => 'alice' }) });
+    expect(isPro()).toBe(true);
+    forgetServerPro();
+    expect(isPro()).toBe(false);
+
+    // another account signs in on the same device, and the server cannot be reached: it does not inherit Alice's Pro
+    await refreshPro({ lb: fakeLb({ getMyPro: async () => pro, getUserId: () => 'alice' }) });
+    expect(isPro()).toBe(true);
+    const offline = fakeLb({ getUserId: () => 'bob', getMyPro: async () => { throw new Error('offline'); } });
+    await refreshPro({ lb: offline });
+    expect(isPro()).toBe(false);
+  });
+
+  it('a purchase made through the phone\'s own store stays when someone signs out of their login', async () => {
+    const { forgetServerPro } = await import('../../js/pro.js');
+    localStorage.setItem('dx_pro', JSON.stringify({ active: true, source: 'store', plan: 'yearly', until: Date.now() + 86400000, provenAt: Date.now() }));
+    forgetServerPro();
+    expect(isPro()).toBe(true);
+  });
+});
