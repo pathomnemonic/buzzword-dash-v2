@@ -108,7 +108,7 @@ describe('with the database files run in order, then lockdown.sql', () => {
 
   it('keeps the money tables and the owner views unreachable for both roles', async () => {
     const owner = ['pro_entitlements', 'pro_items', 'pro_library', 'pro_trials', 'pro_codes', 'pro_redemptions', 'pro_attempts',
-      'pro_stripe_customers', 'pro_stripe_events', 'pro_v_active', 'pro_v_codes', 'pro_v_redemptions', 'player_saves_backup',
+      'pro_stripe_customers', 'pro_stripe_events', 'pro_v_active', 'pro_v_codes', 'pro_v_redemptions', 'pro_v_items', 'pro_v_store', 'pro_v_recent_events', 'player_saves_backup',
       'app_feedback', 'feedback_inbox', 'moderation_queue', 'client_diagnostics', 'content_reports', 'apple_tokens', 'pro_store_purchases'];
     for (const t of owner) {
       for (const role of ['anon', 'authenticated']) {

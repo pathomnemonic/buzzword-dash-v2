@@ -51,7 +51,7 @@ SELECT 'table without row security', name FROM rels WHERE relkind IN ('r', 'p') 
 UNION ALL
 SELECT 'payment or owner data a player can reach', name FROM rels
   WHERE name IN ('pro_entitlements', 'pro_items', 'pro_library', 'pro_trials', 'pro_codes', 'pro_redemptions', 'pro_attempts',
-                 'pro_stripe_customers', 'pro_stripe_events', 'pro_v_active', 'pro_v_codes', 'pro_v_redemptions', 'player_saves_backup',
+                 'pro_stripe_customers', 'pro_stripe_events', 'pro_v_active', 'pro_v_codes', 'pro_v_redemptions', 'pro_v_items', 'pro_v_store', 'pro_v_recent_events', 'player_saves_backup',
                  'app_feedback', 'feedback_inbox', 'moderation_queue', 'client_diagnostics', 'content_reports', 'apple_tokens', 'pro_store_purchases')
     AND (has_table_privilege('anon', oid, 'SELECT') OR has_table_privilege('authenticated', oid, 'SELECT')
          OR has_table_privilege('authenticated', oid, 'INSERT') OR has_table_privilege('authenticated', oid, 'UPDATE') OR has_table_privilege('authenticated', oid, 'DELETE'))

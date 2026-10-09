@@ -411,5 +411,20 @@ SELECT code, days, max_uses, used, expires_at, note, created_at FROM pro_codes O
 CREATE OR REPLACE VIEW pro_v_redemptions AS
 SELECT r.code, c.note, c.days, r.user_id, r.redeemed_at FROM pro_redemptions r JOIN pro_codes c USING (code) ORDER BY r.redeemed_at DESC;
 
-REVOKE ALL ON pro_v_active, pro_v_codes, pro_v_redemptions FROM PUBLIC, anon, authenticated;
+-- which premium items sell, and whether any were bought twice
+CREATE OR REPLACE VIEW pro_v_items AS
+SELECT item_id, source, count(*) AS owners, min(created_at) AS first_sold, max(created_at) AS last_sold
+FROM pro_items GROUP BY 1, 2 ORDER BY owners DESC;
+
+-- phone-store purchases checked with Google Play / the App Store
+CREATE OR REPLACE VIEW pro_v_store AS
+SELECT platform, product_id, count(*) AS purchases, count(*) FILTER (WHERE revoked) AS refunded, max(verified_at) AS last_checked
+FROM pro_store_purchases GROUP BY 1, 2 ORDER BY purchases DESC;
+
+-- webhook events handled in the last week (a quiet list on a day with sales means the webhook is not arriving)
+CREATE OR REPLACE VIEW pro_v_recent_events AS
+SELECT kind, count(*) AS handled, max(handled_at) AS last_seen
+FROM pro_stripe_events WHERE handled_at > now() - interval '7 days' GROUP BY 1 ORDER BY last_seen DESC;
+
+REVOKE ALL ON pro_v_active, pro_v_codes, pro_v_redemptions, pro_v_items, pro_v_store, pro_v_recent_events FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_make_code(integer, text, integer, integer, text) FROM PUBLIC, anon, authenticated;
