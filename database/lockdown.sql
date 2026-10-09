@@ -77,7 +77,7 @@ BEGIN
     ('leaderboard_best',  'SELECT', 'SELECT'),
     ('match_invites',     '',       'SELECT, INSERT, UPDATE (status)'),
     ('player_profiles',   'SELECT', 'SELECT'),                       -- (written only through upsert_player_profile, which keeps bests from going down)
-    ('player_saves',      '',       'SELECT, DELETE'),
+    ('player_saves',      '',       'SELECT'),                      -- (never deleted from the app: only by deleting the whole account)
     ('scores',            'SELECT', 'SELECT, INSERT'),
     ('shared_decks',      '',       'SELECT, DELETE'),
     ('study_groups',      '',       'SELECT'),

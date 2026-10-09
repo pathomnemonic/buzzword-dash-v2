@@ -344,3 +344,4 @@ GRANT EXECUTE ON FUNCTION ranked_top(integer) TO authenticated;
 REVOKE UPDATE ON friends, match_invites FROM anon, authenticated;
 GRANT UPDATE (status) ON friends, match_invites TO authenticated;
 REVOKE INSERT, UPDATE ON player_profiles FROM anon, authenticated;
+REVOKE DELETE ON player_saves FROM anon, authenticated; -- a cloud save is never deleted from the app (a bug or a hostile page could wipe it); the account deletion removes it

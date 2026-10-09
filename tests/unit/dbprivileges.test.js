@@ -163,6 +163,8 @@ describe('an attacker with a normal account', () => {
   it('cannot write another player\'s save, profile or scores', async () => {
     await as(B, () => db.query(`SELECT force_save('{"coins":900}'::jsonb, 40)`));
     expect(await denied(A, `UPDATE player_saves SET data = '{}'`)).toBe(true);
+    expect(await denied(B, `DELETE FROM player_saves`)).toBe(true);                                     // (not even their own: a hostile page could wipe it)
+    expect((await as(B, () => db.query('SELECT count(*)::int AS n FROM player_saves'))).rows[0].n).toBe(1);
     expect((await as(A, () => db.query('SELECT data FROM player_saves'))).rows).toHaveLength(0);
     expect(await denied(A, `UPDATE player_profiles SET player_name = 'hax' WHERE user_id = '${B}'`)).toBe(true);
     expect(await denied(A, `INSERT INTO scores (user_id, player_name, score, mode) VALUES ('${B}', 'x', 1, 'endless')`)).toBe(false); // refused by row security, not a missing privilege
