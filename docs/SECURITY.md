@@ -12,6 +12,7 @@ Why: Supabase gives every new function and table to the signed-in and signed-out
 
 ## 2. Supabase settings (cannot be checked from code)
 
+- **Authentication → URL Configuration → Redirect URLs**: only your own site and the app link (`docs/SIGNIN.md`). A wildcard here lets another site receive your players' sign-in.
 - **Authentication → Providers → Email → Confirm email: ON.** Without it, anyone can make unlimited accounts with made-up addresses, each with its own free 7-day trial.
 - **Authentication → Sign In / Providers → Allow anonymous sign-ins: ON** (guests use it). Guests cannot buy, redeem codes or get a trial.
 - **Backups.** The free plan has **no backups**. Everything players have earned and bought lives in this one database, so use a plan with daily backups, and point-in-time recovery if you can. This is the only protection against the database itself being lost or damaged.

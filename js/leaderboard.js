@@ -36,7 +36,8 @@
 // Replace these with your Supabase project values.
 // These are safe to expose — RLS handles authorization.
 
-import { getAuthRedirectUrl, parseAuthLink } from './native.js';
+import { getAuthRedirectUrl, parseAuthLink, isNative } from './native.js';
+import { AUTH_PROVIDERS, providerOf } from './authproviders.js';
 
 var SUPABASE_URL = 'YOUR_SUPABASE_URL';
 var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
@@ -181,6 +182,15 @@ function friendlyAuthError(error) {
   if (/rate limit|too many/i.test(msg)) return 'Too many attempts. Please wait a few minutes and try again.';
   if (/password.*(weak|short|least)/i.test(msg)) return msg;
   return msg;
+}
+
+/** Plain-language messages for a failed "Continue with ..." sign-in. */
+function providerError(error, label, linking) {
+  var msg = (error && error.message) || '';
+  if (/provider.*not enabled|unsupported provider|not enabled/i.test(msg)) return label + ' sign-in is not switched on for this game yet.';
+  if (/manual linking/i.test(msg)) return 'Linking is not switched on yet. Use the email option, or try again later.';
+  if (/already (been )?(linked|registered|exists)|identity.*exists/i.test(msg)) return 'That ' + label + ' login already has an account. Choose "I have an account" to sign in with it.';
+  return friendlyAuthError(error);
 }
 
 function getModeLabel(mode) {
@@ -331,6 +341,45 @@ var leaderboard = {
       return { success: true, error: null };
     }).catch(function (e) {
       return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Sign in with Google, Apple, ... through Supabase.
+   *  - `link: true` (a guest choosing "I am new"): the guest account is upgraded in place, so its scores, friends and groups
+   *    stay with it. Needs "Allow manual linking" in Supabase. If that login already belongs to another account, say so.
+   *  - otherwise (a returning player): sign in to that account, which then loads its cloud save.
+   * On the website the page leaves for the provider and comes back signed in. In the phone app the provider opens in the
+   * system browser (Google refuses embedded web views) and the app's link brings the player back (handleAuthLink).
+   * @param {string} provider a key of AUTH_PROVIDERS
+   * @param {{link?: boolean}} [opts]
+   * @returns {Promise<{success: boolean, redirected?: boolean, error: string|null}>}
+   */
+  signInWithProvider: function (provider, opts) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    var def = AUTH_PROVIDERS[provider];
+    if (!def) return Promise.resolve({ success: false, error: 'That sign-in option is not available.' });
+    var native = isNative();
+    var options = { redirectTo: getRedirectUrl(), skipBrowserRedirect: native };
+    if (def.scopes) options.scopes = def.scopes;
+    var link = !!(opts && opts.link) && !!(_session && _session.user && _session.user.is_anonymous);
+    var request = link
+      ? _client.auth.linkIdentity({ provider: provider, options: options })
+      : _client.auth.signInWithOAuth({ provider: provider, options: options });
+    return request.then(function (res) {
+      if (res.error) return { success: false, error: providerError(res.error, def.label, link) };
+      var url = res.data && res.data.url;
+      if (!native) return { success: true, redirected: true, error: null }; // (the library is already taking the page to the provider)
+      if (!url || !/^https:\/\//.test(url)) return { success: false, error: 'Could not start the ' + def.label + ' sign-in.' };
+      return import('@capacitor/browser').then(function (mod) {
+        return mod.Browser.open({ url: url });
+      }).then(function () {
+        return { success: true, redirected: true, error: null };
+      }, function () {
+        return { success: false, error: 'Could not open the ' + def.label + ' sign-in. Try the email option instead.' };
+      });
+    }).catch(function (e) {
+      return { success: false, error: (e && e.message) || 'Could not start the sign-in.' };
     });
   },
 
@@ -532,6 +581,7 @@ var leaderboard = {
       authenticated: !!_userId,
       anonymous: !!(user && user.is_anonymous),
       email: (user && user.email) || '',
+      provider: providerOf(user),
       pendingEmail: (user && user.new_email) || '',
       error: _authError
     };

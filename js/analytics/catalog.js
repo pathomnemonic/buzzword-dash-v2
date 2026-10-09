@@ -156,7 +156,7 @@ export var EVENTS = {
   keybinding_changed: ['settings', 'A keyboard binding was changed or reset.', { action: 'e:set|cleared|reset', key_action: 's24' }],
 
   // ───────────────────────── accounts and social ─────────────────────────
-  account_event: ['social', 'Sign-up, sign-in, sign-out or deletion. No identifiers.', { action: 'e:signup_started|signup_ok|signin_ok|signin_failed|signout|delete_requested|password_reset|profile_saved|name_set|picture_set', method: 'e:email|other', ok: 'b' }],
+  account_event: ['social', 'Sign-up, sign-in, sign-out or deletion. No identifiers.', { action: 'e:signup_started|signup_ok|signin_ok|signin_failed|signout|delete_requested|password_reset|profile_saved|name_set|picture_set|oauth_started|oauth_failed', method: 'e:email|google|apple|azure|discord|facebook|other', ok: 'b' }],
   cloud_sync: ['social', 'Cloud save sync.', { direction: 'e:up|down|conflict|restore', ok: 'b', bytes_kb: 'i' }],
   leaderboard_viewed: ['social', 'The leaderboard was opened.', { tab: 's24', scope: 's24', rank_known: 'b' }],
   friend_event: ['social', 'Friends and invites.', { action: 'e:search|request_sent|accepted|declined|removed|blocked|invite_link_copied|feed_opened|kudos_sent|group_joined|group_created', count: 'i' }],

@@ -886,8 +886,8 @@ Sign-up, sign-in, sign-out or deletion. No identifiers.
 
 | Property | Type |
 |---|---|
-| `action` | one of: signup_started, signup_ok, signin_ok, signin_failed, signout, delete_requested, password_reset, profile_saved, name_set, picture_set |
-| `method` | one of: email, other |
+| `action` | one of: signup_started, signup_ok, signin_ok, signin_failed, signout, delete_requested, password_reset, profile_saved, name_set, picture_set, oauth_started, oauth_failed |
+| `method` | one of: email, google, apple, azure, discord, facebook, other |
 | `ok` | true/false |
 
 ### `cloud_sync`

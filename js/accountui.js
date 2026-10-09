@@ -3,6 +3,7 @@
  * "which save do you want?" dialog. Safe DOM only.
  */
 
+import { enabledProviders, providerLabel } from './authproviders.js';
 import { track } from './analytics/index.js';
 import { createElement } from './dom.js';
 
@@ -117,6 +118,40 @@ function renderGuest(body, deps, status) {
   });
   body.appendChild(tabs);
 
+  // "Continue with Google / Apple": no password to make or remember. "I am new" upgrades this guest in place (so scores,
+  // friends and groups stay); "I have an account" signs in to the one that exists.
+  var providers = _mode === 'reset' ? [] : enabledProviders();
+  if (providers.length) {
+    var row = createElement('div', { className: 'auth-providers' });
+    row.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin:8px 0';
+    providers.forEach(function (p) {
+      var pb = createElement('button', {
+        className: 'btn btn-outline btn-block auth-provider',
+        text: (p.icon ? p.icon + '  ' : '') + 'Continue with ' + p.label,
+        attributes: { type: 'button', 'data-provider': p.id }
+      });
+      pb.addEventListener('click', function () {
+        pb.disabled = true;
+        track('account_event', { action: 'oauth_started', method: p.id });
+        deps.leaderboard.signInWithProvider(p.id, { link: _mode === 'signup' }).then(function (res) {
+          if (res.success) {
+            _busyMessage = 'Opening ' + p.label + '…';
+            deps.rerender();
+            return;
+          }
+          pb.disabled = false;
+          track('account_event', { action: 'oauth_failed', method: p.id });
+          deps.toast(res.error || 'Could not sign in with ' + p.label + '.');
+        });
+      });
+      row.appendChild(pb);
+    });
+    body.appendChild(row);
+    var or = createElement('div', { text: 'or use your email' });
+    or.style.cssText = 'text-align:center;font-size:12px;color:var(--text-muted);margin:6px 0';
+    body.appendChild(or);
+  }
+
   var form = createElement('form');
   form.setAttribute('novalidate', 'novalidate');
   var email = input('email', 'Email address', 'email', 'you@example.com');
@@ -205,7 +240,7 @@ function deleteAccountButton(deps) {
 }
 
 function renderSignedIn(body, deps, status) {
-  body.appendChild(note('Signed in as ' + status.email, 'var(--accent-green)'));
+  body.appendChild(note('Signed in as ' + status.email + (providerLabel(status.provider) ? ' with ' + providerLabel(status.provider) : ''), 'var(--accent-green)'));
   if (status.pendingEmail) {
     body.appendChild(note('Confirm ' + status.pendingEmail + ' from the email we sent to finish changing your address.', 'var(--accent-gold)'));
   }

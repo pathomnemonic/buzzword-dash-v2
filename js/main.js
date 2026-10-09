@@ -2242,7 +2242,10 @@ var pendingDeepLink = null;
 function handleDeepLink(url) {
   if (!leaderboardModule) { pendingDeepLink = url; return; }
   leaderboardModule.leaderboard.handleAuthLink(url).then(function (res) {
-    if (res.success) ui._showToast(res.type === 'recovery' ? 'Choose a new password.' : 'Email confirmed. You are signed in.');
+    if (res.success) {
+      ui._showToast(res.type === 'recovery' ? 'Choose a new password.' : res.type === 'signup' || res.type === 'email_change' ? 'Email confirmed. You are signed in.' : 'You are signed in.');
+      import('@capacitor/browser').then(function (m) { return m.Browser.close(); }).catch(function () { /* the sign-in page may already be closed */ });
+    }
     else if (res.error && res.error !== 'Not an account link') ui._showToast(res.error);
   });
 }
