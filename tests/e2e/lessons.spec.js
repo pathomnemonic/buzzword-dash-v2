@@ -21,11 +21,30 @@ test.describe('Red dots and lessons', () => {
     }
   });
 
+  test('the streak, Today, Settings sections and Locker tabs each explain themselves too', async ({ page }) => {
+    await openWithLessons(page);
+    await page.locator('#streakChip').click();
+    await expect(page.locator('.tour-card h2')).toHaveText('Your streak', { timeout: 5000 });
+    await page.locator('#tourNextBtn').click();
+    await expect(page.locator('#tourOverlay')).toHaveCount(0);
+    await page.locator('#streakSheet .sheet-close').click();
+    await page.locator('#settingsBtn').click();
+    await page.waitForTimeout(900);
+    await page.locator('#tourCloseBtn').click(); // (the Settings lesson itself)
+    await page.locator('.settings-card[data-section="look"]').click();
+    await expect(page.locator('.tour-card h2')).toHaveText('Look and performance', { timeout: 5000 });
+    await page.locator('#tourNextBtn').click();
+    await expect(page.locator('#tourOverlay')).toHaveCount(0);
+    await expect(dot(page, '.settings-card[data-section="look"]')).toHaveCount(0);
+  });
+
   test('opening a tab shows its lesson once, with no step count, and its dot goes', async ({ page }) => {
     await openWithLessons(page);
     await page.locator('.nav-item[data-screen="screenQuests"]').click();
     await expect(page.locator('.tour-card h2')).toHaveText('Daily quests', { timeout: 5000 });
     await expect(page.locator('.tour-card .tut-count')).toHaveCount(0);
+    await page.locator('#tourNextBtn').click();
+    await expect(page.locator('.tour-card h2')).toHaveText('Working through quests');
     await page.locator('#tourNextBtn').click();
     await expect(page.locator('#tourOverlay')).toHaveCount(0);
     await expect(dot(page, '.nav-item[data-screen="screenQuests"]')).toHaveCount(0);

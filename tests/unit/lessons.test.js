@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { buildTourSteps, buildLessonSteps, LESSON_STEPS } from '../../js/tourdata.js';
-import { HOME_DISCOVERIES, isExplored } from '../../js/discoverydots.js';
+import { HOME_DISCOVERIES, MENU_DISCOVERIES, isExplored } from '../../js/discoverydots.js';
 import { startLesson, seedLessons, hasLesson } from '../../js/lessons.js';
 import { skipTour, isTourOpen } from '../../js/tour.js';
 
@@ -28,6 +28,10 @@ describe('everything with a red dot teaches itself', () => {
   beforeEach(loadPage);
   it('has a lesson for every dotted button and tab', () => {
     HOME_DISCOVERIES.forEach((d) => expect(hasLesson(d.id), d.id).toBe(true));
+  });
+
+  it('also has a lesson for every section inside Settings and every Locker tab', () => {
+    MENU_DISCOVERIES.forEach((m) => m.items.forEach((it) => expect(hasLesson(it.id), it.id).toBe(true)));
   });
 
   it('builds real steps for each lesson, in order', () => {

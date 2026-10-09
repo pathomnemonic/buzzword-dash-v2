@@ -40,7 +40,7 @@ describe('the tour steps', () => {
       return !['extras-tab', 'buy', 'equip', 'filters-advanced', 'filters-exam'].includes(s.id) && !s.target();
     }).map((s) => s.id);
     // screens drawn on demand (the multiplayer panel, the profile body) are empty until opened
-    expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview', 'settings-screen', 'friends-screen'].includes(id))).toEqual([]);
+    expect(missing.filter((id) => !['versus', 'profile', 'stats', 'preview', 'settings-screen', 'friends-screen', 'profile-pic'].includes(id))).toEqual([]);
   });
 
   it('the tour walks through every filter, one section at a time, opening each by its real button', () => {

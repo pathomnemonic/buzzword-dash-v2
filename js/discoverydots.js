@@ -13,6 +13,8 @@ import { FEATURES } from './features.js';
 
 /** Things on Home and the tab bar, most worth trying first. (Versus and Friends need the backend, so a build without one has neither.) */
 export var HOME_DISCOVERIES = [
+  { id: 'home:streak', selector: '#streakChip', label: 'Your study streak' },
+  { id: 'home:today', selector: '#studyGoal', label: 'Today: your goal and reviews' },
   { id: 'home:filters', selector: '#filtersBtn', label: 'Filters: choose your questions' },
   { id: 'home:speed', selector: '#speedBtn', label: 'Speed: faster runs score more' },
   { id: 'home:flashcards', selector: '#homeFlashcardsBtn', label: 'Flashcards: try them' },
