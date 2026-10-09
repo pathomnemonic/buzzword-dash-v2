@@ -29,20 +29,20 @@ Avoid: "guaranteed", "pass the boards", "score higher", "cure", "fix your focus"
 **App name (30):** `Dx Dash: USMLE Study Game`
 **Subtitle, Apple (30):** `Board questions as a runner` (alt: `Run, answer, remember`)
 **Google short description (80):** `Study USMLE & COMLEX-style questions in an endless runner. Free to start.`
-**Promotional text, Apple (170):** `300 board-style questions free. Run, dodge and answer clinical vignettes; build a streak, climb the leaderboard, and unlock all 3,010 cards with Pro.`
+**Promotional text, Apple (170):** `300 board-style questions free. Run, dodge and answer clinical vignettes; build a streak, beat your friends' scores, and unlock all 3,010 cards with Pro.`
 **Keyword field, Apple (100 chars, no spaces after commas):** `usmle,comlex,step 1,step 2,anki,flashcards,qbank,medical,nursing,mcat,study game,boards,shelf,pance`
 (Apple now indexes screenshot caption text, so write the first three screenshot captions with keywords too.)
 
 **Long description (first 3 lines matter most):**
 > Study board-style questions by playing a game.
 > Dx Dash turns USMLE and COMLEX-style clinical vignettes into an endless runner. Swipe into the right diagnosis gate, dodge obstacles, and outrun the monster.
-> Free to start: 300 questions across all 15 subjects, the full game, friends and leaderboards.
+> Free to start: 300 questions across all 15 subjects, the full game, friends and study groups.
 >
 > WHAT YOU GET
 > • 3,010 board-style cards across 15 subjects (300 free; the rest with Pro)
 > • "Why" explanations for the ones you miss, and spaced repetition that brings them back
 > • Streaks (with shields), a daily goal, a daily challenge and a weekly Gauntlet
-> • Friends, a clan feed, Versus and leaderboards
+> • Friends, a friends feed, study groups and Versus
 > • Stats, an exam-date study plan, flashcards and an exam simulator
 > • Anki import, custom cards and an offline pack (Pro)
 > • Accessibility: dyslexia-friendly font, colorblind-safe colors, reduced motion, left-hand layout
@@ -56,7 +56,7 @@ Avoid: "guaranteed", "pass the boards", "score higher", "cure", "fix your focus"
 **Screenshot captions (first three are keyword-bearing):**
 1. `Study USMLE-style questions as a game`
 2. `Run, dodge, answer: real clinical vignettes`
-3. `Streaks, leaderboards & a daily challenge`
+3. `Streaks, friends & a daily challenge`
 4. `Learn from every miss with "why" explanations`
 5. `3,010 cards across 15 subjects`
 6. `Accessible: dyslexia font, colorblind-safe, reduced motion`
@@ -104,7 +104,7 @@ Rules first: read each subreddit's self-promotion rule; message the mods before 
 ## 6. Google (App campaigns and YouTube)
 
 Headlines (30 each, give 5): `Study Like It's A Game` · `300 Board Questions Free` · `USMLE-Style Runner Game` · `Run, Answer, Remember` · `Free To Start. No Ads.`
-Descriptions (90 each, give 4): `Board-style clinical questions in an endless runner. Streaks, friends, leaderboards.` · `Make your scroll time count. 3,010 cards across 15 subjects. Free to start.` · `Learn from every miss with explanations and spaced repetition. No ads.` · `Dyslexia font, colorblind-safe, reduced motion. Study your way.`
+Descriptions (90 each, give 4): `Board-style clinical questions in an endless runner. Streaks, friends, study groups.` · `Make your scroll time count. 3,010 cards across 15 subjects. Free to start.` · `Learn from every miss with explanations and spaced repetition. No ads.` · `Dyslexia font, colorblind-safe, reduced motion. Study your way.`
 
 ## 7. Apple Search Ads
 
@@ -128,7 +128,7 @@ All emails: one-click unsubscribe; no medical claims.
 
 **Brief (if they say yes):** one core message (pick a series), three must-haves (show real gameplay; show the free-to-start 300 cards; say it in your words), three must-nots (no guarantee of passing; no claims about treating any condition; no logos of exam owners), disclosure (`#ad` / paid partnership label), deliver in 9:16, 15 to 30 s, raw files too, usage rights (organic + 30 days paid whitelisting: price this extra), approval before posting.
 
-**Campus ambassador:** a unique Pro code with 90 days; a leaderboard clan for their class; a one-page how-to; a thank-you Lifetime code after 25 installs from their code.
+**Campus ambassador:** a unique Pro code with 90 days; a study group for their class; a one-page how-to; a thank-you Lifetime code after 25 installs from their code.
 
 ## 10. Press / podcast pitch (one paragraph)
 

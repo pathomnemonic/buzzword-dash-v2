@@ -26,11 +26,13 @@ STUDY THAT STICKS
 • Flashcards, a timed exam simulator, a weekly Gauntlet and a Daily 15 for when you want to slow down and test yourself
 • Make your own cards or import decks
 
+SIGN IN YOUR WAY
+• Play as a guest, or sign in with Google, Apple, Microsoft or email to keep your progress on every device
+
 PLAY WITH FRIENDS
 • Challenge a friend live, head to head, with a room code. No account needed
 • A friends feed with kudos: share your runs with friends or keep them private
 • Private study groups with a shared weekly goal
-• Ranked matches and leagues
 
 KEEP GOING
 • Daily goals, streaks and quests
@@ -42,7 +44,6 @@ SOLO PLAY NEEDS NO INTERNET. No ads.
 Dx Dash is an educational game, not medical advice, and is not affiliated with or endorsed by the NBME, FSMB, NBOME or Anki. Content may contain errors; verify important facts with authoritative sources.
 ```
 
-> Check before publishing: "Ranked matches and leagues" needs the database set up on your live Supabase project and one real ranked match played between two accounts (see `docs/RELEASE_GUIDE.md`, step "Switch on the online features"). If you have not done that, delete that line.
 
 ## Release notes (max 500), for version 1.0
 ```

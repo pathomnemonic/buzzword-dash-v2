@@ -400,3 +400,15 @@ describe('which charges count as given back', () => {
     expect(chargeReturned('ch_1')).toBe(false);
   });
 });
+
+describe('what the payer is told before paying', () => {
+  it('both kinds of checkout show the terms link and that digital products are delivered at once', () => {
+    const plan = checkoutParams('yearly', 'u1', ENV);
+    const item = itemCheckoutParams('trail_fire', 'u1', ENV);
+    for (const f of [plan, item]) {
+      expect(f['custom_text[submit][message]']).toContain('https://me.github.io/dx/terms.html');
+      expect(f['custom_text[submit][message]']).toMatch(/delivered to your account immediately/);
+      expect(f['custom_text[submit][message]'].length).toBeLessThan(1200);
+    }
+  });
+});

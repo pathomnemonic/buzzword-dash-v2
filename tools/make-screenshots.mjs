@@ -17,6 +17,8 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: process.env.SOFTWARE_GL ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-gpu'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+// (the little lessons behind the red dots would cover the screen when a tab is tapped for the first time)
+await page.addInitScript(() => { try { localStorage.setItem('dx_lessons_off', '1'); } catch { /* ignore */ } });
 await page.goto(base + '/?debug=1');
 const dismissDaily = async (pg) => {
   const overlay = pg.locator('#dailyReward');
@@ -186,6 +188,9 @@ await results({ skin: 'avatar_intern', monster: 'monster_m_yeti', subjects: ['Ca
 
 await setup({ skin: 'avatar_m_paramedic', monster: 'monster_classic', subjects: [], map: '' });
 await page.locator('[data-screen="screenHome"]').click().catch(() => {});
+await page.evaluate(() => { const c = document.getElementById('analyticsConsent'); if (c) c.remove(); });
+await page.waitForTimeout(1200);
+await snap('home', 'One tap to start', 'Pick your subjects, set your pace, run');
 await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
 await page.waitForTimeout(1500);
 await snap('goals', 'Build a daily streak', 'Short goals that keep you consistent');

@@ -34,7 +34,7 @@ export var CONCEPTS = [
   { id: 'adhd-design', head: 'Study design with [[ADHD-friendly]] features.', sub: 'Short runs · instant feedback · rewards for every answer · reduced-motion mode', screen: 'home', accent: '#5af0a0', fine: 'Describes how the app is designed. It does not diagnose, treat or claim to help any condition.' },
   { id: 'free-300', head: '[[300]] board questions. Free.', sub: '20 in every subject. Unlock all 3,010 with Pro.', screen: 'locker', accent: '#ffd23f', fine: DISCLAIMER },
   { id: 'accessible', head: 'Study your way. [[Accessible]] by design.', sub: 'Dyslexia font · colorblind-safe · reduced motion · left-hand layout', screen: 'stats', accent: '#7fe6ff', fine: '' },
-  { id: 'beat-my-score', head: 'Beat my [[score.]] Seriously.', sub: 'Friends, leaderboards and a weekly Gauntlet.', screen: 'run-a', accent: '#c49bff', fine: '' }
+  { id: 'beat-my-score', head: 'Beat my [[score.]] Seriously.', sub: 'Friends, study groups and a weekly Gauntlet.', screen: 'run-a', accent: '#c49bff', fine: DISCLAIMER }
 ];
 
 var FORMATS = {

@@ -12,7 +12,7 @@ It is a real endless runner (3D tracks, power-ups, a monster chasing you) where 
 |---|---|---|---|
 | **Primary: the doom-scroller with a boards date** | M1 to M4 students and DO/MD students in dedicated study, 22 to 28, phone-first, already pay for UWorld/AMBOSS/Anki | Studying that does not feel like punishment; a way to use phone-time for something that counts | "Same phone time. Actually studying." |
 | **The fatigue-prone** | People who can do Anki for 20 minutes and then lose it; students who find long question blocks hard to start | Short, rewarding, low-friction reps | "Five minutes is a run. Runs add up." |
-| **The competitive** | Class group chats, rank-chasers | A leaderboard with their friends, a streak to protect | "Beat your co-resident's streak." |
+| **The competitive** | Class group chats, rank-chasers | Friends' scores and study-group goals, a streak to protect | "Beat your co-resident's streak." |
 | **Secondary: pre-med, PA, NP, nursing, international students** | Anyone drilling clinical vignettes | A free way to start | The free 300-card start |
 
 The ADHD angle sits inside the first two segments (many students and clinicians have ADHD, and "ADHD-friendly" is a real feature request): we speak to it as a **design quality of the app**, never as a claim about the viewer or a treatment (see 07-COMPLIANCE.md).

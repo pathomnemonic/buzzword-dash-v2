@@ -39,7 +39,7 @@ Only list a feature once it has been checked end to end. As of the last check:
 **Checked, safe to list** (the list above): live multiplayer (two real browsers connected, played a match and saw each other's scores), the question bank size and subjects, the run, the case review after a run, flashcards and the exam simulator (automated browser tests), daily goals and the study plan (unit tests), the exam monster and characters (seen in play), solo play making no network requests other than to the app itself.
 
 **Built and tested, but not yet checked against the live online service, so do not list yet:**
-- Ranked matches, trophies and leagues (the database rules and the whole match flow were played end to end against a local copy of the database; run `database/schema.sql` and `policies.sql` on the live project, play one ranked match between two real accounts, then add "Ranked leagues" to the listing).
+- Ranked matches, trophies and leagues: built and tested but hidden for now (not mentioned in the store listings). Versus works with a room code.
 - Friends, the friend feed, study groups, weekly tournaments and cloud save (database rules and the screens are tested against a fake service; they need a live Supabase project to check). The global leaderboard is hidden in the app for now (`FEATURES.globalLeaderboard`), so do not list it.
 - Cohorts and cohort wars (finished and hidden on purpose; see `docs/COHORTS.md`).
 - Study-buddy and public-group discovery (finished and hidden on purpose; see `docs/DISCOVERY.md`).

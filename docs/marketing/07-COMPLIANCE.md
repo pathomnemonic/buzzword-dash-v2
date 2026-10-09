@@ -71,7 +71,7 @@ A check before posting any ad: every claim must be verifiable in the build you s
 | Dyslexia font, colorblind-safe, reduced motion, left-hand layout | Yes | settings |
 | Anki import | Pro | gated |
 | Works offline | Yes (offline packs are Pro) | gates |
-| Friends, leaderboards, weekly Gauntlet | Yes (online features optional) | social |
+| Friends, study groups, weekly Gauntlet | Yes (online features optional) | social |
 | "Used by N students" or ranks like "#1" | **Do not claim** unless measured | none |
 
 ## 9. Pre-flight for every ad

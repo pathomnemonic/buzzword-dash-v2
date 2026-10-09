@@ -138,6 +138,11 @@ export function grantsFromSubscriptions(subs, nowSec) {
   return out;
 }
 
+/** The line shown above the Pay button: the terms, and that digital products are delivered at once (which ends a right to withdraw). */
+function payNotice(site) {
+  return 'By paying you agree to the Terms of Use (' + site + '/terms.html). Paid products are delivered to your account immediately; where the law gives a right to withdraw from a digital purchase, it ends once delivery starts.';
+}
+
 /** The Stripe Checkout Session to create for a plan, as form fields. Throws a readable message for a bad request. */
 export function checkoutParams(planOrId, userId, env, opts) {
   var p = productFor(planOrId);
@@ -155,6 +160,7 @@ export function checkoutParams(planOrId, userId, env, opts) {
   f['success_url'] = site + '/?pro=success';
   f['cancel_url'] = site + '/?pro=cancelled';
   f['allow_promotion_codes'] = 'true';
+  f['custom_text[submit][message]'] = payNotice(site);
   f['metadata[user_id]'] = userId;
   f['metadata[plan]'] = p.def.plan;
   if (p.def.kind === 'subscription') {
@@ -190,6 +196,7 @@ export function itemCheckoutParams(itemId, userId, env, opts) {
   f['line_items[0][quantity]'] = '1';
   f['success_url'] = site + '/?pro=success&item=' + encodeURIComponent(itemId);
   f['cancel_url'] = site + '/?pro=cancelled';
+  f['custom_text[submit][message]'] = payNotice(site);
   f['metadata[kind]'] = 'item';
   f['metadata[item_id]'] = itemId;
   f['metadata[user_id]'] = userId;

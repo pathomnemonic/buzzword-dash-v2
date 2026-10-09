@@ -50,7 +50,7 @@ Tone: soft, honest, a little tired, never preachy. Think a friend with a cup of 
 
 **A6. "Study with me (but it's a game)"** · 30 s
 - Hook: "Study with me, but I'm actually having fun."
-- Shots: a creator's full 2-minute run sped up; overlays of correct answers and the leaderboard moving up; ending on the day's goal bar filling.
+- Shots: a creator's full 2-minute run sped up; overlays of correct answers and a friend's score being beaten; ending on the day's goal bar filling.
 - Text: running tally "Cards today: 7, 14, 20 ✓".
 - CTA: "Today's goal: 20 cards."
 
@@ -85,9 +85,9 @@ Tone: chaotic on the surface, genuinely rigorous underneath. One joke per video;
 - Text: "NPC energy, real results" (avoid "results" if it implies a promised score; use "NPC energy, actual flashcards").
 - CTA: "Be the NPC who passes."  Compliance: "passes" is aspirational but not a guarantee; if flagged, use "Be the NPC who studied."
 
-**B5. "Rizz the leaderboard"** · 15 s
+**B5. "Rizz the scoreboard"** · 15 s
 - Hook: "me beating my co-resident's score at 2am".
-- Shots: leaderboard climb; friend request; kudos emoji; "Beat my score" challenge link tapped.
+- Shots: your score passing a friend's; friend request; kudos emoji; "Beat my score" challenge link tapped.
 - Text: "friendly rivalry arc".
 - CTA: "Send them a challenge."
 
@@ -150,7 +150,7 @@ Tone: confident and clean. 100% real capture. These are the control group for ev
 ## Series E: Med-school humour and social
 
 **E1. "Nothing prepares you for Step 1 like a game about running"** · 12 s: dry deadpan. Text: "It's a lot of recall under pressure. So is this."
-**E2. "Group-chat hero"** · 15 s: a screenshot-style group chat where one friend posts a score and others reply; cut to the leaderboard. CTA "Add your class."
+**E2. "Group-chat hero"** · 15 s: a screenshot-style group chat where one friend posts a score and others reply; cut to the study group's weekly goal. CTA "Add your class."
 **E3. "Anki is great. Also, hear me out…"** · 15 s: affectionate nod to Anki, then the import (Pro) and the game. Text: "Keep Anki. Add a reason to open it." Never disparage Anki.
 
 ---
