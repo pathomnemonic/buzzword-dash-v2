@@ -6,6 +6,14 @@ describe('which sign-in options are offered', () => {
     expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure']);
   });
 
+  it('treats a build setting that is set but empty (an unset GitHub variable) as the default', () => {
+    vi.stubEnv('VITE_AUTH_PROVIDERS', '');
+    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure']);
+    vi.stubEnv('VITE_AUTH_PROVIDERS', 'none');
+    expect(enabledProviders()).toEqual([]);
+    vi.unstubAllEnvs();
+  });
+
   it('shows only the ones switched on in Supabase, and everything configured when that cannot be read', () => {
     const list = enabledProviders();
     expect(onlyAvailable(list, { google: true, apple: false, azure: true, email: true }).map((p) => p.id)).toEqual(['google', 'azure']);
@@ -16,6 +24,7 @@ describe('which sign-in options are offered', () => {
   it('follows the setting, in order, ignoring unknown names and repeats', () => {
     expect(enabledProviders('apple, google ,GOOGLE,bogus,,azure').map((p) => p.id)).toEqual(['apple', 'google', 'azure']);
     expect(enabledProviders('')).toEqual([]);
+    expect(enabledProviders('none')).toEqual([]);
   });
 
   it('only lists providers that always give an email back (a login with no email would be treated as a guest)', () => {

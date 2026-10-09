@@ -44,6 +44,7 @@ jobs:
           # Optional: your tip page (Ko-fi, Buy Me a Coffee, GitHub Sponsors, Stripe link)
           VITE_TIP_URL: ${{ vars.VITE_TIP_URL || secrets.VITE_TIP_URL }}
           VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
+          VITE_AUTH_PROVIDERS: ${{ vars.VITE_AUTH_PROVIDERS }}
           VITE_REVIEW_URL: ${{ vars.VITE_REVIEW_URL }}
 
       - uses: actions/upload-pages-artifact@v3

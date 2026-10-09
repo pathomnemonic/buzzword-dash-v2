@@ -26,6 +26,10 @@ jobs:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
       VITE_FEATURE_COHORTS: ${{ vars.VITE_FEATURE_COHORTS }}
+      VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
+      VITE_REVIEW_URL: ${{ vars.VITE_REVIEW_URL }}
+      VITE_AUTH_PROVIDERS: ${{ vars.VITE_AUTH_PROVIDERS }}
+      VITE_IAP_VERIFY: ${{ vars.VITE_IAP_VERIFY }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4

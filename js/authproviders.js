@@ -33,7 +33,9 @@ var DEFAULT_LIST = 'google,apple,azure';
 export function enabledProviders(setting) {
   /** @type {Record<string, any>} */
   var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
-  var raw = setting !== undefined ? setting : (env.VITE_AUTH_PROVIDERS !== undefined ? env.VITE_AUTH_PROVIDERS : DEFAULT_LIST);
+  // (a build variable that is set but empty, as an unset GitHub variable arrives, means "the default"; write "none" for no buttons)
+  var raw = setting !== undefined ? setting : (env.VITE_AUTH_PROVIDERS || DEFAULT_LIST);
+  if (String(raw).trim().toLowerCase() === 'none') raw = '';
   var seen = {};
   return String(raw || '').split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(function (id) {
     if (!id || seen[id] || !AUTH_PROVIDERS[id]) return false;
