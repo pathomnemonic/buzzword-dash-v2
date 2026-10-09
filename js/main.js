@@ -77,6 +77,7 @@ import { ComboTracker, musicMood } from './game/combo.js';
 import { palCheer, currentPal, streakDeservesCheer } from './palui.js';
 import { palReminder } from './companions.js';
 import { maybeAskConsent, analyticsAvailable } from './analyticsui.js';
+import { readNativeBackup, scheduleNativeBackup, flushNativeBackup, clearNativeBackup } from './nativebackup.js';
 import { analytics } from './analytics/index.js';
 import { installAnalytics, reportRunEnd, reportFrame, instrumentLeaderboard } from './analytics/instrument.js';
 import { track as trackEvent } from './analytics/index.js';
@@ -1300,6 +1301,12 @@ function init() {
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();
+  // In the phone apps the save is also kept in a file (the browser storage can be cleared by the system); if this game started
+  // empty and the file holds a fuller save, it is offered back before the first-run tutorial
+  storage.onSaved = scheduleNativeBackup;
+  storage.onReset = function (scope) { if (scope === 'progress' || scope === 'all_local') clearNativeBackup(); };
+  var nativeRestore = (storage.recoverable ? Promise.resolve() : readNativeBackup().then(function (text) { if (text) storage.adoptBackup(text); })).catch(function () { /* the question is just not asked */ });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushNativeBackup(); });
   // Switches for mechanics that turn out broken in the field (see remoteconfig.js); the saved copy applies at once
   loadRemoteConfig().then(function () { trackEvent('remote_config', { killed: [], experiments: 0, ok: true }); document.dispatchEvent(new CustomEvent('dx:pro-changed')); }).catch(function () { trackEvent('remote_config', { ok: false }); /* the saved copy stays */ });
   // Badges added or fixed in an update are awarded to anyone who already qualifies, shown a little after launch
@@ -1443,9 +1450,11 @@ function init() {
   // First run: the interactive tutorial (skippable); finishing or skipping it ends the first run
   // (the analytics question comes first, once, on a fresh install)
   maybeAskConsent(function () {
-    // A save that came up empty while an earlier copy with real progress is still on the device: offer it back first
-    if (storage.recoverable) { askToRestoreProgress(storage.recoverable); return; }
-    if (!storage.get('firstRunComplete')) ui.showTutorial({ firstRun: true });
+    nativeRestore.then(function () {
+      // A save that came up empty while an earlier copy with real progress is still on the device: offer it back first
+      if (storage.recoverable) { askToRestoreProgress(storage.recoverable); return; }
+      if (!storage.get('firstRunComplete')) ui.showTutorial({ firstRun: true });
+    });
   });
 
   // --- Anki import (lazy) ---

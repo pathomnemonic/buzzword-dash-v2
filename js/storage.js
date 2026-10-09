@@ -713,6 +713,21 @@ class Storage {
     } catch (e) { this.recoverable = null; }
   }
 
+  /**
+   * A copy of the save from somewhere else on the device (the phone's file storage) turned up while this game is empty:
+   * keep it as the earlier copy, and let the usual question offer it back. Returns what is on offer, or null.
+   */
+  adoptBackup(text) {
+    try {
+      var parsed = JSON.parse(text);
+      if (!parsed || typeof parsed.schemaVersion !== 'number' || parsed.schemaVersion > SCHEMA_VERSION || !hasProgress(parsed)) return null;
+      if (hasProgress(this.data)) return null;
+    } catch (e) { return null; }
+    keepAsideIfFuller(text);
+    this.load();
+    return this.recoverable;
+  }
+
   /** Keep the current save aside before it is replaced by a cloud save, an imported backup or a reset. */
   _keepAside() {
     try {
@@ -762,6 +777,7 @@ class Storage {
         keepAsideIfFuller(json);
       }
       localStorage.setItem(STORAGE_KEY, json);
+      if (typeof this.onSaved === 'function') { try { this.onSaved(json); } catch (e5) { /* a backup problem never stops saving */ } }
     } catch (e) {
       console.warn('[Storage] Save failed:', e.message);
       this._problem(/quota/i.test(String(e && (e.name || e.message))) ? 'quota' : 'other', e && e.name);
@@ -2467,6 +2483,7 @@ class Storage {
     }
 
     this.save();
+    if (typeof this.onReset === 'function') { try { this.onReset(scope); } catch (e6) { /* ignore */ } }
     // a reset of progress the player asked for must stay reset: forget the safety copy too (after the save, which would
     // otherwise keep the old progress aside as if the reset were an accident)
     if (scope === 'progress' || scope === 'all_local') {
