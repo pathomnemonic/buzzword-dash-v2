@@ -309,6 +309,13 @@ REVOKE INSERT, UPDATE ON player_saves FROM authenticated;
 GRANT EXECUTE ON FUNCTION push_save(jsonb, integer, timestamptz) TO authenticated;
 GRANT EXECUTE ON FUNCTION force_save(jsonb, integer) TO authenticated;
 
+-- The kept richest save is only reachable through restore_backup_save().
+ALTER TABLE player_saves_backup ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON player_saves_backup FROM anon, authenticated;
+REVOKE ALL ON FUNCTION keep_richest_save(uuid, integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION restore_backup_save() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION restore_backup_save() TO authenticated;
+
 
 -- ==================== RANKED MULTIPLAYER ====================
 -- Nobody reads or writes these tables directly; the functions in schema.sql do.

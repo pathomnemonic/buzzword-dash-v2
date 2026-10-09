@@ -755,6 +755,62 @@ CREATE TABLE IF NOT EXISTS player_saves (
   updated_at  timestamptz NOT NULL DEFAULT clock_timestamp()
 );
 
+-- The richest save an account has ever had. Whenever a save is replaced, the old one is kept here if it had more play
+-- in it than the backup (or if the new one has less), so a stale or empty device can never destroy real progress.
+CREATE TABLE IF NOT EXISTS player_saves_backup (
+  user_id     uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  data        jsonb NOT NULL,
+  run_count   integer NOT NULL DEFAULT 0,
+  saved_at    timestamptz NOT NULL DEFAULT clock_timestamp()
+);
+
+CREATE OR REPLACE FUNCTION keep_richest_save(p_uid uuid, p_new_runs integer)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO player_saves_backup (user_id, data, run_count, saved_at)
+  SELECT s.user_id, s.data, s.run_count, clock_timestamp()
+  FROM player_saves s
+  WHERE s.user_id = p_uid
+    AND s.run_count > 0
+    AND (p_new_runs < s.run_count
+         OR s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0))
+  ON CONFLICT (user_id) DO UPDATE
+    SET data = excluded.data, run_count = excluded.run_count, saved_at = excluded.saved_at;
+END;
+$$;
+
+-- Put the kept save back as the live one (owner only). Returns the restored save's time, or NULL when there is none.
+CREATE OR REPLACE FUNCTION restore_backup_save()
+RETURNS timestamptz
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  b player_saves_backup%ROWTYPE;
+  new_ts timestamptz := clock_timestamp();
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  SELECT * INTO b FROM player_saves_backup WHERE user_id = uid;
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+  PERFORM keep_richest_save(uid, b.run_count);
+  INSERT INTO player_saves (user_id, data, run_count, updated_at)
+  VALUES (uid, b.data, b.run_count, new_ts)
+  ON CONFLICT (user_id) DO UPDATE
+    SET data = excluded.data, run_count = excluded.run_count, updated_at = excluded.updated_at;
+  RETURN new_ts;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION push_save(p_data jsonb, p_run_count integer, p_base timestamptz)
 RETURNS timestamptz
 LANGUAGE plpgsql
@@ -780,6 +836,7 @@ BEGIN
     IF p_base IS NULL OR current_ts <> p_base THEN
       RETURN NULL;
     END IF;
+    PERFORM keep_richest_save(uid, greatest(p_run_count, 0));
     UPDATE player_saves SET data = p_data, run_count = greatest(p_run_count, 0), updated_at = new_ts
     WHERE user_id = uid;
   ELSE
@@ -812,6 +869,7 @@ BEGIN
   IF pg_column_size(p_data) > 3000000 THEN
     RAISE EXCEPTION 'Save is too large';
   END IF;
+  PERFORM keep_richest_save(uid, greatest(p_run_count, 0));
   INSERT INTO player_saves (user_id, data, run_count, updated_at)
   VALUES (uid, p_data, greatest(p_run_count, 0), new_ts)
   ON CONFLICT (user_id) DO UPDATE

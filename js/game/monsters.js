@@ -269,6 +269,22 @@ function buildKraken() {
   return g;
 }
 
+/** Give a model monster its own colouring (own copies of the materials, so the shared model is left alone). */
+function applyMonsterLook(root, look) {
+  root.traverse(function (o) {
+    if (!o.isMesh || !o.material) return;
+    var mats = Array.isArray(o.material) ? o.material : [o.material];
+    var copies = mats.map(function (m) {
+      var c = m.clone();
+      if (c.color && look.color !== undefined) c.color.multiply(new THREE.Color(look.color));
+      if (c.emissive && look.emissive !== undefined) c.emissive.set(look.emissive);
+      if (look.opacity !== undefined) { c.transparent = true; c.opacity = look.opacity; c.depthWrite = false; }
+      return c;
+    });
+    o.material = Array.isArray(o.material) ? copies : copies[0];
+  });
+}
+
 /**
  * Build the monster for a shop item id (falls back to the classic design).
  * @param {string} id
@@ -285,6 +301,7 @@ export function buildMonster(id) {
       built.userData.monsterParts = emptyParts();
       built.userData.displayScale = 1;
       built.userData.flying = !!model.flying;
+      if (model.look) applyMonsterLook(built, model.look);
       return built;
     }
     loadCharacterModel(url).catch(function (e) {

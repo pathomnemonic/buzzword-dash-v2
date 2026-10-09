@@ -465,6 +465,19 @@ describe('cloud saves', () => {
     expect((await as(B, () => db.query('SELECT data, run_count FROM player_saves'))).rows[0]).toEqual({ data: { v: 3 }, run_count: 3 });
   });
 
+  it('keeps the richest save aside so an empty overwrite can be undone', async () => {
+    await as(B, () => db.query(`SELECT force_save('{"coins":900}'::jsonb, 40)`));
+    await as(B, () => db.query(`SELECT force_save('{"coins":0}'::jsonb, 0)`));
+    expect((await as(B, () => db.query('SELECT data FROM player_saves'))).rows[0].data).toEqual({ coins: 0 });
+    // Nobody can read the backup table directly (row security with no policy).
+    expect((await as(B, () => db.query('SELECT * FROM player_saves_backup'))).rows).toHaveLength(0);
+    const ts = (await as(B, () => db.query('SELECT restore_backup_save() AS ts'))).rows[0].ts;
+    expect(ts).toBeTruthy();
+    expect((await as(B, () => db.query('SELECT data, run_count FROM player_saves'))).rows[0]).toEqual({ data: { coins: 900 }, run_count: 40 });
+    // A player with no backup gets NULL.
+    expect((await as(A, () => db.query('SELECT restore_backup_save() AS ts'))).rows[0].ts).toBeNull();
+  });
+
   it('requires a signed-in user', async () => {
     await db.exec("SET app.uid = ''; SET ROLE authenticated;");
     let failed = false;
