@@ -474,6 +474,10 @@ describe('cloud saves', () => {
     const ts = (await as(B, () => db.query('SELECT restore_backup_save() AS ts'))).rows[0].ts;
     expect(ts).toBeTruthy();
     expect((await as(B, () => db.query('SELECT data, run_count FROM player_saves'))).rows[0]).toEqual({ data: { coins: 900 }, run_count: 40 });
+    // smaller saves written over smaller saves do not push the biggest one out
+    await as(B, () => db.query(`SELECT force_save('{"coins":5}'::jsonb, 3)`));
+    await as(B, () => db.query(`SELECT force_save('{"coins":6}'::jsonb, 4)`));
+    expect((await db.query(`SELECT run_count FROM player_saves_backup WHERE user_id = $1`, [B])).rows[0].run_count).toBe(40);
     // A player with no backup gets NULL.
     expect((await as(A, () => db.query('SELECT restore_backup_save() AS ts'))).rows[0].ts).toBeNull();
   });

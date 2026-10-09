@@ -116,3 +116,23 @@ describe('storage keys and newer saves', () => {
     expect(JSON.parse(localStorage.getItem(LAST)).progression.totalEncounters).toBe(120);
   });
 });
+
+describe('the copy kept aside is the fullest one, not just the latest', () => {
+  beforeEach(fresh);
+
+  it('a smaller save never pushes it out, however many snapshots are taken', () => {
+    liveIn(storage);
+    storage.save();
+    const big = JSON.parse(localStorage.getItem(LAST)).progression.totalEncounters;
+    // a cloud save with less play replaces this one, and then the player plays on for a while
+    const smaller = JSON.parse(JSON.stringify(storage.data));
+    smaller.progression.totalEncounters = 10; smaller.progression.totalCoinsEarned = 50; smaller.progression.bestScore = 20; smaller.progression.xp = 30;
+    expect(storage.applyRemoteData(smaller).ok).toBe(true);
+    storage._snapshotAt = 0;
+    storage.data.progression.totalEncounters = 12;
+    storage.save();
+    storage._snapshotAt = 0;
+    storage.save();
+    expect(JSON.parse(localStorage.getItem(LAST)).progression.totalEncounters).toBe(big);
+  });
+});

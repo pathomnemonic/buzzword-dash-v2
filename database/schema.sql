@@ -777,8 +777,9 @@ BEGIN
   FROM player_saves s
   WHERE s.user_id = p_uid
     AND s.run_count > 0
-    AND (p_new_runs < s.run_count
-         OR s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0))
+    -- only ever replace the backup with something at least as big: a smaller save written over a smaller save must not
+    -- push out the biggest one
+    AND s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0)
   ON CONFLICT (user_id) DO UPDATE
     SET data = excluded.data, run_count = excluded.run_count, saved_at = excluded.saved_at;
 END;

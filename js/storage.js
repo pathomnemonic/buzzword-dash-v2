@@ -55,6 +55,23 @@ function hasProgress(data) {
     return (Number(p.totalEncounters) || 0) > 0 || (Number(p.bestScore) || 0) > 0 || (Number(p.xp) || 0) > 0;
   } catch (e) { return false; }
 }
+/** How much play a save holds: lifetime counts only ever grow, so a bigger number is always the later, fuller save. */
+function richness(data) {
+  try {
+    var d = typeof data === 'string' ? JSON.parse(data) : data;
+    var p = (d && d.progression) || {};
+    return (Number(p.totalEncounters) || 0) * 1e6 + (Number(p.totalCoinsEarned) || 0) * 10 + (Number(p.bestScore) > 0 ? 1 : 0);
+  } catch (e) { return 0; }
+}
+
+/** Put `json` in the safety slot, but never over a fuller save: the copy kept aside is the biggest one this device has had. */
+function keepAsideIfFuller(json) {
+  try {
+    var have = localStorage.getItem(LASTGOOD_KEY);
+    if (have && richness(have) > richness(json)) return;
+    localStorage.setItem(LASTGOOD_KEY, json);
+  } catch (e) { /* storage full or unavailable */ }
+}
 var SCHEMA_VERSION = 2;
 
 // ===== DEFAULT STATE =====
@@ -675,7 +692,7 @@ class Storage {
       console.warn('[Storage] Damaged data, using defaults:', e.message);
       this._problem('repaired', 'invariants');
       // keep what was there, so it can be recovered rather than overwritten by the next save
-      try { var broken = localStorage.getItem(STORAGE_KEY); if (broken && hasProgress(broken)) localStorage.setItem(LASTGOOD_KEY, broken); } catch (e3) { /* storage full or unavailable */ }
+      try { var broken = localStorage.getItem(STORAGE_KEY); if (broken && hasProgress(broken)) keepAsideIfFuller(broken); } catch (e3) { /* storage full or unavailable */ }
       this.data = deepClone(DEFAULTS);
       this._ensureInvariants();
     }
@@ -697,7 +714,7 @@ class Storage {
   _keepAside() {
     try {
       var cur = localStorage.getItem(STORAGE_KEY);
-      if (cur && hasProgress(cur)) localStorage.setItem(LASTGOOD_KEY, cur);
+      if (cur && hasProgress(cur)) keepAsideIfFuller(cur);
     } catch (e) { /* storage full or unavailable */ }
   }
 
@@ -736,10 +753,10 @@ class Storage {
       // lived-in save every few minutes
       if (!hasProgress(this.data)) {
         var before = localStorage.getItem(STORAGE_KEY);
-        if (before && hasProgress(before)) localStorage.setItem(LASTGOOD_KEY, before);
+        if (before && hasProgress(before)) keepAsideIfFuller(before);
       } else if (Date.now() - (this._snapshotAt || 0) > SNAPSHOT_EVERY_MS && json.length < SNAPSHOT_MAX_BYTES) {
         this._snapshotAt = Date.now();
-        localStorage.setItem(LASTGOOD_KEY, json);
+        keepAsideIfFuller(json);
       }
       localStorage.setItem(STORAGE_KEY, json);
     } catch (e) {
