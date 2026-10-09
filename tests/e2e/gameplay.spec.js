@@ -118,7 +118,7 @@ test.describe('Settings and screens', () => {
 
 test.describe('Without WebGL', () => {
   // ?webgl=off simulates a browser that cannot create a WebGL context.
-  test('the notice sits under the Filters / PLAY / Speed row and does not push any of them off the screen', async ({ page }) => {
+  test('the notice does not push Filters, PLAY or Speed off the screen', async ({ page }) => {
     for (const [w, h] of [[320, 568], [390, 780]]) {
       await page.setViewportSize({ width: w, height: h });
       await openApp(page, '/?webgl=off');
@@ -130,6 +130,14 @@ test.describe('Without WebGL', () => {
         expect(b.width, sel + ' must keep a usable width at ' + w).toBeGreaterThan(60);
       }
     }
+    // and on a landscape phone Home still ends above the tab bar
+    await page.setViewportSize({ width: 800, height: 360 });
+    await openApp(page, '/?webgl=off');
+    const gaps = await page.evaluate(() => {
+      const nav = document.getElementById('bottomNav').getBoundingClientRect().top;
+      return ['#homeChallengeBtn', '#homeFlashcardsBtn', '#multiplayerBtn', '.btn-play'].map((s) => nav - document.querySelector(s).getBoundingClientRect().bottom);
+    });
+    gaps.forEach((g) => expect(g).toBeGreaterThanOrEqual(-1));
   });
 
   test('the app still works and explains that the runner is unavailable', async ({ page }) => {

@@ -154,15 +154,15 @@ function setupCollapsibles() {
 // =========================================================================
 function showWebGLNotice() {
   trackEvent('webgl_unavailable', { reason: /[?&]webgl=off/.test(window.location.search) ? 'forced_off' : 'unsupported' });
-  // (under the Filters / PLAY / Speed row, not inside it: inside, its one long line made the PLAY block as wide as the sentence and pushed Speed off the screen)
-  var row = document.querySelector('.play-row');
-  if (!row || !row.parentNode) return;
+  // (in the logo area, which absorbs the spare room: inside the PLAY block its one long line made that block as wide as the sentence and pushed Speed off the screen, and under the row it pushed Home down into the tab bar on a landscape phone)
+  var area = document.querySelector('.home-header');
+  if (!area) return;
   var note = document.createElement('p');
   note.id = 'webglNotice';
   note.setAttribute('role', 'status');
-  note.style.cssText = 'font-size:12px;color:var(--accent-gold);text-align:center;margin:8px 0';
+  note.style.cssText = 'font-size:12px;color:var(--accent-gold);text-align:center;margin:6px 12px 0';
   note.textContent = 'Graphics (WebGL) are not available in this browser, so the runner cannot start. Flashcards, the exam simulator, stats and everything else still work.';
-  row.parentNode.insertBefore(note, row.nextSibling);
+  area.appendChild(note);
 }
 
 
