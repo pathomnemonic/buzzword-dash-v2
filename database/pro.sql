@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS pro_items (
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, item_id)
 );
+-- Which payment bought it, so paying twice for the same item is noticed (and the second payment can be returned) and a
+-- refund of that second payment cannot take away the item the first one paid for.
+ALTER TABLE pro_items ADD COLUMN IF NOT EXISTS payment_ref text;
 ALTER TABLE pro_items ENABLE ROW LEVEL SECURITY;
 
 CREATE TABLE IF NOT EXISTS pro_codes (
@@ -157,15 +160,31 @@ LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
 $$;
 
 -- Give a member a premium Locker item they paid for (safe to repeat). Service role only.
-CREATE OR REPLACE FUNCTION pro_grant_item(p_user uuid, p_item text, p_source text DEFAULT 'stripe') RETURNS void
-LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
-  INSERT INTO pro_items (user_id, item_id, source) VALUES (p_user, p_item, coalesce(p_source, 'stripe')) ON CONFLICT (user_id, item_id) DO NOTHING;
-$$;
+-- Returns 'granted' (new), 'already' (the same payment again, or an older item with no payment on record) or 'duplicate'
+-- (they already own it from a DIFFERENT payment: the second payment should be returned).
+DROP FUNCTION IF EXISTS pro_grant_item(uuid, text, text);
+CREATE OR REPLACE FUNCTION pro_grant_item(p_user uuid, p_item text, p_source text DEFAULT 'stripe', p_ref text DEFAULT NULL) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE had text; have boolean;
+BEGIN
+  INSERT INTO pro_items (user_id, item_id, source, payment_ref) VALUES (p_user, p_item, coalesce(p_source, 'stripe'), p_ref)
+  ON CONFLICT (user_id, item_id) DO NOTHING;
+  IF FOUND THEN RETURN 'granted'; END IF;
+  SELECT payment_ref INTO had FROM pro_items WHERE user_id = p_user AND item_id = p_item;
+  IF had IS NULL THEN
+    UPDATE pro_items SET payment_ref = p_ref WHERE user_id = p_user AND item_id = p_item;
+    RETURN 'already';
+  END IF;
+  IF p_ref IS NULL OR p_ref = had THEN RETURN 'already'; END IF;
+  RETURN 'duplicate';
+END $$;
 
 -- Take back a premium item after a full refund. Service role only.
-CREATE OR REPLACE FUNCTION pro_revoke_item(p_user uuid, p_item text) RETURNS void
+-- With p_ref, only if that payment is the one that bought it (the refund of a duplicate payment must not take the item).
+DROP FUNCTION IF EXISTS pro_revoke_item(uuid, text);
+CREATE OR REPLACE FUNCTION pro_revoke_item(p_user uuid, p_item text, p_ref text DEFAULT NULL) RETURNS void
 LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
-  DELETE FROM pro_items WHERE user_id = p_user AND item_id = p_item;
+  DELETE FROM pro_items WHERE user_id = p_user AND item_id = p_item AND (p_ref IS NULL OR payment_ref IS NULL OR payment_ref = p_ref);
 $$;
 
 -- Does this member already own this premium item? Service role only (the checkout function uses it to stop a double purchase).
@@ -277,8 +296,8 @@ REVOKE ALL ON FUNCTION get_my_pro() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_grant(uuid, integer, text, text, boolean) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_revoke(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;

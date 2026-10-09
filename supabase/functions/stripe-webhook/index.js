@@ -34,6 +34,16 @@ async function isPaymentReturned(paymentIntentId) {
   return chargeReturned(pi && pi.latest_charge);
 }
 
+/** Return a payment in full. The idempotency key makes a repeated call (Stripe retries) refund it once. */
+async function refundPayment(paymentIntentId) {
+  var res = await fetch('https://api.stripe.com/v1/refunds', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + STRIPE_KEY, 'Content-Type': 'application/x-www-form-urlencoded', 'Idempotency-Key': 'dxdash-duplicate-' + paymentIntentId },
+    body: new URLSearchParams({ payment_intent: paymentIntentId, reason: 'duplicate', 'metadata[why]': 'paid twice for the same Locker item' }).toString()
+  });
+  if (!res.ok) throw new Error('Stripe said ' + res.status + ' for the refund');
+}
+
 async function rpc(name, args) {
   var r = await db.rpc(name, args);
   if (r.error) throw new Error(name + ': ' + r.error.message);
@@ -48,7 +58,7 @@ Deno.serve(async function (req) {
   var event;
   try { event = JSON.parse(raw); } catch { return new Response('bad json', { status: 400 }); }
   try {
-    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, getCharge: getCharge, getInvoice: getInvoice, listSubscriptions: listSubscriptions, isPaymentReturned: isPaymentReturned, now: now });
+    var out = await handleEvent(event, { rpc: rpc, getSubscription: getSubscription, getCharge: getCharge, getInvoice: getInvoice, listSubscriptions: listSubscriptions, isPaymentReturned: isPaymentReturned, refundPayment: refundPayment, now: now });
     if (out.handled) await rpc('pro_event_once', { p_event: event.id, p_kind: event.type }); // (a record for the owner; repeats are harmless)
     return new Response(JSON.stringify(out), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (e) {

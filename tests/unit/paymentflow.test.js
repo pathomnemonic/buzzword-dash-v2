@@ -134,6 +134,23 @@ describe('a purchase, start to finish, through the real database', () => {
     expect((await mine(U)).items).toEqual(['map_dna_helix_tunnel']);
   });
 
+  it('paying twice for one item keeps the first payment\'s item, returns the second, and that refund takes nothing', async () => {
+    const refunds = [];
+    const d = deps({ refundPayment: async (pi) => { refunds.push(pi); } });
+    const pay = (pi) => session({ payment_intent: pi, subscription: null }, { kind: 'item', item_id: 'trail_fire' });
+    expect((await handleEvent(pay('pi_a'), d)).action).toBe('item');
+    expect((await handleEvent(pay('pi_a'), d)).action).toBe('item');                 // (the same event again)
+    expect(refunds).toEqual([]);
+    expect((await handleEvent(pay('pi_b'), d)).action).toBe('item_duplicate_refunded');
+    expect(refunds).toEqual(['pi_b']);
+    const second = { id: 'ch_b', refunded: true, payment_intent: 'pi_b', metadata: { user_id: U, kind: 'item', item_id: 'trail_fire' } };
+    await handleEvent({ type: 'charge.refunded', data: { object: second } }, deps({ getCharge: async () => second }));
+    expect((await mine(U)).items).toEqual(['trail_fire']);                            // the first payment still owns it
+    const first = { id: 'ch_a', refunded: true, payment_intent: 'pi_a', metadata: { user_id: U, kind: 'item', item_id: 'trail_fire' } };
+    await handleEvent({ type: 'charge.refunded', data: { object: first } }, deps({ getCharge: async () => first }));
+    expect((await mine(U)).items).toEqual([]);                                        // refunding the first one does take it
+  });
+
   it('one person\'s purchase never shows on another\'s account', async () => {
     await handleEvent(session({ payment_intent: 'pi_i', subscription: null }, { kind: 'item', item_id: 'trail_fire' }), deps());
     await handleEvent(session({ subscription: 'sub_1' }, { plan: 'monthly' }), deps());

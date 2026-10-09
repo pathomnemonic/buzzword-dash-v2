@@ -341,9 +341,26 @@ describe('premium Locker items (real money)', () => {
     expect(await handleEvent(itemSession(), deps)).toEqual({ handled: true, action: 'item' });
     await handleEvent(itemSession(), deps);
     expect(calls.filter((c) => c[0] === 'pro_grant_item').map((c) => c[1])).toEqual([
-      { p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe' }, { p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe' }
+      { p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe', p_ref: null }, { p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe', p_ref: null }
     ]);
     expect(calls[0]).toEqual(['pro_link_customer', { p_customer: 'cus_1', p_user: 'u1' }]);
+  });
+
+  it('paying twice for the same item returns the second payment, and its refund cannot take the item the first one paid for', async () => {
+    const refunded = [];
+    const t = fake({ refundPayment: async (pi) => { refunded.push(pi); }, rpc: async (n) => (n === 'pro_grant_item' ? 'duplicate' : null) });
+    const out = await handleEvent(itemSession({ payment_intent: 'pi_second' }), t.deps);
+    expect(out.action).toBe('item_duplicate_refunded');
+    expect(refunded).toEqual(['pi_second']);
+    // the refund event for that second payment names its own payment, so the database leaves the first one's item alone
+    const u = fake({ getCharge: async () => ({ id: 'ch_2', refunded: true, payment_intent: 'pi_second', metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } }) });
+    await handleEvent({ type: 'charge.refunded', data: { object: { id: 'ch_2', refunded: true } } }, u.deps);
+    expect(u.calls).toEqual([['pro_revoke_item', { p_user: 'u1', p_item: 'trail_fire', p_ref: 'pi_second' }]]);
+    // a normal repeat of the same event (same payment) is not a duplicate and refunds nothing
+    const again = [];
+    const v = fake({ refundPayment: async (pi) => { again.push(pi); }, rpc: async (n) => (n === 'pro_grant_item' ? 'already' : null) });
+    expect((await handleEvent(itemSession({ payment_intent: 'pi_first' }), v.deps)).action).toBe('item');
+    expect(again).toEqual([]);
   });
 
   it('an unpaid session, or one with no member, grants nothing', async () => {
@@ -362,7 +379,7 @@ describe('premium Locker items (real money)', () => {
   it('a full refund takes back that item only; a partial one takes nothing; a subscription is untouched', async () => {
     const { calls, deps } = fake();
     await handleEvent({ type: 'charge.refunded', data: { object: { refunded: true, metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } } } }, deps);
-    expect(calls).toEqual([['pro_revoke_item', { p_user: 'u1', p_item: 'trail_fire' }]]);
+    expect(calls).toEqual([['pro_revoke_item', { p_user: 'u1', p_item: 'trail_fire', p_ref: null }]]);
     const t = fake();
     await handleEvent({ type: 'charge.refunded', data: { object: { refunded: false, metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } } } }, t.deps);
     expect(t.calls).toEqual([]);

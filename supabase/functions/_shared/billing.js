@@ -314,7 +314,8 @@ async function chargeOf(dispute, deps) {
 /** Who bought what, from a charge: its own notes (a one-time purchase), or those of the subscription it paid for. */
 async function purchaseOfCharge(ch, deps) {
   var m = ch.metadata || {};
-  if (m.user_id && (m.kind === 'item' || m.plan)) return { user: m.user_id, kind: m.kind === 'item' ? 'item' : 'plan', item: m.item_id, plan: m.plan };
+  var ref = typeof ch.payment_intent === 'string' ? ch.payment_intent : (ch.payment_intent && ch.payment_intent.id) || null;
+  if (m.user_id && (m.kind === 'item' || m.plan)) return { user: m.user_id, kind: m.kind === 'item' ? 'item' : 'plan', item: m.item_id, plan: m.plan, ref: ref };
   var invId = typeof ch.invoice === 'string' ? ch.invoice : ch.invoice && ch.invoice.id;
   if (!invId || !deps.getInvoice) return null;
   var inv = await deps.getInvoice(invId);
@@ -332,7 +333,7 @@ async function takeBack(ch, deps, why) {
   var rpc = deps.rpc;
   var buy = await purchaseOfCharge(ch, deps);
   if (!buy) return { handled: false };
-  if (buy.kind === 'item') { await rpc('pro_revoke_item', { p_user: buy.user, p_item: buy.item }); return { handled: true, action: 'item_' + why }; }
+  if (buy.kind === 'item') { await rpc('pro_revoke_item', { p_user: buy.user, p_item: buy.item, p_ref: buy.ref }); return { handled: true, action: 'item_' + why }; }
   if (buy.plan === 'library') { await rpc('pro_revoke_library', { p_user: buy.user }); return { handled: true, action: 'library_' + why }; }
   // (only the plan that was paid for: a lifetime refund must not end a subscription, or a trial, on the same account)
   await rpc('pro_revoke_plan', { p_user: buy.user, p_plan: buy.plan });
@@ -359,7 +360,7 @@ async function giveBack(ch, deps) {
   var rpc = deps.rpc;
   var buy = await purchaseOfCharge(ch, deps);
   if (!buy) return { handled: false };
-  if (buy.kind === 'item') { await rpc('pro_grant_item', { p_user: buy.user, p_item: buy.item, p_source: 'stripe' }); return { handled: true, action: 'item_restored' }; }
+  if (buy.kind === 'item') { await rpc('pro_grant_item', { p_user: buy.user, p_item: buy.item, p_source: 'stripe', p_ref: buy.ref }); return { handled: true, action: 'item_restored' }; }
   if (buy.plan === 'library') { await rpc('pro_grant_library', { p_user: buy.user, p_source: 'stripe' }); return { handled: true, action: 'library_restored' }; }
   if (buy.plan === 'lifetime') {
     await rpc('pro_grant_until', { p_user: buy.user, p_until: new Date((deps.now + LIFETIME_DAYS * DAY - DAY) * 1000).toISOString(), p_plan: 'lifetime', p_source: 'stripe', p_trial: false });
@@ -387,7 +388,14 @@ async function handleSession(obj, deps) {
   if (obj.customer) await rpc('pro_link_customer', { p_customer: obj.customer, p_user: userId });
   if (isItem) {
     // (granted whatever the catalog says now: someone who paid for it always gets it)
-    await rpc('pro_grant_item', { p_user: userId, p_item: obj.metadata.item_id, p_source: 'stripe' });
+    var pi = typeof obj.payment_intent === 'string' ? obj.payment_intent : (obj.payment_intent && obj.payment_intent.id) || null;
+    var got = await rpc('pro_grant_item', { p_user: userId, p_item: obj.metadata.item_id, p_source: 'stripe', p_ref: pi });
+    // Paid twice for the same thing (two checkout pages open, both paid): the first payment keeps the item and the second
+    // is returned in full, so nobody is charged for something they already have.
+    if (got === 'duplicate' && pi && deps.refundPayment) {
+      await deps.refundPayment(pi);
+      return { handled: true, action: 'item_duplicate_refunded' };
+    }
     return { handled: true, action: 'item' };
   }
   if (p.def.plan === 'library') { await rpc('pro_grant_library', { p_user: userId, p_source: 'stripe' }); return { handled: true, action: 'library' }; }

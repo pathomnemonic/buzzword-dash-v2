@@ -132,7 +132,7 @@ Deno.serve(async function (req) {
           return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !chargeReturned(ch);
         });
         for (var it of bought) {
-          var ir = await admin.rpc('pro_grant_item', { p_user: user.id, p_item: it.metadata.item_id, p_source: 'stripe' });
+          var ir = await admin.rpc('pro_grant_item', { p_user: user.id, p_item: it.metadata.item_id, p_source: 'stripe', p_ref: typeof it.payment_intent === 'string' ? it.payment_intent : (it.payment_intent && it.payment_intent.id) || null });
           if (ir.error) throw new Error(ir.error.message);
           granted.push('item:' + it.metadata.item_id);
         }

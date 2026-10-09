@@ -180,3 +180,41 @@ describe('each file on its own already closes what it owns (so a missed lockdown
     }
   }, 90000);
 });
+
+
+describe('database/audit.sql, the check the owner runs on the live project', () => {
+  const text = readFileSync('database/audit.sql', 'utf8');
+  const listFrom = (sql, marker) => {
+    const at = sql.indexOf('ARRAY[', sql.indexOf(marker));
+    return (sql.slice(at, sql.indexOf(']', at)).match(/'([a-z_]+)'/g) || []).map((x) => x.replace(/'/g, '')).sort();
+  };
+
+  it('uses the same lists as lockdown.sql and this test', () => {
+    const lock = readFileSync('database/lockdown.sql', 'utf8');
+    expect(listFrom(text, 'signed_in AS')).toEqual(SIGNED_IN.slice().sort());
+    expect(listFrom(lock, 'signed_in text[]')).toEqual(SIGNED_IN.slice().sort());
+    expect(listFrom(text, 'open_to_all AS')).toEqual(OPEN_TO_ALL.slice().sort());
+    expect(listFrom(lock, 'open_to_all text[]')).toEqual(OPEN_TO_ALL.slice().sort());
+  });
+
+  it('finds the holes on a database with only Supabase\'s default grants, and finds nothing once locked down', async () => {
+    const open = await supabaseLikeDb();
+    await load(open, ORDER.filter((f) => f !== 'policies').concat([]));
+    const before = (await open.query(text.replace(/;\s*$/, ''))).rows;
+    expect(before.length).toBeGreaterThan(10);
+    expect(before.map((r) => r.problem)).toContain('function a signed-in player can call that the app does not use');
+
+    const locked = await supabaseLikeDb();
+    await load(locked, ORDER.concat(['lockdown']));
+    const after = (await locked.query(text.replace(/;\s*$/, ''))).rows;
+    expect(after).toEqual([]);
+  }, 120000);
+
+  it('every function that runs with the owner\'s rights fixes its search path', async () => {
+    const db = await supabaseLikeDb();
+    await load(db, ORDER.concat(['lockdown']));
+    const rows = (await db.query(`SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+      WHERE n.nspname = 'public' AND p.prosecdef AND NOT coalesce(p.proconfig::text ILIKE '%search_path=%', false)`)).rows;
+    expect(rows).toEqual([]);
+  }, 120000);
+});

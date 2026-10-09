@@ -83,7 +83,7 @@ describe('stripe-webhook', () => {
     const res = await h(await signed(itemEvent));
     expect(res.status).toBe(200);
     expect(db.map((c) => c[0])).toEqual(['pro_link_customer', 'pro_grant_item', 'pro_event_once']);
-    expect(db[1][1]).toEqual({ p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe' });
+    expect(db[1][1]).toEqual({ p_user: 'u1', p_item: 'trail_fire', p_source: 'stripe', p_ref: null });
   });
 
   it('does not hand back a purchase whose payment was already refunded', async () => {
