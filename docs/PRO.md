@@ -196,3 +196,35 @@ What changed for payments:
 - Paying twice for one Locker item returns the second payment in full.
 - A purchase that is on its way is checked against Stripe every ten minutes until it arrives.
 - Deleting an account cancels a subscription that is still billing first; if it cannot, nothing is deleted.
+
+
+## Locker items: the store products to create (all non-consumable)
+
+Create each of these in **Play Console → Monetize → In-app products** and **App Store Connect → In-App Purchases** with exactly these ids and the price in the table (the website charges the same US-dollar price from `supabase/functions/_shared/premium.js`; the stores convert it to local currencies). Until a store lists one, its Locker button says "Soon" instead of a price. `tests/unit/premium.test.js` fails if this table and the catalog drift apart.
+
+| Product id | Type | USD | Item |
+| --- | --- | --- | --- |
+| `dxdash_item_avatar_m_king` | non-consumable | 2.99 | Attending Arthur |
+| `dxdash_item_avatar_m_alien` | non-consumable | 2.49 | Anatomy Abby |
+| `dxdash_item_avatar_m_robot` | non-consumable | 2.49 | MRI Mo |
+| `dxdash_item_avatar_m_wizard` | non-consumable | 1.99 | Pharmacist Pip |
+| `dxdash_item_avatar_m_ninja` | non-consumable | 1.99 | Night-Shift Nico |
+| `dxdash_item_monster_m_dragon` | non-consumable | 1.49 | Dragon Lecturer |
+| `dxdash_item_map_aquarium_imaging_center` | non-consumable | 1.49 | Aquarium Imaging Center |
+| `dxdash_item_map_dna_helix_tunnel` | non-consumable | 1.49 | DNA Helix Tunnel |
+| `dxdash_item_trail_fire` | non-consumable | 0.99 | Fire Trail |
+| `dxdash_item_trail_neural` | non-consumable | 0.99 | Neural Sparks |
+| `dxdash_item_trail_blood` | non-consumable | 0.99 | Blood Cells |
+
+## Checking phone-store purchases on the server (optional, recommended)
+
+Without it, a phone purchase is known only to the phone. With it (`supabase/functions/iap-verify`), the purchase is confirmed with Google Play / the App Store, attached to the player's account (so it shows on the website and on a new phone), a refund is noticed, and one purchase cannot be used on several accounts.
+
+1. Deploy it: `supabase functions deploy iap-verify`.
+2. Secrets. Google Play: `GOOGLE_PLAY_PACKAGE` (`com.pathomnemonic.dxdash`), `GOOGLE_SA_EMAIL`, `GOOGLE_SA_PRIVATE_KEY` (a service account added in Play Console → Users and permissions with "View financial data" and "Manage orders and subscriptions"). App Store: `APPLE_BUNDLE_ID`, `APPLE_IAP_ISSUER_ID`, `APPLE_IAP_KEY_ID`, `APPLE_IAP_PRIVATE_KEY` (App Store Connect → Users and Access → Integrations → In-App Purchase key).
+3. Re-run `database/pro.sql` and `database/lockdown.sql`.
+4. Build the apps with `VITE_IAP_VERIFY=1` (and test with sandbox purchases first: `docs/PAYMENT-CHECKS.md` §4). If the function or a secret is missing, the app behaves exactly as before.
+
+## Sign in with Apple and account deletion
+
+Apple requires that deleting an account also revokes the Sign in with Apple login. The app keeps the Apple token server-side only (table `apple_tokens`) and `pro-checkout` revokes it on deletion. Set the secrets `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the .p8 key text, with a "Sign in with Apple" capability) and `APPLE_CLIENT_ID` (the same Services ID that Supabase's Apple provider uses). Without them the account is still deleted (the function logs that it could not revoke), so set them before an iOS launch.

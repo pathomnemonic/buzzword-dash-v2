@@ -18,6 +18,17 @@ beforeEach(async () => {
   storage.load();
 });
 
+describe('the store product list in docs/PRO.md', () => {
+  it('names every premium item with its price, so nothing is forgotten when the stores are set up', async () => {
+    const { readFileSync } = await import('node:fs');
+    const doc = readFileSync('docs/PRO.md', 'utf8');
+    Object.keys(PREMIUM_ITEMS).forEach((id) => {
+      expect(doc, id).toContain('`dxdash_item_' + id + '`');
+      expect(doc, id).toContain((PREMIUM_ITEMS[id] / 100).toFixed(2));
+    });
+  });
+});
+
 describe('the premium catalog', () => {
   it('every premium item is a real Locker item, with a dollar price and no coin price', () => {
     Object.keys(PREMIUM_ITEMS).forEach((id) => {

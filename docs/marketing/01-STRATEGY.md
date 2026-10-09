@@ -4,7 +4,7 @@
 
 **Dx Dash is the study game you can actually stick with: run, dodge, and answer real board-style questions until the facts stick.**
 
-It is a real endless runner (3D tracks, power-ups, a monster chasing you) where the "gates" you run through are answers to USMLE and COMLEX style clinical vignettes. 3,010 cards across 15 subjects, spaced repetition under the hood, streaks, leaderboards, friends, a daily challenge. Free to start (300 cards); Pro unlocks the full bank and the study tools.
+It is a real endless runner (3D tracks, power-ups, a monster chasing you) where the "gates" you run through are answers to USMLE and COMLEX style clinical vignettes. 3,010 cards across 15 subjects, spaced repetition under the hood, streaks, friends, study groups, a daily challenge. Free to start (300 cards); Pro unlocks the full bank and the study tools.
 
 ## 2. Who it is for
 
