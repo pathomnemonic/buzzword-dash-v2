@@ -62,6 +62,7 @@ var _subscriptions = [];
 var _disposed = false;
 var _authError = null;
 var _authListeners = [];
+var _authSettings = null;
 
 // ===== MODE LABELS (for display — UI agent may override) =====
 
@@ -341,6 +342,50 @@ var leaderboard = {
       return { success: true, error: null };
     }).catch(function (e) {
       return { success: false, error: e.message };
+    });
+  },
+
+  /**
+   * Which sign-in providers are switched on in Supabase (its public auth settings), so only working buttons are shown.
+   * Resolves the "external" map ({ google: true, ... }), or null when it could not be read.
+   */
+  getAuthSettings: function () {
+    if (!isConfigured()) return Promise.resolve(null);
+    if (_authSettings) return Promise.resolve(_authSettings);
+    return fetch(SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: SUPABASE_ANON_KEY } }).then(function (res) {
+      return res.ok ? res.json() : null;
+    }).then(function (j) {
+      _authSettings = j && j.external && typeof j.external === 'object' ? j.external : null;
+      return _authSettings;
+    }).catch(function () { return null; });
+  },
+
+  /**
+   * Email a one-tap sign-in link (no password).
+   *  - `link: true` (a guest choosing "I am new"): the guest account is upgraded in place with that email, which Supabase
+   *    asks them to confirm; their scores, friends and groups stay.
+   *  - otherwise (a returning player): signs in to the existing account. It never makes a new one by accident.
+   * @param {string} email
+   * @param {{link?: boolean}} [opts]
+   * @returns {Promise<{success: boolean, error: string|null}>}
+   */
+  sendSignInLink: function (email, opts) {
+    if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
+    email = String(email || '').trim();
+    if (!EMAIL_PATTERN.test(email)) return Promise.resolve({ success: false, error: 'Enter a valid email address.' });
+    var guest = !!(_session && _session.user && _session.user.is_anonymous);
+    var request = (opts && opts.link && guest)
+      ? _client.auth.updateUser({ email: email }, { emailRedirectTo: getRedirectUrl() })
+      : _client.auth.signInWithOtp({ email: email, options: { emailRedirectTo: getRedirectUrl(), shouldCreateUser: false } });
+    return request.then(function (res) {
+      if (res.error) {
+        var msg = (res.error && res.error.message) || '';
+        if (/signups? not allowed|user not found|otp/i.test(msg) && /not allowed|not found/i.test(msg)) return { success: false, error: 'There is no account with that email. Choose "I am new" to create one.' };
+        return { success: false, error: friendlyAuthError(res.error) };
+      }
+      return { success: true, error: null };
+    }).catch(function (e) {
+      return { success: false, error: (e && e.message) || 'Could not send the email.' };
     });
   },
 

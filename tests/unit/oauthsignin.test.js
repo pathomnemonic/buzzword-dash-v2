@@ -1,9 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { enabledProviders, providerOf, providerLabel, AUTH_PROVIDERS } from '../../js/authproviders.js';
+import { enabledProviders, providerOf, providerLabel, onlyAvailable, AUTH_PROVIDERS } from '../../js/authproviders.js';
 
 describe('which sign-in options are offered', () => {
-  it('defaults to Google and Apple (the App Store wants Apple next to any other)', () => {
-    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple']);
+  it('defaults to Google, Apple and Microsoft (the App Store wants Apple next to any other)', () => {
+    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure']);
+  });
+
+  it('shows only the ones switched on in Supabase, and everything configured when that cannot be read', () => {
+    const list = enabledProviders();
+    expect(onlyAvailable(list, { google: true, apple: false, azure: true, email: true }).map((p) => p.id)).toEqual(['google', 'azure']);
+    expect(onlyAvailable(list, {})).toEqual([]);
+    expect(onlyAvailable(list, null)).toBe(list);
   });
 
   it('follows the setting, in order, ignoring unknown names and repeats', () => {
@@ -137,13 +144,17 @@ describe('the account panel', () => {
     const sent = [];
     const lb = {
       getStatus: () => ({ configured: true, authenticated: true, anonymous: true, email: '', pendingEmail: '' }),
+      getAuthSettings: async () => ({ google: true, apple: true, azure: false }),
+      sendSignInLink: async (e, o) => { sent.push(['link', e, o]); return { success: true }; },
       signInWithProvider: async (p, o) => { sent.push([p, o]); return { success: true, redirected: true }; }
     };
     const body = document.createElement('div');
     const deps = { leaderboard: lb, toast() {}, rerender() { body.textContent = ''; renderAccountPanel(body, deps); } };
     renderAccountPanel(body, deps);
+    expect(body.querySelectorAll('.auth-provider')).toHaveLength(0); // (nothing until it is known which work)
+    await new Promise((r) => setTimeout(r, 0));
     const buttons = [...body.querySelectorAll('.auth-provider')];
-    expect(buttons.map((b) => b.dataset.provider)).toEqual(['google', 'apple']);
+    expect(buttons.map((b) => b.dataset.provider)).toEqual(['google', 'apple']); // (Microsoft is not switched on, so it is not shown)
     expect(body.querySelector('form')).toBeTruthy();
     buttons[0].click();
     await Promise.resolve();
@@ -153,5 +164,70 @@ describe('the account panel', () => {
     body.querySelector('[data-provider="apple"]').click();
     await Promise.resolve();
     expect(sent[1]).toEqual(['apple', { link: false }]);
+    // the password-free option: the email typed above gets a sign-in link
+    body.querySelector('input[type="email"]').value = 'a@b.co';
+    body.querySelector('[data-magic]').click();
+    await Promise.resolve();
+    expect(sent[2]).toEqual(['link', 'a@b.co', { link: false }]);
+  });
+});
+
+
+describe('emailed sign-in links', () => {
+  let sentTo;
+  async function bootLink(authOver) {
+    vi.resetModules();
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://x.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
+    sentTo = [];
+    window.supabase = { createClient: () => ({ auth: Object.assign({
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+      getSession: async () => ({ data: { session: { user } } }),
+      signInAnonymously: async () => ({ data: { session: { user: { id: 'anon', is_anonymous: true } } } }),
+      signInWithOtp: async (a) => { sentTo.push(['otp', a]); return { error: null }; },
+      updateUser: async (a, o) => { sentTo.push(['update', a, o]); return { error: null }; }
+    }, authOver || {}) }) };
+    const { leaderboard } = await import('../../js/leaderboard.js');
+    await leaderboard.init();
+    return leaderboard;
+  }
+  afterEach(() => { vi.unstubAllEnvs(); delete window.supabase; });
+
+  it('a new guest is upgraded in place with that email (their scores and friends stay)', async () => {
+    user = { id: 'g1', email: '', is_anonymous: true };
+    const lb = await bootLink();
+    expect((await lb.sendSignInLink('a@b.co', { link: true })).success).toBe(true);
+    expect(sentTo[0][0]).toBe('update');
+    expect(sentTo[0][1]).toEqual({ email: 'a@b.co' });
+  });
+
+  it('a returning player is signed in to the account that exists, and never gets a new one by accident', async () => {
+    user = { id: 'g1', email: '', is_anonymous: true };
+    const lb = await bootLink();
+    await lb.sendSignInLink('a@b.co', { link: false });
+    expect(sentTo[0][0]).toBe('otp');
+    expect(sentTo[0][1].options.shouldCreateUser).toBe(false);
+  });
+
+  it('says so plainly when there is no such account, or the address is wrong', async () => {
+    user = { id: 'g1', email: '', is_anonymous: true };
+    const lb = await bootLink({ signInWithOtp: async () => ({ error: { message: 'Signups not allowed for otp' } }) });
+    expect((await lb.sendSignInLink('nobody@b.co')).error).toMatch(/no account with that email/i);
+    expect((await lb.sendSignInLink('not an email')).error).toMatch(/valid email/i);
+  });
+
+  it('reads which providers Supabase has switched on', async () => {
+    user = { id: 'g1', email: '', is_anonymous: true };
+    const lb = await bootLink();
+    globalThis.fetch = vi.fn(async () => ({ ok: true, json: async () => ({ external: { google: true, apple: false, email: true } }) }));
+    expect(await lb.getAuthSettings()).toEqual({ google: true, apple: false, email: true });
+    expect(globalThis.fetch.mock.calls[0][0]).toBe('https://x.supabase.co/auth/v1/settings');
+  });
+
+  it('a failed read leaves the list as configured', async () => {
+    user = { id: 'g1', email: '', is_anonymous: true };
+    const lb = await bootLink();
+    globalThis.fetch = vi.fn(async () => { throw new Error('offline'); });
+    expect(await lb.getAuthSettings()).toBeNull();
   });
 });

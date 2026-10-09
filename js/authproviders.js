@@ -1,9 +1,9 @@
 /**
  * authproviders.js — the "Continue with ..." sign-in options.
  *
- * Which ones are offered is a build setting, VITE_AUTH_PROVIDERS (a comma-separated list, default "google,apple"), and a
- * provider must also be switched on in Supabase (Authentication → Sign In / Providers) or its button fails with a clear
- * message. Only providers that always hand over a verified email are listed: a sign-in with no email is treated as a
+ * Which ones are offered is a build setting, VITE_AUTH_PROVIDERS (a comma-separated list, default "google,apple,azure"), and a
+ * provider must also be switched on in Supabase (Authentication → Sign In / Providers); one that is not switched on is
+ * simply not shown (see onlyAvailable). Only providers that always hand over a verified email are listed: a sign-in with no email is treated as a
  * guest everywhere (no purchases, no codes, no trial), so an option that can come back without one would be a trap.
  *
  * Apple is on by default because the App Store requires "Sign in with Apple" next to any other third-party sign-in.
@@ -18,7 +18,7 @@ export var AUTH_PROVIDERS = {
   facebook: { id: 'facebook', label: 'Facebook', icon: 'f', scopes: 'email' }
 };
 
-var DEFAULT_LIST = 'google,apple';
+var DEFAULT_LIST = 'google,apple,azure';
 
 /** The providers to offer, in the order listed in the setting. Unknown names are ignored. */
 export function enabledProviders(setting) {
@@ -30,6 +30,16 @@ export function enabledProviders(setting) {
     seen[id] = true;
     return true;
   }).map(function (id) { return AUTH_PROVIDERS[id]; });
+}
+
+/**
+ * Keep only the providers that are actually switched on in Supabase, so a player is never shown a button that cannot
+ * work. `external` is the "external" object of Supabase's public auth settings ({ google: true, apple: false, ... });
+ * when it is not known (offline, or the call failed) the list is left as configured and a failed button explains itself.
+ */
+export function onlyAvailable(list, external) {
+  if (!external || typeof external !== 'object') return list;
+  return list.filter(function (p) { return external[p.id] === true; });
 }
 
 /** The provider an account signed in with, from Supabase's user object ('email' for a password account). */

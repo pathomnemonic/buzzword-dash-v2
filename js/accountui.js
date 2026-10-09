@@ -3,7 +3,7 @@
  * "which save do you want?" dialog. Safe DOM only.
  */
 
-import { enabledProviders, providerLabel } from './authproviders.js';
+import { enabledProviders, providerLabel, onlyAvailable } from './authproviders.js';
 import { track } from './analytics/index.js';
 import { createElement } from './dom.js';
 
@@ -12,6 +12,9 @@ var INPUT_STYLE = 'width:100%;padding:9px 11px;border-radius:10px;background:rgb
 var _mode = 'signup'; // signup | signin | reset
 var _recovery = false;
 var _busyMessage = '';
+var _external; // which providers Supabase has switched on (null: could not be read)
+var _externalAsked = false;
+var _externalDone = false;
 
 /** Called by main.js when a password-reset link brings the player back. */
 export function beginPasswordRecovery() {
@@ -120,7 +123,15 @@ function renderGuest(body, deps, status) {
 
   // "Continue with Google / Apple": no password to make or remember. "I am new" upgrades this guest in place (so scores,
   // friends and groups stay); "I have an account" signs in to the one that exists.
-  var providers = _mode === 'reset' ? [] : enabledProviders();
+  if (!_externalAsked && deps.leaderboard.getAuthSettings) {
+    _externalAsked = true; // (asked once; the panel is drawn again with the answer)
+    var settled = function (ext) { _external = ext; _externalDone = true; deps.rerender(); };
+    deps.leaderboard.getAuthSettings().then(settled, function () { settled(null); });
+  } else if (!deps.leaderboard.getAuthSettings) {
+    _externalDone = true;
+  }
+  // (no buttons until it is known which work, so none appears and then vanishes)
+  var providers = _mode === 'reset' || !_externalDone ? [] : onlyAvailable(enabledProviders(), _external);
   if (providers.length) {
     var row = createElement('div', { className: 'auth-providers' });
     row.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin:8px 0';
@@ -202,6 +213,23 @@ function renderGuest(body, deps, status) {
     run.then(function () { submit.disabled = false; }, function () { submit.disabled = false; });
   });
   body.appendChild(form);
+
+  // No password to remember: one tap on a link emailed to the address typed above
+  if (_mode !== 'reset') {
+    var linkBtn = createElement('button', { className: 'btn btn-outline btn-block', text: '✉ Email me a sign-in link instead', attributes: { type: 'button', 'data-magic': '1' } });
+    linkBtn.style.marginTop = '8px';
+    linkBtn.addEventListener('click', function () {
+      linkBtn.disabled = true;
+      deps.leaderboard.sendSignInLink(email.value, { link: _mode === 'signup' }).then(function (res) {
+        track('account_event', { action: res.success ? 'signin_link_sent' : 'signin_link_failed', method: 'email', ok: !!res.success });
+        linkBtn.disabled = false;
+        if (!res.success) return deps.toast(res.error || 'Could not send the email.');
+        _busyMessage = 'We emailed ' + email.value.trim() + '. Open the link in that email to finish. Check spam if you do not see it.';
+        deps.rerender();
+      });
+    });
+    body.appendChild(linkBtn);
+  }
 
   if (_mode === 'signin') {
     var forgot = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Forgot password?', attributes: { type: 'button' } });
