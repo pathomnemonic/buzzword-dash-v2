@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, itemCheckoutParams, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, chargeReturned, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, itemCheckoutParams, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -257,23 +257,29 @@ describe('a payment is never lost to a missing field, a free renewal or an odd o
   });
 
   it('a chargeback takes the purchase back, a lost one keeps it taken, and a won one gives it again', async () => {
-    const charge = { id: 'ch_1', metadata: { user_id: 'u1', plan: 'lifetime' } };
+    // (the charge as Stripe describes it at each stage; the handler reads it fresh whatever event woke it)
+    const open = { id: 'ch_1', disputed: true, dispute: { status: 'needs_response' }, metadata: { user_id: 'u1', plan: 'lifetime' } };
+    const lostC = { ...open, dispute: { status: 'lost' } };
+    const wonC = { ...open, dispute: { status: 'won' } };
     const dispute = (type, status) => ({ type, data: { object: { charge: 'ch_1', status } } });
-    let t = fake({ getCharge: async () => charge });
+    let t = fake({ getCharge: async () => open });
     expect((await handleEvent(dispute('charge.dispute.created'), t.deps)).action).toBe('lifetime_disputed');
     expect(t.calls).toEqual([['pro_revoke_plan', { p_user: 'u1', p_plan: 'lifetime' }]]);
-    t = fake({ getCharge: async () => charge });
+    t = fake({ getCharge: async () => lostC });
     expect((await handleEvent(dispute('charge.dispute.closed', 'lost'), t.deps)).action).toBe('lifetime_disputed');
-    t = fake({ getCharge: async () => charge });
+    t = fake({ getCharge: async () => wonC });
     expect((await handleEvent(dispute('charge.dispute.closed', 'won'), t.deps)).action).toBe('lifetime_restored');
     expect(t.calls[0][0]).toBe('pro_grant_until');
     // an item, too
-    t = fake({ getCharge: async () => ({ id: 'ch_2', metadata: { user_id: 'u1', kind: 'item', item_id: 'trail_fire' } }) });
+    const itemMeta = { user_id: 'u1', kind: 'item', item_id: 'trail_fire' };
+    let stage = { id: 'ch_2', disputed: true, dispute: { status: 'needs_response' }, metadata: itemMeta };
+    t = fake({ getCharge: async () => stage });
     await handleEvent(dispute('charge.dispute.created'), t.deps);
+    stage = { ...stage, dispute: { status: 'won' } };
     await handleEvent(dispute('charge.dispute.closed', 'won'), t.deps);
     expect(t.calls.map((c) => c[0])).toEqual(['pro_revoke_item', 'pro_grant_item']);
     // a charge we cannot match to anyone changes nothing
-    t = fake({ getCharge: async () => ({ id: 'ch_3', metadata: {} }) });
+    t = fake({ getCharge: async () => ({ id: 'ch_3', disputed: true, dispute: { status: 'lost' }, metadata: {} }) });
     expect((await handleEvent(dispute('charge.dispute.created'), t.deps)).handled).toBe(false);
     expect(t.calls).toEqual([]);
   });
@@ -360,5 +366,20 @@ describe('premium Locker items (real money)', () => {
     const t = fake();
     await handleEvent({ type: 'charge.refunded', data: { object: { refunded: false, metadata: { kind: 'item', item_id: 'trail_fire', user_id: 'u1' } } } }, t.deps);
     expect(t.calls).toEqual([]);
+  });
+});
+
+describe('which charges count as given back', () => {
+  it('a refund does; an open or lost chargeback does; a won one or a closed inquiry does not', () => {
+    expect(chargeReturned({ refunded: true })).toBe(true);
+    expect(chargeReturned({ disputed: true, dispute: { status: 'needs_response' } })).toBe(true);
+    expect(chargeReturned({ disputed: true, dispute: { status: 'under_review' } })).toBe(true);
+    expect(chargeReturned({ disputed: true, dispute: { status: 'lost' } })).toBe(true);
+    expect(chargeReturned({ disputed: true, dispute: 'dp_1' })).toBe(true);      // (not expanded: err on the side of caution)
+    expect(chargeReturned({ disputed: true, dispute: { status: 'won' } })).toBe(false);
+    expect(chargeReturned({ disputed: true, dispute: { status: 'warning_closed' } })).toBe(false);
+    expect(chargeReturned({ refunded: false, disputed: false })).toBe(false);
+    expect(chargeReturned(null)).toBe(false);
+    expect(chargeReturned('ch_1')).toBe(false);
   });
 });

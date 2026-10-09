@@ -124,10 +124,12 @@ describe('a purchase, start to finish, through the real database', () => {
 
   it('a chargeback takes the item away, and winning it gives it back', async () => {
     await handleEvent(session({ payment_intent: 'pi_i', subscription: null }, { kind: 'item', item_id: 'map_dna_helix_tunnel' }), deps());
-    const charge = { id: 'ch_1', metadata: { user_id: U, kind: 'item', item_id: 'map_dna_helix_tunnel' } };
+    const meta = { user_id: U, kind: 'item', item_id: 'map_dna_helix_tunnel' };
+    let charge = { id: 'ch_1', disputed: true, dispute: { status: 'needs_response' }, metadata: meta };
     const d = deps({ getCharge: async () => charge });
     await handleEvent({ type: 'charge.dispute.created', data: { object: { charge: 'ch_1' } } }, d);
     expect((await mine(U)).items).toEqual([]);
+    charge = { ...charge, dispute: { status: 'won' } };
     await handleEvent({ type: 'charge.dispute.closed', data: { object: { charge: 'ch_1', status: 'won' } } }, d);
     expect((await mine(U)).items).toEqual(['map_dna_helix_tunnel']);
   });
@@ -161,4 +163,60 @@ describe('a purchase, start to finish, through the real database', () => {
     await db.exec(`UPDATE pro_codes SET expires_at = now() - interval '1 hour' WHERE code = '${old}'`);
     expect((await asUser(V, `SELECT redeem_pro_code('${old}') AS r`)).r.ok).toBe(false);
   });
+});
+
+// Events from Stripe can arrive late, twice, or in any order. Whatever the order, the member must end up with exactly what
+// Stripe says they paid for and have not got back.
+describe('payment events in any order', () => {
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  const shuffle = (r, a) => { const x = a.slice(); for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; } return x; };
+
+  const KINDS = [
+    { id: 'trail_fire', meta: { kind: 'item', item_id: 'trail_fire' } },
+    { id: 'map_dna_helix_tunnel', meta: { kind: 'item', item_id: 'map_dna_helix_tunnel' } },
+    { id: 'lifetime', meta: { plan: 'lifetime' } }
+  ];
+
+  it('ends with exactly what was paid for and not given back, for 400 random shuffles, repeats and outcomes', async () => {
+    const problems = [];
+    for (let seed = 1; seed <= 400; seed++) {
+      await db.exec('TRUNCATE pro_entitlements, pro_items, pro_library, pro_stripe_customers, pro_stripe_events, pro_trials');
+      const r = rng(seed);
+      const buys = KINDS.filter(() => r() < 0.8).map((k) => {
+        const roll = r();
+        // what finally happened to the money
+        const outcome = roll < 0.5 ? 'kept' : roll < 0.7 ? 'refunded' : roll < 0.82 ? 'lost' : roll < 0.94 ? 'won' : 'open';
+        return { ...k, pi: 'pi_' + seed + k.id, ch: 'ch_' + seed + k.id, outcome };
+      });
+      const stripeCharge = (b) => ({
+        id: b.ch, refunded: b.outcome === 'refunded', disputed: ['lost', 'won', 'open'].includes(b.outcome),
+        dispute: b.outcome === 'lost' ? { status: 'lost' } : b.outcome === 'won' ? { status: 'won' } : b.outcome === 'open' ? { status: 'under_review' } : null,
+        metadata: Object.assign({ user_id: U }, b.meta)
+      });
+      const byCharge = Object.fromEntries(buys.map((b) => [b.ch, b]));
+      const events = [];
+      buys.forEach((b) => {
+        events.push(session({ payment_intent: b.pi, subscription: null }, b.meta));
+        if (b.outcome === 'refunded') events.push({ id: 'e', type: 'charge.refunded', data: { object: { id: b.ch, refunded: true, metadata: { user_id: U, ...b.meta } } } });
+        if (['lost', 'won', 'open'].includes(b.outcome)) events.push({ id: 'e', type: 'charge.dispute.created', data: { object: { charge: b.ch } } });
+        if (b.outcome === 'lost' || b.outcome === 'won') events.push({ id: 'e', type: 'charge.dispute.closed', data: { object: { charge: b.ch, status: b.outcome } } });
+      });
+      // every event arrives at least once, in any order, some more than once
+      const delivered = shuffle(r, events.concat(events.filter(() => r() < 0.3)));
+      const d = deps({
+        getCharge: async (id) => stripeCharge(byCharge[id]),
+        isPaymentReturned: async (pi) => { const b = buys.find((x) => x.pi === pi); return b ? ['refunded', 'lost', 'open'].includes(b.outcome) : false; }
+      });
+      for (const ev of delivered) await handleEvent(ev, d);
+
+      const have = await mine(U);
+      const expectedItems = buys.filter((b) => b.meta.kind === 'item' && ['kept', 'won'].includes(b.outcome)).map((b) => b.id).sort();
+      const expectLife = buys.some((b) => b.id === 'lifetime' && ['kept', 'won'].includes(b.outcome));
+      if (JSON.stringify((have.items || []).slice().sort()) !== JSON.stringify(expectedItems) || (have.active && have.plan === 'lifetime') !== expectLife) {
+        problems.push({ seed, buys: buys.map((b) => b.id + ':' + b.outcome), order: delivered.map((e) => e.type.replace('checkout.session.completed', 'paid') + (e.data.object.status ? ':' + e.data.object.status : '')), have: { active: have.active, plan: have.plan, items: have.items }, expectedItems, expectLife });
+        if (problems.length >= 3) break;
+      }
+    }
+    expect(problems).toEqual([]);
+  }, 120000);
 });

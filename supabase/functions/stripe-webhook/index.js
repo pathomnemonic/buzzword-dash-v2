@@ -4,11 +4,11 @@
 // Secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET (Supabase sets SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY itself)
 // In Stripe: Developers -> Webhooks -> add https://<project>.supabase.co/functions/v1/stripe-webhook and send
 //   checkout.session.completed, checkout.session.async_payment_succeeded, invoice.paid, charge.refunded,
-//   charge.dispute.created and charge.dispute.closed.
+//   charge.dispute.created, charge.dispute.updated and charge.dispute.closed.
 // Every request is checked against the webhook signing secret first; anything unsigned is refused.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { verifyStripeSignature, handleEvent } from '../_shared/billing.js';
+import { verifyStripeSignature, handleEvent, chargeReturned } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var SIGNING_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
@@ -25,14 +25,13 @@ async function stripeGet(path) {
   if (!res.ok) throw new Error('Stripe said ' + res.status + ' for ' + path.split('?')[0]);
   return res.json();
 }
-function getCharge(id) { return stripeGet('charges/' + encodeURIComponent(id)); }
+function getCharge(id) { return stripeGet('charges/' + encodeURIComponent(id) + '?expand[]=dispute'); }
 async function listSubscriptions(customer) { var r = await stripeGet('subscriptions?customer=' + encodeURIComponent(customer) + '&status=all&limit=10'); return (r && r.data) || []; }
 function getInvoice(id) { return stripeGet('invoices/' + encodeURIComponent(id)); }
 /** Has this payment already been refunded, or is it in dispute? (A late "completed" event must not hand it back.) */
 async function isPaymentReturned(paymentIntentId) {
-  var pi = await stripeGet('payment_intents/' + encodeURIComponent(paymentIntentId) + '?expand[]=latest_charge');
-  var ch = pi && pi.latest_charge;
-  return !!(ch && typeof ch === 'object' && (ch.refunded || ch.disputed));
+  var pi = await stripeGet('payment_intents/' + encodeURIComponent(paymentIntentId) + '?expand[]=latest_charge.dispute');
+  return chargeReturned(pi && pi.latest_charge);
 }
 
 async function rpc(name, args) {

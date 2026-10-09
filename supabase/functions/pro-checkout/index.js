@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PRODUCTS, LIFETIME_DAYS, configuredProducts, describePrice, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
 import { isPremiumItem } from '../_shared/premium.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
@@ -121,15 +121,15 @@ Deno.serve(async function (req) {
           granted.push(g.plan);
         }
         // a lifetime purchase (and not refunded)
-        var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=100&expand[]=data.payment_intent.latest_charge');
+        var sessions = await stripe('checkout/sessions?customer=' + encodeURIComponent(customerId) + '&limit=100&expand[]=data.payment_intent.latest_charge.dispute');
         var life = ((sessions && sessions.data) || []).filter(function (x) {
           var ch = x.payment_intent && x.payment_intent.latest_charge;
-          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !ch.refunded && !ch.disputed;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.plan === 'lifetime' && ch && typeof ch === 'object' && !chargeReturned(ch);
         })[0];
         // premium items bought with this customer (and not refunded)
         var bought = ((sessions && sessions.data) || []).filter(function (x) {
           var ch = x.payment_intent && x.payment_intent.latest_charge;
-          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !ch.refunded && !ch.disputed;
+          return x.status === 'complete' && x.payment_status === 'paid' && x.metadata && x.metadata.kind === 'item' && x.metadata.item_id && ch && typeof ch === 'object' && !chargeReturned(ch);
         });
         for (var it of bought) {
           var ir = await admin.rpc('pro_grant_item', { p_user: user.id, p_item: it.metadata.item_id, p_source: 'stripe' });

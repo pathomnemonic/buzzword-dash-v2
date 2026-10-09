@@ -47,6 +47,20 @@ export function anyProductFor(planOrId) {
   return key === 'library' || key === 'dxdash_library' ? { id: 'dxdash_library', def: LEGACY.dxdash_library } : null;
 }
 
+/**
+ * Has this charge been given back? A refund, or a chargeback that is open or lost. A dispute that was won (or an inquiry
+ * that closed) leaves the charge marked "disputed" in Stripe for good, but the customer did pay, so it does not count.
+ * Expect `dispute` expanded (an object); when it is only an id, a disputed charge is treated as given back.
+ */
+export function chargeReturned(ch) {
+  if (!ch || typeof ch !== 'object') return false;
+  if (ch.refunded) return true;
+  if (!ch.disputed) return false;
+  var d = ch.dispute;
+  if (d && typeof d === 'object' && (d.status === 'won' || d.status === 'warning_closed')) return false;
+  return true;
+}
+
 /** ISO period for a Stripe recurring price: P1Y, P1M, P3M, or '' for a one-time price. */
 export function periodOf(price) {
   var r = price && price.recurring;
@@ -274,22 +288,17 @@ export async function handleEvent(event, deps) {
     return { handled: true, action: 'renewal' };
   }
 
-  // Money returned: a full refund takes the purchase back. (A partial refund leaves it.)
-  if (type === 'charge.refunded') {
-    if (!obj.refunded) return { handled: false };
-    return takeBack(obj, deps, 'refunded');
-  }
-
-  // A chargeback: the purchase is taken back while the bank looks into it, and given again if the dispute is won.
-  if (type === 'charge.dispute.created') {
-    var lost = await chargeOf(obj, deps);
-    return lost ? takeBack(lost, deps, 'disputed') : { handled: false };
-  }
-  if (type === 'charge.dispute.closed') {
-    var ch = await chargeOf(obj, deps);
+  // Money returned (a refund, or a chargeback) takes the purchase back; a chargeback that was won gives it again. These
+  // events can arrive late and out of order, so none of them is taken at its word: the charge is read fresh from Stripe
+  // and the answer follows how it stands now. The same events in any order leave the same result.
+  if (type === 'charge.refunded' || type === 'charge.dispute.created' || type === 'charge.dispute.closed' || type === 'charge.dispute.updated') {
+    var seen = type === 'charge.refunded' ? obj : await chargeOf(obj, deps);
+    if (!seen) return { handled: false };
+    var ch = deps.getCharge && seen.id ? await deps.getCharge(seen.id) : seen;
     if (!ch) return { handled: false };
-    if (obj.status === 'won') return giveBack(ch, deps);
-    return takeBack(ch, deps, 'disputed'); // (lost, or anything else: it stays taken back)
+    if (chargeReturned(ch)) return takeBack(ch, deps, ch.refunded ? 'refunded' : 'disputed');
+    if (type === 'charge.refunded') return { handled: false }; // (only part of it was refunded: the purchase stays)
+    return giveBack(ch, deps);
   }
 
   return { handled: false };
