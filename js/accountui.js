@@ -16,6 +16,24 @@ var _external; // which providers Supabase has switched on (null: could not be r
 var _externalAsked = false;
 var _externalDone = false;
 
+/** A provider's logo, drawn as a small inline picture (no image file, no outside address). */
+function providerMark(parts) {
+  var ns = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '18');
+  svg.setAttribute('height', '18');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.style.cssText = 'vertical-align:-3px;margin-right:10px';
+  parts.forEach(function (part) {
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', part.d);
+    path.setAttribute('fill', part.fill);
+    svg.appendChild(path);
+  });
+  return svg;
+}
+
 /** Called by main.js when a password-reset link brings the player back. */
 export function beginPasswordRecovery() {
   _recovery = true;
@@ -138,9 +156,10 @@ function renderGuest(body, deps, status) {
     providers.forEach(function (p) {
       var pb = createElement('button', {
         className: 'btn btn-outline btn-block auth-provider',
-        text: (p.icon ? p.icon + '  ' : '') + 'Continue with ' + p.label,
+        text: (p.mark ? '' : (p.icon ? p.icon + '  ' : '')) + 'Continue with ' + p.label,
         attributes: { type: 'button', 'data-provider': p.id }
       });
+      if (p.mark) pb.insertBefore(providerMark(p.mark), pb.firstChild);
       pb.addEventListener('click', function () {
         pb.disabled = true;
         track('account_event', { action: 'oauth_started', method: p.id });

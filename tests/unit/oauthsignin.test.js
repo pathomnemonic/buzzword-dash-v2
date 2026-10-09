@@ -156,6 +156,7 @@ describe('the account panel', () => {
     const buttons = [...body.querySelectorAll('.auth-provider')];
     expect(buttons.map((b) => b.dataset.provider)).toEqual(['google', 'apple']); // (Microsoft is not switched on, so it is not shown)
     expect(body.querySelector('form')).toBeTruthy();
+    expect(buttons.every((b) => b.querySelector('svg') && /^Continue with /.test(b.textContent))).toBe(true); // (each has its logo and plain words)
     buttons[0].click();
     await Promise.resolve();
     expect(sent[0]).toEqual(['google', { link: true }]);

@@ -81,5 +81,5 @@ You do not need a Mac: `codemagic.yaml` builds and signs the app on Codemagic's 
 - **Play rejects for "health" or "medical" content:** reply that it is a study game for exam prep, link the Terms page, and point to the in-app disclaimer (Settings → About).
 - **Play asks how you moderate user content:** `docs/MODERATION.md` is the answer (report and block buttons, a review queue, removal of abusive accounts).
 - **Apple asks for a demo account:** none is needed; say the app works without signing in.
-- **Apple asks about "Sign in with Apple":** only required if the app offers Google/Facebook-style logins; it offers email or guest only.
+- **Apple asks about "Sign in with Apple":** the app offers Continue with Apple next to Google and Microsoft, which is what Guideline 4.8 asks for, and deleting an account revokes the Apple login (see `docs/SIGNIN.md`). Make sure the Apple provider is switched on in Supabase before you submit, or the reviewer will see no Apple button.
 - **Export compliance question:** the build sets "uses no non-exempt encryption" (HTTPS only).

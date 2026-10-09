@@ -47,6 +47,20 @@ workflows:
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" $PLIST
           /usr/libexec/PlistBuddy -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string com.pathomnemonic.dxdash" $PLIST
           cd ios/App && agvtool new-version -all $BUILD_NUMBER
+      - name: Privacy manifest (App Store requirement) and iPhone-only
+        script: |
+          # Apple wants a privacy manifest for the app itself; ios-config/PrivacyInfo.xcprivacy matches the App Privacy answers
+          plutil -lint ios-config/PrivacyInfo.xcprivacy
+          cp ios-config/PrivacyInfo.xcprivacy ios/App/App/PrivacyInfo.xcprivacy
+          ruby -e '
+            require "xcodeproj"
+            proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
+            target = proj.targets.find { |t| t.name == "App" }
+            group = proj.main_group.find_subpath("App", true)
+            ref = group.new_file("PrivacyInfo.xcprivacy")
+            target.resources_build_phase.add_file_reference(ref, true)
+            target.build_configurations.each { |c| c.build_settings["TARGETED_DEVICE_FAMILY"] = "1" }  # iPhone only: no iPad screenshots or layout review needed
+            proj.save'
       - name: Set up code signing
         script: |
           xcode-project use-profiles
