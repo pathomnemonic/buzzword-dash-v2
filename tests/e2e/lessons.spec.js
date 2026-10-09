@@ -2,7 +2,7 @@
 // After the short how-to-play, every other menu has a red dot and teaches itself the first time it is opened.
 
 import { test, expect } from '@playwright/test';
-import { openApp } from './helpers.js';
+import { openApp, hasWebGL } from './helpers.js';
 
 async function openWithLessons(page) {
   await openApp(page, '/?debug=1', { lessons: true });
@@ -121,6 +121,8 @@ test.describe('The account invitation at the end of the how-to-play', () => {
   const step = (page, id, timeout = 30000) => expect(card(page)).toHaveAttribute('data-step', id, { timeout });
 
   async function toTheAccountPage(page) {
+    await page.goto('about:blank');
+    test.skip(!(await hasWebGL(page)), 'the how-to-play practises on the real track, which needs WebGL');
     await page.addInitScript(() => {
       window.__tutorialAccountOverride = {
         available: () => true,

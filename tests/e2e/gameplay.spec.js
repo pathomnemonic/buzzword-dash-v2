@@ -118,6 +118,20 @@ test.describe('Settings and screens', () => {
 
 test.describe('Without WebGL', () => {
   // ?webgl=off simulates a browser that cannot create a WebGL context.
+  test('the notice sits under the Filters / PLAY / Speed row and does not push any of them off the screen', async ({ page }) => {
+    for (const [w, h] of [[320, 568], [390, 780]]) {
+      await page.setViewportSize({ width: w, height: h });
+      await openApp(page, '/?webgl=off');
+      await expect(page.locator('#webglNotice')).toBeVisible();
+      for (const sel of ['#filtersBtn', '.btn-play', '#speedBtn']) {
+        const b = await page.locator(sel).boundingBox();
+        expect(b.x, sel + ' at ' + w).toBeGreaterThanOrEqual(0);
+        expect(b.x + b.width, sel + ' at ' + w).toBeLessThanOrEqual(w);
+        expect(b.width, sel + ' must keep a usable width at ' + w).toBeGreaterThan(60);
+      }
+    }
+  });
+
   test('the app still works and explains that the runner is unavailable', async ({ page }) => {
     await openApp(page, '/?webgl=off');
     await expect(page.locator('#webglNotice')).toContainText(/WebGL/);
