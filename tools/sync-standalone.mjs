@@ -28,6 +28,10 @@ if (target === here) { console.error('That is this repository.'); process.exit(2
 var DIRS = ['js', 'css', 'public', 'tests', 'tools', 'database', 'supabase'];
 var FILES = ['index.html', 'tsconfig.json', 'tsconfig.checked.json', 'vite.config.js', 'vitest.config.js', 'playwright.config.js', 'eslint.config.js', 'package.json', 'package-lock.json', 'capacitor.config.json'];
 
+// Tests the standalone copy deliberately does not have: they check Pro, payments or sign-in (switched off in a no-backend build),
+// the docs and marketing folders it does not carry, or the how-to-play lesson for Versus. They are never copied.
+var SKIP = ['tests/unit/pro.test.js', 'tests/unit/premium.test.js', 'tests/unit/proui.test.js', 'tests/unit/proweb.test.js', 'tests/unit/refundeditems.test.js', 'tests/unit/ads.test.js', 'tests/unit/analyticsdocs.test.js', 'tests/unit/lessons.test.js', 'tests/unit/storebuilds.test.js'];
+
 function walk(dir, base, out) {
   readdirSync(dir).forEach(function (name) {
     var p = join(dir, name);
@@ -40,6 +44,7 @@ var changed = [];
 function consider(rel) {
   var from = join(here, rel);
   var to = join(target, rel);
+  if (SKIP.indexOf(rel) >= 0) return false;
   var differs = !existsSync(to) || !readFileSync(from).equals(readFileSync(to));
   if (differs) changed.push(rel);
   return differs;
