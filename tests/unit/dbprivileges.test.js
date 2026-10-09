@@ -62,7 +62,7 @@ const OPEN_TO_ALL = ['count_consent', 'delete_analytics', 'ingest_analytics'];
 const MUST_BE_CLOSED = [
   'pro_grant', 'pro_grant_until', 'pro_grant_item', 'pro_grant_library', 'pro_revoke', 'pro_revoke_plan', 'pro_revoke_item',
   'pro_revoke_library', 'pro_has_item', 'pro_make_code', 'pro_event_once', 'pro_link_customer', 'pro_customer_user',
-  'pro_user_customer', 'pro_forget_user', 'apple_token_save', 'apple_token_get', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
+  'pro_user_customer', 'pro_forget_user', 'apple_token_save', 'apple_token_get', 'pro_store_claim', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
 ];
 
 describe('with the database files run in order, then lockdown.sql', () => {
@@ -109,7 +109,7 @@ describe('with the database files run in order, then lockdown.sql', () => {
   it('keeps the money tables and the owner views unreachable for both roles', async () => {
     const owner = ['pro_entitlements', 'pro_items', 'pro_library', 'pro_trials', 'pro_codes', 'pro_redemptions', 'pro_attempts',
       'pro_stripe_customers', 'pro_stripe_events', 'pro_v_active', 'pro_v_codes', 'pro_v_redemptions', 'player_saves_backup',
-      'app_feedback', 'feedback_inbox', 'moderation_queue', 'client_diagnostics', 'content_reports'];
+      'app_feedback', 'feedback_inbox', 'moderation_queue', 'client_diagnostics', 'content_reports', 'apple_tokens', 'pro_store_purchases'];
     for (const t of owner) {
       for (const role of ['anon', 'authenticated']) {
         const r = (await db.query(`SELECT has_table_privilege('${role}', '${t}', 'SELECT') OR has_table_privilege('${role}', '${t}', 'INSERT') OR has_table_privilege('${role}', '${t}', 'UPDATE') OR has_table_privilege('${role}', '${t}', 'DELETE') AS x`)).rows[0].x;

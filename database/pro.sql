@@ -212,6 +212,7 @@ BEGIN
   DELETE FROM pro_attempts WHERE user_id = p_user;
   DELETE FROM pro_stripe_customers WHERE user_id = p_user;
   DELETE FROM apple_tokens WHERE user_id = p_user;
+  DELETE FROM pro_store_purchases WHERE user_id = p_user;
 END $$;
 
 -- The Sign in with Apple token of an account, kept only so that deleting the account can revoke it (an App Store rule).
@@ -234,6 +235,43 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
 $$;
 REVOKE ALL ON FUNCTION apple_token_save(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION apple_token_get(uuid) FROM PUBLIC, anon, authenticated;
+
+-- Purchases made through Google Play or the App Store and checked with them (supabase/functions/iap-verify). One purchase
+-- belongs to one account: the first account to present it keeps it. Service role only.
+CREATE TABLE IF NOT EXISTS pro_store_purchases (
+  platform text NOT NULL CHECK (platform IN ('android', 'ios')),
+  store_key text NOT NULL,
+  user_id uuid NOT NULL,
+  product_id text NOT NULL,
+  expires_at timestamptz,
+  revoked boolean NOT NULL DEFAULT false,
+  verified_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (platform, store_key)
+);
+ALTER TABLE pro_store_purchases ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_store_purchases FROM PUBLIC, anon, authenticated;
+
+-- Record a checked purchase for an account. 'ok' (new, or the same account again), or 'other_account' when a different
+-- account already holds this purchase.
+CREATE OR REPLACE FUNCTION pro_store_claim(p_platform text, p_key text, p_user uuid, p_product text, p_expires timestamptz, p_revoked boolean) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE owner uuid;
+BEGIN
+  SELECT user_id INTO owner FROM pro_store_purchases WHERE platform = p_platform AND store_key = p_key FOR UPDATE;
+  IF FOUND THEN
+    IF owner <> p_user THEN RETURN 'other_account'; END IF;
+    UPDATE pro_store_purchases SET expires_at = p_expires, revoked = coalesce(p_revoked, false), verified_at = now(), product_id = p_product
+    WHERE platform = p_platform AND store_key = p_key;
+    RETURN 'ok';
+  END IF;
+  BEGIN
+    INSERT INTO pro_store_purchases (platform, store_key, user_id, product_id, expires_at, revoked) VALUES (p_platform, p_key, p_user, p_product, p_expires, coalesce(p_revoked, false));
+  EXCEPTION WHEN unique_violation THEN
+    RETURN 'other_account';  -- (someone claimed it between the check and the insert)
+  END;
+  RETURN 'ok';
+END $$;
+REVOKE ALL ON FUNCTION pro_store_claim(text, text, uuid, text, timestamptz, boolean) FROM PUBLIC, anon, authenticated;
 
 -- Redeem a code: { ok, until } or { ok: false, error }. Ten wrong guesses an hour is the limit.
 CREATE OR REPLACE FUNCTION redeem_pro_code(p_code text) RETURNS jsonb

@@ -22,7 +22,7 @@ import { proConfig } from './remoteconfig.js';
 import { GATE_FEATURES } from './proconfig.js';
 import { getIap } from './iap.js';
 import { storage } from './storage.js';
-import { isNative } from './native.js';
+import { isNative, getNativePlatform } from './native.js';
 import { track } from './analytics/index.js';
 import { PREMIUM_ITEMS, itemProductId, premiumCents, formatUsd } from '../supabase/functions/_shared/premium.js';
 
@@ -274,7 +274,8 @@ export function refreshPro(deps) {
   }).catch(function () { /* the store did not answer */ }));
   var lb = deps.lb;
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
-    jobs.push(lb.getMyPro().then(function (r) {
+    // (a phone-store purchase is first checked with the store and attached to the account, so what the server says below includes it)
+    jobs.push((iapVerifyEnabled() ? iap.start().catch(function () { return false; }).then(function () { return verifyStorePurchases(lb, iap, { now: now }); }).catch(function () { return 0; }) : Promise.resolve(0)).then(function () { return lb.getMyPro(); }).then(function (r) {
       // every account (not a guest) gets one free 7-day trial: start it the first time we see it is unused
       if (r && !r.active && r.trial_available && lb.startProTrial && proLive()) {
         return lb.startProTrial().then(function (t) {
@@ -341,6 +342,44 @@ export function refreshPro(deps) {
     if (trialStarted && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-trial-started'));
     return proStatus();
   });
+}
+
+/**
+ * Is purchase checking on? It needs a build made with VITE_IAP_VERIFY=1 (once the iap-verify function and its store
+ * secrets are live) and a real account on the phone.
+ */
+export function iapVerifyEnabled() {
+  var env = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+  return String(env.VITE_IAP_VERIFY || '') === '1' && !!env.VITE_SUPABASE_URL && isNative();
+}
+
+var VERIFIED_KEY = 'dx_iap_verified';
+var VERIFY_EVERY_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * Have the server check each phone-store purchase this player owns with the store itself, so it becomes part of their
+ * account (and a refund is noticed). A purchase is checked when first seen and then twice a day. Never throws and never
+ * takes anything away by itself: the server decides, and an error changes nothing.
+ * @returns {Promise<number>} how many were sent
+ */
+export function verifyStorePurchases(lb, iap, o) {
+  o = o || {};
+  var now = typeof o.now === 'number' ? o.now : Date.now();
+  if (!iapVerifyEnabled() || !hasAccount(lb) || !lb.iapVerify || !iap || !iap.receipt) return Promise.resolve(0);
+  var platform = getNativePlatform();
+  var ids = proConfig().plans.concat(Object.keys(PREMIUM_ITEMS).map(itemProductId));
+  var seen = readJson(VERIFIED_KEY, {});
+  var jobs = [];
+  ids.forEach(function (id) {
+    if (!iap.owned(id)) return;
+    if (seen[id] && now - seen[id] < VERIFY_EVERY_MS && seen[id] <= now) return;
+    var token = iap.receipt(id);
+    if (!token) return;
+    jobs.push(lb.iapVerify(platform, id, token).then(function (r) {
+      if (r && !r.error) { seen[id] = now; writeJson(VERIFIED_KEY, seen); }
+    }).catch(function () { /* the next refresh tries again */ }));
+  });
+  return Promise.all(jobs).then(function () { return jobs.length; });
 }
 
 /** Register the Pro products with the store connection. Call before the store starts (see main.js). */

@@ -8,3 +8,7 @@ verify_jwt = false
 [functions.stripe-webhook]
 entrypoint = "./functions/stripe-webhook/index.js"
 verify_jwt = false
+
+[functions.iap-verify]
+entrypoint = "./functions/iap-verify/index.js"
+verify_jwt = false

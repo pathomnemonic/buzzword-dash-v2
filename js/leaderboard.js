@@ -720,6 +720,22 @@ var leaderboard = {
   },
 
   /**
+   * Ask the server to check a phone-store purchase with Google Play / the App Store and attach it to this account.
+   * Always resolves: { ok, valid, granted } | { error }.
+   */
+  iapVerify: function (platform, productId, token) {
+    if (!_client || !_userId) return Promise.resolve({ error: 'Not signed in' });
+    return _client.functions.invoke('iap-verify', { body: { platform: platform, product_id: productId, token: token } }).then(function (res) {
+      if (res.error) {
+        var ctx = res.error.context;
+        if (ctx && typeof ctx.json === 'function') return ctx.json().then(function (j) { return { error: (j && j.error) || res.error.message }; }, function () { return { error: res.error.message }; });
+        return { error: res.error.message };
+      }
+      return res.data || {};
+    }).catch(function (e) { return { error: (e && e.message) || 'Could not reach the purchase check.' }; });
+  },
+
+  /**
    * Submit a verified score from a completed run.
    * Architecture §27.3: Profile bests use maximum values (server-side GREATEST).
    * Architecture §27.6: Requires authentication.

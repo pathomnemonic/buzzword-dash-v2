@@ -53,7 +53,7 @@ beforeAll(async () => {
 }, 60000);
 
 beforeEach(async () => {
-  await db.exec('TRUNCATE pro_entitlements, pro_items, pro_library, pro_stripe_customers, pro_stripe_events, pro_trials');
+  await db.exec('TRUNCATE pro_entitlements, pro_items, pro_library, pro_stripe_customers, pro_stripe_events, pro_trials, pro_store_purchases');
 });
 
 describe('a purchase, start to finish, through the real database', () => {
@@ -169,6 +169,24 @@ describe('a purchase, start to finish, through the real database', () => {
     expect((await asUser(V, 'SELECT start_my_trial() AS r')).r.ok).toBe(true);
     await db.exec(`DELETE FROM pro_entitlements WHERE user_id = '${V}'`);
     expect((await asUser(V, 'SELECT start_my_trial() AS r')).r.ok).toBe(false); // (spent, even after it ran out)
+  });
+
+  it('a phone-store purchase belongs to one account: the first to present it keeps it', async () => {
+    const claim = (user) => rpc('pro_store_claim', { p_platform: 'android', p_key: 'abc123', p_user: user, p_product: 'dxdash_pro_monthly', p_expires: new Date(Date.now() + 86400000).toISOString(), p_revoked: false });
+    expect(await claim(U)).toBe('ok');
+    expect(await claim(U)).toBe('ok');                    // (the same account again: fine, and refreshed)
+    expect(await claim(V)).toBe('other_account');
+    // the same key on the other platform is a different purchase
+    expect(await rpc('pro_store_claim', { p_platform: 'ios', p_key: 'abc123', p_user: V, p_product: 'dxdash_pro_monthly', p_expires: null, p_revoked: false })).toBe('ok');
+    // and a refund recorded for the owner stays recorded
+    await rpc('pro_store_claim', { p_platform: 'android', p_key: 'abc123', p_user: U, p_product: 'dxdash_pro_monthly', p_expires: null, p_revoked: true });
+    expect((await db.query(`SELECT revoked FROM pro_store_purchases WHERE platform = 'android' AND store_key = 'abc123'`)).rows[0].revoked).toBe(true);
+  });
+
+  it('get_my_pro says whether its answer is for a signed-in account (so an empty list is never read as "everything refunded")', async () => {
+    expect((await mine(U)).signed_in).toBe(true);
+    await db.exec("SET app.uid = ''; SET ROLE authenticated;");
+    try { expect((await db.query('SELECT get_my_pro() AS r')).rows[0].r).toMatchObject({ signed_in: false, items: [] }); } finally { await db.exec('RESET ROLE'); }
   });
 
   it('a code cannot be used twice by the same account, past its limit, or after it expires', async () => {

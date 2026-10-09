@@ -76,6 +76,20 @@ export function createIap(deps) {
       try { return !!(plugin && plugin.store.owned(id)); } catch (e) { return false; }
     },
 
+    /**
+     * The proof of a purchase the server can check with the store itself: the purchase token (Google Play) or the
+     * transaction id (App Store). null when there is none, or the plugin does not offer it.
+     */
+    receipt: function (id) {
+      try {
+        var prod = self.product(id);
+        var tr = prod && plugin.store.findInLocalReceipts ? plugin.store.findInLocalReceipts(prod) : null;
+        if (!tr) return null;
+        var tok = deps.platform === 'android' ? (tr.nativePurchase && tr.nativePurchase.purchaseToken) : tr.transactionId;
+        return typeof tok === 'string' && tok.length >= 6 ? tok : null;
+      } catch (e) { return null; }
+    },
+
     /** Open the store's payment sheet. @returns {Promise<{ok: boolean, cancelled?: boolean, error?: string}>} */
     order: function (id) {
       return self.start().then(function (ok) {
