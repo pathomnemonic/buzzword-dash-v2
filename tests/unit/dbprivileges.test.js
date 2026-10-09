@@ -218,3 +218,27 @@ describe('database/audit.sql, the check the owner runs on the live project', () 
     expect(rows).toEqual([]);
   }, 120000);
 });
+
+describe('deleting an account while a subscription is still billing', () => {
+  let db;
+  const as = async (user, fn) => {
+    await db.exec(`SET app.uid = '${user}'; SET ROLE authenticated;`);
+    try { return await fn(); } finally { await db.exec('RESET ROLE'); }
+  };
+  beforeAll(async () => {
+    db = await supabaseLikeDb();
+    await load(db, ORDER.concat(['lockdown']));
+  }, 90000);
+
+  it('is refused by the database (the payment function cancels it first), but a lifetime purchase or a trial does not block it', async () => {
+    await db.query(`SELECT pro_grant_until('${A}', now() + interval '20 days', 'monthly', 'stripe', false)`);
+    let message = '';
+    try { await as(A, () => db.query('SELECT delete_my_account()')); } catch (e) { message = String(e.message); }
+    expect(message).toMatch(/subscription that is still billing/i);
+    expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${A}'`)).rows[0].n).toBe(1);
+
+    await db.query(`SELECT pro_grant_until('${B}', now() + interval '3000 days', 'lifetime', 'stripe', false)`);
+    await as(B, () => db.query('SELECT delete_my_account()'));
+    expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${B}'`)).rows[0].n).toBe(0);
+  });
+});

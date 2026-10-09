@@ -20,14 +20,17 @@ let owned;       // item ids the member already owns
 let held;        // pro_entitlements row for the member
 let dbReady;
 let stripeReply;
+let customerId;   // the member's Stripe customer id ('' for none)
+let deleted;       // users deleted through the auth admin API
+let cancelFails;
 
 vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({
   createClient: () => ({
-    auth: { getUser: async (jwt) => ({ data: { user: users[jwt] || null } }) },
+    auth: { getUser: async (jwt) => ({ data: { user: users[jwt] || null } }), admin: { deleteUser: async (id) => { deleted.push(id); return { error: null }; } } },
     rpc: async (name, args) => {
       db.push([name, args]);
       if (name === 'pro_has_item') return dbReady ? { data: owned.includes(args.p_item), error: null } : { data: null, error: { message: 'function does not exist' } };
-      if (name === 'pro_user_customer') return { data: '', error: null };
+      if (name === 'pro_user_customer') return { data: customerId, error: null };
       return { data: null, error: null };
     },
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: held }) }) }) })
@@ -44,12 +47,13 @@ async function boot(file) {
 }
 
 beforeEach(() => {
-  db = []; stripeCalls = []; owned = []; held = null; dbReady = true;
+  db = []; stripeCalls = []; owned = []; held = null; dbReady = true; customerId = ''; deleted = []; cancelFails = false;
   users = { good: { id: 'u1', email: 'a@example.com', is_anonymous: false }, guest: { id: 'g1', email: '', is_anonymous: true } };
   stripeReply = (path) => ({ id: 'cs_1', url: 'https://checkout.stripe.com/pay/cs_1', data: [] });
   globalThis.fetch = vi.fn(async (url, init) => {
     const path = String(url).replace('https://api.stripe.com/v1/', '');
     stripeCalls.push({ path, method: (init && init.method) || 'GET', body: init && init.body ? Object.fromEntries(new URLSearchParams(init.body)) : null });
+    if (cancelFails && init && init.method === 'DELETE') return { ok: false, status: 500, json: async () => ({ error: { message: 'stripe is down' } }) };
     return { ok: true, status: 200, json: async () => stripeReply(path) };
   });
 });
@@ -161,5 +165,50 @@ describe('pro-checkout', () => {
     stripeCalls.length = 0;
     expect((await call(h, { action: 'checkout', plan: 'lifetime' }, 'good')).status).toBe(409);
     expect(stripeCalls.filter((c) => c.method === 'POST')).toEqual([]);
+  });
+});
+
+
+describe('pro-checkout: deleting an account', () => {
+  const call = async (h, body, jwt) => {
+    const res = await h(post(body, jwt ? { authorization: 'Bearer ' + jwt } : {}));
+    return { status: res.status, body: await res.json() };
+  };
+
+  it('cancels a subscription that is still billing, then deletes the account', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    customerId = 'cus_1';
+    stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }, { id: 'sub_old', status: 'canceled' }, { id: 'sub_due', status: 'past_due' }] } : {});
+    const r = await call(h, { action: 'delete_account' }, 'good');
+    expect(r.status).toBe(200);
+    expect(stripeCalls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['subscriptions/sub_live', 'subscriptions/sub_due']);
+    expect(deleted).toEqual(['u1']);
+  });
+
+  it('does NOT delete the account when the subscription could not be cancelled, so nothing keeps charging', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    customerId = 'cus_1'; cancelFails = true;
+    stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }] } : {});
+    const r = await call(h, { action: 'delete_account' }, 'good');
+    expect(r.status).toBe(502);
+    expect(r.body.error).toMatch(/nothing was deleted/i);
+    expect(deleted).toEqual([]);
+  });
+
+  it('deletes straight away when there is nothing to cancel, and never for a guest or a stranger', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    expect((await call(h, { action: 'delete_account' }, 'good')).status).toBe(200);
+    expect(deleted).toEqual(['u1']);
+    deleted.length = 0;
+    expect((await call(h, { action: 'delete_account' }, 'guest')).status).toBe(403);
+    expect((await call(h, { action: 'delete_account' })).status).toBe(401);
+    expect((await call(h, { action: 'delete_account', user_id: 'someone-else' }, 'nobody')).status).toBe(401);
+    expect(deleted).toEqual([]);
+  });
+
+  it('deletes only the signed-in account, whatever the page says', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    await call(h, { action: 'delete_account', user_id: 'victim', id: 'victim' }, 'good');
+    expect(deleted).toEqual(['u1']);
   });
 });

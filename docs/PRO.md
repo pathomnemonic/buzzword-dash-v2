@@ -184,3 +184,15 @@ replacing it. Codes can have an end date.
 
 **Seeing what happened.** In the SQL editor: `SELECT * FROM pro_v_codes;` (all codes and how many times each was used) and
 `SELECT * FROM pro_v_redemptions;` (which account used which code, and when).
+
+
+## Safety updates (read before going live)
+
+After updating the code, run the database files again in order (`schema.sql`, `policies.sql`, any of `cohorts.sql`, `discovery.sql`, `pro.sql`, `analytics*.sql`), then **`lockdown.sql`**, then **`audit.sql`** (it must return no rows), and redeploy `pro-checkout` and `stripe-webhook`. In Stripe add the webhook events `checkout.session.async_payment_succeeded`, `charge.dispute.created`, `charge.dispute.updated` and `charge.dispute.closed` to the existing ones. See `docs/SECURITY.md` for the full checklist.
+
+What changed for payments:
+- Anything that grants Pro or an item can no longer be called by a player (it could be, on Supabase's default settings).
+- Refunds and chargebacks take a purchase back, a won chargeback gives it again, and a late or repeated event gives the same result in any order.
+- Paying twice for one Locker item returns the second payment in full.
+- A purchase that is on its way is checked against Stripe every ten minutes until it arrives.
+- Deleting an account cancels a subscription that is still billing first; if it cannot, nothing is deleted.

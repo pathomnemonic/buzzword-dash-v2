@@ -26,9 +26,9 @@ var CORS = {
 };
 function json(body, status) { return new Response(JSON.stringify(body), { status: status || 200, headers: Object.assign({ 'Content-Type': 'application/json' }, CORS) }); }
 
-async function stripe(path, form) {
+async function stripe(path, form, method) {
   var res = await fetch('https://api.stripe.com/v1/' + path, {
-    method: form ? 'POST' : 'GET',
+    method: method || (form ? 'POST' : 'GET'),
     headers: Object.assign({ Authorization: 'Bearer ' + STRIPE_KEY }, form ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
     body: form ? new URLSearchParams(form).toString() : undefined
   });
@@ -92,6 +92,28 @@ Deno.serve(async function (req) {
         try { portal = await attempt(Object.assign({ configuration: cfg.id }, cancelFlow || {})); } catch { portal = await attempt({ configuration: cfg.id }); }
       }
       return json({ url: portal.url });
+    }
+
+    // Delete the account for good. A subscription that is still billing is cancelled first (immediately, no further
+    // charge), and if that cannot be done the account is NOT deleted, so nobody keeps paying for an account that is gone.
+    if (body.action === 'delete_account') {
+      if (customerId) {
+        var mine;
+        try { mine = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=20'); } catch (e) {
+          if (!/no such customer/i.test((e && e.message) || '')) { console.error('pro-checkout delete: could not list subscriptions', e && e.message); return json({ error: 'Could not check your subscription just now, so nothing was deleted. Please try again.' }, 502); }
+          mine = { data: [] };
+        }
+        var billing = ((mine && mine.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due', 'unpaid', 'incomplete'].indexOf(x.status) >= 0; });
+        for (var sb of billing) {
+          try { await stripe('subscriptions/' + encodeURIComponent(sb.id), null, 'DELETE'); } catch (e) {
+            console.error('pro-checkout delete: could not cancel', sb.id, e && e.message);
+            return json({ error: 'Could not cancel your subscription, so nothing was deleted. Please try again, or cancel it under Manage subscription first.' }, 502);
+          }
+        }
+      }
+      var gone = await admin.auth.admin.deleteUser(user.id);
+      if (gone && gone.error) { console.error('pro-checkout delete: could not delete user', gone.error.message); return json({ error: 'Could not delete the account. Please try again.' }, 500); }
+      return json({ ok: true, cancelled: customerId ? true : false });
     }
 
     // What Stripe says about this member's subscription right now: is it renewing, or set to end? (The app never assumes

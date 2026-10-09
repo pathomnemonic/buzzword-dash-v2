@@ -420,7 +420,21 @@ var leaderboard = {
    */
   deleteAccount: function () {
     if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
-    return _client.rpc('delete_my_account').then(function (res) {
+    // First the payment function: it cancels a subscription that is still billing and then deletes the account. If it is
+    // not there (no web payments on this project) the database does the deletion itself, and refuses while a
+    // subscription is still billing, so nothing keeps charging an account that has gone.
+    // (a guest has bought nothing, so there is nothing to cancel)
+    var viaPayments = (leaderboard.isGuest() ? Promise.resolve({ error: 'not available' }) : leaderboard.proFunction('delete_account')).then(function (r) {
+      if (r && r.ok) return { done: true };
+      var msg = (r && r.error) || '';
+      if (!msg || /not set up|not available|not found|unknown request|failed to send|could not reach/i.test(msg)) return { done: false };
+      return { done: false, error: msg };
+    });
+    return viaPayments.then(function (first) {
+      if (first.error) return { error: { message: first.error } };
+      if (first.done) return {};
+      return _client.rpc('delete_my_account');
+    }).then(function (res) {
       if (res.error) return { success: false, error: res.error.message };
       return _client.auth.signOut().catch(function () { return null; }).then(function () {
         _session = null;

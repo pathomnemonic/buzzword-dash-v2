@@ -898,6 +898,13 @@ BEGIN
   IF uid IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
+  -- A subscription that is still billing must be cancelled first, or it would go on charging an account that no longer
+  -- exists. (The website's delete button does that through the payment function and deletes the account itself.)
+  IF to_regclass('public.pro_entitlements') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = uid AND source = 'stripe' AND plan IN ('monthly', 'yearly', 'pass3m') AND until > now()) THEN
+      RAISE EXCEPTION 'You have a subscription that is still billing. Cancel it first (Settings, Dx Dash Pro, Manage subscription), then delete your account.';
+    END IF;
+  END IF;
   DELETE FROM auth.users WHERE id = uid;
 END;
 $$;

@@ -192,7 +192,7 @@ function renderGuest(body, deps, status) {
 /** Permanent deletion, behind a clear confirmation (required by the app stores). */
 function deleteAccountButton(deps) {
   var b = button('Delete my account', function () {
-    var ok = window.confirm('Delete your account and all online data (profile, scores, friends, groups and cloud save)? This cannot be undone. Progress saved on this device stays.');
+    var ok = window.confirm('Delete your account and all online data (profile, scores, friends, groups and cloud save)? A subscription that is still billing is cancelled with it, and Pro and items you bought are lost. This cannot be undone. Progress saved on this device stays.');
     if (!ok) return Promise.resolve();
     return deps.leaderboard.deleteAccount().then(function (res) {
       track('account_event', { action: 'delete_requested', ok: !!res.success });
