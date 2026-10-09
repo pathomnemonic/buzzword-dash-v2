@@ -52,7 +52,7 @@ Supabase dashboard → your project → left sidebar → **Authentication**.
 The stores, the privacy policy and the terms need a real contact.
 1. Create an address players can write to, e.g. `support@yourdomain` or a dedicated Gmail like `dxdash.support@gmail.com`.
 2. Decide the name shown as the publisher/seller (your name or your business name).
-3. Tell me both and I will update `public/privacy.html`, `public/terms.html`, the store text and the in-app contact so they no longer point at GitHub issues.
+3. **Done:** the support address is `patho.mnemonic1@gmail.com` and it is now in `public/privacy.html`, `public/terms.html`, `public/delete-account.html` and the store text. It is shown publicly, and a free Gmail address is fine to start; switch to an address on your own domain later if you buy one. Remember to set the GitHub variable `VITE_SUPPORT_EMAIL` to it (2.1) so the in-app feedback form uses it too.
 
 ### 1.4 Supabase command-line tool (needed for Part 4; do it now to save time)
 1. Install Node.js 20 or newer from nodejs.org if you do not have it (`node -v` in a terminal should print a version).

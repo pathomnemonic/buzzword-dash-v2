@@ -61,7 +61,7 @@ Tablet screenshots are optional; skip them.
 
 ## Contact details (Store settings)
 - Website: `https://pathomnemonic.github.io/buzzword-dash-v2/`
-- Email: **your email** (shown publicly on the store page; use one you are happy to share)
+- Email: **patho.mnemonic1@gmail.com** (shown publicly on the store page)
 - Privacy policy: `https://pathomnemonic.github.io/buzzword-dash-v2/privacy.html`
 
 ## Category and tags

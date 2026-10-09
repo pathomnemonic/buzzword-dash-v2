@@ -28,7 +28,7 @@ Use the same text as `store/google-play/listing.md` → Full description, but re
 First release of Dx Dash: run the list and learn the diagnosis.
 ```
 ## URLs
-- Support URL: `https://github.com/pathomnemonic/buzzword-dash-v2/issues` (or a page/email of your own)
+- Support URL: `https://pathomnemonic.github.io/buzzword-dash-v2/` (contact email `patho.mnemonic1@gmail.com`)
 - Marketing URL: `https://pathomnemonic.github.io/buzzword-dash-v2/`
 - Privacy Policy URL: `https://pathomnemonic.github.io/buzzword-dash-v2/privacy.html`
 
