@@ -111,13 +111,13 @@ CREATE OR REPLACE FUNCTION get_my_pro() RETURNS jsonb
 LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE me uuid := auth.uid(); r pro_entitlements%ROWTYPE; lib boolean; can_trial boolean; its jsonb;
 BEGIN
-  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false, 'trial_available', false, 'items', '[]'::jsonb); END IF;
+  IF me IS NULL THEN RETURN jsonb_build_object('active', false, 'library', false, 'trial_available', false, 'items', '[]'::jsonb, 'signed_in', false); END IF;
   its := coalesce((SELECT jsonb_agg(item_id ORDER BY created_at) FROM pro_items WHERE user_id = me), '[]'::jsonb);
   lib := EXISTS (SELECT 1 FROM pro_library WHERE user_id = me);
   can_trial := NOT pro_is_guest() AND NOT EXISTS (SELECT 1 FROM pro_trials WHERE user_id = me);
   SELECT * INTO r FROM pro_entitlements WHERE user_id = me;
-  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial, 'items', its); END IF;
-  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'since', r.started_at, 'library', lib, 'trial_available', false, 'items', its);
+  IF NOT FOUND OR r.until <= now() THEN RETURN jsonb_build_object('active', false, 'library', lib, 'trial_available', can_trial, 'items', its, 'signed_in', true); END IF;
+  RETURN jsonb_build_object('active', true, 'until', r.until, 'plan', r.plan, 'source', r.source, 'trial', r.trial, 'since', r.started_at, 'library', lib, 'trial_available', false, 'items', its, 'signed_in', true);
 END $$;
 
 -- Start my free trial: seven days of Pro, once per account, for a signed-in (not guest) player who has no Pro.

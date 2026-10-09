@@ -189,6 +189,9 @@ var DEFAULTS = {
     xp: 0,
     // One-time migrations: these must be listed here or they are forgotten on the next load
     premiumKept: false, // one-time: premium maps a player had already unlocked by level were kept for them
+    // premium items the server (not the phone's store) says were paid for, for which account, and which of them the server
+    // failed to list on the last check: how a refunded item is taken back (js/pro.js refreshPro)
+    paidItems: { uid: '', ids: [], missing: [] },
     proGiftItem: '',  // the item the one-time Pro gift was spent on (js/pro.js proGiftState); empty until it is used
     modelIntroSeen: false,
     monsterDefaultSeen: false,
@@ -1387,6 +1390,54 @@ class Storage {
     }
     this.save();
     return true;
+  }
+
+  /**
+   * Remember which premium items the server lists for this account. (Only these can ever be taken back: never the
+   * ones bought with coins, gifted, or bought through the phone's store.)
+   */
+  notePaidItems(uid, ids) {
+    var pi = this.data.progression.paidItems;
+    if (!pi || typeof pi !== 'object' || !Array.isArray(pi.ids)) pi = this.data.progression.paidItems = { uid: '', ids: [], missing: [] };
+    if (pi.uid && pi.uid !== uid) { pi.ids = []; pi.missing = []; } // (a different account: nothing carries over)
+    pi.uid = uid;
+    var changed = false;
+    (ids || []).forEach(function (id) { if (pi.ids.indexOf(id) < 0) { pi.ids.push(id); changed = true; } });
+    pi.missing = (pi.missing || []).filter(function (id) { return (ids || []).indexOf(id) < 0; });
+    if (changed) this.save();
+  }
+
+  /**
+   * The server's list no longer has an item it once had (a refund, or a lost chargeback): take it back. Never on one odd
+   * answer: it has to be missing on two checks in a row. Returns the ids taken back.
+   * @param {string} uid the account the answer is for
+   * @param {string[]} serverIds what the server lists now
+   * @param {string[]} [keep] items owned some other way (the phone's store), which stay
+   */
+  reconcilePaidItems(uid, serverIds, keep) {
+    var pi = this.data.progression.paidItems;
+    if (!pi || !Array.isArray(pi.ids) || pi.uid !== uid) return [];
+    var removed = [];
+    var missing = [];
+    var self = this;
+    pi.ids.slice().forEach(function (id) {
+      if (serverIds.indexOf(id) >= 0 || (keep || []).indexOf(id) >= 0) return;
+      if ((pi.missing || []).indexOf(id) >= 0) { self._takeBack(id); removed.push(id); } else missing.push(id);
+    });
+    pi.ids = pi.ids.filter(function (id) { return removed.indexOf(id) < 0; });
+    pi.missing = missing;
+    if (removed.length || missing.length) this.save();
+    return removed;
+  }
+
+  _takeBack(id) {
+    var p = this.data.progression;
+    var at = p.ownedItems.indexOf(id);
+    if (at >= 0) p.ownedItems.splice(at, 1);
+    var eq = p.equipped || {};
+    Object.keys(eq).forEach(function (slot) {
+      if (eq[slot] === id && DEFAULTS.progression.equipped[slot]) eq[slot] = DEFAULTS.progression.equipped[slot];
+    });
   }
 
   /** Take the one-time Pro gift: the item becomes yours for free. False when it is already yours or the gift is already spent. */

@@ -1359,6 +1359,7 @@ function init() {
   } catch (e) { webPayReturn = ''; }
   registerProProducts(); // (before the store starts: the tip jar and Pro share one connection)
   var syncLibrary = function () { setLibraryUnlocked(libraryUnlocked()); if (areCardsReady()) { ui.renderHome(); ui.renderSubjects(); } };
+  document.addEventListener('dx:items-revoked', function () { ui._showToast('A refunded item was returned to the store.', 4000); if (ui.renderShop) ui.renderShop(); if (ui.renderHome && areCardsReady()) ui.renderHome(); });
   document.addEventListener('dx:pro-changed', syncLibrary);
   document.addEventListener('dx:library-changed', syncLibrary);
   installProUi({ toast: function (m) { ui._showToast(m); }, openAccount: function () { if (profileCorner) profileCorner.open(); } });

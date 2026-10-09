@@ -130,13 +130,16 @@ export function probeSellable(deps) {
  * Premium Locker items this member has paid for (from the server, or the store) become theirs here. Only ever adds: a failed
  * or empty answer can never take an item away.
  */
-export function grantOwnedItems(ids) {
+export function grantOwnedItems(ids, serverIds, uid) {
   if (!storage || !storage.data || !storage.data.progression || !Array.isArray(ids)) return 0;
   var owned = storage.data.progression.ownedItems;
   var added = [];
   ids.forEach(function (id) {
     if (typeof id === 'string' && /^[a-z0-9_]{3,64}$/.test(id) && owned.indexOf(id) < 0) { owned.push(id); added.push(id); }
   });
+  if (uid && Array.isArray(serverIds) && serverIds.length && storage.notePaidItems) {
+    try { storage.notePaidItems(uid, serverIds.filter(function (id) { return typeof id === 'string' && /^[a-z0-9_]{3,64}$/.test(id); })); } catch (e) { /* best effort */ }
+  }
   if (added.length) {
     try { storage.save(); } catch (e) { /* kept in memory; saved next time */ }
     if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:items-granted', { detail: { items: added } }));
@@ -256,6 +259,8 @@ export function refreshPro(deps) {
   var libraryOwned = null;
   var trialStarted = false;
   var ownedItems = [];
+  var storeItems = [];      // owned through the phone's store: never taken back by the server
+  var serverItems = null;   // what the server lists as paid for (null until it has answered properly)
   var found = [];
   var jobs = [];
   jobs.push(iap.start().then(function (ok) {
@@ -265,7 +270,7 @@ export function refreshPro(deps) {
       if (iap.owned(id)) found.push({ source: 'store', active: true, plan: planName(id), until: /lifetime/.test(id) ? Date.now() + FOREVER : undefined });
     });
     libraryOwned = iap.owned(proConfig().library);
-    Object.keys(PREMIUM_ITEMS).forEach(function (id) { if (iap.owned(itemProductId(id))) ownedItems.push(id); });
+    Object.keys(PREMIUM_ITEMS).forEach(function (id) { if (iap.owned(itemProductId(id))) { ownedItems.push(id); storeItems.push(id); } });
   }).catch(function () { /* the store did not answer */ }));
   var lb = deps.lb;
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
@@ -285,7 +290,7 @@ export function refreshPro(deps) {
       if (!r || r.error) return; // no answer: keep what we had (never read a failed call as "no Pro")
       asked++;
       writeJson(TRIAL_KEY, { available: !!r.trial_available });
-      if (Array.isArray(r.items)) ownedItems = ownedItems.concat(r.items);
+      if (Array.isArray(r.items)) { ownedItems = ownedItems.concat(r.items); if (r.signed_in === true) serverItems = (serverItems || []).concat(r.items); } // (an answer that does not say it was for a signed-in account is never taken as proof that something is gone)
       if (r && r.library && !isNative()) libraryOwned = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
     }).catch(function () { /* offline */ }));
@@ -302,12 +307,18 @@ export function refreshPro(deps) {
         if (res && res.ok && res.granted && res.granted.length) { clearPaymentPending(); return lb.getMyPro(); }
         return null;
       }).then(function (r) {
-        if (r && Array.isArray(r.items)) ownedItems = ownedItems.concat(r.items);
+        if (r && Array.isArray(r.items)) { ownedItems = ownedItems.concat(r.items); if (r.signed_in === true) serverItems = (serverItems || []).concat(r.items); }
         if (r && r.active && !found.length) found.push({ source: 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
       }).catch(function () { /* the next refresh tries again */ });
     }
   }).then(function () {
-    grantOwnedItems(ownedItems);
+    var itemUid = lb && lb.getUserId && hasAccount(lb) ? lb.getUserId() : '';
+    grantOwnedItems(ownedItems, serverItems, itemUid);
+    // a refunded or charged-back item is taken back (only when the server answered properly, twice in a row, for this account)
+    if (itemUid && serverItems && storage.reconcilePaidItems) {
+      var taken = storage.reconcilePaidItems(itemUid, serverItems, storeItems);
+      if (taken.length && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:items-revoked', { detail: { items: taken } }));
+    }
     var before = isPro(now);
     var prev = readJson(CACHE_KEY, null);
     var uid = lb && lb.getUserId && lb.isAuthenticated && lb.isAuthenticated() ? lb.getUserId() : '';
