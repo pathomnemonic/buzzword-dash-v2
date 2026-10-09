@@ -16,7 +16,7 @@ Why: Supabase gives every new function and table to the signed-in and signed-out
 - **Authentication → Sign In / Providers → Allow anonymous sign-ins: ON** (guests use it). Guests cannot buy, redeem codes or get a trial.
 - **Backups.** The free plan has **no backups**. Everything players have earned and bought lives in this one database, so use a plan with daily backups, and point-in-time recovery if you can. This is the only protection against the database itself being lost or damaged.
 - Keep the **service role key** out of the website, the repository and chat. It is only for the two Edge Functions (Supabase provides it to them itself).
-- Edge Functions: `stripe-webhook` is deployed with `--no-verify-jwt` (Stripe has no login) and refuses anything without a valid Stripe signature; `pro-checkout` is deployed normally.
+- Edge Functions: neither relies on the gateway's login check (`verify_jwt = false` in `supabase/config.toml`). `stripe-webhook` refuses anything without a valid Stripe signature; `pro-checkout` looks up the signed-in account itself on every request except the public price list, and refuses guests for anything involving money.
 
 ## 3. Stripe settings
 
