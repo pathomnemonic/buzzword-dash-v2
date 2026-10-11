@@ -123,7 +123,7 @@ export var homeMethods = {
       chipEl.classList.toggle('at-risk', lit && !streak.playedToday);
       chipEl.appendChild(createElement('span', { className: 'streak-flame', text: '🔥' }));
       chipEl.appendChild(createElement('span', { className: 'streak-num', text: String(streak.streak) }));
-      chipEl.setAttribute('aria-label', (lit ? streak.streak + '-day study streak' + (streak.playedToday ? '' : ', study today to keep it') : 'No streak yet, study today to start one') + '. Open the streak calendar.');
+      chipEl.setAttribute('aria-label', (lit ? streak.streak + ' day study streak' + (streak.playedToday ? '' : ', study today to keep it') : '0 day study streak, study today to start one') + '. Open the streak calendar.');
     }
     el.classList.toggle('goal-done', done >= goal);
     el.appendChild(line);
@@ -135,7 +135,8 @@ export var homeMethods = {
     fill.style.width = pct + '%';
     bar.appendChild(fill);
     el.appendChild(bar);
-    el.setAttribute('aria-label', 'Today: ' + done + ' of ' + goal + ' cards.' + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
+    // The name starts with the words and numbers that are on screen (WCAG 2.5.3 Label in Name), then spells out the icons
+    el.setAttribute('aria-label', 'Today ' + done + '/' + goal + (streak.shields > 0 ? ' ' + streak.shields : '') + (due > 0 ? ' ' + due + ' due' : '') + '. ' + done + ' of ' + goal + ' cards studied.' + (streak.shields > 0 ? ' ' + streak.shields + ' streak shield' + (streak.shields === 1 ? '' : 's') + '.' : '') + (due > 0 ? ' ' + due + ' due for review.' : '') + ' Open details.');
   },
 
   /** The first-week checklist: seven small steps, each with a button that takes you there. */

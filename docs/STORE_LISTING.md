@@ -30,7 +30,7 @@ Dx Dash shows you the clues from a classic exam vignette (the "buzzwords") and a
 - **Earn coins and unlock** animated characters, monsters, trails and themed tracks.
 - **Solo play needs no internet.** No ads. No tracking.
 
-Dx Dash is an educational game, not medical advice. Content may contain errors; verify important facts with authoritative sources.
+Dx Dash is an educational game for exam preparation. It is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. It is not medical advice: always consult a qualified healthcare professional for medical advice, diagnosis, or treatment. Content may contain errors; verify important facts with authoritative sources.
 
 ## What the listing may claim (and what it may not yet)
 

@@ -197,6 +197,17 @@ function renderGuest(body, deps, status) {
   var submitLabel = _mode === 'signup' ? 'Create account' : (_mode === 'signin' ? 'Sign in' : 'Email me a reset link');
   var submit = createElement('button', { className: 'btn btn-primary btn-block', text: submitLabel, attributes: { type: 'submit' } });
   form.appendChild(submit);
+  if (_mode !== 'reset') {
+    // Google Play (User Generated Content) wants terms accepted before a player can create content; Apple 5.1.1(i) wants the policy reachable.
+    var consent = createElement('div', { className: 'setting-sublabel' });
+    consent.style.cssText = 'margin-top:8px;font-size:11px;line-height:1.4';
+    consent.appendChild(document.createTextNode('By continuing you agree to the '));
+    consent.appendChild(createElement('a', { text: 'Terms of Use', attributes: { href: 'terms.html', target: '_blank', rel: 'noopener' } }));
+    consent.appendChild(document.createTextNode(' and the '));
+    consent.appendChild(createElement('a', { text: 'Privacy Policy', attributes: { href: 'privacy.html', target: '_blank', rel: 'noopener' } }));
+    consent.appendChild(document.createTextNode('.'));
+    form.appendChild(consent);
+  }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();

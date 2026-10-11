@@ -259,9 +259,7 @@ function parseDelimitedText(text, options) {
 
     // If back column is not specified and there are more columns, join them
     // (empty columns are left out: Anki pads every note out to the note type's field count)
-    var extraText = '';
     if (backCol === 1 && row.length > 2 && options.backColumn === undefined) {
-      extraText = row[2] ? row[2].trim() : '';
       back = twoFieldRows[ri] ? back : row.slice(1).filter(function (c) { return c.trim() !== ''; }).join(', ').trim();
     }
 
@@ -436,8 +434,9 @@ async function parseApkg(file, options) {
 
   // Look for the SQLite database file inside the ZIP
   var dbFile = null;
-  // collection.anki21 holds the real notes when present (collection.anki2 is then only a stand-in)
-  var dbFilenames = ['collection.anki21', 'collection.anki2'];
+  // collection.anki21b (newest Anki, zstd-compressed) and collection.anki21 hold the real notes when present;
+  // collection.anki2 is then only a stand-in that says "please update Anki"
+  var dbFilenames = ['collection.anki21b', 'collection.anki21', 'collection.anki2'];
 
   for (var fi = 0; fi < dbFilenames.length; fi++) {
     if (zip.files[dbFilenames[fi]]) {
@@ -447,19 +446,22 @@ async function parseApkg(file, options) {
   }
 
   if (!dbFile) {
-    var modern = !!zip.files['collection.anki21b'];
     return {
       cards: [],
-      warnings: [
-        modern
-          ? 'This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.'
-          : 'Could not find a collection in the .apkg file. Re-export it from Anki with "Support older Anki versions" ticked.'
-      ]
+      warnings: ['Could not find a collection in the .apkg file. Re-export it from Anki with "Support older Anki versions" ticked.']
     };
   }
 
   // Extract the database file as Uint8Array
   var dbData = await dbFile.async('uint8array');
+  if (/\.anki21b$/.test(dbFile.name)) {
+    try {
+      var fz = await import('fzstd');
+      dbData = (fz.decompress || (fz.default && fz.default.decompress))(dbData);
+    } catch (e) {
+      return { cards: [], warnings: ['This deck uses the newest Anki format and could not be unpacked (' + (e.message || String(e)) + '). In Anki choose Export, tick "Support older Anki versions", and import the new file.'] };
+    }
+  }
 
   // Initialize sql.js with WASM
   var SQL = await loadSqlJs();
@@ -468,6 +470,7 @@ async function parseApkg(file, options) {
   var db = null;
   var stmt = null;
   var results = [];
+  var stubNote = false;
 
   try {
     db = new SQL.Database(dbData);
@@ -481,6 +484,7 @@ async function parseApkg(file, options) {
 
         if (typeof flds === 'string') {
           var fields = flds.split('\x1f');
+          if (/update to the latest anki/i.test(fields[0])) { stubNote = true; continue; }
           var cloze = clozeCards(fields);
           if (cloze) {
             cloze.forEach(function (c) { results.push(c); });
@@ -515,7 +519,7 @@ async function parseApkg(file, options) {
   }
 
   // A deck exported without "Support older Anki versions" holds a single note asking you to update Anki
-  if (results.length === 1 && /update to the latest anki/i.test(results[0].front + ' ' + results[0].back)) {
+  if (stubNote) {
     results = [];
     warnings.push('This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.');
   }
@@ -914,10 +918,10 @@ function _renderUI() {
   applyProLock(ankiHead, 'anki_import');
   section.appendChild(ankiHead);
   var fileInput = _el('input', {
-    type: 'file', accept: '.apkg,.csv,.tsv,.txt',
+    type: 'file', accept: '.apkg,.colpkg,.csv,.tsv,.txt',
     style: { width: '100%', marginBottom: '8px', fontSize: '12px', color: 'var(--text-primary, #fff)' }
   });
-  fileInput.setAttribute('aria-label', 'Upload an Anki export or spreadsheet (.apkg, .txt, .csv, .tsv)');
+  fileInput.setAttribute('aria-label', 'Upload an Anki export or spreadsheet (.apkg, .colpkg, .txt, .csv, .tsv)');
   section.appendChild(fileInput);
 
   var pasteArea = _el('textarea', {
@@ -1000,7 +1004,7 @@ function _renderUI() {
 
   async function parseFileInput(file) {
     var name = file.name.toLowerCase();
-    if (name.endsWith('.apkg')) {
+    if (name.endsWith('.apkg') || name.endsWith('.colpkg')) {
       setStatus('Reading the Anki deck…');
       return await parseApkg(file);
     }

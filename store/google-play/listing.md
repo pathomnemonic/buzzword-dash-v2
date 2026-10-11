@@ -41,7 +41,7 @@ KEEP GOING
 
 SOLO PLAY NEEDS NO INTERNET. No ads.
 
-Dx Dash is an educational game, not medical advice, and is not affiliated with or endorsed by the NBME, FSMB, NBOME or Anki. Content may contain errors; verify important facts with authoritative sources.
+Dx Dash is an educational game for exam preparation. It is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. It is not medical advice: always consult a qualified healthcare professional for medical advice, diagnosis, or treatment. Dx Dash is not affiliated with or endorsed by the NBME, FSMB, NBOME or Anki. Content may contain errors; verify important facts with authoritative sources.
 ```
 
 

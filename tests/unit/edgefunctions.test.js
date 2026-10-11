@@ -34,7 +34,7 @@ let appleStatus;   // what Apple answers to a revoke
 let storeReply;    // what Google / Apple say about a purchase: { status, body }
 let claimResult;   // what the database says about claiming a purchase
 
-vi.mock('https://esm.sh/@supabase/supabase-js@2', () => ({
+vi.mock('https://esm.sh/@supabase/supabase-js@2.117.3', () => ({
   createClient: () => ({
     auth: { getUser: async (jwt) => ({ data: { user: users[jwt] || null } }), admin: { deleteUser: async (id) => { deleted.push(id); return { error: null }; } } },
     rpc: async (name, args) => {
@@ -122,7 +122,7 @@ describe('stripe-webhook', () => {
 
   it('tells Stripe to try again when the database fails, so a payment is never lost', async () => {
     const h = await boot('../../supabase/functions/stripe-webhook/index.js');
-    const mod = await import('https://esm.sh/@supabase/supabase-js@2');
+    const mod = await import('https://esm.sh/@supabase/supabase-js@2.117.3');
     expect(mod).toBeTruthy();
     const failing = { ...itemEvent, data: { object: { ...itemEvent.data.object, payment_intent: 'pi_9' } } };
     stripeReply = () => { throw new Error('stripe down'); };
