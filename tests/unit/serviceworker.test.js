@@ -36,14 +36,15 @@ describe('service worker caches', () => {
     expect([...sw.stores['dx-dash-b1'].keys()].sort()).toEqual(['https://x.test/', 'https://x.test/portraits/hero-face.webp']);
   });
 
-  it('on activation drops old build caches but keeps the asset cache', async () => {
+  it('on activation drops old build caches but keeps the asset cache and other games\' caches', async () => {
     const sw = load();
     sw.stores['dx-dash-old'] = new Map([['a', 1]]);
+    sw.stores['language-dash-b1'] = new Map([['theirs', 1]]);
     sw.stores['dx-assets'] = new Map([['https://x.test/assets/a-12345678.js', 1]]);
     let waited;
     sw.listeners.activate({ waitUntil: (p) => { waited = p; } });
     await waited;
-    expect(Object.keys(sw.stores).sort()).toEqual(['dx-assets']);
+    expect(Object.keys(sw.stores).sort()).toEqual(['dx-assets', 'language-dash-b1']);
     expect(sw.stores['dx-assets'].size).toBe(1);
   });
 

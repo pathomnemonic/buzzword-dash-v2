@@ -21,7 +21,7 @@ function pruneAssets() {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.indexOf('dx-') === 0 && k !== CACHE && k !== ASSETS).map((k) => caches.delete(k)))) // (only this game's caches: other games on the same host keep theirs)
       .then(pruneAssets)
       .then(() => self.clients.claim())
   );
