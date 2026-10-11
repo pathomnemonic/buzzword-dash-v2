@@ -71,6 +71,15 @@ function stripBOM(text) {
 
 // ===== HTML STRIPPING =====
 
+var HTML_ENTITIES = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ensp: ' ', emsp: ' ', thinsp: ' ',
+  ndash: '\u2013', mdash: '\u2014', hellip: '\u2026', lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201C', rdquo: '\u201D',
+  rarr: '\u2192', larr: '\u2190', uarr: '\u2191', darr: '\u2193', harr: '\u2194', times: '\u00D7',
+  plusmn: '\u00B1', deg: '\u00B0', micro: '\u00B5', middot: '\u00B7', bull: '\u2022', ge: '\u2265', le: '\u2264',
+  ne: '\u2260', asymp: '\u2248', alpha: '\u03B1', beta: '\u03B2', gamma: '\u03B3', delta: '\u03B4', mu: '\u03BC',
+  copy: '\u00A9', reg: '\u00AE', trade: '\u2122', sup2: '\u00B2', sup3: '\u00B3', frac12: '\u00BD'
+};
+
 /**
  * Strip HTML tags from a string and decode common entities.
  * @param {string} html
@@ -78,14 +87,18 @@ function stripBOM(text) {
  */
 function stripHtml(html) {
   if (!html) return '';
-  var text = html.replace(/\[sound:[^\]]*\]/gi, ' ').replace(/<[^>]*>/g, ' ');
-  text = text.replace(/&amp;/g, '&');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
-  text = text.replace(/&quot;/g, '"');
-  text = text.replace(/&#39;/g, "'");
-  text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&#x27;|&apos;/g, "'");
+  // Only real tags go: "<" must be followed by a letter, "/" or "!" ("BP <90 and HR >100" is text, not a tag)
+  var text = String(html).replace(/\[sound:[^\]]*\]/gi, ' ').replace(/<(?:\/?[a-z!][^>]*)>/gi, ' ');
+  // One pass, so "&amp;lt;" becomes the text "&lt;" and not "<"
+  text = text.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, function (all, ent) {
+    if (ent.charAt(0) === '#') {
+      var cp = ent.charAt(1).toLowerCase() === 'x' ? parseInt(ent.slice(2), 16) : parseInt(ent.slice(1), 10);
+      if (cp > 0 && cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF)) return String.fromCodePoint(cp);
+      return all;
+    }
+    var named = HTML_ENTITIES[ent.toLowerCase()];
+    return named === undefined ? all : named;
+  });
   text = text.replace(/\s+/g, ' ');
   return text.trim();
 }
@@ -168,9 +181,10 @@ function parseDelimitedText(text, options) {
   var directives = {};
   var lines = text.split(/\r\n|\n|\r/);
   var skip = 0;
-  while (skip < lines.length && /^#[a-z ]+:/i.test(lines[skip])) {
+  while (skip < lines.length && /^#/.test(lines[skip])) {
+    // "#separator:tab" style settings are read; any other "# comment" line is just skipped
     var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
-    directives[dm[1].trim().toLowerCase()] = dm[2].trim();
+    if (dm) directives[dm[1].trim().toLowerCase()] = dm[2].trim();
     skip++;
   }
   if (skip > 0) text = lines.slice(skip).join('\n');
@@ -187,14 +201,19 @@ function parseDelimitedText(text, options) {
 
   // Auto-detect delimiter if not specified
   if (!delimiter) {
-    var firstChunk = text.substring(0, Math.min(text.length, 2000));
-    var tabCount = 0;
-    var commaCount = 0;
-    for (var ci = 0; ci < firstChunk.length; ci++) {
-      if (firstChunk[ci] === '\t') tabCount++;
-      if (firstChunk[ci] === ',') commaCount++;
+    // A tab on the first non-empty line means a TSV (clinical text is full of commas, so counting them would guess wrong)
+    var firstLine = (text.split(/\r\n|\n|\r/).find(function (l) { return l.trim() !== ''; })) || '';
+    if (firstLine.indexOf('\t') >= 0) delimiter = '\t';
+    else {
+      var firstChunk = text.substring(0, Math.min(text.length, 2000));
+      var tabCount = 0;
+      var commaCount = 0;
+      for (var ci = 0; ci < firstChunk.length; ci++) {
+        if (firstChunk[ci] === '\t') tabCount++;
+        if (firstChunk[ci] === ',') commaCount++;
+      }
+      delimiter = tabCount >= commaCount ? '\t' : ',';
     }
-    delimiter = tabCount >= commaCount ? '\t' : ',';
   }
 
   var frontCol = typeof options.frontColumn === 'number' ? options.frontColumn : 0;
@@ -202,6 +221,10 @@ function parseDelimitedText(text, options) {
 
   // Parse into rows of fields using RFC 4180-style state machine
   var rows = _parseCSVRows(text, delimiter, warnings);
+
+  // Note type names (when the export has them) tell "optional reversed" notes, whose 3rd field is just a "y" flag
+  var ntIdx = parseInt(directives['notetype column'], 10) - 1;
+  var twoFieldRows = rows.map(function (r) { return ntIdx >= 0 && /optional reversed|type in the answer/i.test(r[ntIdx] || ''); });
 
   // Drop Anki's GUID / note type / deck / tags columns so only the card fields are left
   if (Object.keys(metaCols).length) {
@@ -235,8 +258,11 @@ function parseDelimitedText(text, options) {
     var back = row[backCol] ? row[backCol].trim() : '';
 
     // If back column is not specified and there are more columns, join them
+    // (empty columns are left out: Anki pads every note out to the note type's field count)
+    var extraText = '';
     if (backCol === 1 && row.length > 2 && options.backColumn === undefined) {
-      back = row.slice(1).join(', ').trim();
+      extraText = row[2] ? row[2].trim() : '';
+      back = twoFieldRows[ri] ? back : row.slice(1).filter(function (c) { return c.trim() !== ''; }).join(', ').trim();
     }
 
     if (stripTags) {
@@ -246,7 +272,7 @@ function parseDelimitedText(text, options) {
 
     // Cloze text ({{c1::answer}}) in a plain export: one card per cloze, like the .apkg importer
     if (/\{\{c\d+::/.test(front)) {
-      var cz = clozeCards([front, back]);
+      var cz = clozeCards([front, row[1] || '']);
       if (cz && cz.length) { cz.forEach(function (c) { cards.push(c); }); continue; }
     }
 

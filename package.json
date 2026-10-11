@@ -63,6 +63,7 @@
     "@capacitor/status-bar": "^8.0.4",
     "@supabase/supabase-js": "2.117.3",
     "capacitor-plugin-cdv-purchase": "^13.18.0",
+    "fzstd": "^0.1.1",
     "jszip": "^3.10.2",
     "peerjs": "1.5.4",
     "sql.js": "^1.8.0",
