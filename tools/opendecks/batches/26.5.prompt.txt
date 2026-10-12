@@ -1,0 +1,112 @@
+You are converting my flashcards into quick-fire multiple-choice cards for a medical-exam game (USMLE / COMLEX). In the game the player sees 2-4 short clues for about 3 seconds, then must pick the right answer from THREE options (the answer plus two wrong ones). So every card must be answerable from the clues alone, with exactly one defensible option.
+
+Reply with ONE JSON array and nothing else (no commentary, no code fences). One object per usable card, with exactly these fields:
+- "subj": one of "Neurology", "Cardiology", "Nephrology", "Psychiatry", "Gastroenterology", "Pulmonology", "Infectious Disease", "Endocrinology", "Hematology/Oncology", "Rheumatology", "Obstetrics/Gynecology", "Pediatrics", "Surgery", "Emergency Medicine", "Multisystem / Mixed". Use "Multisystem / Mixed" if unsure.
+- "bw": 2 to 4 clues, each 1-8 words, taken from my card (no invented facts). Together they must point to ONE answer. Rules for clues:
+  * Never put the answer, or its key words, in a clue.
+  * Name the thing being asked about, and what is asked, when the card asks a property: "Pseudomonas aeruginosa", "Oxygen requirement" (not just vague symptoms that fit many organisms).
+  * Use specific buzzwords (findings, numbers, named signs), not generic words like "serious", "common", "treatment".
+- "ans": a TERM, not a sentence: a diagnosis, organism, drug, test, structure, receptor, mechanism, or number, normally 1-4 words (never more than 8). If my card's back is a sentence or explanation, extract its key term. If the card asks "what is X?" and the back describes X, flip it: put the description in "bw" and the NAME in "ans".
+- "d": exactly 2 wrong answers. Each must be a real term of the same kind and similar length as "ans" that a student could actually confuse with it (sibling diagnoses, drugs of the same class, nearby numbers, other items from the same list). Never opposites ("increased / decreased / no change"), never silly or a different category, never "N/A" or "None of the above", and never something that is also correct.
+- "tp": one or two sentences of teaching point, using only facts from my card.
+- "ww": an object whose keys are exactly the two wrong answers in "d"; each value is one short sentence on why it is wrong here (state what it actually is or does, not just "not the answer").
+
+Make a card when my card boils down to: one fact -> one short term (name the organism, drug, test, mechanism, cause, number, classic association, or a vignette -> diagnosis).
+SKIP the card (no object at all) when it is: a list, steps or sequence; a definition or "explain / what are the consequences / how does it differ" question; yes/no; two questions in one; "which is NOT / wrong pair" with options missing; an image; or when the back is vague, contradicts itself, or you are not sure it is medically correct. Do not rewrite facts. One card per fact: do not make two cards with the same answer and distractors.
+Ignore HTML tags and tags/subject columns. If a cloze like {{c1::answer}} appears, the hidden part is the answer.
+
+Bad vs good (same fact):
+- Bad: bw ["Narrowed descending aorta","Hypertension"], ans "Narrowing of the descending aorta beyond the great vessels" (answer is in the clue, and is a sentence).
+  Good: bw ["Arm hypertension","Weak leg pulses","Leg cramps"], ans "Coarctation of the aorta", d ["Aortic valve stenosis","Patent ductus arteriosus"].
+- Bad: bw ["Menorrhagia"], ans "More than 80 ml", d ["Less than 20 ml","Less than 40 ml"] (both wrong answers are absurd for heavy bleeding).
+  Good: ans "More than 80 ml", d ["More than 40 ml","More than 120 ml"].
+- Bad: bw ["Volatile anesthetics","Rigidity"], ans "Hypermetabolic muscle crisis triggered by volatile anesthetics".
+  Good: ans "Malignant hyperthermia", d ["Neuroleptic malignant syndrome","Serotonin syndrome"].
+- Bad: bw ["Lung infections","Weak immunity"], ans "Obligate aerobe" (clues fit dozens of organisms; the question being asked is never named).
+  Good: bw ["Pseudomonas aeruginosa","Oxygen requirement"], ans "Obligate aerobe", d ["Obligate anaerobe","Microaerophile"].
+
+Example of one object:
+{"subj":"Cardiology","bw":["Fever","New murmur","Janeway lesions"],"ans":"Infective Endocarditis","d":["Rheumatic Fever","Atrial Myxoma"],"tp":"Janeway lesions are painless; Osler nodes are painful. Blood cultures before antibiotics.","ww":{"Rheumatic Fever":"Migratory arthritis and Jones criteria, not embolic skin lesions.","Atrial Myxoma":"Positional dyspnea and a tumor plop."}}
+
+My cards:
+
+Extra rules for this batch (the text below is a textbook passage, not flashcards; treat each fact worth a quiz question as a card):
+- Add two more fields to each object: "source_ref" (the passage id given below) and "evidence" (ONE sentence copied word for word from the passage that proves the answer).
+- "bw" is what a player reads while running: 1 to 3 short clues, each under 60 characters, 130 characters in total, and it must not contain the answer.
+- "ans" and each wrong answer must be under 50 characters. Exactly one answer may be defensible.
+- Never use a fact that is not in the passage.
+
+Passage id: 26.5
+
+Disorders of Acid-Base Balance
+26.5 Disorders of Acid-Base Balance
+Learning Objectives
+By the end of this section, you will be able to:
+Identify the three blood variables considered when making a diagnosis of acidosis or alkalosis
+Identify the source of compensation for blood pH problems of a respiratory origin
+Identify the source of compensation for blood pH problems of a metabolic/renal origin
+Normal arterial blood pH is restricted to a very narrow range of 7.35 to 7.45. A person who has a blood pH below 7.35 is considered to be in acidosis (actually, “physiological acidosis,” because blood is not truly acidic until its pH drops below 7), and a continuous blood pH below 7.0 can be fatal. Acidosis has several symptoms, including headache and confusion, and the individual can become lethargic and easily fatigued (Figure 26.18). A person who has a blood pH above 7.45 is considered to be in alkalosis, and a pH above 7.8 is fatal. Some symptoms of alkalosis include cognitive impairment (which can progress to unconsciousness), tingling or numbness in the extremities, muscle twitching and spasm, and nausea and vomiting. Both acidosis and alkalosis can be caused by either metabolic or respiratory disorders.
+As discussed earlier in this chapter, the concentration of carbonic acid in the blood is dependent on the level of CO2 in the body and the amount of CO2 gas exhaled through the lungs. Thus, the respiratory contribution to acid-base balance is usually discussed in terms of CO2 (rather than of carbonic acid). Remember that a molecule of carbonic acid is lost for every molecule of CO2 exhaled, and a molecule of carbonic acid is formed for every molecule of CO2 retained.
+Metabolic Acidosis: Primary Bicarbonate Deficiency
+Metabolic acidosis occurs when the blood is too acidic (pH below 7.35) due to too little bicarbonate, a condition called primary bicarbonate deficiency. At the normal pH of 7.40, the ratio of bicarbonate to carbonic acid buffer is 20:1. If a person’s blood pH drops below 7.35, then he or she is in metabolic acidosis. The most common cause of metabolic acidosis is the presence of organic acids or excessive ketone bodies in the blood. Table 26.2 lists some other causes of metabolic acidosis.
+Cause
+Metabolite
+Diarrhea
+Bicarbonate
+Uremia
+Phosphoric, sulfuric, and lactic acids
+Diabetic ketoacidosis
+Increased ketone bodies
+Strenuous exercise
+Lactic acid
+Methanol
+Formic acid*
+Paraldehyde
+β-Hydroxybutyric acid*
+Isopropanol
+Propionic acid*
+Ethylene glycol
+Glycolic acid, and some oxalic and formic acids*
+Salicylate/aspirin
+Sulfasalicylic acid (SSA)*
+The first three of the eight causes of metabolic acidosis listed are medical (or unusual physiological) conditions. Strenuous exercise can cause temporary metabolic acidosis due to the production of lactic acid. The last five causes result from the ingestion of specific substances. The active form of aspirin is its metabolite, sulfasalicylic acid. An overdose of aspirin causes acidosis due to the acidity of this metabolite. Metabolic acidosis can also result from uremia, which is the retention of urea and uric acid. Metabolic acidosis can also arise from diabetic ketoacidosis, wherein an excess of ketone bodies are present in the blood. Other causes of metabolic acidosis are a decrease in the excretion of hydrogen ions, which inhibits the conservation of bicarbonate ions, and excessive loss of bicarbonate ions through the gastrointestinal tract due to diarrhea.
+Metabolic Alkalosis: Primary Bicarbonate Excess
+Metabolic alkalosis is the opposite of metabolic acidosis. It occurs when the blood is too alkaline (pH above 7.45) due to too much bicarbonate (called primary bicarbonate excess).
+A transient excess of bicarbonate in the blood can follow ingestion of excessive amounts of bicarbonate, citrate, or antacids for conditions such as stomach acid reflux—known as heartburn. Cushing’s disease, which is the chronic hypersecretion of adrenocorticotropic hormone (ACTH) by the anterior pituitary gland, can cause chronic metabolic alkalosis. The oversecretion of ACTH results in elevated aldosterone levels and an increased loss of potassium by urinary excretion. Other causes of metabolic alkalosis include the loss of hydrochloric acid from the stomach through vomiting, potassium depletion due to the use of diuretics for hypertension, and the excessive use of laxatives.
+Respiratory Acidosis: Primary Carbonic Acid/CO2 Excess
+Respiratory acidosis occurs when the blood is overly acidic due to an excess of carbonic acid, resulting from too much CO2 in the blood. Respiratory acidosis can result from anything that interferes with respiration, such as pneumonia, emphysema, or congestive heart failure.
+Respiratory Alkalosis: Primary Carbonic Acid/CO2 Deficiency
+Respiratory alkalosis occurs when the blood is overly alkaline due to a deficiency in carbonic acid and CO2 levels in the blood. This condition usually occurs when too much CO2 is exhaled from the lungs, as occurs in hyperventilation, which is breathing that is deeper or more frequent than normal. An elevated respiratory rate leading to hyperventilation can be due to extreme emotional upset or fear, fever, infections, hypoxia, or abnormally high levels of catecholamines, such as epinephrine and norepinephrine. Surprisingly, aspirin overdose—salicylate toxicity—can result in respiratory alkalosis as the body tries to compensate for initial acidosis.
+Interactive Link
+Watch this video to see a demonstration of the effect altitude has on blood pH. What effect does high altitude have on blood pH, and why?
+Compensation Mechanisms
+Various compensatory mechanisms exist to maintain blood pH within a narrow range, including buffers, respiration, and renal mechanisms. Although compensatory mechanisms usually work very well, when one of these mechanisms is not working properly (like kidney failure or respiratory disease), they have their limits. If the pH and bicarbonate to carbonic acid ratio are changed too drastically, the body may not be able to compensate. Moreover, extreme changes in pH can denature proteins. Extensive damage to proteins in this way can result in disruption of normal metabolic processes, serious tissue damage, and ultimately death.
+Respiratory Compensation
+Respiratory compensation for metabolic acidosis increases the respiratory rate to drive off CO2 and readjust the bicarbonate to carbonic acid ratio to the 20:1 level. This adjustment can occur within minutes. Respiratory compensation for metabolic alkalosis is not as adept as its compensation for acidosis. The normal response of the respiratory system to elevated pH is to increase the amount of CO2 in the blood by decreasing the respiratory rate to conserve CO2. There is a limit to the decrease in respiration, however, that the body can tolerate. Hence, the respiratory route is less efficient at compensating for metabolic alkalosis than for acidosis.
+Metabolic Compensation
+Metabolic and renal compensation for respiratory diseases that can create acidosis revolves around the conservation of bicarbonate ions. In cases of respiratory acidosis, the kidney increases the conservation of bicarbonate and secretion of H+ through the exchange mechanism discussed earlier. These processes increase the concentration of bicarbonate in the blood, reestablishing the proper relative concentrations of bicarbonate and carbonic acid. In cases of respiratory alkalosis, the kidneys decrease the production of bicarbonate and reabsorb H+ from the tubular fluid. These processes can be limited by the exchange of potassium by the renal cells, which use a K+-H+ exchange mechanism (antiporter).
+Diagnosing Acidosis and Alkalosis
+Lab tests for pH, CO2 partial pressure (PCO2), and HCO3– can identify acidosis and alkalosis, indicating whether the imbalance is respiratory or metabolic, and the extent to which compensatory mechanisms are working. The blood pH value, as shown in Table 26.3, indicates whether the blood is in acidosis, the normal range, or alkalosis. The PCO2 and total HCO3– values aid in determining whether the condition is metabolic or respiratory, and whether the patient has been able to compensate for the problem. Table 26.3 lists the conditions and laboratory results that can be used to classify these conditions. Metabolic acid-base imbalances typically result from kidney disease, and the respiratory system usually responds to compensate.
+pH
+PCO2
+Total HCO3–
+Metabolic acidosis
+↓
+N, then ↓
+↓
+Respiratory acidosis
+↓
+↑
+N, then ↑
+Metabolic alkalosis
+↑
+N, then↑
+↑
+Respiratory alkalosis
+↑
+↓
+N, then ↓
+Metabolic acidosis is problematic, as lower-than-normal amounts of bicarbonate are present in the blood. The PCO2 would be normal at first, but if compensation has occurred, it would decrease as the body reestablishes the proper ratio of bicarbonate and carbonic acid/CO2.
+Respiratory acidosis is problematic, as excess CO2 is present in the blood. Bicarbonate levels would be normal at first, but if compensation has occurred, they would increase in an attempt to reestablish the proper ratio of bicarbonate and carbonic acid/CO2.
+Alkalosis is characterized by a higher-than-normal pH. Metabolic alkalosis is problematic, as elevated pH and excess bicarbonate are present. The PCO2 would again be normal at first, but if compensation has occurred, it would increase as the body attempts to reestablish the proper ratios of bicarbonate and carbonic acid/CO2.
+Respiratory alkalosis is problematic, as CO2 deficiency is present in the bloodstream. The bicarbonate concentration would be normal at first. When renal compensation occurs, however, the bicarbonate concentration in blood decreases as the kidneys attempt to reestablish the proper ratios of bicarbonate and carbonic acid/CO2 by eliminating more bicarbonate to bring the pH into the physiological range.

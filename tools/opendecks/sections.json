@@ -11,27 +11,137 @@
     "licenceUrl": "https://creativecommons.org/licenses/by/4.0/"
   },
   "sections": [
-    { "ref": "17.3", "id": "220a804e-2280-4c55-adbc-7a34d4810839", "subject": "Endocrinology" },
-    { "ref": "17.4", "id": "6218af68-bd2e-4934-9d00-137fb8384dfb", "subject": "Endocrinology" },
-    { "ref": "17.5", "id": "77840296-c962-4f13-a9c6-d9927605fcf4", "subject": "Endocrinology" },
-    { "ref": "17.6", "id": "91a5f6cb-65d9-441e-b08d-eb2cb4c4cc91", "subject": "Endocrinology" },
-    { "ref": "17.9", "id": "93048ca2-ed02-4cf8-a310-8a8474fc1b21", "subject": "Endocrinology" },
-    { "ref": "19.2", "id": "302812e9-2d2d-4e44-8075-4bb75db53f36", "subject": "Cardiology" },
-    { "ref": "19.3", "id": "22c3f969-ab9d-4df0-8baf-5b1a99372fac", "subject": "Cardiology" },
-    { "ref": "19.4", "id": "49351638-09b0-4ab1-85cd-e62ba09ffccb", "subject": "Cardiology" },
-    { "ref": "20.2", "id": "03841c4c-9e9a-4822-95b2-12273c843a4e", "subject": "Cardiology" },
-    { "ref": "20.3", "id": "797b2238-a9ed-4012-b9af-ce0a25172732", "subject": "Cardiology" },
-    { "ref": "20.4", "id": "5f4c74cd-b9f4-432c-b12b-24b7f1474a4f", "subject": "Cardiology" },
-    { "ref": "22.3", "id": "bbaedbf4-4d78-4b7c-bc94-2a742f0f2f8c", "subject": "Pulmonology" },
-    { "ref": "22.4", "id": "98519dc2-a601-4193-a1e9-844a560771a4", "subject": "Pulmonology" },
-    { "ref": "22.5", "id": "decfd7ca-eb64-49fc-a319-cf341109fc2e", "subject": "Pulmonology" },
-    { "ref": "22.6", "id": "11673dd9-55e6-46d9-8b78-b06df85246bd", "subject": "Pulmonology" },
-    { "ref": "25.5", "id": "ec43dac9-2850-402e-9a47-7f0fb16bcfb7", "subject": "Nephrology" },
-    { "ref": "25.6", "id": "f8201348-cb61-4874-9c86-074ef0fcb9b4", "subject": "Nephrology" },
-    { "ref": "25.7", "id": "b8ebb2e5-7a01-46d3-9c16-f258683cd8ed", "subject": "Nephrology" },
-    { "ref": "25.8", "id": "d3100137-9cb1-41a9-b898-426d639a251c", "subject": "Nephrology" },
-    { "ref": "26.3", "id": "ca0c80ce-7586-419b-a890-6bdad12ec809", "subject": "Nephrology" },
-    { "ref": "26.4", "id": "3960fe89-f680-46c1-a27d-96c7a84a3c85", "subject": "Nephrology" },
-    { "ref": "26.5", "id": "39570e34-df6e-41e7-875d-3d62f92be3c7", "subject": "Nephrology" }
-  ]
+    {
+      "ref": "17.3",
+      "id": "220a804e-2280-4c55-adbc-7a34d4810839",
+      "subject": "Endocrinology"
+    },
+    {
+      "ref": "17.4",
+      "id": "6218af68-bd2e-4934-9d00-137fb8384dfb",
+      "subject": "Endocrinology"
+    },
+    {
+      "ref": "17.5",
+      "id": "77840296-c962-4f13-a9c6-d9927605fcf4",
+      "subject": "Endocrinology"
+    },
+    {
+      "ref": "17.6",
+      "id": "91a5f6cb-65d9-441e-b08d-eb2cb4c4cc91",
+      "subject": "Endocrinology"
+    },
+    {
+      "ref": "17.9",
+      "id": "93048ca2-ed02-4cf8-a310-8a8474fc1b21",
+      "subject": "Endocrinology"
+    },
+    {
+      "ref": "19.2",
+      "id": "302812e9-2d2d-4e44-8075-4bb75db53f36",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "19.3",
+      "id": "22c3f969-ab9d-4df0-8baf-5b1a99372fac",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "19.4",
+      "id": "49351638-09b0-4ab1-85cd-e62ba09ffccb",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "20.2",
+      "id": "03841c4c-9e9a-4822-95b2-12273c843a4e",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "20.3",
+      "id": "797b2238-a9ed-4012-b9af-ce0a25172732",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "20.4",
+      "id": "5f4c74cd-b9f4-432c-b12b-24b7f1474a4f",
+      "subject": "Cardiology"
+    },
+    {
+      "ref": "22.3",
+      "id": "bbaedbf4-4d78-4b7c-bc94-2a742f0f2f8c",
+      "subject": "Pulmonology"
+    },
+    {
+      "ref": "22.4",
+      "id": "98519dc2-a601-4193-a1e9-844a560771a4",
+      "subject": "Pulmonology"
+    },
+    {
+      "ref": "22.5",
+      "id": "decfd7ca-eb64-49fc-a319-cf341109fc2e",
+      "subject": "Pulmonology"
+    },
+    {
+      "ref": "22.6",
+      "id": "11673dd9-55e6-46d9-8b78-b06df85246bd",
+      "subject": "Pulmonology"
+    },
+    {
+      "ref": "25.5",
+      "id": "ec43dac9-2850-402e-9a47-7f0fb16bcfb7",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "25.6",
+      "id": "f8201348-cb61-4874-9c86-074ef0fcb9b4",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "25.7",
+      "id": "b8ebb2e5-7a01-46d3-9c16-f258683cd8ed",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "25.8",
+      "id": "d3100137-9cb1-41a9-b898-426d639a251c",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "26.3",
+      "id": "ca0c80ce-7586-419b-a890-6bdad12ec809",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "26.4",
+      "id": "3960fe89-f680-46c1-a27d-96c7a84a3c85",
+      "subject": "Nephrology"
+    },
+    {
+      "ref": "26.5",
+      "id": "39570e34-df6e-41e7-875d-3d62f92be3c7",
+      "subject": "Nephrology"
+    }
+  ],
+  "header": {
+    "format": 1,
+    "id": "openstax-ap-1e",
+    "title": "OpenStax A&P: heart, vessels, lungs, kidney, hormones",
+    "source": "OpenStax Anatomy & Physiology (1st ed.)",
+    "licence": {
+      "name": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    "attribution": "Adapted from OpenStax, Anatomy and Physiology (1st edition), Rice University, CC BY 4.0. Download for free at https://openstax.org/details/books/anatomy-and-physiology. Quiz cards were written by an AI from the book text and checked by software; they are not reviewed by a clinician and may contain mistakes. The OpenStax name and logo are trademarks of Rice University.",
+    "url": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
+    "author": "OpenStax (Rice University); quiz cards by Dx Dash",
+    "version": "1.0.0"
+  },
+  "tagRoots": {
+    "17": "Endocrine",
+    "19": "Cardiovascular",
+    "20": "Cardiovascular",
+    "22": "Respiratory",
+    "25": "Renal",
+    "26": "Fluids_and_acid-base"
+  }
 }

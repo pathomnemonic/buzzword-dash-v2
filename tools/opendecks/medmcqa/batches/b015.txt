@@ -1,0 +1,29 @@
+838|SUR|mech|Lymph drainage of the upper outer breast quadrant|Anterior (pectoral) axillary nodes|Apical nodes|Paratracheal nodes|Most breast lymph, especially from the upper outer quadrant, drains first to the anterior axillary nodes.
+839|MIX|mech|Cell-cycle phase of DNA replication|S phase|G1 phase|G2 phase|DNA is synthesized in S phase between G1 and G2.
+846|SUR|mech|Nerve closely related to the submandibular (Wharton) duct|Lingual nerve|Spinal accessory nerve|Glossopharyngeal nerve|The lingual nerve winds around the submandibular duct and is at risk in gland surgery.
+847|MIX|ph|Maintenance dose is determined by|Clearance|Volume of distribution|Oral bioavailability|Maintenance dose equals target concentration times clearance, while the loading dose depends on volume of distribution.
+848|END|mech|Anterior pituitary acidophils secrete|GH and prolactin|TSH and ACTH|FSH and LH|Acidophils are somatotrophs and lactotrophs; basophils are gonadotrophs, corticotrophs and thyrotrophs.
+849|OB|dx|Most common cause of postpartum hemorrhage|Uterine atony|Retained products|Genital tract trauma|Failure of the uterus to contract after delivery is the commonest cause of PPH.
+850|END|mg|Hyperthyroidism in first trimester: preferred drug|Propylthiouracil|Methimazole|Radioactive iodine|PTU is preferred early in pregnancy because methimazole is teratogenic and radioiodine is contraindicated.
+854|NEU|mech|General sensation and taste from the posterior third of the tongue|Glossopharyngeal nerve|Lingual nerve|Hypoglossal nerve|The glossopharyngeal nerve supplies the posterior third; the lingual and chorda tympani supply the anterior two-thirds.
+856|ID|mech|Paramyxovirus with F protein causing syncytia, no hemagglutinin or neuraminidase|RSV|Influenza virus|Parainfluenza virus|RSV has attachment (G) and fusion (F) proteins; palivizumab targets F.
+857|MIX|dx|Brain infarct and abscess: type of necrosis|Liquefactive necrosis|Coagulative necrosis|Caseous necrosis|The brain and pyogenic abscesses undergo liquefactive necrosis; most other ischemic organs show coagulative necrosis.
+859|MIX|dx|Most common lysosomal storage disease|Gaucher disease|Tay-Sachs disease|Wolman disease|Gaucher disease (glucocerebrosidase deficiency) is the most common lysosomal storage disorder.
+861|CAR|ph|Fenoldopam (D1 agonist) use|Hypertensive emergency|Orthostatic hypotension|Stable angina|Fenoldopam dilates arterioles and renal vessels, so it treats hypertensive emergencies.
+862|NEU|dx|Tardy ulnar nerve palsy|Cubitus valgus after lateral condyle fracture|Excision of elbow joint|Osteoarthritis fixing the nerve|Long-standing cubitus valgus stretches the ulnar nerve at the elbow, causing late palsy.
+868|NEP|dx|Most common histologic type of renal cell carcinoma|Clear cell|Papillary|Medullary|Clear cell carcinoma makes up 70-80% of renal cell cancers.
+869|NEU|ph|Ethosuximide indication|Absence seizures|Tonic-clonic seizures|Myoclonic seizures|Ethosuximide blocks T-type calcium channels and is only for absence seizures.
+871|PUL|dx|Primary lung abscess: major risk factor|Aspiration|Asthma|Pulmonary hypertension|Aspiration of oral flora with altered consciousness, alcohol or seizures is the major risk factor.
+873|GI|mech|H. pylori survival in gastric acid via|Urease|Vacuolating cytotoxin|CagA|Urease makes ammonia from urea, buffering acid around the organism.
+874|ID|lab|Cowdry type A inclusions|HSV|CMV|Measles virus|Cowdry A intranuclear inclusions occur in herpes simplex (and VZV); CMV gives owl's-eye inclusions.
+875|ID|dx|Molluscum contagiosum virus family|Poxvirus|Herpesvirus|Papillomavirus|Molluscum is a poxvirus causing umbilicated papules with molluscum bodies.
+876|NEU|mech|Brachial plexus cord giving the axillary nerve|Posterior cord|Lateral cord|Medial cord|The posterior cord gives the axillary and radial nerves.
+878|MIX|mech|Rate-limiting enzyme of the pentose phosphate pathway|Glucose-6-phosphate dehydrogenase|Aldolase|Glycogen phosphorylase|G6PD makes NADPH and is the rate-limiting step of the HMP shunt.
+879|EM|mg|Best confirmation of endotracheal tube placement|Capnography (exhaled CO2)|Chest rise|Auscultation|Exhaled CO2 detection is the recommended confirmatory method.
+882|END|ph|Long-acting glucocorticoid|Betamethasone|Hydrocortisone|Prednisolone|Betamethasone and dexamethasone are long-acting; prednisolone is intermediate and hydrocortisone short-acting.
+883|NEU|mech|Opponens pollicis nerve supply|Median nerve|Ulnar nerve|Radial nerve|The recurrent branch of the median nerve supplies the thenar muscles including opponens pollicis.
+886|ID|mech|Cholera toxin is structurally similar to this E. coli toxin|Heat-labile toxin|Heat-stable toxin|Shiga toxin|Cholera toxin and LT both activate adenylyl cyclase by ADP-ribosylating Gs.
+887|ID|lab|Anti-DNase B and ASO titers detect|Streptococcus pyogenes infection|Staphylococcus aureus infection|Corynebacterium diphtheriae infection|Anti-DNase B and ASO are antistreptococcal antibodies used for retrospective diagnosis, e.g. after skin infection and PSGN.
+889|NEP|dx|Most common cause of death in chronic dialysis patients|Cardiovascular disease|Infection|Malignancy|Cardiovascular disease is the leading cause of death in dialysis, followed by infection.
+890|PUL|mech|CFTR gene location|Long arm of chromosome 7|Short arm of chromosome 7|Long arm of chromosome 5|The CFTR gene lies on 7q31.
+892|GI|se|Prokinetic withdrawn for QT prolongation|Cisapride|Metoclopramide|Omeprazole|Cisapride blocks cardiac delayed rectifier potassium channels, prolonging QT and risking torsades.

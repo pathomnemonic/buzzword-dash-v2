@@ -13,7 +13,7 @@ import { pathToFileURL } from 'node:url';
 import { validateCard, SUBJECTS } from '../../js/cardschema.js';
 
 export const LIMITS = Object.freeze({
-  clues: 3, clueChars: 60, hintChars: 130, ansChars: 50, distractorChars: 50, tpChars: 300, wwChars: 200, tags: 6, tagChars: 40,
+  clues: 3, clueChars: 60, hintChars: 130, ansChars: 50, distractorChars: 50, tpChars: 300, wwChars: 200, tags: 6, tagChars: 100,
   evidenceMin: 25, evidenceMax: 400
 });
 
@@ -91,13 +91,20 @@ function jaccard(a, b) {
   return i / (A.size + B.size - i);
 }
 
-/** Two options read as the same thing: equal after normalising, nearly equal as text, or nearly the same words. */
+/**
+ * Two options read as the same thing: equal after normalising (brackets dropped), one contains the other, they differ by a
+ * single character (a plural, a typo), or they share nearly all their words. "Hypothyroidism" and "Hyperthyroidism"
+ * are different answers and are not flagged; "Beta cell" and "Beta cells" are.
+ */
 export function nearSame(x, y) {
-  const a = norm(x), b = norm(y);
+  const a = norm(x).replace(/\s*\([^)]*\)/g, '').trim() || norm(x);
+  const b = norm(y).replace(/\s*\([^)]*\)/g, '').trim() || norm(y);
   if (a === b) return true;
-  if (lev(a, b) / Math.max(a.length, b.length) <= 0.15) return true;
-  const sa = stems(x), sb = stems(y);
-  return sa.length > 0 && sb.length > 0 && jaccard(sa, sb) >= 0.8;
+  const shorter = a.length <= b.length ? a : b, longer = a.length <= b.length ? b : a;
+  if (shorter.length >= 6 && new RegExp('(^|[^a-z0-9])' + shorter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z0-9])').test(longer)) return true;
+  if (!/\d/.test(a + b) && a.length >= 8 && lev(a, b) <= 1) return true;
+  const sa = stems(a), sb = stems(b);
+  return sa.length >= 3 && sb.length >= 3 && jaccard(sa, sb) >= 0.8;
 }
 
 const NONE_OF = /\b(all|none|both|neither)\s+(of\s+)?(the\s+)?(above|these|them)\b|\bn\/a\b|^\s*(a|b|c|d)\s*(and|&)\s*(a|b|c|d)\s*$/i;

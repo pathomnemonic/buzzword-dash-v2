@@ -40,7 +40,7 @@ A card is the app's runner card schema (short field names, `js/cardschema.js`) p
 | `ww` | object | keys exactly the two strings in `d`, values one short sentence each saying why that option is wrong |
 | `source_ref` | string | id of the source passage the card was written from. The checker looks for `<source dir>/<source_ref>.txt` |
 | `evidence` | string | ONE sentence copied VERBATIM from that passage (whitespace, case, curly quotes normalised) which supports `ans` |
-| `tags` | string[] (optional) | up to 6 tags, each at most 40 characters; they feed the importer's tag filter. The packager adds `deck:<id>` |
+| `tags` | string[] (optional) | up to 6 tags, each at most 100 characters; they feed the importer's tag filter. The packager adds `deck:<id>` |
 | `exams`, `questionType`, `baseDifficulty`, `pearls` | optional | as in the built-in cards (`EXAM_FILTERS`, `QUESTION_TYPES`, 1 to 5, string[]) |
 
 The packager adds `key` (`<deckId>:<12 hex of a hash of source_ref + ans>`), so a card keeps its identity when its wording is
