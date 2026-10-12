@@ -30,6 +30,83 @@ export var IMPORT_PATHS = [
   }
 ];
 
+/**
+ * Popular decks, each with the page that is the official place to get it. Dx Dash never downloads them for you:
+ * AnkiWeb needs a login and limits bulk downloads, AnkiHub is a subscription, and the decks are licensed for personal
+ * study only (see docs/ANKING-INTEGRATION.md). The player gets their own copy, exports it from Anki and drops the file here.
+ * `verified` says whether the link was a real deck page when it was checked (false = a search page on the site).
+ */
+export var POPULAR_DECKS = [
+  {
+    id: 'anking-step',
+    name: 'AnKing Step Deck (Step 1, 2 and 3)',
+    blurb: '30,000+ cards tagged by Sketchy, Boards & Beyond, First Aid, Pathoma and UWorld. Tags look like #AK_Step1_v12::#B&B::\u2026',
+    site: 'AnkiHub',
+    url: 'https://www.ankihub.net/step-deck',
+    verified: true,
+    tip: 'Free AnkiHub account to look around; a paid plan keeps the deck synced in Anki.'
+  },
+  {
+    id: 'zanki',
+    name: 'Zanki (Step 1)',
+    blurb: 'A large community deck combining the usual Step 1 resources (Boards & Beyond, Pathoma, Sketchy, First Aid).',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=zanki',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'lightyear',
+    name: 'Lightyear (Step 1 / Step 2)',
+    blurb: 'A condensed community deck drawing on Boards & Beyond, Pathoma, First Aid and Sketchy.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=lightyear',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'pepper',
+    name: 'Pepper (Step 1)',
+    blurb: 'A community Step 1 deck.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=pepper%20step',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'dirty-medicine',
+    name: 'Dirty Medicine',
+    blurb: 'Community decks that go with the Dirty Medicine study material.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=dirty%20medicine',
+    verified: false,
+    tip: 'Search results: some of these decks are only sold by their authors.'
+  },
+  {
+    id: 'own',
+    name: 'Any deck of your own',
+    blurb: 'Anything you have in Anki: a class deck, a friend\u2019s deck, your own cards.',
+    site: 'Anki',
+    url: 'https://docs.ankiweb.net/manual/exporting',
+    verified: true,
+    tip: 'Anki\u2019s own guide to exporting.'
+  }
+];
+
+/** The same three steps for every deck. */
+export var POPULAR_DECK_STEPS = [
+  'Tap the deck\u2019s button to open its official page and get the deck into your own Anki (an account or subscription may be needed).',
+  'In Anki on a computer: File \u203A Export, format \u201CAnki Deck Package (*.apkg)\u201D, pick the deck, keep \u201CInclude tags\u201D ticked. Scheduling and media are not needed.',
+  'Come back here, choose that file (or drop it on the box), then tick the tags you want and tap Import.'
+];
+
+/** Why there is no one-tap download. Shown on request. */
+export var NO_AUTO_DOWNLOAD = [
+  'AnkiWeb asks you to sign in and limits bulk downloads on purpose, and its pages do not allow other websites to read them. A web app cannot fetch a deck from there.',
+  'AnkiHub is a subscription service that syncs decks through the Anki add-on.',
+  'Shared decks are licensed for your own study, not for redistribution, so Dx Dash does not bundle or mirror them. You download your own copy; this app only reads it on your device.'
+];
+
 /** What a row of a plain file should look like, shown under the file picker. */
 export var FORMAT_HELP = [
   'One card per line. Front, a tab (or comma), then back.',

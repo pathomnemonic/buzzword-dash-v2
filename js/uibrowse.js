@@ -242,7 +242,7 @@ export var browseMethods = {
     var query = (this._myCardsQuery || '').trim().toLowerCase();
     var page = Math.max(0, this._myCardsPage || 0);
     var cards = query ? all.filter(function (c) {
-      return (c.bw.join(' ') + ' ' + c.ans + ' ' + (c.tp || '')).toLowerCase().indexOf(query) >= 0;
+      return (c.bw.join(' ') + ' ' + c.ans + ' ' + (c.tp || '') + ' ' + (c.tags || []).join(' ')).toLowerCase().indexOf(query) >= 0;
     }) : all;
     var pages = Math.max(1, Math.ceil(cards.length / PAGE));
     if (page >= pages) page = pages - 1;

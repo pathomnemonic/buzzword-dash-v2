@@ -60,6 +60,13 @@ export var studyMethods = {
     var cardArea = createElement('div');
     cardArea.style.cssText = 'background:var(--bg-card-solid);border-radius:var(--radius-lg);padding:20px;text-align:center;border:var(--border-glow)';
     cardArea.appendChild(this._flashcardText('div', card.subject, 'font-size:10px;color:var(--text-muted);margin-bottom:8px'));
+    var tagLine = this._flashcardTagLine(card.tags);
+    if (tagLine) {
+      var tagEl = this._flashcardText('div', tagLine.text, 'font-size:10px;color:var(--text-muted);margin:-4px 0 8px;overflow-wrap:anywhere');
+      tagEl.className = 'fc-tags';
+      tagEl.title = tagLine.full;
+      cardArea.appendChild(tagEl);
+    }
     card.buzzwords.forEach(function (bw) {
       cardArea.appendChild(self._flashcardText('div', '• ' + bw, 'font-size:16px;font-weight:700;margin:4px 0'));
     });
@@ -106,6 +113,21 @@ export var studyMethods = {
     endBtn.style.marginTop = '10px';
     endBtn.addEventListener('click', function () { self._endFlashcardSession(); self.show('screenHome'); });
     container.appendChild(endBtn);
+  },
+
+  /** An imported card's Anki tags as a short line: the last part of each tag ("...::Heart_failure" shows "Heart failure"), at most 3. */
+  _flashcardTagLine(tags) {
+    if (!Array.isArray(tags) || !tags.length) return null;
+    var leaves = [];
+    tags.forEach(function (t) {
+      var parts = String(t).split('::');
+      var leaf = parts.pop();
+      if (/^\d+$/.test(leaf) && parts.length) leaf = parts.pop() + ' ' + leaf; // "Step::1" reads better than "1"
+      leaf = leaf.replace(/^[#!]+/, '').replace(/_/g, ' ').trim();
+      if (leaf && leaves.indexOf(leaf) < 0) leaves.push(leaf);
+    });
+    if (!leaves.length) return null;
+    return { text: '\uD83C\uDFF7 ' + leaves.slice(0, 3).join(' \u00B7 ') + (leaves.length > 3 ? ' +' + (leaves.length - 3) : ''), full: tags.join(' ') };
   },
 
   _renderFlashcardSummary(container) {

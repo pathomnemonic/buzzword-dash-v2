@@ -373,6 +373,8 @@ export class FlashcardMode {
       baseDifficulty: card.baseDifficulty || 2,
       exams: card.exams || [],
       questionType: card.questionType || 'buzzword_dx',
+      // the Anki tags of an imported card (built-in cards keep their own tags to themselves)
+      tags: card.isCustom && Array.isArray(card.tags) ? card.tags.slice(0, 12) : [],
       revealed: this.state === SESSION_STATES.REVEALED
     };
   }

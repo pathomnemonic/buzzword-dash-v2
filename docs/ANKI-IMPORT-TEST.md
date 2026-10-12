@@ -75,3 +75,24 @@ Tests: `tests/unit/ankiformats.test.js` (8 tests, builds apkg and a zstd `anki21
 - Reversed cards, image-occlusion and image-only cards are not represented; images could be kept as flashcard-only cards if media import were added.
 - `<br>` handling differs between the two paths.
 - AnKing-class decks (30k+ notes, many fields) were not tested with a real file; the 5,000 cap and the Pro gate (`anki_import`) apply.
+
+## Update 2026-10-12: popular decks, tags and filtering
+
+New in the importer (see `docs/ANKING-INTEGRATION.md` for the research and what was not possible):
+
+| Feature | Status |
+|---|---|
+| Tags read from the notes table (space-separated, `::` hierarchy) and from text exports with a `#tags column` | works; stored on each imported card as `tags` (at most 15, plain text, `leech`/`marked` dropped) |
+| Suspended (queue -1) and buried (-2, -3) cards, per cloze card (ord = cloze number - 1) | works; "Skip suspended" on by default, "Skip buried" off |
+| Cloze: several clozes, same number twice, nested clozes, hints | one card per number; front blanks it as `[...]`/`[hint]`, back is the answer, teaching text is the full sentence plus Extra and the other fields |
+| Image occlusion notes | skipped, counted in the warning |
+| Re-import | card key = Anki guid (+ `#cN` for clozes) or a hash of the text; same key updates in place (same card id), unchanged cards are reported as already up to date |
+| Cap | parsing reads up to 100,000 cards; My Cards holds 5,000 by default, the player can raise it to 50,000 in the panel; a failed browser save changes nothing and says so |
+| Big decks | import runs in chunks of 400 with progress and yields to the page between chunks; one read and one write of storage |
+| Tag tree | searchable, counts per node (each card once), tri-state checkboxes, Select all / none / matches, chips for Step 1/2/3, 14 subjects and 5 resources (only those present), live count and storage estimate |
+| Imported subject | guessed from tags (`Cardiology`...), otherwise "Multisystem / Mixed" |
+| Display | flashcards show a short tag line (last parts of up to 3 tags); My Cards search also matches tags |
+
+Verified with: `tests/unit/ankifilter.test.js` (29 tests: synthetic collections with real column names, tag tree, filters, presets, dedupe, chunks, storage failure, tag text never rendered as markup, the panel in jsdom), and in Chromium against a production build: a 1,888-card AnKing-shaped deck exported by the real Anki 26.9.3 in the latest zstd format with 60 suspended cards (chips Step 1 + Cardiology gave 66 cards, import then re-import reported 66 new then 66 already up to date, tags visible in Flashcard mode, no page errors).
+
+Performance note: `customCards.getAll()` parses the whole list on every call; at 30,000+ cards that is tens of milliseconds per call in several screens. Not measured in the browser at that size.

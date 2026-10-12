@@ -26,7 +26,7 @@ describe('Anki "Notes in Plain Text" export', () => {
   });
   it('skips a Front,Back header row and says when a row is half empty', () => {
     const r = ankiImport.parseDelimitedText('Front,Back\nQ1,A1\nQ2,\n');
-    expect(r.cards).toEqual([{ front: 'Q1', back: 'A1' }]);
+    expect(r.cards).toMatchObject([{ front: 'Q1', back: 'A1' }]);
     expect(r.warnings.join(' ')).toMatch(/one side is empty|only a picture/);
   });
   it('reads the example shown in the app', () => {
@@ -102,7 +102,7 @@ describe('the importer screen', () => {
     expect(text).toMatch(/Copy AI prompt/);
     expect(text).toMatch(/Import quiz cards/);
     expect(text).not.toMatch(/Backend URL/i);
-    expect(box.querySelectorAll('details').length).toBe(2);
+    expect(box.querySelectorAll('details').length).toBe(3); // two how-tos and "why no automatic download"
     ankiImport.unmount();
   });
 });
