@@ -10,7 +10,8 @@ for (const f of readdirSync(rdir).filter((x) => x.endsWith('.txt')).sort()) {
   const text = readFileSync(rdir + '/' + f, 'utf8');
   const batch = f.replace(/^[a-z]+-/, '').replace('.txt', '');
   const p = pdir + '/' + batch + '.txt';
-  const inputCards = existsSync(p) ? readFileSync(p, 'utf8').split('My cards:\n')[1].trim().split('\n').length : 0;
+  const mf = existsSync(pdir + '/manifest.json') ? JSON.parse(readFileSync(pdir + '/manifest.json', 'utf8')) : [];
+  const inputCards = (mf.find((m) => m.name === batch) || {}).count || 0;
   const t = text.trim();
   const pureJson = (() => { try { return Array.isArray(JSON.parse(t)); } catch (e) { return false; } })();
   const r = parseAiReply(text);
