@@ -16,7 +16,7 @@
  * - Supports repository subscriptions via subscribe(listener)
  * - localStorage allows up to 5 MiB per origin
  *
- * Maximum custom cards: 500 (to prevent localStorage overflow)
+ * Maximum custom cards: 5000 unless the player raises it (at most 50000), to keep the single localStorage entry from overflowing
  */
 
 import {
@@ -25,7 +25,34 @@ import {
 } from './cardschema.js';
 
 var CUSTOM_CARDS_KEY = 'buzzword_dash_custom_cards';
-var MAX_CUSTOM_CARDS = 5000; // (an Anki deck is often a few thousand cards)
+var DEFAULT_LIMIT = 5000; // (an Anki deck is often a few thousand cards)
+var HARD_LIMIT = 50000;   // the most a player may raise it to: every card lives in one localStorage entry (about 5 MB per site)
+var LIMIT_KEY = 'buzzword_dash_custom_cards_limit';
+
+/** How many custom cards the player allows themselves (their choice in the importer, 5000 until they change it). */
+function _limit() {
+  try {
+    var v = parseInt(localStorage.getItem(LIMIT_KEY), 10);
+    if (v >= DEFAULT_LIMIT && v <= HARD_LIMIT) return v;
+  } catch (e) { /* storage unavailable: use the default */ }
+  return DEFAULT_LIMIT;
+}
+
+/** Keep imported tags small and plain: text only, no Anki housekeeping tags, at most 15, each at most 100 characters. */
+function _cleanTags(tags) {
+  var out = [];
+  for (var i = 0; i < tags.length && out.length < 15; i++) {
+    var t = typeof tags[i] === 'string' ? tags[i].trim().slice(0, 100) : '';
+    if (!t || /^(leech|marked)$/i.test(t) || out.indexOf(t) >= 0) continue;
+    out.push(t);
+  }
+  return out;
+}
+
+/** Let the page paint and respond between chunks of a long job. */
+function _yieldToUi() {
+  return new Promise(function (resolve) { setTimeout(resolve, 0); });
+}
 
 // Subscription listeners
 var _listeners = [];
@@ -77,7 +104,7 @@ export var customCards = {
       if (!_usable(c) || seen[c.id]) return false;
       seen[c.id] = true;
       return true;
-    }).slice(0, MAX_CUSTOM_CARDS);
+    }).slice(0, HARD_LIMIT);
     this._saveAll(kept);
     _notifyListeners();
     return kept.length;
@@ -103,9 +130,23 @@ export var customCards = {
   _saveAll: function(cards) {
     try {
       localStorage.setItem(CUSTOM_CARDS_KEY, JSON.stringify(cards));
+      return true;
     } catch (e) {
       console.warn('Could not save custom cards:', e.message);
+      return false;
     }
+  },
+
+  /** The most custom cards the player has allowed (default 5000, at most 50000). */
+  getLimit: function() { return _limit(); },
+  getHardLimit: function() { return HARD_LIMIT; },
+  getDefaultLimit: function() { return DEFAULT_LIMIT; },
+
+  /** Raise or lower that allowance. Returns the value now in force. */
+  setLimit: function(n) {
+    var v = Math.max(DEFAULT_LIMIT, Math.min(HARD_LIMIT, Math.round(Number(n)) || DEFAULT_LIMIT));
+    try { localStorage.setItem(LIMIT_KEY, String(v)); } catch (e) { /* keep the old one */ }
+    return _limit();
   },
 
   /**
@@ -118,11 +159,11 @@ export var customCards = {
     var cards = this.getAll();
 
     // Check count limit
-    if (cards.length >= MAX_CUSTOM_CARDS) {
+    if (cards.length >= _limit()) {
       return {
         success: false,
         card: null,
-        errors: [{ code: 'MAX_CARDS_REACHED', path: '', message: 'Maximum of ' + MAX_CUSTOM_CARDS + ' custom cards reached', severity: 'error' }],
+        errors: [{ code: 'MAX_CARDS_REACHED', path: '', message: 'Maximum of ' + _limit() + ' custom cards reached', severity: 'error' }],
         warnings: []
       };
     }
@@ -191,10 +232,10 @@ export var customCards = {
     var out = { added: 0, rejected: 0, warnings: [], limitReached: false };
     var stamp = Date.now();
     for (var i = 0; i < inputs.length; i++) {
-      if (cards.length >= MAX_CUSTOM_CARDS) {
+      if (cards.length >= _limit()) {
         out.limitReached = true;
         out.rejected += inputs.length - i;
-        out.warnings.push('Stopped at ' + MAX_CUSTOM_CARDS + ' custom cards, the most the app keeps. Delete some in My Cards to add more.');
+        out.warnings.push('Stopped at ' + _limit() + ' custom cards, the most the app keeps. Delete some in My Cards to add more.');
         break;
       }
       var card = _buildCardFromInput(inputs[i]);
@@ -213,6 +254,75 @@ export var customCards = {
     if (out.added > 0) {
       this._saveAll(cards);
       _notifyListeners();
+    }
+    return out;
+  },
+
+  /**
+   * Add many cards in chunks without freezing the page, and refresh the ones imported before.
+   * A card whose `key` (an Anki note guid, or a hash of the card text) matches a stored card updates it in place
+   * (same id, so its study history stays); every other card is added. One read and one write for the whole job.
+   *
+   * @param {object[]} inputs the same shape add() takes, plus optional `tags` (string[]) and `key` (string)
+   * @param {{chunkSize?: number, onProgress?: function(number, number), limit?: number}} [opts]
+   * @returns {Promise<{added: number, updated: number, unchanged: number, rejected: number, warnings: string[], limitReached: boolean, saved: boolean}>}
+   */
+  upsertMany: async function(inputs, opts) {
+    opts = opts || {};
+    var chunk = Math.max(50, opts.chunkSize || 400);
+    var cards = this.getAll();
+    var limit = opts.limit ? Math.min(HARD_LIMIT, opts.limit) : _limit();
+    var out = { added: 0, updated: 0, unchanged: 0, rejected: 0, warnings: [], limitReached: false, saved: true };
+    var byKey = Object.create(null);
+    cards.forEach(function(c, i) { if (c.ak) byKey[c.ak] = i; });
+    var stamp = Date.now();
+    var total = inputs.length;
+    for (var i = 0; i < total; i++) {
+      if (i > 0 && i % chunk === 0) {
+        if (opts.onProgress) opts.onProgress(i, total);
+        await _yieldToUi();
+      }
+      var card = _buildCardFromInput(inputs[i]);
+      var at = card.ak && byKey[card.ak] !== undefined ? byKey[card.ak] : -1;
+      if (at < 0 && cards.length >= limit) {
+        out.limitReached = true;
+        out.rejected += total - i;
+        out.warnings.push('Stopped at ' + limit + ' custom cards, the most you have allowed. Raise the limit in the importer, or delete some in My Cards.');
+        break;
+      }
+      card.id = at >= 0 ? cards[at].id : 'custom_' + stamp + '_' + cards.length + '_' + i;
+      if (at >= 0 && cards[at].createdAt) card.createdAt = cards[at].createdAt;
+      var placeholders = _hasPlaceholderDistractors(card);
+      if (placeholders) card.enabledModes = ['flashcard'];
+      var result = validateCard(card, { strict: false, requireDistractors: !placeholders });
+      if (!result.success) {
+        out.rejected++;
+        if (out.warnings.length < 20) out.warnings.push('Card ' + (i + 1) + ': ' + ((result.errors[0] && result.errors[0].message) || 'not valid') + '. Skipped.');
+        continue;
+      }
+      if (at >= 0) {
+        var old = cards[at];
+        if (old.bw[0] === card.bw[0] && old.ans === card.ans && old.tp === card.tp && JSON.stringify(old.tags || []) === JSON.stringify(card.tags || []) && old.subj === card.subj) {
+          out.unchanged++;
+        } else {
+          cards[at] = card;
+          out.updated++;
+        }
+      } else {
+        cards.push(card);
+        if (card.ak) byKey[card.ak] = cards.length - 1;
+        out.added++;
+      }
+    }
+    if (opts.onProgress) opts.onProgress(total, total);
+    if (out.added > 0 || out.updated > 0) {
+      out.saved = this._saveAll(cards);
+      if (!out.saved) {
+        out.warnings.push('Your browser ran out of storage space, so nothing was saved. Import fewer cards (use the tag filter) or delete some first.');
+        out.added = 0; out.updated = 0;
+      } else {
+        _notifyListeners();
+      }
     }
     return out;
   },
@@ -374,13 +484,13 @@ export var customCards = {
     var existing = this.getAll();
 
     // Check if we'd exceed the limit
-    if (existing.length + parsed.length > MAX_CUSTOM_CARDS) {
+    if (existing.length + parsed.length > _limit()) {
       result.warnings.push({ code: 'WOULD_EXCEED_LIMIT', path: '',
-        message: 'Import would exceed maximum of ' + MAX_CUSTOM_CARDS + ' custom cards. Only importing what fits.',
+        message: 'Import would exceed maximum of ' + _limit() + ' custom cards. Only importing what fits.',
         severity: 'warning' });
     }
 
-    var remaining = MAX_CUSTOM_CARDS - existing.length;
+    var remaining = _limit() - existing.length;
 
     for (var i = 0; i < parsed.length; i++) {
       if (result.importedCount >= remaining) {
@@ -472,6 +582,12 @@ function _buildCardFromInput(cardData) {
     isCustom: true,
     createdAt: Date.now()
   };
+
+  if (Array.isArray(cardData.tags)) {
+    var tags = _cleanTags(cardData.tags);
+    if (tags.length) card.tags = tags;
+  }
+  if (typeof cardData.key === 'string' && cardData.key) card.ak = cardData.key.slice(0, 120);
 
   if (cardData.whyWrong1 && card.d[0]) {
     card.ww[card.d[0]] = cardData.whyWrong1;
