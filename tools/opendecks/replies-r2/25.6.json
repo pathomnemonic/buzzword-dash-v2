@@ -1,0 +1,57 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Share of filtered water and solutes reabsorbed"
+],
+"ans": "About 99 percent",
+"d": [
+"About 50 percent",
+"About 75 percent"
+],
+"tp": "Reabsorbed substances return to the circulation by the peritubular capillaries and vasa recta.",
+"ww": {
+"About 50 percent": "Far more than half is reabsorbed.",
+"About 75 percent": "The source says 99 percent of the water is reabsorbed."
+},
+"source_ref": "25.6",
+"evidence": "All of these substances were “absorbed” in the digestive tract—99 percent of the water and most of the solutes filtered by the nephron must be reabsorbed."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Raises Na+/K+ ATPase in DCT and collecting duct"
+],
+"ans": "Aldosterone",
+"d": [
+"ADH",
+"Parathyroid hormone"
+],
+"tp": "Aldosterone also stimulates luminal Na+ and K+ channels in principal cells.",
+"ww": {
+"ADH": "ADH acts by inserting aquaporins and regulates water, not Na+ pumps.",
+"Parathyroid hormone": "PTH induces calcium channels in the DCT."
+},
+"source_ref": "25.6",
+"evidence": "Aldosterone increases the amount of Na+/K+ ATPase in the basal membrane of the DCT and collecting duct."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Inserts aquaporins in collecting duct cells",
+"Urine becomes more concentrated"
+],
+"ans": "ADH",
+"d": [
+"Aldosterone",
+"Angiotensin II"
+],
+"tp": "Less ADH means fewer aquaporins, less water recovered and dilute urine.",
+"ww": {
+"Aldosterone": "Aldosterone regulates Na+ recovery.",
+"Angiotensin II": "Angiotensin II is a vasoconstrictor that stimulates aldosterone and ADH release."
+},
+"source_ref": "25.6",
+"evidence": "When stimulated by ADH, aquaporin channels are inserted into the apical membrane of principal cells, which line the collecting ducts."
+}
+]

@@ -1,0 +1,41 @@
+[
+{
+"subj": "Endocrinology",
+"bw": [
+"Released continually during childbirth",
+"Positive feedback loop at the cervix",
+"Stimulates uterine contractions"
+],
+"ans": "Oxytocin",
+"d": [
+"Prolactin (PRL)",
+"Antidiuretic hormone (ADH)"
+],
+"tp": "Uterine contractions push the fetal head against the cervix, the stretch triggers more oxytocin, and the loop continues until birth.",
+"ww": {
+"Prolactin (PRL)": "Prolactin drives milk production and is not part of the birth feedback loop.",
+"Antidiuretic hormone (ADH)": "ADH regulates kidney water reabsorption, not uterine contraction."
+},
+"source_ref": "17.3",
+"evidence": "Oxytocin is continually released throughout childbirth through a positive feedback mechanism."
+},
+{
+"subj": "Endocrinology",
+"bw": [
+"Made by the liver in response to GH",
+"Boost cell growth, block apoptosis"
+],
+"ans": "Insulin-like growth factors (IGFs)",
+"d": [
+"Thyroid hormones",
+"Gonadotropins"
+],
+"tp": "GH acts indirectly through IGFs, which push cells to take up amino acids for protein synthesis.",
+"ww": {
+"Thyroid hormones": "Thyroid hormones set metabolic rate and are not made in the liver in response to GH.",
+"Gonadotropins": "Gonadotropins (FSH and LH) regulate the gonads."
+},
+"source_ref": "17.3",
+"evidence": "GH indirectly mediates growth and protein synthesis by triggering the liver and other tissues to produce a group of proteins called insulin-like growth factors (IGFs)."
+}
+]

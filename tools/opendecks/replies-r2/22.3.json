@@ -1,0 +1,58 @@
+[
+{
+"subj": "Pulmonology",
+"bw": [
+"Normal expiration",
+"No energy needed to push air out"
+],
+"ans": "Passive, by recoil of the lungs",
+"d": [
+"Active, by the internal intercostals",
+"Active, by the diaphragm"
+],
+"tp": "As the diaphragm and intercostals relax, the lungs recoil, thoracic volume falls and intrapulmonary pressure rises above atmospheric.",
+"ww": {
+"Active, by the internal intercostals": "Active expiration is seen in forced breathing, not normal expiration.",
+"Active, by the diaphragm": "The diaphragm relaxes during expiration."
+},
+"source_ref": "22.3",
+"evidence": "Instead, the elasticity of the lung tissue causes the lung to recoil, as the diaphragm and intercostal muscles relax following inspiration."
+},
+{
+"subj": "Pulmonology",
+"bw": [
+"Neck muscles that lift the thorax",
+"Forced inspiration"
+],
+"ans": "Scalenes",
+"d": [
+"Abdominal obliques",
+"Internal intercostals"
+],
+"tp": "Lifting the thoracic wall increases lung volume.",
+"ww": {
+"Abdominal obliques": "Obliques act in forced expiration.",
+"Internal intercostals": "Internal intercostals help compress the rib cage during forced expiration."
+},
+"source_ref": "22.3",
+"evidence": "During forced inspiration, muscles of the neck, including the scalenes, contract and lift the thoracic wall, increasing lung volume."
+},
+{
+"subj": "Pulmonology",
+"bw": [
+"Peripheral chemoreceptors drive breathing when O2 falls to"
+],
+"ans": "60 mm Hg or less",
+"d": [
+"100 mm Hg",
+"80 mm Hg"
+],
+"tp": "Chemoreceptors sense only dissolved oxygen, not oxygen bound to hemoglobin, so a large drop is required.",
+"ww": {
+"100 mm Hg": "This is a normal arterial oxygen level and does not trigger the response.",
+"80 mm Hg": "The source gives about 60 mm Hg or less as the trigger."
+},
+"source_ref": "22.3",
+"evidence": "If blood oxygen levels become quite low—about 60 mm Hg or less—then peripheral chemoreceptors stimulate an increase in respiratory activity."
+}
+]

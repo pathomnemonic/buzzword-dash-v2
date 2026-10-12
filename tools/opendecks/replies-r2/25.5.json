@@ -1,0 +1,40 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Glomerular net filtration pressure",
+"GBHP 55 minus (15 + 30)"
+],
+"ans": "About 10 mm Hg",
+"d": [
+"About 40 mm Hg",
+"About 55 mm Hg"
+],
+"tp": "The low net pressure means small changes in blood osmolarity or capillary pressure cause large changes in filtrate formed.",
+"ww": {
+"About 40 mm Hg": "55 minus 45 is 10, not 40.",
+"About 55 mm Hg": "55 mm Hg is only the glomerular hydrostatic pressure."
+},
+"source_ref": "25.5",
+"evidence": "NFP = 55 – [15 + 30] = 10 mm Hg"
+},
+{
+"subj": "Nephrology",
+"bw": [
+"MAP needed to keep glomerular filtration going",
+"Below it, shock"
+],
+"ans": "About 60 mm Hg",
+"d": [
+"About 30 mm Hg",
+"About 90 mm Hg"
+],
+"tp": "MAP is the diastolic pressure plus one-third of the pulse pressure. Pressures below this level cause shock.",
+"ww": {
+"About 30 mm Hg": "Filtration fails well before MAP falls this low.",
+"About 90 mm Hg": "A MAP of 90 is a normal value; the threshold is lower."
+},
+"source_ref": "25.5",
+"evidence": "Therefore, if you use mean arterial pressure for the GBHP in the formula for calculating NFP, you can determine that as long as mean arterial pressure is above approximately 60 mm Hg, the pressure will be adequate to maintain glomerular filtration."
+}
+]

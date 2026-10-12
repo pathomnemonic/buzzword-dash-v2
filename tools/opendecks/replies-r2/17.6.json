@@ -1,0 +1,21 @@
+[
+{
+"subj": "Endocrinology",
+"bw": [
+"Prednisone and hydrocortisone cream",
+"Cortisol effect on immunity"
+],
+"ans": "Immune system suppressed, less inflammation",
+"d": [
+"Immune system boosted, more inflammation",
+"Selective destruction of B cells"
+],
+"tp": "This anti-inflammatory role of cortisol is why glucocorticoid drugs are used for inflamed joints, asthma and itchy rashes.",
+"ww": {
+"Immune system boosted, more inflammation": "Cortisol suppresses immunity rather than boosting it.",
+"Selective destruction of B cells": "The source describes general downregulation of the immune system, not destruction of B cells."
+},
+"source_ref": "17.6",
+"evidence": "These drugs reflect another role of cortisol—the downregulation of the immune system, which inhibits the inflammatory response."
+}
+]

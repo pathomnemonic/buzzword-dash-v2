@@ -1,0 +1,40 @@
+[
+{
+"subj": "Endocrinology",
+"bw": [
+"Insulin moves transporter vesicles to the membrane",
+"How glucose then enters"
+],
+"ans": "Facilitated diffusion",
+"d": [
+"Primary active transport",
+"Simple diffusion through the lipid bilayer"
+],
+"tp": "Insulin triggers rapid movement of glucose transporter vesicles to the cell membrane, exposing transporters to the extracellular fluid.",
+"ww": {
+"Primary active transport": "The transporters move glucose by facilitated diffusion, not by pumps using ATP.",
+"Simple diffusion through the lipid bilayer": "Glucose needs the transport proteins; it does not cross the membrane unaided."
+},
+"source_ref": "17.9",
+"evidence": "The transporters then move glucose by facilitated diffusion into the cell interior."
+},
+{
+"subj": "Endocrinology",
+"bw": [
+"Smallest islet cell group, about 1%",
+"Linked to appetite"
+],
+"ans": "Pancreatic polypeptide (PP)",
+"d": [
+"Glucagon",
+"Somatostatin"
+],
+"tp": "Pancreatic polypeptide may reduce food consumption after a meal, but it is also released during fasting.",
+"ww": {
+"Glucagon": "Glucagon comes from alpha cells and raises blood glucose.",
+"Somatostatin": "Somatostatin comes from delta cells and inhibits insulin and glucagon."
+},
+"source_ref": "17.9",
+"evidence": "The PP cell accounts for about one percent of islet cells and secretes the pancreatic polypeptide hormone."
+}
+]

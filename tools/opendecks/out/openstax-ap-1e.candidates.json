@@ -11,7 +11,7 @@
  "url": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
  "author": "OpenStax (Rice University); quiz cards by Dx Dash",
  "version": "1.0.0",
- "count": 374,
+ "count": 425,
  "cards": [
   {
    "subj": "Endocrinology",
@@ -450,6 +450,53 @@
   {
    "subj": "Endocrinology",
    "bw": [
+    "Released continually during childbirth",
+    "Positive feedback loop at the cervix",
+    "Stimulates uterine contractions"
+   ],
+   "ans": "Oxytocin",
+   "d": [
+    "Prolactin (PRL)",
+    "Antidiuretic hormone (ADH)"
+   ],
+   "tp": "Uterine contractions push the fetal head against the cervix, the stretch triggers more oxytocin, and the loop continues until birth.",
+   "ww": {
+    "Prolactin (PRL)": "Prolactin drives milk production and is not part of the birth feedback loop.",
+    "Antidiuretic hormone (ADH)": "ADH regulates kidney water reabsorption, not uterine contraction."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_3_The_Pituitary_Gland_and_Hypothalamus"
+   ],
+   "source_ref": "17.3",
+   "evidence": "Oxytocin is continually released throughout childbirth through a positive feedback mechanism.",
+   "round": 2
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
+    "Made by the liver in response to GH",
+    "Boost cell growth, block apoptosis"
+   ],
+   "ans": "Insulin-like growth factors (IGFs)",
+   "d": [
+    "Thyroid hormones",
+    "Gonadotropins"
+   ],
+   "tp": "GH acts indirectly through IGFs, which push cells to take up amino acids for protein synthesis.",
+   "ww": {
+    "Thyroid hormones": "Thyroid hormones set metabolic rate and are not made in the liver in response to GH.",
+    "Gonadotropins": "Gonadotropins (FSH and LH) regulate the gonads."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_3_The_Pituitary_Gland_and_Hypothalamus"
+   ],
+   "source_ref": "17.3",
+   "evidence": "GH indirectly mediates growth and protein synthesis by triggering the liver and other tissues to produce a group of proteins called insulin-like growth factors (IGFs).",
+   "round": 2
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
     "Mineral required to make T3 and T4",
     "Attaches to thyroglobulin in the colloid"
    ],
@@ -785,6 +832,53 @@
    ],
    "source_ref": "17.4",
    "evidence": "When levels of T3 and T4 hormones are excessive, this effect accelerates the heart rate, strengthens the heartbeat, and increases blood pressure."
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
+    "Iodine deficiency raises TSH",
+    "Colloid builds up in the follicles",
+    "Visibly enlarged thyroid"
+   ],
+   "ans": "Goiter",
+   "d": [
+    "Exophthalmos",
+    "Acromegaly"
+   ],
+   "tp": "When T3 and T4 cannot be made, TSH rises, colloid builds up and the thyroid enlarges. A goiter is only the visible sign of the deficiency.",
+   "ww": {
+    "Exophthalmos": "Exophthalmos is bulging of the eyes, seen with Graves’ disease.",
+    "Acromegaly": "Acromegaly is excess growth hormone in adults."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_4_The_Thyroid_Gland"
+   ],
+   "source_ref": "17.4",
+   "evidence": "The accumulation of colloid increases the overall size of the thyroid gland, a condition called a goiter (Figure 17.14).",
+   "round": 2
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
+    "Top preventable cause of intellectual disability",
+    "Lacking in the diet of landlocked regions"
+   ],
+   "ans": "Iodine deficiency",
+   "d": [
+    "Vitamin D deficiency",
+    "Vitamin C deficiency"
+   ],
+   "tp": "Iodine deficiency impairs T3 and T4 synthesis. Iodized salt is the main dietary source in many countries.",
+   "ww": {
+    "Vitamin D deficiency": "The source ties preventable intellectual disability to iodine, not vitamin D.",
+    "Vitamin C deficiency": "Vitamin C deficiency is not linked to thyroid hormone synthesis."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_4_The_Thyroid_Gland"
+   ],
+   "source_ref": "17.4",
+   "evidence": "Moreover, iodine deficiency is the primary cause of preventable intellectual disabilies worldwide.",
+   "round": 2
   },
   {
    "subj": "Endocrinology",
@@ -1393,6 +1487,29 @@
   {
    "subj": "Endocrinology",
    "bw": [
+    "Prednisone and hydrocortisone cream",
+    "Cortisol effect on immunity"
+   ],
+   "ans": "Immune system suppressed, less inflammation",
+   "d": [
+    "Immune system boosted, more inflammation",
+    "Selective destruction of B cells"
+   ],
+   "tp": "This anti-inflammatory role of cortisol is why glucocorticoid drugs are used for inflamed joints, asthma and itchy rashes.",
+   "ww": {
+    "Immune system boosted, more inflammation": "Cortisol suppresses immunity rather than boosting it.",
+    "Selective destruction of B cells": "The source describes general downregulation of the immune system, not destruction of B cells."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_6_The_Adrenal_Glands"
+   ],
+   "source_ref": "17.6",
+   "evidence": "These drugs reflect another role of cortisol—the downregulation of the immune system, which inhibits the inflammatory response.",
+   "round": 2
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
     "Pancreatic islet cell type",
     "About 20 percent of each islet",
     "Produces glucagon"
@@ -1792,6 +1909,52 @@
    ],
    "source_ref": "17.9",
    "evidence": "The PP cell accounts for about one percent of islet cells and secretes the pancreatic polypeptide hormone."
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
+    "Insulin moves transporter vesicles to the membrane",
+    "How glucose then enters"
+   ],
+   "ans": "Facilitated diffusion",
+   "d": [
+    "Primary active transport",
+    "Simple diffusion through the lipid bilayer"
+   ],
+   "tp": "Insulin triggers rapid movement of glucose transporter vesicles to the cell membrane, exposing transporters to the extracellular fluid.",
+   "ww": {
+    "Primary active transport": "The transporters move glucose by facilitated diffusion, not by pumps using ATP.",
+    "Simple diffusion through the lipid bilayer": "Glucose needs the transport proteins; it does not cross the membrane unaided."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_9_The_Endocrine_Pancreas"
+   ],
+   "source_ref": "17.9",
+   "evidence": "The transporters then move glucose by facilitated diffusion into the cell interior.",
+   "round": 2
+  },
+  {
+   "subj": "Endocrinology",
+   "bw": [
+    "Smallest islet cell group, about 1%",
+    "Linked to appetite"
+   ],
+   "ans": "Pancreatic polypeptide (PP)",
+   "d": [
+    "Glucagon",
+    "Somatostatin"
+   ],
+   "tp": "Pancreatic polypeptide may reduce food consumption after a meal, but it is also released during fasting.",
+   "ww": {
+    "Glucagon": "Glucagon comes from alpha cells and raises blood glucose.",
+    "Somatostatin": "Somatostatin comes from delta cells and inhibits insulin and glucagon."
+   },
+   "tags": [
+    "OpenStax_AP::Endocrine::17_9_The_Endocrine_Pancreas"
+   ],
+   "source_ref": "17.9",
+   "evidence": "The PP cell accounts for about one percent of islet cells and secretes the pancreatic polypeptide hormone.",
+   "round": 2
   },
   {
    "subj": "Cardiology",
@@ -2374,6 +2537,191 @@
   {
    "subj": "Cardiology",
    "bw": [
+    "Heart starts its own impulses at a fixed rate",
+    "Skeletal and smooth muscle cannot"
+   ],
+   "ans": "Autorhythmicity",
+   "d": [
+    "Tetany",
+    "Summation"
+   ],
+   "tp": "Heart rate is modulated by the endocrine and nervous systems, but the heart’s ability to start its own impulses is autorhythmicity.",
+   "ww": {
+    "Tetany": "Tetany is sustained involuntary contraction, which the heart avoids.",
+    "Summation": "Summation is the adding of twitches in skeletal muscle and is not the heart’s self-starting property."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "This property is known as autorhythmicity.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "AV node under extreme SA stimulation",
+    "Typical maximum heart rate, young adult"
+   ],
+   "ans": "220 per minute",
+   "d": [
+    "120 per minute",
+    "350 per minute"
+   ],
+   "tp": "Damaged or drug-stimulated hearts can beat faster, but then they can no longer pump blood effectively.",
+   "ww": {
+    "120 per minute": "The AV node can transmit impulses well above 120 per minute.",
+    "350 per minute": "The AV node limit is 220 per minute in a healthy young person."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "With extreme stimulation by the SA node, the AV node can transmit impulses maximally at 220 per minute.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Interatrial band",
+    "Carries the impulse from right to left atrium"
+   ],
+   "ans": "Bachmann’s bundle",
+   "d": [
+    "Bundle of His",
+    "Moderator band"
+   ],
+   "tp": "Bachmann’s bundle carries the impulse across the atria in addition to the internodal pathways.",
+   "ww": {
+    "Bundle of His": "The bundle of His runs from the AV node into the interventricular septum.",
+    "Moderator band": "Part of the right bundle branch runs in the moderator band, which supplies the right papillary muscles."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "In addition, there is a specialized pathway called Bachmann’s bundle or the interatrial band that conducts the impulse directly from the right atrium to the left atrium.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Some SA impulses reach the AV node, others do not",
+    "Some P waves have no QRS"
+   ],
+   "ans": "Second-degree (incomplete) AV block",
+   "d": [
+    "First-degree (partial) AV block",
+    "Third-degree (complete) AV block"
+   ],
+   "tp": "In a second-degree block the ECG shows some P waves not followed by a QRS complex while others look normal.",
+   "ww": {
+    "First-degree (partial) AV block": "A first-degree block delays every impulse but all get through.",
+    "Third-degree (complete) AV block": "In a third-degree block no impulses are coordinated with the ventricles."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "A second-degree or incomplete block occurs when some impulses from the SA node reach the AV node and continue, while others do not.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Non-SA site starts a premature beat",
+    "Caused by ischemia, caffeine or digitalis"
+   ],
+   "ans": "Ectopic focus",
+   "d": [
+    "Bundle branch block",
+    "Junctional rhythm"
+   ],
+   "tp": "Occasional ectopic beats are usually transitory and not life threatening, but chronic ones can lead to arrhythmia or fibrillation.",
+   "ww": {
+    "Bundle branch block": "A bundle branch block is an interruption of conduction, not a new impulse source.",
+    "Junctional rhythm": "Junctional rhythm is a sustained rhythm originating in the AV node, as described for chronic arrhythmias."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "Such an area, which may actually be a component of the conduction system or some other contractile cells, is known as an ectopic focus or ectopic pacemaker.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Treats ventricular fibrillation",
+    "Shock from an external source",
+    "Stops the heart so the SA node restarts it"
+   ],
+   "ans": "Defibrillation",
+   "d": [
+    "Artificial pacemaker implantation",
+    "Echocardiography"
+   ],
+   "tp": "External automated defibrillators are placed in schools, restaurants and airports and give simple verbal instructions.",
+   "ww": {
+    "Artificial pacemaker implantation": "An artificial pacemaker gives ongoing impulses to the heart muscle to speed up the rate, not a single shock.",
+    "Echocardiography": "Echocardiography is an ultrasound test of pumping, not a treatment."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "A defibrillator effectively stops the heart so that the SA node can trigger a normal conduction cycle.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Small portable battery-powered device",
+    "Records ECG for about 24 hours"
+   ],
+   "ans": "Holter monitor",
+   "d": [
+    "Echocardiogram",
+    "12-lead electrocardiograph"
+   ],
+   "tp": "A Holter records during the patient’s normal routine, unlike a standard electrocardiograph.",
+   "ww": {
+    "Echocardiogram": "An echocardiogram is an ultrasound test of pumping effectiveness.",
+    "12-lead electrocardiograph": "A 12-lead electrocardiograph is the standard instrument, not the portable 24-hour device."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "In continuous ambulatory electrocardiographs, the patient wears a small, portable, battery-operated device known as a Holter monitor, or simply a Holter, that continuously monitors heart electrical activity, typically for a period of 24 hours during the patient’s normal routine.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Resting heart rate under 50 beats per minute",
+    "Normal only in trained athletes"
+   ],
+   "ans": "Bradycardia",
+   "d": [
+    "Tachycardia",
+    "Fibrillation"
+   ],
+   "tp": "A few exceptionally trained aerobic athletes have resting rates of 30–40 beats per minute without disease.",
+   "ww": {
+    "Tachycardia": "Tachycardia is an abnormally fast rate.",
+    "Fibrillation": "Fibrillation is uncoordinated beating, not a slow regular rate."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_2_Cardiac_Muscle_and_Electrical_Activity"
+   ],
+   "source_ref": "19.2",
+   "evidence": "While a few exceptionally trained aerobic athletes demonstrate resting heart rates in the range of 30–40 beats per minute (the lowest recorded figure is 28 beats per minute for Miguel Indurain, a cyclist), for most individuals, rates lower than 50 beats per minute would indicate a condition called bradycardia.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
     "Period of contraction while the heart pumps blood into circulation"
    ],
    "ans": "Systole",
@@ -2706,6 +3054,193 @@
    ],
    "source_ref": "19.3",
    "evidence": "Blood flows into the left atrium from the four pulmonary veins."
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Phase of cardiac contraction",
+    "Pumps blood into circulation"
+   ],
+   "ans": "Systole",
+   "d": [
+    "Diastole",
+    "Isovolumic relaxation"
+   ],
+   "tp": "Systole is contraction and diastole is relaxation while the chambers fill. Both atria and ventricles go through both.",
+   "ww": {
+    "Diastole": "Diastole is the period of relaxation as the chambers fill.",
+    "Isovolumic relaxation": "Isovolumic relaxation is just the early phase of ventricular diastole."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "The period of contraction that the heart undergoes while it pumps blood into circulation is called systole.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Ventricular volume before contraction",
+    "About 130 mL at rest",
+    "Also called preload"
+   ],
+   "ans": "End diastolic volume (EDV)",
+   "d": [
+    "End systolic volume (ESV)",
+    "Stroke volume"
+   ],
+   "tp": "EDV is measured at the end of atrial systole, just before ventricular contraction.",
+   "ww": {
+    "End systolic volume (ESV)": "ESV is the 50–60 mL left in the ventricle after contraction.",
+    "Stroke volume": "Stroke volume is the 70–80 mL ejected with each beat."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "This volume is known as the end diastolic volume (EDV) or preload.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "First phase of ventricular systole",
+    "Pressure rises, volume constant",
+    "All four valves closed"
+   ],
+   "ans": "Isovolumic contraction",
+   "d": [
+    "Ventricular ejection phase",
+    "Late ventricular diastole"
+   ],
+   "tp": "Blood is not ejected in this phase, so chamber volume stays constant while pressure climbs above atrial pressure.",
+   "ww": {
+    "Ventricular ejection phase": "Ejection is the second phase, when the semilunar valves open and blood leaves.",
+    "Late ventricular diastole": "Late ventricular diastole is relaxation and filling, not contraction."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "Consequently, this initial phase of ventricular systole is known as isovolumic contraction, also called isovolumetric contraction (see Figure 19.27).",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Small dip in blood pressure tracings",
+    "Semilunar valves close, blood recoils"
+   ],
+   "ans": "Dicrotic notch",
+   "d": [
+    "QRS complex",
+    "S3 heart sound"
+   ],
+   "tp": "The dicrotic notch appears in early ventricular diastole, when ventricular pressure drops below that in the pulmonary trunk and aorta.",
+   "ww": {
+    "QRS complex": "The QRS complex is an ECG wave of ventricular depolarization, not a feature of pressure tracings.",
+    "S3 heart sound": "S3 is a rarely heard third heart sound, not a dip in a pressure tracing."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "When pressure within the ventricles drops below pressure in both the pulmonary trunk and aorta, blood flows back toward the heart, producing the dicrotic notch (small dip) seen in blood pressure tracings.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "First heart sound, the “lub”",
+    "AV valves close in ventricular systole"
+   ],
+   "ans": "S1",
+   "d": [
+    "S2",
+    "S3"
+   ],
+   "tp": "In a healthy heart only S1 and S2 are normally audible.",
+   "ww": {
+    "S2": "S2 is the “dub” of the semilunar valves closing.",
+    "S3": "S3 is rarely heard in healthy people."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "S1 is the sound created by the closing of the atrioventricular valves during ventricular contraction and is normally described as a “lub,” or first heart sound.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Atrial contraction into a stiff ventricle",
+    "Heard just before S1",
+    "Left ventricular failure"
+   ],
+   "ans": "S4",
+   "d": [
+    "S2",
+    "S3"
+   ],
+   "tp": "S4, S1 and S2 together are the “Tennessee gallop”; S1, S2 and S3 are the “Kentucky gallop”.",
+   "ww": {
+    "S2": "S2 is the semilunar valves closing and occurs after S1.",
+    "S3": "S3 may be blood flowing into the atria, sloshing in the ventricle, or tensing of the chordae tendineae."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "The fourth heart sound, S4, results from the contraction of the atria pushing blood into a stiff or hypertrophic ventricle, indicating failure of the left ventricle.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Breathe deeply during auscultation",
+    "Inhalation raises flow into the right heart"
+   ],
+   "ans": "May amplify right-sided heart murmurs",
+   "d": [
+    "May amplify left-sided heart murmurs",
+    "Abolishes all heart murmurs"
+   ],
+   "tp": "Expiration partially restricts blood flow into the left side of the heart and may amplify left-sided murmurs.",
+   "ww": {
+    "May amplify left-sided heart murmurs": "That is the effect of expiration, not inhalation.",
+    "Abolishes all heart murmurs": "Deep breathing tends to amplify murmurs, which helps hear them."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "Inhalation increases blood flow into the right side of the heart and may increase the amplitude of right-sided heart murmurs.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Expiration during auscultation",
+    "Limits flow into the left heart"
+   ],
+   "ans": "May amplify left-sided heart murmurs",
+   "d": [
+    "May amplify right-sided heart murmurs",
+    "Abolishes all heart murmurs"
+   ],
+   "tp": "Inhalation increases flow into the right heart and may amplify right-sided murmurs.",
+   "ww": {
+    "May amplify right-sided heart murmurs": "That is the effect of inhalation, not expiration.",
+    "Abolishes all heart murmurs": "Breathing changes tend to amplify murmurs rather than abolish them."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_3_Cardiac_Cycle"
+   ],
+   "source_ref": "19.3",
+   "evidence": "Expiration partially restricts blood flow into the left side of the heart and may amplify left-sided heart murmurs.",
+   "round": 2
   },
   {
    "subj": "Cardiology",
@@ -3398,6 +3933,215 @@
   {
    "subj": "Cardiology",
    "bw": [
+    "Stroke volume",
+    "Measured with an echocardiogram recording EDV and ESV"
+   ],
+   "ans": "SV = EDV – ESV",
+   "d": [
+    "SV = CO × HR",
+    "SV = ESV – EDV"
+   ],
+   "tp": "Stroke volume can also be measured with a specialized catheter, but that is invasive and far more dangerous to the patient.",
+   "ww": {
+    "SV = CO × HR": "Cardiac output is HR × SV, so SV is not CO × HR.",
+    "SV = ESV – EDV": "That has the sign reversed; stroke volume is EDV minus ESV."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "SV is normally measured using an echocardiogram to record EDV and ESV, and calculating the difference: SV = EDV – ESV.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Share of blood ejected per contraction",
+    "SV divided by EDV",
+    "Normally 55–70 percent"
+   ],
+   "ans": "Ejection fraction",
+   "d": [
+    "Cardiac reserve",
+    "Cardiac output"
+   ],
+   "tp": "Despite its name, ejection fraction is normally expressed as a percentage; the mean is 58 percent.",
+   "ww": {
+    "Cardiac reserve": "Cardiac reserve is the difference between maximum and resting cardiac output.",
+    "Cardiac output": "Cardiac output is stroke volume times heart rate, in volume per minute."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "SVs are also used to calculate ejection fraction, which is the portion of the blood that is pumped or ejected from the heart with each contraction.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Extreme emotional stress",
+    "Weak myocardium, not from low oxygen",
+    "Takotsubo cardiomyopathy"
+   ],
+   "ans": "Broken heart syndrome",
+   "d": [
+    "Myocardial infarction from coronary occlusion",
+    "Bradycardia"
+   ],
+   "tp": "It may lead to acute heart failure, lethal arrhythmias or even ventricular rupture, and the exact cause is not known.",
+   "ww": {
+    "Myocardial infarction from coronary occlusion": "The weakening in broken heart syndrome is not related to lack of oxygen.",
+    "Bradycardia": "Bradycardia is only a slow resting rate, not a stress cardiomyopathy."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "Extreme stress from such life events as the death of a loved one, an emotional break up, loss of income, or foreclosure of a home may lead to a condition commonly referred to as broken heart syndrome.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Raises heart rate and contractility",
+    "Longer-lasting than catecholamines",
+    "Excess may cause tachycardia"
+   ],
+   "ans": "Thyroid hormone (thyroxin)",
+   "d": [
+    "Calcitonin",
+    "Parathyroid hormone"
+   ],
+   "tp": "T3, the active form, enters cardiomyocytes and alters activity at the genome level.",
+   "ww": {
+    "Calcitonin": "Calcitonin lowers blood calcium and has no described effect on heart rate here.",
+    "Parathyroid hormone": "PTH regulates blood calcium; the source does not list it as raising heart rate."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "In general, increased levels of thyroid hormone, or thyroxin, increase cardiac rate and contractility.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Stimulates sympathetic neurons to the heart",
+    "Not made in the body"
+   ],
+   "ans": "Nicotine",
+   "d": [
+    "Caffeine",
+    "Opiates"
+   ],
+   "tp": "Caffeine instead increases the rate of depolarization at the SA node.",
+   "ww": {
+    "Caffeine": "Caffeine works by increasing depolarization rates at the SA node.",
+    "Opiates": "Opiates and tranquilizers slow the heart."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "Caffeine works by increasing the rates of depolarization at the SA node, whereas nicotine stimulates the activity of the sympathetic neurons that deliver impulses to the heart.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Tension ventricles need against resistance",
+    "Raised by valve stenosis"
+   ],
+   "ans": "Afterload",
+   "d": [
+    "Preload",
+    "Contractility"
+   ],
+   "tp": "Any condition that increases resistance requires greater afterload to open the semilunar valves.",
+   "ww": {
+    "Preload": "Preload is the ventricular stretch before contraction.",
+    "Contractility": "Contractility is the strength of the muscle’s contraction."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "Afterload refers to the tension that the ventricles must develop to pump blood effectively against the resistance in the vascular system.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Within physiological limits",
+    "Force rises with starting fiber length"
+   ],
+   "ans": "Frank-Starling mechanism",
+   "d": [
+    "Bainbridge reflex",
+    "Baroreceptor reflex"
+   ],
+   "tp": "The more the ventricular muscle is stretched (within limits), the stronger the contraction and the larger the stroke volume.",
+   "ww": {
+    "Bainbridge reflex": "The Bainbridge reflex links atrial stretch to heart rate through the cardiac center.",
+    "Baroreceptor reflex": "The baroreceptor reflex adjusts autonomic input in response to blood pressure."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "The relationship between ventricular stretch and contraction has been stated in the well-known Frank-Starling mechanism or simply Starling’s Law of the Heart.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Slows heart rate, strengthens contraction",
+    "Blocks calcium uptake by the SR"
+   ],
+   "ans": "Digitalis",
+   "d": [
+    "Propranolol",
+    "Isoproterenol"
+   ],
+   "tp": "Blocking calcium sequestration raises intracellular calcium and so the strength of contraction.",
+   "ww": {
+    "Propranolol": "Propranolol is an early beta blocker and decreases the force of contraction.",
+    "Isoproterenol": "Isoproterenol mimics epinephrine and norepinephrine by stimulating calcium influx and does not lower heart rate."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "The drug digitalis lowers HR and increases the strength of the contraction, acting as a positive inotropic agent by blocking the sequestering of calcium ions into the sarcoplasmic reticulum.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Negative inotropic agents"
+   ],
+   "ans": "Hypoxia, acidosis and hyperkalemia",
+   "d": [
+    "Hypercalcemia, glucagon, thyroid hormone",
+    "Sympathetic input, dopamine, isoproterenol"
+   ],
+   "tp": "Beta blockers and calcium channel blockers are negative inotropic drugs.",
+   "ww": {
+    "Hypercalcemia, glucagon, thyroid hormone": "These are positive inotropic agents.",
+    "Sympathetic input, dopamine, isoproterenol": "These are positive inotropic agents."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
+   ],
+   "source_ref": "19.4",
+   "evidence": "Negative inotropic agents include hypoxia, acidosis, hyperkalemia, and a variety of synthetic drugs.",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
     "Systolic minus diastolic pressure"
    ],
    "ans": "Pulse pressure",
@@ -3900,6 +4644,29 @@
   {
    "subj": "Cardiology",
    "bw": [
+    "Cholesterol, calcium and debris in the artery wall",
+    "Mealy deposits narrow arteries"
+   ],
+   "ans": "Atherosclerosis",
+   "d": [
+    "Aneurysm",
+    "Vasospasm"
+   ],
+   "tp": "Plaque can rupture and clot, causing heart attack or stroke, or break off as an embolus.",
+   "ww": {
+    "Aneurysm": "An aneurysm is a bulging weakened wall, not plaque buildup.",
+    "Vasospasm": "Vasospasm is temporary vessel constriction, not plaque."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::20_2_Blood_Flow_Blood_Pressure_and_Resistance"
+   ],
+   "source_ref": "20.2",
+   "evidence": "The term for this condition, atherosclerosis (athero- = “porridge”) describes the mealy deposits (Figure 20.14).",
+   "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
     "Pressure from plasma proteins",
     "Draws water back into the capillary"
    ],
@@ -4158,6 +4925,29 @@
    ],
    "source_ref": "20.3",
    "evidence": "Glucose, amino acids, and ions—including sodium, potassium, calcium, and chloride—use transporters to move through specific channels in the membrane by facilitated diffusion."
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Glucose, amino acids and ions cross a capillary",
+    "Via transporters in channels"
+   ],
+   "ans": "Facilitated diffusion",
+   "d": [
+    "Simple diffusion",
+    "Bulk flow"
+   ],
+   "tp": "Glucose, ions and larger molecules may also leave the blood through intercellular clefts.",
+   "ww": {
+    "Simple diffusion": "Gases and lipid-soluble molecules diffuse directly through the membrane.",
+    "Bulk flow": "Bulk flow is the pressure-driven mass movement of fluid, not a transporter process."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::20_3_Capillary_Exchange"
+   ],
+   "source_ref": "20.3",
+   "evidence": "Glucose, amino acids, and ions—including sodium, potassium, calcium, and chloride—use transporters to move through specific channels in the membrane by facilitated diffusion.",
+   "round": 2
   },
   {
    "subj": "Cardiology",
@@ -5507,6 +6297,74 @@
   {
    "subj": "Pulmonology",
    "bw": [
+    "Normal expiration",
+    "No energy needed to push air out"
+   ],
+   "ans": "Passive, by recoil of the lungs",
+   "d": [
+    "Active, by the internal intercostals",
+    "Active, by the diaphragm"
+   ],
+   "tp": "As the diaphragm and intercostals relax, the lungs recoil, thoracic volume falls and intrapulmonary pressure rises above atmospheric.",
+   "ww": {
+    "Active, by the internal intercostals": "Active expiration is seen in forced breathing, not normal expiration.",
+    "Active, by the diaphragm": "The diaphragm relaxes during expiration."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_3_The_Process_of_Breathing"
+   ],
+   "source_ref": "22.3",
+   "evidence": "Instead, the elasticity of the lung tissue causes the lung to recoil, as the diaphragm and intercostal muscles relax following inspiration.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "Neck muscles that lift the thorax",
+    "Forced inspiration"
+   ],
+   "ans": "Scalenes",
+   "d": [
+    "Abdominal obliques",
+    "Internal intercostals"
+   ],
+   "tp": "Lifting the thoracic wall increases lung volume.",
+   "ww": {
+    "Abdominal obliques": "Obliques act in forced expiration.",
+    "Internal intercostals": "Internal intercostals help compress the rib cage during forced expiration."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_3_The_Process_of_Breathing"
+   ],
+   "source_ref": "22.3",
+   "evidence": "During forced inspiration, muscles of the neck, including the scalenes, contract and lift the thoracic wall, increasing lung volume.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "Peripheral chemoreceptors drive breathing when O2 falls to"
+   ],
+   "ans": "60 mm Hg or less",
+   "d": [
+    "100 mm Hg",
+    "80 mm Hg"
+   ],
+   "tp": "Chemoreceptors sense only dissolved oxygen, not oxygen bound to hemoglobin, so a large drop is required.",
+   "ww": {
+    "100 mm Hg": "This is a normal arterial oxygen level and does not trigger the response.",
+    "80 mm Hg": "The source gives about 60 mm Hg or less as the trigger."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_3_The_Process_of_Breathing"
+   ],
+   "source_ref": "22.3",
+   "evidence": "If blood oxygen levels become quite low—about 60 mm Hg or less—then peripheral chemoreceptors stimulate an increase in respiratory activity.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
     "Total pressure of a gas mixture is the sum of its partial pressures"
    ],
    "ans": "Dalton’s law",
@@ -5922,6 +6780,96 @@
   {
    "subj": "Pulmonology",
    "bw": [
+    "Total pressure is the sum of partial pressures"
+   ],
+   "ans": "Dalton’s law",
+   "d": [
+    "Boyle’s law",
+    "Henry’s law"
+   ],
+   "tp": "Each gas in a mixture exerts its own pressure independent of the others, and gases move from higher to lower partial pressure.",
+   "ww": {
+    "Boyle’s law": "Boyle’s law relates the pressure and volume of a gas.",
+    "Henry’s law": "Henry’s law relates gas concentration in a liquid to solubility and partial pressure."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_4_Gas_Exchange"
+   ],
+   "source_ref": "22.4",
+   "evidence": "Dalton’s law describes the behavior of nonreactive gases in a gaseous mixture and states that a specific gas type in a mixture exerts its own pressure; thus, the total pressure exerted by a mixture of gases is the sum of the partial pressures of the gases in the mixture.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "Dissolved gas depends on solubility and pressure",
+    "Gas in blood"
+   ],
+   "ans": "Henry’s law",
+   "d": [
+    "Dalton’s law",
+    "Boyle’s law"
+   ],
+   "tp": "Very little nitrogen dissolves in blood because its solubility is low.",
+   "ww": {
+    "Dalton’s law": "Dalton’s law adds partial pressures within a gas mixture.",
+    "Boyle’s law": "Boyle’s law relates gas pressure and volume."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_4_Gas_Exchange"
+   ],
+   "source_ref": "22.4",
+   "evidence": "Henry’s law states that the concentration of gas in a liquid is directly proportional to the solubility and partial pressure of that gas.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "Alveolar air compared with atmospheric air",
+    "Gas exchange adds CO2 and removes O2"
+   ],
+   "ans": "Less oxygen, more carbon dioxide",
+   "d": [
+    "More oxygen, less carbon dioxide",
+    "Less water vapor"
+   ],
+   "tp": "Alveolar air also has more water vapor because the respiratory system humidifies incoming air.",
+   "ww": {
+    "More oxygen, less carbon dioxide": "Gas exchange does the opposite.",
+    "Less water vapor": "Incoming air is humidified, so alveolar air has more water vapor."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_4_Gas_Exchange"
+   ],
+   "source_ref": "22.4",
+   "evidence": "In addition, alveolar air contains a greater amount of carbon dioxide and less oxygen than atmospheric air.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "CO2 gradient across the respiratory membrane"
+   ],
+   "ans": "About 5 mm Hg",
+   "d": [
+    "About 64 mm Hg",
+    "About 25 mm Hg"
+   ],
+   "tp": "Blood about 45 mm Hg versus alveoli about 40 mm Hg. CO2’s much greater solubility compensates for the small gradient.",
+   "ww": {
+    "About 64 mm Hg": "That is the oxygen gradient.",
+    "About 25 mm Hg": "The CO2 gradient is far smaller than 25."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_4_Gas_Exchange"
+   ],
+   "source_ref": "22.4",
+   "evidence": "However, the partial pressure difference is less than that of oxygen, about 5 mm Hg.",
+   "round": 2
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
     "Share of oxygen carried dissolved in plasma"
    ],
    "ans": "About 1.5%",
@@ -6266,6 +7214,28 @@
    ],
    "source_ref": "22.5",
    "evidence": "Although carbon dioxide is not considered to be highly soluble in blood, a small fraction—about 7 to 10 percent—of the carbon dioxide that diffuses into the blood from the tissues dissolves in plasma."
+  },
+  {
+   "subj": "Pulmonology",
+   "bw": [
+    "Acidic pH promotes oxygen release from hemoglobin"
+   ],
+   "ans": "Bohr effect",
+   "d": [
+    "Haldane effect",
+    "Chloride shift"
+   ],
+   "tp": "More CO2 means more H+ and a lower pH, so oxygen dissociates more readily. Lactic acid also lowers pH.",
+   "ww": {
+    "Haldane effect": "The Haldane effect links oxygen levels to hemoglobin’s affinity for CO2.",
+    "Chloride shift": "The chloride shift is bicarbonate-chloride exchange across the erythrocyte membrane."
+   },
+   "tags": [
+    "OpenStax_AP::Respiratory::22_5_Transport_of_Gases"
+   ],
+   "source_ref": "22.5",
+   "evidence": "The Bohr effect is a phenomenon that arises from the relationship between pH and oxygen’s affinity for hemoglobin: A lower, more acidic pH promotes oxygen dissociation from hemoglobin.",
+   "round": 2
   },
   {
    "subj": "Pulmonology",
@@ -6669,6 +7639,52 @@
   {
    "subj": "Nephrology",
    "bw": [
+    "Glomerular net filtration pressure",
+    "GBHP 55 minus (15 + 30)"
+   ],
+   "ans": "About 10 mm Hg",
+   "d": [
+    "About 40 mm Hg",
+    "About 55 mm Hg"
+   ],
+   "tp": "The low net pressure means small changes in blood osmolarity or capillary pressure cause large changes in filtrate formed.",
+   "ww": {
+    "About 40 mm Hg": "55 minus 45 is 10, not 40.",
+    "About 55 mm Hg": "55 mm Hg is only the glomerular hydrostatic pressure."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_5_Physiology_of_Urine_Formation"
+   ],
+   "source_ref": "25.5",
+   "evidence": "NFP = 55 – [15 + 30] = 10 mm Hg",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "MAP needed to keep glomerular filtration going",
+    "Below it, shock"
+   ],
+   "ans": "About 60 mm Hg",
+   "d": [
+    "About 30 mm Hg",
+    "About 90 mm Hg"
+   ],
+   "tp": "MAP is the diastolic pressure plus one-third of the pulse pressure. Pressures below this level cause shock.",
+   "ww": {
+    "About 30 mm Hg": "Filtration fails well before MAP falls this low.",
+    "About 90 mm Hg": "A MAP of 90 is a normal value; the threshold is lower."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_5_Physiology_of_Urine_Formation"
+   ],
+   "source_ref": "25.5",
+   "evidence": "Therefore, if you use mean arterial pressure for the GBHP in the formula for calculating NFP, you can determine that as long as mean arterial pressure is above approximately 60 mm Hg, the pressure will be adequate to maintain glomerular filtration.",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
     "Water, Na+ and K+ entering the nephron",
     "Share reabsorbed in the PCT"
    ],
@@ -7025,6 +8041,73 @@
   {
    "subj": "Nephrology",
    "bw": [
+    "Share of filtered water and solutes reabsorbed"
+   ],
+   "ans": "About 99 percent",
+   "d": [
+    "About 50 percent",
+    "About 75 percent"
+   ],
+   "tp": "Reabsorbed substances return to the circulation by the peritubular capillaries and vasa recta.",
+   "ww": {
+    "About 50 percent": "Far more than half is reabsorbed.",
+    "About 75 percent": "The source says 99 percent of the water is reabsorbed."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_6_Tubular_Reabsorption"
+   ],
+   "source_ref": "25.6",
+   "evidence": "All of these substances were “absorbed” in the digestive tract—99 percent of the water and most of the solutes filtered by the nephron must be reabsorbed.",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Raises Na+/K+ ATPase in DCT and collecting duct"
+   ],
+   "ans": "Aldosterone",
+   "d": [
+    "ADH",
+    "Parathyroid hormone"
+   ],
+   "tp": "Aldosterone also stimulates luminal Na+ and K+ channels in principal cells.",
+   "ww": {
+    "ADH": "ADH acts by inserting aquaporins and regulates water, not Na+ pumps.",
+    "Parathyroid hormone": "PTH induces calcium channels in the DCT."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_6_Tubular_Reabsorption"
+   ],
+   "source_ref": "25.6",
+   "evidence": "Aldosterone increases the amount of Na+/K+ ATPase in the basal membrane of the DCT and collecting duct.",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Inserts aquaporins in collecting duct cells",
+    "Urine becomes more concentrated"
+   ],
+   "ans": "ADH",
+   "d": [
+    "Aldosterone",
+    "Angiotensin II"
+   ],
+   "tp": "Less ADH means fewer aquaporins, less water recovered and dilute urine.",
+   "ww": {
+    "Aldosterone": "Aldosterone regulates Na+ recovery.",
+    "Angiotensin II": "Angiotensin II is a vasoconstrictor that stimulates aldosterone and ADH release."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_6_Tubular_Reabsorption"
+   ],
+   "source_ref": "25.6",
+   "evidence": "When stimulated by ADH, aquaporin channels are inserted into the apical membrane of principal cells, which line the collecting ducts.",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
     "Stress raises sympathetic activity",
     "Afferent arteriole response"
    ],
@@ -7154,6 +8237,28 @@
    ],
    "source_ref": "25.7",
    "evidence": "Thus, NO fine-tunes the effects of adenosine and ATP on GFR."
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Pressure difference needed for normal GFR"
+   ],
+   "ans": "Only about 10 mm Hg",
+   "d": [
+    "About 40 mm Hg",
+    "About 100 mm Hg"
+   ],
+   "tp": "Because the margin is so small, tiny changes in afferent arterial pressure can change GFR significantly.",
+   "ww": {
+    "About 40 mm Hg": "The required differential is much smaller.",
+    "About 100 mm Hg": "The required differential is much smaller."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_7_Regulation_of_Renal_Blood_Flow"
+   ],
+   "source_ref": "25.7",
+   "evidence": "Only a 10 mm Hg pressure differential across the glomerulus is required for normal GFR, so very small changes in afferent arterial pressure significantly increase or decrease GFR.",
+   "round": 2
   },
   {
    "subj": "Nephrology",
@@ -7377,6 +8482,29 @@
    ],
    "source_ref": "25.8",
    "evidence": "It also blocks reabsorption of phosphate (PO3–), causing its loss in the urine."
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Made in the lungs, binds renal arteriole endothelium",
+    "Not a hormone"
+   ],
+   "ans": "ACE",
+   "d": [
+    "Renin",
+    "Angiotensin II"
+   ],
+   "tp": "ACE converts inactive angiotensin I into active angiotensin II. ACE inhibitors are prescribed for high blood pressure.",
+   "ww": {
+    "Renin": "Renin is made by JG cells in the kidney.",
+    "Angiotensin II": "Angiotensin II is a hormone, the product of ACE."
+   },
+   "tags": [
+    "OpenStax_AP::Renal::25_8_Endocrine_Regulation_of_Kidney_Function"
+   ],
+   "source_ref": "25.8",
+   "evidence": "ACE is not a hormone but it is functionally important in regulating systemic blood pressure and kidney function.",
+   "round": 2
   },
   {
    "subj": "Nephrology",
@@ -7775,6 +8903,51 @@
    ],
    "source_ref": "26.3",
    "evidence": "People eating a typical Western diet, which is very high in NaCl, routinely take in 130 to 160 mmol/day of sodium, but humans require only 1 to 2 mmol/day."
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Major cation of the extracellular fluid",
+    "Half of the osmotic gradient across cells"
+   ],
+   "ans": "Sodium",
+   "d": [
+    "Potassium",
+    "Calcium"
+   ],
+   "tp": "Excess dietary sodium appears to be a major factor in hypertension in some people. Excretion is mainly by the kidneys.",
+   "ww": {
+    "Potassium": "Potassium is the major intracellular cation and has little effect on osmotic pressure.",
+    "Calcium": "Calcium is mostly in bone and is not the main extracellular cation."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
+   ],
+   "source_ref": "26.3",
+   "evidence": "Sodium is the major cation of the extracellular fluid.",
+   "round": 2
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Aldosterone is released when"
+   ],
+   "ans": "Rising potassium, falling sodium or pressure",
+   "d": [
+    "Falling potassium, rising sodium or pressure",
+    "High blood calcium"
+   ],
+   "tp": "Aldosterone raises plasma water by reducing excretion of sodium and therefore water.",
+   "ww": {
+    "Falling potassium, rising sodium or pressure": "These are the opposite conditions and would not call for aldosterone.",
+    "High blood calcium": "Calcium is regulated by PTH, calcitriol and calcitonin."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
+   ],
+   "source_ref": "26.3",
+   "evidence": "Aldosterone is released if blood levels of potassium increase, if blood levels of sodium severely decrease, or if blood pressure decreases.",
+   "round": 2
   },
   {
    "subj": "Nephrology",

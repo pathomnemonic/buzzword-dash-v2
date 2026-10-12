@@ -1,0 +1,20 @@
+[
+{
+"subj": "Pulmonology",
+"bw": [
+"Acidic pH promotes oxygen release from hemoglobin"
+],
+"ans": "Bohr effect",
+"d": [
+"Haldane effect",
+"Chloride shift"
+],
+"tp": "More CO2 means more H+ and a lower pH, so oxygen dissociates more readily. Lactic acid also lowers pH.",
+"ww": {
+"Haldane effect": "The Haldane effect links oxygen levels to hemoglobin’s affinity for CO2.",
+"Chloride shift": "The chloride shift is bicarbonate-chloride exchange across the erythrocyte membrane."
+},
+"source_ref": "22.5",
+"evidence": "The Bohr effect is a phenomenon that arises from the relationship between pH and oxygen’s affinity for hemoglobin: A lower, more acidic pH promotes oxygen dissociation from hemoglobin."
+}
+]

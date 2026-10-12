@@ -1,0 +1,21 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Made in the lungs, binds renal arteriole endothelium",
+"Not a hormone"
+],
+"ans": "ACE",
+"d": [
+"Renin",
+"Angiotensin II"
+],
+"tp": "ACE converts inactive angiotensin I into active angiotensin II. ACE inhibitors are prescribed for high blood pressure.",
+"ww": {
+"Renin": "Renin is made by JG cells in the kidney.",
+"Angiotensin II": "Angiotensin II is a hormone, the product of ACE."
+},
+"source_ref": "25.8",
+"evidence": "ACE is not a hormone but it is functionally important in regulating systemic blood pressure and kidney function."
+}
+]

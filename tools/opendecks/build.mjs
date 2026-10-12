@@ -44,6 +44,14 @@ manifest.sections.forEach((s) => {
   stats.replies++;
   const res = parseAiReply(readFileSync(rf, 'utf8'));
   if (res.error) { console.error(s.ref + ': ' + res.error); return; }
+  // round 2: the AI is asked again for the cards the checks rejected (replies-r2/<ref>.json), same parser, same checks
+  const rf2 = join(here, 'replies-r2', s.ref + '.json');
+  let round2 = 0;
+  if (existsSync(rf2)) {
+    const r2 = parseAiReply(readFileSync(rf2, 'utf8'));
+    if (!r2.error) { res.cards = res.cards.concat(r2.cards.map((c) => Object.assign(c, { round: 2 }))); round2 = r2.cards.length; res.skipped += r2.skipped; }
+  }
+  stats.round2 = (stats.round2 || 0) + round2;
   stats.parsed += res.cards.length;
   stats.skippedByParser += res.skipped;
   const root = cfg.tagRoots[s.ref.split('.')[0]] || 'Other';
@@ -52,7 +60,8 @@ manifest.sections.forEach((s) => {
     cards.push({
       subj: c.subj, bw: c.bw, ans: c.ans, d: c.d, tp: c.tp, ww: c.ww,
       tags: ['OpenStax_AP::' + root + '::' + topic],
-      source_ref: c.source_ref || '', evidence: c.evidence || ''
+      source_ref: c.source_ref || '', evidence: c.evidence || '',
+      ...(c.round ? { round: c.round } : {})
     });
   });
 });

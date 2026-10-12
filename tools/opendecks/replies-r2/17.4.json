@@ -1,0 +1,41 @@
+[
+{
+"subj": "Endocrinology",
+"bw": [
+"Iodine deficiency raises TSH",
+"Colloid builds up in the follicles",
+"Visibly enlarged thyroid"
+],
+"ans": "Goiter",
+"d": [
+"Exophthalmos",
+"Acromegaly"
+],
+"tp": "When T3 and T4 cannot be made, TSH rises, colloid builds up and the thyroid enlarges. A goiter is only the visible sign of the deficiency.",
+"ww": {
+"Exophthalmos": "Exophthalmos is bulging of the eyes, seen with Graves’ disease.",
+"Acromegaly": "Acromegaly is excess growth hormone in adults."
+},
+"source_ref": "17.4",
+"evidence": "The accumulation of colloid increases the overall size of the thyroid gland, a condition called a goiter (Figure 17.14)."
+},
+{
+"subj": "Endocrinology",
+"bw": [
+"Top preventable cause of intellectual disability",
+"Lacking in the diet of landlocked regions"
+],
+"ans": "Iodine deficiency",
+"d": [
+"Vitamin D deficiency",
+"Vitamin C deficiency"
+],
+"tp": "Iodine deficiency impairs T3 and T4 synthesis. Iodized salt is the main dietary source in many countries.",
+"ww": {
+"Vitamin D deficiency": "The source ties preventable intellectual disability to iodine, not vitamin D.",
+"Vitamin C deficiency": "Vitamin C deficiency is not linked to thyroid hormone synthesis."
+},
+"source_ref": "17.4",
+"evidence": "Moreover, iodine deficiency is the primary cause of preventable intellectual disabilies worldwide."
+}
+]

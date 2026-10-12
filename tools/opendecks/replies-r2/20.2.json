@@ -1,0 +1,21 @@
+[
+{
+"subj": "Cardiology",
+"bw": [
+"Cholesterol, calcium and debris in the artery wall",
+"Mealy deposits narrow arteries"
+],
+"ans": "Atherosclerosis",
+"d": [
+"Aneurysm",
+"Vasospasm"
+],
+"tp": "Plaque can rupture and clot, causing heart attack or stroke, or break off as an embolus.",
+"ww": {
+"Aneurysm": "An aneurysm is a bulging weakened wall, not plaque buildup.",
+"Vasospasm": "Vasospasm is temporary vessel constriction, not plaque."
+},
+"source_ref": "20.2",
+"evidence": "The term for this condition, atherosclerosis (athero- = “porridge”) describes the mealy deposits (Figure 20.14)."
+}
+]

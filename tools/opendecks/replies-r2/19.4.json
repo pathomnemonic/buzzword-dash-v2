@@ -1,0 +1,175 @@
+[
+{
+"subj": "Cardiology",
+"bw": [
+"Stroke volume",
+"Measured with an echocardiogram recording EDV and ESV"
+],
+"ans": "SV = EDV – ESV",
+"d": [
+"SV = CO × HR",
+"SV = ESV – EDV"
+],
+"tp": "Stroke volume can also be measured with a specialized catheter, but that is invasive and far more dangerous to the patient.",
+"ww": {
+"SV = CO × HR": "Cardiac output is HR × SV, so SV is not CO × HR.",
+"SV = ESV – EDV": "That has the sign reversed; stroke volume is EDV minus ESV."
+},
+"source_ref": "19.4",
+"evidence": "SV is normally measured using an echocardiogram to record EDV and ESV, and calculating the difference: SV = EDV – ESV."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Share of blood ejected per contraction",
+"SV divided by EDV",
+"Normally 55–70 percent"
+],
+"ans": "Ejection fraction",
+"d": [
+"Cardiac reserve",
+"Cardiac output"
+],
+"tp": "Despite its name, ejection fraction is normally expressed as a percentage; the mean is 58 percent.",
+"ww": {
+"Cardiac reserve": "Cardiac reserve is the difference between maximum and resting cardiac output.",
+"Cardiac output": "Cardiac output is stroke volume times heart rate, in volume per minute."
+},
+"source_ref": "19.4",
+"evidence": "SVs are also used to calculate ejection fraction, which is the portion of the blood that is pumped or ejected from the heart with each contraction."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Extreme emotional stress",
+"Weak myocardium, not from low oxygen",
+"Takotsubo cardiomyopathy"
+],
+"ans": "Broken heart syndrome",
+"d": [
+"Myocardial infarction from coronary occlusion",
+"Bradycardia"
+],
+"tp": "It may lead to acute heart failure, lethal arrhythmias or even ventricular rupture, and the exact cause is not known.",
+"ww": {
+"Myocardial infarction from coronary occlusion": "The weakening in broken heart syndrome is not related to lack of oxygen.",
+"Bradycardia": "Bradycardia is only a slow resting rate, not a stress cardiomyopathy."
+},
+"source_ref": "19.4",
+"evidence": "Extreme stress from such life events as the death of a loved one, an emotional break up, loss of income, or foreclosure of a home may lead to a condition commonly referred to as broken heart syndrome."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Raises heart rate and contractility",
+"Longer-lasting than catecholamines",
+"Excess may cause tachycardia"
+],
+"ans": "Thyroid hormone (thyroxin)",
+"d": [
+"Calcitonin",
+"Parathyroid hormone"
+],
+"tp": "T3, the active form, enters cardiomyocytes and alters activity at the genome level.",
+"ww": {
+"Calcitonin": "Calcitonin lowers blood calcium and has no described effect on heart rate here.",
+"Parathyroid hormone": "PTH regulates blood calcium; the source does not list it as raising heart rate."
+},
+"source_ref": "19.4",
+"evidence": "In general, increased levels of thyroid hormone, or thyroxin, increase cardiac rate and contractility."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Stimulates sympathetic neurons to the heart",
+"Not made in the body"
+],
+"ans": "Nicotine",
+"d": [
+"Caffeine",
+"Opiates"
+],
+"tp": "Caffeine instead increases the rate of depolarization at the SA node.",
+"ww": {
+"Caffeine": "Caffeine works by increasing depolarization rates at the SA node.",
+"Opiates": "Opiates and tranquilizers slow the heart."
+},
+"source_ref": "19.4",
+"evidence": "Caffeine works by increasing the rates of depolarization at the SA node, whereas nicotine stimulates the activity of the sympathetic neurons that deliver impulses to the heart."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Tension ventricles need against resistance",
+"Raised by valve stenosis"
+],
+"ans": "Afterload",
+"d": [
+"Preload",
+"Contractility"
+],
+"tp": "Any condition that increases resistance requires greater afterload to open the semilunar valves.",
+"ww": {
+"Preload": "Preload is the ventricular stretch before contraction.",
+"Contractility": "Contractility is the strength of the muscle’s contraction."
+},
+"source_ref": "19.4",
+"evidence": "Afterload refers to the tension that the ventricles must develop to pump blood effectively against the resistance in the vascular system."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Within physiological limits",
+"Force rises with starting fiber length"
+],
+"ans": "Frank-Starling mechanism",
+"d": [
+"Bainbridge reflex",
+"Baroreceptor reflex"
+],
+"tp": "The more the ventricular muscle is stretched (within limits), the stronger the contraction and the larger the stroke volume.",
+"ww": {
+"Bainbridge reflex": "The Bainbridge reflex links atrial stretch to heart rate through the cardiac center.",
+"Baroreceptor reflex": "The baroreceptor reflex adjusts autonomic input in response to blood pressure."
+},
+"source_ref": "19.4",
+"evidence": "The relationship between ventricular stretch and contraction has been stated in the well-known Frank-Starling mechanism or simply Starling’s Law of the Heart."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Slows heart rate, strengthens contraction",
+"Blocks calcium uptake by the SR"
+],
+"ans": "Digitalis",
+"d": [
+"Propranolol",
+"Isoproterenol"
+],
+"tp": "Blocking calcium sequestration raises intracellular calcium and so the strength of contraction.",
+"ww": {
+"Propranolol": "Propranolol is an early beta blocker and decreases the force of contraction.",
+"Isoproterenol": "Isoproterenol mimics epinephrine and norepinephrine by stimulating calcium influx and does not lower heart rate."
+},
+"source_ref": "19.4",
+"evidence": "The drug digitalis lowers HR and increases the strength of the contraction, acting as a positive inotropic agent by blocking the sequestering of calcium ions into the sarcoplasmic reticulum."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Negative inotropic agents"
+],
+"ans": "Hypoxia, acidosis and hyperkalemia",
+"d": [
+"Hypercalcemia, glucagon, thyroid hormone",
+"Sympathetic input, dopamine, isoproterenol"
+],
+"tp": "Beta blockers and calcium channel blockers are negative inotropic drugs.",
+"ww": {
+"Hypercalcemia, glucagon, thyroid hormone": "These are positive inotropic agents.",
+"Sympathetic input, dopamine, isoproterenol": "These are positive inotropic agents."
+},
+"source_ref": "19.4",
+"evidence": "Negative inotropic agents include hypoxia, acidosis, hyperkalemia, and a variety of synthetic drugs."
+}
+]
