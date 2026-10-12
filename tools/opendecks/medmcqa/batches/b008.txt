@@ -1,0 +1,34 @@
+410|ID|dx|Food poisoning from improperly canned food|Clostridium botulinum|Vibrio cholerae|Salmonella Typhi|Botulism comes from preformed toxin in preserved or canned food, often in bulging cans.
+412|OB|dx|Tubal ectopic site that ruptures earliest|Isthmic|Ampullary|Interstitial|Isthmic rupture occurs at about 6-8 weeks, ampullary at 8-12 and interstitial later; the ampulla is the commonest site overall.
+413|END|mech|Sertoli cell gonadotropin receptor|FSH receptor|LH receptor|TSH receptor|Sertoli cells carry FSH receptors and secrete androgen-binding protein; Leydig cells carry LH receptors.
+416|NEP|mg|Contraindication to renal biopsy|Uncontrolled hypertension|Nephrotic syndrome|Isolated hematuria|Uncontrolled hypertension, bleeding diathesis, active infection and small kidneys are contraindications.
+417|ID|lab|CAMP-positive, bacitracin-resistant streptococcus|Streptococcus agalactiae (group B)|Streptococcus pyogenes|Staphylococcus aureus|Group B strep is CAMP-positive and bacitracin-resistant; group A is bacitracin-sensitive.
+424|CAR|ph|Digoxin inotropic mechanism|Inhibits Na+/K+-ATPase|Inhibits phosphodiesterase|Activates L-type Ca channels|Digoxin blocks the myocardial Na+/K+ pump, raising intracellular calcium and contractility.
+426|OB|ph|Clomiphene mechanism|Estrogen receptor antagonist (blocks negative feedback)|Progesterone antagonism|Androgen receptor blockade|Clomiphene is an anti-estrogen that raises gonadotropins to induce ovulation in anovulation such as PCOS.
+427|NEU|dx|Human counterpart of mad cow disease (BSE)|Creutzfeldt-Jakob disease|Alzheimer disease|Pick disease|BSE, scrapie and CJD are prion diseases causing spongiform encephalopathy.
+429|OB|dx|Uterine tumor with both carcinomatous and sarcomatous elements|Carcinosarcoma (malignant mixed Mullerian tumor)|Leiomyosarcoma|Endometrial stromal sarcoma|Mixed mesodermal tumors contain epithelial and mesenchymal malignant components.
+430|OB|mech|Site where sperm acquire motility|Epididymis|Seminal vesicle|Testis|Sperm leaving the seminiferous tubules mature and gain motility in the epididymis.
+432|ID|ph|Antiviral for chronic hepatitis B|Entecavir|Zanamivir|Abacavir|Entecavir, tenofovir and interferon are preferred for chronic hepatitis B.
+433|MIX|mech|Homocytotropic antibody that binds mast cells|IgE|IgA|IgM|IgE binds mast cell Fc receptors and mediates immediate hypersensitivity.
+435|PED|dx|Most common chromosomal syndrome|Trisomy 21|Trisomy 13|Turner syndrome|Down syndrome occurs in about 1 in 800 newborns.
+438|END|mech|Testosterone-secreting testicular cell|Leydig cells|Sertoli cells|Spermatogonia|Leydig cells have LH receptors and secrete testosterone; Sertoli cells respond to FSH.
+439|ID|lab|Yeast with broad-based budding at 37 C|Blastomyces dermatitidis|Cryptococcus neoformans|Candida albicans|Blastomyces buds from the parent yeast with a wide base of attachment.
+441|MIX|mech|Pyridoxal phosphate (PLP) is the coenzyme form of|Vitamin B6|Vitamin B1|Vitamin B12|PLP is the active form of vitamin B6, used in transamination and decarboxylation.
+443|PSY|ph|Methylphenidate indication|ADHD|Alzheimer disease|Obsessive-compulsive disorder|Methylphenidate is the preferred drug for attention deficit hyperactivity disorder.
+444|EM|ph|Pralidoxime mechanism|Reactivates phosphorylated acetylcholinesterase|Blocks muscarinic receptors|Stimulates nicotinic receptors|Pralidoxime regenerates cholinesterase in organophosphate poisoning, given with atropine.
+447|END|dx|RET proto-oncogene mutation|MEN2 (medullary thyroid carcinoma)|Hepatocellular carcinoma|Breast carcinoma|RET is a receptor tyrosine kinase normally expressed in thyroid C cells and adrenal medulla; activating mutations cause MEN2.
+448|END|mech|TSH receptor second messenger|cAMP|Ion channel|Nuclear receptor|TSH acts on a Gs-coupled receptor to raise cAMP in thyroid cells.
+450|HEM|dx|Most common soft tissue sarcoma of childhood|Rhabdomyosarcoma|Angiosarcoma|Liposarcoma|Rhabdomyosarcoma arises from primitive mesenchyme, commonly in the head and neck, then genitourinary tract.
+451|PED|dx|Primitive streak remnant tumor|Sacrococcygeal teratoma|Neuroblastoma|Wilms tumor|Sacrococcygeal teratoma arises at the coccyx from primitive streak remnants.
+452|ID|mech|Diphtheria toxin gene acquisition|Lysogenic conversion by a phage|Plasmid transfer|Chromosomal mutation|Only C. diphtheriae lysogenized by corynephage carrying the tox gene makes diphtheria toxin.
+456|GI|lab|GIST classic immunohistochemical marker|c-KIT (CD117)|Desmin|S-100|GISTs arise from interstitial cells of Cajal and express c-KIT.
+458|END|mech|Active form of vitamin D|Calcitriol (1,25-dihydroxyvitamin D)|Calcifediol (25-hydroxyvitamin D)|Ergocalciferol|Calcitriol is made by 1-alpha-hydroxylation of calcifediol in the kidney.
+459|MIX|mech|Biotin-dependent enzyme|Acetyl-CoA carboxylase (fatty acid synthesis)|Pyruvate dehydrogenase|Transaminases|Biotin carries CO2 for carboxylases such as acetyl-CoA carboxylase, pyruvate carboxylase and propionyl-CoA carboxylase.
+460|HEM|dx|Smear: leukocytosis with basophils, eosinophils and high platelets|Chronic myeloid leukemia|Acute myeloid leukemia|Acute lymphoblastic leukemia|CML shows all stages of myeloid maturation with basophilia and normal or raised platelets.
+461|ID|mech|Staphylococcal scalded skin syndrome toxin|Exfoliative (epidermolytic) toxin|Coagulase|Enterotoxin|Exfoliative toxin cleaves desmoglein 1 in the superficial epidermis.
+463|GI|mech|Site of vitamin B12 absorption|Terminal ileum|Jejunum|Duodenum|B12 bound to intrinsic factor is absorbed in the ileum.
+465|ID|dx|Clutton joints (painless symmetric knee effusions)|Congenital syphilis|Gonococcal arthritis|Rheumatic fever|Clutton joints are a late manifestation of congenital syphilis.
+466|SUR|mech|Thyroid storm after thyroidectomy: cause|Inadequate preoperative control of hyperthyroidism|Recurrent laryngeal nerve injury|Neck hematoma|Storm follows surgery in a thyrotoxic patient who was not adequately prepared.
+467|HEM|dx|Thalassemia inheritance|Autosomal recessive|X-linked recessive|Autosomal dominant|Thalassemias and sickle cell anemia are autosomal recessive.
+468|MIX|mech|ABO blood group inheritance|Codominance|X-linked recessive|Mitochondrial inheritance|A and B alleles are both expressed in AB individuals.
+469|MIX|mech|Housekeeping genes|Constitutively expressed|Inducible by hormones|Expressed only when an inducer is present|Housekeeping genes are expressed at a fairly constant rate and are not regulated.

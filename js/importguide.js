@@ -154,23 +154,32 @@ export var QUIZ_CARD_EXAMPLE = {
  */
 export function buildAiPrompt() {
   return [
-    'You are converting my flashcards into multiple-choice quiz cards for a medical-exam study game (USMLE / COMLEX).',
+    'You are converting my flashcards into quick-fire multiple-choice cards for a medical-exam game (USMLE / COMLEX). In the game the player sees 2-4 short clues for about 3 seconds, then must pick the right answer from THREE options (the answer plus two wrong ones). So every card must be answerable from the clues alone, with exactly one defensible option.',
     '',
-    'I will paste my cards after this message, one per line (front, then back) or as free text. Turn each real card into ONE JSON object and reply with ONE JSON array and nothing else (no commentary, no code fences).',
-    '',
-    'Each object has exactly these fields:',
+    'Reply with ONE JSON array and nothing else (no commentary, no code fences). One object per usable card, with exactly these fields:',
     '- "subj": one of ' + SUBJECTS.map(function (s) { return '"' + s + '"'; }).join(', ') + '. Use "Multisystem / Mixed" if unsure.',
-    '- "bw": 1 to 4 short clues (strings) that point to the answer, like exam buzzwords. Taken from my card; do not invent facts.',
-    '- "ans": the correct answer, short (a diagnosis, drug, mechanism, or next step). Under 80 characters. Plain text.',
-    '- "d": exactly 2 wrong answers: plausible look-alikes of the same kind as the answer (two other diagnoses, two other drugs). Never "N/A", never "None of the above", never the correct answer.',
-    '- "tp": a one or two sentence teaching point, from my card where possible.',
-    '- "ww": an object whose keys are exactly the two wrong answers in "d" and whose values say in one short sentence why each is wrong.',
+    '- "bw": 2 to 4 clues, each 1-8 words, taken from my card (no invented facts). Together they must point to ONE answer. Rules for clues:',
+    '  * Never put the answer, or its key words, in a clue.',
+    '  * Name the thing being asked about, and what is asked, when the card asks a property: "Pseudomonas aeruginosa", "Oxygen requirement" (not just vague symptoms that fit many organisms).',
+    '  * Use specific buzzwords (findings, numbers, named signs), not generic words like "serious", "common", "treatment".',
+    '- "ans": a TERM, not a sentence: a diagnosis, organism, drug, test, structure, receptor, mechanism, or number, normally 1-4 words (never more than 8). If my card\'s back is a sentence or explanation, extract its key term. If the card asks "what is X?" and the back describes X, flip it: put the description in "bw" and the NAME in "ans".',
+    '- "d": exactly 2 wrong answers. Each must be a real term of the same kind and similar length as "ans" that a student could actually confuse with it (sibling diagnoses, drugs of the same class, nearby numbers, other items from the same list). Never opposites ("increased / decreased / no change"), never silly or a different category, never "N/A" or "None of the above", and never something that is also correct.',
+    '- "tp": one or two sentences of teaching point, using only facts from my card.',
+    '- "ww": an object whose keys are exactly the two wrong answers in "d"; each value is one short sentence on why it is wrong here (state what it actually is or does, not just "not the answer").',
     '',
-    'Rules:',
-    '- Plain text only: no HTML, no markdown, no line breaks inside strings.',
-    '- If a card is not a clear question with one short answer (long lists, images, definitions with no single answer), skip it and keep going.',
-    '- If a cloze like {{c1::answer}} appears, the hidden part is the answer.',
-    '- Do not change medical facts. If you are unsure a fact is right, skip that card.',
+    'Make a card when my card boils down to: one fact -> one short term (name the organism, drug, test, mechanism, cause, number, classic association, or a vignette -> diagnosis).',
+    'SKIP the card (no object at all) when it is: a list, steps or sequence; a definition or "explain / what are the consequences / how does it differ" question; yes/no; two questions in one; "which is NOT / wrong pair" with options missing; an image; or when the back is vague, contradicts itself, or you are not sure it is medically correct. Do not rewrite facts. One card per fact: do not make two cards with the same answer and distractors.',
+    'Ignore HTML tags and tags/subject columns. If a cloze like {{c1::answer}} appears, the hidden part is the answer.',
+    '',
+    'Bad vs good (same fact):',
+    '- Bad: bw ["Narrowed descending aorta","Hypertension"], ans "Narrowing of the descending aorta beyond the great vessels" (answer is in the clue, and is a sentence).',
+    '  Good: bw ["Arm hypertension","Weak leg pulses","Leg cramps"], ans "Coarctation of the aorta", d ["Aortic valve stenosis","Patent ductus arteriosus"].',
+    '- Bad: bw ["Menorrhagia"], ans "More than 80 ml", d ["Less than 20 ml","Less than 40 ml"] (both wrong answers are absurd for heavy bleeding).',
+    '  Good: ans "More than 80 ml", d ["More than 40 ml","More than 120 ml"].',
+    '- Bad: bw ["Volatile anesthetics","Rigidity"], ans "Hypermetabolic muscle crisis triggered by volatile anesthetics".',
+    '  Good: ans "Malignant hyperthermia", d ["Neuroleptic malignant syndrome","Serotonin syndrome"].',
+    '- Bad: bw ["Lung infections","Weak immunity"], ans "Obligate aerobe" (clues fit dozens of organisms; the question being asked is never named).',
+    '  Good: bw ["Pseudomonas aeruginosa","Oxygen requirement"], ans "Obligate aerobe", d ["Obligate anaerobe","Microaerophile"].',
     '',
     'Example of one object:',
     JSON.stringify(QUIZ_CARD_EXAMPLE),
@@ -204,6 +213,12 @@ export function normalizeAiCard(raw) {
     ww: {}
   };
   Object.keys(ww && typeof ww === 'object' ? ww : {}).forEach(function (k) { card.ww[clean(k)] = clean(ww[k]); });
+  // Optional provenance, written by the Open decks generator (tools/opendecks): the passage the card came from and one
+  // sentence of it that supports the answer. Players' own AI replies simply do not have them.
+  var ref = clean(raw.source_ref || raw.sourceRef || '');
+  var ev = clean(raw.evidence || '');
+  if (ref) card.source_ref = ref;
+  if (ev) card.evidence = ev;
   return card;
 }
 
@@ -236,13 +251,43 @@ export function parseAiReply(text) {
   }
   var cards = [];
   var skipped = 0;
+  var reasons = {};
+  var seen = {};
+  function skip(why) { skipped++; reasons[why] = (reasons[why] || 0) + 1; }
   parsed.forEach(function (raw) {
     var card = normalizeAiCard(raw);
     var ok = card && card.bw.length && card.ans && card.d.length === 2 &&
       card.d.every(function (x) { return x.toLowerCase() !== card.ans.toLowerCase() && !/^(n\/a|none of the above|all of the above)$/i.test(x); }) &&
       card.d[0].toLowerCase() !== card.d[1].toLowerCase();
-    if (ok) cards.push(card); else skipped++;
+    if (!ok) { skip('missing clues, an answer or two different wrong answers'); return; }
+    // Quality screens: a free chat AI often ignores parts of the prompt; these catch the three commonest ways a card becomes unplayable.
+    if (wordCount(card.ans) > MAX_ANSWER_WORDS) { skip('the answer was a whole sentence'); return; }
+    if (answerInClues(card)) { skip('a clue gave the answer away'); return; }
+    var key = card.ans.toLowerCase() + '|' + card.d.map(function (x) { return x.toLowerCase(); }).sort().join('|');
+    if (seen[key]) { skip('a duplicate card'); return; }
+    seen[key] = true;
+    cards.push(card);
   });
-  if (!cards.length) return { cards: [], error: 'No usable cards in that reply (each needs clues, an answer and exactly two different wrong answers).', skipped: skipped };
-  return { cards: cards, error: null, skipped: skipped };
+  if (!cards.length) return { cards: [], error: 'No usable cards in that reply (each needs clues, an answer and exactly two different wrong answers).', skipped: skipped, reasons: reasons };
+  return { cards: cards, error: null, skipped: skipped, reasons: reasons };
+}
+
+var MAX_ANSWER_WORDS = 8;
+var STOP_WORDS = /^(the|and|with|from|that|this|than|more|less|into|over|under|about|of|in|on|to|a|an|is|are|for|by|or|as|at|it|its|not|no)$/i;
+
+function wordCount(text) { return String(text).trim().split(/\s+/).filter(Boolean).length; }
+
+function keyWords(text) {
+  return String(text).toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter(function (w) { return w.length >= 4 && !STOP_WORDS.test(w); });
+}
+
+/** True when the clues contain the answer, or most of its key words (the card would give itself away). */
+function answerInClues(card) {
+  var clues = card.bw.join(' ').toLowerCase();
+  var ans = card.ans.toLowerCase();
+  if (ans.length >= 4 && clues.indexOf(ans) >= 0) return true;
+  var words = keyWords(card.ans);
+  if (!words.length) return false;
+  var hit = words.filter(function (w) { return clues.indexOf(w) >= 0; }).length;
+  return words.length === 1 ? hit === 1 : hit / words.length > 0.6;
 }

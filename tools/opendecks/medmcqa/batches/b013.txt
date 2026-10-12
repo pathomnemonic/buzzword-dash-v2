@@ -1,0 +1,30 @@
+715|NEU|dx|Lower motor neuron lesion finding|Flaccid paralysis with hyporeflexia|Spasticity|Hyperactive stretch reflex|Lower motor neuron lesions cause flaccid weakness, atrophy and reduced reflexes; spasticity is upper motor neuron.
+717|ID|ph|NDM-1 (metallo-beta-lactamase) producers: active drug|Colistin|Meropenem|Penicillins|NDM metallo-beta-lactamases hydrolyze carbapenems, but the organisms remain susceptible to colistin.
+719|EM|ph|Paracetamol overdose antidote|N-acetylcysteine|Flumazenil|Naloxone|N-acetylcysteine replenishes glutathione and is most effective given early.
+721|OB|lab|CTG sign of fetal hypoxemia|Late decelerations|Early decelerations|Variable decelerations|Late decelerations follow the contraction and signal uteroplacental insufficiency; early ones reflect head compression.
+724|GI|dx|Boerhaave syndrome: site of rupture|Lower esophagus|Upper esophagus|Middle esophagus|Boerhaave syndrome is rupture of the lower esophagus from vomiting against a closed glottis.
+726|OB|dx|Oligohydramnios at 28 weeks: fetal cause|Renal or urinary tract obstruction|Anencephaly|Esophageal atresia|Fetal renal anomalies reduce urine output and amniotic fluid; GI obstruction and anencephaly cause polyhydramnios.
+729|END|mech|Hormone synthesized from tyrosine|Thyroxine|Calcitriol|Cortisol|Tyrosine is also the precursor of catecholamines and melanin.
+730|ID|ph|Drug inhibiting bacterial RNA polymerase|Rifampin|Macrolides|Aminoglycosides|Rifampin binds the beta subunit of bacterial DNA-dependent RNA polymerase.
+732|CAR|dx|Amino acid linked to atherosclerosis|Homocysteine|Lysine|Alanine|Hyperhomocysteinemia is a risk factor for atherosclerosis and thrombosis.
+734|HEM|mech|Main source of von Willebrand factor|Endothelial cells|Erythrocytes|Neutrophils|vWF is made by endothelial cells (stored in Weibel-Palade bodies) and megakaryocytes.
+738|MIX|mech|Most reactive oxygen free radical|Hydroxyl radical|Hydrogen peroxide|Superoxide radical|The hydroxyl radical is the most reactive and damaging oxygen radical.
+739|PUL|mech|Pacemaker for respiratory rhythm|Pre-Botzinger complex|Pneumotaxic center|Apneustic center|The pre-Botzinger complex in the medulla initiates the respiratory rhythm.
+740|NEU|dx|Target fibers on muscle biopsy|Denervation (motor neuron disease)|Dermatomyositis|Myasthenia gravis|Target fibers appear in denervation atrophy.
+741|SUR|dx|Howship-Romberg sign|Obturator hernia|Femoral hernia|Spigelian hernia|Obturator nerve compression causes pain along the medial thigh in obturator hernia.
+745|HEM|mech|Platelet aggregation promoter|Thromboxane A2|Prostacyclin (PGI2)|Nitric oxide|TXA2 promotes aggregation, while PGI2 and NO inhibit it.
+746|NEP|dx|Child with diarrhea and deep, rapid breathing|Metabolic acidosis|Respiratory acidosis|Metabolic alkalosis|Bicarbonate loss in stool causes non-anion-gap metabolic acidosis with compensatory hyperventilation.
+747|SUR|dx|Finkelstein test|De Quervain tenosynovitis|Carpal tunnel syndrome|Cubital tunnel syndrome|Finkelstein test provokes pain over the first dorsal compartment in De Quervain tenosynovitis.
+753|MIX|ph|Lidocaine-prilocaine (EMLA) unique property|Anesthetizes intact skin|Strong vasoconstriction|Motor block only|The eutectic mixture is liquid at skin temperature and penetrates intact skin.
+754|EM|ph|Methanol poisoning antidote|Fomepizole|Naloxone|Flumazenil|Fomepizole inhibits alcohol dehydrogenase, blocking formation of toxic formic acid; ethanol is an alternative.
+755|SUR|dx|Pleomorphic adenoma histology|Epithelial and myoepithelial elements in chondromyxoid stroma|Oncocytes with lymphoid stroma|Purely epithelial cells|Pleomorphic adenoma is a mixed tumor with epithelial and mesenchymal-like differentiation.
+757|PED|dx|Most common cardiac lesion in Down syndrome|Endocardial cushion (AV septal) defect|Patent ductus arteriosus|Coarctation of the aorta|Endocardial cushion defects are the commonest lesion, followed by VSD.
+759|PED|dx|Most common defect leading to Eisenmenger syndrome|Ventricular septal defect|Atrial septal defect|Patent ductus arteriosus|Left-to-right shunts cause pulmonary vascular resistance to rise until the shunt reverses.
+762|PUL|dx|Occupational lung disease linked to mesothelioma|Asbestosis|Silicosis|Anthracosis|Asbestos, especially amphiboles, is the main cause of mesothelioma.
+763|OB|dx|Schiller-Duval bodies|Yolk sac (endodermal sinus) tumor|Granulosa cell tumor|Choriocarcinoma|Schiller-Duval bodies are pathognomonic of yolk sac tumor, which makes AFP.
+766|HEM|mech|Hydrops fetalis from alpha-thalassemia: why lethal|Hb Bart's has very high oxygen affinity|Hb Bart's cannot bind oxygen|Red cells clog the placenta|Gamma-globin tetramers hold oxygen so tightly they deliver almost none to tissues.
+767|HEM|ph|Actinomycin D mechanism|Inhibits DNA-dependent RNA synthesis|Inhibits microtubule assembly|Inhibits thymidylate synthase|Dactinomycin intercalates DNA and blocks transcription.
+770|CAR|dx|Familial lipoprotein lipase deficiency (type I)|Raised chylomicrons|Raised LDL|Raised HDL|Type I hyperlipoproteinemia gives chylomicronemia with severe hypertriglyceridemia, eruptive xanthomas and pancreatitis.
+771|EM|dx|Early (warm) septic shock hemodynamics|High cardiac output, low peripheral resistance|Low cardiac output, high peripheral resistance|Low cardiac output, low peripheral resistance|Early septic shock is hyperdynamic with vasodilation.
+772|PED|dx|Headache and leg claudication in a child|Coarctation of the aorta|Atrial septal defect|Patent ductus arteriosus|Coarctation gives upper-body hypertension and poor flow to the legs.
+773|ID|lab|Best antemortem sample for rabies diagnosis|Skin biopsy of hair follicles at the nape|CSF|Brain biopsy|Direct fluorescent antibody testing on nape hair follicle biopsy is the most sensitive antemortem test.

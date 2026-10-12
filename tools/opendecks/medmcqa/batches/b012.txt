@@ -1,0 +1,33 @@
+655|PUL|lab|Principal imaging test for suspected pulmonary embolism|CT pulmonary angiography|Venography|Chest X-ray|Contrast CT of the chest is the principal imaging test for PE; D-dimer is only a screening blood test.
+656|MIX|mech|Inactive enzyme precursor|Zymogen (proenzyme)|Apoenzyme|Coenzyme|Zymogens such as pepsinogen, chymotrypsinogen and plasminogen are activated by peptide bond cleavage.
+659|MIX|ph|Most abundant drug-metabolizing cytochrome P450|CYP3A4|CYP2D6|CYP1A2|CYP3A4 handles roughly half of drugs and is inhibited by grapefruit juice.
+660|MIX|ph|Opioid with a nasal spray formulation|Butorphanol|Codeine|Tramadol|Butorphanol is available as a nasal spray.
+661|HEM|ph|Bortezomib indication|Multiple myeloma|Renal cell carcinoma|Pancreatic carcinoma|Bortezomib is a proteasome inhibitor used in myeloma and mantle cell lymphoma.
+662|PED|dx|Galactocerebrosidase deficiency|Krabbe disease|Metachromatic leukodystrophy|Tay-Sachs disease|Krabbe disease is a leukodystrophy from galactocerebrosidase deficiency.
+664|CAR|dx|Electrical alternans on ECG|Cardiac tamponade|Constrictive pericarditis|Restrictive cardiomyopathy|Beat-to-beat swinging of the heart in a large effusion causes electrical alternans and low QRS voltage.
+665|MIX|mech|Cofactor of glycogen phosphorylase|Pyridoxal phosphate|Thiamine pyrophosphate|FMN|The phosphate of PLP acts as a general acid catalyst in the glycogen phosphorylase reaction.
+666|MIX|mech|Corneal epithelium type|Stratified squamous, non-keratinized|Simple columnar|Pseudostratified ciliated columnar|The outermost layer of the cornea is non-keratinized stratified squamous epithelium.
+667|OB|mech|Preeclampsia effect on GFR|Decreased|Increased|Unchanged|Glomerular endotheliosis in preeclampsia lowers GFR.
+672|PED|mech|Breast milk has more of this than cow's milk|Lactose|Protein|Minerals|Human milk has more lactose but about a third of the protein and a quarter of the minerals of cow's milk.
+673|RHE|dx|Most common joint in pseudogout|Knee|First MTP joint|Hip|CPPD arthropathy mostly involves large joints, especially the knee, with rhomboid positively birefringent crystals.
+676|CAR|mech|Lipoprotein carrying cholesterol from peripheral tissues to the liver|HDL|LDL|VLDL|HDL performs reverse cholesterol transport.
+678|HEM|dx|BRCA1/BRCA2 mutation raises risk of|Breast and ovarian cancer|Lung cancer|Gastric cancer|BRCA mutations predispose to breast and ovarian cancer; BRCA2 also links to male breast cancer.
+680|PED|dx|Diarrhea: restless, irritable, sunken eyes, drinks eagerly|Some dehydration|No dehydration|Severe dehydration|Restlessness, sunken eyes and eager drinking define some dehydration; lethargy and unable to drink mean severe.
+684|MIX|mech|Two nitrogen donors to urea|Ammonia and aspartate|Glutamine and arginine|Glycine and ornithine|One nitrogen enters as free ammonia (carbamoyl phosphate) and the other from aspartate.
+685|ID|dx|Enteritis necroticans (pigbel)|Clostridium perfringens type C|Clostridioides difficile|Clostridium botulinum|Type C strains make beta toxin, causing mucosal necrosis.
+686|MIX|se|Pyridoxine excess causes|Sensory polyneuropathy|Hypercalcemia|Liver damage|Months of high-dose pyridoxine cause sensory polyneuropathy.
+687|HEM|lab|Tumor lysis syndrome labs|Hyperkalemia, hyperphosphatemia, hypocalcemia, hyperuricemia|Hypokalemia with alkalosis|Hypophosphatemia with hypercalcemia|Massive cell lysis releases potassium, phosphate and nucleic acids; phosphate binds calcium.
+691|NEU|mech|Efferent limb of the gag reflex|Vagus nerve (CN X)|Facial nerve|Trigeminal nerve|The afferent limb is glossopharyngeal; the vagus supplies the efferent pharyngeal contraction.
+692|MIX|lab|FIGLU is an intermediate in catabolism of|Histidine|Tyrosine|Alanine|FIGLU excretion after a histidine load is raised in folate deficiency.
+695|NEU|dx|Earliest presentation of Friedreich ataxia|Gait ataxia|Seizures|Optic atrophy|Friedreich ataxia (GAA repeats in frataxin) begins with progressive gait and stance ataxia.
+696|OB|mech|Protective bacterium of the normal vagina|Lactobacillus|Gardnerella vaginalis|Escherichia coli|Doderlein lactobacilli turn glycogen into lactic acid, keeping vaginal pH acidic.
+698|HEM|mech|Bilirubin is the breakdown product of|Heme|Albumin|Transferrin|Bilirubin is the end product of heme degradation, mostly from senescent red cells.
+699|PED|dx|Infant refusing to move a limb because of bone pain (pseudoparalysis)|Scurvy (vitamin C deficiency)|Vitamin B6 deficiency|Vitamin E deficiency|Scurvy causes subperiosteal hemorrhage and painful pseudoparalysis in infants.
+702|HEM|dx|Most important criterion for leiomyosarcoma|Mitotic count|Lymphatic invasion|Lymphocytic infiltration|The number of mitoses per high-power field separates leiomyosarcoma from leiomyoma.
+705|PED|dx|Most common cause of early neonatal sepsis and meningitis|Group B streptococcus|Group A streptococcus|Enterococcus faecalis|Streptococcus agalactiae is acquired from the maternal genital tract.
+706|NEU|dx|Neurofibromatosis type 1 CNS tumor|Optic pathway glioma|Glioblastoma multiforme|Vestibular schwannoma|Optic gliomas occur in 15-25% of NF1 patients; bilateral vestibular schwannoma is NF2.
+708|PSY|ph|Naltrexone indication|Alcohol dependence|Cocaine dependence|Anorexia nervosa|Naltrexone is an opioid antagonist approved for alcohol and opioid dependence.
+710|MIX|mech|Rate-limiting enzyme of the urea cycle|Carbamoyl phosphate synthetase I|Ornithine transcarbamylase|Arginase|CPS I is irreversible, allosterically activated by N-acetylglutamate.
+711|SUR|lab|Brodie-Trendelenburg test|Saphenofemoral incompetence|Deep vein thrombosis|Arterial insufficiency|The test shows whether varicose veins fill from above because of an incompetent saphenofemoral junction.
+712|PUL|se|Glaucoma drop to avoid in asthma|Timolol|Latanoprost|Acetazolamide|Timolol is a nonselective beta blocker that can precipitate bronchospasm.
+714|PSY|dx|Korsakoff syndrome: deficient vitamin|Thiamine|Niacin|Riboflavin|Korsakoff syndrome (anterograde amnesia with confabulation) follows Wernicke encephalopathy from thiamine deficiency.

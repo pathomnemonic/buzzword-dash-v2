@@ -1099,6 +1099,11 @@ function _renderUI() {
     }
   });
 
+  function topReason(reasons) {
+    var keys = Object.keys(reasons || {}).sort(function (x, y) { return reasons[y] - reasons[x]; });
+    return keys.length ? 'most often: ' + keys[0] : '';
+  }
+
   aiImportBtn.addEventListener('click', function () {
     try {
       var parsed = parseAiReply(aiArea.value);
@@ -1109,7 +1114,7 @@ function _renderUI() {
       var firstErr = res.rejected[0] && res.rejected[0].errors && res.rejected[0].errors[0];
       setStatus(
         'Imported ' + res.importedCount + ' quiz card' + (res.importedCount === 1 ? '' : 's') + '.' +
-        (skipped ? ' ' + skipped + ' skipped' + (firstErr ? ' (' + firstErr.message + ')' : '') + '.' : '') +
+        (skipped ? ' ' + skipped + ' skipped' + (topReason(parsed.reasons) ? ' (' + topReason(parsed.reasons) + ')' : (firstErr ? ' (' + firstErr.message + ')' : '')) + '.' : '') +
         (res.importedCount ? ' They are in your runs now. Skim them in My Cards.' : ''),
         res.importedCount > 0 ? GREEN : RED
       );

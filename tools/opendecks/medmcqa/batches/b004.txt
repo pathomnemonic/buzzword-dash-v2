@@ -1,0 +1,32 @@
+190|NEU|mech|Musculocutaneous nerve pierces which muscle|Coracobrachialis|Brachialis|Biceps brachii|The musculocutaneous nerve pierces coracobrachialis, then runs between biceps and brachialis.
+191|GI|mech|Pancreatic islet cells: germ layer origin|Endoderm|Mesoderm|Neuroectoderm|The pancreas buds from the endodermal foregut and islets arise from those endodermal tubules.
+194|ID|mech|Drug resistance mechanism in M. tuberculosis|Chromosomal mutation|Conjugation|Transduction|TB drug resistance arises by spontaneous mutation, such as katG/inhA for isoniazid and rpoB for rifampin.
+196|END|dx|Orphan Annie-eye nuclei|Papillary thyroid carcinoma|Medullary thyroid carcinoma|Follicular thyroid carcinoma|Papillary carcinoma is the most common thyroid cancer and spreads to lymph nodes.
+197|HEM|mg|Splenectomy most useful in this hemolytic anemia|Hereditary spherocytosis|Thalassemia|Acquired autoimmune hemolytic anemia|Splenectomy is the definitive treatment of hereditary spherocytosis.
+198|GI|dx|Saccular intrahepatic bile duct dilatation, central dot sign, cholangitis|Caroli disease|Klatskin tumor|Primary biliary cholangitis|Caroli disease features multifocal intrahepatic ductal dilatation with portal vein radicles in the lumen, and recurrent cholangitis.
+199|ID|mech|Echinococcus granulosus: usual intermediate host|Sheep|Dog|Cat|Dogs are the definitive host; sheep and other livestock are intermediate hosts and man is an accidental host.
+200|NEP|mech|Water channel of the proximal tubule|Aquaporin-1|Aquaporin-2|Aquaporin-5|AQP1 is on apical and basolateral membranes of the proximal tubule; AQP2 is ADH-regulated in the collecting duct.
+202|MIX|dx|C1 esterase inhibitor deficiency|Hereditary angioedema|Recurrent pyogenic infections|Recurrent Neisseria infections|C1 inhibitor deficiency causes hereditary angioedema; C3 deficiency causes recurrent pyogenic infections.
+204|EM|dx|Dyspnea and hypoxemia right after an internal jugular line|Pneumothorax|Hypovolemia|Septicemia|Pneumothorax is the classic immediate complication of internal jugular or subclavian central venous access.
+206|OB|mech|Hormone surge that triggers ovulation|LH|FSH|Progesterone|The mid-cycle LH surge triggers ovulation.
+207|SUR|dx|Tietze syndrome|Costochondritis with painful swelling|Superficial thrombophlebitis of the breast|Fibroadenoma|Tietze syndrome is costochondritis presenting as non-cyclical chest or breast pain.
+211|OB|mech|Origin of the uterine artery|Anterior division of internal iliac artery|Posterior division of internal iliac artery|External iliac artery|The uterine artery arises from the anterior division of the internal iliac artery.
+212|PED|mech|Preterm breast milk is lower in|Lactose|Protein|Sodium|Preterm milk has more energy, protein, fat and sodium but less lactose, calcium and phosphorus.
+216|HEM|mech|Factor V Leiden mutation type|Missense point mutation|Nonsense mutation|Frameshift mutation|Factor V Leiden is a G-to-A missense change that makes factor V resistant to inactivation by protein C.
+219|OB|prev|HPV types most associated with cervical cancer|HPV 16 and 18|HPV 6 and 11|HPV 42 and 44|HPV 16 and 18 are the high-risk types; HPV 6 and 11 cause genital warts.
+220|END|mech|Glucose transporter of pancreatic beta cells|GLUT2|GLUT4|GLUT5|GLUT2 lets beta cells sense blood glucose; GLUT4 is insulin-dependent in muscle and fat and GLUT5 carries fructose.
+222|SUR|mg|Resectable cancer of the pancreatic head: operation|Whipple pancreaticoduodenectomy|Radiotherapy alone|Chemoradiation without surgery|Whipple removes the pancreatic head, duodenum, distal stomach, gallbladder and bile duct.
+223|OB|mech|Normal umbilical cord vessels|Two arteries, one vein|One artery, two veins|Two arteries, two veins|The cord has two umbilical arteries carrying deoxygenated blood and one vein carrying oxygenated blood.
+224|PSY|mg|Acute panic attack: rapid-relief drug|Benzodiazepines|Tricyclic antidepressants|MAO inhibitors|Benzodiazepines treat an acute attack; SSRIs are the long-term drug of choice.
+225|SUR|dx|Most common salivary gland for stones|Submandibular gland|Parotid gland|Sublingual gland|About 80% of salivary stones occur in the submandibular gland, because its secretion is viscous.
+226|ID|dx|Rapidly fatal meningoencephalitis entering via cribriform plate after warm freshwater swimming|Naegleria fowleri|Acanthamoeba|Gnathostoma|Naegleria invades along the olfactory nerve to cause primary amoebic meningoencephalitis.
+227|CAR|mech|Most common cause of right heart failure|Left heart failure|Endomyocardial fibrosis|Pulmonic stenosis|Right heart failure most often follows left heart failure through raised pulmonary pressures.
+228|SUR|mg|Abdominal aortic aneurysm 4.4 cm in a smoker|Surveillance imaging; repair at about 5.5 cm|Immediate open repair|No follow-up needed|Small AAAs are followed with ultrasound and repaired at about 5.5 cm (or if symptomatic or rapidly expanding).
+229|ID|mech|Tsetse fly transmits|Trypanosoma brucei|Trypanosoma cruzi|Leishmania donovani|Tsetse flies transmit African sleeping sickness (T. brucei gambiense and rhodesiense).
+231|CAR|mech|Base (posterior surface) of the heart|Left atrium|Right atrium|Right ventricle|The base of the heart is formed mainly by the left atrium.
+236|OB|lab|Definitive prenatal test for Down syndrome in second trimester|Amniocentesis|Triple marker screen|Nuchal skin fold thickness|Amniocentesis gives the fetal karyotype; triple markers and nuchal fold are only screening tests.
+237|SUR|mech|Structure immediately lateral to the femoral canal|Femoral vein|Femoral artery|Femoral nerve|The femoral canal is the medial compartment of the femoral sheath, lying just medial to the femoral vein.
+238|OB|dx|Cryptomenorrhea: common cause|Imperforate hymen|Androgen insensitivity syndrome|Uterine agenesis|Cryptomenorrhea is cyclic symptoms without outflow of blood, classically from an intact hymen or vaginal septum.
+239|NEU|mech|Sensory supply of the tip of the nose|Ophthalmic nerve (V1)|Maxillary nerve (V2)|Facial nerve|The external nasal branch of the ophthalmic nerve supplies the tip of the nose.
+241|HEM|dx|Spur cells and stomatocytes on smear|Chronic liver disease|Chronic kidney disease|Hemolytic uremic syndrome|Excess membrane cholesterol in liver disease produces spur cells and stomatocytes.
+244|MIX|mech|Fluoroacetate poisoning: fluorocitrate blocks|TCA cycle (aconitase)|Glycolysis|Electron transport chain|Fluorocitrate inhibits aconitase so citrate accumulates; malonate inhibits succinate dehydrogenase.

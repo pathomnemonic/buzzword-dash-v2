@@ -1,0 +1,35 @@
+531|MIX|mech|Thiamine-dependent enzyme of the pentose phosphate pathway|Transketolase|Transaldolase|Aldolase B|Transketolase uses thiamine pyrophosphate (TPP) as its coenzyme.
+532|CAR|ph|Vitamin used as a lipid-lowering drug|Niacin (nicotinic acid)|Pantothenic acid|Riboflavin|High-dose niacin inhibits hormone-sensitive lipase, lowering VLDL and LDL and raising HDL.
+533|SUR|dx|Numbness at the root of the penis and scrotum after hernia repair|Ilioinguinal nerve injury|Iliohypogastric nerve injury|Femoral branch of genitofemoral nerve injury|The ilioinguinal nerve runs through the inguinal canal and supplies the root of the penis and adjacent scrotum.
+535|GI|mech|Kupffer cells|Tissue macrophages|Dendritic cells|B cells|Kupffer cells are macrophages lining the liver sinusoids.
+536|ID|mech|Transfer of multidrug resistance plasmids|Conjugation|Transduction|Transformation|Multiple drug resistance spreads mainly through plasmids by conjugation.
+537|CAR|dx|Hemosiderin-laden macrophages ('heart failure cells')|Lungs (left heart failure)|Liver|Spleen|Pulmonary venous congestion leaves hemosiderin macrophages in alveoli; the liver shows nutmeg change in right failure.
+539|PUL|lab|Type II respiratory failure: gas pattern|Low PaO2 with high PaCO2|Low PaO2 with normal or low PaCO2|High PaO2 with low PaCO2|Type II respiratory failure is hypoventilation, so PaO2 falls and PaCO2 rises.
+540|MIX|dx|Hartnup disease: deficiency|Niacin (nicotinamide)|Thiamine|Riboflavin|Defective intestinal and renal transport of tryptophan and neutral amino acids causes a pellagra-like deficiency.
+542|CAR|mech|Dicrotic notch (incisura) of the arterial pulse|Aortic valve closure|First heart sound|Third heart sound|The incisura marks closure of the aortic valve.
+544|GI|dx|Skip lesions|Crohn disease|Ulcerative colitis|Ischemic colitis|Crohn disease is transmural and patchy, with rectal sparing, while ulcerative colitis is continuous.
+545|SUR|mech|Tendon frequently absent in the forearm|Palmaris longus|Flexor carpi ulnaris|Flexor digitorum profundus|The palmaris longus is absent in a notable fraction of people.
+547|PUL|dx|Rasmussen aneurysm|Pulmonary artery branch aneurysm in a TB cavity|Syphilitic aortic aneurysm|Aortic root dilation in aortic stenosis|Rupture of a dilated vessel in a tuberculous cavity causes massive hemoptysis.
+553|MIX|dx|Cheilosis and corneal vascularization|Riboflavin deficiency|Niacin deficiency|Thiamine deficiency|Riboflavin (B2) deficiency causes cheilosis, angular stomatitis and corneal neovascularization.
+554|GI|ph|Lubiprostone mechanism|Chloride channel (ClC-2) activator|Chloride channel inhibitor|Sodium channel blocker|Lubiprostone drives chloride and fluid into the intestinal lumen to treat constipation.
+556|PUL|dx|Azygos lobe|Lung|Heart|Spleen|The azygos vein drags a pleural fold across the right upper lobe, forming an accessory lobe.
+557|HEM|lab|Normal adult hemoglobins|HbA, HbA2 and a little HbF|HbS, HbA and HbF|HbA, HbA2 and HbC|Normal adults have mostly HbA with small amounts of HbA2 and HbF.
+558|PUL|mech|Hypoxia causes vasoconstriction in|Lungs|Skeletal muscle|Heart|Hypoxic pulmonary vasoconstriction diverts blood from poorly ventilated alveoli, while systemic vessels dilate.
+559|MIX|mech|Leukocyte transmigration (diapedesis) molecule|PECAM-1 (CD31)|Selectins|N-CAM|PECAM-1 mediates leukocyte passage through endothelium, mainly in postcapillary venules.
+560|PED|mech|First sign of puberty in girls|Thelarche|Menarche|Pubarche|Breast budding (thelarche) is the first visible pubertal sign in girls, typically 8-12 years.
+561|NEP|dx|Most common type of renal stone|Calcium oxalate|Struvite|Uric acid|Calcium stones account for 75-85% of kidney stones.
+562|ID|dx|Most common fungal (eumycetoma) agent|Madurella mycetomatis|Nocardia brasiliensis|Aspergillus fumigatus|Madurella causes eumycetoma, whereas Nocardia and Actinomadura cause actinomycetoma.
+564|END|dx|Conn syndrome|Primary hyperaldosteronism|Secondary hyperaldosteronism|Primary hypoaldosteronism|Conn syndrome gives hypertension with suppressed renin, often from an adrenal adenoma.
+566|OB|mech|Venous plexus draining the testis|Pampiniform plexus|Pterygoid plexus|Choroid plexus|The pampiniform plexus drains the testis and condenses into the testicular vein.
+567|MIX|ph|Most effective drug to prevent motion sickness|Hyoscine (scopolamine)|Ephedrine|Cyproheptadine|Transdermal hyoscine is the best preventive agent.
+572|GI|dx|Barium study: pulled-up conical cecum|Ileocecal tuberculosis|Colon cancer|Carcinoid tumor|Ileocecal TB gives a shrunken, pulled-up cecum on barium studies.
+573|PED|dx|Most common cause of bronchiolitis|Respiratory syncytial virus|Parainfluenza virus|Haemophilus influenzae|RSV causes most infant bronchiolitis.
+574|MIX|mech|Cytosolic cytochrome c|Apoptosis|Necrosis|Electron transport|Mitochondrial cytochrome c released into the cytosol activates caspases through the intrinsic apoptosis pathway.
+577|SUR|dx|Most common peripheral artery aneurysm|Popliteal artery|Femoral artery|Radial artery|Popliteal aneurysms are most frequent and often bilateral and thromboembolic.
+578|NEU|dx|Facial palsy with ear vesicles from zoster|Ramsay Hunt syndrome|Melkersson-Rosenthal syndrome|Frey syndrome|Reactivation of herpes zoster in the geniculate ganglion causes facial palsy with a vesicular eruption.
+582|MIX|mech|Antibody of the primary immune response|IgM|IgE|IgA|IgM appears first after initial antigen exposure; IgG predominates later.
+583|PUL|mech|Lung volume at end of normal expiration|Functional residual capacity|Expiratory reserve volume|Residual volume|FRC equals expiratory reserve plus residual volume.
+585|HEM|dx|Osteoblastic bone metastases|Prostate carcinoma|Rectal carcinoma|Wilms tumor|Prostate cancer characteristically gives sclerotic (osteoblastic) metastases.
+586|MIX|ph|Short-acting mydriatic|Tropicamide|Atropine|Homatropine|Tropicamide works within about 40 minutes and wears off in hours; atropine lasts days.
+587|END|mg|Sheehan syndrome with refractory hypotension: first drug|Hydrocortisone|Thyroxine|Epinephrine|Glucocorticoid replacement comes first, since thyroxine alone can precipitate adrenal crisis.
+589|MIX|dx|Sphingomyelinase deficiency|Niemann-Pick disease|Krabbe disease|Farber disease|Niemann-Pick accumulates sphingomyelin with hepatosplenomegaly and neurodegeneration.

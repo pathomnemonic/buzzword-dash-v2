@@ -1,0 +1,31 @@
+246|END|dx|Sellar mass in a middle-aged woman: most likely raised hormone|Prolactin|ADH|Estrogen|Prolactinoma is the most frequent hyperfunctioning pituitary adenoma.
+249|SUR|dx|Lentigo maligna: typical site|Face|Sole|Trunk|Lentigo maligna occurs on chronically sun-damaged skin of older people, especially the face.
+252|ID|ph|Bactericidal protein-synthesis inhibitor class|Aminoglycosides|Tetracyclines|Macrolides|Most protein synthesis inhibitors are bacteriostatic; aminoglycosides are the bactericidal exception.
+253|CAR|mg|HOCM first-line drug|Beta blocker|ACE inhibitor|Digoxin|Beta blockers slow the heart and improve ventricular filling, easing chest pain and dyspnea in HOCM.
+254|PED|dx|Hypsarrhythmia on EEG in an infant|Infantile spasms (West syndrome)|Absence epilepsy|Febrile seizures|Hypsarrhythmia is the chaotic high-voltage EEG of infantile spasms.
+255|OB|dx|Fibroid in pregnancy with acute pain, low-grade fever, mild leukocytosis|Red degeneration|Torsion of fibroid|Preterm labor|Red degeneration typically occurs in the second trimester and is managed with rest and analgesia.
+256|MIX|dx|Target (iris) skin lesions|Erythema multiforme|Discoid lupus|Urticaria|Target lesions with a central blister or necrosis and concentric rings are the hallmark of erythema multiforme.
+257|SUR|mg|Anal canal squamous cell carcinoma: primary treatment|Chemoradiation|Abdominoperineal resection|Chemotherapy alone|Anal canal squamous cancer is treated with chemoradiation; surgery is kept for failure or recurrence.
+259|NEU|mech|Vomiting center location|Medulla oblongata|Hypothalamus|Amygdala|The vomiting center is in the medullary reticular formation; the chemoreceptor trigger zone is in the area postrema.
+262|MIX|dx|Alkaptonuria (homogentisate oxidase deficiency): tissue finding|Dark pigmentation of sclera, cornea and ears (ochronosis)|Blue sclera|Absent patella|Homogentisic acid accumulates and darkens connective tissue; urine turns black on standing.
+263|NEU|mech|Schirmer test assesses which nerve|Greater petrosal nerve|Chorda tympani|Nerve to stapedius|Schirmer tests lacrimation, supplied by the greater petrosal branch of the facial nerve.
+264|SUR|mech|Superficial inguinal ring is a defect in|External oblique aponeurosis|Internal oblique aponeurosis|Transversalis fascia|The superficial ring is a gap in the external oblique aponeurosis; the deep ring is in the transversalis fascia.
+265|ID|mech|Clostridium tetani morphology|Gram-positive bacilli with terminal spores|Gram-negative bacilli|Gram-positive cocci|C. tetani has round terminal spores giving a drumstick look.
+267|MIX|ph|Lipid-soluble direct cholinomimetic used in glaucoma|Pilocarpine|Acetylcholine|Neostigmine|Pilocarpine is a direct-acting muscarinic agonist used to lower intraocular pressure.
+272|GI|mech|Most common position of the appendix|Retrocecal|Pelvic|Preileal|The appendix is retrocecal in about 60% and pelvic in about 20%.
+273|ID|mech|Shigella species producing Shiga exotoxin|Shigella dysenteriae|Shigella sonnei|Shigella flexneri|Only S. dysenteriae (type 1) makes Shiga toxin.
+275|END|lab|Pseudohypoparathyroidism labs|Low calcium, high PTH|Low calcium, low PTH|High calcium, high PTH|Pseudohypoparathyroidism is end-organ PTH resistance, so PTH is raised while calcium is low.
+276|PED|dx|Pseudokidney (target) sign on ultrasound|Intussusception|Hydronephrosis|Horseshoe kidney|The pseudokidney or target sign on ultrasound is the classic picture of intussusception.
+277|SUR|mg|Congenital hydrocele (patent processus vaginalis): treatment|Herniotomy|Lord procedure|Eversion of sac|A congenital hydrocele communicates with the peritoneum like an indirect hernia, so the sac is ligated (herniotomy).
+280|ID|dx|Malaria causing nephrotic syndrome|Plasmodium malariae|Plasmodium vivax|Plasmodium falciparum|Quartan malaria causes an immune-complex glomerulonephritis presenting with nephrotic syndrome.
+281|MIX|mech|Glutathione peroxidase trace element|Selenium|Copper|Iron|Glutathione peroxidase is a selenoprotein.
+284|END|dx|Hyperparathyroidism: classic site of subperiosteal bone resorption|Radial border of the middle phalanges|Rib margins|Medial proximal humerus|Subperiosteal resorption classically affects the radial side of the middle phalanges.
+286|NEU|dx|Same-side cerebellar signs plus hearing loss|Cerebellopontine angle lesion|Cerebellar vermis lesion|Middle ear disease|A cerebellopontine angle tumor such as vestibular schwannoma gives sensorineural hearing loss with ipsilateral cerebellar signs.
+287|NEU|mech|CSF absorption site|Arachnoid granulations|Choroid plexus|Cavernous sinus|CSF is made by the choroid plexus and absorbed through arachnoid granulations into the venous sinuses.
+288|PUL|ph|Antimuscarinic bronchodilator used in COPD|Ipratropium bromide|Salmeterol|Salbutamol|Ipratropium is a muscarinic antagonist rather than a sympathomimetic.
+290|CAR|mech|Most common cause of abdominal aortic aneurysm|Atherosclerosis|Syphilis|Marfan syndrome|Atherosclerosis is the commonest condition behind aortic aneurysms, especially abdominal.
+293|NEP|dx|Hematuria, sensorineural deafness, anterior lenticonus|Alport syndrome|Nail-patella syndrome|Fabry disease|Alport syndrome is a type IV collagen defect causing nephritis, deafness and lenticonus.
+294|GI|lab|Acute hepatitis A and E: diagnostic test|IgM anti-HAV and anti-HEV|IgG antibodies|Liver biopsy|Acute HAV and HEV infection is diagnosed by IgM antibodies.
+297|MIX|mech|Adrenergic receptor coupled to Gi (lowers cAMP)|Alpha-2|Beta-1|Beta-2|Alpha-2 receptors inhibit adenylyl cyclase; beta receptors raise cAMP.
+298|GI|ph|Peripherally acting mu-opioid antagonist for opioid-induced constipation|Alvimopan|Loperamide|Naloxone|Alvimopan, naloxegol and methylnaltrexone block gut opioid receptors without reversing analgesia.
+299|NEP|dx|Malignant hypertension kidney lesion|Malignant nephrosclerosis|Membranous nephropathy|IgA nephropathy|Malignant nephrosclerosis shows fibrinoid necrosis of arterioles in accelerated hypertension.
