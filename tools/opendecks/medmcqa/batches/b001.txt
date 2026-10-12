@@ -1,0 +1,31 @@
+40|MIX|mech|McArdle disease (glycogen storage type V)|Muscle glycogen phosphorylase|Acid maltase|Glycogen branching enzyme|McArdle disease: poor exercise tolerance, high muscle glycogen, and very low blood lactate after exercise.
+42|PUL|dx|Adult ARDS 'wet lung': histologic pattern|Diffuse alveolar damage|Lobar consolidation|Interstitial granulomas|ARDS is also called shock lung or traumatic wet lung and shows diffuse alveolar damage.
+45|OB|dx|Caudal regression syndrome in a newborn: maternal condition|Diabetes mellitus|Anemia|Hypertension|Caudal regression sequence is a rare malformation strongly associated with maternal diabetes.
+46|NEU|dx|Thunderclap headache, vomiting, loss of consciousness|Subarachnoid hemorrhage|Epidural hematoma|Subdural hematoma|Sudden severe headache with transient loss of consciousness suggests SAH; the commonest non-traumatic cause is a ruptured berry aneurysm.
+47|NEU|dx|Cannot pronate the forearm: nerve injured|Median nerve|Ulnar nerve|Radial nerve|Pronator teres and pronator quadratus are both supplied by the median nerve.
+49|OB|dx|Turtle neck sign|Shoulder dystocia|Extended breech|Anencephaly|The fetal head retracts against the perineum like a turtle's, signalling the anterior shoulder is impacted.
+51|GI|mech|Gastric HCl-secreting cell|Parietal (oxyntic) cell|G cell|Chief cell|Parietal cells make HCl and intrinsic factor; chief cells make pepsinogen and G cells make gastrin.
+52|RHE|lab|Wegener granulomatosis (GPA) serologic marker|c-ANCA|p-ANCA|ANA|c-ANCA (anti-PR3) marks GPA, whereas p-ANCA (anti-MPO) goes with microscopic polyangiitis and Churg-Strauss.
+55|NEU|mech|Cerebellar part that plans and programs movement|Neocerebellum|Vestibulocerebellum|Spinocerebellum|The neocerebellum (cerebrocerebellum) plans and programs voluntary movement.
+56|OB|mech|Ferning of cervical mucus|Estrogen|Progesterone|FSH|Ferning reflects high estrogen and is maximal before ovulation, disappearing under progesterone.
+57|NEP|dx|Gross hematuria 1-2 days after a URTI|IgA nephropathy|Poststreptococcal glomerulonephritis|Minimal change disease|IgA nephropathy bleeds within a day or two of a mucosal infection; PSGN follows after a 1-3 week latency.
+58|NEU|dx|Relapsing-remitting CNS demyelination|Multiple sclerosis|Guillain-Barre syndrome|Parkinson disease|Relapsing-remitting is the commonest pattern of multiple sclerosis.
+60|END|dx|Young-onset diabetes, autosomal dominant single-gene inheritance|MODY|Type 1 diabetes|Latent autoimmune diabetes of adults|MODY is a monogenic non-insulin-dependent diabetes with early onset and autosomal dominant inheritance.
+62|ID|se|Anti-TB drug causing hyperuricemia|Pyrazinamide|Isoniazid|Rifampin|Pyrazinamide reduces renal urate excretion and can precipitate gout.
+64|PUL|mech|Earliest response to high altitude|Hyperventilation|Polycythemia|Drowsiness|Low PO2 stimulates arterial chemoreceptors within seconds; polycythemia is a slower acclimatization change.
+65|CAR|mech|Mitral valve opens at which phase of the cardiac cycle|End of isovolumetric relaxation|End of isovolumetric contraction|Start of isovolumetric contraction|The AV valve opens when ventricular pressure falls below atrial pressure, at the end of isovolumetric relaxation.
+66|NEP|dx|Most common primary glomerulonephritis worldwide|IgA nephropathy|Minimal change disease|Membranous nephropathy|IgA nephropathy (Berger disease) is the most common primary glomerular disease worldwide.
+67|MIX|mech|Chaperone proteins (e.g. hsp70) assist|Protein folding|Protein degradation|Protein cleavage|Chaperones bind exposed hydrophobic sequences and help over half of mammalian proteins fold correctly.
+71|MIX|mech|All carbon atoms of cholesterol come from|Acetyl-CoA|Glycerol|Tyrosine|All 27 carbons of cholesterol derive from acetyl-CoA.
+72|SUR|dx|Blue rubber bleb nevus (Bean) syndrome lesions|Venous malformations|Arterial malformations|Melanocytic nevi|BRBNS consists of venous malformations, notably in the GI tract.
+75|CAR|mech|Vessel carrying blood with the highest CO2|Pulmonary artery|Pulmonary vein|Aorta|The pulmonary arteries carry deoxygenated, CO2-rich blood to the lungs.
+76|GI|mech|Epithelium lining the parietal peritoneum|Simple squamous (mesothelium)|Simple columnar|Stratified squamous|The peritoneum is lined by a single layer of flat mesothelial cells.
+77|ID|lab|Sabin-Feldman dye test|Toxoplasma gondii|Histoplasma capsulatum|Ascaris lumbricoides|The Sabin-Feldman dye test is a serologic test for Toxoplasma antibodies.
+78|GI|dx|Linitis plastica|Diffuse gastric carcinoma|Gastric leiomyosarcoma|Peptic ulcer disease|Diffuse mural tumor infiltration makes the stomach rigid with reduced distensibility and early satiety.
+79|GI|dx|Aphthous ulcer: popular name|Canker sore|Marjolin ulcer|Curling ulcer|Aphthous ulcers are painful shallow oral ulcers with an erythematous halo; Curling ulcers occur after burns and Marjolin ulcers are cancers in chronic wounds.
+82|CAR|mech|Pericarditis pain is carried by|Phrenic nerve|Vagus nerve|Cardiac plexus|The parietal pericardium is pain-sensitive and supplied by the phrenic nerve.
+83|ID|lab|Diphtheria: classic culture medium|Loeffler serum slope|Lowenstein-Jensen medium|MacConkey agar|Loeffler serum slope and tellurite blood agar are used to grow Corynebacterium diphtheriae.
+84|PED|mg|Keep the ductus arteriosus open in a neonate|Prostaglandin E1|Indomethacin|Oxygen|PGE1 keeps the ductus patent in ductal-dependent lesions; indomethacin and oxygen promote closure.
+85|CAR|dx|Antitschkow (caterpillar) cells|Modified macrophages|Modified neutrophils|Modified B cells|Antitschkow cells sit within Aschoff bodies, the lesions of acute rheumatic fever.
+86|HEM|dx|Most common red-cell enzyme deficiency causing hemolysis|G6PD deficiency|Pyruvate kinase deficiency|Hexokinase deficiency|G6PD, first enzyme of the pentose phosphate pathway, is a major cause of red-cell hemolysis.
+88|MIX|ph|Mycophenolate mofetil use|Preventing organ transplant rejection|Tuberculosis|Leprosy|Mycophenolate is an immunosuppressant used to prevent rejection of kidney, liver and heart transplants.
