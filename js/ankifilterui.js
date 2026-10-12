@@ -8,6 +8,7 @@
  * (never innerHTML).
  */
 
+import { askPersistent } from './cardstore.js';
 import {
   buildTagTree, buildTagTreeAsync, searchTree, createSelection, setIds, selectAll, eligibleMask, stateOf, chosenIds,
   presetsFor, applyPresets, estimateBytes, UNTAGGED
@@ -347,21 +348,23 @@ function renderPanel(host, o, tree) {
         }
       });
       if (destroyed) return;
-      progress.value = res.cancelled ? 0 : 100;
+      progress.value = (res.cancelled || res.saved === false) ? 0 : 100;
       var parts = [];
       if (res.imported) parts.push(fmtN(res.imported) + ' new');
       if (res.updated) parts.push(fmtN(res.updated) + ' refreshed');
       if (res.unchanged) parts.push(fmtN(res.unchanged) + ' already up to date');
       if (res.rejected) parts.push(fmtN(res.rejected) + ' skipped');
       var ok = (res.imported || res.updated || (res.unchanged && !res.rejected)) && res.saved !== false;
+      if (ok && res.imported) askPersistent(); // ask the browser to keep a big import rather than evict it (a hint; it may say no)
       resultEl.style.color = ok ? C.green : (res.cancelled ? C.gold : C.red);
-      resultEl.textContent = (parts.length && res.saved !== false ? parts.join(', ') + '. ' : '') + (res.warnings && res.warnings[0] ? res.warnings[0] : ((res.imported || res.updated) ? 'Find them in Flashcard mode; tags show on each card.' : ''));
+      resultEl.textContent = res.cancelled ? 'Cancelled. Nothing was imported, and your earlier cards are unchanged.' : (parts.length && res.saved !== false ? parts.join(', ') + '. ' : '') + (res.warnings && res.warnings[0] ? res.warnings[0] : ((res.imported || res.updated) ? 'Find them in Flashcard mode; tags show on each card.' : ''));
     } catch (e) {
       resultEl.style.color = C.red;
       resultEl.textContent = 'Nothing was imported, and your earlier cards are unchanged. ' + (e && e.message ? e.message : String(e));
     } finally {
       busy = false;
       importBtn.disabled = false;
+      if (resultEl.scrollIntoView) resultEl.scrollIntoView({ block: 'nearest' });
       stopBtn.style.display = 'none';
       progressLabel.style.display = 'none';
       refreshSummary();

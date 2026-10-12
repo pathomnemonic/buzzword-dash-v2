@@ -23,9 +23,8 @@ export async function loadSqlJs() {
   var mods = await Promise.all([import('sql.js'), import('sql.js/dist/sql-wasm.wasm?url')]);
   var init = mods[0].default || mods[0];
   var wasmUrl = mods[1].default;
-  if (typeof location !== 'undefined' && location.href) {
-    try { wasmUrl = new URL(wasmUrl, location.href).href; } catch (e) { /* keep the relative URL */ }
-  }
+  // (a worker resolves URLs against its own file, so make it absolute)
+  try { wasmUrl = new URL(wasmUrl, import.meta.url).href; } catch (e) { /* keep the relative URL */ }
   return init({ locateFile: function () { return wasmUrl; } });
 }
 

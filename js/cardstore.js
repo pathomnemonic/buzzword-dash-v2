@@ -3,7 +3,8 @@
  * far more than the ~5 MB a localStorage entry can hold).
  *
  * One database ("dxdash_cards"), two stores:
- *   cards: rows {id, o, c} where c is the card and o its position (so the list keeps its order)
+ *   cards: one row per PAGE of up to 250 cards, {id: 'p000001', n: 1, c: [card, ...]}: IndexedDB charges a fixed cost per row,
+ *          so pages save 50x faster than one row per card (44,000 cards: 14 s as rows, 0.3 s as pages)
  *   meta:  small values (not used for card data)
  * No dependency. Every call returns a promise and never throws synchronously. A full disk or browser quota shows up
  * as an Error whose .code is 'quota', and a write that fails changes nothing (one transaction per write).
@@ -13,7 +14,7 @@
 export var DB_NAME = 'dxdash_cards';
 var DB_VERSION = 1;
 var OPEN_TIMEOUT_MS = 4000; // some browsers (Safari private windows, a blocked profile) never answer
-var SLICE = 1000;           // rows queued per step, so a 30,000-card save lets the page breathe between steps
+var SLICE = 25;             // page rows queued per step (a page is up to 250 cards), so a big save lets the page breathe between steps
 
 /** Is IndexedDB there at all? (It is missing, or throws on access, in some private windows and locked-down WebViews.) */
 export function idbSupported() {
@@ -59,7 +60,7 @@ function openDb() {
 
 /**
  * Open the database. Resolves a store object, rejects (code 'timeout' | 'idb' | 'quota') when it cannot be used.
- * @returns {Promise<{loadAll: function(): Promise<{id: string, o: number, c: object}[]>, writeBatch: function(object, object=): Promise<void>, getMeta: function(string): Promise<*>, setMeta: function(string, *): Promise<void>, close: function(): void}>}
+ * @returns {Promise<{loadAll: function(): Promise<{id: string, n: number, c: object[]}[]>, writeBatch: function(object, object=): Promise<void>, getMeta: function(string): Promise<*>, setMeta: function(string, *): Promise<void>, close: function(): void}>}
  */
 export async function openStore() {
   var db = await openDb();
@@ -96,7 +97,7 @@ export async function openStore() {
         var req = tx.objectStore('cards').getAll();
         req.onsuccess = function () {
           var rows = req.result || [];
-          rows.sort(function (a, b) { return (a.o || 0) - (b.o || 0); });
+          rows.sort(function (a, b) { return (a.n || 0) - (b.n || 0); });
           resolve(rows);
         };
         req.onerror = function () { reject(classify(req.error)); };
@@ -106,7 +107,7 @@ export async function openStore() {
 
     /**
      * One atomic write: optionally clear everything, delete some ids, put some rows. All of it commits, or none.
-     * @param {{clear?: boolean, del?: string[], put?: {id: string, o: number, c: object}[]}} change
+     * @param {{clear?: boolean, del?: string[], put?: {id: string, n: number, c: object[]}[]}} change
      * @param {{onProgress?: function(number, number): void, isCancelled?: function(): boolean}} [opts]
      */
     writeBatch: function (change, opts) {
@@ -120,12 +121,14 @@ export async function openStore() {
         for (var d = 0; d < dels.length; d++) store.delete(dels[d]);
         var at = 0;
         function step() {
-          if (opts.isCancelled && opts.isCancelled()) { abort(fail('cancelled')); return; }
-          var end = Math.min(puts.length, at + SLICE);
-          var last = null;
-          for (; at < end; at++) last = store.put(puts[at]);
-          if (opts.onProgress) opts.onProgress(at, puts.length);
-          if (at < puts.length && last) last.onsuccess = step; // the next slice is queued from inside the callback, which keeps the transaction open
+          try {
+            if (opts.isCancelled && opts.isCancelled()) { abort(fail('cancelled')); return; }
+            var end = Math.min(puts.length, at + SLICE);
+            var last = null;
+            for (; at < end; at++) last = store.put(puts[at]);
+            if (opts.onProgress) opts.onProgress(at, puts.length);
+            if (at < puts.length && last) last.onsuccess = step; // the next slice is queued from inside the callback, which keeps the transaction open
+          } catch (e) { abort(classify(e)); } // (a full disk can also show up as an exception from put itself)
         }
         step();
       });

@@ -96,3 +96,38 @@ New in the importer (see `docs/ANKING-INTEGRATION.md` for the research and what 
 Verified with: `tests/unit/ankifilter.test.js` (29 tests: synthetic collections with real column names, tag tree, filters, presets, dedupe, chunks, storage failure, tag text never rendered as markup, the panel in jsdom), and in Chromium against a production build: a 1,888-card AnKing-shaped deck exported by the real Anki 26.9.3 in the latest zstd format with 60 suspended cards (chips Step 1 + Cardiology gave 66 cards, import then re-import reported 66 new then 66 already up to date, tags visible in Flashcard mode, no page errors).
 
 Performance note: `customCards.getAll()` parses the whole list on every call; at 30,000+ cards that is tens of milliseconds per call in several screens. Not measured in the browser at that size.
+
+
+## Real-scale test (30,000 notes, 480 MB), 2026-10-12
+
+Generator: `/tmp/claude-0/scratch/gen/gen3.py` (real Anki 26 python package: `python gen3.py 30000 1800 256 legacy,latest`). 30,000 notes (cloze and basic, HTML extra fields, `#AK_Step1_v12::#B&B::System::Topic::Subtopic::Concept`-style tags with several resources per note, about 20,000 distinct tag levels, 5% suspended, 1% buried, 46,371 cards) plus 1,800 dummy 256 KB images stored as media. Result: `legacy.apkg` 479.6 MB (collection.anki21), `latest.apkg` 479.1 MB (zstd collection.anki21b). Both deleted after the test. The collection itself is only 39 MB; a real AnKing collection is larger.
+
+Driven in headless Chromium (software-rendered container, 4 cores, so slow on 3D) against `npx vite build` output, CSP enforced, viewport 390x780 (edge cases at 320x568). The worker was used.
+
+| Stage | Time | Peak JS heap (page) | Longest main-thread freeze |
+|---|---|---|---|
+| Read 480 MB file: ZIP index, unpack collection, read 30,000 notes (worker) | 2.3 to 3.3 s | 125 MB | 300 ms (building the filter panel) |
+| Tag search / chips / expand | 0.3 to 0.7 s | 143 MB | 136 ms |
+| Import 44,053 cards (check + save to IndexedDB) | 1.5 to 1.7 s | 159 MB | 191 ms (738 ms in nine pieces) |
+| Import the same deck again (all "already up to date", no writes) | 1.0 s | 158 MB | 161 ms |
+| Reload page, cards back from IndexedDB | 0.6 to 0.9 s | 232 MB | 574 ms |
+| My Cards open / search over 44,053 cards / next page | 70 ms / 0.6 s / 0.4 s | 156 MB | 163 ms |
+| Flashcard session start with the 44k deck | 70 to 105 ms | 161 MB | 105 ms |
+| Home pool counts (`_pickerPools`) | 14 ms per call | | |
+
+Memory outside the page: whole-browser RSS grew by about 230 MB while the file was read (the worker's copy of the collection plus WebAssembly), and the worker is terminated afterwards. Reading the same files in Node (no worker) peaked at about 250 MB RSS: 1.7 s legacy, 1.8 s latest (46,371 cards both). The old code would have refused the file (100 MB cap) and, without the cap, needed the whole 480 MB buffer plus a JSZip copy.
+
+Before and after: single-card rows in IndexedDB took 14.5 s to save 44,000 cards in this container (disk bound); 250-card pages take 0.3 s. Parse of the 3,500 notes in the unit tests is paged by 1,000.
+
+Edge cases run in the real app:
+- truncated .apkg (first 100 MB of the file), random bytes named .apkg: "That file is not an Anki deck package ... the download may have stopped early".
+- a ZIP with no collection: "Could not find any notes in that file. It is a ZIP, but not an Anki deck."
+- an Anki text export with tags (`tests/fixtures/anki-export-sample.txt`): 6 cards, tags kept.
+- cancel while reading: worker terminated at once, "Cancelled. Nothing was imported."
+- cancel while importing: "Cancelled", earlier cards untouched.
+- quota exceeded (IndexedDB `put` mocked to throw `QuotaExceededError`): "Your browser ran out of storage space, so nothing was saved and your earlier cards are unchanged", count unchanged.
+- reload: all cards come back from IndexedDB, in the same order.
+
+Not tested in this container: a real phone, Safari/Firefox (not installed; the code paths use only standard APIs and fall back when `DecompressionStream`, module workers or IndexedDB are missing), the 3D run with imported cards (a run started and played normally; imported cards are flashcard-only and are skipped before any work is done on them), the Playwright e2e specs (the configured browser build is not installed here; the importer flow was driven by the scripts above).
+
+Unit tests added: `tests/unit/apkgzip.test.js` (stored and deflated entries, ZIP64, comments, cut files, bad checksum, encryption, never reading media, JSZip fallback), `tests/unit/apkgparse.test.js` (paged reading, progress, cancel, zstd, friendly messages), `tests/unit/cardstore.test.js` with `tests/unit/fakeidb.js` (a minimal in-test IndexedDB: save/load, pages, write-behind, quota rollback, cancel, re-import, localStorage migration and fallback).
