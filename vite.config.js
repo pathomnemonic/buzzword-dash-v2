@@ -75,6 +75,8 @@ export default defineConfig(({ mode }) => {
     base,
     plugins: [stampServiceWorker(), offlineManifest(), injectCsp(process.env.VITE_SUPABASE_URL || loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_URL || '')],
     define: { __APP_VERSION__: JSON.stringify(BUILD_ID), __APP_SEMVER__: JSON.stringify(JSON.parse(readFileSync('package.json', 'utf8')).version) },
+    // The Anki importer reads big decks in a module Web Worker (js/apkgworker.js); 'es' lets it load sql.js on demand
+    worker: { format: 'es' },
     build: {
       chunkSizeWarningLimit: 3000, // card data chunk is intentionally large
       outDir: 'dist',

@@ -16,63 +16,120 @@ export var UNTAGGED = '(untagged)';
 
 // ----- tree -----
 
+/** A tree under construction: records are added in slices (so a 30,000-note deck can be built without freezing the page). */
+function treeBuilder() {
+  var root = { name: '', path: '', depth: 0, ids: [], kids: [], _map: Object.create(null), _last: -1 };
+  var untagged = [];
+  var nodeCount = 0;
+  var paths = new Map(); // a tag string -> the nodes along it, worked out once (a deck repeats the same few thousand tags 400,000 times)
+  function nodesFor(tag) {
+    var hit = paths.get(tag);
+    if (hit) return hit;
+    var parts = String(tag).split('::').filter(function (p) { return p !== ''; });
+    var node = root;
+    var path = '';
+    var list = [];
+    for (var d = 0; d < parts.length; d++) {
+      path = path ? path + '::' + parts[d] : parts[d];
+      var child = node._map[parts[d]];
+      if (!child) {
+        child = { name: parts[d], path: path, depth: d + 1, ids: [], kids: [], _map: Object.create(null), _last: -1 };
+        node._map[parts[d]] = child;
+        node.kids.push(child);
+        nodeCount++;
+      }
+      list.push(child);
+      node = child;
+    }
+    paths.set(tag, list);
+    return list;
+  }
+  return {
+    add: function (records, from, to) {
+      for (var i = from; i < to; i++) {
+        var tags = records[i].tags || [];
+        if (!tags.length) { untagged.push(i); continue; }
+        for (var t = 0; t < tags.length; t++) {
+          var list = nodesFor(tags[t]);
+          for (var d = 0; d < list.length; d++) {
+            var n = list[d];
+            // a record with two tags under the same node still counts once there
+            if (n._last !== i) { n._last = i; n.ids.push(i); }
+          }
+        }
+      }
+    },
+    finish: function () {
+      sortKids(root);
+      paths = null;
+      return { root: root, untagged: untagged, nodeCount: nodeCount };
+    }
+  };
+}
+
 /**
  * @param {{tags: string[]}[]} records
  * @returns {{root: object, untagged: number[], nodeCount: number}}
  *   node: { name, path, depth, ids: number[] (every record at or below, each once), kids: object[] }
  */
 export function buildTagTree(records) {
-  var root = { name: '', path: '', depth: 0, ids: [], kids: [], _map: Object.create(null), _last: -1 };
-  var untagged = [];
-  var nodeCount = 0;
-  for (var i = 0; i < records.length; i++) {
-    var tags = records[i].tags || [];
-    if (!tags.length) { untagged.push(i); continue; }
-    for (var t = 0; t < tags.length; t++) {
-      var parts = String(tags[t]).split('::').filter(function (p) { return p !== ''; });
-      var node = root;
-      var path = '';
-      for (var d = 0; d < parts.length; d++) {
-        path = path ? path + '::' + parts[d] : parts[d];
-        var child = node._map[parts[d]];
-        if (!child) {
-          child = { name: parts[d], path: path, depth: d + 1, ids: [], kids: [], _map: Object.create(null), _last: -1 };
-          node._map[parts[d]] = child;
-          node.kids.push(child);
-          nodeCount++;
-        }
-        // a record with two tags under the same node still counts once there
-        if (child._last !== i) { child._last = i; child.ids.push(i); }
-        node = child;
-      }
-    }
-  }
-  sortKids(root);
-  return { root: root, untagged: untagged, nodeCount: nodeCount };
+  var b = treeBuilder();
+  b.add(records, 0, records.length);
+  return b.finish();
 }
+
+/**
+ * The same tree, built in slices with the page free to paint between them (a real AnKing deck: 30,000 notes, about
+ * 20,000 distinct tag levels).
+ * @param {{tags: string[]}[]} records
+ * @param {{slice?: number, onProgress?: function(number, number): void, isCancelled?: function(): boolean}} [o]
+ * @returns {Promise<{root: object, untagged: number[], nodeCount: number}|null>} null when cancelled
+ */
+export async function buildTagTreeAsync(records, o) {
+  o = o || {};
+  var step = o.slice || 2000;
+  var b = treeBuilder();
+  for (var i = 0; i < records.length; i += step) {
+    b.add(records, i, Math.min(records.length, i + step));
+    if (o.onProgress) o.onProgress(Math.min(records.length, i + step), records.length);
+    await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    if (o.isCancelled && o.isCancelled()) return null;
+  }
+  return b.finish();
+}
+
+var COLLATOR = typeof Intl !== 'undefined' && Intl.Collator ? new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' }) : null;
 
 function sortKids(node) {
-  node.kids.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }); });
+  if (COLLATOR) node.kids.sort(function (a, b) { return COLLATOR.compare(a.name, b.name); });
+  else node.kids.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }); });
   node.kids.forEach(sortKids);
+  delete node._map;
+  delete node._last;
 }
 
-/** Every node (depth first) whose name or full path contains the text, with the nodes above it kept. */
+/** Every node (depth first) whose name contains the text, with the nodes above it kept. */
 export function searchTree(tree, text) {
   var q = String(text || '').trim().toLowerCase();
   var keep = Object.create(null);
   var matched = [];
   if (!q) return { keep: null, matched: matched };
-  (function walk(node, ancestors) {
-    node.kids.forEach(function (k) {
-      var hit = k.name.toLowerCase().indexOf(q) >= 0;
+  var stack = [];
+  (function walk(node) {
+    for (var i = 0; i < node.kids.length; i++) {
+      var k = node.kids[i];
+      if (k._lname === undefined) k._lname = k.name.toLowerCase();
+      var hit = k._lname.indexOf(q) >= 0;
       if (hit) {
         matched.push(k);
         keep[k.path] = true;
-        ancestors.forEach(function (a) { keep[a.path] = true; });
+        for (var a = 0; a < stack.length; a++) keep[stack[a].path] = true;
       }
-      walk(k, ancestors.concat(k));
-    });
-  })(tree.root, []);
+      stack.push(k);
+      walk(k);
+      stack.pop();
+    }
+  })(tree.root);
   return { keep: keep, matched: matched };
 }
 
@@ -195,18 +252,44 @@ function anyTag(r, re) {
 /**
  * The quick-filter chips that make sense for this deck (a chip with no matching cards is not offered).
  * Chips in the same group are OR-ed, groups are AND-ed.
- * @returns {{id: string, label: string, group: string, count: number, test: function(object): boolean}[]}
+ *
+ * Each pattern is tried once per DISTINCT tag (a 30,000-note deck has ~20,000 of them, against 400,000 tag uses), and
+ * every record gets a bit mask of the chips it matches; counts and applyPresets just read those masks.
+ * @returns {{id: string, label: string, group: string, count: number, bit: number, test: function(object): boolean}[]}
+ *          (with a non-enumerable `masks`: Uint32Array, one per record)
  */
 export function presetsFor(records) {
-  var list = [];
-  function add(group, id, label, test) {
-    var n = 0;
-    for (var i = 0; i < records.length; i++) if (test(records[i])) n++;
-    if (n > 0) list.push({ id: id, label: label, group: group, count: n, test: test });
+  var defs = [];
+  EXAM_PRESETS.forEach(function (p) { defs.push({ group: 'exam', id: p.id, label: p.label, re: p.re }); });
+  SUBJECT_PATTERNS.forEach(function (p) { defs.push({ group: 'subject', id: 'subj_' + p[0], label: p[0], re: p[1] }); });
+  RESOURCE_PRESETS.forEach(function (p) { defs.push({ group: 'resource', id: p.id, label: p.label, re: p.re }); });
+  // up to 31 chips fit in the mask; the app has 22
+  defs = defs.slice(0, 31);
+  var tagBits = new Map();
+  function bitsOf(tag) {
+    var b = tagBits.get(tag);
+    if (b !== undefined) return b;
+    b = 0;
+    for (var d = 0; d < defs.length; d++) if (defs[d].re.test(tag)) b |= (1 << d);
+    tagBits.set(tag, b);
+    return b;
   }
-  EXAM_PRESETS.forEach(function (p) { add('exam', p.id, p.label, function (r) { return anyTag(r, p.re); }); });
-  SUBJECT_PATTERNS.forEach(function (p) { add('subject', 'subj_' + p[0], p[0], function (r) { return anyTag(r, p[1]); }); });
-  RESOURCE_PRESETS.forEach(function (p) { add('resource', p.id, p.label, function (r) { return anyTag(r, p.re); }); });
+  var masks = new Uint32Array(records.length);
+  var counts = new Array(defs.length).fill(0);
+  for (var i = 0; i < records.length; i++) {
+    var tags = records[i].tags || [];
+    var m = 0;
+    for (var t = 0; t < tags.length; t++) m |= bitsOf(tags[t]);
+    masks[i] = m;
+    if (m) for (var d2 = 0; d2 < defs.length; d2++) if (m & (1 << d2)) counts[d2]++;
+  }
+  var list = [];
+  defs.forEach(function (def, d) {
+    if (counts[d] > 0) {
+      list.push({ id: def.id, label: def.label, group: def.group, count: counts[d], bit: 1 << d, test: function (r) { return anyTag(r, def.re); } });
+    }
+  });
+  Object.defineProperty(list, 'masks', { value: masks, enumerable: false });
   return list;
 }
 
@@ -217,10 +300,13 @@ export function applyPresets(records, presets, activeIds) {
   var groups = {};
   active.forEach(function (p) { (groups[p.group] = groups[p.group] || []).push(p); });
   var names = Object.keys(groups);
+  var masks = presets.masks && presets.masks.length === records.length ? presets.masks : null;
+  var groupMasks = names.map(function (g) { return groups[g].reduce(function (m, p) { return m | (p.bit || 0); }, 0); });
   for (var i = 0; i < records.length; i++) {
     var ok = true;
     for (var g = 0; g < names.length && ok; g++) {
-      ok = groups[names[g]].some(function (p) { return p.test(records[i]); });
+      if (masks && groupMasks[g]) ok = (masks[i] & groupMasks[g]) !== 0;
+      else ok = groups[names[g]].some(function (p) { return p.test(records[i]); });
     }
     if (ok) sel[i] = 1;
   }
@@ -229,7 +315,7 @@ export function applyPresets(records, presets, activeIds) {
 
 // ----- size estimate -----
 
-/** Rough bytes one imported card takes in browser storage (JSON in localStorage). */
+/** Rough bytes one imported card takes in browser storage (the card as stored: JSON text in localStorage, a structured copy in IndexedDB). */
 export function estimateBytes(r) {
   var n = 230; // ids, keys, empty arrays, field names
   n += (r.front || '').length + (r.back || '').length + (r.teach || '').length * 1;

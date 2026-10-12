@@ -2238,15 +2238,17 @@ class UI {
     var now = Date.now();
     var all = CARDS.concat(customCards.getAll());
     var disabled = storage.get('disabledCards') || [];
-    var live = all.filter(function (c) { return disabled.indexOf(c.id) < 0; });
+    var off = disabled.length > 8 ? new Set(disabled) : null;
+    var live = all.filter(function (c) { return off ? !off.has(c.id) : disabled.indexOf(c.id) < 0; });
     var mine = storage.get('selectedSubjects');
     if (!mine || mine.length === 0) mine = SUBJECTS.slice();
+    var mineSet = new Set(mine);
     var due = [];
     var missed = [];
     var fresh = [];
     live.forEach(function (c) {
       var s = stats[c.id];
-      if (!s || !s.seen) { if (mine.indexOf(c.subj) >= 0) fresh.push(c.id); return; }
+      if (!s || !s.seen) { if (mineSet.has(c.subj)) fresh.push(c.id); return; }
       if (typeof s.due === 'number' && s.due <= now) due.push(c.id);
       if ((s.wrong || 0) > 0 && (s.wrong || 0) >= (s.correct || 0) * 0.5) missed.push(c.id);
     });

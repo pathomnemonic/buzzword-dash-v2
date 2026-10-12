@@ -1280,6 +1280,10 @@ function fillProfileAccount() {
 }
 
 function init() {
+  // A save that could not reach the disk (the browser is out of space) must not pass silently
+  customCards.onSaveError(function (err) {
+    ui._showToast(err && err.code === 'quota' ? 'Your browser is out of storage space, so your latest cards may not be kept. Delete some in My Cards.' : 'Could not save your cards on this device.', 5000);
+  });
   // Load the question database in the background; screens that show counts refresh when it arrives
   loadCards().then(function () {
     setLibraryUnlocked(libraryUnlocked());
@@ -1298,6 +1302,7 @@ function init() {
     window.__pro = proModule;
     window.__analyticsAvailable = analyticsAvailable;
     window.__storage = storage;
+    window.__customCards = customCards;
     window.__dataProblems = function () { return checkDataSanity(storage.data, STORAGE_DEFAULTS); };
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
@@ -2341,10 +2346,14 @@ function mountLeaderboard() {
 // =========================================================================
 //  START
 // =========================================================================
+// The player's own cards (an imported deck can be 30,000) are loaded from IndexedDB into memory first, so every screen
+// can read them synchronously. init() never rejects; if IndexedDB is not usable the cards stay in localStorage.
+function start() { try { init(); } finally { hideBootSplash(); } }
+function whenCardsLoaded() { customCards.init().then(start, start); }
 if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', function () { try { init(); } finally { hideBootSplash(); } });
+  window.addEventListener('DOMContentLoaded', whenCardsLoaded);
 } else {
-  try { init(); } finally { hideBootSplash(); }
+  whenCardsLoaded();
 }
 
 // Offline support (production builds only). The store apps bundle their files, so they do not

@@ -241,9 +241,7 @@ export var browseMethods = {
     var PAGE = 50;
     var query = (this._myCardsQuery || '').trim().toLowerCase();
     var page = Math.max(0, this._myCardsPage || 0);
-    var cards = query ? all.filter(function (c) {
-      return (c.bw.join(' ') + ' ' + c.ans + ' ' + (c.tp || '') + ' ' + (c.tags || []).join(' ')).toLowerCase().indexOf(query) >= 0;
-    }) : all;
+    var cards = query ? customCards.search(query) : all; // (an index built once per change: 30,000 cards stay quick to search)
     var pages = Math.max(1, Math.ceil(cards.length / PAGE));
     if (page >= pages) page = pages - 1;
     this._myCardsPage = page;

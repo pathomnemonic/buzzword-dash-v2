@@ -9,12 +9,14 @@
  */
 
 import {
-  buildTagTree, searchTree, createSelection, setIds, selectAll, eligibleMask, stateOf, chosenIds,
+  buildTagTree, buildTagTreeAsync, searchTree, createSelection, setIds, selectAll, eligibleMask, stateOf, chosenIds,
   presetsFor, applyPresets, estimateBytes, UNTAGGED
 } from './ankitags.js';
 
-var MAX_ROWS_PER_LEVEL = 150;
-var WARN_BYTES = 3.5 * 1024 * 1024; // localStorage is about 5 MB per site and holds the save data too
+var ROWS_PER_LEVEL = 150;
+var MAX_ROWS_TOTAL = 400;   // rows on the page at once, however many tags match (20,000 tag levels is normal for a big deck)
+var ASYNC_ABOVE = 4000;     // decks bigger than this build their tag tree in slices, with a progress bar
+var WARN_BYTES = 3.5 * 1024 * 1024; // localStorage fallback: about 5 MB per site, and it holds the save data too
 
 var C = {
   muted: 'var(--text-secondary, #aaa)',
@@ -53,10 +55,39 @@ function fmtMB(bytes) { return (bytes / (1024 * 1024)).toFixed(bytes < 10 * 1024
  */
 export function renderFilterPanel(host, o) {
   var records = o.records;
-  var store = o.store || { count: 0, bytes: 0, keys: {}, limit: 5000, hardLimit: 50000, setLimit: function (n) { return n; } };
+  if (records.length <= ASYNC_ABOVE) return renderPanel(host, o, buildTagTree(records));
+
+  // A big deck: say what is happening, build the tag tree in slices (the page stays usable), then show the panel
+  while (host.firstChild) host.removeChild(host.firstChild);
+  var wait = h('div', { attrs: { role: 'status' }, style: { border: '1px solid ' + C.line, borderRadius: '12px', padding: '12px', margin: '10px 0', fontSize: '12px', color: C.muted } });
+  wait.appendChild(h('div', { text: 'Found ' + fmtN(records.length) + ' cards. Sorting out the tags…', style: { marginBottom: '6px' } }));
+  var bar = h('progress', { attrs: { max: '100', value: '0', 'aria-label': 'Preparing tags' }, style: { width: '100%' } });
+  wait.appendChild(bar);
+  host.appendChild(wait);
+  var inner = null;
+  var gone = false;
+  buildTagTreeAsync(records, {
+    onProgress: function (d, n) { bar.value = Math.round(d / n * 100); },
+    isCancelled: function () { return gone; }
+  }).then(function (tree) {
+    if (gone || !tree) return;
+    inner = renderPanel(host, o, tree);
+  }, function (e) {
+    if (gone) return;
+    while (host.firstChild) host.removeChild(host.firstChild);
+    host.appendChild(h('div', { text: 'Could not prepare the tags: ' + ((e && e.message) || String(e)), style: { color: C.red, fontSize: '12px' } }));
+  });
+  return {
+    destroy: function () { gone = true; if (inner) inner.destroy(); else while (host.firstChild) host.removeChild(host.firstChild); },
+    getState: function () { return inner ? inner.getState() : { selected: 0, total: records.length, chips: [], filters: {}, preparing: true }; }
+  };
+}
+
+function renderPanel(host, o, tree) {
+  var records = o.records;
+  var store = o.store || { count: 0, bytes: 0, keys: {}, limit: 5000, hardLimit: 50000, mode: 'ls', setLimit: function (n) { return n; } };
   while (host.firstChild) host.removeChild(host.firstChild);
 
-  var tree = buildTagTree(records);
   var presets = presetsFor(records);
   var activeChips = [];
   var sel = createSelection(records.length, true);
@@ -175,22 +206,26 @@ export function renderFilterPanel(host, o) {
     return row;
   }
 
+  var rowLimit = ROWS_PER_LEVEL;
+  var capped = false;
   function renderTree() {
     if (!hasTree) return;
     rowRefs = [];
+    capped = false;
     while (treeEl.firstChild) treeEl.removeChild(treeEl.firstChild);
     var found = searchTree(tree, query);
     matchBtn.style.display = query.trim() ? '' : 'none';
     var rendered = 0;
-    if (tree.untagged.length && !query.trim()) treeEl.appendChild(checkRow(tree.untagged, UNTAGGED, tree.untagged.length, 0, false, '', false));
+    if (tree.untagged.length && !query.trim()) { treeEl.appendChild(checkRow(tree.untagged, UNTAGGED, tree.untagged.length, 0, false, '', false)); rendered++; }
     function level(nodes, depth, parent) {
       var shown = 0;
       for (var i = 0; i < nodes.length; i++) {
         var n = nodes[i];
         if (found.keep && !found.keep[n.path]) continue;
-        if (shown >= MAX_ROWS_PER_LEVEL) {
+        if (rendered >= MAX_ROWS_TOTAL) { capped = true; break; }
+        if (shown >= rowLimit) {
           var more = h('button', { type: 'button', className: 'btn btn-outline btn-sm', text: 'Show more (' + (nodes.length - i) + ' left)', style: { margin: '2px 0 2px ' + (depth * 14 + 28) + 'px' } });
-          more.addEventListener('click', function () { MAX_ROWS_PER_LEVEL += 150; renderTree(); });
+          more.addEventListener('click', function () { rowLimit += 150; renderTree(); });
           parent.appendChild(more);
           break;
         }
@@ -198,9 +233,11 @@ export function renderFilterPanel(host, o) {
         var open = !!expanded[n.path] || (!!found.keep && n.kids.length > 0 && n.kids.some(function (k) { return found.keep[k.path]; }));
         parent.appendChild(checkRow(n.ids, n.name, n.ids.length, depth, n.kids.length > 0, n.path, open));
         if (open && n.kids.length) level(n.kids, depth + 1, parent);
+        if (capped) break;
       }
     }
     level(tree.root.kids, 0, treeEl);
+    if (capped) treeEl.appendChild(h('div', { text: query.trim() ? 'Many tags match. Type more of the name to narrow the list, or use "Select matches".' : 'More tags are hidden. Open a tag to see what is inside, or search by name.', style: { color: C.gold, padding: '6px' } }));
     if (!rendered && query.trim()) treeEl.appendChild(h('div', { text: 'No tag matches "' + query.trim() + '".', style: { color: C.muted, padding: '6px' } }));
   }
 
@@ -209,7 +246,8 @@ export function renderFilterPanel(host, o) {
   var detail = h('div', { style: { fontSize: '11px', color: C.muted, lineHeight: '1.5', marginTop: '2px' } });
   var limitRow = h('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px', fontSize: '11px', color: C.muted } });
   var limitSel = h('select', { attrs: { 'aria-label': 'How many cards My Cards may hold' }, style: { padding: '3px 6px', borderRadius: '6px', background: 'rgba(20,10,50,.6)', color: 'var(--text-primary, #fff)', border: '1px solid ' + C.line, fontSize: '11px' } });
-  [5000, 10000, 20000, 50000].filter(function (v) { return v <= store.hardLimit; }).forEach(function (v) {
+  var limitChoices = (store.mode === 'idb' ? [5000, 10000, 25000, 50000, 100000] : [5000, 10000, 20000, 50000]).filter(function (v) { return v <= store.hardLimit; });
+  limitChoices.forEach(function (v) {
     var opt = h('option', { text: fmtN(v) });
     opt.value = String(v);
     if (v === store.limit) opt.selected = true;
@@ -224,13 +262,18 @@ export function renderFilterPanel(host, o) {
   });
   limitRow.appendChild(h('span', { text: 'My Cards may hold up to' }));
   limitRow.appendChild(limitSel);
-  limitRow.appendChild(h('span', { text: 'cards. Bigger limits use more of your browser’s storage (about 5 MB in total).' }));
+  limitRow.appendChild(h('span', { text: store.mode === 'idb' ? 'cards (a cap you can lower; a whole deck of about 30,000 fits).' : 'cards. This browser only allows about 5 MB in total, so a smaller cap is safer.' }));
+  var spaceEl = h('div', { attrs: { 'data-role': 'space' }, style: { fontSize: '11px', color: C.muted, lineHeight: '1.5', marginTop: '4px' } });
+  var space = null; // what the browser says about free space: {usage, quota} or null
+  if (store.estimate) store.estimate().then(function (e) { space = e; if (!destroyed) refreshSummary(); }, function () { /* the browser will not say */ });
 
   var progress = h('progress', { attrs: { max: '100', value: '0', 'aria-label': 'Import progress' }, style: { width: '100%', marginTop: '8px', display: 'none' } });
   var importBtn = h('button', { type: 'button', className: 'btn btn-primary btn-block', text: 'Import', style: { marginTop: '8px' }, attrs: { 'data-role': 'filter-import' } });
   var closeBtn = h('button', { type: 'button', className: 'btn btn-outline btn-block', text: 'Cancel', style: { marginTop: '6px' } });
   var resultEl = h('div', { attrs: { role: 'status' }, style: { marginTop: '8px', fontSize: '12px', lineHeight: '1.5' } });
-  box.appendChild(summary); box.appendChild(detail); box.appendChild(limitRow); box.appendChild(progress); box.appendChild(importBtn); box.appendChild(closeBtn); box.appendChild(resultEl);
+  var progressLabel = h('div', { attrs: { 'aria-live': 'polite' }, style: { fontSize: '11px', color: C.muted, marginTop: '4px', display: 'none' } });
+  var stopBtn = h('button', { type: 'button', className: 'btn btn-outline btn-block', text: 'Stop import', style: { marginTop: '6px', display: 'none' }, attrs: { 'data-role': 'filter-stop' } });
+  box.appendChild(summary); box.appendChild(detail); box.appendChild(spaceEl); box.appendChild(limitRow); box.appendChild(progress); box.appendChild(progressLabel); box.appendChild(importBtn); box.appendChild(stopBtn); box.appendChild(closeBtn); box.appendChild(resultEl);
   host.appendChild(box);
 
   function chosenRecords() { return chosenIds(sel, mask).map(function (i) { return records[i]; }); }
@@ -250,7 +293,9 @@ export function renderFilterPanel(host, o) {
     lines.push('About ' + fmtMB(bytes) + ' of storage for the new ones.');
     var problem = '';
     if (fresh > free) problem = 'My Cards has room for ' + fmtN(free) + ' more at the current limit, so ' + fmtN(fresh - free) + ' would be left out. Narrow the filter or raise the limit below.';
-    else if (store.bytes + bytes > WARN_BYTES) problem = 'This is close to the size your browser can store (about 5 MB). If saving fails nothing is changed; import a smaller part first.';
+    else if (store.mode !== 'idb' && store.bytes + bytes > WARN_BYTES) problem = 'This is close to the size your browser can store (about 5 MB). If saving fails nothing is changed; import a smaller part first.';
+    else if (space && bytes > 0 && bytes * 1.5 > Math.max(0, space.quota - space.usage)) problem = 'Your browser says it has about ' + fmtMB(Math.max(0, space.quota - space.usage)) + ' free for this site, which may not be enough. If saving fails nothing is changed; import a smaller part first.';
+    spaceEl.textContent = space ? 'Browser storage: ' + fmtMB(space.usage) + ' used of about ' + fmtMB(space.quota) + ' allowed (the browser\u2019s estimate).' : '';
     detail.textContent = lines.join(' ');
     if (problem) { var p = h('div', { text: problem, style: { color: C.gold, marginTop: '2px' } }); detail.appendChild(p); }
     importBtn.textContent = picked.length ? 'Import ' + fmtN(Math.min(picked.length, fresh > free ? free + updates : picked.length)) + ' card' + (picked.length === 1 ? '' : 's') : 'Nothing selected';
@@ -274,34 +319,51 @@ export function renderFilterPanel(host, o) {
     refreshSummary();
   }
 
+  var cancelRequested = false;
+  stopBtn.addEventListener('click', function () { cancelRequested = true; stopBtn.disabled = true; progressLabel.textContent = 'Stopping…'; });
   importBtn.addEventListener('click', async function () {
     if (busy) return;
     var picked = chosenRecords();
     if (!picked.length) return;
     busy = true;
+    cancelRequested = false;
     importBtn.disabled = true;
+    stopBtn.disabled = false;
+    stopBtn.style.display = '';
     progress.style.display = '';
+    progressLabel.style.display = '';
     progress.value = 0;
+    progressLabel.textContent = 'Checking cards…';
     resultEl.textContent = '';
     try {
       var res = await o.onImport(picked, {
-        onProgress: function (done, total) { if (!destroyed) progress.value = total ? Math.round(done / total * 100) : 100; }
+        isCancelled: function () { return cancelRequested || destroyed; },
+        onProgress: function (done, total, phase) {
+          if (destroyed) return;
+          // checking the cards is the first 60% of the bar, writing them the rest
+          var frac = total ? done / total : 1;
+          progress.value = Math.round(phase === 'save' ? 60 + frac * 40 : frac * 60);
+          if (!cancelRequested) progressLabel.textContent = (phase === 'save' ? 'Saving ' : 'Checking ') + fmtN(done) + ' of ' + fmtN(total) + '…';
+        }
       });
       if (destroyed) return;
-      progress.value = 100;
+      progress.value = res.cancelled ? 0 : 100;
       var parts = [];
       if (res.imported) parts.push(fmtN(res.imported) + ' new');
       if (res.updated) parts.push(fmtN(res.updated) + ' refreshed');
       if (res.unchanged) parts.push(fmtN(res.unchanged) + ' already up to date');
       if (res.rejected) parts.push(fmtN(res.rejected) + ' skipped');
-      resultEl.style.color = (res.imported || res.updated) && res.saved !== false ? C.green : C.red;
-      resultEl.textContent = (parts.length ? parts.join(', ') + '. ' : '') + (res.warnings && res.warnings[0] ? res.warnings[0] : ((res.imported || res.updated) ? 'Find them in Flashcard mode; tags show on each card.' : ''));
+      var ok = (res.imported || res.updated || (res.unchanged && !res.rejected)) && res.saved !== false;
+      resultEl.style.color = ok ? C.green : (res.cancelled ? C.gold : C.red);
+      resultEl.textContent = (parts.length && res.saved !== false ? parts.join(', ') + '. ' : '') + (res.warnings && res.warnings[0] ? res.warnings[0] : ((res.imported || res.updated) ? 'Find them in Flashcard mode; tags show on each card.' : ''));
     } catch (e) {
       resultEl.style.color = C.red;
-      resultEl.textContent = 'Something went wrong: ' + (e && e.message ? e.message : String(e));
+      resultEl.textContent = 'Nothing was imported, and your earlier cards are unchanged. ' + (e && e.message ? e.message : String(e));
     } finally {
       busy = false;
       importBtn.disabled = false;
+      stopBtn.style.display = 'none';
+      progressLabel.style.display = 'none';
       refreshSummary();
     }
   });

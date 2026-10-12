@@ -30,12 +30,15 @@ import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply,
 import { copyText, openExternal } from './platform.js';
 import { renderFilterPanel } from './ankifilterui.js';
 import { guessSubject } from './ankitags.js';
+import { stripHtml, hashKey, splitTags, noteRecords, clozeCards, parseCloze, isMediaOnly } from './ankinotes.js';
+import { readApkg, friendlyApkgMessage, MAX_PARSED_CARDS } from './apkgparse.js';
+import { startApkgRead } from './apkgclient.js';
 
 // ===== LIMITS =====
-var MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
-var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB
+var MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB: only the collection inside is read, so media does not count against memory
+var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB pasted
+var MAX_DELIMITED_FILE_BYTES = 80 * 1024 * 1024;  // 80 MB for a text export read from a file
 var MAX_CARDS_PER_IMPORT = 5000; // what importRaw takes when the caller does not say otherwise
-var MAX_PARSED_CARDS = 100000;   // a hard ceiling on what one file may read into memory
 
 // ===== STATE =====
 var _mounted = false;
@@ -43,20 +46,7 @@ var _containerEl = null;
 var _dependencies = null;
 var _parsedCards = null;
 var _abortController = null;
-
-// ===== LIBRARIES (bundled, loaded only when an .apkg is imported, so they also work offline) =====
-
-async function loadJSZip() {
-  var mod = await import('jszip');
-  return mod.default || mod;
-}
-
-async function loadSqlJs() {
-  var mods = await Promise.all([import('sql.js'), import('sql.js/dist/sql-wasm.wasm?url')]);
-  var init = mods[0].default || mods[0];
-  var wasmUrl = mods[1].default;
-  return init({ locateFile: function () { return wasmUrl; } });
-}
+var _readJob = null; // the .apkg being read right now (see apkgclient.js)
 
 // ===== BOM HANDLING =====
 
@@ -70,217 +60,6 @@ function stripBOM(text) {
     return text.slice(1);
   }
   return text;
-}
-
-// ===== HTML STRIPPING =====
-
-var HTML_ENTITIES = {
-  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ensp: ' ', emsp: ' ', thinsp: ' ',
-  ndash: '\u2013', mdash: '\u2014', hellip: '\u2026', lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201C', rdquo: '\u201D',
-  rarr: '\u2192', larr: '\u2190', uarr: '\u2191', darr: '\u2193', harr: '\u2194', times: '\u00D7',
-  plusmn: '\u00B1', deg: '\u00B0', micro: '\u00B5', middot: '\u00B7', bull: '\u2022', ge: '\u2265', le: '\u2264',
-  ne: '\u2260', asymp: '\u2248', alpha: '\u03B1', beta: '\u03B2', gamma: '\u03B3', delta: '\u03B4', mu: '\u03BC',
-  copy: '\u00A9', reg: '\u00AE', trade: '\u2122', sup2: '\u00B2', sup3: '\u00B3', frac12: '\u00BD'
-};
-
-/**
- * Strip HTML tags from a string and decode common entities.
- * @param {string} html
- * @returns {string}
- */
-function stripHtml(html) {
-  if (!html) return '';
-  // Only real tags go: "<" must be followed by a letter, "/" or "!" ("BP <90 and HR >100" is text, not a tag)
-  var text = String(html).replace(/\[sound:[^\]]*\]/gi, ' ').replace(/<(?:\/?[a-z!][^>]*)>/gi, ' ');
-  // One pass, so "&amp;lt;" becomes the text "&lt;" and not "<"
-  text = text.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, function (all, ent) {
-    if (ent.charAt(0) === '#') {
-      var cp = ent.charAt(1).toLowerCase() === 'x' ? parseInt(ent.slice(2), 16) : parseInt(ent.slice(1), 10);
-      if (cp > 0 && cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF)) return String.fromCodePoint(cp);
-      return all;
-    }
-    var named = HTML_ENTITIES[ent.toLowerCase()];
-    return named === undefined ? all : named;
-  });
-  text = text.replace(/\s+/g, ' ');
-  return text.trim();
-}
-
-/** A side that is only a picture or sound placeholder ("[image]", empty after tags are removed) cannot be studied as text. */
-function isMediaOnly(text) {
-  var t = String(text || '').trim();
-  return t === '' || /^\[?\s*(image|img|picture|photo|audio|sound|video)[^\]a-z]*\]?$/i.test(t);
-}
-
-// ===== CLOZE NOTES ({{c1::text::hint}}) =====
-
-/**
- * Read cloze markup into a tree. Handles several clozes, clozes inside clozes ({{c1::a {{c2::b}} c}}) and a hint
- * after the last "::" of a cloze. Anything that is not a well-formed opener is plain text.
- * @param {string} text
- * @returns {Array<{t: 'text', v: string}|{t: 'cloze', n: number, hint: string, kids: Array}>}
- */
-function parseCloze(text) {
-  var pos = 0;
-  function run(inside) {
-    var nodes = [];
-    var buf = '';
-    function flush() { if (buf) { nodes.push({ t: 'text', v: buf }); buf = ''; } }
-    while (pos < text.length) {
-      var ch = text.charAt(pos);
-      if (ch === '{' && text.charAt(pos + 1) === '{') {
-        var m = /^\{\{c(\d{1,3})::/i.exec(text.substr(pos, 12));
-        if (m) {
-          flush();
-          pos += m[0].length;
-          var kids = run(true);
-          nodes.push({ t: 'cloze', n: parseInt(m[1], 10), hint: '', kids: kids });
-          continue;
-        }
-      }
-      if (inside && ch === '}' && text.charAt(pos + 1) === '}') { pos += 2; flush(); return finishCloze(nodes); }
-      buf += ch;
-      pos++;
-    }
-    flush();
-    return nodes;
-  }
-  return run(false);
-}
-
-/** Split the hint off the end of a cloze's contents ("answer::hint"). */
-function finishCloze(kids) {
-  for (var i = kids.length - 1; i >= 0; i--) {
-    if (kids[i].t !== 'text') break; // a hint is plain text after the last nested cloze
-    var at = kids[i].v.lastIndexOf('::');
-    if (at >= 0) {
-      var hint = kids[i].v.slice(at + 2);
-      for (var j = i + 1; j < kids.length; j++) hint += kids[j].v;
-      var head = kids.slice(0, i);
-      if (kids[i].v.slice(0, at)) head.push({ t: 'text', v: kids[i].v.slice(0, at) });
-      return Object.assign(head, { _hint: hint });
-    }
-  }
-  return kids;
-}
-
-function clozeNumbers(nodes, set) {
-  nodes.forEach(function (nd) { if (nd.t === 'cloze') { set[nd.n] = true; clozeNumbers(nd.kids, set); } });
-  return set;
-}
-
-/** All clozes shown: the text as it reads on the back. */
-function clozeRevealed(nodes) {
-  return nodes.map(function (nd) { return nd.t === 'text' ? nd.v : clozeRevealed(nd.kids); }).join('');
-}
-
-/** Cloze number n hidden as [...] (or [hint]); the other clozes shown. Answers of n are collected in `answers`. */
-function clozeHidden(nodes, n, answers) {
-  return nodes.map(function (nd) {
-    if (nd.t === 'text') return nd.v;
-    if (nd.n === n) { answers.push(clozeRevealed(nd.kids)); return '[' + ((nd.kids._hint || '').trim() ? nd.kids._hint.trim() : '...') + ']'; }
-    return clozeHidden(nd.kids, n, answers);
-  }).join('');
-}
-
-/**
- * Turn a cloze note into one card per cloze number: the front hides that number's answer as [...] (or [hint]) while
- * the other clozes are shown; the back is the answer and the full sentence; the note's other fields are the extra.
- * @param {string[]} fields the note's fields
- * @returns {Array<{front: string, back: string, full: string, extra: string, n: number}>|null} null when the note has no cloze
- */
-function clozeCards(fields) {
-  var text = fields[0] || '';
-  if (!/\{\{c\d{1,3}::/i.test(text)) return null;
-  var tree = parseCloze(text);
-  var nums = Object.keys(clozeNumbers(tree, {})).map(Number).sort(function (a, b) { return a - b; });
-  if (!nums.length) return null;
-  var full = stripHtml(clozeRevealed(tree));
-  var extra = joinExtra(fields.slice(1));
-  var out = [];
-  nums.forEach(function (n) {
-    var answers = [];
-    var front = stripHtml(clozeHidden(tree, n, answers));
-    var back = answers.map(stripHtml).filter(Boolean).join(', ');
-    if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) out.push({ front: front, back: back, full: full, extra: extra, n: n });
-  });
-  return out;
-}
-
-/** The note's other fields as one line of teaching text (empty fields dropped, capped so storage stays sane). */
-function joinExtra(fields) {
-  var parts = [];
-  fields.forEach(function (f) { var t = stripHtml(f); if (t) parts.push(t); });
-  var s = parts.join(' · ');
-  return s.length > 700 ? s.slice(0, 699) + '…' : s;
-}
-
-/** The text a card teaches with: the main text, then the extras. */
-function teachFor(base, extra) {
-  var s = [base, extra].filter(Boolean).join(' — ');
-  return s.length > 900 ? s.slice(0, 899) + '…' : s;
-}
-
-/** A short stable key for cards that have no Anki guid (same text = same card on re-import). */
-function hashKey(text) {
-  var h1 = 0x811c9dc5;
-  var h2 = 0x01000193;
-  for (var i = 0; i < text.length; i++) {
-    var c = text.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 16777619) >>> 0;
-    h2 = (Math.imul(h2, 31) + c) >>> 0;
-  }
-  return 'h' + h1.toString(36) + h2.toString(36);
-}
-
-/** Split Anki's space-separated tag string into a list. */
-function splitTags(str) {
-  return String(str || '').split(/\s+/).filter(function (t) { return t; });
-}
-
-/**
- * Turn one Anki note into importable records (one per cloze number, or one for a basic note).
- * @param {string[]} fields
- * @param {{guid?: string, tags?: string[], queues?: number[]|null}} meta queues: card queue per ord (-1 suspended, -2/-3 buried)
- * @returns {{records: object[], media: number}}
- */
-function noteRecords(fields, meta) {
-  meta = meta || {};
-  var tags = meta.tags || [];
-  var queues = meta.queues || null;
-  var known = queues ? queues.filter(function (q) { return q !== undefined; }) : [];
-  var allSusp = known.length > 0 && known.every(function (q) { return q === -1; });
-  var allBur = known.length > 0 && known.every(function (q) { return q === -2 || q === -3; });
-  if (/image-occlusion:/i.test(fields[0] || '')) return { records: [], media: 1 };
-  var cloze = clozeCards(fields);
-  var recs = [];
-  if (cloze) {
-    var anyExtra = fields.slice(1).some(function (f) { return stripHtml(f) !== ''; });
-    cloze.forEach(function (c) {
-      var q = queues ? queues[c.n - 1] : undefined;
-      recs.push({
-        front: c.front, back: c.back, teach: teachFor(c.full, c.extra), tags: tags,
-        guid: meta.guid || '', key: (meta.guid || hashKey(fields[0])) + '#c' + c.n,
-        suspended: q === undefined ? allSusp : q === -1,
-        buried: q === undefined ? allBur : (q === -2 || q === -3),
-        hasExtra: anyExtra
-      });
-    });
-    return { records: recs, media: cloze.length ? 0 : 1 };
-  }
-  if (fields.length < 2) return { records: [], media: 0 };
-  var front = stripHtml(fields[0]);
-  var back = stripHtml(fields[1]);
-  if (!front || !back || isMediaOnly(front) || isMediaOnly(back)) return { records: [], media: 1 };
-  var extra = joinExtra(fields.slice(2));
-  return {
-    records: [{
-      front: front, back: back, teach: extra ? teachFor(back, extra) : '', tags: tags,
-      guid: meta.guid || '', key: meta.guid || hashKey(front + '\u0001' + back),
-      suspended: allSusp, buried: allBur, hasExtra: !!extra
-    }],
-    media: 0
-  };
 }
 
 // ===== CSV/TSV PARSING (RFC 4180 compliant with liberal extensions) =====
@@ -314,8 +93,9 @@ function parseDelimitedText(text, options) {
     return { cards: [], warnings: ['No text provided.'] };
   }
 
-  if (text.length > MAX_DELIMITED_TEXT_LENGTH) {
-    return { cards: [], warnings: ['Text exceeds maximum size limit of ' + Math.round(MAX_DELIMITED_TEXT_LENGTH / 1024 / 1024) + ' MB.'] };
+  var maxLength = options.maxLength || MAX_DELIMITED_TEXT_LENGTH;
+  if (text.length > maxLength) {
+    return { cards: [], warnings: ['Text exceeds maximum size limit of ' + Math.round(maxLength / 1024 / 1024) + ' MB.'] };
   }
 
   text = stripBOM(text);
@@ -562,158 +342,31 @@ function _parseCSVRows(text, delim, warnings) {
 // ===== APKG PARSING =====
 
 /**
- * Parse an .apkg file (Anki deck package).
- * Loads JSZip and sql.js dynamically from CDN.
- * The .apkg is a ZIP containing a SQLite database with notes table.
- * Fields in each note are separated by \x1f (unit separator). [2]
- *
- * SQLite resources are cleaned in finally blocks per Section 28.3.
- * File size is checked before loading per Section 28.3.
+ * Parse an .apkg / .colpkg file (Anki deck package) into importable records.
+ * Only the collection database inside the ZIP is read (never the media), so the file may be several GB: see apkgzip.js.
+ * Reads on the calling thread; the importer screen uses startApkgRead (a Web Worker) so the page stays responsive.
  *
  * @param {File} file - A File object (.apkg)
- * @param {object} [options]
- * @returns {Promise<{ cards: Array<{front: string, back: string}>, warnings: string[] }>}
+ * @param {{onProgress?: function(string, number, number): void, isCancelled?: function(): boolean}} [options]
+ * @returns {Promise<{ cards: object[], warnings: string[] }>} on failure: no cards and one friendly sentence in warnings
  */
 async function parseApkg(file, options) {
   options = options || {};
-  var warnings = [];
-
-  if (!file) {
-    return { cards: [], warnings: ['No file provided.'] };
-  }
-
-  // File size limit check (Section 28.3)
+  if (!file) return { cards: [], warnings: ['No file provided.'] };
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return {
-      cards: [],
-      warnings: ['File too large (' + Math.round(file.size / 1024 / 1024) + ' MB). Maximum is ' + Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024) + ' MB.']
-    };
+    return { cards: [], warnings: ['File too large (' + (file.size / 1024 / 1024 / 1024).toFixed(1) + ' GB). Maximum is ' + Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024 / 1024) + ' GB.'] };
   }
-
-  // Read the file as ArrayBuffer
-  var arrayBuffer = await file.arrayBuffer();
-
-  // Unzip with JSZip
-  var JSZip = await loadJSZip();
-  var zip = await JSZip.loadAsync(arrayBuffer);
-
-  // Look for the SQLite database file inside the ZIP
-  var dbFile = null;
-  // collection.anki21b (newest Anki, zstd-compressed) and collection.anki21 hold the real notes when present;
-  // collection.anki2 is then only a stand-in that says "please update Anki"
-  var dbFilenames = ['collection.anki21b', 'collection.anki21', 'collection.anki2'];
-
-  for (var fi = 0; fi < dbFilenames.length; fi++) {
-    if (zip.files[dbFilenames[fi]]) {
-      dbFile = zip.files[dbFilenames[fi]];
-      break;
-    }
-  }
-
-  if (!dbFile) {
-    return {
-      cards: [],
-      warnings: ['Could not find a collection in the .apkg file. Re-export it from Anki with "Support older Anki versions" ticked.']
-    };
-  }
-
-  // Extract the database file as Uint8Array
-  var dbData = await dbFile.async('uint8array');
-  if (/\.anki21b$/.test(dbFile.name)) {
-    try {
-      var fz = await import('fzstd');
-      dbData = (fz.decompress || (fz.default && fz.default.decompress))(dbData);
-    } catch (e) {
-      return { cards: [], warnings: ['This deck uses the newest Anki format and could not be unpacked (' + (e.message || String(e)) + '). In Anki choose Export, tick "Support older Anki versions", and import the new file.'] };
-    }
-  }
-
-  // Initialize sql.js with WASM
-  var SQL = await loadSqlJs();
-
-  // Open the database — cleanup in finally (Section 28.3)
-  var db = null;
-  var stmt = null;
-  var results = [];
-  var stubNote = false;
-  var mediaSkipped = 0;
-  var seenKeys = Object.create(null);
-
+  var cards = [];
   try {
-    db = new SQL.Database(dbData);
-
-    // Which of a note's cards are suspended (queue -1) or buried (-2, -3); missing in minimal databases
-    var queuesByNote = null;
-    try {
-      var cs = db.prepare('SELECT nid, ord, queue FROM cards');
-      queuesByNote = Object.create(null);
-      try {
-        while (cs.step()) {
-          var cr = cs.get();
-          (queuesByNote[cr[0]] = queuesByNote[cr[0]] || [])[cr[1]] = cr[2];
-        }
-      } finally { cs.free(); }
-    } catch (e) { queuesByNote = null; }
-
-    try {
-      var withMeta = true;
-      try { stmt = db.prepare('SELECT id, guid, tags, flds FROM notes'); } catch (e) {
-        withMeta = false;
-        stmt = db.prepare('SELECT flds FROM notes');
-      }
-
-      while (stmt.step()) {
-        var row = stmt.get();
-        var flds = withMeta ? row[3] : row[0];
-
-        if (typeof flds === 'string') {
-          var fields = flds.split('\x1f');
-          if (/update to the latest anki/i.test(fields[0])) { stubNote = true; continue; }
-          var made = noteRecords(fields, withMeta ? {
-            guid: typeof row[1] === 'string' ? row[1] : '',
-            tags: splitTags(row[2]),
-            queues: queuesByNote ? queuesByNote[row[0]] || null : null
-          } : {});
-          mediaSkipped += made.media;
-          made.records.forEach(function (rec) {
-            if (rec.key && seenKeys[rec.key]) return;
-            if (rec.key) seenKeys[rec.key] = true;
-            results.push(rec);
-          });
-        }
-      }
-    } finally {
-      // Always free the statement (Section 28.3)
-      if (stmt) {
-        try { stmt.free(); } catch (e) {
-          // Best-effort cleanup: statement may already be freed.
-        }
-      }
-    }
+    var stats = await readApkg(file, {
+      emit: function (batch) { for (var i = 0; i < batch.length; i++) cards.push(batch[i]); },
+      onProgress: options.onProgress,
+      isCancelled: options.isCancelled
+    });
+    return { cards: stats.stub ? [] : cards, warnings: stats.warnings };
   } catch (e) {
-    warnings.push('Error reading notes from database: ' + (e.message || String(e)));
-  } finally {
-    // Always close the database (Section 28.3)
-    if (db) {
-      try { db.close(); } catch (e) {
-        // Best-effort cleanup: db may already be closed.
-      }
-    }
+    return { cards: [], warnings: [friendlyApkgMessage(e)] };
   }
-
-  // A deck exported without "Support older Anki versions" holds a single note asking you to update Anki
-  if (stubNote) {
-    results = [];
-    warnings.push('This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.');
-  }
-  if (mediaSkipped) warnings.push(mediaSkipped + ' note' + (mediaSkipped === 1 ? '' : 's') + ' with only a picture or sound ' + (mediaSkipped === 1 ? 'was' : 'were') + ' skipped.');
-
-  if (results.length > MAX_PARSED_CARDS) {
-    warnings.push('Only the first ' + MAX_PARSED_CARDS + ' cards were read (found ' + results.length + ').');
-    results = results.slice(0, MAX_PARSED_CARDS);
-  }
-
-  return { cards: results, warnings: warnings };
 }
 
 // ===== RAW IMPORT (flashcard-only, no placeholder distractors) =====
@@ -817,7 +470,7 @@ function importRaw(cards, options) {
  */
 async function importSelected(cards, options) {
   options = options || {};
-  var empty = { imported: 0, updated: 0, unchanged: 0, rejected: 0, warnings: [], saved: true, limitReached: false };
+  var empty = { imported: 0, updated: 0, unchanged: 0, rejected: 0, warnings: [], saved: true, limitReached: false, cancelled: false };
   if (!cards || !Array.isArray(cards) || cards.length === 0) return Object.assign(empty, { warnings: ['No cards to import.'] });
   if (!_dependencies || !_dependencies.customCards) return Object.assign(empty, { warnings: ['Custom cards module not available.'] });
   var customCards = _dependencies.customCards;
@@ -832,14 +485,14 @@ async function importSelected(cards, options) {
 
   var res;
   if (typeof customCards.upsertMany === 'function') {
-    res = await customCards.upsertMany(inputs, { onProgress: options.onProgress });
+    res = await customCards.upsertMany(inputs, { onProgress: options.onProgress, isCancelled: options.isCancelled });
   } else {
     var many = customCards.addMany(inputs);
-    res = { added: many.added, updated: 0, unchanged: 0, rejected: many.rejected, warnings: many.warnings, saved: true, limitReached: !!many.limitReached };
+    res = { added: many.added, updated: 0, unchanged: 0, rejected: many.rejected, warnings: many.warnings, saved: true, limitReached: !!many.limitReached, cancelled: false };
   }
   var out = {
     imported: res.added, updated: res.updated, unchanged: res.unchanged, rejected: res.rejected + rejected,
-    warnings: res.warnings, saved: res.saved, limitReached: res.limitReached
+    warnings: res.warnings, saved: res.saved, limitReached: res.limitReached, cancelled: !!res.cancelled
   };
   track('anki_import', { outcome: out.imported + out.updated > 0 ? 'ok' : 'empty', cards: out.imported, skipped: out.rejected, kind: options.kind || 'file' });
   return out;
@@ -1099,6 +752,7 @@ function unmount() {
   _mounted = false;
   _parsedCards = null;
 
+  if (_readJob) { try { _readJob.cancel(); } catch (e) { /* already finished */ } _readJob = null; }
   if (_abortController) {
     try { _abortController.abort(); } catch (e) {
       // Best-effort cleanup.
@@ -1168,6 +822,15 @@ function _renderUI() {
   deckFile.setAttribute('aria-label', 'Choose an Anki deck export (.apkg, .colpkg, .txt)');
   dropZone.appendChild(deckFile);
   popular.appendChild(dropZone);
+  var readBox = _el('div', { className: 'anki-readbox', style: { display: 'none', margin: '8px 0' } });
+  var readBar = _el('progress', { style: { width: '100%' } });
+  readBar.max = 100; readBar.value = 0;
+  readBar.setAttribute('aria-label', 'Reading the deck');
+  var readLabel = _el('div', { style: { fontSize: '12px', color: 'var(--text-secondary, #aaa)', margin: '4px 0', lineHeight: '1.5' } });
+  readLabel.setAttribute('aria-live', 'polite');
+  var readCancel = _el('button', { className: 'btn btn-outline btn-sm btn-block', text: 'Cancel', type: 'button' });
+  readBox.appendChild(readBar); readBox.appendChild(readLabel); readBox.appendChild(readCancel);
+  popular.appendChild(readBox);
   var whyNot = _el('details', { className: 'import-howto', style: { margin: '8px 0' } });
   whyNot.appendChild(_el('summary', { text: 'Why is there no automatic download?', style: { cursor: 'pointer', fontSize: '12px' } }));
   var whyList = _el('ul', { style: { margin: '6px 0 0', paddingLeft: '18px', fontSize: '11px', lineHeight: '1.5', color: 'var(--text-secondary, #aaa)' } });
@@ -1273,10 +936,14 @@ function _renderUI() {
   async function parseFileInput(file) {
     var name = file.name.toLowerCase();
     if (name.endsWith('.apkg') || name.endsWith('.colpkg')) {
-      setStatus('Reading the Anki deck…');
-      return await parseApkg(file);
+      setStatus('');
+      if (file.size > MAX_FILE_SIZE_BYTES) return { cards: [], warnings: ['That file is ' + (file.size / 1073741824).toFixed(1) + ' GB, more than the ' + Math.round(MAX_FILE_SIZE_BYTES / 1073741824) + ' GB this app can open. Export a smaller part of the deck from Anki.'] };
+      return await readApkgFile(file);
     }
-    return parseDelimitedText(await file.text());
+    if (file.size > MAX_DELIMITED_FILE_BYTES) return { cards: [], warnings: ['That text file is ' + Math.round(file.size / 1048576) + ' MB, more than the ' + Math.round(MAX_DELIMITED_FILE_BYTES / 1048576) + ' MB this app reads as text. Export the deck as an .apkg instead, or a smaller part of it.'] };
+    setStatus('Reading ' + file.name + '…');
+    await new Promise(function (r) { setTimeout(r, 0); }); // let the message paint before the (synchronous) parse
+    return parseDelimitedText(await file.text(), { maxLength: MAX_DELIMITED_FILE_BYTES });
   }
 
   exampleBtn.addEventListener('click', function () {
@@ -1305,30 +972,70 @@ function _renderUI() {
     var cc = _dependencies && _dependencies.customCards;
     var all = cc && typeof cc.getAll === 'function' ? cc.getAll() : [];
     var keys = Object.create(null);
-    var bytes = 0;
     all.forEach(function (c) { if (c.ak) keys[c.ak] = true; });
-    try { bytes = JSON.stringify(all).length; } catch (e) { bytes = 0; }
+    // sizes are estimated from a sample (serializing 30,000 cards just to show a number would freeze the page)
+    var bytes = 0;
+    try {
+      var n = Math.min(all.length, 200);
+      for (var i = 0; i < n; i++) bytes += JSON.stringify(all[Math.floor(i * all.length / n)]).length;
+      bytes = n ? Math.round(bytes / n * all.length) : 0;
+    } catch (e) { bytes = 0; }
     return {
       count: all.length, bytes: bytes, keys: keys,
+      mode: cc && typeof cc.getMode === 'function' ? cc.getMode() : 'ls',
+      estimate: cc && typeof cc.storageEstimate === 'function' ? cc.storageEstimate : null,
       limit: cc && cc.getLimit ? cc.getLimit() : MAX_CARDS_PER_IMPORT,
       hardLimit: cc && cc.getHardLimit ? cc.getHardLimit() : MAX_CARDS_PER_IMPORT,
       setLimit: function (n) { return cc && cc.setLimit ? cc.setLimit(n) : n; }
     };
   }
 
+  function showReadProgress(stage, done, total) {
+    var pct = total ? Math.min(100, Math.round(done / total * 100)) : 0;
+    var mb = function (b) { return (b / 1048576).toFixed(b < 10485760 ? 1 : 0) + ' MB'; };
+    var text;
+    if (stage === 'open') text = 'Opening the deck…';
+    else if (stage === 'unpack') { text = 'Unpacking the notes (' + mb(done) + ' of ' + mb(total) + '). The pictures and sounds are skipped.'; readBar.value = Math.round(pct * 0.3); }
+    else if (stage === 'sql') text = 'Opening the notes…';
+    else { text = 'Reading notes: ' + done.toLocaleString('en-US') + ' of ' + total.toLocaleString('en-US') + '…'; readBar.value = 30 + Math.round(pct * 0.7); }
+    readLabel.textContent = text;
+  }
+
+  /** Read an .apkg in the background (a Web Worker where there is one) with progress and a Cancel button. */
+  async function readApkgFile(file) {
+    var cards = [];
+    readBar.value = 0;
+    readLabel.textContent = 'Opening the deck…';
+    readBox.style.display = '';
+    var job = startApkgRead(file, {
+      onCards: function (batch) { for (var i = 0; i < batch.length; i++) cards.push(batch[i]); },
+      onProgress: function (stage, done, total) { if (_mounted) showReadProgress(stage, done, total); }
+    });
+    _readJob = job;
+    readCancel.onclick = function () { job.cancel(); };
+    try {
+      var stats = await job.promise;
+      return { cards: stats.stub ? [] : cards, warnings: stats.warnings || [] };
+    } catch (e) {
+      return { cards: [], warnings: [friendlyApkgMessage(e)], cancelled: !!(e && e.code === 'cancelled') };
+    } finally {
+      if (_readJob === job) _readJob = null;
+      readBox.style.display = 'none';
+    }
+  }
+
   /** Read a chosen or dropped file and show the tag picker for it. */
   async function openFile(file) {
     closePanel();
     try {
-      setStatus('Reading ' + file.name + '\u2026 big decks take a few seconds.');
       var result = await parseFileInput(file);
       if (!_mounted) return;
-      if (!result.cards.length) { setStatus(result.warnings[0] || 'No cards found in that file.', RED); return; }
+      if (!result.cards.length) { setStatus(result.warnings[0] || 'No cards found in that file.', result.cancelled ? 'var(--accent-gold, #ffd54f)' : RED); return; }
       setStatus('');
       panel = renderFilterPanel(filterHost, {
         records: result.cards, warnings: result.warnings, title: file.name, store: storeInfo(),
         onImport: async function (picked, o) {
-          var res = await importSelected(picked, { kind: 'filtered', onProgress: o.onProgress });
+          var res = await importSelected(picked, { kind: 'filtered', onProgress: o.onProgress, isCancelled: o.isCancelled });
           if (res.imported + res.updated > 0 && _dependencies && _dependencies.toast) _dependencies.toast('Imported ' + res.imported + ' cards' + (res.updated ? ', refreshed ' + res.updated : '') + '.');
           return res;
         },
