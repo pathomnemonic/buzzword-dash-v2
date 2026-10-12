@@ -58,6 +58,14 @@ if (poolResult.error || poolResult.cards.length === 0) {
     return;
 }
 
+// A card the player has already answered correctly in this run is not asked again in the same run (it can come back next
+// run). Missed cards still return through the retry queue. If nearly everything has been answered, the pool is used as is.
+if (!this.seededCardOrder && !(this._modeConfig && Array.isArray(this._modeConfig.planCardIds)) && this._knownThisRun) {
+  var knownNow = this._knownThisRun;
+  var unseen = poolResult.cards.filter(function (c) { return !knownNow[c.id]; });
+  if (unseen.length >= 3) poolResult = { cards: unseen, error: poolResult.error };
+}
+
 var pickResult;
 if (this.seededCardOrder && this._seededCardIndex < this.seededCardOrder.length) {
     pickResult = pickCard({
@@ -195,6 +203,7 @@ card = pickResult ? pickResult.card : null;
     var gate = this.gates[lane];
     var card = this.card;
     var ok = gate.correct;
+    if (ok && card && card.id) (this._knownThisRun || (this._knownThisRun = {}))[card.id] = true; // answered right once: not asked again in this run
 
     // Track decision time
     var decisionMs = resolvedAt - this.encounterStartTime;
