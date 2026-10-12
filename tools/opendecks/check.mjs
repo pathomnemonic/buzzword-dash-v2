@@ -83,6 +83,12 @@ function lev(a, b) {
   return prev[n];
 }
 
+function lcs(a, b) {
+  const t = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) t[i][j] = a[i - 1] === b[j - 1] ? t[i - 1][j - 1] + 1 : Math.max(t[i - 1][j], t[i][j - 1]);
+  return t[a.length][b.length];
+}
+
 function jaccard(a, b) {
   const A = new Set(a), B = new Set(b);
   if (!A.size && !B.size) return 1;
@@ -102,9 +108,11 @@ export function nearSame(x, y) {
   if (a === b) return true;
   const shorter = a.length <= b.length ? a : b, longer = a.length <= b.length ? b : a;
   if (shorter.length >= 6 && new RegExp('(^|[^a-z0-9])' + shorter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z0-9])').test(longer)) return true;
-  if (!/\d/.test(a + b) && a.length >= 8 && lev(a, b) <= 1) return true;
+  // one letter added or dropped (a plural, a typo); a roman numeral (angiotensin I / II) or a swapped letter (afferent / efferent) is a real difference
+  if (!/\d/.test(a + b) && a.length >= 8 && Math.abs(a.length - b.length) === 1 && lev(a, b) === 1 && !/\b[ivx]+$/.test(longer)) return true;
   const sa = stems(a), sb = stems(b);
-  return sa.length >= 3 && sb.length >= 3 && jaccard(sa, sb) >= 0.8;
+  // the same words in the same order; the same words in a different order ("higher X, lower Y" / "lower X, higher Y") is an opposite, which is a fair wrong answer
+  return sa.length >= 3 && sb.length >= 3 && jaccard(sa, sb) >= 0.8 && lcs(sa, sb) / Math.max(sa.length, sb.length) >= 0.8;
 }
 
 const NONE_OF = /\b(all|none|both|neither)\s+(of\s+)?(the\s+)?(above|these|them)\b|\bn\/a\b|^\s*(a|b|c|d)\s*(and|&)\s*(a|b|c|d)\s*$/i;

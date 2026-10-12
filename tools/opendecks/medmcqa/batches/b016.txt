@@ -1,0 +1,34 @@
+896|NEU|mech|Consolidation of short-term into long-term memory|Hippocampus|Amygdala|Prefrontal cortex|The hippocampus lays down long-term synaptic changes from short-term memory.
+899|GI|mg|Elective removal of CBD stones in most patients|Endoscopic sphincterotomy (ERCP)|Open choledocholithotomy|Percutaneous choledocholithotomy|ERCP with sphincterotomy and stone extraction is the standard for common bile duct stones.
+900|NEP|lab|NKX3-1 immunostain|Prostatic adenocarcinoma|Colorectal carcinoma|Renal cell carcinoma|NKX3-1 is a prostate-specific transcription factor used to confirm prostatic origin.
+901|PED|prev|Newborn of a mother with active tuberculosis|Isoniazid prophylaxis|No treatment|Full four-drug treatment|The neonate gets INH prophylaxis (after excluding active disease) while the mother is treated, plus BCG.
+904|GI|dx|Most common site of pancreatic cancer|Head|Body|Tail|Over 85% are ductal adenocarcinomas, most arising in the pancreatic head.
+906|CAR|lab|Best marker for MI presenting 10 days after onset|Troponin|CK-MB|Myoglobin|Troponin stays raised for 7-14 days, whereas CK-MB and myoglobin normalize within days.
+910|ID|lab|Wassermann reaction|Complement fixation test|Agglutination test|Precipitation test|The Wassermann test is a complement fixation test for syphilis reagin.
+911|OB|dx|Snowstorm ultrasound pattern with no fetus|Complete hydatidiform mole|Ectopic pregnancy|Missed abortion|A complete mole appears as an echogenic mass with many cystic spaces, with very high hCG.
+912|PUL|mech|Main form of CO2 transport in blood|Bicarbonate|Carbaminohemoglobin|Dissolved CO2|About 70% of CO2 is carried as bicarbonate formed by red-cell carbonic anhydrase.
+915|PUL|dx|Most common type of emphysema (smokers, upper lobes)|Centriacinar|Panacinar|Paraseptal|Centriacinar emphysema affects respiratory bronchioles; panacinar is the alpha-1 antitrypsin pattern.
+918|ID|lab|Child with scalp scaling and patchy alopecia: test|KOH mount of scrapings|Gram stain|Blood culture|Tinea capitis is confirmed by KOH preparation of scalp scrapings.
+919|HEM|mg|Asymptomatic platelet count 800,000 on routine check|Observe and follow up|Bone marrow biopsy|Plasmapheresis|Asymptomatic thrombocytosis without cardiovascular risk factors needs no immediate therapy and is usually reactive.
+920|ID|lab|Test separating pneumococcus from viridans streptococci|Bile solubility|Gram stain|Catalase test|Pneumococci lyse in bile (deoxycholate); they are also optochin sensitive.
+921|MIX|dx|Tyrosinemia type I enzyme defect|Fumarylacetoacetate hydrolase|Tyrosine aminotransferase|Homogentisate oxidase|Fumarylacetoacetate hydrolase deficiency causes liver failure and renal tubulopathy; homogentisate oxidase deficiency is alkaptonuria.
+922|SUR|dx|Most common cause of acute limb arterial occlusion|Cardiac embolus (atrial fibrillation)|Atherosclerotic plaque rupture|Aneurysm thrombosis|Emboli from atrial fibrillation are the commonest cause of acute arterial occlusion.
+923|CAR|dx|Most common cause of sudden cardiac death|Ventricular fibrillation|Atrial fibrillation|Complete AV block|Ventricular fibrillation is the most frequent terminal rhythm in sudden cardiac death.
+924|HEM|dx|Dactylitis (hand-foot syndrome) in infants|Sickle cell disease|Hereditary spherocytosis|Iron deficiency anemia|Dactylitis is often the first painful crisis in sickle cell disease.
+925|NEU|dx|Posterior communicating artery aneurysm compresses|Oculomotor nerve|Optic nerve|Trochlear nerve|A PCom aneurysm causes a painful third-nerve palsy with a blown pupil.
+926|SUR|dx|Sister Mary Joseph nodule suggests|Intra-abdominal or pelvic malignancy|Rheumatoid arthritis|Congenital umbilical defect|The umbilical metastasis typically comes from stomach, ovary, colon or pancreas.
+927|OB|dx|Most common cause of thrombocytopenia in pregnancy|Gestational thrombocytopenia|Immune thrombocytopenia|Preeclampsia|Gestational thrombocytopenia accounts for 80-90% of cases and is benign.
+928|MIX|lab|Basis of sex chromatin testing|Barr body|Testosterone receptors|Hormone levels|The Barr body is the inactivated X in somatic cells of normal females.
+934|RHE|dx|Keratoderma blenorrhagicum|Reactive arthritis|Behcet disease|Lyme arthritis|Keratoderma blenorrhagicum is the pustular skin lesion of reactive arthritis, which is HLA-B27 associated.
+937|NEU|dx|Dropped shoulder from paralysis of|Trapezius|Serratus anterior|Deltoid|The trapezius, supplied by the spinal accessory nerve, elevates the scapula; serratus anterior paralysis causes winging.
+938|MIX|lab|Western blot detects|Protein|DNA|RNA|Southern blot detects DNA, Northern blot RNA and Western blot protein.
+939|ID|dx|Romana sign (unilateral painless periorbital edema)|Chagas disease|Kala-azar|African sleeping sickness|Romana sign marks conjunctival entry of T. cruzi in acute Chagas disease.
+940|MIX|mech|Elastic cartilage location|Auditory (eustachian) tube|Articular cartilage|Costal cartilage|Elastic cartilage is found in the auditory tube, external ear and epiglottis.
+941|NEU|mech|Fibers carrying itch from the skin|C fibers|A-alpha fibers|A-gamma fibers|Itch travels on unmyelinated C fibers to the dorsal horn and then thalamus.
+942|MIX|mech|Ribosomal enzymatic activity|Peptidyl transferase|Aminoacyl-tRNA synthetase|Peptidase|Peptidyl transferase is a ribozyme activity of the large subunit rRNA.
+943|ID|lab|Best test for congenital syphilis in the newborn|IgM FTA-ABS|IgG FTA-ABS|VDRL|Maternal IgG crosses the placenta, so a specific IgM test is needed to show fetal infection.
+945|ID|lab|Citron bodies|Clostridium septicum|Clostridium perfringens|Clostridium histolyticum|C. septicum forms boat or leaf-shaped citron bodies and causes gas gangrene.
+946|HEM|mech|p53 induces cell-cycle arrest at|G1/S|G2/M|S/G2|p53 activates p21, which inhibits cyclin-CDK complexes, pausing the cell at G1/S for DNA repair.
+948|PED|dx|Koplik spots|Measles|Mumps|Rubella|Koplik spots are pathognomonic bluish-white specks on the buccal mucosa in measles.
+949|GI|mech|Aspirin gastric mucosal injury mechanism|Ion trapping in mucosal cells|Increased H+ secretion|Hepatic biotransformation|Aspirin is unionized in acid, then ionizes inside mucosal cells and is trapped; COX-1 inhibition also adds to injury.
+954|ID|dx|Herpangina: most common cause|Coxsackievirus A|Coxsackievirus B|Echovirus|Coxsackievirus A serotypes are the commonest cause of herpangina.
