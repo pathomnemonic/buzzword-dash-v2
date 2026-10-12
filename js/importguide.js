@@ -107,6 +107,27 @@ export var NO_AUTO_DOWNLOAD = [
   'Shared decks are licensed for your own study, not for redistribution, so Dx Dash does not bundle or mirror them. You download your own copy; this app only reads it on your device.'
 ];
 
+/**
+ * The short blurb at the top of the "Open decks" list (shown in a <details>, open on first view). Data, so the screen,
+ * the tests and docs/OPEN-DECKS.md all say the same thing.
+ */
+export var OPEN_DECKS_INTRO = {
+  whyTitle: 'Why these decks?',
+  why: [
+    'These are the decks we can give you with one tap: each is published under an open licence, needs no account, and credits its authors.',
+    'Popular decks such as AnKing, Zanki, Pepper and Lightyear need a login or are for personal use only, and many are built on paid resources, so we cannot bundle or auto-download them.',
+    'Some decks may come from community datasets; every deck shows its source and licence.',
+    'None of them is checked for exam accuracy. Check anything important against a trusted source.'
+  ],
+  ownTitle: 'Add your own',
+  ownSteps: [
+    'Download any deck yourself: AnKing from its official page, any other .apkg, or an Anki text export.',
+    'Tap \u201CChoose file\u201D in the importer below, or drag the file in.',
+    'Filter by tags, then import. Cards stay on your device.',
+    'AI helper: copy the prompt and paste the reply to turn your notes into runner questions.'
+  ]
+};
+
 /** What a row of a plain file should look like, shown under the file picker. */
 export var FORMAT_HELP = [
   'One card per line. Front, a tab (or comma), then back.',
