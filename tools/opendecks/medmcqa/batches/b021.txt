@@ -1,0 +1,36 @@
+1196|CAR|mech|Slowest conducting structure in the heart|AV node|SA node|Bundle of His|The AV node conducts slowest, giving the ventricles time to fill; Purkinje fibers conduct fastest.
+1197|END|mech|Tryptophan-derived hormone|Melatonin|Epinephrine|Thyroxine|Tryptophan goes to serotonin and then melatonin; epinephrine and thyroxine come from tyrosine.
+1201|END|lab|Low calcium, low phosphate, high alkaline phosphatase|Vitamin D deficiency (osteomalacia or rickets)|Primary hyperparathyroidism|Chronic kidney disease|Vitamin D deficiency lowers calcium, PTH rises and wastes phosphate, and alkaline phosphatase is high.
+1204|GI|dx|Pancreas divisum|Failed fusion of dorsal and ventral pancreatic buds|Duplication of the pancreas|Annular pancreas|In pancreas divisum the ventral and dorsal ducts never fuse, so most drainage goes through the minor papilla.
+1206|PED|mg|Stage 4S neuroblastoma: management|Observation|Surgery|Radiotherapy|Stage 4S in infants often regresses spontaneously, with over 90% cure on observation.
+1207|ID|mech|Crab or crayfish as second intermediate host|Paragonimus westermani|Clonorchis sinensis|Fasciola hepatica|Paragonimus (the lung fluke) uses snails then crabs or crayfish.
+1208|ID|lab|Multiple ring forms in one red cell, banana-shaped gametocytes|Plasmodium falciparum|Plasmodium malariae|Plasmodium vivax|Falciparum shows multiple rings per cell and crescent gametocytes.
+1210|HEM|mech|CML translocation|t(9;22) BCR-ABL|t(15;17)|t(8;14)|The Philadelphia chromosome t(9;22) creates the BCR-ABL tyrosine kinase.
+1211|END|ph|5-alpha reductase inhibitor for male-pattern alopecia|Finasteride|Fulvestrant|Tamoxifen|Finasteride blocks conversion of testosterone to DHT and also treats BPH.
+1212|ID|lab|Enrichment medium for Salmonella and Shigella from stool|Selenite F broth|Chocolate agar|Blood agar|Selenite F is a selective enrichment broth for enteric pathogens.
+1214|GI|dx|Pruritus, hyperpigmentation and xanthelasma in a middle-aged woman|Primary biliary cholangitis|Primary sclerosing cholangitis|Amyloidosis|PBC is an immune destruction of small bile ducts, with anti-mitochondrial antibodies and cholestasis.
+1215|SUR|mg|Medullary thyroid carcinoma: operation|Total thyroidectomy with central node dissection|Hemithyroidectomy|Radioiodine ablation|Medullary carcinoma arises from C cells and does not take up iodine, so surgery is the treatment.
+1216|HEM|lab|Russell bodies|Immunoglobulin inclusions in plasma cells|Cholesterol crystals|Phospholipid inclusions|Russell bodies are eosinophilic immunoglobulin accumulations in plasma cells overproducing antibody.
+1218|HEM|dx|Most common antecedent of leukoplakia and erythroplakia|Tobacco use|Alcohol use|Poor oral hygiene|Tobacco is the most common risk factor for oral leukoplakia and erythroplakia.
+1219|NEU|ph|Perampanel mechanism|AMPA receptor antagonist|NMDA receptor antagonist|GABA mimetic|Perampanel is a non-competitive AMPA antagonist used as add-on therapy for focal seizures.
+1220|MIX|mech|Site of fatty acid synthesis|Cytosol|Mitochondria|Smooth ER|Fatty acid synthase works in the cytosol; beta-oxidation is mitochondrial.
+1221|HEM|lab|Breslow thickness|Melanoma|Squamous cell carcinoma|Basal cell carcinoma|Breslow depth of invasion is the main prognostic measurement in melanoma.
+1222|ID|lab|Spoligotyping|Mycobacterium tuberculosis|Staphylococcus aureus|Salmonella|Spoligotyping is a PCR-based method for genotyping M. tuberculosis strains.
+1227|MIX|se|Gray-yellow fluorescent teeth in a child|Tetracycline|Phenytoin|Barbiturates|Tetracycline binds calcium in developing teeth and bone, so avoid it in pregnancy and young children.
+1228|OB|dx|Uterine malformation with the worst obstetric outcome|Septate uterus|Bicornuate uterus|Unicornuate uterus|A septate uterus has poor vascularity of the septum, giving recurrent miscarriage and malpresentation.
+1230|MIX|mech|Active donor in fatty acid synthesis elongation|Malonyl-CoA|Palmitate|Stearate|Malonyl-CoA, made by acetyl-CoA carboxylase, donates two carbons per elongation step.
+1231|CAR|lab|Enzyme rising 4-6 hours after MI and normalizing in 3-6 days|CK (CK-MB)|LDH|AST|CK-MB rises early and is useful for detecting reinfarction, though troponin is now preferred.
+1233|ID|dx|Segmented single-stranded RNA orthomyxovirus with antigenic drift and shift|Influenza virus|Measles virus|Respiratory syncytial virus|Antigenic drift and shift necessitate annual influenza vaccination.
+1236|OB|mg|MgSO4 regimen (IV loading plus IM) in eclampsia|Pritchard regimen|Menon lytic cocktail|Stroganoff regimen|The Pritchard regimen uses an IV loading dose with IM maintenance; monitor reflexes and give calcium gluconate for toxicity.
+1241|ID|lab|Medium for EHEC O157:H7|Sorbitol MacConkey agar|XLD agar|Deoxycholate agar|EHEC O157:H7 does not ferment sorbitol, giving colorless colonies.
+1242|NEP|ph|Drug that slows progression of chronic kidney disease|ACE inhibitor|Beta blocker|Amlodipine|ACE inhibitors reduce intraglomerular pressure and proteinuria, slowing CKD progression.
+1243|NEU|dx|Nerve at risk when removing a fish bone from the piriform fossa|Internal laryngeal nerve|External laryngeal nerve|Recurrent laryngeal nerve|The piriform fossa is under the mucosa carrying the internal laryngeal nerve.
+1244|OB|lab|Fetal congenital heart block: maternal antibodies|Anti-Ro/SS-A|Antiphospholipid antibodies|Anti-centromere antibodies|Anti-Ro (SS-A) and anti-La antibodies cross the placenta and damage the fetal conduction system, typically in SLE or Sjogren syndrome.
+1246|ID|dx|Most common cause of genital herpes|HSV-2|HSV-1|VZV|HSV-2 is the commonest cause of genital herpes, although HSV-1 increasingly causes it.
+1247|MIX|mech|Iron-sulfur proteins are components of|Respiratory chain complexes|Beta-oxidation|ATP synthase|Fe-S clusters sit in complexes I, II and III.
+1248|MIX|lab|Annexin V positive, propidium iodide negative|Early apoptosis|Necrosis|S-phase entry|Apoptotic cells flip phosphatidylserine to the outer membrane, which annexin V binds, while the membrane stays impermeable.
+1249|NEP|dx|Chronic vomiting: acid-base and electrolytes|Hypochloremic hypokalemic metabolic alkalosis|Hyperchloremic metabolic acidosis|Respiratory acidosis|Loss of gastric HCl causes hypochloremia, alkalosis and hypokalemia.
+1250|PUL|dx|Silicosis occupational exposure|Mining, quarrying and sandblasting (silica)|Cotton mills (byssinosis)|Sugarcane processing (bagassosis)|Silicosis is caused by inhaled silica dust and raises TB risk.
+1252|HEM|dx|Breast cancer type typical of BRCA1 carriers|Triple-negative (basal-like), often medullary|Lobular carcinoma|Low-grade ER-positive carcinoma|BRCA1-related breast cancers are commonly high-grade, medullary and triple-negative.
+1253|PED|se|Drug raising kernicterus risk in jaundiced neonates|Sulfonamides|Ampicillin|Phenobarbitone|Sulfonamides displace bilirubin from albumin, letting free bilirubin enter the brain.
+1254|MIX|mech|TCA enzyme performing substrate-level phosphorylation|Succinate thiokinase (succinyl-CoA synthetase)|Succinate dehydrogenase|Malate dehydrogenase|Succinyl-CoA to succinate drives GTP (ATP) formation without the respiratory chain.

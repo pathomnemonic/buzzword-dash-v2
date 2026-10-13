@@ -33,6 +33,11 @@ mkdirSync(batches, { recursive: true });
 const out = join(here, 'out');
 mkdirSync(out, { recursive: true });
 
+const dropFile = join(here, 'review-drops.json');
+const drops = existsSync(dropFile) ? JSON.parse(readFileSync(dropFile, 'utf8')) : [];
+const dropKey = (c) => (c.source_ref || '') + '|' + c.ans + '|' + (c.bw[0] || '');
+const isDropped = (c) => !c.round && drops.some((d) => d.source_ref === c.source_ref && d.ans === c.ans && c.bw[0].startsWith(d.bw0)) || (c.round === 2 && drops.some((d) => d.source_ref === c.source_ref && d.ans === c.ans && c.bw[0].startsWith(d.bw0)));
+
 const cards = [];
 const stats = { sections: 0, replies: 0, parsed: 0, skippedByParser: 0, noReply: [] };
 manifest.sections.forEach((s) => {
@@ -51,12 +56,19 @@ manifest.sections.forEach((s) => {
     const r2 = parseAiReply(readFileSync(rf2, 'utf8'));
     if (!r2.error) { res.cards = res.cards.concat(r2.cards.map((c) => Object.assign(c, { round: 2 }))); round2 = r2.cards.length; res.skipped += r2.skipped; }
   }
+  // round 3: cards rewritten after the independent review (replies-r3/<ref>.json); review-drops.json lists what they replace
+  const rf3 = join(here, 'replies-r3', s.ref + '.json');
+  if (existsSync(rf3)) {
+    const r3 = parseAiReply(readFileSync(rf3, 'utf8'));
+    if (!r3.error) { res.cards = res.cards.concat(r3.cards.map((c) => Object.assign(c, { round: 3 }))); stats.round3 = (stats.round3 || 0) + r3.cards.length; }
+  }
   stats.round2 = (stats.round2 || 0) + round2;
   stats.parsed += res.cards.length;
   stats.skippedByParser += res.skipped;
   const root = cfg.tagRoots[s.ref.split('.')[0]] || 'Other';
   const topic = (s.ref + '_' + s.title).replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
   res.cards.forEach((c) => {
+    if (c.round !== 3 && isDropped(c)) { stats.droppedAfterReview = (stats.droppedAfterReview || 0) + 1; return; }
     cards.push({
       subj: c.subj, bw: c.bw, ans: c.ans, d: c.d, tp: c.tp, ww: c.ww,
       tags: ['OpenStax_AP::' + root + '::' + topic],

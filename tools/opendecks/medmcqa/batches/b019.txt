@@ -1,0 +1,30 @@
+1076|ID|dx|Cysticercus cellulosae|Taenia solium larva|Taenia saginata larva|Diphyllobothrium latum|Cysticercus cellulosae is the larva of T. solium, causing cysticercosis (including neurocysticercosis) after ingesting eggs.
+1078|RHE|lab|Anti-Jo-1 antibody|Polymyositis or dermatomyositis|Systemic sclerosis|SLE|Anti-Jo-1 (antisynthetase) marks polymyositis and dermatomyositis, often with interstitial lung disease.
+1079|PSY|dx|PANDAS: associated psychiatric disorder|OCD|Depression|Schizophrenia|PANDAS links obsessive-compulsive symptoms to group A streptococcal infection, possibly via basal ganglia autoimmunity.
+1081|MIX|dx|Acrodermatitis enteropathica|Zinc deficiency|Selenium deficiency|Chromium deficiency|Zinc deficiency causes a periorificial and acral rash with diarrhea and alopecia.
+1085|HEM|lab|CD16 and CD56|NK cells|B lymphocytes|Cytotoxic T lymphocytes|NK cells express CD16 and CD56 and lack T-cell receptors.
+1086|NEU|mech|Highest density of voltage-gated Na+ channels|Axon hillock (initial segment)|Dendrites|Soma|The axon hillock has the lowest threshold, so action potentials start there.
+1087|PSY|mg|OCD drug of choice class|SSRIs (fluoxetine)|Benzodiazepines|Chlorpromazine|SSRIs are first-line for OCD, along with exposure and response prevention.
+1088|MIX|mech|Alkaptonuria enzyme deficiency|Homogentisate oxidase|Tyrosinase|Phenylalanine hydroxylase|Homogentisate accumulates in tyrosine catabolism, causing ochronosis.
+1090|CAR|ph|Angiotensin II receptor blocker|Losartan|Enalapril|Ramipril|Losartan blocks AT1 receptors and does not cause ACE-inhibitor cough.
+1093|ID|ph|HIV protease inhibitor|Saquinavir|Abacavir|Nevirapine|Saquinavir was the first approved HIV protease inhibitor; protease inhibitors end in -navir.
+1096|HEM|dx|Hodgkin subtype with mediastinal involvement in young women|Nodular sclerosis|Lymphocyte predominant|Lymphocyte depleted|Nodular sclerosis is the commonest Hodgkin subtype, often in the anterior mediastinum, with lacunar cells and collagen bands.
+1098|NEU|mech|Nerve to the intrinsic laryngeal muscles (except cricothyroid)|Recurrent laryngeal nerve|External laryngeal nerve|Internal laryngeal nerve|The recurrent laryngeal nerve moves the vocal cords; the external laryngeal supplies cricothyroid.
+1099|ID|lab|Test separating S. aureus from S. epidermidis|Coagulase|Gram stain|Catalase|S. aureus is coagulase-positive; S. epidermidis is coagulase-negative, and both are catalase-positive.
+1101|ID|dx|Pseudohemoptysis (red-pigmented sputum)|Serratia marcescens|Histoplasma capsulatum|Proteus mirabilis|Serratia grows in collected sputum and makes it red.
+1103|PUL|mech|Increased alveolar ventilation effect|Lower alveolar PCO2|Lower alveolar PO2|Higher alveolar PCO2|More ventilation washes out CO2 and raises alveolar PO2.
+1104|HEM|dx|Osteomyelitis in sickle cell disease: characteristic organism|Salmonella|Haemophilus influenzae|Streptococcus pyogenes|Sickle cell patients are prone to Salmonella osteomyelitis, though S. aureus remains most common overall.
+1107|MIX|ph|Physiological antagonism example|Epinephrine and histamine|Isoproterenol and propranolol|Isoproterenol and salbutamol|Epinephrine reverses histamine bronchoconstriction through different receptors; isoproterenol and propranolol compete at the same receptor.
+1108|END|ph|Amylin analog used as an adjunct to insulin|Pramlintide|Glibenclamide|Empagliflozin|Pramlintide is injected before meals alongside insulin.
+1111|OB|mech|Primordial germ cells arise from|Yolk sac wall|Coelomic epithelium|Surface ectoderm|Primordial germ cells arise in the yolk sac and migrate to the gonadal ridges.
+1115|OB|mech|Relation of the fetal long axis to the maternal long axis|Lie|Presentation|Attitude|The lie is longitudinal, transverse or oblique; presentation is the part at the pelvic inlet.
+1116|MIX|dx|Homocystinuria: disturbed metabolism of|Methionine|Tryptophan|Leucine|Homocystinuria (cystathionine beta-synthase deficiency) features ectopia lentis, thrombosis and a marfanoid habitus.
+1118|NEP|dx|Electrolyte abnormalities accompanying hypomagnesemia|Hypokalemia and hypocalcemia|Hyperkalemia|Hypercalcemia|Hypomagnesemia causes refractory hypokalemia and hypocalcemia until magnesium is replaced.
+1119|RHE|dx|HLA associated with rheumatoid arthritis|HLA-DR4|HLA-DR2|HLA-DR3|HLA-DR4 and DR1 are linked to rheumatoid arthritis.
+1122|PED|dx|Infant with projectile vomiting: acid-base disorder|Hypochloremic hypokalemic metabolic alkalosis|Metabolic acidosis|Respiratory alkalosis|Pyloric stenosis loses gastric acid, causing alkalosis; late on paradoxical aciduria develops.
+1123|OB|mg|Antihypertensive for pregnancy|Methyldopa|ACE inhibitor|Angiotensin receptor blocker|Methyldopa is a standard pregnancy-safe drug; ACE inhibitors and ARBs cause fetal renal damage.
+1126|NEU|lab|Pick bodies|Tau protein|Alpha-synuclein|Amyloid beta|Pick bodies are silver-staining, tau-positive inclusions of frontotemporal dementia.
+1127|MIX|mech|Synovial fluid viscosity depends on|Hyaluronic acid|N-acetylgalactosamine|Glucuronic acid|Hyaluronate gives synovial fluid its viscosity and thixotropy.
+1128|NEU|se|Ergotamine contraindication|Ischemic heart disease|Postpartum hemorrhage|Anemia|Ergot alkaloids cause vasospasm, so they are avoided in coronary and peripheral vascular disease.
+1130|GI|dx|Unconjugated hyperbilirubinemia with raised urinary urobilinogen|Hemolytic jaundice|Obstructive jaundice|Dubin-Johnson syndrome|Excess red cell breakdown overwhelms conjugation, raising unconjugated bilirubin and urobilinogen.
+1132|MIX|se|Glaucoma drop causing iris darkening and eyelash growth|Latanoprost|Timolol|Brimonidine|Prostaglandin F2-alpha analogs increase uveoscleral outflow and can darken the iris.

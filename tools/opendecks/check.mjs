@@ -115,6 +115,18 @@ export function nearSame(x, y) {
   return sa.length >= 3 && sb.length >= 3 && jaccard(sa, sb) >= 0.8 && lcs(sa, sb) / Math.max(sa.length, sb.length) >= 0.8;
 }
 
+// Pairs of plain words that make a wrong answer a mere opposite of the right one ("Both rise" / "Both fall"): not a real
+// confusable, so not a fair runner question. (hyper-/hypo- disease names are siblings and are fine.)
+const OPPOSITES = [['increase', 'decrease'], ['higher', 'lower'], ['more', 'less'], ['rise', 'fall'], ['up', 'down'], ['raise', 'lower'], ['faster', 'slower'], ['greater', 'lower'], ['dilat', 'constrict']];
+const MAX_ANSWER_WORDS = 5;
+
+/** True when a wrong answer is only the plain-word opposite of the answer. */
+export function isOpposite(ans, wrong) {
+  const a = ' ' + norm(ans).replace(/[^a-z ]/g, ' ') + ' ', w = ' ' + norm(wrong).replace(/[^a-z ]/g, ' ') + ' ';
+  const has = (t, x) => new RegExp(' ' + x + '[a-z]* ').test(t);
+  return OPPOSITES.some(([x, y]) => (has(a, x) && has(w, y)) || (has(a, y) && has(w, x)));
+}
+
 const NONE_OF = /\b(all|none|both|neither)\s+(of\s+)?(the\s+)?(above|these|them)\b|\bn\/a\b|^\s*(a|b|c|d)\s*(and|&)\s*(a|b|c|d)\s*$/i;
 const HTML = /<\/?[a-z][^>]*>|&[a-z]+;|&#\d+;/i;
 
@@ -172,6 +184,11 @@ export function checkCard(card, ctx) {
   if (nearSame(ans, d[0])) err('options', 'wrong answer 1 is the answer or a near duplicate of it ("' + d[0] + '")');
   if (nearSame(ans, d[1])) err('options', 'wrong answer 2 is the answer or a near duplicate of it ("' + d[1] + '")');
   if (nearSame(d[0], d[1])) err('options', 'the two wrong answers are the same or near duplicates');
+
+  // --- runner fitness: a short term as the answer, and wrong answers that are real look-alikes ---
+  if (ans.trim().split(/\s+/).length > MAX_ANSWER_WORDS) err('runner', 'the answer is a phrase of ' + ans.trim().split(/\s+/).length + ' words (at most ' + MAX_ANSWER_WORDS + '): ask for a short term');
+  d.forEach((x, i) => { if (isOpposite(ans, x)) err('runner', 'wrong answer ' + (i + 1) + ' ("' + x + '") is just the opposite of the answer');});
+  if (card.bw.length < 2) warn('one_clue', 'only one clue');
 
   // --- the hint must not give the answer away ---
   if (leaks(hint, ans)) err('leak', 'the hint contains the answer');

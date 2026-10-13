@@ -1,0 +1,78 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Excess water dilutes the blood sodium",
+"Sweating, vomiting or diuretics can cause it"
+],
+"ans": "Hyponatremia",
+"d": [
+"Hypernatremia",
+"Hypokalemia"
+],
+"tp": "Causes also include sweating, vomiting, diarrhea, diuretics, diabetes and acidosis.",
+"ww": {
+"Hypernatremia": "Hypernatremia is an abnormally high blood sodium.",
+"Hypokalemia": "Hypokalemia is a low blood potassium."
+},
+"source_ref": "26.3",
+"evidence": "Hyponatremia is a lower-than-normal concentration of sodium, usually associated with excess water accumulation in the body, which dilutes the sodium."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Partial depolarization of cardiac cells",
+"Heart will not relax and may stop within minutes"
+],
+"ans": "Hyperkalemia",
+"d": [
+"Hypokalemia",
+"Hypercalcemia"
+],
+"tp": "It can also cause confusion, numbness and weakened respiratory muscles through partial depolarization of cell membranes.",
+"ww": {
+"Hypokalemia": "Low potassium hyperpolarizes neuron membranes and reduces their responses.",
+"Hypercalcemia": "The seizing, non-relaxing heart is the described effect of high potassium."
+},
+"source_ref": "26.3",
+"evidence": "Hyperkalemia, an elevated potassium blood level, also can impair the function of skeletal muscles, the nervous system, and the heart."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Heavy antacid use",
+"Alcohol withdrawal and malnourishment"
+],
+"ans": "Hypophosphatemia",
+"d": [
+"Hyperphosphatemia",
+"Hypocalcemia"
+],
+"tp": "The kidneys usually conserve phosphate when it is depleted, but this fails during starvation.",
+"ww": {
+"Hyperphosphatemia": "Hyperphosphatemia is high blood phosphate.",
+"Hypocalcemia": "Hypocalcemia is low blood calcium."
+},
+"source_ref": "26.3",
+"evidence": "Hypophosphatemia, or abnormally low phosphate blood levels, occurs with heavy use of antacids, during alcohol withdrawal, and during malnourishment."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Decreased renal function",
+"Cell destruction dumps it into the ECF"
+],
+"ans": "Hyperphosphatemia",
+"d": [
+"Hypophosphatemia",
+"Hyperkalemia"
+],
+"tp": "Phosphate is a major constituent of the ICF and of nucleic acids, so cell breakdown raises blood levels.",
+"ww": {
+"Hypophosphatemia": "Hypophosphatemia is low blood phosphate.",
+"Hyperkalemia": "Hyperkalemia is high potassium, though cell destruction raises that too."
+},
+"source_ref": "26.3",
+"evidence": "Hyperphosphatemia, or abnormally increased levels of phosphates in the blood, occurs if there is decreased renal function or in cases of acute lymphocytic leukemia."
+}
+]

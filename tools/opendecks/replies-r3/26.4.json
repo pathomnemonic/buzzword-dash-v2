@@ -1,0 +1,78 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Pneumonia or heart failure impair breathing",
+"Morphine or alcohol cause hypoventilation"
+],
+"ans": "Hypercapnia",
+"d": [
+"Hypocapnia",
+"Hypoxemia"
+],
+"tp": "Hypoventilation from morphine, barbiturates, ethanol or holding the breath can cause it.",
+"ww": {
+"Hypocapnia": "Hypocapnia is abnormally low blood CO2.",
+"Hypoxemia": "Hypoxemia is low arterial oxygen, not high CO2."
+},
+"source_ref": "26.4",
+"evidence": "Hypercapnia, or abnormally elevated blood levels of CO2, occurs in any situation that impairs respiratory functions, including pneumonia and congestive heart failure."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Salicylate toxicity, fever, hysteria",
+"Hyperventilation drives off CO2"
+],
+"ans": "Hypocapnia",
+"d": [
+"Hypercapnia",
+"Hypoxemia"
+],
+"tp": "It occurs with any cause of hyperventilation that drives off CO2.",
+"ww": {
+"Hypercapnia": "Hypercapnia is elevated blood CO2.",
+"Hypoxemia": "Hypoxemia is low arterial oxygen."
+},
+"source_ref": "26.4",
+"evidence": "Hypocapnia, or abnormally low blood levels of CO2, occurs with any cause of hyperventilation that drives off the CO2, such as salicylate toxicity, elevated room temperatures, fever, or hysteria."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Fastest way the blood adjusts pH",
+"Works in seconds"
+],
+"ans": "Chemical buffers",
+"d": [
+"Respiratory system",
+"Renal system"
+],
+"tp": "Buffers act in seconds, the respiratory tract in minutes (by exhaling CO2), the kidneys in hours to days.",
+"ww": {
+"Respiratory system": "Exhaling CO2 adjusts pH in minutes, not seconds.",
+"Renal system": "The kidneys take hours to days."
+},
+"source_ref": "26.4",
+"evidence": "It takes only seconds for the chemical buffers in the blood to make adjustments to pH."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Slowest pH adjustment",
+"Excretes H+ and conserves bicarbonate"
+],
+"ans": "Renal system",
+"d": [
+"Chemical buffers",
+"Respiratory system"
+],
+"tp": "The kidneys take hours to days but give the most lasting correction of blood pH.",
+"ww": {
+"Chemical buffers": "Chemical buffers act within seconds.",
+"Respiratory system": "Exhaling CO2 adjusts pH within minutes."
+},
+"source_ref": "26.4",
+"evidence": "The renal system can also adjust blood pH through the excretion of hydrogen ions (H+) and the conservation of bicarbonate, but this process takes hours to days to have an effect."
+}
+]

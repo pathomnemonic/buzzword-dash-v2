@@ -1,0 +1,34 @@
+1137|PSY|dx|Schizophrenia poor prognostic factor|Predominant negative symptoms|Acute onset|Prominent mood symptoms|Negative symptoms, insidious onset and early age predict a poor outcome; acute onset and mood symptoms predict a good one.
+1138|END|mech|Estrogen effect on HDL in premenopausal women|Raises HDL|Lowers HDL|Raises LDL|Estrogen raises HDL, contributing to cardioprotection before menopause.
+1139|MIX|mech|Inhibitor of alpha-ketoglutarate dehydrogenase|Arsenite|Fluoride|Fluoroacetate|Arsenite binds lipoic acid and blocks alpha-ketoglutarate and pyruvate dehydrogenases; fluoroacetate blocks aconitase and fluoride enolase.
+1141|NEP|dx|Nodular glomerulosclerosis (Kimmelstiel-Wilson lesion)|Diabetes mellitus|Malignant hypertension|Multiple myeloma|Nodular glomerulosclerosis is the most specific lesion of diabetic nephropathy.
+1143|MIX|mech|Nitric oxide is synthesized from|Arginine|Aspartate|Uracil|Nitric oxide synthase converts arginine to NO and citrulline using NADPH and O2.
+1144|SUR|dx|Most common type of spinal TB|Paradiscal|Posterior element|Anterior|Paradiscal TB involves two adjacent vertebrae and the intervening disc.
+1145|PUL|dx|Most important pathogen in cystic fibrosis lung disease|Pseudomonas aeruginosa|Burkholderia cepacia|Aeromonas|Pseudomonas becomes chronic and shifts to a mucoid phenotype.
+1149|NEP|se|Antihypertensive that can worsen renal function in renovascular hypertension|ACE inhibitors|Beta blockers|Calcium channel blockers|ACE inhibitors dilate the efferent arteriole, dropping GFR in renal artery stenosis.
+1152|SUR|mg|Salivary tumor site where open biopsy is avoided|Parotid|Palate|Buccal mucosa|Open biopsy of a parotid tumor risks tumor seeding and facial nerve injury, so FNA or imaging is used.
+1154|HEM|dx|Kaposi sarcoma cell origin|Vascular endothelium|Muscle|Nerve|Kaposi sarcoma is a multicentric angioproliferative tumor driven by HHV-8.
+1155|ID|dx|Buruli ulcer|Mycobacterium ulcerans|Mycobacterium marinum|Mycobacterium fortuitum|M. ulcerans makes mycolactone, a toxin that causes painless skin ulcers.
+1158|PSY|dx|NREM sleep disorder|Night terrors|Nocturnal penile tumescence|Frequent dreaming|Night terrors and sleepwalking arise in slow-wave NREM sleep; dreams and erections are REM phenomena.
+1159|END|mech|Major thyroxine-binding plasma protein|Thyroxine-binding globulin|Albumin|Transferrin|TBG carries most circulating T4 and T3; only about 0.02% of T4 is free.
+1160|MIX|se|Drug class commonly causing fixed drug eruption|Sulfonamides|Penicillins|Macrolides|Fixed drug eruptions recur at the same site with the offending drug, most often sulfonamides.
+1161|MIX|mech|End product of GABA catabolism|Succinate|Glycine|Aspartate|GABA is transaminated to succinic semialdehyde and oxidized to succinate, which enters the TCA cycle.
+1163|HEM|dx|Breast carcinoma with highest bilaterality|Lobular carcinoma|Medullary carcinoma|Inflammatory carcinoma|Lobular carcinoma is often multicentric and bilateral.
+1165|GI|dx|Wilson disease inheritance|Autosomal recessive|Autosomal dominant|X-linked recessive|Wilson disease (ATP7B) is autosomal recessive, with copper accumulation in liver and brain.
+1168|OB|dx|Most common cause of first-trimester abortion|Chromosomal abnormalities|Syphilis|Cervical incompetence|About half of early miscarriages have fetal chromosomal abnormalities; cervical incompetence causes second-trimester losses.
+1169|ID|dx|HIV with CD4 count of 200 and dyspnea|Pneumocystis jirovecii pneumonia|Tuberculosis|Candidiasis|Pneumocystis pneumonia risk rises sharply when CD4 falls below 200.
+1170|SUR|mech|Route of breast cancer spread to vertebrae|Batson venous plexus|Arterial route|Axillary lymph nodes|The valveless vertebral venous plexus links breast veins to the spine.
+1172|PSY|se|Most common complication of ECT|Memory loss (amnesia)|Intracerebral bleed|Spinal fracture|Retrograde and anterograde amnesia are the most common ECT side effects.
+1175|HEM|prev|Sunlight wavelength mainly causing skin cancer|UVB|UVC|Visible light|UVB causes DNA pyrimidine dimers; UVC is largely absorbed by the ozone layer.
+1177|RHE|dx|Medium-vessel vasculitis|Polyarteritis nodosa|Temporal arteritis|Takayasu arteritis|Classic PAN and Kawasaki disease affect medium arteries; giant cell and Takayasu arteritis affect large vessels.
+1179|NEP|lab|Alport syndrome electron microscopy|Basket-weave (lamellated) GBM|Subepithelial humps|Spike and dome pattern|Alport syndrome, a type IV collagen defect, gives a split, basket-weave GBM.
+1182|MIX|lab|Protein purification with ammonium sulfate|Salting out|Ion-exchange chromatography|Size-exclusion chromatography|Neutral salts dehydrate proteins and precipitate them (salting out).
+1184|MIX|dx|First disease treated by gene therapy|ADA-deficient SCID|Phenylketonuria|Cystic fibrosis|Adenosine deaminase deficiency was the first disease treated by gene therapy.
+1185|OB|mech|Main progesterone source in the luteal phase|Corpus luteum|Ovarian stroma|Sertoli cells|After ovulation the corpus luteum secretes progesterone.
+1187|END|dx|Nelson syndrome follows|Bilateral adrenalectomy|Hypophysectomy|Thyroidectomy|Removing the adrenals for Cushing disease removes feedback, enlarging the ACTH adenoma and causing pigmentation.
+1188|PSY|dx|Formication with delusion of persecution|Cocaine|Cannabis|LSD|Cocaine bugs (tactile hallucinations of insects) accompany cocaine psychosis.
+1189|SUR|mech|Recurrent laryngeal nerve relation in the neck|Inferior thyroid artery|Superior thyroid artery|Middle thyroid vein|The recurrent laryngeal nerve runs near the inferior thyroid artery, so it is at risk when that vessel is ligated.
+1190|MIX|mech|Ceruloplasmin binds|Copper|Iron|Zinc|Ceruloplasmin is the copper-carrying plasma protein, low in Wilson disease.
+1191|HEM|dx|Oculocutaneous albinism with giant lysosomal granules|Chediak-Higashi syndrome|Wiskott-Aldrich syndrome|Chronic granulomatous disease|Chediak-Higashi is autosomal recessive (LYST), with recurrent infections and bleeding tendency.
+1192|PUL|se|Ipratropium contraindication|Urinary retention|Asthma|Peptic ulcer|Anticholinergics can cause urinary retention, so ipratropium is used cautiously in prostatism.
+1194|OB|lab|Liley curve|Rh isoimmunization (severity of fetal hemolysis)|Fetal maturity|Labor progress|The Liley curve plots amniotic fluid bilirubin optical density to grade fetal hemolysis.

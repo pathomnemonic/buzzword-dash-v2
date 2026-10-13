@@ -1,0 +1,35 @@
+1255|ID|dx|Dengue virus family|Flavivirus|Enterovirus|Orthomyxovirus|Dengue is a flavivirus transmitted by Aedes mosquitoes, like Zika and yellow fever.
+1257|OB|ph|Danazol use in benign breast disease|Cyclical mastalgia|Non-cyclical mastalgia|Breast cyst|Danazol is an androgenic steroid that relieves cyclical breast pain.
+1258|PED|dx|Cracked-pot sound on skull percussion (Macewen sign)|Hydrocephalus|Meningitis|Microcephaly|Macewen sign reflects suture separation in hydrocephalus, with a large head and sunset eyes.
+1259|HEM|dx|Reed-Sternberg cells|Hodgkin lymphoma|Burkitt lymphoma|Chronic myeloid leukemia|Reed-Sternberg cells are binucleate owl-eye cells expressing CD15 and CD30.
+1261|OB|mg|HSIL on a Pap smear: next step|Colposcopy with biopsy|Radical hysterectomy|Repeat Pap in 12 months|A high-grade lesion needs colposcopic assessment and biopsy before treatment.
+1263|GI|dx|Conjugated hyperbilirubinemia with a black liver|Dubin-Johnson syndrome|Gilbert syndrome|Crigler-Najjar syndrome|Dubin-Johnson is an MRP2 canalicular transport defect with pigment-laden liver.
+1265|END|mech|Inhibin from Sertoli cells suppresses|FSH|LH|TSH|Inhibin B from Sertoli cells feeds back to inhibit pituitary FSH.
+1266|SUR|dx|Scrotal 'bag of worms'|Varicocele|Hydrocele|Testicular torsion|A varicocele is a dilated pampiniform plexus, usually left-sided and a cause of infertility.
+1267|GI|mech|Enteric nitric oxide effect|Smooth muscle relaxation|Smooth muscle contraction|Vasoconstriction|NO is an inhibitory enteric neurotransmitter that relaxes sphincters and gut smooth muscle.
+1268|GI|mg|Milan criteria|Liver transplantation for hepatocellular carcinoma|GERD staging|Hepatic encephalopathy grading|Milan criteria select cirrhotic HCC patients for transplant: one lesion up to 5 cm or up to three lesions up to 3 cm.
+1269|NEP|dx|Renal cause of restless legs syndrome|Chronic kidney disease|Hypercalcemia|Hypernatremia|Restless legs is common in uremia and with iron deficiency.
+1271|NEP|dx|Thimble bladder|Tuberculosis|BPH|Schistosomiasis|Genitourinary TB shrinks the bladder to a small, contracted capacity.
+1272|CAR|mech|Vascular compartment holding the most blood|Veins|Arteries|Arterioles|Veins are distensible reservoirs holding about 60-70% of the blood volume.
+1273|NEU|se|Methysergide long-term toxicity|Retroperitoneal, pleuropulmonary and cardiac fibrosis|Pancreatitis|Hepatic necrosis|Methysergide, an ergot derivative, was withdrawn because of fibrosis.
+1274|PUL|ph|Long-acting beta-2 agonist|Salmeterol|Salbutamol|Terbutaline|Salmeterol and formoterol are long-acting; salbutamol and terbutaline are short-acting.
+1277|NEP|dx|Henoch-Schonlein purpura immunoglobulin deposition|IgA|IgG|IgE|HSP is IgA vasculitis with palpable purpura, abdominal pain, arthralgia and nephritis.
+1280|NEU|mech|Frontal eye field (Brodmann area)|Area 8|Area 4|Area 6|Area 8 controls voluntary eye movements; area 4 is primary motor and area 6 premotor.
+1282|OB|lab|Laboratory diagnosis of menopause|Serum FSH above 40 IU/L|Serum FSH below 40 IU/L|Serum LH above 20 IU/L|Menopause shows low estradiol with markedly raised FSH.
+1285|MIX|mech|Cohort study advantage|Can study multiple outcomes|Suitable for rare diseases|Inexpensive|A cohort follows exposed people and can examine several outcomes, but it is poor for rare diseases.
+1286|MIX|mech|Aspartate synthesis in the body|Transamination of oxaloacetate|Transamination of pyruvate|Removal of hydroxymethyl from serine|Aspartate comes from oxaloacetate by transamination; alanine comes from pyruvate.
+1287|ID|dx|Pasteurella multocida: usual transmission|Cat or dog bites and scratches|Aerosols|Person-to-person contact|Pasteurella is a common cause of cellulitis after animal bites.
+1289|MIX|mech|Transitional epithelium (urothelium) location|Urinary bladder|Esophagus|Trachea|Transitional epithelium lines the ureters and bladder and allows stretching.
+1292|MIX|dx|Red (hemorrhagic) infarct|Lung|Kidney|Heart|Red infarcts occur in loose tissues with dual supply, like lung and intestine; kidney, heart and spleen give pale infarcts.
+1293|MIX|mech|Tissue relying mainly on fatty acids for energy|Heart|Red blood cells|Brain|Cardiac muscle prefers fatty acids; red cells depend on glucose.
+1294|NEU|dx|Right frontal lobe lesion: gaze effect|Impaired left conjugate gaze|Impaired right conjugate gaze|Impaired upward gaze|A frontal eye field lesion deviates the eyes toward the lesion, so the patient cannot look to the opposite side.
+1298|NEU|dx|Winged scapula|Long thoracic nerve palsy (serratus anterior)|Lateral pectoral nerve palsy|Thoracodorsal nerve palsy|The long thoracic nerve supplies serratus anterior, which holds the scapula against the chest wall.
+1300|HEM|ph|Drug of choice for CML|Imatinib|Crizotinib|Ibrutinib|Imatinib inhibits the BCR-ABL tyrosine kinase.
+1303|GI|mg|Heller myotomy|Achalasia|Gastroesophageal reflux|Hiatus hernia|Heller cardiomyotomy treats achalasia; Nissen fundoplication treats reflux.
+1304|GI|dx|Most common extraintestinal manifestation of ulcerative colitis|Arthritis|Pyoderma gangrenosum|Episcleritis|Peripheral arthritis is the commonest extraintestinal complication of ulcerative colitis.
+1305|GI|mech|Taeniae coli|Large intestine (colon)|Jejunum|Ileum|Taeniae coli, haustra and appendices epiploicae are features of the colon.
+1306|OB|mg|Confirming preterm premature rupture of membranes|Sterile speculum exam|Digital examination|Urine culture|Speculum examination shows pooling of fluid; digital exams are avoided to limit infection.
+1307|HEM|mech|Beta-globin gene chromosome|Chromosome 11|Chromosome 16|Chromosome 7|Beta-globin is on chromosome 11; alpha-globin on 16.
+1310|ID|mech|Streptococcal spreading factor|Hyaluronidase|Streptolysin O|Streptolysin S|Hyaluronidase breaks down connective tissue hyaluronic acid.
+1312|MIX|lab|Feulgen stain|DNA|mRNA|Protein|The Feulgen reaction stains DNA in proportion to its amount.
+1314|NEU|dx|Prosopagnosia|Inability to recognize faces|Inability to perform fine movements|Inability to name colors|Prosopagnosia reflects inferior temporal (fusiform) lesions.

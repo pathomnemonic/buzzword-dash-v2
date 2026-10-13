@@ -11,7 +11,7 @@
  "url": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
  "author": "OpenStax (Rice University); quiz cards by Dx Dash",
  "version": "1.0.0",
- "count": 425,
+ "count": 421,
  "cards": [
   {
    "subj": "Endocrinology",
@@ -3442,28 +3442,6 @@
   {
    "subj": "Cardiology",
    "bw": [
-    "Tachycardia correlated with fever, anemia and hypoxia",
-    "State of excess thyroid hormone"
-   ],
-   "ans": "Hyperthyroidism",
-   "d": [
-    "Hypothyroidism",
-    "Hypothermia"
-   ],
-   "tp": "Other correlated causes include hypersecretion of catecholamines, some cardiomyopathies, valve disorders and acute radiation exposure.",
-   "ww": {
-    "Hypothyroidism": "Low thyroid hormone tends to slow the heart, not speed it.",
-    "Hypothermia": "Hypothermia slows the rate and strength of heart contractions."
-   },
-   "tags": [
-    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
-   ],
-   "source_ref": "19.4",
-   "evidence": "Many causes of tachycardia may be benign, but the condition may also be correlated with fever, anemia, hypoxia, hyperthyroidism, hypersecretion of catecholamines, some cardiomyopathies, some disorders of the valves, and acute exposure to radiation."
-  },
-  {
-   "subj": "Cardiology",
-   "bw": [
     "External cause of bradycardia",
     "Over-prescribed drugs that reduce heart rate"
    ],
@@ -3754,28 +3732,6 @@
    ],
    "source_ref": "19.4",
    "evidence": "Caffeine works by increasing the rates of depolarization at the SA node, whereas nicotine stimulates the activity of the sympathetic neurons that deliver impulses to the heart."
-  },
-  {
-   "subj": "Cardiology",
-   "bw": [
-    "High blood potassium",
-    "Heart becomes weak and flaccid and ultimately fails"
-   ],
-   "ans": "Hyperkalemia",
-   "d": [
-    "Hypokalemia",
-    "Hypernatremia"
-   ],
-   "tp": "Hypokalemia also leads to arrhythmias. Of sodium and potassium, potassium has the greater clinical significance.",
-   "ww": {
-    "Hypokalemia": "Low potassium leads to arrhythmias rather than a weak, flaccid heart.",
-    "Hypernatremia": "Severe hypernatremia may lead to fibrillation."
-   },
-   "tags": [
-    "OpenStax_AP::Cardiovascular::19_4_Cardiac_Physiology"
-   ],
-   "source_ref": "19.4",
-   "evidence": "Hypokalemia (low potassium levels) also leads to arrhythmias, whereas hyperkalemia (high potassium levels) causes the heart to become weak and flaccid, and ultimately to fail."
   },
   {
    "subj": "Cardiology",
@@ -4446,50 +4402,6 @@
   {
    "subj": "Cardiology",
    "bw": [
-    "Low blood volume",
-    "Bleeding, dehydration, vomiting, severe burns"
-   ],
-   "ans": "Hypovolemia",
-   "d": [
-    "Hypervolemia",
-    "Hypoxemia"
-   ],
-   "tp": "Patients may be asymptomatic until 10–20 percent of blood volume is lost. Treatment is IV fluid replacement.",
-   "ww": {
-    "Hypervolemia": "Hypervolemia is excess fluid volume.",
-    "Hypoxemia": "Hypoxemia is low arterial oxygen, not low volume."
-   },
-   "tags": [
-    "OpenStax_AP::Cardiovascular::20_2_Blood_Flow_Blood_Pressure_and_Resistance"
-   ],
-   "source_ref": "20.2",
-   "evidence": "Low blood volume, called hypovolemia, may be caused by bleeding, dehydration, vomiting, severe burns, or some medications used to treat hypertension."
-  },
-  {
-   "subj": "Cardiology",
-   "bw": [
-    "Excess fluid volume",
-    "Heart failure, cirrhosis, hyperaldosteronism"
-   ],
-   "ans": "Hypervolemia",
-   "d": [
-    "Hypovolemia",
-    "Ischemia"
-   ],
-   "tp": "It results from retention of water and sodium; treatment means reversing the cause.",
-   "ww": {
-    "Hypovolemia": "Hypovolemia is low blood volume.",
-    "Ischemia": "Ischemia is insufficient blood flow to a tissue, not excess volume."
-   },
-   "tags": [
-    "OpenStax_AP::Cardiovascular::20_2_Blood_Flow_Blood_Pressure_and_Resistance"
-   ],
-   "source_ref": "20.2",
-   "evidence": "Hypervolemia, excessive fluid volume, may be caused by retention of water and sodium, as seen in patients with heart failure, liver cirrhosis, some forms of kidney disease, hyperaldosteronism, and some glucocorticoid steroid treatments."
-  },
-  {
-   "subj": "Cardiology",
-   "bw": [
     "Primary determinant of vessel diameter",
     "Contractile state of vascular smooth muscle"
    ],
@@ -4663,6 +4575,52 @@
    "source_ref": "20.2",
    "evidence": "The term for this condition, atherosclerosis (athero- = “porridge”) describes the mealy deposits (Figure 20.14).",
    "round": 2
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Bleeding, dehydration, vomiting, severe burns",
+    "Silent until 10–20 percent of volume is lost"
+   ],
+   "ans": "Hypovolemia",
+   "d": [
+    "Hypervolemia",
+    "Hypoxemia"
+   ],
+   "tp": "Patients may be asymptomatic until 10–20 percent of blood volume is lost. Treatment is IV fluid replacement.",
+   "ww": {
+    "Hypervolemia": "Hypervolemia is excess fluid volume.",
+    "Hypoxemia": "Hypoxemia is low arterial oxygen, not low volume."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::20_2_Blood_Flow_Blood_Pressure_and_Resistance"
+   ],
+   "source_ref": "20.2",
+   "evidence": "Low blood volume, called hypovolemia, may be caused by bleeding, dehydration, vomiting, severe burns, or some medications used to treat hypertension.",
+   "round": 3
+  },
+  {
+   "subj": "Cardiology",
+   "bw": [
+    "Heart failure, cirrhosis, hyperaldosteronism",
+    "Water and sodium retention"
+   ],
+   "ans": "Hypervolemia",
+   "d": [
+    "Hypovolemia",
+    "Ischemia"
+   ],
+   "tp": "It results from retention of water and sodium; treatment means reversing the cause.",
+   "ww": {
+    "Hypovolemia": "Hypovolemia is low blood volume.",
+    "Ischemia": "Ischemia is insufficient blood flow to a tissue, not excess volume."
+   },
+   "tags": [
+    "OpenStax_AP::Cardiovascular::20_2_Blood_Flow_Blood_Pressure_and_Resistance"
+   ],
+   "source_ref": "20.2",
+   "evidence": "Hypervolemia, excessive fluid volume, may be caused by retention of water and sodium, as seen in patients with heart failure, liver cirrhosis, some forms of kidney disease, hyperaldosteronism, and some glucocorticoid steroid treatments.",
+   "round": 3
   },
   {
    "subj": "Cardiology",
@@ -8307,28 +8265,6 @@
   {
    "subj": "Nephrology",
    "bw": [
-    "Angiotensin II in blood loss or dehydration",
-    "Effect on the kidney"
-   ],
-   "ans": "GFR and renal blood flow fall",
-   "d": [
-    "GFR and renal blood flow rise",
-    "GFR rises while renal blood flow falls"
-   ],
-   "tp": "Angiotensin II constricts both afferent and efferent arterioles, limiting fluid loss and preserving blood volume.",
-   "ww": {
-    "GFR and renal blood flow rise": "That would increase fluid loss.",
-    "GFR rises while renal blood flow falls": "Both fall with angiotensin II."
-   },
-   "tags": [
-    "OpenStax_AP::Renal::25_8_Endocrine_Regulation_of_Kidney_Function"
-   ],
-   "source_ref": "25.8",
-   "evidence": "In instances of blood loss or dehydration, it reduces both GFR and renal blood flow, thereby limiting fluid loss and preserving blood volume."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
     "The “salt-retaining hormone”",
     "Released by the adrenal cortex",
     "Promotes K+ excretion"
@@ -8597,28 +8533,6 @@
   {
    "subj": "Nephrology",
    "bw": [
-    "Lower-than-normal blood sodium",
-    "Often excess water dilutes the sodium"
-   ],
-   "ans": "Hyponatremia",
-   "d": [
-    "Hypernatremia",
-    "Hypokalemia"
-   ],
-   "tp": "Causes also include sweating, vomiting, diarrhea, diuretics, diabetes and acidosis.",
-   "ww": {
-    "Hypernatremia": "Hypernatremia is an abnormally high blood sodium.",
-    "Hypokalemia": "Hypokalemia is a low blood potassium."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
-   ],
-   "source_ref": "26.3",
-   "evidence": "Hyponatremia is a lower-than-normal concentration of sodium, usually associated with excess water accumulation in the body, which dilutes the sodium."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
     "Hyponatremia",
     "Water enters cells by osmosis",
     "Effect on cells"
@@ -8638,29 +8552,6 @@
    ],
    "source_ref": "26.3",
    "evidence": "The excess water causes swelling of the cells; the swelling of red blood cells—decreasing their oxygen-carrying efficiency and making them potentially too large to fit through capillaries—along with the swelling of neurons in the brain can result in brain damage or even death."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
-    "Elevated blood potassium",
-    "Heart will not relax after contraction",
-    "Fatal within minutes"
-   ],
-   "ans": "Hyperkalemia",
-   "d": [
-    "Hypokalemia",
-    "Hypercalcemia"
-   ],
-   "tp": "It can also cause confusion, numbness and weakened respiratory muscles through partial depolarization of cell membranes.",
-   "ww": {
-    "Hypokalemia": "Low potassium hyperpolarizes neuron membranes and reduces their responses.",
-    "Hypercalcemia": "The seizing, non-relaxing heart is the described effect of high potassium."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
-   ],
-   "source_ref": "26.3",
-   "evidence": "Hyperkalemia, an elevated potassium blood level, also can impair the function of skeletal muscles, the nervous system, and the heart."
   },
   {
    "subj": "Nephrology",
@@ -8771,52 +8662,6 @@
    ],
    "source_ref": "26.3",
    "evidence": "Hypocalcemia, or abnormally low calcium blood levels, is seen in hypoparathyroidism, which may follow the removal of the thyroid gland, because the four nodules of the parathyroid gland are embedded in it."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
-    "Low blood phosphate",
-    "Heavy antacid use",
-    "Alcohol withdrawal and malnourishment"
-   ],
-   "ans": "Hypophosphatemia",
-   "d": [
-    "Hyperphosphatemia",
-    "Hypocalcemia"
-   ],
-   "tp": "The kidneys usually conserve phosphate when it is depleted, but this fails during starvation.",
-   "ww": {
-    "Hyperphosphatemia": "Hyperphosphatemia is high blood phosphate.",
-    "Hypocalcemia": "Hypocalcemia is low blood calcium."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
-   ],
-   "source_ref": "26.3",
-   "evidence": "Hypophosphatemia, or abnormally low phosphate blood levels, occurs with heavy use of antacids, during alcohol withdrawal, and during malnourishment."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
-    "High blood phosphate",
-    "Decreased renal function",
-    "Cell destruction dumps it into the ECF"
-   ],
-   "ans": "Hyperphosphatemia",
-   "d": [
-    "Hypophosphatemia",
-    "Hyperkalemia"
-   ],
-   "tp": "Phosphate is a major constituent of the ICF and of nucleic acids, so cell breakdown raises blood levels.",
-   "ww": {
-    "Hypophosphatemia": "Hypophosphatemia is low blood phosphate.",
-    "Hyperkalemia": "Hyperkalemia is high potassium, though cell destruction raises that too."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
-   ],
-   "source_ref": "26.3",
-   "evidence": "Hyperphosphatemia, or abnormally increased levels of phosphates in the blood, occurs if there is decreased renal function or in cases of acute lymphocytic leukemia."
   },
   {
    "subj": "Nephrology",
@@ -8952,67 +8797,94 @@
   {
    "subj": "Nephrology",
    "bw": [
-    "Time for blood chemical buffers to adjust pH"
+    "Excess water dilutes the blood sodium",
+    "Sweating, vomiting or diuretics can cause it"
    ],
-   "ans": "Seconds",
+   "ans": "Hyponatremia",
    "d": [
-    "Minutes",
-    "Hours to days"
+    "Hypernatremia",
+    "Hypokalemia"
    ],
-   "tp": "Buffers work in seconds, the respiratory tract in minutes, and the kidneys in hours to days.",
+   "tp": "Causes also include sweating, vomiting, diarrhea, diuretics, diabetes and acidosis.",
    "ww": {
-    "Minutes": "That is the speed of respiratory adjustment by exhaling CO2.",
-    "Hours to days": "That is the speed of renal adjustment."
+    "Hypernatremia": "Hypernatremia is an abnormally high blood sodium.",
+    "Hypokalemia": "Hypokalemia is a low blood potassium."
    },
    "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
    ],
-   "source_ref": "26.4",
-   "evidence": "It takes only seconds for the chemical buffers in the blood to make adjustments to pH."
+   "source_ref": "26.3",
+   "evidence": "Hyponatremia is a lower-than-normal concentration of sodium, usually associated with excess water accumulation in the body, which dilutes the sodium.",
+   "round": 3
   },
   {
    "subj": "Nephrology",
    "bw": [
-    "Exhaling CO2 raises blood pH",
-    "Time this takes"
+    "Partial depolarization of cardiac cells",
+    "Heart will not relax and may stop within minutes"
    ],
-   "ans": "Minutes",
+   "ans": "Hyperkalemia",
    "d": [
-    "Seconds",
-    "Hours to days"
+    "Hypokalemia",
+    "Hypercalcemia"
    ],
-   "tp": "Chemical buffers act within seconds and the renal system within hours to days.",
+   "tp": "It can also cause confusion, numbness and weakened respiratory muscles through partial depolarization of cell membranes.",
    "ww": {
-    "Seconds": "That is the speed of chemical buffers.",
-    "Hours to days": "That is the speed of renal compensation."
+    "Hypokalemia": "Low potassium hyperpolarizes neuron membranes and reduces their responses.",
+    "Hypercalcemia": "The seizing, non-relaxing heart is the described effect of high potassium."
    },
    "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
    ],
-   "source_ref": "26.4",
-   "evidence": "The respiratory tract can adjust the blood pH upward in minutes by exhaling CO2 from the body."
+   "source_ref": "26.3",
+   "evidence": "Hyperkalemia, an elevated potassium blood level, also can impair the function of skeletal muscles, the nervous system, and the heart.",
+   "round": 3
   },
   {
    "subj": "Nephrology",
    "bw": [
-    "Kidneys excrete H+ and conserve bicarbonate",
-    "Time to take effect"
+    "Heavy antacid use",
+    "Alcohol withdrawal and malnourishment"
    ],
-   "ans": "Hours to days",
+   "ans": "Hypophosphatemia",
    "d": [
-    "Seconds",
-    "Minutes"
+    "Hyperphosphatemia",
+    "Hypocalcemia"
    ],
-   "tp": "This is the slowest but most durable adjustment of blood pH.",
+   "tp": "The kidneys usually conserve phosphate when it is depleted, but this fails during starvation.",
    "ww": {
-    "Seconds": "That is the speed of chemical buffers.",
-    "Minutes": "That is the speed of respiratory adjustment."
+    "Hyperphosphatemia": "Hyperphosphatemia is high blood phosphate.",
+    "Hypocalcemia": "Hypocalcemia is low blood calcium."
    },
    "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
    ],
-   "source_ref": "26.4",
-   "evidence": "The renal system can also adjust blood pH through the excretion of hydrogen ions (H+) and the conservation of bicarbonate, but this process takes hours to days to have an effect."
+   "source_ref": "26.3",
+   "evidence": "Hypophosphatemia, or abnormally low phosphate blood levels, occurs with heavy use of antacids, during alcohol withdrawal, and during malnourishment.",
+   "round": 3
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Decreased renal function",
+    "Cell destruction dumps it into the ECF"
+   ],
+   "ans": "Hyperphosphatemia",
+   "d": [
+    "Hypophosphatemia",
+    "Hyperkalemia"
+   ],
+   "tp": "Phosphate is a major constituent of the ICF and of nucleic acids, so cell breakdown raises blood levels.",
+   "ww": {
+    "Hypophosphatemia": "Hypophosphatemia is low blood phosphate.",
+    "Hyperkalemia": "Hyperkalemia is high potassium, though cell destruction raises that too."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_3_Electrolyte_Balance"
+   ],
+   "source_ref": "26.3",
+   "evidence": "Hyperphosphatemia, or abnormally increased levels of phosphates in the blood, occurs if there is decreased renal function or in cases of acute lymphocytic leukemia.",
+   "round": 3
   },
   {
    "subj": "Nephrology",
@@ -9148,50 +9020,6 @@
   {
    "subj": "Nephrology",
    "bw": [
-    "Abnormally elevated blood CO2",
-    "Pneumonia, heart failure, morphine"
-   ],
-   "ans": "Hypercapnia",
-   "d": [
-    "Hypocapnia",
-    "Hypoxemia"
-   ],
-   "tp": "Hypoventilation from morphine, barbiturates, ethanol or holding the breath can cause it.",
-   "ww": {
-    "Hypocapnia": "Hypocapnia is abnormally low blood CO2.",
-    "Hypoxemia": "Hypoxemia is low arterial oxygen, not high CO2."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
-   ],
-   "source_ref": "26.4",
-   "evidence": "Hypercapnia, or abnormally elevated blood levels of CO2, occurs in any situation that impairs respiratory functions, including pneumonia and congestive heart failure."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
-    "Abnormally low blood CO2",
-    "Salicylate toxicity, fever, hysteria"
-   ],
-   "ans": "Hypocapnia",
-   "d": [
-    "Hypercapnia",
-    "Hypoxemia"
-   ],
-   "tp": "It occurs with any cause of hyperventilation that drives off CO2.",
-   "ww": {
-    "Hypercapnia": "Hypercapnia is elevated blood CO2.",
-    "Hypoxemia": "Hypoxemia is low arterial oxygen."
-   },
-   "tags": [
-    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
-   ],
-   "source_ref": "26.4",
-   "evidence": "Hypocapnia, or abnormally low blood levels of CO2, occurs with any cause of hyperventilation that drives off the CO2, such as salicylate toxicity, elevated room temperatures, fever, or hysteria."
-  },
-  {
-   "subj": "Nephrology",
-   "bw": [
     "Controls blood bicarbonate levels",
     "The metabolic part of acid-base balance"
    ],
@@ -9254,6 +9082,98 @@
    ],
    "source_ref": "26.4",
    "evidence": "A common early symptom of ketoacidosis is deep, rapid breathing as the body attempts to drive off CO2 and compensate for the acidosis."
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Pneumonia or heart failure impair breathing",
+    "Morphine or alcohol cause hypoventilation"
+   ],
+   "ans": "Hypercapnia",
+   "d": [
+    "Hypocapnia",
+    "Hypoxemia"
+   ],
+   "tp": "Hypoventilation from morphine, barbiturates, ethanol or holding the breath can cause it.",
+   "ww": {
+    "Hypocapnia": "Hypocapnia is abnormally low blood CO2.",
+    "Hypoxemia": "Hypoxemia is low arterial oxygen, not high CO2."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+   ],
+   "source_ref": "26.4",
+   "evidence": "Hypercapnia, or abnormally elevated blood levels of CO2, occurs in any situation that impairs respiratory functions, including pneumonia and congestive heart failure.",
+   "round": 3
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Salicylate toxicity, fever, hysteria",
+    "Hyperventilation drives off CO2"
+   ],
+   "ans": "Hypocapnia",
+   "d": [
+    "Hypercapnia",
+    "Hypoxemia"
+   ],
+   "tp": "It occurs with any cause of hyperventilation that drives off CO2.",
+   "ww": {
+    "Hypercapnia": "Hypercapnia is elevated blood CO2.",
+    "Hypoxemia": "Hypoxemia is low arterial oxygen."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+   ],
+   "source_ref": "26.4",
+   "evidence": "Hypocapnia, or abnormally low blood levels of CO2, occurs with any cause of hyperventilation that drives off the CO2, such as salicylate toxicity, elevated room temperatures, fever, or hysteria.",
+   "round": 3
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Fastest way the blood adjusts pH",
+    "Works in seconds"
+   ],
+   "ans": "Chemical buffers",
+   "d": [
+    "Respiratory system",
+    "Renal system"
+   ],
+   "tp": "Buffers act in seconds, the respiratory tract in minutes (by exhaling CO2), the kidneys in hours to days.",
+   "ww": {
+    "Respiratory system": "Exhaling CO2 adjusts pH in minutes, not seconds.",
+    "Renal system": "The kidneys take hours to days."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+   ],
+   "source_ref": "26.4",
+   "evidence": "It takes only seconds for the chemical buffers in the blood to make adjustments to pH.",
+   "round": 3
+  },
+  {
+   "subj": "Nephrology",
+   "bw": [
+    "Slowest pH adjustment",
+    "Excretes H+ and conserves bicarbonate"
+   ],
+   "ans": "Renal system",
+   "d": [
+    "Chemical buffers",
+    "Respiratory system"
+   ],
+   "tp": "The kidneys take hours to days but give the most lasting correction of blood pH.",
+   "ww": {
+    "Chemical buffers": "Chemical buffers act within seconds.",
+    "Respiratory system": "Exhaling CO2 adjusts pH within minutes."
+   },
+   "tags": [
+    "OpenStax_AP::Fluids_and_acid-base::26_4_Acid_Base_Balance"
+   ],
+   "source_ref": "26.4",
+   "evidence": "The renal system can also adjust blood pH through the excretion of hydrogen ions (H+) and the conservation of bicarbonate, but this process takes hours to days to have an effect.",
+   "round": 3
   },
   {
    "subj": "Nephrology",
