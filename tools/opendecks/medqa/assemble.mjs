@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-empty -- one-off conversion tool; kept for reproducibility */
 // Stage 3: turn the distilled batch files (b*.jsonl, one line per sample row) into deck cards, write the per-card
 // source passages (vignette + options + keyed answer) and run tools/opendecks/check.mjs on them.
 // Usage: node assemble.mjs <workdir with sample.json and b/> <out deck.json> [--source <passage dir>]

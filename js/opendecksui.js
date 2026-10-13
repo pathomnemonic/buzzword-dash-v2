@@ -7,6 +7,7 @@
 
 import { loadIndex, addDeck, getDeck, deckRecords, removeDeck, installed, credits, fmtSize, OPEN_DECKS_INTRO } from './opendecks.js';
 import { renderFilterPanel } from './ankifilterui.js';
+import { openExternal } from './platform.js';
 
 var C = {
   muted: 'var(--text-secondary, #aaa)',
@@ -39,7 +40,7 @@ function rememberIntro(closed) { try { localStorage.setItem(INTRO_KEY, closed ? 
  */
 export function renderOpenDecks(host, o) {
   var fetchFn = o.fetchFn || function (u, init) { return fetch(u, init); };
-  var open = o.openExternal || function (u) { window.open(u, '_blank', 'noopener,noreferrer'); };
+  var open = o.openExternal || openExternal;
   var destroyed = false;
   var decks = [];
   var busy = null; // {id, cancel: bool}

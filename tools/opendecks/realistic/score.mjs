@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-empty -- one-off conversion tool; kept for reproducibility */
 // Scores raw AI replies (as a player would paste them) with the app's own parser.
 // usage: node tools/opendecks/realistic/score.mjs [repliesDir] [promptsDir]
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';

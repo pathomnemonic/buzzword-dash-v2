@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-empty -- one-off conversion tool; kept for reproducibility */
 // Print batch N (size B) of the sample compactly for distillation: node view.mjs sample.json N [B=40]
 import { readFileSync } from 'node:fs';
 var s = JSON.parse(readFileSync(process.argv[2], 'utf8')), n = +process.argv[3], B = +(process.argv[4] || 40);

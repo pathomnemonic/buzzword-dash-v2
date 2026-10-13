@@ -102,7 +102,7 @@ describe('the importer screen', () => {
     expect(text).toMatch(/Copy AI prompt/);
     expect(text).toMatch(/Import quiz cards/);
     expect(text).not.toMatch(/Backend URL/i);
-    expect(box.querySelectorAll('details').length).toBe(3); // two how-tos and "why no automatic download"
+    expect(box.querySelectorAll('details').length).toBe(5); // two how-tos, "why no automatic download", and the Open decks blurb and credits
     ankiImport.unmount();
   });
 });
