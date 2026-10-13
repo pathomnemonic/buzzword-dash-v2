@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, no-empty -- one-off conversion tool; kept for reproducibility */
+/* eslint-disable no-unused-vars -- one-off conversion tool; kept for reproducibility */
 // Stage 2-3 builder: AI conversions (conv/*.txt, one line per sampled row) -> candidate cards in deck format 1.
 //   node tools/opendecks/medalpaca/build.mjs <workdir>      (workdir holds sample.json, conv/*.txt, optional ww.json)
 // conv line:  n|hint|answer|wrong1|wrong2[|S=Subj]   keep      n|X|reason   exclude
