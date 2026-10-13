@@ -1,0 +1,150 @@
+685|C. difficile causes pseudomembranous colitis after antibiotics.|C. botulinum causes a flaccid paralysis from preformed toxin.
+686|Hypercalcemia is a vitamin D toxicity feature.|Liver damage is a feature of vitamin A or niacin excess.
+691|The facial nerve is not part of the gag reflex arc.|The trigeminal nerve is not part of the gag arc.
+692|FIGLU is not a tyrosine intermediate.|FIGLU is not an alanine intermediate.
+695|Seizures are not a presenting feature of Friedreich ataxia.|Optic atrophy occurs later, if at all.
+696|Gardnerella dominates in bacterial vaginosis.|E. coli is a vaginal pathogen, not the protective flora.
+698|Albumin carries bilirubin but is not its source.|Transferrin carries iron, not bilirubin.
+699|Rickets causes bowing and rachitic rosary, not subperiosteal hemorrhage.|Vitamin A excess causes bone pain and hepatic damage, not scurvy-like bleeding.
+705|Group A strep is a rare neonatal pathogen.|Enterococcus faecalis is a later or nosocomial cause.
+706|Glioblastoma is not specific for NF1.|Bilateral vestibular schwannoma defines NF2.
+708|Naltrexone does not treat cocaine dependence.|Naltrexone is not an anorexia nervosa drug.
+711|DVT is assessed by ultrasound, not the Trendelenburg test.|Arterial insufficiency is assessed with ankle-brachial index.
+712|Latanoprost has no beta-blocking bronchospasm effect.|Acetazolamide is a carbonic anhydrase inhibitor, not a beta blocker.
+715|Spasticity is an upper motor neuron sign.|Hyperactive stretch reflexes are an upper motor neuron sign.
+717|Meropenem is hydrolyzed by NDM metallo-beta-lactamases.|Penicillins are hydrolyzed by beta-lactamases.
+719|Flumazenil reverses benzodiazepines.|Naloxone reverses opioids.
+721|Early decelerations reflect head compression and are benign.|Variable decelerations reflect cord compression.
+724|Upper esophageal perforation follows instrumentation.|Midesophageal rupture is less common.
+726|Anencephaly causes polyhydramnios.|Esophageal atresia causes polyhydramnios.
+729|Calcitriol is made from cholesterol.|Cortisol is made from cholesterol.
+730|Macrolides block the 50S ribosome.|Aminoglycosides block the 30S ribosome.
+738|Hydrogen peroxide is less reactive than the hydroxyl radical.|Superoxide is less reactive than hydroxyl radical.
+740|Dermatomyositis shows perifascicular atrophy.|Myasthenia gravis has a normal muscle biopsy.
+741|Femoral hernias cause groin swelling below the inguinal ligament.|Spigelian hernias occur lateral to the rectus.
+745|PGI2 inhibits platelet aggregation.|Nitric oxide inhibits platelet aggregation.
+746|Respiratory acidosis would give hypoventilation.|Metabolic alkalosis would give slow breathing.
+747|Carpal tunnel syndrome is tested by Phalen and Tinel signs.|Cubital tunnel syndrome is tested at the elbow.
+753|EMLA does not cause strong vasoconstriction.|EMLA gives sensory anesthesia, not a motor-only block.
+754|Naloxone reverses opioids.|Flumazenil reverses benzodiazepines.
+757|PDA is less common in Down syndrome.|Coarctation is not a typical Down lesion.
+759|ASD rarely reaches Eisenmenger syndrome.|PDA is a less common cause.
+762|Silicosis raises TB and lung cancer risk, not mesothelioma.|Anthracosis is benign carbon deposition.
+763|Granulosa cell tumors have Call-Exner bodies.|Choriocarcinoma has syncytiotrophoblast and hCG.
+772|ASD gives a fixed split S2 and no leg claudication.|PDA gives a continuous murmur.
+776|Collagen defects cause Ehlers-Danlos or osteogenesis imperfecta.|Integrin defects cause Glanzmann thrombasthenia and leukocyte adhesion deficiency.
+777|BRCA2 is on chromosome 13.|Chromosome 22 holds the BCR gene.
+780|The right second space is the aortic area.|The left second space is the pulmonic area.
+782|The masseter closes the jaw.|The temporalis closes the jaw.
+784|Infracardiac TAPVC is the least common type.|Cardiac TAPVC is less common than supracardiac.
+789|The ulnar artery is at the wrist but not in the snuffbox.|The brachial artery is at the elbow.
+797|Vincristine causes neuropathy.|Methotrexate causes mucositis and marrow suppression.
+799|Phenytoin does not control JME well.|Carbamazepine can worsen myoclonus.
+800|PID causes fever and cervical motion tenderness.|Appendicitis has fever, migration and leukocytosis.
+801|FSHD has facial and shoulder weakness without calf enlargement.|Myotonic dystrophy has myotonia and wasting.
+803|Plasma is not the first-line resuscitation fluid.|Platelets are not used for burn fluid loss.
+806|Rifampin colors body fluids orange.|Dapsone causes hemolysis and methemoglobinemia.
+808|Mumps gives parotid swelling.|Tuberculous lymphadenitis is usually unilateral and chronic.
+810|Placenta previa bleeding is maternal.|Succenturiate placenta is an accessory lobe that may cause bleeding.
+811|Albendazole is for most intestinal nematodes.|Praziquantel is for flukes and tapeworms.
+813|Thiamine is a decarboxylase cofactor.|Vitamin E is an antioxidant.
+816|The laminated membrane is acellular.|The adventitia is the host reaction.
+819|Amiodarone is for ventricular or refractory arrhythmias.|Lidocaine is for ventricular arrhythmias.
+821|Hypouricemia would be the opposite effect.|Fructose does not cause hypoglycemia in normal subjects.
+822|Pontine hemorrhage is a smaller fraction.|Cerebellar hemorrhage is less frequent.
+824|Koplik spots belong to measles.|Rose spots belong to typhoid.
+825|Astrocytes support the blood-brain barrier.|Oligodendrocytes myelinate CNS axons.
+832|Amantadine is ineffective against H1N1.|Rimantadine is ineffective against H1N1.
+833|Hairy cell leukemia is not T-cell.|It is not myeloid.
+834|mtDNA is not single-stranded.|mtDNA is not linear.
+838|Apical nodes are the final axillary group.|Paratracheal nodes drain the medial breast to the mediastinum.
+839|G1 prepares for S phase.|G2 prepares for mitosis.
+847|Volume of distribution determines the loading dose.|Bioavailability adjusts oral dose.
+848|TSH and ACTH come from basophils.|FSH and LH come from basophils.
+849|Retained products are a later cause.|Trauma is a less common cause.
+850|Methimazole is teratogenic in the first trimester.|Radioactive iodine is contraindicated.
+854|The lingual nerve carries general sensation from the anterior two-thirds.|The hypoglossal nerve is motor.
+856|Influenza has hemagglutinin and neuraminidase.|Parainfluenza has HN protein.
+857|Coagulative necrosis is seen in most solid organ infarcts.|Caseous necrosis is seen in TB.
+859|Tay-Sachs is less common.|Wolman disease is rare.
+861|Orthostatic hypotension is treated by midodrine.|Angina is treated by nitrates.
+862|Cubitus varus follows supracardiac fractures.|Tennis elbow is lateral epicondylitis.
+868|Papillary RCC is less common.|Medullary carcinoma is rare.
+869|Ethosuximide is not for tonic-clonic seizures.|Ethosuximide is not for myoclonic seizures.
+871|Asthma does not cause abscess.|Pulmonary hypertension does not cause abscess.
+873|Vacuolating cytotoxin damages cells.|CagA is a virulence factor.
+876|The lateral cord gives musculocutaneous and median.|The medial cord gives ulnar and median.
+878|Aldolase is a glycolytic enzyme.|Glycogen phosphorylase breaks glycogen.
+879|Chest rise can be misleading.|Auscultation can be misleading.
+882|Hydrocortisone is short-acting.|Prednisolone is intermediate-acting.
+886|ST acts through guanylate cyclase.|Shiga toxin inhibits protein synthesis.
+887|Staph infections are not tracked with anti-DNase B.|Diphtheria is not tracked with anti-DNase B.
+889|Infection is second.|Malignancy is third.
+890|The short arm of chromosome 7 does not hold CFTR.|Chromosome 5 holds APC.
+892|Metoclopramide causes EPS.|Omeprazole does not prolong QT.
+896|The amygdala handles emotional memory.|The prefrontal cortex handles working memory.
+899|Open choledocholithotomy is more invasive.|Percutaneous removal is less common.
+900|Colorectal carcinoma shows CDX2 and CK20.|Renal cell carcinoma shows PAX8 and CD10.
+901|No treatment risks infection.|Full treatment is for active disease.
+904|The body is less often involved.|The tail is less often involved.
+910|Agglutination tests include Widal.|Precipitation tests include VDRL flocculation.
+911|Ectopic pregnancy shows adnexal mass.|Missed abortion shows a nonviable fetus.
+912|Carbaminohemoglobin is about 20%.|Dissolved CO2 is about 7%.
+915|Panacinar emphysema is lower lobe.|Paraseptal emphysema is subpleural.
+920|Gram stain does not separate them.|Catalase is negative for both.
+921|Tyrosine aminotransferase deficiency is type II.|Homogentisate oxidase deficiency is alkaptonuria.
+922|Plaque rupture causes thrombosis.|Aneurysm thrombosis is less common.
+923|AF is not the usual terminal rhythm.|AV block is a less frequent cause.
+924|Spherocytosis causes anemia without dactylitis.|Iron deficiency does not cause dactylitis.
+926|Rheumatoid arthritis does not metastasize.|Congenital defects do not appear as nodules.
+927|ITP is less common.|Preeclampsia is less common.
+928|Receptors are not the basis.|Hormone levels are not the basis.
+934|Behcet disease has oral ulcers.|Lyme arthritis follows tick bite.
+937|Serratia anterior paralysis causes winging.|Deltoid paralysis causes loss of abduction.
+939|Kala-azar has fever and splenomegaly.|Sleeping sickness has Winterbottom sign.
+940|Articular cartilage is hyaline.|Costal cartilage is hyaline.
+942|Aminoacyl synthetase charges tRNA.|Peptidase cleaves peptides.
+943|IgG FTA-ABS can reflect maternal antibodies.|VDRL IgG can reflect maternal antibodies.
+945|C. perfringens has box-car rods.|C. histolyticum is proteolytic.
+946|G2/M arrest involves 14-3-3.|S/G2 is not the p53 checkpoint.
+948|Mumps has parotitis.|Rubella has lymphadenopathy.
+949|H+ secretion is not increased.|Biotransformation is hepatic.
+955|DiGeorge is congenital.|Parathyroid hypoplasia is congenital.
+956|Megaloblastic anemia is aspirated easily.|Thalassemia is aspirated easily.
+958|The pouch of Douglas is peritoneal.|The uterovesical pouch is peritoneal.
+959|Umbilical hernia is a congenital feature.|Neonatal jaundice is a congenital feature.
+960|Antidepressants have less EPS.|Antiepileptics have less EPS.
+961|The seminal vesicle has no corpora amylacea.|The thymus has Hassall corpuscles.
+963|Proline is common but not the most.|Phenylalanine is rare.
+965|Cecal volvulus is second.|Gastric volvulus is rare.
+969|Mucoepidermoid carcinoma is mixed.|Pleomorphic adenoma is benign.
+972|Vaccine alone is insufficient.|Isolation does not protect.
+977|Klebsiella is urease positive but not breath-test target.|Ureaplasma is urease positive but not breath-test target.
+980|Rifampin resistance is via rpoB.|Ethambutol resistance is via embB.
+981|Superficial BCC is less common.|Pigmented BCC is less common.
+982|Malonate inhibits complex II.|Oligomycin inhibits ATP synthase.
+984|Platelet aggregation requires fibrinogen.|Fibrinolysis is plasmin.
+985|Benzoyl peroxide is for mild acne.|Azelaic acid is for mild acne.
+987|Ketamine causes emergence reactions.|Enflurane can cause seizures.
+989|Thirst relief is subjective.|PaO2 is not perfusion.
+997|Vitamin C is not bound by avidin.|Pyridoxine is not bound by avidin.
+998|Cytotoxic T cells are adaptive.|Memory B cells are adaptive.
+1001|Sensory neuropathy is not a feature.|Motor neuropathy is not a feature.
+1002|Foramen ovale transmits V3.|Foramen rotundum transmits V2.
+1003|Rubella causes congenital syndrome.|Mumps causes parotitis.
+1004|Metacercariae infect for other flukes.|Miracidia infect snails.
+1017|Desflurane does not cause seizures.|Halothane does not cause seizures.
+1020|Stretch reflexes return later.|Crossed extensor reflex returns later.
+1021|HAV is usually benign.|HCV rarely causes fulminant hepatitis.
+1025|CT chest does not show shunt.|Plethysmography tests DVT.
+1026|Flaviviridae include dengue.|Bunyaviridae include hantavirus.
+1027|Thrombocytopenia has normal PT.|Aspirin has normal PT.
+1030|Western blot is positive later.|Biopsy is not used.
+1037|Proctosigmoidoscopy sees only the rectum.|Barium enema does not treat bleeding.
+1038|Aortic arch is a later site.|Hiatus is a later site.
+1039|Schizophrenia has delusions.|Depression has low mood.
+1040|Ligases need ATP.|Hydrolases use water.
+1041|S gene encodes HBsAg.|C gene encodes core.
+1042|Cheek advancement uses other vessels.|Forehead flaps use supratrochlear.
+1043|Beta blockers may worsen spasm.|High-dose aspirin may worsen spasm.
+1045|Type I is IgE mediated.|Type III is immune complex.

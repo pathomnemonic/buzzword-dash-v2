@@ -422,7 +422,9 @@ export class FlashcardMode {
       distractors: card.d || [],
       whyWrong: whyWrong,
       pearls: card.pearls || [],
-      exception: card.exception || null
+      exception: card.exception || null,
+      // an Open deck card's one-line credit ("OpenStax A&P, CC BY 4.0")
+      attribution: card.attr || ''
     };
   }
 

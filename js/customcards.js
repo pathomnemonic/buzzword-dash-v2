@@ -598,7 +598,7 @@ export var customCards = {
       }
       if (at >= 0) {
         var old = cards[at];
-        if (old.bw[0] === card.bw[0] && old.ans === card.ans && old.tp === card.tp && _sameTags(old.tags, card.tags) && old.subj === card.subj) {
+        if (old.bw[0] === card.bw[0] && old.ans === card.ans && old.tp === card.tp && _sameTags(old.tags, card.tags) && old.subj === card.subj && _sameBody(old, card)) {
           out.unchanged++;
         } else {
           cards[at] = card;
@@ -922,6 +922,11 @@ export var customCards = {
   }
 };
 
+/** Same clues, wrong answers, explanations and deck provenance (an Open deck update that only improves the wrong answers still counts as a change). */
+function _sameBody(a, b) {
+  return JSON.stringify([a.bw, a.d, a.ww, a.deck || '', a.attr || '', a.source || '']) === JSON.stringify([b.bw, b.d, b.ww, b.deck || '', b.attr || '', b.source || '']);
+}
+
 /** Equal tag lists (both missing counts as equal). */
 function _sameTags(a, b) {
   var x = a || [];
@@ -955,6 +960,12 @@ function _buildCardFromInput(cardData) {
     if (tags.length) card.tags = tags;
   }
   if (typeof cardData.key === 'string' && cardData.key) card.ak = cardData.key.slice(0, 120);
+  // An Open deck card remembers which deck it came from (so the deck can be updated or removed as a unit), its one-line
+  // attribution (shown on the card), the passage it was written from and, optionally, the subject discipline.
+  if (typeof cardData.deck === 'string' && cardData.deck) card.deck = cardData.deck.slice(0, 40);
+  if (typeof cardData.attr === 'string' && cardData.attr) card.attr = cardData.attr.slice(0, 160);
+  if (typeof cardData.sref === 'string' && cardData.sref) card.sref = cardData.sref.slice(0, 40);
+  if (typeof cardData.discipline === 'string' && cardData.discipline) card.source = cardData.discipline;
 
   if (cardData.whyWrong1 && card.d[0]) {
     card.ww[card.d[0]] = cardData.whyWrong1;

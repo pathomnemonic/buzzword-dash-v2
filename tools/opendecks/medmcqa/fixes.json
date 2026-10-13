@@ -1,0 +1,458 @@
+{
+"2": {
+"bw": [
+"Metastatic gastrinoma",
+"Best localizing scan"
+],
+"ans": "Octreotide scan"
+},
+"39": {
+"ans": "Left gastric, inferior phrenic"
+},
+"92": {
+"bw": [
+"Airway smooth muscle hyperplasia",
+"Airway remodeling"
+]
+},
+"110": {
+"drop": "unsupported after rewrite"
+},
+"111": {
+"bw": [
+"2-Mercaptoethanol",
+"Cleaves disulfide bonds",
+"Immunoglobulin"
+],
+"ans": "H and L chains",
+"d": [
+"Fab and Fc fragments",
+"F(ab')2 fragments"
+]
+},
+"129": {
+"bw": [
+"HHH syndrome",
+"Hyperornithinemia",
+"Hyperammonemia"
+],
+"ans": "Ornithine permease"
+},
+"136": {
+"bw": [
+"Proliferative breast lesion",
+"Moderately raised cancer risk"
+]
+},
+"153": {
+"bw": [
+"Lamivudine",
+"Drug class"
+],
+"d": [
+"Integrase inhibitor",
+"Protease inhibitor"
+]
+},
+"180": {
+"bw": [
+"Urine protein",
+"Precipitates on warming",
+"Redissolves on boiling"
+]
+},
+"226": {
+"bw": [
+"Warm freshwater swimming",
+"Cribriform plate entry",
+"Fatal meningoencephalitis"
+]
+},
+"277": {
+"drop": "evidence not one sentence"
+},
+"284": {
+"ans": "Radial side, middle phalanges"
+},
+"298": {
+"bw": [
+"Opioid-induced constipation",
+"Peripheral mu antagonist"
+]
+},
+"306": {
+"bw": [
+"Hemophilia A",
+"Moderate to severe",
+"Commonest bleeding site"
+]
+},
+"320": {
+"bw": [
+"Vitamin K",
+"Post-translational modification",
+"Factors II, VII, IX, X"
+],
+"ans": "Gamma-carboxylation"
+},
+"329": {
+"bw": [
+"Immunosuppressed host",
+"Hyperinfection",
+"Autoinfection"
+]
+},
+"332": {
+"bw": [
+"Quadrangular space",
+"Nerve passing through it"
+],
+"ans": "Axillary nerve",
+"d": [
+"Radial nerve",
+"Suprascapular nerve"
+]
+},
+"361": {
+"bw": [
+"Sumatriptan",
+"Vasoconstricting antimigraine drug"
+],
+"ans": "Ischemic vascular disease"
+},
+"368": {
+"bw": [
+"Congenital hypothyroidism",
+"Iodine-sufficient area",
+"Most common cause"
+]
+},
+"381": {
+"bw": [
+"Hepatopancreatic ampulla",
+"Duodenal part it opens into"
+],
+"ans": "Descending (second) part"
+},
+"409": {
+"ans": "Schizotypal",
+"d": [
+"Schizoid",
+"Paranoid"
+]
+},
+"426": {
+"bw": [
+"Clomiphene",
+"Ovulation induction",
+"Mechanism"
+],
+"ans": "Anti-estrogen",
+"d": [
+"Anti-progesterone",
+"Anti-androgen"
+]
+},
+"429": {
+"bw": [
+"Uterine tumor",
+"Carcinoma plus sarcoma elements"
+],
+"ans": "Malignant mixed Mullerian tumor"
+},
+"622": {
+"bw": [
+"Consumptive coagulopathy",
+"Obstetric cause"
+]
+},
+"676": {
+"bw": [
+"Reverse cholesterol transport",
+"Periphery to liver"
+]
+},
+"687": {
+"drop": "answer is a list; options differ only by direction"
+},
+"699": {
+"bw": [
+"Infant refuses to move limb",
+"Painful subperiosteal bleeds"
+],
+"ans": "Scurvy",
+"d": [
+"Rickets",
+"Hypervitaminosis A"
+]
+},
+"766": {
+"drop": "sentence answers"
+},
+"771": {
+"drop": "options differ only by direction"
+},
+"776": {
+"bw": [
+"Hereditary spherocytosis",
+"Membrane cytoskeleton defect"
+],
+"ans": "Spectrin deficiency"
+},
+"778": {
+"drop": "definition question"
+},
+"784": {
+"bw": [
+"TAPVC",
+"Most common type"
+]
+},
+"797": {
+"bw": [
+"Vacuolar degeneration",
+"Myofibrillar loss",
+"Cardiomyopathy"
+],
+"ans": "Doxorubicin"
+},
+"854": {
+"bw": [
+"Posterior third of tongue",
+"General sensation and taste"
+]
+},
+"862": {
+"bw": [
+"Tardy ulnar palsy",
+"Late-onset elbow deformity"
+],
+"ans": "Cubitus valgus",
+"d": [
+"Cubitus varus",
+"Tennis elbow"
+]
+},
+"954": {
+"drop": "evidence not one sentence"
+},
+"972": {
+"bw": [
+"Newborn of HBsAg-positive mother",
+"Within 12 hours"
+],
+"ans": "HBIG plus vaccine",
+"d": [
+"Vaccine alone later",
+"Isolation only"
+]
+},
+"980": {
+"bw": [
+"InhA overexpression",
+"Isoniazid cross-resistance"
+]
+},
+"984": {
+"bw": [
+"von Willebrand factor",
+"Binds GPIb",
+"Carries factor VIII"
+],
+"ans": "Platelet adhesion"
+},
+"1020": {
+"d": [
+"Stretch reflex",
+"Crossed extensor reflex"
+]
+},
+"1030": {
+"bw": [
+"Acute HIV",
+"Window period",
+"Best test"
+],
+"ans": "p24 antigen assay"
+},
+"1042": {
+"bw": [
+"Abbe-Estlander flap",
+"Lip reconstruction"
+],
+"ans": "Lip-switch flap",
+"d": [
+"Cheek advancement flap",
+"Forehead flap"
+]
+},
+"1098": {
+"bw": [
+"Intrinsic laryngeal muscles",
+"Except cricothyroid"
+]
+},
+"1149": {
+"bw": [
+"Renovascular hypertension",
+"Worsens renal function"
+]
+},
+"1194": {
+"bw": [
+"Liley curve",
+"Amniotic fluid bilirubin"
+],
+"ans": "Rh isoimmunization"
+},
+"1204": {
+"bw": [
+"Pancreas divisum",
+"Embryologic basis"
+],
+"ans": "Failure of bud fusion",
+"d": [
+"Duplication of pancreas",
+"Annular pancreas"
+]
+},
+"1210": {
+"drop": "unsupported after rewrite"
+},
+"1215": {
+"bw": [
+"Medullary thyroid carcinoma",
+"Surgical treatment"
+],
+"ans": "Total thyroidectomy"
+},
+"1233": {
+"bw": [
+"Orthomyxovirus",
+"Antigenic drift and shift",
+"Annual vaccine"
+]
+},
+"1243": {
+"bw": [
+"Fish bone in piriform fossa",
+"Nerve injured"
+]
+},
+"1257": {
+"bw": [
+"Danazol",
+"Benign breast disease"
+],
+"d": [
+"Breast abscess",
+"Fibroadenoma"
+]
+},
+"1287": {
+"bw": [
+"Pasteurella multocida",
+"Usual route"
+],
+"ans": "Animal bites",
+"d": [
+"Aerosol inhalation",
+"Person-to-person spread"
+]
+},
+"1298": {
+"bw": [
+"Winged scapula",
+"Serratus anterior weakness"
+],
+"ans": "Long thoracic nerve palsy"
+},
+"1304": {
+"bw": [
+"Ulcerative colitis",
+"Commonest extraintestinal complication"
+]
+},
+"1356": {
+"bw": [
+"Recurrent fasting hypoglycemia",
+"Hepatomegaly"
+],
+"ans": "Von Gierke disease"
+},
+"1366": {
+"drop": "options differ only by direction"
+},
+"6": {
+"drop": "options differ only by direction"
+},
+"667": {
+"drop": "options differ only by direction"
+},
+"1138": {
+"drop": "options differ only by direction"
+},
+"307": {
+"drop": "options differ only by direction"
+},
+"143": {
+"drop": "options differ only by direction"
+},
+"539": {
+"drop": "options differ only by direction"
+},
+"770": {
+"drop": "options differ only by direction"
+},
+"1371": {
+"drop": "options differ only by direction"
+},
+"386": {
+"ans": "Cholinesterase inhibition",
+"d": [
+"NMDA blockade",
+"Dopamine agonism"
+],
+"bw": [
+"Donepezil",
+"Rivastigmine",
+"Galantamine"
+]
+},
+"164": {
+"d": [
+"Hyperkalemia",
+"Hypernatremia"
+]
+},
+"156": {
+"d": [
+"Testosterone to DHT",
+"Cholesterol to pregnenolone"
+]
+},
+"1282": {
+"drop": "options differ only by direction"
+},
+"1267": {
+"drop": "options differ only by direction"
+},
+"1246": {
+"drop": "contested most-common claim"
+},
+"5": {
+"drop": "uncertain key"
+},
+"1107": {
+"drop": "ambiguous antagonism type"
+},
+"1314": {
+"drop": "weak distractors"
+},
+"1074": {
+"drop": "obscure"
+},
+"1338": {
+"drop": "implausible distractor"
+}
+}

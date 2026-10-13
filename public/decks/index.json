@@ -1,0 +1,21 @@
+{
+ "format": 1,
+ "decks": [
+  {
+   "id": "openstax-ap-1e",
+   "title": "OpenStax A&P: heart, vessels, lungs, kidney, hormones",
+   "source": "OpenStax Anatomy & Physiology (1st ed.)",
+   "licence": {
+    "name": "CC BY 4.0",
+    "url": "https://creativecommons.org/licenses/by/4.0/"
+   },
+   "attribution": "Adapted from OpenStax, Anatomy and Physiology (1st edition), Rice University, CC BY 4.0. Download for free at https://openstax.org/details/books/anatomy-and-physiology. Quiz cards were written by an AI from the book text and checked by software; they are not reviewed by a clinician and may contain mistakes. The OpenStax name and logo are trademarks of Rice University.",
+   "url": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
+   "author": "OpenStax (Rice University); quiz cards by Dx Dash",
+   "version": "1.0.0",
+   "count": 333,
+   "size": 254556,
+   "file": "openstax-ap-1e.json"
+  }
+ ]
+}

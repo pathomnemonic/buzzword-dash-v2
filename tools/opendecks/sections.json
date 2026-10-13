@@ -134,7 +134,8 @@
     "attribution": "Adapted from OpenStax, Anatomy and Physiology (1st edition), Rice University, CC BY 4.0. Download for free at https://openstax.org/details/books/anatomy-and-physiology. Quiz cards were written by an AI from the book text and checked by software; they are not reviewed by a clinician and may contain mistakes. The OpenStax name and logo are trademarks of Rice University.",
     "url": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
     "author": "OpenStax (Rice University); quiz cards by Dx Dash",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "discipline": "physiology"
   },
   "tagRoots": {
     "17": "Endocrine",

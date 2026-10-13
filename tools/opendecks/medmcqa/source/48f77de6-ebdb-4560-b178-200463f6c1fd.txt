@@ -1,0 +1,1 @@
+FIGLU is metabolite in the histidine metabolism. Histidine is first non-oxidatively deaminated by histidase to form urocanic acid (step1). It is then hydrated to imidazolinone propionic acid (step 2) and then hydrolyzed to formimino glutamic acid (FIGLU) (step 3). Histidine ---->FIGLU------->Formimino THF Ref: DM Vasudevan - Textbook of Biochemistry, 8th edition, page no: 297

@@ -29,6 +29,7 @@ import { track } from './analytics/index.js';
 import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply, POPULAR_DECKS, POPULAR_DECK_STEPS, NO_AUTO_DOWNLOAD } from './importguide.js';
 import { copyText, openExternal } from './platform.js';
 import { renderFilterPanel } from './ankifilterui.js';
+import { renderOpenDecks } from './opendecksui.js';
 import { guessSubject } from './ankitags.js';
 import { stripHtml, hashKey, splitTags, noteRecords, clozeCards, parseCloze, isMediaOnly } from './ankinotes.js';
 import { readApkg, friendlyApkgMessage, MAX_PARSED_CARDS } from './apkgparse.js';
@@ -47,6 +48,7 @@ var _dependencies = null;
 var _parsedCards = null;
 var _abortController = null;
 var _readJob = null; // the .apkg being read right now (see apkgclient.js)
+var _openDecks = null; // the Open decks list (see opendecksui.js)
 
 // ===== BOM HANDLING =====
 
@@ -751,6 +753,7 @@ function mount(container, dependencies) {
 function unmount() {
   _mounted = false;
   _parsedCards = null;
+  if (_openDecks) { try { _openDecks.destroy(); } catch (e) { /* already gone */ } _openDecks = null; }
 
   if (_readJob) { try { _readJob.cancel(); } catch (e) { /* already finished */ } _readJob = null; }
   if (_abortController) {
@@ -788,6 +791,10 @@ function _renderUI() {
   var section = _el('div', { className: 'anki-import-section' });
   section.appendChild(_el('h4', { text: '📥 Bring in your own cards' }));
   section.appendChild(_el('p', { text: 'Two ways in. Pick one; both take a minute.', style: muted }));
+
+  // ----- Open decks: ready-made decks under open licences, one tap, no login (js/opendecksui.js) -----
+  var openDecksHost = _el('div', { className: 'open-decks-host' });
+  section.appendChild(openDecksHost);
 
   // ----- Popular decks: where to get them, then pick the tags you want -----
   var popular = _el('div', { className: 'anki-popular', style: { margin: '10px 0 14px' } });
@@ -988,6 +995,13 @@ function _renderUI() {
       hardLimit: cc && cc.getHardLimit ? cc.getHardLimit() : MAX_CARDS_PER_IMPORT,
       setLimit: function (n) { return cc && cc.setLimit ? cc.setLimit(n) : n; }
     };
+  }
+
+  if (_dependencies && _dependencies.customCards) {
+    _openDecks = renderOpenDecks(openDecksHost, {
+      customCards: _dependencies.customCards, toast: _dependencies.toast, openExternal: openExternal, storeInfo: storeInfo,
+      scrollToImporter: function () { if (popular.scrollIntoView) popular.scrollIntoView({ block: 'start' }); }
+    });
   }
 
   function showReadProgress(stage, done, total) {

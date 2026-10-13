@@ -217,7 +217,7 @@ export function duplicateOf(a, b) {
 }
 
 function readPassage(dir, ref) {
-  if (!dir || !ref || !/^[\w.\-]+$/.test(ref)) return null;
+  if (!dir || !ref || !/^[\w.-]+$/.test(ref)) return null;
   const f = join(dir, ref + '.txt');
   return existsSync(f) ? readFileSync(f, 'utf8') : null;
 }

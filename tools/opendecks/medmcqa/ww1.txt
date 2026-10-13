@@ -1,0 +1,150 @@
+2|Transabdominal ultrasound misses small and metastatic gastrinomas.|The acid-output ratio supports the diagnosis but does not localize tumor.
+4|Rectal prolapse is treated by rectopexy, not a bladder-neck plication.|A vesicovaginal fistula is repaired by closing the tract, not by Kelly's plication.
+5|Primordial follicles are depleted at menopause.|Corpora lutea only form after ovulation, which stops at menopause.
+7|Elastin mutations cause supravalvular aortic stenosis and cutis laxa.|Alpha-tropomyosin is a rarer HCM gene (about 5% of families).
+8|IgA nephropathy has no pulmonary hemorrhage and no anti-GBM antibodies.|Minimal change disease is a nephrotic syndrome without anti-GBM antibodies.
+11|CML is treated with imatinib, not trastuzumab.|Trastuzumab is not a melanoma drug; melanoma uses checkpoint and BRAF inhibitors.
+12|Clonidine does not cause a positive Coombs test.|Hydralazine causes drug-induced lupus, not autoimmune hemolysis.
+13|Chadwick sign is a bluish discoloration of the vagina and cervix.|Goodell sign is softening of the cervix, not the lower segment.
+15|Fat necrosis is a painless firm lump after trauma, not a cord-like vein.|Lymphadenitis is inflamed lymph nodes, not a thrombosed superficial vein.
+18|Cholera gives watery rice-water diarrhea, not dysentery.|ETEC causes watery traveler's diarrhea, not bloody dysentery.
+19|Serotonin is not the mediator of the Lewis triple response.|Dopamine is a neurotransmitter and plays no role in the triple response.
+22|The posterior division supplies the gluteal and sacral territory and is spared in ligation.|The common iliac artery is not ligated for PPH, which would devascularize the leg.
+24|GABA is an inhibitory transmitter, not the hair cell transmitter.|Glycine is an inhibitory spinal and brainstem transmitter, not the hair cell transmitter.
+28|Pale glycolytic fibers are type II (fast-twitch).|Large, fast-twitch fibers are type II; type I fibers are small.
+37|Brown-Sequard syndrome is a cord hemisection with ipsilateral motor and contralateral pain loss.|Tabes dorsalis damages the dorsal columns, causing ataxia and loss of vibration sense.
+38|Bladder cancer is linked to smoking, aniline dyes and Schistosoma.|Gastric cancer is linked to H. pylori, nitrates and diet, not radon.
+39|The inferior thyroid artery feeds the cervical esophagus.|Bronchial arteries and the aorta supply the thoracic esophagus.
+40|Acid maltase deficiency is Pompe disease, with cardiomegaly.|Branching enzyme deficiency is Andersen disease, with liver cirrhosis.
+42|Lobar consolidation is bacterial pneumonia, not diffuse alveolar injury.|Interstitial granulomas are seen in sarcoidosis or hypersensitivity pneumonitis.
+45|Maternal anemia is not linked to caudal regression.|Maternal hypertension is not the recognized cause of caudal regression.
+46|Epidural hematoma follows trauma, with a lucid interval.|Subdural hematoma is a subacute bridging-vein bleed, usually after trauma, not a thunderclap.
+47|The ulnar nerve does not supply the pronators.|The radial nerve supplies supinator, not the pronators.
+49|Extended breech is a presentation, not a sign at delivery of the head.|Anencephaly is a neural tube defect with no neck sign.
+51|G cells secrete gastrin, not acid.|Chief cells secrete pepsinogen.
+52|p-ANCA (anti-MPO) is seen in microscopic polyangiitis and EGPA.|ANA is a screening antibody for SLE and other connective tissue diseases.
+55|The vestibulocerebellum controls balance and eye movements.|The spinocerebellum regulates ongoing movement and muscle tone.
+56|Progesterone makes cervical mucus thick and abolishes ferning.|FSH acts on follicles and does not directly cause ferning.
+57|Poststreptococcal GN follows pharyngitis by 1-3 weeks, not 1-2 days.|Minimal change disease presents with nephrotic syndrome, not gross hematuria.
+58|Guillain-Barre syndrome is a monophasic ascending paralysis.|Parkinson disease is a progressive neurodegenerative disease, not relapsing demyelination.
+60|Type 1 diabetes is autoimmune and polygenic, not autosomal dominant monogenic.|LADA is an autoimmune diabetes with antibodies, not a monogenic dominant form.
+65|Isovolumetric contraction ends with opening of the aortic valve.|Isovolumetric contraction begins with closure of the AV valves.
+66|Minimal change disease is the most common nephrotic syndrome in children, not the commonest GN overall.|Membranous nephropathy is a common cause of adult nephrotic syndrome, not the commonest worldwide.
+71|Glycerol is a backbone for triglycerides, not a cholesterol building block.|Tyrosine is the precursor of catecholamines and thyroid hormone, not cholesterol.
+72|Arterial malformations are not the lesion of Bean syndrome.|Melanocytic nevi are pigmented lesions, not blue rubber bleb nevi.
+75|The pulmonary vein carries oxygenated blood with lower CO2.|The aorta carries oxygenated blood to the body.
+76|Columnar epithelium lines the gut lumen, not the peritoneum.|Stratified squamous epithelium lines the esophagus and skin.
+78|Gastric leiomyosarcoma forms a bulky mass, not diffuse mural thickening.|Peptic ulcer is a focal mucosal defect, not a rigid leather-bottle stomach.
+79|Marjolin ulcer is a carcinoma arising in a chronic wound.|Curling ulcer is a stress ulcer after severe burns.
+82|The vagus nerve does not carry pain from the parietal pericardium.|The cardiac plexus carries visceral afferents, not parietal pericardial pain.
+83|Lowenstein-Jensen medium grows Mycobacterium tuberculosis.|MacConkey agar grows enteric Gram-negative rods.
+84|Indomethacin closes the ductus arteriosus.|Oxygen promotes ductal closure after birth.
+85|Antitschkow cells are macrophages, not neutrophils.|Antitschkow cells are macrophage derivatives, not B cells.
+88|Mycophenolate is not an antituberculous drug.|Mycophenolate is not an antileprosy drug.
+90|Sensitivity is an intrinsic test property and does not change with prevalence.|Specificity is also independent of prevalence.
+92|Emphysema is airspace enlargement with alveolar wall destruction.|Alveolar proteinosis fills alveoli with surfactant-like material.
+93|Hepatocytes are stable cells that can regenerate.|Respiratory epithelium is a labile cell population.
+95|Q banding needs fluorescence microscopy.|C banding stains centromeric heterochromatin only.
+98|Negative intrapleural pressure keeps the lung expanded but does not stabilize small alveoli.|High compliance would make alveoli collapse more easily, not less.
+103|Negri bodies are in rabies neurons.|Schuffner dots are in red cells of P. vivax malaria.
+104|Partial moles keep p57 expression (diploid maternal genes).|p57 is irrelevant in ectopic pregnancy.
+111|Fab and Fc fragments come from papain digestion, not mercaptoethanol.|F(ab')2 comes from pepsin digestion, not disulfide reduction.
+114|EDTA is the anticoagulant of hematology samples, not culture bottles.|Sodium citrate is used for coagulation studies, not blood cultures.
+117|Libman-Sacks endocarditis occurs but less often than pericarditis.|Myocarditis is an uncommon lupus manifestation.
+119|Chikungunya is an alphavirus spread by Aedes mosquitoes.|Japanese encephalitis is a flavivirus spread by Culex mosquitoes.
+121|Right axis deviation is an axis above +90 degrees.|Normal axis lies between -30 and +90 degrees.
+123|Brain metastases occur, but less often than lung.|Vaginal metastases occur, but less often than lung.
+124|Steroids do not treat neonatal jaundice.|Steroids do not prevent neonatal seizures.
+127|The Denver shunt is peritoneovenous, not for raised intracranial pressure.|Dialysis access uses fistulas and catheters, not the Denver shunt.
+128|CD4 T cells activate macrophages but are not the origin of epithelioid cells.|Eosinophils are not precursors of epithelioid cells.
+129|Ornithine transcarbamylase deficiency has normal ornithine and raised orotic acid.|CPS I deficiency lowers citrulline and orotic acid, not raising ornithine.
+132|Craniotomy is for a dead fetus, not an attempted rescue of a live fetal head.|Cleidotomy is for shoulder dystocia with a dead fetus.
+133|MMSE does not diagnose schizophrenia.|The MMSE does not screen for anxiety disorders.
+134|Delirium tremens is alcohol withdrawal with autonomic hyperactivity.|Alzheimer disease causes gradual memory loss, not an acute triad.
+135|The mitral valve is usually spared; carcinoid is right-sided.|The aortic valve is usually spared in carcinoid heart disease.
+136|Sclerosing adenosis confers little or no added risk.|Apocrine metaplasia is a non-proliferative lesion without added risk.
+140|Edwards syndrome is trisomy 18.|DiGeorge syndrome is a 22q11 deletion, not trisomy 13.
+141|The radial nerve gives the posterior interosseous nerve.|The ulnar nerve does not give an interosseous branch to the anterior forearm.
+142|Primary structure is the amino acid sequence.|Tertiary structure is the overall 3D fold of one chain.
+145|Mantle cell lymphoma has t(11;14) and no starry sky pattern.|CML shows leukocytosis with the Philadelphia chromosome, not starry sky histology.
+147|Osteoblasts give osteosarcoma.|Chondrocytes give chondrosarcoma.
+150|HBV is an enveloped DNA virus.|HDV is an enveloped defective RNA virus.
+153|Integrase inhibitors end in -gravir and block integration.|Protease inhibitors end in -navir, not -vudine.
+154|Endometriosis is not treated with menopausal hormone therapy.|Hormone therapy does not prevent breast cancer and may raise risk.
+155|A normal bicarbonate with high PaCO2 is not metabolic acidosis.|A pH of 7.00 with high PaCO2 is acidosis, not alkalosis.
+156|Estrogens to androgens would be the reverse of aromatase.|Cortisol is made from progesterone via other hydroxylases, not aromatase.
+158|Phosphodiester bonds are cut by nucleases, not by helicase.|Glycosidic bonds are cleaved in base excision repair, not helicase action.
+160|Stool culture does not identify rotavirus.|Serum antibody titers are not used for diagnosis of acute rotavirus infection.
+162|A primary oocyte is arrested in prophase I and is not ovulated.|Oogonia exist only in fetal life.
+163|Hydrocortisone is largely inactivated by placental 11-beta-HSD2.|Prednisolone is also inactivated by the placenta, so it does not reach the fetus.
+164|Hypercalcemia causes lethargy, not neuromuscular irritability.|Hypernatremia causes thirst and confusion, not Chvostek sign.
+167|Diltiazem dilates epicardial vessels and does not cause steal.|Propranolol lowers demand and does not dilate arterioles.
+170|Pyloric stenosis causes nonbilious projectile vomiting after weeks.|Esophageal atresia presents with drooling and a fistula, not a double bubble.
+173|CMV mononucleosis is heterophile negative.|Adenovirus causes pharyngoconjunctival fever, not a positive Paul-Bunnell.
+174|Pasteurella multocida causes cellulitis after cat bites.|Streptobacillus moniliformis causes rat-bite fever.
+179|Alpha-cell hyperplasia would raise glucagon, not insulin.|D-cell hyperplasia would raise somatostatin.
+180|Albumin does not precipitate and redissolve in the Bence Jones heat test.|Gamma globulin is not the classic heat-reversible urine protein.
+182|Doxycycline rarely causes liver injury.|Erythromycin estolate can cause cholestasis but is much less common.
+183|B. subtilis spores monitor dry heat and ethylene oxide.|B. pumilus spores monitor radiation sterilization.
+185|hCG does not initiate breast growth.|Implantation is initiated by the blastocyst and progesterone, not hCG.
+186|The anterior tibial artery supplies the anterior compartment, not the fibula.|The popliteal artery is the parent of the leg arteries, not the fibular nutrient artery.
+190|Brachialis is supplied by the musculocutaneous nerve but is not pierced.|Biceps brachii is supplied by the nerve but not pierced by it.
+191|The pancreas has no mesodermal islet cell origin.|Neuroectoderm is not the origin of pancreatic islets.
+194|Conjugation does not occur in M. tuberculosis because it lacks plasmids.|Transduction is not the mechanism of TB drug resistance.
+196|Medullary carcinoma has amyloid stroma and calcitonin.|Follicular carcinoma has uniform follicles and spreads hematogenously.
+199|Dogs are the definitive host, not the intermediate host.|Cats are not the usual intermediate host.
+200|AQP2 is ADH-regulated in the collecting duct.|AQP5 is found in glands such as salivary glands.
+202|Recurrent pyogenic infections come from C3 deficiency.|Recurrent Neisseria infections come from terminal complement deficiency.
+204|Hypovolemia would not cause immediate respiratory distress after line placement.|Septicemia develops later, not immediately.
+212|Preterm milk has higher protein than term milk.|Preterm milk has higher sodium than term milk.
+216|A nonsense mutation creates a premature stop codon.|A frameshift mutation arises from insertion or deletion.
+219|HPV 6 and 11 cause genital warts.|HPV 42 and 44 are low-risk types.
+223|One artery and two veins is an abnormal single umbilical artery.|Two arteries and two veins does not occur normally.
+224|TCAs treat panic disorder long-term but are not for acute attacks.|MAO inhibitors are a later-line long-term option.
+226|Acanthamoeba causes subacute granulomatous encephalitis.|Gnathostoma is a nematode causing migratory swellings.
+227|Endomyocardial fibrosis is a rare restrictive cardiomyopathy.|Pulmonic stenosis is a less common cause of right failure.
+229|T. cruzi is spread by reduviid bugs.|Leishmania is spread by sand flies.
+231|The right atrium forms the right border of the heart.|The right ventricle forms the anterior sternocostal surface.
+237|The femoral artery lies lateral to the vein, not directly by the canal.|The femoral nerve lies outside the femoral sheath.
+238|Androgen insensitivity gives primary amenorrhea without cyclic pain.|Uterine agenesis has no endometrium to bleed.
+239|The maxillary nerve supplies the cheek and upper lip.|The facial nerve is motor to facial muscles, not sensory to the nose tip.
+241|CKD gives burr cells.|HUS gives schistocytes.
+244|Glycolysis is blocked by fluoride at enolase.|The electron transport chain is blocked by cyanide and CO.
+246|ADH is from the posterior pituitary and is not elevated by pituitary adenoma commonly.|Estrogen does not come from a pituitary adenoma.
+249|Lentigo maligna is not typical of the sole.|Truncal melanoma is usually superficial spreading.
+252|Tetracyclines are bacteriostatic.|Macrolides are bacteriostatic.
+253|ACE inhibitors vasodilate and can worsen outflow obstruction.|Digoxin increases contractility and worsens obstruction.
+254|Absence epilepsy has 3-Hz spike-and-wave, not hypsarrhythmia.|Febrile seizures have a normal interictal EEG.
+255|Torsion of a fibroid causes pain but usually without fever.|Preterm labor gives contractions and cervical change.
+256|Discoid lupus gives scarring plaques.|Urticaria gives transient wheals.
+259|The hypothalamus regulates temperature, not vomiting.|The amygdala handles emotion.
+263|Chorda tympani carries taste from the anterior two-thirds of the tongue.|The nerve to stapedius is tested by the stapedial reflex.
+264|The internal oblique forms the conjoint tendon, not the superficial ring.|The transversalis fascia forms the deep inguinal ring.
+265|Gram-negative bacilli are not Clostridia.|Gram-positive cocci are Staphylococcus and Streptococcus.
+267|Acetylcholine is not used therapeutically because it is rapidly hydrolyzed.|Neostigmine is an indirect agent and is not lipid soluble.
+272|The pelvic position is second most common.|Preileal is a less common position.
+273|S. sonnei does not produce Shiga toxin.|S. flexneri does not produce Shiga toxin.
+276|Hydronephrosis shows a dilated collecting system.|Horseshoe kidney shows fused lower poles.
+280|P. vivax rarely causes nephrotic syndrome.|P. falciparum causes acute kidney injury, not nephrotic syndrome.
+284|Rib margins are not the classic site of subperiosteal resorption.|The medial proximal humerus is not the classic site.
+287|The choroid plexus produces CSF.|The cavernous sinus is a venous sinus, not the site of CSF absorption.
+288|Salmeterol is a beta-2 agonist.|Salbutamol is a beta-2 agonist.
+290|Syphilis causes thoracic aortitis.|Marfan syndrome causes thoracic root dilation.
+293|Nail-patella syndrome has nail dysplasia and absent patellae.|Fabry disease has angiokeratomas and acroparesthesias.
+298|Loperamide worsens opioid constipation.|Naloxone reverses central analgesia.
+299|Membranous nephropathy has spike-and-dome GBM changes.|IgA nephropathy has mesangial IgA deposits.
+300|Cell swelling is a feature of necrosis.|Inflammation is marked in necrosis.
+302|M. tuberculosis is not usually ingested.|Inoculation is rare.
+305|The corpus luteum makes progesterone.|The pituitary makes LH, not hCG.
+306|Gum bleeding is a mucosal bleeding pattern of platelet disorders.|Hematuria occurs less often.
+308|Anti-HBc is absent after vaccination.|HBsAg indicates infection, not immunity.
+311|Phimosis is not a cause of severe obstructive uropathy.|Urethral atresia is rare and lethal.
+320|Glycosylation is not a vitamin K step.|Phosphorylation is not a vitamin K step.
+323|The gluteus maximus is an extensor of the hip.|The piriformis laterally rotates the hip.
+325|Axillary readings underestimate core temperature.|Oral temperature is lower than core.
+326|DNA polymerase needs a DNA template.|DNA-dependent RNA polymerase makes RNA from DNA.
+329|Giardia lives in the duodenum and does not autoinfect.|Ascaris does not multiply within the host.
+330|Sphingomyelinase deficiency is Niemann-Pick.|Hexosaminidase A deficiency is Tay-Sachs.
+331|Progesterone matures and reduces cornification.|FSH has no direct cornification index role.
+332|The radial nerve runs in the triangular interval.|The suprascapular nerve passes the suprascapular notch.
+334|Intertrochanteric fractures have a rich blood supply.|Subtrochanteric fractures have a rich blood supply.

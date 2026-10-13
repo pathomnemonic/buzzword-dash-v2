@@ -5,7 +5,7 @@
 //                                              and prompts under tools/opendecks/batches/<ref>.prompt.txt
 //
 // Inputs:  sections.json (header + section list), source/<deck>/<ref>.txt (passages), replies/<ref>.json (the AI reply per passage)
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildAiPrompt, parseAiReply } from '../../js/importguide.js';
@@ -35,7 +35,6 @@ mkdirSync(out, { recursive: true });
 
 const dropFile = join(here, 'review-drops.json');
 const drops = existsSync(dropFile) ? JSON.parse(readFileSync(dropFile, 'utf8')) : [];
-const dropKey = (c) => (c.source_ref || '') + '|' + c.ans + '|' + (c.bw[0] || '');
 const isDropped = (c) => !c.round && drops.some((d) => d.source_ref === c.source_ref && d.ans === c.ans && c.bw[0].startsWith(d.bw0)) || (c.round === 2 && drops.some((d) => d.source_ref === c.source_ref && d.ans === c.ans && c.bw[0].startsWith(d.bw0)));
 
 const cards = [];

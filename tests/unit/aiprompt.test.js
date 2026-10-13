@@ -17,7 +17,8 @@ describe('the improved AI prompt', () => {
     expect(p).toMatch(/flip it/);
   });
   it('lists when to skip and shows bad-versus-good examples', () => {
-    expect(p).toMatch(/SKIP the card/);
+    expect(p).toMatch(/SKIP only when/);
+    expect(p).toMatch(/Cover-the-answer test/);
     expect(p).toMatch(/Bad vs good/);
   });
 });

@@ -55,4 +55,11 @@ describe('service worker caches', () => {
     sw.listeners.fetch({ request: { method: 'GET', url: 'https://other.test/a', mode: 'cors' }, respondWith: () => { responded = true; } });
     expect(responded).toBe(false);
   });
+
+  it('never precaches Open decks: they are fetched when needed, network first, and the last copy serves offline', async () => {
+    const sw = load();
+    await sw.request('https://x.test/decks/index.json');
+    expect([...sw.stores['dx-dash-b1'].keys()]).toEqual(['https://x.test/decks/index.json']);
+    expect(sw.stores['dx-assets']).toBeUndefined();
+  });
 });

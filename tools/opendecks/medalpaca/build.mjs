@@ -23,12 +23,16 @@ function cleanTp(raw, q) {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 function splitHint(h) {
+  const c = h.indexOf(': ');
+  if (c > 3 && c < h.length - 4 && h.slice(0, c).length <= 60 && h.slice(c + 2).length <= 60) return [h.slice(0, c), h.slice(c + 2)];
   if (h.length <= 60) return [h];
   const mid = h.length / 2; let best = -1;
   [': ', ', ', ' - ', ' and ', ' with '].forEach((sep) => { let i = h.indexOf(sep); while (i >= 0) { if (best < 0 || Math.abs(i - mid) < Math.abs(best - mid)) best = i; i = h.indexOf(sep, i + 1); } });
   return best > 0 ? [h.slice(0, best).replace(/[:,]$/, '').trim(), h.slice(best).replace(/^[:, ]+(and |with )?/, (m) => m.includes('with') || m.includes('and') ? '' : '').trim()] : [h];
 }
-readdirSync(convDir).filter((f) => f.endsWith('.txt')).sort().forEach((f) => readFileSync(join(convDir, f), 'utf8').split('\n').filter(Boolean).forEach((line) => {
+const lines = new Map();
+readdirSync(convDir).filter((f) => f.endsWith('.txt')).sort().forEach((f) => readFileSync(join(convDir, f), 'utf8').split('\n').filter(Boolean).forEach((l) => lines.set(+l.split('|')[0], l)));
+[...lines.values()].forEach((line) => {
   const p = line.split('|'); const n = +p[0]; const r = byN.get(n); if (!r) return;
   if (p[1] === 'X') { excluded.push({ n, row: r.row, reason: p[2] }); return; }
   let subj = r.subj; const hintRaw = p[1]; const ans = p[2]; const d = [p[3], p[4]];
@@ -43,7 +47,7 @@ readdirSync(convDir).filter((f) => f.endsWith('.txt')).sort().forEach((f) => rea
   const key = 'mp' + r.row;
   const w = ww[key] || ['Not supported by the source sentence.', 'Not supported by the source sentence.'];
   cards.push({ subj, bw: splitHint(hintRaw), ans, d, tp, ww: { [d[0]]: w[0], [d[1]]: w[1] }, source_ref: key, evidence: ev, tags: ['medalpaca', r.disc], n });
-}));
+});
 const deck = {
   format: 1, id: 'medalpaca', title: 'Medical flashcards (MedAlpaca)',
   source: 'MedAlpaca medical flashcards (Han et al., 2023)',

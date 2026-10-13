@@ -1,0 +1,1 @@
+Within the cilium there is an axoneme that comprises a unique arrangement of nine outer microtubule doublets and two inner microtubules ("9+2" arrangement). Ref: Ganong's Review of Medical Physiology 23rd edition, Chapter 2.

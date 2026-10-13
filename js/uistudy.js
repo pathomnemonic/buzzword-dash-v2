@@ -91,6 +91,7 @@ export var studyMethods = {
       (ans.whyWrong || []).forEach(function (w) {
         answerArea.appendChild(self._flashcardText('div', '✗ ' + w.distractor + ': ' + w.explanation, 'font-size:11px;color:var(--text-muted);margin:2px 0'));
       });
+      if (ans.attribution) answerArea.appendChild(this._flashcardText('div', 'Source: ' + ans.attribution, 'font-size:10px;color:var(--text-muted);margin-top:6px;overflow-wrap:anywhere')).setAttribute('data-role', 'source-line');
       cardArea.appendChild(answerArea);
 
       var btnRow = createElement('div');

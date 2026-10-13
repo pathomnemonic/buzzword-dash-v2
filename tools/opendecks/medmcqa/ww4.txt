@@ -1,0 +1,132 @@
+1048|Osteosarcoma arises in the metaphysis.|Ewing sarcoma arises in the diaphysis.
+1049|Flumazenil is a competitive antagonist, not an inverse agonist.|Zolpidem is an agonist at the benzodiazepine site.
+1050|Alanine is not the amide donor for asparagine.|Histidine is not the amide donor for asparagine.
+1055|GH and prolactin are anterior pituitary hormones.|TSH and FSH are anterior pituitary hormones.
+1057|Conidia are external asexual spores.|Chlamydospores are thick-walled resting spores.
+1064|MCP joints are commonly involved in rheumatoid arthritis.|PIP joints are commonly involved in rheumatoid arthritis.
+1066|Port-wine stains persist for life.|Cavernous hemangiomas rarely regress completely.
+1069|E3 and E4 are not the oncogenic HPV proteins.|E8 and E10 are not the oncogenic HPV proteins.
+1072|The capsule resists phagocytosis, not adhesion.|Flagella provide motility.
+1073|Erythrasma fluoresces coral-red.|Vitiligo appears blue-white under Wood lamp.
+1074|Duodenal atresia gives a double bubble sign.|Jejunal atresia gives a triple bubble sign.
+1076|T. saginata larva is Cysticercus bovis.|D. latum has a plerocercoid larva.
+1078|Systemic sclerosis has anti-Scl-70 antibodies.|SLE has anti-dsDNA and anti-Smith antibodies.
+1079|Depression is not the PANDAS disorder.|Schizophrenia is not the PANDAS disorder.
+1085|B lymphocytes carry CD19 and CD20.|Cytotoxic T cells carry CD8.
+1086|Dendrites have few voltage-gated sodium channels.|The soma has fewer sodium channels than the hillock.
+1087|Benzodiazepines are not effective for OCD.|Chlorpromazine is an antipsychotic.
+1090|Enalapril is an ACE inhibitor.|Ramipril is an ACE inhibitor.
+1096|Lymphocyte predominant Hodgkin lymphoma is rare and nodal.|Lymphocyte depleted is the rarest and aggressive.
+1098|The external laryngeal nerve supplies cricothyroid.|The internal laryngeal nerve is sensory above the folds.
+1099|Both organisms are Gram-positive cocci.|Both organisms are catalase positive.
+1101|Histoplasma causes granulomatous lung disease.|Proteus causes urinary infection.
+1107|Isoproterenol and propranolol compete at one receptor.|Isoproterenol and salbutamol are both beta agonists.
+1108|Glibenclamide is a sulfonylurea that needs beta cells.|Empagliflozin is an SGLT2 inhibitor.
+1111|Coelomic epithelium forms the gonadal ridge.|Surface ectoderm forms skin.
+1115|Presentation is the part at the pelvic inlet.|Attitude is fetal posture.
+1116|Tryptophan metabolism defects cause Hartnup disease.|Leucine metabolism defects cause maple syrup urine disease.
+1118|Hyperkalemia is not seen in hypomagnesemia.|Hypercalcemia is not seen in hypomagnesemia.
+1119|DR2 is linked to multiple sclerosis.|DR3 is linked to type 1 diabetes and SLE.
+1122|Metabolic acidosis does not follow gastric loss.|Respiratory alkalosis is not seen in pyloric stenosis.
+1127|N-acetylgalactosamine is in chondroitin sulfate.|Glucuronic acid is a component of hyaluronate but not the viscosity source.
+1128|Ergot treats postpartum hemorrhage.|Anemia is not a contraindication.
+1132|Timolol lowers aqueous production.|Brimonidine lowers aqueous production.
+1137|Acute onset is a good prognostic sign.|Mood symptoms predict good outcome.
+1139|Fluoride inhibits enolase.|Fluoroacetate inhibits aconitase.
+1141|Malignant hypertension causes hyperplastic arteriolitis.|Multiple myeloma causes cast nephropathy.
+1143|Aspartate feeds the urea cycle.|Uracil is a pyrimidine.
+1144|Posterior element TB is less common.|Anterior TB is less common.
+1145|Burkholderia cepacia is a later, resistant pathogen.|Aeromonas is not a CF pathogen.
+1149|Beta blockers are not harmful in renal artery stenosis.|Calcium channel blockers are not harmful.
+1152|Palate tumors are biopsied.|Buccal tumors are biopsied.
+1155|M. marinum causes fish tank granuloma.|M. fortuitum causes wound infections.
+1158|Penile tumescence occurs in REM.|Dreaming occurs in REM.
+1160|Penicillins rarely cause fixed eruptions.|Macrolides rarely cause fixed eruptions.
+1161|Glycine is not a GABA metabolite.|Aspartate is not a GABA metabolite.
+1163|Medullary carcinoma is usually unilateral.|Inflammatory carcinoma is usually unilateral.
+1165|Wilson disease is not dominant.|Wilson disease is not X-linked.
+1168|Syphilis causes late losses.|Cervical incompetence causes second trimester loss.
+1169|TB can occur at any CD4 count.|Candidiasis is not a cause of pneumonia at this count.
+1170|The arterial route is less important.|Axillary nodes drain lymph.
+1172|Intracerebral bleed is rare.|Spinal fracture is rare with modified ECT.
+1179|Subepithelial humps are PSGN.|Spike and dome is membranous nephropathy.
+1182|Ion exchange separates by charge.|Size exclusion separates by size.
+1184|PKU has not been treated by gene therapy as the first.|Cystic fibrosis gene therapy came later.
+1185|The ovarian stroma makes androgens.|Sertoli cells are testicular.
+1187|Hypophysectomy removes the pituitary.|Thyroidectomy does not cause Nelson syndrome.
+1188|Cannabis causes euphoria.|LSD causes visual hallucinations.
+1189|The superior thyroid artery is related to the external laryngeal nerve.|The middle thyroid vein is not nerve-related.
+1190|Transferrin carries iron.|Zinc is bound to albumin.
+1191|Wiskott-Aldrich has thrombocytopenia.|CGD has NADPH oxidase defect.
+1192|Asthma is a use of ipratropium.|Peptic ulcer is not a contraindication.
+1194|Fetal maturity uses L/S ratio.|Labor progress uses the partogram.
+1196|The SA node is the pacemaker.|The bundle of His conducts rapidly.
+1204|Duplication does not describe divisum.|Annular pancreas is a ring around duodenum.
+1206|Surgery is for low-risk disease.|Radiotherapy is not needed.
+1208|P. malariae shows band forms.|P. vivax has enlarged cells.
+1211|Fulvestrant is a breast cancer drug.|Tamoxifen is a breast cancer drug.
+1212|Chocolate agar grows Haemophilus.|Blood agar is nonselective.
+1214|PSC has beaded bile ducts.|Amyloidosis infiltrates organs.
+1215|Hemithyroidectomy is insufficient.|Radioiodine does not treat C-cell cancer.
+1216|Cholesterol crystals are different.|Phospholipid inclusions are lamellar bodies.
+1218|Alcohol is a cofactor.|Poor oral hygiene is minor.
+1219|NMDA antagonists include felbamate.|GABA mimetics include vigabatrin.
+1220|Mitochondria do beta oxidation.|Smooth ER elongates fatty acids.
+1227|Phenytoin causes gingival hyperplasia.|Barbiturates do not stain teeth.
+1230|Palmitate is the end product.|Stearate is a longer product.
+1233|Measles has H protein.|RSV has F protein.
+1236|The Menon regimen is a lytic cocktail.|The Stroganoff regimen is sedative.
+1241|XLD agar grows Salmonella.|Deoxycholate agar is for enteric bacteria.
+1243|The external laryngeal nerve is motor.|The recurrent laryngeal nerve is lower.
+1246|HSV-1 is mostly oral.|VZV causes shingles.
+1247|Beta oxidation uses FAD and NAD.|ATP synthase contains F0 and F1.
+1248|Necrosis is propidium positive.|S-phase entry is not shown by annexin.
+1253|Ampicillin does not displace bilirubin.|Phenobarbitone induces conjugation.
+1255|Enteroviruses are picornaviruses.|Orthomyxoviruses include influenza.
+1257|Breast abscess needs drainage.|Fibroadenoma is removed.
+1258|Meningitis shows neck stiffness.|Microcephaly has a small head.
+1259|Burkitt lymphoma has starry sky.|CML has Philadelphia chromosome.
+1261|Radical hysterectomy is too early.|Repeat Pap is insufficient.
+1263|Gilbert has unconjugated hyperbilirubinemia.|Crigler-Najjar has unconjugated hyperbilirubinemia.
+1265|Inhibin does not suppress LH.|Inhibin does not suppress TSH.
+1268|Milan is not for GERD.|Milan is not for encephalopathy.
+1271|BPH thickens the bladder wall.|Schistosomiasis causes calcified bladder.
+1272|Arteries hold about 13%.|Arterioles hold little blood.
+1274|Salbutamol is short-acting.|Terbutaline is short-acting.
+1280|Area 4 is primary motor.|Area 6 is premotor.
+1285|Cohorts are poor for rare diseases.|Cohorts are expensive.
+1286|Pyruvate gives alanine.|Serine gives glycine.
+1287|Aerosols are not the route.|Person-to-person spread is rare.
+1289|The esophagus has stratified squamous epithelium.|The trachea has respiratory epithelium.
+1292|The kidney gives pale infarcts.|The heart gives pale infarcts.
+1293|Red cells use glucose.|The brain uses glucose.
+1294|A right frontal lesion does not impair right gaze.|Upward gaze is a midbrain function.
+1298|The lateral pectoral nerve supplies pectoralis major.|The thoracodorsal nerve supplies latissimus dorsi.
+1300|Crizotinib targets ALK.|Ibrutinib targets BTK.
+1303|Reflux is treated by fundoplication.|Hiatus hernia is repaired.
+1304|Pyoderma gangrenosum is less common.|Episcleritis is less common.
+1305|The jejunum has plicae.|The ileum has Peyer patches.
+1310|Streptolysin O lyses cells.|Streptolysin S lyses cells.
+1312|The Feulgen stain does not stain mRNA.|It does not stain protein.
+1314|Apraxia is fine movement.|Color agnosia is color naming.
+1317|Medulloblastoma occurs in children.|Astrocytoma is not typical in HIV.
+1320|Intrinsic factor is for B12.|Enterokinase activates trypsinogen.
+1325|Achalasia has dysphagia.|Scleroderma esophagus has reflux.
+1328|Red cells lack mitochondria.|They cannot use ketones.
+1329|Naegleria causes acute meningoencephalitis.|Entamoeba coli is a commensal.
+1330|Cholestyramine is not recommended.|Steroids are not used.
+1331|The alar plate gives sensory neurons.|The roof plate is dorsal.
+1334|Neostigmine is longer-acting.|Pyridostigmine is longer-acting.
+1337|The ductus venosus becomes ligamentum venosum.|The ductus arteriosus becomes ligamentum arteriosum.
+1338|GLUT4 is insulin-dependent.|The sodium channel is not the carrier.
+1341|Enterokinase activates trypsinogen.|Trypsin activates pancreatic zymogens.
+1351|PUV is a boy's cause.|Neurogenic bladder is rarer.
+1352|Chest X-ray is insensitive.|MRI is not first.
+1353|Mania has elevated mood.|Somatoform disorders have symptoms.
+1354|Tamponade has pulsus paradoxus.|Severe LVF has pulsus alternans.
+1356|Neonatal diabetes causes hyperglycemia.|Neonatal hepatitis causes cholestasis.
+1358|The Na+/Cl- symporter is blocked by thiazides.|The H+/K+ ATPase is blocked by omeprazole.
+1360|Aortic valve closure gives S2.|Heart sounds are separate.
+1361|Hypocapnia is not the cause.|Hypoxia is not the cause.
+1365|Platelets are normal in HDN.|Bleeding time is normal.
+1374|Schizoid is detached.|Anankastic is perfectionistic.

@@ -1300,7 +1300,7 @@ class UI {
 
   showStudyTeaching(card) {
     var tb = document.getElementById('teachEl');
-    setText(tb, card.tp);
+    setText(tb, card.tp + (card.attr ? '  (Source: ' + card.attr + ')' : ''));
     tb.classList.add('show');
     this.fitQuestionHud();
   }
