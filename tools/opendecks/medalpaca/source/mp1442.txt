@@ -1,0 +1,2 @@
+What type of receptors are nicotinic Ach receptors, and what type of ion channels do they operate as?
+Nicotinic Ach receptors are ligand-gated ion channels that operate as both Na+ and K+ channels.

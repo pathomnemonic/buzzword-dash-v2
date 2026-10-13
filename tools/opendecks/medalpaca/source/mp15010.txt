@@ -1,0 +1,2 @@
+What type of cells can detect and destroy tumor cells that downregulate MHC class I?
+Tumor cells that downregulate MHC class I can be detected and destroyed by Natural Killer cells.

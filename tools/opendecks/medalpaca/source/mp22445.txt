@@ -1,0 +1,2 @@
+What is the specific tumor suppressor gene that is commonly associated with the development of Familial Adenomatous Polyposis (FAP) associated Colorectal Cancer when mutations occur?
+Mutations in the APC (Adenomatous Polyposis Coli) gene are commonly associated with the development of FAP associated Colorectal Cancer.

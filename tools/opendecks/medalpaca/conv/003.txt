@@ -1,0 +1,50 @@
+86|X|long mechanism
+87|Bronchiectasis: usual lobes affected|Lower lobes|Upper lobes|Right middle lobe only|S=Pul
+88|X|vague
+89|X|dubious
+90|Hormone secreted by medullary thyroid carcinoma|Calcitonin|Thyroglobulin|Thyroxine
+91|Aortic stenosis: LV end-diastolic and wedge pressures|Both increased|Both decreased|Both unchanged|S=Car
+92|Autoimmune β-cell destruction|Type 1 diabetes mellitus|Type 2 diabetes mellitus|Gestational diabetes|S=Endo
+93|Hyperaldosteronism: acid-base disturbance|Metabolic alkalosis|Metabolic acidosis|Respiratory acidosis|S=Neph
+94|Smooth muscle band at arteriole-capillary junction|Precapillary sphincter|Metarteriole|Venous valve
+95|X|vague
+96|Disease for which smoking is protective|Ulcerative colitis|Crohn disease|Celiac disease|S=GI
+97|Raised interstitial oncotic pressure: fluid movement|Out of the capillary|Into the capillary|No net movement
+98|X|definition
+99|Trastuzumab target|HER2/neu|EGFR|VEGF|S=HO
+100|X|leaks and long
+101|Cause of theca-lutein cysts|Markedly elevated β-hCG|Elevated prolactin|Excess androgens|S=OB
+102|Amino acid that is both ketogenic and glucogenic|Tryptophan|Leucine|Lysine
+103|Conducting zone function|Warms, humidifies and filters air|Gas exchange with blood|Surfactant production|S=Pul
+104|Nerve giving the palmar cutaneous branch|Median nerve|Ulnar nerve|Radial nerve|S=Neu
+105|Graves disease: hypersensitivity type|Type II|Type I|Type IV
+106|Neurotransmitter decreased in Alzheimer disease|Acetylcholine|Dopamine|Norepinephrine|S=Neu
+107|Commonest cause of hypothyroidism where iodine is sufficient|Hashimoto thyroiditis|Iodine deficiency|Graves disease|S=Endo
+108|Cases drawn from a cohort with matched controls from the same cohort|Nested case-control study|Retrospective cohort study|Cross-sectional study
+109|Next acceptor of electrons from coenzyme Q|Complex III|Complex IV|Complex I
+110|Congenital GnRH deficiency: FSH and LH|Both decreased|Both increased|Low FSH with normal LH|S=Endo
+111|Resistance to both cidofovir and foscarnet|Viral DNA polymerase mutation|Viral thymidine kinase mutation|UL97 kinase mutation|S=ID
+112|Treatment of whipworm (Trichuris)|Albendazole|Praziquantel|Metronidazole|S=ID
+113|DKA: switch from saline to D5 at glucose below|200 mg/dL|400 mg/dL|100 mg/dL|S=Endo
+114|X|vague
+115|Stain for asbestos bodies|Prussian blue|Periodic acid-Schiff|Congo red|S=Pul
+116|Main local metabolic regulator of cerebral blood flow|CO2|Sodium|Glucose|S=Neu
+117|Leading cause of chronic pancreatitis in adults|Alcohol|Gallstones|Hypertriglyceridemia|S=GI
+118|Portal triad: bile duct, hepatic artery and which vessel|Portal vein|Hepatic vein|Central vein|S=GI
+119|Metabolic cause of congenital cataracts|Galactosemia|Phenylketonuria|Maple syrup urine disease|S=Peds
+120|Thick ascending limb effect on tubular fluid|Dilutes it|Concentrates it|No change in osmolality|S=Neph
+121|X|definition
+122|Viral myocarditis biopsy finding|Lymphocytic infiltrate with focal necrosis|Neutrophilic infiltrate with abscesses|Eosinophilic infiltrate|S=Car
+123|Transfusion reaction with noncardiogenic pulmonary edema|TRALI|TACO|Anaphylaxis|S=Pul
+124|X|dubious
+125|X|dubious
+126|X|odd
+127|GIP-secreting cells|K cells|I cells|S cells|S=GI
+128|Tension pneumothorax: immediate treatment|Needle decompression|Pericardiocentesis|CT scan of the chest|S=EM
+129|Chromosome carrying the VHL tumor suppressor gene|Chromosome 3|Chromosome 17|Chromosome 13|S=HO
+130|Parasite in campers drinking untreated water|Giardia lamblia|Entamoeba histolytica|Cryptosporidium|S=ID
+131|First synapse of cochlear nerve axons|Cochlear nuclei|Superior olivary nucleus|Inferior colliculus|S=Neu
+132|X|vague
+133|X|trivial
+134|Anterior talofibular ligament sprain|Low (lateral) ankle sprain|High (syndesmotic) ankle sprain|Medial (deltoid) ankle sprain|S=Surg
+135|X|vague

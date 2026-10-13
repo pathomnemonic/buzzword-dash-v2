@@ -1,0 +1,2 @@
+What is antigenic drift and what causes it?
+Antigenic drift is a process in which there is a minor change in the influenza virus antigen that results from point mutations in the HA or NA genes.

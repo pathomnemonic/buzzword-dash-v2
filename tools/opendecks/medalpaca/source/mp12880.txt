@@ -1,0 +1,2 @@
+Which endogenous protein, that binds to RANKL released by Osteoblasts, does Denosumab mimic?
+Denosumab mimics the action of Osteoprotegerin, an endogenous protein that binds to RANKL released by Osteoblasts.

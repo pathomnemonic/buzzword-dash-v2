@@ -1,0 +1,70 @@
+821|X|trivial
+822|Fast neural regulation of arterial pressure|Baroreceptor reflex|Renin-angiotensin system|Chemoreceptor reflex|S=Car
+823|Repaglinide and nateglinide class|Meglitinides|Sulfonylureas|Thiazolidinediones|S=Endo
+824|Atypical lymphocytes in EBV mononucleosis|Downey cells (reactive T cells)|Reed-Sternberg cells|Smudge cells|S=ID
+825|X|list
+826|X|two-item
+827|X|two-part
+828|X|trivial
+829|Failure to reduce Fe3+ to Fe2+ in RBCs from NADH lack|Methemoglobinemia|Sulfhemoglobinemia|Carboxyhemoglobinemia|S=HO
+830|Middle meningeal artery rupture|Epidural hematoma|Subdural hematoma|Subarachnoid hemorrhage|S=Neu
+831|Donor T cells attacking host after transplant|Graft-versus-host disease|Hyperacute rejection|Chronic allograft rejection|S=Surg
+832|Three-gene alpha-thalassemia: tetramer formed|HbH (β4)|Hb Barts (γ4)|HbA2 (α2δ2)|S=HO
+833|Class III antiarrhythmics: QT interval|Prolong it|Shorten it|No change|S=Car
+834|Young patient: tremor, dysarthria, parkinsonism, hepatosplenomegaly|Wilson disease|Hemochromatosis|Huntington disease|S=Neu
+835|X|dubious
+836|Cytoplasmic rods in myeloblasts|Auer rods|Howell-Jolly bodies|Döhle bodies|S=HO
+837|X|duplicate concept of card 525
+838|X|vague
+839|Thiopental effect on cerebral blood flow|Decreases it|Increases it|No effect|S=Neu
+840|X|vague
+841|X|vague
+842|Amino acid damaging endothelium when elevated|Homocysteine|Methionine|Cysteine
+843|BUN above 100: bleeding mechanism|Uremic platelet dysfunction|Factor VIII deficiency|Heparin effect|S=HO
+844|Raised body temperature: sympathetic activity|Decreased|Increased|Unchanged
+845|Vitamin deficiency in carcinoid syndrome|Niacin|Vitamin C|Vitamin B12|S=GI
+846|Antiarrhythmic class of beta-blockers|Class II|Class I|Class IV|S=Car
+847|Only DNA virus replicating in the cytoplasm|Poxvirus|Herpesvirus|Adenovirus|S=ID
+848|X|vague
+849|Parapneumonic effusion type|Exudative|Transudative|Chylous|S=Pul
+850|Rivaroxaban and apixaban class|Direct factor Xa inhibitors|Direct thrombin inhibitors|Vitamin K antagonists|S=HO
+851|Angiotensin II effect on proximal Na+-H+ exchange|Stimulates it|Inhibits it|No effect|S=Neph
+852|Antiepileptic causing osteopenia and gingival hyperplasia|Phenytoin|Levetiracetam|Lamotrigine|S=Neu
+853|Antimicrobial class causing acute tubular necrosis|Aminoglycosides|Macrolides|Tetracyclines|S=Neph
+854|X|duplicate concept of card 860
+855|TB drug causing pellagra|Isoniazid|Rifampin|Pyrazinamide|S=ID
+856|Artery supplying the splenium of the corpus callosum|Posterior cerebral artery|Anterior cerebral artery|Middle cerebral artery|S=Neu
+857|Myelodysplastic syndrome: marrow cellularity|Hypercellular|Hypocellular|Fibrotic dry tap|S=HO
+858|GI enzyme metabolizing tyramine|MAO-A|MAO-B|COMT|S=Psy
+859|Commonest site of berry aneurysm|Anterior communicating artery junction|MCA bifurcation|Basilar artery tip|S=Neu
+860|Fungus endemic to the Ohio and Mississippi River valleys|Histoplasma capsulatum|Coccidioides immitis|Blastomyces dermatitidis|S=ID
+861|X|list
+862|Host cell for Leishmania replication|Macrophages|Neutrophils|Hepatocytes|S=ID
+863|X|vague
+864|Giant cell arteritis: visual loss from involvement of|Ophthalmic artery|Retinal vein|Optic chiasm|S=Rheum
+865|X|contested
+866|Enterotoxigenic E. coli toxins|Heat-labile and heat-stable toxins|Shiga toxin and verotoxin|Pertussis toxin and cholera toxin|S=ID
+867|Helper T subset secreting TGF-β, IL-10 and IL-35|Regulatory T cells|Th1 cells|Th17 cells
+868|Greenstick and torus fractures: population|Children|Elderly osteoporotic patients|Middle-aged adults|S=Surg
+869|SLE: typical patient|Young to middle-aged women|Elderly men|Prepubertal boys|S=Rheum
+870|X|row fact wrong (CagA is not the mucus-degrading factor)
+871|X|uncertain
+872|X|duplicate of card 867
+873|DMDD: symptom onset before age|10 years|5 years|18 years|S=Psy
+874|Peptide secreted by malignancy homologous to PTH|PTHrP|Calcitonin|Calcitriol|S=Endo
+875|Desmosome connection|Intermediate filaments via cadherins|Actin filaments via cadherins|Basement membrane via integrins
+876|X|imprecise
+877|X|duplicate concept of card 18
+878|Neuroleptic malignant syndrome mechanism|D2 receptor blockade|Serotonin excess|Anticholinergic excess|S=Psy
+879|X|two-item
+880|Pulmonary anthrax: chest X-ray|Widened mediastinum|Eggshell hilar calcification|Apical cavitary lesion|S=Pul
+881|Ludwig angina: usual cause|Odontogenic infection|Parotitis|Peritonsillar abscess|S=Surg
+882|First HBV vaccine dose for infants over 2000 g|At birth|At 2 months|At 6 months|S=Peds
+883|Army officer in Arizona: pleuritic pain, erythema nodosum, RLL infiltrate|Coccidioidomycosis|Histoplasmosis|Blastomycosis|S=ID
+884|Thyrotoxicosis cardiac complication|High-output heart failure|Restrictive cardiomyopathy|Pericardial tamponade|S=Endo
+885|Cell of origin of GIST|Interstitial cells of Cajal|Enterochromaffin cells|Myenteric neurons|S=GI
+886|Waldenström monoclonal protein|IgM|IgG|IgA|S=HO
+887|Uncal herniation: vessel compressed|Posterior cerebral artery|Anterior cerebral artery|Basilar artery|S=Neu
+888|X|vague
+889|X|vague
+890|Ganciclovir triphosphate target|Viral DNA polymerase|Viral protease|Viral neuraminidase|S=ID

@@ -1,0 +1,2 @@
+What is the effect of increased NADH/NAD+ (e.g. due to ethanol) on the conversion of dihydroxyacetone phosphate to glycerol-3-phosphate and the resulting liver pathology?
+Increased NADH/NAD+ (e.g. due to ethanol) causes increased conversion of dihydroxyacetone phosphate to glycerol-3-phosphate, which combines with fatty acids to make triglycerides, leading to hepatosteatosis (liver pathology).

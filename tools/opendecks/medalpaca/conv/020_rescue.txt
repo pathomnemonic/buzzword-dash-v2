@@ -1,0 +1,29 @@
+154|Myocarditis: intracardiac complication|Mural thrombus|Papillary muscle rupture|Ventricular free wall rupture|S=Car
+183|Triad: asthma, nasal polyps, bronchospasm after NSAIDs|Aspirin-exacerbated respiratory disease|Churg-Strauss syndrome|Allergic bronchopulmonary aspergillosis|S=Pul
+212|Strongest risk factor for placenta accreta|Prior cesarean delivery|Advanced paternal age|Gestational hypertension|S=OB
+383|Cranial nerve with some LMNs fed only by contralateral cortex|Facial nerve (CN VII)|Trigeminal nerve (CN V)|Abducens nerve (CN VI)|S=Neu
+423|Tumor suppressor on 18q lost at adenoma-to-carcinoma step|DCC|APC|KRAS|S=GI
+460|Booster vaccine for tetanus, diphtheria and pertussis|Tdap|DTaP|Td|S=ID
+607|Sudden abdominal pain, patient lying motionless|Perforated viscus|Renal colic|Biliary colic|S=GI
+669|Pap smear: basophilic filament clusters like cotton candy|Actinomyces|Candida|Trichomonas vaginalis|S=ID
+679|Growth factor driving smooth muscle migration and vascular remodeling|PDGF|VEGF|EGF
+699|Granulomas with cigar-shaped budding yeast|Sporotrichosis|Histoplasmosis|Blastomycosis|S=ID
+709|Radial head subluxation: annular ligament slips into the|Radiocapitellar joint|Ulnohumeral joint|Distal radioulnar joint|S=Surg
+741|Hepatocellular carcinoma: usual route of spread|Hematogenous|Lymphatic|Transcoelomic seeding|S=GI
+770|Phyllodes tumor resembles which benign breast tumor|Fibroadenoma|Intraductal papilloma|Fat necrosis|S=HO
+812|GH-secreting tumor in a child|Pituitary gigantism|Acromegaly|Laron syndrome|S=Endo
+840|Taenia solium eggs: seizures and hydrocephalus|Neurocysticercosis|Cerebral toxoplasmosis|Progressive multifocal leukoencephalopathy|S=ID
+848|Nicotinic ACh receptor: receptor type|Ligand-gated ion channel|G-protein-coupled receptor|Receptor tyrosine kinase|S=Neu
+893|CHA2DS2-VASc: the letter C|Congestive heart failure|Chronic kidney disease|Coronary artery disease|S=Car
+898|Lymph node region adjacent to the follicle|Mantle zone|Paracortex|Medullary sinus|S=HO
+906|Normal fetal baseline heart rate|110 to 160 beats per minute|60 to 100 beats per minute|160 to 200 beats per minute|S=OB
+920|Chickenpox virus|Varicella-zoster virus|Herpes simplex virus|Epstein-Barr virus|S=ID
+960|Nephritic syndrome mechanism|Immune-complex deposition|Podocyte effacement|Amyloid deposition|S=Neph
+987|Alkylating agent for leukemia, lymphoma and solid tumors|Cyclophosphamide|Busulfan|Streptozocin|S=HO
+1008|Where naive lymphocytes meet antigen|Secondary lymphoid organs|Bone marrow|Thymus
+1081|Turner syndrome: skin finding|Multiple melanocytic nevi|Café-au-lait spots|Ash-leaf macules|S=Peds
+1086|Actin filament class|Microfilaments|Intermediate filaments|Microtubules
+1089|Painless thyroiditis, early phase: antibodies|Anti-TPO and anti-thyroglobulin|TSH-receptor stimulating antibodies|Anti-smooth muscle antibodies|S=Endo
+1100|Anastomoses with the left gastroepiploic artery|Right gastroepiploic artery|Right gastric artery|Short gastric arteries|S=GI
+1149|Immunoglobulin class of TSH-receptor antibodies|IgG|IgM|IgA|S=Endo
+1153|Pial extension tethering the cord to the coccyx|Filum terminale|Cauda equina|Conus medullaris|S=Neu

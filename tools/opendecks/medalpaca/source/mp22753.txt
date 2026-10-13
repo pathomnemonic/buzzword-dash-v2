@@ -1,0 +1,2 @@
+What is migration (attrition) bias and when does it occur in a study?
+Migration (attrition) bias is a form of selection bias that occurs when patients drop out of the study prematurely.

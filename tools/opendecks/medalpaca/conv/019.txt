@@ -1,0 +1,90 @@
+1111|X|outdated threshold
+1112|Malignancy treated with 6-mercaptopurine|Acute lymphoblastic leukemia|Multiple myeloma|Chronic myeloid leukemia|S=HO
+1113|Carcinogen from Aspergillus flavus on peanuts|Aflatoxin|Ergot alkaloid|Botulinum toxin|S=ID
+1114|Antibiotic class causing neuromuscular blockade|Aminoglycosides|Penicillins|Cephalosporins|S=Neu
+1115|Route of chylomicrons from lymph into blood|Thoracic duct|Portal vein|Hepatic artery|S=GI
+1116|Actinomycin D class|Antitumor antibiotic|Alkylating agent|Antimetabolite|S=HO
+1117|X|duplicate concept of card 248
+1118|Anti-lice drug inhibiting acetylcholinesterase|Malathion|Permethrin|Ivermectin|S=ID
+1119|Filarial worm causing elephantiasis|Wuchereria bancrofti|Onchocerca volvulus|Loa loa|S=ID
+1120|Embryologic origin of the posterior pituitary|Neuroectoderm|Rathke pouch|Endoderm|S=Endo
+1121|Pap smear interval for ages 21-65 (cytology alone)|Every 3 years|Every 5 years|Annually|S=OB
+1122|X|vague
+1123|Scar tensile strength regained by 3 months|70 to 80%|20 to 30%|100%|S=Surg
+1124|X|duplicate of card 253
+1125|X|vague
+1126|Substance linked to psychosis risk in teenagers|Cannabis|Caffeine|Nicotine|S=Psy
+1127|Idiopathic intracranial hypertension: most serious complication|Permanent vision loss|Hydrocephalus|Hemorrhagic stroke|S=Neu
+1128|Haemophilus influenzae growth requirements|Factor V (NAD) and factor X (hemin)|Charcoal and cysteine|Cholesterol|S=ID
+1129|X|vague
+1130|X|vague
+1131|X|imprecise
+1132|X|vague
+1133|CT halo sign|Invasive aspergillosis|Pulmonary tuberculosis|Pneumocystis pneumonia|S=Pul
+1134|X|vague
+1135|Fundus with blood and thunder appearance|Central retinal vein occlusion|Central retinal artery occlusion|Retinal detachment|S=Neu
+1136|Late complication of polycythemia vera|Myelofibrosis|Aplastic anemia|Acute lymphoblastic leukemia|S=HO
+1137|X|duplicate concept of card 942
+1138|Anti-Smith antibodies|Systemic lupus erythematosus|Systemic sclerosis|Rheumatoid arthritis|S=Rheum
+1139|X|row fact wrong
+1140|ACTH-dependent Cushing with no ACTH rise on CRH test|Ectopic ACTH secretion|Pituitary corticotroph adenoma|Adrenal adenoma|S=Endo
+1141|Great toe dorsiflexion with fanning on sole stroking in adults|Babinski sign|Hoffmann sign|Chvostek sign|S=Neu
+1142|tRNA arm with dihydrouridine|D-arm|TΨC arm|Anticodon arm
+1143|X|vague
+1144|X|garbled
+1145|X|dubious
+1146|Anti-VEGF antibody for wet macular degeneration|Bevacizumab|Rituximab|Cetuximab|S=HO
+1147|Rise in blood pH after gastric acid secretion|Alkaline tide|Bohr effect|Haldane effect|S=GI
+1148|Treatment of Trichomonas vaginalis|Metronidazole|Fluconazole|Clindamycin|S=OB
+1149|X|vague
+1150|NNRTI adverse effect|Rash including Stevens-Johnson syndrome|Lipodystrophy|Nephrolithiasis|S=ID
+1151|Myophosphorylase deficiency|McArdle disease|Pompe disease|Von Gierke disease
+1152|Cause of subdural hematoma|Torn bridging veins|Middle meningeal artery rupture|Ruptured berry aneurysm|S=Neu
+1153|X|definition
+1154|Odds definition|P(event) divided by P(no event)|P(event) divided by total|P(event) times P(no event)
+1155|Recurrent hemarthrosis, affected maternal uncle|Hemophilia A or B|von Willebrand disease|Immune thrombocytopenia|S=HO
+1156|Valve usually affected by viridans streptococcal endocarditis|Mitral valve|Tricuspid valve|Pulmonic valve|S=Car
+1157|Supraspinatus: initial arm movement|Abduction from 0 to 15°|Abduction beyond 90°|External rotation|S=Surg
+1158|X|vague
+1159|X|vague
+1160|X|duplicate of card 224
+1161|X|vague
+1162|Smoker with cervical adenopathy and referred ear pain|Head and neck squamous cell carcinoma|Papillary thyroid carcinoma|Sialadenitis|S=HO
+1163|SLE: CH50|Decreased|Increased|Normal|S=Rheum
+1164|Autism spectrum disorder: required onset|Early developmental period|Adolescence|Adulthood|S=Psy
+1165|X|trivial
+1166|ECF expansion: capillary hydrostatic pressure|Increases|Decreases|No change
+1167|Drug class contraindicated in G6PD deficiency|Sulfonamides|Beta-lactams|Macrolides|S=HO
+1168|Increased phosphofructokinase-2 activity|Stimulates glycolysis, inhibits gluconeogenesis|Inhibits glycolysis, stimulates gluconeogenesis|Stimulates both
+1169|X|vague
+1170|X|outdated vaccine recommendation
+1171|Commonest cause of primary hyperparathyroidism|Parathyroid adenoma|Parathyroid hyperplasia|Parathyroid carcinoma|S=Endo
+1172|Chromosome type in Robertsonian translocation|Acrocentric|Metacentric|Telocentric|S=Peds
+1173|Croup X-ray sign|Steeple sign|Thumbprint sign|Sail sign|S=Peds
+1174|OCP effect on cancer risk|Lower endometrial and ovarian cancer risk|Higher endometrial and ovarian cancer risk|Lower cervical and breast cancer risk|S=OB
+1175|Level where the IVC pierces the diaphragm|T8|T10|T12|S=Surg
+1176|Nerve to gluteus medius, gluteus minimus and tensor fasciae latae|Superior gluteal nerve|Inferior gluteal nerve|Obturator nerve|S=Neu
+1177|X|vague
+1178|Twins sharing placenta and amniotic sac|Monochorionic monoamniotic|Dichorionic diamniotic|Monochorionic diamniotic|S=OB
+1179|Diarrheal illness preceding Guillain-Barré syndrome|Campylobacter jejuni|Shigella sonnei|Vibrio cholerae|S=ID
+1180|Ventral wall defect with cardiac and neural tube anomalies|Omphalocele|Gastroschisis|Umbilical hernia|S=Peds
+1181|Vaginitis with normal pH|Candida vulvovaginitis|Bacterial vaginosis|Trichomoniasis|S=OB
+1182|Site of action of acetazolamide and mannitol|Proximal convoluted tubule|Thick ascending limb|Collecting duct|S=Neph
+1183|Pramlintide is an analog of|Amylin|GLP-1|Glucagon|S=Endo
+1184|Beta-blocker alone risks unopposed α stimulation in|Cocaine toxicity and pheochromocytoma|Asthma and COPD|Heart block and sick sinus syndrome|S=EM
+1185|MS: sudden vision loss with Marcus Gunn pupil|Optic neuritis|Retinal detachment|Central retinal artery occlusion|S=Neu
+1186|Helmet cells in microangiopathic hemolysis|Schistocytes|Spherocytes|Target cells|S=HO
+1187|X|list
+1188|X|trivial
+1189|String sign on imaging|Crohn disease|Ulcerative colitis|Diverticulitis|S=GI
+1190|X|vague
+1191|Drug class blunting loop diuretic effect|NSAIDs|Beta-blockers|Statins|S=Neph
+1192|X|vague
+1193|X|two-part
+1194|X|vague
+1195|Ear part containing malleus, incus and stapes|Middle ear|Inner ear|Outer ear|S=Neu
+1196|Origin of the internal spermatic fascia|Transversalis fascia|External oblique aponeurosis|Internal oblique muscle|S=Surg
+1197|X|duplicate concept of card 131
+1198|Recurrent infections without pus, delayed cord separation|Leukocyte adhesion deficiency|Chronic granulomatous disease|Chediak-Higashi syndrome|S=HO
+1199|X|dubious
+1200|X|duplicate of card 275

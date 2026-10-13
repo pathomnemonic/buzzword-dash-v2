@@ -1,0 +1,50 @@
+136|X|odd
+137|Psychosis lasting less than 1 month|Brief psychotic disorder|Schizophreniform disorder|Schizoaffective disorder|S=Psy
+138|Coronavirus helical nucleocapsid protein|N protein|Spike (S) protein|Membrane (M) protein|S=ID
+139|X|weak distractors
+140|X|obscure
+141|Somatostatinoma: effect of insulin inhibition|Diabetes mellitus|Hypoglycemia|Gastric ulcers|S=Endo
+142|X|vague
+143|X|trivial
+144|X|vague
+145|X|outdated: antibiotics no longer routine for uncomplicated diverticulitis
+146|Slope of the pressure-volume curve|Lung compliance|Airway resistance|Dead space|S=Pul
+147|Positive urine nitrite suggests|Gram-negative bacteria|Gram-positive cocci|Candida|S=ID
+148|X|vague
+149|Giant cell tumor of bone: age group|20 to 40 years|Under 10 years|Over 60 years|S=HO
+150|X|dubious
+151|Cariogenic organism in dental plaque|Streptococcus mutans|Streptococcus pyogenes|Staphylococcus epidermidis|S=ID
+152|Drug of choice for sporotrichosis|Itraconazole|Griseofulvin|Nystatin|S=ID
+153|Bilateral recurrent laryngeal nerve injury: urgent management|Tracheostomy|Voice rest only|Corticosteroids|S=Surg
+154|X|vague
+155|Pretest probability score for DVT|Wells score|CHA2DS2-VASc|CURB-65
+156|X|obscure
+157|Tigecycline overcomes which tetracycline resistance mechanism|Efflux pumps|Beta-lactamases|Aminoglycoside-modifying enzymes|S=ID
+158|X|leaks
+159|EBV latency site|B cells|Neurons|Hepatocytes|S=ID
+160|Infant: high VMA and HVA|Neuroblastoma|Wilms tumor|Retinoblastoma|S=Peds
+161|Protein class that is positively charged, unlike most|Histones|Albumin|Fibrinogen
+162|Enzyme deficient in TTP|ADAMTS13|Protein C|Factor VIII|S=HO
+163|X|dubious
+164|Myotonic dystrophy inheritance|Autosomal dominant|Autosomal recessive|X-linked recessive|S=Peds
+165|Commonest cause of community-acquired pneumonia in HIV|Streptococcus pneumoniae|Mycobacterium avium complex|Cryptococcus neoformans|S=Pul
+166|Corneal reflex: efferent limb|Facial nerve (VII)|Trigeminal nerve (V1)|Oculomotor nerve (III)|S=Neu
+167|Zollinger-Ellison: steatorrhea mechanism|Acid inactivates pancreatic lipase|Bile salt overproduction|Villous atrophy|S=GI
+168|Treg defect linked to MS and type 1 diabetes: CD marker|CD25|CD8|CD40
+169|Axons from lateral geniculate to striate cortex|Optic radiations|Optic tracts|Optic chiasm|S=Neu
+170|Early cholecystectomy for acute cholecystitis: within|72 hours|6 weeks|6 hours|S=Surg
+171|Acetazolamide mechanism|Carbonic anhydrase inhibition|Na-K-2Cl cotransporter inhibition|Na-Cl cotransporter inhibition|S=Neph
+172|X|vague
+173|Hepatitis A transmission in developing countries|Contaminated water|Needle sharing|Vertical transmission|S=ID
+174|Main driver of NaCl reabsorption in late PCT|Chloride gradient|Na-glucose cotransport|Na-amino acid cotransport|S=Neph
+175|Amoxicillin-triggered morbilliform rash|Infectious mononucleosis|Group A strep pharyngitis|Measles|S=ID
+176|CNS tumor of NF2 besides vestibular schwannoma|Meningioma|Glioblastoma|Medulloblastoma|S=Neu
+177|Bilateral adrenal hemorrhage: classic organism|Neisseria meningitidis|Streptococcus agalactiae|Listeria monocytogenes|S=Endo
+178|Acute interstitial nephritis: urinary casts|White blood cell casts|Red blood cell casts|Muddy brown granular casts|S=Neph
+179|Clonorchis sinensis: associated cancer|Cholangiocarcinoma|Hepatocellular carcinoma|Bladder squamous cell carcinoma|S=HO
+180|X|list
+181|Anterior urethral injury: usual mechanism|Perineal straddle injury|Pelvic fracture|Blunt flank trauma|S=Surg
+182|Winters formula applies to|Metabolic acidosis|Metabolic alkalosis|Respiratory acidosis|S=Neph
+183|X|leaks
+184|X|two-part
+185|Maximum safe rate of sodium correction|0.5 mEq/L per hour|2 mEq/L per hour|5 mEq/L per hour|S=Neph

@@ -1,0 +1,2 @@
+In which type of pregnancy does twin-twin transfusion syndrome (TTTS) occur?
+Twin-twin transfusion syndrome (TTTS) occurs in monochorionic-monoamniotic (Mono::Mono) or monochorionic-diamniotic (Di::Mono) twin pregnancies.

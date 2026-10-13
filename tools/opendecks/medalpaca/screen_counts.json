@@ -1,0 +1,18 @@
+{
+ "raw_rows": 33955,
+ "drops": {
+  "list_style_4plus": 1121,
+  "vague_definition_or_explain": 1125,
+  "answer_restates_question": 188,
+  "paragraph_answer": 10274,
+  "exact_duplicate_question": 272,
+  "mnemonic": 155,
+  "yes_no_or_either_or_question": 901,
+  "boilerplate_or_hedging": 2714,
+  "needs_image_or_figure": 266,
+  "answer_too_long_for_short_extraction": 36,
+  "empty_or_too_short": 419,
+  "near_duplicate_of_earlier_row": 2431
+ },
+ "survivors": 14053
+}

@@ -1,0 +1,2 @@
+How does the diffusion coefficient (DK) for CO2 compare to that of O2?
+The diffusion coefficient (DK) for CO2 is approximately 20x higher than that of O2.

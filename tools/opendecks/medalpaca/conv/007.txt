@@ -1,0 +1,60 @@
+296|X|formula
+297|Glucose transporters fully saturated|Transport maximum (Tm)|Renal threshold|Filtration fraction|S=Neph
+298|X|vague
+299|Neisseria that ferments both glucose and maltose|Neisseria meningitidis|Neisseria gonorrhoeae|Moraxella catarrhalis|S=ID
+300|Polymyositis: mediator cells|CD8+ T cells|Regulatory T cells|Eosinophils|S=Rheum
+301|X|vague
+302|Pineal tumor causing precocious puberty in boys: hormone|β-hCG|Growth hormone|Prolactin|S=Endo
+303|Non-megaloblastic macrocytic anemia: cause|Alcoholism or liver disease|Iron deficiency|Anemia of chronic disease|S=HO
+304|Hepatitis virus that more often becomes chronic|Hepatitis C virus|Hepatitis A virus|Hepatitis B virus in adults|S=GI
+305|Tocolytic competing with calcium in myometrium|Magnesium sulfate|Oxytocin|Methylergonovine|S=OB
+306|Infant of mother with gestational diabetes: calcium|Hypocalcemia|Hypercalcemia|Hypernatremia|S=Peds
+307|Subacute, often silent PID: organism|Chlamydia trachomatis|Neisseria gonorrhoeae|Gardnerella vaginalis|S=OB
+308|T. brucei diagnosis: trypomastigotes seen on|Blood smear|Stool microscopy|Muscle biopsy|S=ID
+309|X|contested fact (Serratia)
+310|Asthma: IgE cross-linking activates which cells|Mast cells|Neutrophils|Natural killer cells|S=Pul
+311|Commonest serious bacterial infection in febrile infants|Urinary tract infection|Bacterial meningitis|Septic arthritis|S=Peds
+312|X|imprecise
+313|X|dubious
+314|AFP in spina bifida occulta|Normal|Elevated|Decreased|S=Peds
+315|Cofactor converted to DHF by thymidylate synthase|Methylene tetrahydrofolate|N5-methyl tetrahydrofolate|N10-formyl tetrahydrofolate
+316|X|vague
+317|Pseudomonas blue-green pigments|Pyocyanin and pyoverdine|Prodigiosin and violacein|Staphyloxanthin and carotenoids|S=ID
+318|Upper motor neuron lesion: reflexes|Hyperreflexia|Hyporeflexia|Areflexia|S=Neu
+319|Omalizumab target|IgE|IL-5|TNF-α
+320|X|trivial
+321|Fever and rash hours after first penicillin dose for syphilis|Jarisch-Herxheimer reaction|Penicillin anaphylaxis|Serum sickness|S=ID
+322|Follicular conjunctivitis with corneal pannus|Trachoma|Gonococcal conjunctivitis|Allergic conjunctivitis|S=ID
+323|Common trigger of acute chest syndrome in sickle cell disease|Pneumonia|Hypertension|Peptic ulcer disease|S=HO
+324|Anti-Scl-70 antibody: association|Diffuse scleroderma|Limited scleroderma|Systemic lupus erythematosus|S=Rheum
+325|Immunodeficiency associated with celiac disease|Selective IgA deficiency|Bruton agammaglobulinemia|Chronic granulomatous disease|S=GI
+326|X|vague
+327|Test distinguishing NSTEMI from unstable angina|Cardiac troponin|Stress test|Chest X-ray|S=Car
+328|Lymphocytosis-promoting factor|Bordetella pertussis|Haemophilus influenzae|Corynebacterium diphtheriae|S=ID
+329|Increased RBC turnover: effect on HbA1c|Falsely low|Falsely high|No effect|S=Endo
+330|Peripheral precocious puberty: LH response to GnRH agonist|No rise (stays low)|Brisk rise|Exaggerated rise|S=Endo
+331|X|vague
+332|X|ambiguous
+333|First-generation antihistamines: patients prone to worse adverse effects|Elderly patients|Healthy young adults|Adolescent athletes
+334|X|duplicate concept of card 56
+335|Four-gene alpha-thalassemia: tetramer formed|Hb Barts (γ4)|HbH (β4)|HbA2 (α2δ2)|S=HO
+336|X|imprecise
+337|Hashimoto thyroiditis: effector cells|CD8+ cytotoxic T cells|Eosinophils|Mast cells|S=Endo
+338|Gout drug that prolongs penicillin levels|Probenecid|Allopurinol|Colchicine|S=Rheum
+339|X|vague
+340|X|trivial
+341|X|obscure
+342|Isotonic saline infusion: plasma protein concentration|Decreases|Increases|No change
+343|Antibodies activating the classic complement pathway|IgM and IgG|IgA and IgE|IgD and IgE
+344|Pupillary sphincter control|Parasympathetic|Sympathetic|Somatic motor|S=Neu
+345|Commonest bacterial pharyngitis in children|Group A Streptococcus|Corynebacterium diphtheriae|Haemophilus influenzae|S=ID
+346|Spontaneous bacterial peritonitis: typical patient|Cirrhosis with ascites|Crohn disease|Acute pancreatitis|S=GI
+347|X|imprecise
+348|Neurocutaneous disorder with ungual fibromas|Tuberous sclerosis|Neurofibromatosis type 1|Sturge-Weber syndrome|S=Neu
+349|X|trivial
+350|Test of choice for obstructive sleep apnea|Polysomnography|Spirometry|Chest X-ray|S=Pul
+351|Stroke: tPA withheld when BP exceeds|185/110 mm Hg|160/100 mm Hg|140/90 mm Hg|S=Neu
+352|Synthetic cathinones: street name|Bath salts|Spice|Molly|S=Psy
+353|E. coli adhering to epithelium without toxin|Enteropathogenic E. coli|Enterotoxigenic E. coli|Enterohemorrhagic E. coli|S=ID
+354|Positive selection of T cells: location|Thymic cortex|Thymic medulla|Hassall corpuscles|S=Multi
+355|Pyelonephritis with foamy macrophages|Xanthogranulomatous pyelonephritis|Emphysematous pyelonephritis|Renal papillary necrosis|S=Neph

@@ -1,0 +1,60 @@
+356|Light strikes retina: 11-cis retinal becomes|All-trans retinal|13-cis retinal|All-trans retinoic acid
+357|Commonest cause of acute prostatitis in older men|Escherichia coli|Staphylococcus aureus|Chlamydia trachomatis|S=Neph
+358|X|duplicate concept of card 207
+359|Selection bias from studying only healthy employed people|Healthy worker effect|Berkson bias|Recall bias
+360|Distal RTA: result of failed α-intercalated cell H+ secretion|No new HCO3- generation|Proximal bicarbonate wasting|Aldosterone excess|S=Neph
+361|X|two-part
+362|Gene mutated in familial adenomatous polyposis|APC|MLH1|TP53|S=GI
+363|X|vague
+364|Anucleate cell expressing MHC I|Platelets|Red blood cells|Mature B cells|S=HO
+365|Prevention of neonatal tetanus|Maternal tetanus toxoid vaccination|Newborn penicillin prophylaxis|Newborn BCG vaccination|S=Peds
+366|HIV gene encoding p24 capsid protein|gag|pol|env|S=ID
+367|Spiral structure housing the organ of Corti|Cochlea|Vestibule|Semicircular canal|S=Neu
+368|Ethanol-induced hepatic steatosis mechanism|DHAP shunted to glycerol-3-phosphate|Increased gluconeogenesis|Increased pyruvate formation|S=GI
+369|X|vague
+370|Nerve carrying respiratory motor output to the diaphragm|Phrenic nerve|Vagus nerve|Long thoracic nerve|S=Neu
+371|Defective mineralization of osteoid|Osteomalacia|Osteoporosis|Osteopetrosis|S=Rheum
+372|Difficulty walking downstairs|Trochlear nerve (CN IV)|Oculomotor nerve (CN III)|Abducens nerve (CN VI)|S=Neu
+373|X|vague
+374|TRH stimulates TSH and which other hormone|Prolactin|Growth hormone|ACTH|S=Endo
+375|Peak hCG in pregnancy|8 to 10 weeks|20 to 24 weeks|36 to 40 weeks|S=OB
+376|X|faulty fact
+377|Glioblastoma: MRI appearance|Thick irregular rim enhancement|Dural tail enhancement|Non-enhancing calcified mass|S=Neu
+378|Primary target of gastrin for acid secretion|ECL cells|Chief cells|D cells|S=GI
+379|Maternal condition raising neonatal RDS risk|Diabetes mellitus|Chronic hypertension|Hyperthyroidism|S=Peds
+380|X|vague
+381|Duct joining the pancreatic duct at the ampulla of Vater|Common bile duct|Cystic duct|Common hepatic duct|S=GI
+382|Lymphocyte-predominant Hodgkin lymphoma: marker|CD20 positive, CD15 and CD30 negative|CD15 and CD30 positive|CD3 positive|S=HO
+383|X|obscure
+384|Smoke inhalation with airway injury: first step|Endotracheal intubation|Chest X-ray|Bronchoscopic lavage|S=EM
+385|Most medial cranial nerve in the cavernous sinus|Abducens nerve (CN VI)|Oculomotor nerve (CN III)|Maxillary nerve (CN V2)|S=Neu
+386|Islet alpha cells secrete|Glucagon|Insulin|Somatostatin|S=Endo
+387|X|list
+388|Alcoholic hepatitis: AST to ALT ratio|AST greater than ALT (about 2:1)|ALT greater than AST|AST equal to ALT|S=GI
+389|Location of central chemoreceptors|Medulla|Carotid body|Aortic arch|S=Pul
+390|Stable angina: ECG during an episode|ST depression|ST elevation|Pathologic Q waves|S=Car
+391|Horseshoe kidney trapped under which artery|Inferior mesenteric artery|Superior mesenteric artery|Celiac trunk|S=Neph
+392|Antimuscarinic effect on accommodation|Cycloplegia|Enhanced accommodation|Increased lens thickness
+393|Gram-negative endotoxin activates tissue factor, causing|DIC|Immune thrombocytopenia|Hemophilia A|S=HO
+394|X|dubious
+395|Viral screening in adult ITP|HIV and hepatitis C|EBV and CMV|HSV and VZV|S=HO
+396|Juvenile nasopharyngeal angiofibroma: site of origin|Sphenopalatine foramen|Cribriform plate|Foramen ovale|S=Surg
+397|Clinical trial phase after drug approval|Phase IV|Phase II|Phase III
+398|Trichomonas cervicitis: appearance|Strawberry cervix|Nabothian cysts|Cervical ectropion|S=OB
+399|X|vague
+400|X|uncertain
+401|Fibrates lower triglycerides by|Reducing hepatic VLDL secretion|Inhibiting HMG-CoA reductase|Blocking intestinal cholesterol absorption|S=Car
+402|X|vague
+403|Commonest site of salivary gland tumors|Parotid gland|Submandibular gland|Sublingual gland|S=HO
+404|X|trivial
+405|ADHD: symptom onset before age|12 years|5 years|18 years|S=Psy
+406|Dysmenorrhea, dyspareunia, uterosacral nodularity|Endometriosis|Adenomyosis|Pelvic inflammatory disease|S=OB
+407|β2 agonist effect on bronchi|Bronchodilation|Bronchoconstriction|Increased mucus secretion|S=Pul
+408|Influenza protein releasing progeny virions|Neuraminidase|Hemagglutinin|M2 matrix protein|S=ID
+409|X|ambiguous
+410|Defective excision of pyrimidine dimers|Xeroderma pigmentosum|Lynch syndrome|Fanconi anemia|S=Multi
+411|N-myc amplification|Neuroblastoma|Wilms tumor|Medulloblastoma|S=HO
+412|Nerve injured in axillary dissection causing winged scapula|Long thoracic nerve|Thoracodorsal nerve|Axillary nerve|S=Surg
+413|X|garbled
+414|Physiologic genu varum resolves by age|2 years|6 months|5 years|S=Peds
+415|Pregabalin advantage over gabapentin|Better bioavailability|Hepatic metabolism|Sodium channel blockade|S=Neu

@@ -26,8 +26,10 @@ var lines = [];
 readdirSync(wd + '/b').filter(function (f) { return /^b\d+\.jsonl$/.test(f); }).sort().forEach(function (f) {
   readFileSync(wd + '/b/' + f, 'utf8').trim().split('\n').forEach(function (l) { if (l.trim()) lines.push(JSON.parse(l)); });
 });
+var fixes = {}; try { readFileSync(wd + '/b/fix.jsonl', 'utf8').trim().split('\n').forEach(function (l) { if (l.trim()) { var f = JSON.parse(l); fixes[f.i] = Object.assign(fixes[f.i] || {}, f); } }); } catch (e) {}
 var cards = [], log = { excluded: [], kept: 0, fail: {} }, byIdx = {};
 lines.forEach(function (x) {
+  if (fixes[x.i] && !x.x) { x = Object.assign({}, x, fixes[x.i]); if (fixes[x.i].bw) delete x.h; }
   if (x.x) { log.excluded.push({ i: x.i, reason: x.x }); return; }
   var r = sample[x.i]; if (!r) { log.fail['missing row'] = (log.fail['missing row'] || 0) + 1; return; }
   var opt = r.options, keyed = opt[r.answer_idx];

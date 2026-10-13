@@ -1,0 +1,2 @@
+Which study design begins with cohort studies where participants are followed over time, and those who develop an outcome of interest are selected as cases for a subsequent case-control study?
+The study design that starts with cohort studies and then followed by a case-control study where participants who develop an outcome of interest are selected as cases is called a nested case-control design.

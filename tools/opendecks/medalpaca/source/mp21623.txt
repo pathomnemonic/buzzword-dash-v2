@@ -1,0 +1,2 @@
+What is one contraindication for administering tPA to stroke patients and what is the specific blood pressure threshold that should not be exceeded?
+One contraindication to tPA administration in stroke patients is blood pressure greater than 185/110 mmHg.

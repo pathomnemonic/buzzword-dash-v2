@@ -1,0 +1,2 @@
+Which receptor is targeted by Trastuzumab, and what is its classification?
+Trastuzumab is an IgG monoclonal antibody against the Her2/Neu receptor.

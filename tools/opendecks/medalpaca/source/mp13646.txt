@@ -1,0 +1,2 @@
+Which class of helper T cell is responsible for secreting TGF-B, IL-10, and IL-35?
+The class of helper T cell that secretes TGF-B, IL-10, and IL-35 is the regulatory T cell.

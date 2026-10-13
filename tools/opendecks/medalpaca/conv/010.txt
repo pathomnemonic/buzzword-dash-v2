@@ -1,0 +1,65 @@
+481|Isoniazid overdose: acid-base disorder|High anion gap metabolic acidosis|Non-anion gap metabolic acidosis|Respiratory alkalosis|S=EM
+482|Host in angioinvasive aspergillosis|Immunocompromised patients|Atopic asthmatic patients|Patients with old TB cavities|S=ID
+483|Leading cause of neonatal sepsis|Group B Streptococcus|Neisseria meningitidis|Pseudomonas aeruginosa|S=Peds
+484|α1 stimulation of the pupillary dilator|Contraction causing mydriasis|Relaxation causing miosis|Contraction causing miosis|S=Neu
+485|Viral enzyme that activates acyclovir|Thymidine kinase|DNA polymerase|Protease|S=ID
+486|Reuptake transporter for norepinephrine|Norepinephrine transporter (NET)|Vesicular monoamine transporter|Choline transporter|S=Neu
+487|Allopurinol hypersensitivity with skin sloughing|Stevens-Johnson syndrome|Erythema multiforme minor|Staphylococcal scalded skin syndrome
+488|GI segment with the slowest slow-wave frequency|Stomach|Duodenum|Ileum|S=GI
+489|X|vague
+490|X|vague
+491|X|contested (SIADH is euvolemic)
+492|Third aortic arch derivatives|Common carotid and proximal internal carotid|Subclavian and aortic arch|Pulmonary arteries and ductus arteriosus|S=Car
+493|X|vague
+494|X|trivial
+495|Autosomal recessive SCID: purine metabolism defect|Adenosine deaminase deficiency|Bruton tyrosine kinase deficiency|CD40 ligand deficiency|S=Peds
+496|X|outdated
+497|Zollinger-Ellison diagnostic test|Secretin stimulation test|Urea breath test|Glucagon stimulation test|S=GI
+498|Platelet enzyme inhibited by aspirin to cut TXA2|COX-1|COX-2|5-lipoxygenase|S=HO
+499|X|vague
+500|X|outdated
+501|X|vague
+502|X|ambiguous
+503|Antibiotic blocking initiation complex at the 50S subunit|Linezolid|Doxycycline|Gentamicin|S=ID
+504|X|trivial
+505|Iris hamartomas of NF1|Lisch nodules|Kayser-Fleischer rings|Brushfield spots|S=Neu
+506|Commonest predisposition to ascending cholangitis|Choledocholithiasis|Chronic pancreatitis|Primary biliary cholangitis|S=GI
+507|Retinal bipolar cells synapse with|Ganglion cells|Müller glia|Pigment epithelium|S=Neu
+508|X|vague
+509|Creatinine clearance versus true GFR|Slightly overestimates GFR|Slightly underestimates GFR|Equals GFR exactly|S=Neph
+510|Dengue: bleeding time|Increased|Decreased|Normal|S=HO
+511|X|list
+512|X|contradictory
+513|NK cell receptor binding IgG Fc (ADCC)|CD16|CD3|CD8
+514|X|duplicate concept of card 410
+515|X|dubious
+516|Type I hypersensitivity mechanism|Antigen cross-linking of IgE on mast cells|Immune complex deposition|IgG binding to cell surface antigens
+517|X|vague
+518|Commonest cause of death in acute rheumatic fever|Severe pancarditis|Stroke|Renal failure|S=Car
+519|X|double
+520|Aztreonam target|Penicillin-binding protein 3|Penicillin-binding protein 2a|Peptidyl transferase|S=ID
+521|Seminiferous tubule cells regulating spermatogenesis|Sertoli cells|Leydig cells|Theca cells|S=OB
+522|Incisional hernia: mechanism|Fascial closure breakdown|Patent processus vaginalis|Weak Hesselbach triangle|S=Surg
+523|Androgen insensitivity syndrome: defect|Androgen receptor deficiency|5α-reductase deficiency|17α-hydroxylase deficiency|S=Endo
+524|Selection bias from dropouts|Attrition bias|Recall bias|Lead-time bias
+525|Vaginismus treatment|Pelvic floor physical therapy|Hysterectomy|Long-term oral antibiotics|S=OB
+526|X|list
+527|Pediatric CNS tumor with hairlike glial processes|Pilocytic astrocytoma|Medulloblastoma|Ependymoma|S=Neu
+528|Giant cell tumor of bone: stromal cells express|RANKL|PTHrP|Sclerostin|S=HO
+529|X|time-varying
+530|In utero drug exposure causing oligohydramnios|ACE inhibitors or ARBs|Prenatal vitamins|Acetaminophen|S=OB
+531|X|vague
+532|H. pylori: associated adenocarcinoma|Gastric cancer|Esophageal squamous cell carcinoma|Hepatocellular carcinoma|S=GI
+533|X|garbled
+534|X|dubious
+535|X|vague
+536|Antitoxin or monoclonal antibody administration|Passive immunization|Active immunization|Herd immunity
+537|X|vague
+538|X|dubious
+539|Chlamydia serotypes in neonatal conjunctivitis|D through K|A, B, Ba and C|L1 to L3|S=ID
+540|X|dubious number
+541|Reflex with vagus as both afferent and efferent|Vagovagal reflex|Gag reflex|Cushing reflex|S=Neu
+542|Bacteria with periplasmic beta-lactamase|Gram-negative bacteria|Gram-positive bacteria|Mycoplasma|S=ID
+543|Antacid causing proximal weakness and seizures|Aluminum hydroxide|Magnesium hydroxide|Calcium carbonate|S=GI
+544|Basophilic gastric cells (zymogen-producing)|Chief cells|Parietal cells|G cells|S=GI
+545|HCV virus family|Flaviviridae|Picornaviridae|Hepadnaviridae|S=ID

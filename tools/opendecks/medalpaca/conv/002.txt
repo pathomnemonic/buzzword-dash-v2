@@ -1,0 +1,45 @@
+41|X|two-answer list
+42|Treatment of hydatid cysts (Echinococcus)|Albendazole|Ivermectin|Metronidazole|S=ID
+43|X|vague comparison
+44|First-line treatment of PMS|SSRIs|Benzodiazepines|Beta-blockers|S=OB
+45|Polyomavirus that causes nephropathy|BK virus|JC virus|Merkel cell polyomavirus|S=ID
+46|Riedel thyroiditis: fibroblast-activating cytokines|TGF-β and IL-13|IFN-γ and IL-12|TNF-α and IL-2
+47|Preeclampsia with severe features: blood pressure cutoff|At least 160/110 mm Hg|At least 140/90 mm Hg|At least 180/120 mm Hg|S=OB
+48|Inflammasome activation produces|IL-1β and IL-18|IL-6 and TNF-α|IFN-γ and IL-12
+49|X|not a single fact
+50|Fidaxomicin target|RNA polymerase|DNA gyrase|50S ribosomal subunit|S=ID
+51|Layer of skin where vitamin D3 forms|Stratum basale|Stratum corneum|Stratum granulosum
+52|Newborn: cataracts, deafness, continuous murmur|Congenital rubella|Congenital CMV|Congenital toxoplasmosis|S=Peds
+53|X|list
+54|Why thiopental acts rapidly|High lipid solubility|Rapid renal excretion|Rapid hepatic metabolism
+55|Vaginitis: thin white fishy discharge, no inflammation|Bacterial vaginosis|Trichomoniasis|Candida vulvovaginitis|S=OB
+56|Spirochete in water contaminated by animal urine|Leptospira interrogans|Borrelia burgdorferi|Treponema pallidum|S=ID
+57|X|trivial definition
+58|Orotic aciduria treatment|Uridine triacetate|Allopurinol|Leucovorin
+59|X|trivial
+60|Midodrine: risk|Supine hypertension|Hypoglycemia|Hyperkalemia|S=Car
+61|X|garbled
+62|X|dubious fact
+63|X|vague
+64|Cranial nerve V|Trigeminal nerve|Facial nerve|Glossopharyngeal nerve|S=Neu
+65|Flu shot: 2% vs 8% flu, relative risk reduction|75%|25%|6%
+66|Renal enzyme releasing NH3 from glutamine|Glutaminase|Glutamine synthetase|Glutamate dehydrogenase|S=Neph
+67|Glycolytic enzyme deficiency causing hemolytic anemia|Pyruvate kinase|Glucose-6-phosphate dehydrogenase|Aldolase B|S=HO
+68|Bowel twisting around its mesentery|Volvulus|Intussusception|Diverticulitis|S=GI
+69|COVID-19 ARDS: immune overdrive|Cytokine storm|Complement deficiency|Selective IgA deficiency|S=Pul
+70|X|row fact imprecise: basolateral Na/HCO3 cotransport
+71|RUQ pain after fatty meals, resolves within 6 hours|Biliary colic|Acute cholecystitis|Acute pancreatitis|S=GI
+72|Pyrimidine base found only in DNA|Thymine|Adenine|Guanine
+73|Larger length constant: conduction velocity|Increases|Decreases|No change
+74|X|trivial
+75|Antibody screen in prenatal Rh testing|Indirect Coombs test|Direct Coombs test|Kleihauer-Betke test
+76|Inhibitor of fructose-1,6-bisphosphatase|Fructose-2,6-bisphosphate|Glucose-6-phosphate|Acetyl-CoA
+77|Receptor sensing vibration and pressure|Pacinian corpuscle|Meissner corpuscle|Merkel disc|S=Neu
+78|Antibiotic class depositing in fetal teeth and bone|Tetracyclines|Macrolides|Cephalosporins|S=ID
+79|X|vague
+80|Segmental necrosis with GBM breaks|Rapidly progressive glomerulonephritis|Minimal change disease|Membranous nephropathy|S=Neph
+81|Trichomonas vaginalis: discharge|Yellow-green|White and curdy|Thin gray-white|S=OB
+82|Definitive imaging for cardiac tamponade|Echocardiography|Chest X-ray|ECG|S=Car
+83|X|garbled
+84|X|garbled
+85|X|two-part

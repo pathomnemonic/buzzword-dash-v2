@@ -1,0 +1,2 @@
+What is the cause of resistance to both Cidofovir and Foscarnet, and what specific part of the virus is affected by the mutations that lead to this resistance?
+Resistance to Cidofovir and Foscarnet occurs with mutations to viral DNA polymerase.

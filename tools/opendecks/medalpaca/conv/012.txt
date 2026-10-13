@@ -1,0 +1,70 @@
+611|X|vague
+612|Type II MPGN|Dense deposit disease|Rapidly progressive glomerulonephritis|Membranous nephropathy|S=Neph
+613|X|garbled
+614|Left atrial enlargement compressing the left recurrent laryngeal nerve|Hoarseness|Dysphagia|Horner syndrome|S=Neu
+615|Argininosuccinate lyase products|Arginine and fumarate|Ornithine and urea|Citrulline and aspartate
+616|Anti-inflammatory antibiotic in cystic fibrosis|Azithromycin|Dornase alfa|Tobramycin|S=Pul
+617|Inactive chronic HBV: HBeAg|Negative|Positive|Variable|S=GI
+618|Test for type II hypersensitivity against RBCs|Coombs test|Patch test|Skin prick test|S=HO
+619|X|trivial
+620|Bacterium with poly-D-glutamate capsule|Bacillus anthracis|Streptococcus pneumoniae|Klebsiella pneumoniae|S=ID
+621|Glyburide, glimepiride, glipizide class|Second-generation sulfonylureas|Biguanides|Thiazolidinediones|S=Endo
+622|Cranial nerve II|Optic nerve|Olfactory nerve|Oculomotor nerve|S=Neu
+623|X|vague
+624|X|trivial
+625|Joint abnormality in tabes dorsalis|Charcot joint|Heberden nodes|Jaccoud arthropathy|S=Neu
+626|X|vague
+627|Cryptococcal meningitis: why ICP rises|Yeast clogging arachnoid villi|Cerebral venous thrombosis|Choroid plexus overproduction|S=ID
+628|Retinopathy of prematurity: cause|Hyperoxia-induced neovascularization|Vitamin A toxicity|Congenital infection|S=Peds
+629|Commonest ventricular pre-excitation syndrome|Wolff-Parkinson-White syndrome|Lown-Ganong-Levine syndrome|Brugada syndrome|S=Car
+630|X|list
+631|Anti-EGFR monoclonal antibody|Cetuximab|Bevacizumab|Trastuzumab|S=HO
+632|X|vague
+633|Cytokine stimulating plasma cell growth in myeloma|IL-6|IL-2|IL-10|S=HO
+634|Urachus remnant|Median umbilical ligament|Medial umbilical ligament|Ligamentum teres|S=Surg
+635|X|dubious
+636|Renal autoregulation range of arterial pressure|80 to 200 mmHg|40 to 100 mmHg|150 to 250 mmHg|S=Neph
+637|Mallory bodies (damaged keratin filaments)|Alcoholic hepatitis|Acute viral hepatitis A|Hemochromatosis|S=GI
+638|Severe PID: imaging to exclude tubo-ovarian abscess|Transvaginal ultrasound|Hysterosalpingogram|Plain abdominal X-ray|S=OB
+639|Tall male, gynecomastia, eunuchoid habitus|Klinefelter syndrome (47,XXY)|Turner syndrome|Fragile X syndrome|S=Peds
+640|Rhinosinusitis worsening after initial improvement: antibiotic|Amoxicillin-clavulanate|Oral vancomycin|Nitrofurantoin|S=ID
+641|Bone density test|DEXA scan|Bone scintigraphy|Plain radiograph of the spine|S=Rheum
+642|Nerve blocked at the ischial spine in labor|Pudendal nerve|Obturator nerve|Ilioinguinal nerve|S=OB
+643|X|vague
+644|Rotor and Dubin-Johnson syndromes: bilirubin type|Conjugated|Unconjugated|Neither (normal)|S=GI
+645|Animal reservoir for M. leprae in the US|Armadillo|Prairie dog|Bat|S=ID
+646|Sargramostim|Recombinant GM-CSF|Recombinant G-CSF|Recombinant erythropoietin|S=HO
+647|Carbamazepine hematologic toxicity|Aplastic anemia and agranulocytosis|Hemolytic uremic syndrome|Polycythemia vera|S=Neu
+648|Nerve carrying lung stretch receptor afferents|Vagus nerve|Glossopharyngeal nerve|Phrenic nerve|S=Pul
+649|Antigenic drift in influenza: mechanism|Point mutations in HA or NA|Segment reassortment|Large genomic deletions|S=ID
+650|Selective advantage of sickle cell trait|Malaria protection|Tuberculosis protection|Cholera protection|S=HO
+651|Typical antipsychotics: α1 blockade effect|Orthostatic hypotension|Extrapyramidal symptoms|Hyperprolactinemia|S=Psy
+652|Base excision repair enzyme cutting 5' to the AP site|AP endonuclease|DNA glycosylase|DNA ligase
+653|Enterococcus growth conditions|Grows in 6.5% NaCl and bile|Lysed by bile|Inhibited by 6.5% NaCl|S=ID
+654|Chronic COPD with CO2 retention: main respiratory drive|Arterial PaO2|Arterial PaCO2|Plasma pH|S=Pul
+655|Estrogen effect on SHBG|Increases|Decreases|No effect|S=Endo
+656|X|vague
+657|Adult foodborne botulism sources|Improperly canned foods|Undercooked chicken|Raw oysters|S=ID
+658|Congenital rubella skin finding|Blueberry muffin rash|Slapped-cheek rash|Roseola rash|S=Peds
+659|Cerebellar input from the contralateral inferior olive|Climbing fibers|Mossy fibers|Purkinje cell axons|S=Neu
+660|Receptor for sustained pressure and deep static touch|Merkel disc|Pacinian corpuscle|Meissner corpuscle|S=Neu
+661|Site of B-cell maturation|Bone marrow|Thymus|Spleen
+662|X|weak
+663|X|obscure
+664|Left renal vein compressed between aorta and SMA|Nutcracker syndrome|Superior mesenteric artery syndrome|May-Thurner syndrome|S=Neph
+665|How IgA crosses epithelial cells|Transcytosis|Simple diffusion|Phagocytosis
+666|Apoprotein on LDL binding the LDL receptor|Apo B-100|Apo A-I|Apo C-II|S=Car
+667|Telomerase activity in cancer|Upregulated|Downregulated|Absent|S=HO
+668|Botulinum toxin mechanism|Cleaves SNARE proteins|Blocks voltage-gated sodium channels|ADP-ribosylates Gs|S=Neu
+669|X|obscure
+670|X|list
+671|Chorionicity in twin-twin transfusion syndrome|Monochorionic|Dichorionic diamniotic|Dizygotic|S=OB
+672|In utero exposure linked to vaginal adenosis|Diethylstilbestrol|Thalidomide|Isotretinoin|S=OB
+673|Drug to avoid in MI with acute heart failure or bradycardia|Beta-blockers|Aspirin|Statins|S=Car
+674|Antiarrhythmic class of amiodarone and sotalol|Class III|Class IB|Class IV|S=Car
+675|Capsid symmetry of all naked viruses|Icosahedral|Helical|Complex|S=ID
+676|Tactile object not retrievable with the opposite hand|Corpus callosum|Anterior commissure|Fornix|S=Neu
+677|Cancer treated with topical 5-FU|Basal cell carcinoma|Melanoma|Merkel cell carcinoma|S=HO
+678|mRNA stop codons|UAA, UAG, UGA|AUG, GUG, UUG|UGG, UAU, UGU
+679|X|vague
+680|Splenic removal of Heinz bodies produces|Bite cells|Schistocytes|Target cells|S=HO

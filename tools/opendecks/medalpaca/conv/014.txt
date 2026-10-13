@@ -1,0 +1,70 @@
+751|Crohn disease: gross mucosal appearance|Cobblestone mucosa|Pseudopolyps with continuous ulceration|Lead-pipe colon|S=GI
+752|Muscle of mastication that opens the jaw|Lateral pterygoid|Masseter|Medial pterygoid|S=Neu
+753|Commonest cause of acute bacterial parotitis|Staphylococcus aureus|Streptococcus pneumoniae|Pseudomonas aeruginosa|S=ID
+754|Commonest cause of central line bloodstream infection|Coagulase-negative staphylococci|Escherichia coli|Streptococcus pyogenes|S=ID
+755|DNA virus causing blueberry muffin rash|Cytomegalovirus|Rubella virus|Parvovirus B19|S=Peds
+756|Routine Rho(D) immune globulin timing|28 weeks and within 72 hours postpartum|12 weeks and 36 weeks|First prenatal visit only|S=OB
+757|X|duplicate concept of card 39
+758|Most abundant serum immunoglobulin|IgG|IgA|IgM
+759|X|vague
+760|X|trivial
+761|Initial step of the adenoma-carcinoma sequence|APC mutation|KRAS mutation|TP53 mutation|S=GI
+762|Varicella vaccine type|Live attenuated|Inactivated|Conjugate|S=ID
+763|X|duplicate concept of card 318
+764|X|duplicate concept of card 705
+765|Positive-sense RNA virus genome|Acts directly as mRNA|Must be transcribed first by viral polymerase|Must be reverse transcribed to DNA|S=ID
+766|X|duplicate concept of card 90
+767|X|vague
+768|X|trivial
+769|X|duplicate concept of card 18
+770|X|vague
+771|Ovarian cancer type linked to incessant ovulation|Surface epithelial tumors|Germ cell tumors|Sex cord-stromal tumors|S=OB
+772|RTK inhibited by sorafenib and sunitinib|VEGF receptor|EGFR|HER2|S=HO
+773|Compensatory response versus the primary acid-base change|Same direction|Opposite direction|Variable|S=Neph
+774|Lumbosacral nerve roots below the conus medullaris|Cauda equina|Conus medullaris|Filum terminale|S=Neu
+775|X|two-item
+776|X|duplicate concept of card 642
+777|Ganciclovir: type of nucleoside analog|Guanosine analog|Adenosine analog|Thymidine analog|S=ID
+778|ESBL-producing gram-negative infection: treatment|Carbapenems|Cephalosporins|Aminopenicillins|S=ID
+779|Commonest cause of the common cold|Rhinovirus|Adenovirus|Respiratory syncytial virus|S=ID
+780|X|vague
+781|Leading cause of rickets and osteomalacia|Vitamin D deficiency|Vitamin C deficiency|Vitamin K deficiency|S=Endo
+782|X|vague
+783|GLP-1 agonist satiety mechanism|Slowed gastric emptying|Increased ghrelin|Decreased leptin|S=Endo
+784|Severe croup: blood pressure sign|Pulsus paradoxus|Pulsus alternans|Pulsus parvus et tardus|S=Pul
+785|X|duplicate of card 495
+786|Young adult: month of fever, then heart failure with cardiomegaly|Viral myocarditis|Infective endocarditis|Pericarditis|S=Car
+787|First diagnostic test for cystic fibrosis|Sweat chloride test|Sputum culture|Chest X-ray|S=Pul
+788|Site of B12-intrinsic factor absorption|Terminal ileum|Duodenum|Jejunum|S=GI
+789|X|dubious
+790|X|duplicate concept of card 671
+791|Sacubitril target|Neprilysin|ACE|Renin|S=Car
+792|Corticobulbar innervation of cranial nerve nuclei|Mostly bilateral|Purely ipsilateral|Purely contralateral|S=Neu
+793|Autoantibodies to presynaptic Ca2+ channels|Lambert-Eaton syndrome|Myasthenia gravis|Botulism|S=Neu
+794|Hydrocele fluid location|Tunica vaginalis|Pampiniform venous plexus|Seminiferous tubules|S=Surg
+795|Opioid withdrawal: pupils|Mydriasis|Miosis|Anisocoria|S=Psy
+796|Infant pneumonia with staccato cough|Chlamydia trachomatis|Respiratory syncytial virus|Bordetella pertussis|S=Peds
+797|Motor speech area|Broca area|Wernicke area|Angular gyrus|S=Neu
+798|X|vague
+799|X|duplicate of card 224
+800|PID with severe RUQ pain|Fitz-Hugh-Curtis syndrome|Acute cholecystitis|Hepatic abscess|S=OB
+801|X|vague
+802|Nerve for hip flexion and knee extension|Femoral nerve|Obturator nerve|Sciatic nerve|S=Neu
+803|DIC: platelet count|Decreased|Increased|Normal|S=HO
+804|Thiazide diuretic target|Na+-Cl- cotransporter|Na+-K+-2Cl- cotransporter|Epithelial sodium channel|S=Neph
+805|FSGS: immunofluorescence|Negative (no immune deposits)|Linear IgG along the GBM|Granular IgG and C3|S=Neph
+806|X|vague
+807|X|outdated: doxycycline now preferred for chlamydia
+808|Complement deficiency with recurrent Neisseria infections|C5 through C9|C1 through C4|Decay-accelerating factor|S=ID
+809|X|two-part
+810|X|vague
+811|X|vague
+812|X|vague
+813|X|duplicate of card 199
+814|Sertoli-Leydig tumor: hormone effect|Virilization from excess androgens|Feminization from excess estrogen|Hypothyroidism|S=OB
+815|Glaucoma: visual field loss|Progressive peripheral field loss|Central scotoma|Bitemporal hemianopia|S=Neu
+816|First-line therapy for nocturnal enuresis|Behavioral therapy with urine alarm|Long-term imipramine|Bladder augmentation surgery|S=Peds
+817|Adenosine receptor on SA and AV nodes|A1 receptor|β1 receptor|α1 receptor|S=Car
+818|X|vague
+819|X|duplicate concept
+820|Anterior spinal artery occlusion: sensory loss|Pain and temperature loss|Vibration and proprioception loss|Two-point discrimination loss|S=Neu

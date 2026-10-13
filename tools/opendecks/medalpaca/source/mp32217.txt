@@ -1,0 +1,2 @@
+What is the enzyme responsible for generating antigen-independent antibody diversity by inserting random nucleotides during V(D)J recombination?
+The enzyme responsible for generating antigen-independent antibody diversity by inserting random nucleotides during V(D)J recombination is terminal deoxyribonucleotidyl transferase (Tdt).

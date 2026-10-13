@@ -1,0 +1,2 @@
+What is the role of TH2 cells in asthma pathogenesis and what do they secrete that mediates class switching to IgE?
+TH2 cells play a role in asthma pathogenesis by secreting IL 4, which mediates class switching to IgE.

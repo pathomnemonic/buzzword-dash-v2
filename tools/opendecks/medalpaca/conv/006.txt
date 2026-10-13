@@ -1,0 +1,55 @@
+241|Bruton agammaglobulinemia: immunoglobulin levels|All classes decreased|Only IgA decreased|Only IgE decreased
+242|Fluoxetine washout before starting an MAOI|5 weeks|1 week|2 weeks|S=Psy
+243|X|vague
+244|X|dubious
+245|Active androgen in the prostate|Dihydrotestosterone|Estradiol|Androstenedione|S=Endo
+246|Predominant cells on postmenopausal Pap smear|Parabasal cells|Superficial cells|Clue cells|S=OB
+247|Precursor of bile acids, steroid hormones and vitamin D|Cholesterol|Phenylalanine|Acetoacetate
+248|Osgood-Schlatter disease: typical patient|Adolescent athletes|Postmenopausal women|Elderly sedentary men|S=Peds
+249|Chlamydia trachomatis serotypes L1-L3 cause|Lymphogranuloma venereum|Trachoma|Inclusion conjunctivitis|S=ID
+250|Woman 40-50: morning stiffness over 1 hour improving with use|Rheumatoid arthritis|Osteoarthritis|Fibromyalgia
+251|Azole effect on cytochrome P450|Inhibition|Induction|No effect
+252|Treatment of MRSA osteomyelitis|Vancomycin|Nafcillin|Ceftriaxone|S=ID
+253|Common carotid artery bifurcation level|C4|C2|C6|S=Surg
+254|Why reticulocytes look blue on Wright-Giemsa|Residual ribosomal RNA|Nuclear remnants|Excess iron|S=HO
+255|Third ventricle drains into the fourth via|Cerebral aqueduct|Foramen of Monro|Foramen of Luschka|S=Neu
+256|Ovarian mass: hyperechoic nodule with shadowing and calcifications|Mature cystic teratoma|Serous cystadenoma|Endometrioma|S=OB
+257|Central cord syndrome: diagnostic test|MRI of the spine|Lumbar puncture|EEG|S=Neu
+258|X|duplicate concept of card 52
+259|Down syndrome: AFP on quad screen|Decreased|Increased|Normal|S=Peds
+260|Severe purulent skin infection: IV MRSA coverage|Vancomycin|Cephalexin|Penicillin V|S=ID
+261|Granulomatous amoebic encephalitis|Acanthamoeba|Naegleria fowleri|Toxoplasma gondii|S=ID
+262|X|dubious
+263|X|imprecise
+264|X|wrong fact
+265|Cause of Cushing disease|ACTH-secreting pituitary adenoma|Cortisol-secreting adrenal adenoma|Ectopic ACTH from small cell lung cancer|S=Endo
+266|Screening test for infectious mononucleosis|Monospot test|Tzanck smear|Weil-Felix test|S=ID
+267|X|list
+268|X|vague
+269|Syndrome associated with OCD|Tourette syndrome|Down syndrome|Marfan syndrome|S=Psy
+270|Streptococcus bovis biotype I: new name|Streptococcus gallolyticus|Streptococcus agalactiae|Streptococcus mutans|S=ID
+271|Nephrotic syndrome complication causing left varicocele|Left renal vein thrombosis|Renal artery thrombosis|Urethral stricture|S=Neph
+272|X|odd
+273|Compulsive hair pulling|Trichotillomania|Excoriation disorder|Body dysmorphic disorder|S=Psy
+274|X|vague
+275|Renal agenesis: failed structure|Ureteric bud|Pronephros|Urogenital sinus|S=Neph
+276|Fidaxomicin indication|Clostridioides difficile infection|MRSA skin infection|Cytomegalovirus colitis|S=ID
+277|Ramelteon receptors|Melatonin MT1 and MT2|GABA-A|Orexin receptors|S=Psy
+278|X|list
+279|Fall on outstretched hand: most often fractured carpal bone|Scaphoid|Lunate|Hamate|S=Surg
+280|Primary headache with Horner syndrome|Cluster headache|Migraine|Tension-type headache|S=Neu
+281|Valproate and topiramate: non-seizure use|Migraine prophylaxis|Acute migraine abortion|Cluster headache abortion|S=Neu
+282|GVHD is beneficial in|Leukemia (graft-versus-leukemia effect)|Aplastic anemia|Sickle cell disease|S=HO
+283|S. aureus acute endocarditis: typical patient|IV drug users|Dental extraction patients|Patients with rheumatic valve disease|S=Car
+284|X|two-item
+285|Conjugated bilirubin in the gut is converted to|Urobilinogen|Biliverdin|Heme|S=GI
+286|Increased afterload: pressure-volume loop shape|Narrower and taller|Wider and taller|Wider and shorter|S=Car
+287|X|trivial
+288|Neomycin use|Bowel prep before colorectal surgery|Treatment of meningitis|Treatment of tuberculosis|S=GI
+289|Virus with wheel-like appearance on electron microscopy|Rotavirus|Norovirus|Adenovirus|S=ID
+290|Intracellular brain edema: cause|Failure of Na+/K+ ATPase pumps|Blood-brain barrier breakdown|Obstruction of CSF outflow|S=Neu
+291|Beta-blocker effect on cAMP|Decrease|Increase|No change|S=Car
+292|Nuclei of cranial nerves III and IV|Midbrain|Pons|Medulla|S=Neu
+293|X|weak
+294|X|vague
+295|X|garbled

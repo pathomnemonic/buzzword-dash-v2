@@ -1,0 +1,2 @@
+Which enzyme of base excision repair is responsible for removing nucleotides at the 5' end?
+The AP-endonuclease enzyme is responsible for removing nucleotides at the 5' end in base excision repair.
