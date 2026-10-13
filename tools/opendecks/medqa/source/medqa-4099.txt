@@ -1,0 +1,3 @@
+A 5-year-old boy presents to the pediatrician after his parents noted that he could not sustain physical exertion and would experience muscle cramping. It was noted that after physical exertion the boy experienced severe muscle pain. After a series of biochemical and genetic tests, it was discovered the that the boy had a nonsense mutation in the gene encoding the muscle glycogen phosphorylase. Thus he was diagnosed with McArdle's disease. Which of the following mRNA changes would be expected to cause this mutation?
+Options: A) UGU -> CGC; B) AUG -> UCA; C) CUG -> AUG; D) UAU -> UAA.
+The keyed answer is D) UAU -> UAA.

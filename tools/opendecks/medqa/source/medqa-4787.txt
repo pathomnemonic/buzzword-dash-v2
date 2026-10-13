@@ -1,0 +1,3 @@
+A group of scientists is conducting an experiment on the human cells involved in the immune response. They genetically modify B cells so they do not express the cluster of differentiation 21 (CD21) on their cell surfaces. The pathogenesis of which of the following organisms would most likely be affected by this genetic modification?
+Options: A) Epstein-Barr virus (EBV); B) Measles virus; C) Human immunodeficiency virus (HIV); D) Human papillomavirus.
+The keyed answer is A) Epstein-Barr virus (EBV).

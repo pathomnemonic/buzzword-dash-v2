@@ -1,0 +1,59 @@
+{
+ "total": 10178,
+ "dropReasons": {
+  "option >70 chars (will not fit a gate)": 429,
+  "image-dependent wording": 1108,
+  "calculation / biostatistics / study design": 361,
+  "lab/vitals-value heavy (>=6 numeric values)": 869,
+  "ethics / communication / disclosure": 153,
+  "malformed": 219,
+  "vignette >190 words": 225,
+  "negated stem (EXCEPT/NOT/LEAST)": 17,
+  "multi-part / all-of-above option": 1
+ },
+ "survivors": 6796,
+ "survivorsByStep": {
+  "step2&3": 2752,
+  "step1": 4044
+ },
+ "survivorsBySubject": {
+  "Obstetrics/Gynecology": 659,
+  "Pulmonology": 620,
+  "Hematology/Oncology": 457,
+  "Gastroenterology": 850,
+  "Multisystem / Mixed": 247,
+  "Pediatrics": 507,
+  "Neurology": 544,
+  "Cardiology": 795,
+  "Psychiatry": 302,
+  "Infectious Disease": 583,
+  "Nephrology": 300,
+  "Emergency Medicine": 160,
+  "Endocrinology": 372,
+  "Rheumatology": 239,
+  "Surgery": 161
+ },
+ "sample": 1000,
+ "sampleByStep": {
+  "step1": 500,
+  "step2&3": 500
+ },
+ "sampleBySubject": {
+  "Endocrinology": 67,
+  "Pulmonology": 68,
+  "Hematology/Oncology": 68,
+  "Neurology": 67,
+  "Obstetrics/Gynecology": 67,
+  "Psychiatry": 67,
+  "Multisystem / Mixed": 66,
+  "Cardiology": 66,
+  "Surgery": 66,
+  "Nephrology": 66,
+  "Infectious Disease": 67,
+  "Rheumatology": 66,
+  "Pediatrics": 67,
+  "Gastroenterology": 66,
+  "Emergency Medicine": 66
+ },
+ "totalDropped": 3382
+}

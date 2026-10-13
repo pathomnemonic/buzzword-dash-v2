@@ -1,0 +1,3 @@
+A group of scientists studied the effects of cytokines on effector cells, including leukocytes. They observed that interleukin-12 (IL-12) is secreted by antigen-presenting cells (APCs) in response to bacterial lipopolysaccharide. When a CD4+ T cell is exposed to this interleukin, which of the following responses will it have?
+Options: A) Cell-mediated immune responses; B) Activate B cells; C) Releases granzymes; D) Responds to extracellular pathogens.
+The keyed answer is A) Cell-mediated immune responses.

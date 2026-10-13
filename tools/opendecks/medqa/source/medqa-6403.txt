@@ -1,0 +1,3 @@
+A mutant stem cell was created by using an inducible RNAi system, such that when doxycycline is added, the siRNA targeting DNA helicase is expressed, effectively knocking down the gene for DNA helicase. Which of the following will occur during DNA replication?
+Options: A) DNA is not unwound; B) DNA supercoiling is not relieved; C) The two melted DNA strands reanneal; D) The RNA primer is not created.
+The keyed answer is A) DNA is not unwound.

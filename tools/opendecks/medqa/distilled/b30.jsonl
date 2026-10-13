@@ -1,0 +1,30 @@
+{"i":9546,"x":"truncated; causative drug (ACE inhibitor) not visible"}
+{"i":405,"x":"concept duplicate (calcineurin inhibitor nephrotoxicity)"}
+{"i":9763,"x":"concept duplicate (stable neck trauma CT angiography)"}
+{"i":6371,"s":"Neurology","bw":["Sudden headache, vomiting, ataxic gait","Nystagmus, abnormal heel-to-shin","Diagnosis?"],"a":"Cerebellar hemorrhage","d":"BC","w":["Pontine hemorrhage causes coma, pinpoint pupils and quadriparesis.","Thalamic hemorrhage causes contralateral sensory loss and gaze problems, without cerebellar signs."],"p":"Cerebellar hemorrhage presents with headache, vomiting, truncal ataxia and nystagmus; large clots with brainstem compression need surgery."}
+{"i":6415,"s":"Infectious Disease","bw":["Resolved painless penile ulcer","Positive VDRL and FTA-ABS","Treatment?"],"a":"Penicillin G","d":"AB","w":["Acyclovir treats herpes, which causes painful vesicles.","Azithromycin plus ceftriaxone treats gonorrhea and chlamydia."],"p":"Latent syphilis is treated with benzathine penicillin G (1 dose if early latent, 3 weekly doses if late or unknown duration)."}
+{"i":5508,"s":"Neurology","bw":["Young woman, leg weakness and urinary retention","Lhermitte sign, swollen optic discs","Acute treatment?"],"a":"IV methylprednisolone","d":"AC","w":["Interferon beta reduces relapses over time but does not treat an acute attack.","Plasmapheresis is for steroid-refractory demyelinating attacks."],"p":"Acute multiple sclerosis relapses (optic neuritis, myelitis) are treated with high-dose IV glucocorticoids for 3-5 days."}
+{"i":2245,"x":"imaging choice ambiguous (MRI vs ESR/biopsy)"}
+{"i":5846,"x":"concept duplicate (hydroxyurea in sickle cell)"}
+{"i":3019,"s":"Pulmonology","bw":["COPD exacerbation, more purulent sputum","Worsening dyspnea","Initial drugs?"],"a":"Prednisone and albuterol","d":"AC","w":["Montelukast has no role in acute COPD exacerbations.","Theophylline is not recommended because of toxicity and limited benefit."],"p":"COPD exacerbation: bronchodilators, a short course of systemic steroids, oxygen titrated to 88-92%, and antibiotics if purulent sputum or severe."}
+{"i":9252,"x":"keyed antidepressant (bupropion) ambiguous"}
+{"i":363,"x":"concept duplicate (contact-lens bacterial keratitis)"}
+{"i":1125,"s":"Cardiology","bw":["Porcine mitral valve 12 years ago","New diastolic murmur, heart failure","Cause?"],"a":"Structural valve degeneration","d":["Prosthetic valve endocarditis","Pulmonary embolism"],"w":["Endocarditis would cause fever and embolic phenomena.","Pulmonary embolism presents with sudden dyspnea and pleuritic pain, not a new diastolic murmur."],"p":"Bioprosthetic valves degrade over 10-15 years and need replacement; mechanical valves last longer but require lifelong warfarin."}
+{"i":6861,"s":"Rheumatology","bw":["Obese, medial knee pain below the joint line","Tender medial proximal tibia, negative McMurray","Diagnosis?"],"a":"Pes anserine bursitis","d":"DB","w":["Prepatellar bursitis is swelling over the kneecap after kneeling.","A medial meniscus tear gives joint-line tenderness, locking and a positive McMurray test."],"p":"Pes anserine bursitis causes medial knee pain 2-3 cm below the joint line, common in obese women and diabetics."}
+{"i":6865,"x":"truncated; Rh status not visible"}
+{"i":5042,"x":"concept duplicate (pregnancy test in amenorrhea)"}
+{"i":8129,"x":"concept duplicate (intraosseous access)"}
+{"i":10058,"x":"tadalafil is also a defensible BPH add-on"}
+{"i":5428,"x":"MS prognosis factor, weak"}
+{"i":8273,"s":"Neurology","bw":["Seizure, multiple small ring-enhancing brain lesions","CSF eosinophilia","Route of infection?"],"a":"Eggs from human feces","d":"AB","w":["Undercooked fish transmits Diphyllobothrium and Anisakis, not brain cysticerci.","Eggs from cat feces transmit Toxoplasma, which gives a few large ring-enhancing lesions in AIDS."],"p":"Neurocysticercosis: Taenia solium eggs ingested from human feces (fecal-oral) hatch and encyst in the brain; treat with albendazole and steroids."}
+{"i":5785,"x":"suicide risk assessment, ethics-like"}
+{"i":1222,"x":"numeric PPD criteria"}
+{"i":7690,"x":"SLE with cytopenias fits both type II and III"}
+{"i":8033,"x":"concept duplicate (OCD psychotherapy)"}
+{"i":5243,"s":"Pulmonology","bw":["Severe asthma attack on controller therapy","Wheezing, on 100% oxygen","Next treatment?"],"a":"Inhaled albuterol","d":"BD","w":["IV corticosteroids help but come after immediate bronchodilation.","Theophylline is not recommended for acute asthma because of toxicity."],"p":"Acute severe asthma: oxygen, repeated inhaled SABA first, plus ipratropium and systemic steroids; magnesium for refractory cases."}
+{"i":5152,"x":"risk-factor item, weak"}
+{"i":7109,"s":"Emergency Medicine","bw":["Lithium user: confusion, coarse tremor, dysarthria","Vomiting and diarrhea","Severe toxicity treatment?"],"a":"Hemodialysis","d":"AD","w":["Bowel irrigation is for sustained-release ingestions, not chronic toxicity with neurologic signs.","Dantrolene treats malignant hyperthermia and is not used in lithium toxicity."],"p":"Lithium toxicity with neurologic findings or renal failure needs hemodialysis; activated charcoal does not bind lithium."}
+{"i":3573,"x":"concept duplicate (coronary steal with vasodilator stress testing)"}
+{"i":4428,"x":"concept duplicate (conservative low back pain care)"}
+{"i":6637,"s":"Obstetrics/Gynecology","bw":["Foul yellow-green vaginal discharge","Edematous vagina, red-tan cervix","Diagnosis?"],"a":"Trichomonas vaginalis","d":"CB","w":["Candida causes thick white curdy discharge and itching.","Physiologic leukorrhea is clear to white, odorless and not inflammatory."],"p":"Trichomoniasis: frothy yellow-green malodorous discharge, strawberry cervix, motile trophozoites; treat both partners with metronidazole."}
+{"i":2198,"x":"insulin regimen choice, ambiguous"}

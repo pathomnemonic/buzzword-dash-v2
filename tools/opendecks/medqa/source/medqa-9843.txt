@@ -1,0 +1,3 @@
+An investigator develops a new drug that decreases the number of voltage-gated potassium channels in cardiac muscle cell membranes. Which of the following is the most likely effect of this drug on the myocardial action potential?
+Options: A) Decreased resting membrane potential; B) Delayed repolarization; C) Delayed depolarization; D) Accelerated repolarization.
+The keyed answer is B) Delayed repolarization.

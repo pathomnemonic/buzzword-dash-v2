@@ -1,0 +1,3 @@
+A 25-year-old patient comes to the physician with complaints of dysuria and white urethral discharge. He is sexually active with 4 partners and does not use condoms. The physician is concerned for a sexually transmitted infection and decides to analyze the nucleic acid sequences present in the discharge to aid in diagnosis via DNA amplification. Which of the following is responsible for the creation of the nucleic acid copies during the elongation phase of the technique most likely used in this case?
+Options: A) Nucleotide sequence of the target gene; B) Amino acid sequence of the target gene; C) Heat-sensitive DNA polymerase; D) Heat-resistant DNA polymerase.
+The keyed answer is D) Heat-resistant DNA polymerase.
