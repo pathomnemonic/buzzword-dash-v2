@@ -45,11 +45,13 @@ Upload the 6.9-inch set (required) from `assets/store/appstore/` (1290 × 2796).
 `assets/store/appstore-icon-1024.png` (1024 × 1024, no transparency). The build also embeds its own icons from `assets/`.
 
 ## Age rating (answer the questionnaire)
-- Cartoon or fantasy violence: **None** (or "Infrequent/Mild" if you want to be safe).
-- Realistic violence, sexual content, profanity, horror, drugs, alcohol, gambling, contests: **None**.
-- Medical or treatment information: **None** (the app is a study game for exams and states it gives no medical advice; if you prefer to be safe choose "Infrequent/Mild").
-- Unrestricted web access: **No**. User-generated content: **Yes, display names and friend requests only** (reporting and blocking exist).
-Expected: **4+** (or 9+ if you chose the mild options).
+App Store Connect now uses the newer questionnaire (ratings 4+, 9+, 13+, 16+, 18+; reference: https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions). Answer:
+- In-app controls (parental controls, age assurance): **None**.
+- Capabilities: **User-generated content: Yes** (display names, a run-summary feed with kudos, group names; reporting and blocking exist). **Messaging and chat: No** (no chat, no free text between players). **Advertising: No**. Unrestricted web access: **No**.
+- Mature themes (profanity, horror, alcohol/tobacco/drugs), sexuality or nudity, gambling, contests, loot boxes: **None**.
+- Violence: **None** (or "Infrequent cartoon or fantasy violence" to be safe: monsters chase a character, nothing is shown being harmed).
+- **Medical or Wellness: choose "Infrequent medical or treatment information"** (the vignettes name diseases and findings; it is exam study content, not advice). Do not answer "None": the questions are about content shown, not about giving advice.
+Expected: about **9+ to 12+**. Also in App Store Connect → App Information: **Declare Regulated Medical Device Status → No** (it is not a medical device), and complete the **Digital Goods and Services / trader status** declaration if you sell in the EU.
 
 ## App Privacy ("nutrition label")
 Data collected, **not used for tracking**:

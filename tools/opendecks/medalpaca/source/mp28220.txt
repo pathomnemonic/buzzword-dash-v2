@@ -1,0 +1,2 @@
+In the electron transport chain, where are electrons from coenzyme Q (ubiquinone) transferred to?
+Electrons from coenzyme Q (ubiquinone) in the electron transport chain are transferred to complex III (Cyto b/c1).

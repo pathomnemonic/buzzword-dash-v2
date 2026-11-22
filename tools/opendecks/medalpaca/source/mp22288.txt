@@ -1,0 +1,2 @@
+What is the binding mechanism that allows natural killer cells to kill cells, and what are the specific molecules involved?
+Natural killer cells may kill cells via binding between CD16 molecules on the NK cells and the Fc region of IgG-bound antigen.

@@ -1,0 +1,2 @@
+What induces the expression of E-selectin?
+E-selectin expression is induced by IL-1 and TNF.

@@ -20,9 +20,9 @@ test('Anki export and an AI reply both end up as cards you can use', async ({ pa
 
   // 1. an Anki "Notes in Plain Text" export, uploaded as a file
   await page.locator('#ankiImportContainer input[type="file"]').setInputFiles('tests/fixtures/anki-export-sample.txt');
-  await expect(page.locator('.anki-import-preview')).toContainText(/Found 6 cards/);
-  await page.getByRole('button', { name: 'Import as flashcards' }).click();
-  await expect(page.locator('.anki-import-status')).toContainText(/Imported 6 flashcards/);
+  await expect(page.locator('.anki-filter')).toContainText(/Found 6 cards/);
+  await page.locator('[data-role="filter-import"]').click();
+  await expect(page.locator('.anki-filter')).toContainText(/6 new/);
 
   // 2. an AI chat's reply, pasted
   const reply = readFileSync('tests/fixtures/ai-reply-sample.txt', 'utf8');

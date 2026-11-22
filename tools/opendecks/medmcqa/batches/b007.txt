@@ -1,0 +1,28 @@
+357|PED|dx|Blond hair, intellectual disability, seizures, normal at birth|Phenylketonuria|Tyrosinemia|Gaucher disease|PKU is phenylalanine hydroxylase deficiency; infants are normal at birth and develop delay later, often with a musty odor.
+361|NEU|se|Triptan (sumatriptan) contraindication|Ischemic vascular disease (coronary or peripheral)|Asthma|Hypothyroidism|Sumatriptan is a 5-HT1B/1D agonist that causes vasoconstriction, so it is avoided in vascular disease.
+363|OB|mg|Moschcowitz repair|Enterocele (obliterates cul-de-sac)|Cystocele|Chronic uterine inversion|The Moschcowitz repair uses purse-string sutures to obliterate the pouch of Douglas, taking care to avoid the ureter.
+365|MIX|mech|Amino acid converted into niacin|Tryptophan|Lysine|Glycine|Tryptophan is the precursor of niacin, serotonin and melatonin.
+368|END|dx|Most common cause of congenital hypothyroidism in iodine-sufficient areas|Thyroid dysgenesis|Transplacental maternal antibodies|Dyshormonogenesis|Thyroid dysgenesis (agenesis or ectopy) accounts for most sporadic congenital hypothyroidism.
+369|MIX|se|Bull's-eye maculopathy|Chloroquine or hydroxychloroquine|Primaquine|Quinine|Chloroquine and hydroxychloroquine deposit in the retina, causing bull's-eye maculopathy and requiring eye screening.
+370|NEP|lab|Marker used to measure renal plasma flow|PAH|Inulin|Creatinine|PAH is about 90% removed in one renal pass, so its clearance estimates plasma flow; inulin measures GFR.
+372|END|lab|L-arginine stimulation test assesses reserve of|Growth hormone|Cortisol|TSH|The L-arginine, insulin tolerance, GHRH and L-dopa tests are used to test growth hormone reserve.
+376|ID|dx|Flask-shaped colonic ulcers in dysentery|Amoebiasis|Typhoid|Giardiasis|Intestinal amoebiasis causes flask-shaped ulcers; the liver abscess contains anchovy-sauce pus.
+379|PUL|lab|Kveim-Siltzbach test|Sarcoidosis|Tuberculosis|Histoplasmosis|The Kveim-Siltzbach test is an intradermal injection of sarcoid tissue extract used for sarcoidosis diagnosis.
+380|NEU|mech|Sole output neurons of the cerebellar cortex|Purkinje cells|Golgi cells|Basket cells|Purkinje axons are the only cortical output and project to the deep cerebellar nuclei.
+381|GI|mech|Hepatopancreatic ampulla opens into which part of the duodenum|Second (descending) part|First (superior) part|Third (inferior) part|The bile and pancreatic ducts open at the major duodenal papilla on the medial wall of the descending duodenum.
+383|CAR|dx|Cyanotic congenital heart disease with left axis deviation|Tricuspid atresia|Transposition of the great arteries|Total anomalous pulmonary venous connection|Tricuspid atresia has a hypoplastic right ventricle and is the cyanotic lesion with left axis deviation.
+384|MIX|ph|Binds the agonist's site and produces the opposite effect|Inverse agonist|Partial agonist|Competitive antagonist|Inverse agonists reduce constitutive receptor activity below baseline.
+386|NEU|ph|Donepezil, rivastigmine, galantamine mechanism|Inhibit acetylcholinesterase (raise acetylcholine)|Block NMDA receptors|Increase dopamine availability|Alzheimer symptoms track low acetylcholine, so cholinesterase inhibitors raise ACh availability.
+387|MIX|mech|Main antibody of respiratory and GI mucosal defence|Secretory IgA|IgG|IgM|Secretory IgA is concentrated on mucosal surfaces and in secretions.
+388|END|ph|Corticosteroid with greatest mineralocorticoid activity|Fludrocortisone|Dexamethasone|Prednisolone|Sodium retention tracks mineralocorticoid potency, which is highest for fludrocortisone.
+389|NEU|dx|Pediatric posterior fossa tumor with CSF 'drop' metastases|Medulloblastoma|Pilocytic astrocytoma|Craniopharyngioma|Medulloblastoma spreads through the CSF to form distant nodules (drop metastases).
+392|ID|lab|Latex agglutination test on CSF detects|Cryptococcal capsular antigen|Coccidioides antigen|Histoplasma antigen|Latex agglutination detects cryptococcal polysaccharide antigen in CSF.
+393|NEU|dx|Tinel sign advancing along an injured nerve|Nerve regeneration|Tendon injury|Tenosynovitis|Tapping along the nerve produces tingling at the point regeneration has reached.
+396|MIX|ph|Cyclosporine blocks production of|IL-2|IL-1|IL-6|Cyclosporine inhibits calcineurin, which blocks IL-2 transcription and T-cell activation.
+399|HEM|ph|Aspirin effect on coagulation tests|Prolonged bleeding time|Prolonged PT|Prolonged aPTT|Aspirin irreversibly blocks platelet thromboxane A2 synthesis, prolonging bleeding time.
+400|GI|mech|Parietal cell apical proton pump|H+/K+ ATPase|Na+/K+ ATPase|Na+/K+/2Cl- cotransporter|The apical H+/K+ ATPase secretes acid and is the target of proton pump inhibitors.
+401|END|mg|Diabetic autonomic neuropathy with morning orthostatic hypotension: drug|Midodrine|Isoproterenol|Clonidine|Midodrine is an alpha-1 agonist that vasoconstricts to treat postural hypotension.
+402|PED|dx|Horseshoe kidney, streak gonads, learning difficulties|Turner syndrome|Klinefelter syndrome|Fragile X syndrome|Turner syndrome (45,X) features webbed neck, horseshoe kidney, streak gonads and some learning problems.
+405|PUL|dx|Most common cause of lobar pneumonia|Streptococcus pneumoniae|Streptococcus pyogenes|Haemophilus influenzae|Pneumococcus is the commonest cause of typical and lobar pneumonia.
+407|PUL|dx|Increased Reid index (mucous gland thickness)|Chronic bronchitis|Emphysema|Bronchiectasis|The Reid index is the ratio of mucous gland layer to bronchial wall thickness, raised in chronic bronchitis.
+409|PSY|dx|Odd speech, eccentric dress, magical thinking|Schizotypal personality disorder|Schizoid personality disorder|Paranoid personality disorder|Schizotypal personality disorder is marked by odd speech and magical thinking.

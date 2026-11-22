@@ -1,0 +1,2 @@
+What is the role of ADP in platelet aggregation, and which receptors does it bind to on platelets?
+ADP is released upon platelet degranulation and binds to P2Y12 receptors on platelets, resulting in platelet aggregation.

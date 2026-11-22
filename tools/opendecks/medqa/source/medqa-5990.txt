@@ -1,0 +1,3 @@
+A 2-year-old boy has a history of recurrent bacterial infections, especially of his skin. When he has an infection, pus does not form. His mother reports that, when he was born, his umbilical cord took 5 weeks to detach. He is ultimately diagnosed with a defect in a molecule in the pathway that results in neutrophil extravasation. Which of the following correctly pairs the defective molecule with the step of extravasation that molecule affects?
+Options: A) ICAM-1; margination; B) LFA-1 (integrin); margination; C) LFA-1 (integrin); tight adhesion; D) E-selectin; tight adhesion.
+The keyed answer is C) LFA-1 (integrin); tight adhesion.

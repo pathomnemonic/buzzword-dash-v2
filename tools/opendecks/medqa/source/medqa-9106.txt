@@ -1,0 +1,3 @@
+A medical student is conducting an experiment related to body fluids. Part of his research requires a relatively precise estimation of extracellular body fluid in each volunteer. He knows that extracellular body fluid accounts for approximately 33% of the volume of total body water. Which of the following substances is most likely to be helpful to measure the volume of the extracellular body fluid?
+Options: A) Evans blue; B) Heavy water; C) Mannitol; D) Radio-iodine labeled serum albumin.
+The keyed answer is C) Mannitol.

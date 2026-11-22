@@ -1,0 +1,2 @@
+What is the name of the exotoxin produced by Clostridium botulinum, and what is the function of this toxin in relation to SNARE proteins and neurotransmitter release?
+The exotoxin produced by Clostridium botulinum is called Botulinum Toxin, and its function is to cleave SNARE proteins that are required for neurotransmitter release.

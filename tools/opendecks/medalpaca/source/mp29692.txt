@@ -1,0 +1,2 @@
+What is the recommended maximum rate for correcting serum sodium levels in cases of both hypo- and hyper-natremia?
+Correction of serum sodium (both hypo- and hyper-natremia) should not exceed a rate of 0.5 mEq/L/hr.

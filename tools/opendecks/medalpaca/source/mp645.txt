@@ -1,0 +1,2 @@
+What is the mechanism of action of hydroxyurea, and how does it affect pyrimidine synthesis? Which enzyme does it inhibit, and what is the consequence of this inhibition on the synthesis of thymidine?
+Hydroxyurea is an antimetabolite that inhibits pyrimidine synthesis by specifically inhibiting the enzyme Ribonucleotide Reductase. This inhibition leads to the blocking of thymidine synthesis, which is an essential component of DNA synthesis.

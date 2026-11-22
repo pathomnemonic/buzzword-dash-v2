@@ -1,0 +1,2 @@
+What happens to the four twitches during TOF stimulation in phase I blockade when using depolarizing NMJ blockers?
+During phase I blockade using depolarizing NMJ blockers, TOF stimulation shows equal reduction of all four twitches.

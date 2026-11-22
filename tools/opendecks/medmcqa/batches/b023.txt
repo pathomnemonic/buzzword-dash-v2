@@ -1,0 +1,29 @@
+1317|NEU|dx|Most common CNS neoplasm in HIV|Primary CNS lymphoma|Medulloblastoma|Astrocytoma|EBV-driven primary CNS lymphoma is the commonest HIV brain tumor; toxoplasmosis is the main mimic.
+1320|GI|mech|Cofactor required by pancreatic lipase|Colipase|Intrinsic factor|Enterokinase|Colipase anchors pancreatic lipase to bile-salt-coated fat droplets and is activated by trypsin.
+1325|GI|dx|Elderly man regurgitating food eaten days ago, halitosis, neck gurgling|Zenker diverticulum|Achalasia|Scleroderma esophagus|Zenker diverticulum pouches through Killian dehiscence, trapping food that is regurgitated later.
+1328|MIX|mech|Red cell ATP source|Anaerobic glycolysis of glucose|Fatty acid oxidation|Ketone body oxidation|Red cells have no mitochondria, so they depend on glucose glycolysis.
+1329|ID|dx|Granulomatous amoebic encephalitis|Balamuthia mandrillaris|Naegleria fowleri|Entamoeba coli|Balamuthia and Acanthamoeba cause subacute granulomatous encephalitis; Naegleria causes fulminant PAM.
+1330|OB|ph|Intrahepatic cholestasis of pregnancy: treatment|Ursodeoxycholic acid|Cholestyramine|Steroids|Ursodiol increases bile acid excretion and reduces pruritus and abnormal LFTs.
+1331|NEU|mech|Embryonic plate giving rise to motor (efferent) neurons|Basal plate|Alar plate|Roof plate|The basal plate forms motor columns and the alar plate forms sensory columns, separated by the sulcus limitans.
+1334|MIX|ph|Shortest-acting anticholinesterase|Edrophonium|Neostigmine|Pyridostigmine|Edrophonium binds reversibly and briefly, which is why it was used for the Tensilon test.
+1337|OB|mech|Ligamentum teres hepatis is the remnant of|Umbilical vein|Ductus venosus|Ductus arteriosus|The left umbilical vein becomes the ligamentum teres; the ductus venosus becomes ligamentum venosum.
+1338|GI|mech|Intestinal absorption of glucose uses|SGLT (sodium-glucose cotransporter)|GLUT4|Sodium channel|SGLT1 uses the sodium gradient for secondary active uptake; GLUT2 exits the basolateral side.
+1341|GI|mech|Activator of pepsinogen|Gastric acid (H+)|Enterokinase|Trypsin|Acid converts pepsinogen to pepsin, which then activates more pepsinogen.
+1342|SUR|mech|Highly selective vagotomy denervates|Acid-secreting body and fundus (antrum spared)|Antrum and pylorus|Entire stomach|Highly selective vagotomy preserves the nerve of Latarjet, so no drainage procedure is needed.
+1350|HEM|dx|Askin tumor|Chest wall primitive neuroectodermal tumor|Pancoast tumor|Klatskin tumor|Askin tumor is a chest wall PNET of the Ewing family.
+1351|PED|dx|Most common anomaly in a child with recurrent UTI|Vesicoureteric reflux|Posterior urethral valves|Neurogenic bladder|Vesicoureteric reflux is the commonest underlying abnormality in pediatric UTI.
+1352|PUL|lab|Investigation of choice for bronchiectasis|High-resolution CT|Chest X-ray|MRI|HRCT shows dilated, thick-walled bronchi (signet ring sign).
+1353|PSY|dx|Depersonalization and derealization|Dissociative disorder|Mania|Somatoform disorder|Depersonalization and derealization are the core symptoms of dissociative disorders and also occur in panic and schizophrenia.
+1354|CAR|dx|Pulse with two systolic peaks (bisferiens)|Aortic regurgitation|Cardiac tamponade|Severe LV failure|Bisferiens pulse occurs in AR, mixed aortic valve disease and HOCM.
+1356|PED|dx|Recurrent fasting hypoglycemia with hepatomegaly|Von Gierke disease (GSD type I)|Neonatal diabetes|Neonatal hepatitis|Glucose-6-phosphatase deficiency causes fasting hypoglycemia, hepatomegaly, lactic acidosis and hyperuricemia.
+1357|PUL|dx|Hypersensitivity pneumonitis from moldy sugarcane bagasse|Bagassosis|Byssinosis|Silicosis|Bagassosis is caused by thermophilic actinomycetes in moldy bagasse.
+1358|NEP|mech|Amiloride mechanism causing hyperkalemia|Blocks the epithelial sodium channel|Blocks the Na+/Cl- symporter|Blocks the H+/K+ ATPase|Blocking ENaC removes the lumen-negative gradient that drives K+ secretion.
+1360|CAR|mech|Origin of Korotkoff sounds|Turbulent arterial flow|Aortic valve closure|Heart sound transmission|Korotkoff sounds come from turbulent flow in the brachial artery when the cuff partially occludes it.
+1361|PED|dx|Retinopathy of prematurity (retrolental fibroplasia): precipitating factor|Hyperoxia|Hypocapnia|Hypoxia|Prematurity predisposes and excess oxygen precipitates retinal neovascularization.
+1363|NEP|dx|Electrolyte disorder causing heart block and hyporeflexia|Hypermagnesemia|Hypomagnesemia|Hypernatremia|Hypermagnesemia depresses conduction and neuromuscular transmission.
+1365|PED|lab|Hemorrhagic disease of the newborn: coagulation finding|Prolonged PT (vitamin K deficiency)|Low platelet count|Prolonged bleeding time|Neonates are vitamin K deficient, so factors II, VII, IX and X are low and PT is prolonged.
+1366|MIX|mech|Noncompetitive enzyme inhibitor kinetics|Km unchanged, Vmax decreased|Km increased, Vmax unchanged|Km decreased, Vmax decreased|A noncompetitive inhibitor lowers Vmax without changing Km; a competitive inhibitor raises Km.
+1369|NEP|mg|Hypertensive diabetic with proteinuria: drug of choice|ACE inhibitor (e.g. enalapril)|Furosemide|Propranolol|ACE inhibitors and ARBs reduce proteinuria and slow diabetic nephropathy.
+1370|END|mech|Peak time of ACTH and cortisol secretion|Early morning|Evening|Midnight|ACTH and cortisol peak around 8 AM and fall to less than half by midnight.
+1371|CAR|mech|Vagal stimulation effect on the ECG|Longer R-R interval (slower rate)|Shorter R-R interval|Shorter PR interval|Vagal stimulation slows the SA and AV nodes, lengthening the R-R interval.
+1374|PSY|dx|Pervasive suspiciousness and mistrust|Paranoid personality disorder|Schizoid personality disorder|Anankastic personality disorder|Paranoid personality disorder interprets others' motives as malevolent without frank psychosis.

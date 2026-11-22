@@ -1,0 +1,54 @@
+You are converting my flashcards into quick-fire multiple-choice cards for a medical-exam game (USMLE / COMLEX). In the game the player sees 2-4 short clues for about 3 seconds, then must pick the right answer from THREE options (the answer plus two wrong ones). So every card must be answerable from the clues alone, with exactly one defensible option.
+
+Reply with ONE JSON array and nothing else (no commentary, no code fences). One object per usable card, with exactly these fields:
+- "subj": one of "Neurology", "Cardiology", "Nephrology", "Psychiatry", "Gastroenterology", "Pulmonology", "Infectious Disease", "Endocrinology", "Hematology/Oncology", "Rheumatology", "Obstetrics/Gynecology", "Pediatrics", "Surgery", "Emergency Medicine", "Multisystem / Mixed". Use "Multisystem / Mixed" if unsure.
+- "bw": 2 to 4 clues, each 1-8 words, taken from my card (no invented facts). Together they must point to ONE answer. Rules for clues:
+  * Never put the answer, or its key words, in a clue.
+  * Name the thing being asked about, and what is asked, when the card asks a property: "Pseudomonas aeruginosa", "Oxygen requirement" (not just vague symptoms that fit many organisms).
+  * Use specific buzzwords (findings, numbers, named signs), not generic words like "serious", "common", "treatment".
+- "ans": a TERM, not a sentence: a diagnosis, organism, drug, test, structure, receptor, mechanism, or number, normally 1-4 words (never more than 8). If my card's back is a sentence or explanation, extract its key term. If the card asks "what is X?" and the back describes X, flip it: put the description in "bw" and the NAME in "ans".
+- "d": exactly 2 wrong answers. Each must be a real term of the same kind and similar length as "ans" that a student could actually confuse with it (sibling diagnoses, drugs of the same class, nearby numbers, other items from the same list). Never opposites ("increased / decreased / no change"), never silly or a different category, never "N/A" or "None of the above", and never something that is also correct.
+- "tp": one or two sentences of teaching point, using only facts from my card.
+- "ww": an object whose keys are exactly the two wrong answers in "d"; each value is one short sentence on why it is wrong here (state what it actually is or does, not just "not the answer").
+
+Make a card when my card boils down to: one fact -> one short term (name the organism, drug, test, mechanism, cause, number, classic association, or a vignette -> diagnosis).
+SKIP the card (no object at all) when it is: a list, steps or sequence; a definition or "explain / what are the consequences / how does it differ" question; yes/no; two questions in one; "which is NOT / wrong pair" with options missing; an image; or when the back is vague, contradicts itself, or you are not sure it is medically correct. Do not rewrite facts. One card per fact: do not make two cards with the same answer and distractors.
+Ignore HTML tags and tags/subject columns. If a cloze like {{c1::answer}} appears, the hidden part is the answer.
+
+Bad vs good (same fact):
+- Bad: bw ["Narrowed descending aorta","Hypertension"], ans "Narrowing of the descending aorta beyond the great vessels" (answer is in the clue, and is a sentence).
+  Good: bw ["Arm hypertension","Weak leg pulses","Leg cramps"], ans "Coarctation of the aorta", d ["Aortic valve stenosis","Patent ductus arteriosus"].
+- Bad: bw ["Menorrhagia"], ans "More than 80 ml", d ["Less than 20 ml","Less than 40 ml"] (both wrong answers are absurd for heavy bleeding).
+  Good: ans "More than 80 ml", d ["More than 40 ml","More than 120 ml"].
+- Bad: bw ["Volatile anesthetics","Rigidity"], ans "Hypermetabolic muscle crisis triggered by volatile anesthetics".
+  Good: ans "Malignant hyperthermia", d ["Neuroleptic malignant syndrome","Serotonin syndrome"].
+- Bad: bw ["Lung infections","Weak immunity"], ans "Obligate aerobe" (clues fit dozens of organisms; the question being asked is never named).
+  Good: bw ["Pseudomonas aeruginosa","Oxygen requirement"], ans "Obligate aerobe", d ["Obligate anaerobe","Microaerophile"].
+
+Example of one object:
+{"subj":"Cardiology","bw":["Fever","New murmur","Janeway lesions"],"ans":"Infective Endocarditis","d":["Rheumatic Fever","Atrial Myxoma"],"tp":"Janeway lesions are painless; Osler nodes are painful. Blood cultures before antibiotics.","ww":{"Rheumatic Fever":"Migratory arthritis and Jones criteria, not embolic skin lesions.","Atrial Myxoma":"Positional dyspnea and a tumor plop."}}
+
+My cards:
+
+Extra rules for this batch (the text below is a textbook passage, not flashcards; treat each fact worth a quiz question as a card):
+- Add two more fields to each object: "source_ref" (the passage id given below) and "evidence" (ONE sentence copied word for word from the passage that proves the answer).
+- "bw" is what a player reads while running: 1 to 3 short clues, each under 60 characters, 130 characters in total, and it must not contain the answer.
+- "ans" and each wrong answer must be under 50 characters. Exactly one answer may be defensible.
+- Never use a fact that is not in the passage.
+
+Passage id: 17.5
+
+The Parathyroid Glands
+17.5 The Parathyroid Glands
+Learning Objectives
+By the end of this section, you will be able to:
+Describe the location and structure of the parathyroid glands
+Describe the hormonal control of blood calcium levels
+Discuss the physiological response of parathyroid dysfunction
+The parathyroid glands are tiny, round structures usually found embedded in the posterior surface of the thyroid gland (Figure 17.15). A thick connective tissue capsule separates the glands from the thyroid tissue. Most people have four parathyroid glands, but occasionally there are more in tissues of the neck or chest. The function of one type of parathyroid cells, the oxyphil cells, is not clear. The primary functional cells of the parathyroid glands are the chief cells. These epithelial cells produce and secrete the parathyroid hormone (PTH), the major hormone involved in the regulation of blood calcium levels.
+Interactive Link
+View the University of Michigan WebScope to explore the tissue sample in greater detail.
+The parathyroid glands produce and secrete PTH, a peptide hormone, in response to low blood calcium levels (Figure 17.16). PTH secretion causes the release of calcium from the bones by stimulating osteoclasts, which secrete enzymes that degrade bone and release calcium into the interstitial fluid. PTH also inhibits osteoblasts, the cells involved in bone deposition, thereby sparing blood calcium. PTH causes increased reabsorption of calcium (and magnesium) in the kidney tubules from the urine filtrate. In addition, PTH initiates the production of the steroid hormone calcitriol (also known as 1,25-dihydroxyvitamin D), which is the active form of vitamin D3, in the kidneys. Calcitriol then stimulates increased absorption of dietary calcium by the intestines. A negative feedback loop regulates the levels of PTH, with rising blood calcium levels inhibiting further release of PTH.
+Abnormally high activity of the parathyroid gland can cause hyperparathyroidism, a disorder caused by an overproduction of PTH that results in excessive calcium reabsorption from bone. Hyperparathyroidism can significantly decrease bone density, leading to spontaneous fractures or deformities. As blood calcium levels rise, cell membrane permeability to sodium is decreased, and the responsiveness of the nervous system is reduced. At the same time, calcium deposits may collect in the body’s tissues and organs, impairing their functioning.
+In contrast, abnormally low blood calcium levels may be caused by parathyroid hormone deficiency, called hypoparathyroidism, which may develop following injury or surgery involving the thyroid gland. Low blood calcium increases membrane permeability to sodium, resulting in muscle twitching, cramping, spasms, or convulsions. Severe deficits can paralyze muscles, including those involved in breathing, and can be fatal.
+When blood calcium levels are high, calcitonin is produced and secreted by the parafollicular cells of the thyroid gland. As discussed earlier, calcitonin inhibits the activity of osteoclasts, reduces the absorption of dietary calcium in the intestine, and signals the kidneys to reabsorb less calcium, resulting in larger amounts of calcium excreted in the urine.

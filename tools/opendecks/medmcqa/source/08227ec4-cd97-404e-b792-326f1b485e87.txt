@@ -1,0 +1,1 @@
+Ref:Parks 25th edition pg.153 Postitive predictive value depends on prevalence. Note : PPV increases as prevalence increases. PPV decreases as prevalence decreases. But sensitivity and specificity is independent of prevalence.

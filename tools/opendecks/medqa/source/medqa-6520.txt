@@ -1,0 +1,3 @@
+An endocrinologist is working with a pharmaceutical research company on a new drug for diabetes mellitus type 2 (DM2). In their experimental studies, they isolated a component from Gila monster saliva, which was found to have > 50% homology with glucagon-like peptide-1 (GLP1). During the animal studies, the experimental drug was found to have no GLP1 agonist effect. Instead, it irreversibly binds DPP-IV with a higher affinity than GLP1. Which of the following drugs has a similar mechanism of action to this new experimental drug?
+Options: A) Pramlintide; B) Canagliflozin; C) Sitagliptin; D) Metformin.
+The keyed answer is C) Sitagliptin.

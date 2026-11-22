@@ -1,0 +1,70 @@
+681|Medial pain below the knee, normal valgus stress test|Pes anserine bursitis|MCL sprain|Prepatellar bursitis|S=Surg
+682|X|vague
+683|Hepatitis viruses treated with interferon-α|Hepatitis B and C|Hepatitis A and E|Hepatitis A only|S=ID
+684|Shigella entry into Peyer patches|M cells|Goblet cells|Paneth cells|S=ID
+685|X|two-item
+686|Test showing RBCs already coated with antibody|Direct Coombs test|Indirect Coombs test|Kleihauer-Betke test|S=HO
+687|Enzyme converting ALA to porphobilinogen|ALA dehydratase|ALA synthase|Porphobilinogen deaminase
+688|Prodrug of 6-mercaptopurine|Azathioprine|Methotrexate|Mycophenolate
+689|Inheritance of congenital adrenal hyperplasias|Autosomal recessive|Autosomal dominant|X-linked recessive|S=Peds
+690|X|dubious
+691|Corticopapillary osmotic gradient|300 to 1200 mOsm/L|300 to 600 mOsm/L|100 to 300 mOsm/L|S=Neph
+692|Hurler syndrome: accumulated substrates|Heparan sulfate and dermatan sulfate|Keratan sulfate and chondroitin sulfate|Sphingomyelin and cholesterol
+693|CaSR allosteric activator|Cinacalcet|Calcitonin|Alendronate|S=Endo
+694|Triazolam and midazolam: half-life|Short|Long|Intermediate|S=Psy
+695|Congenital dural extension into sella with hypopituitarism|Primary empty sella syndrome|Craniopharyngioma|Sheehan syndrome|S=Endo
+696|Why hemochromatosis progresses slower in women|Iron loss through menstruation|Greater urinary iron excretion|Higher ferritin storage capacity|S=HO
+697|X|trivial
+698|Brown-Séquard: signs below the lesion on the same side|Ipsilateral spastic weakness (UMN)|Contralateral spastic weakness|Bilateral LMN weakness|S=Neu
+699|X|vague
+700|CT finding of acute pyelonephritis|Striated nephrogram|Multiple bilateral cysts|Shrunken kidneys with cortical thinning|S=Neph
+701|Biliverdin reductase product|Unconjugated bilirubin|Urobilinogen|Conjugated bilirubin|S=GI
+702|ADH receptor on vascular smooth muscle|V1|V2|V3|S=Car
+703|X|duplicate of card 302
+704|X|contested
+705|Ascites: test to rule out SBP|Ascitic fluid neutrophil count|Serum amylase|Ascitic triglycerides|S=GI
+706|X|contested
+707|Nocardia: typical dissemination site|CNS|Thyroid|Pancreas|S=ID
+708|X|list
+709|X|vague
+710|X|trivial
+711|ARDS: auscultation|Bilateral diffuse crackles|Unilateral absent breath sounds|Expiratory wheezes|S=Pul
+712|X|weak
+713|X|vague
+714|FEV1/FVC below 70%|Obstructive lung disease|Restrictive lung disease|Normal lung function|S=Pul
+715|Succinylcholine phase I block: train-of-four|Equal reduction without fade|Fade of the fourth twitch|Progressive fade with tetanic fade
+716|Drug raising bladder cancer risk|Cyclophosphamide|Tamoxifen|Methotrexate|S=HO
+717|X|duplicate of card 437
+718|X|vague
+719|X|duplicate of card 558
+720|X|vague
+721|Adult derivative of the myelencephalon cavity|Lower fourth ventricle|Cerebral aqueduct|Lateral ventricles|S=Neu
+722|Amenorrhea in anorexia or strenuous exercise: mechanism|Loss of pulsatile GnRH|Prolactin excess|Ovarian androgen excess|S=Endo
+723|X|row fact wrong (IIA/IIB are separated by spinal accessory nerve)
+724|Enzyme deficient in metachromatic leukodystrophy|Arylsulfatase A|Galactocerebrosidase|Hexosaminidase A|S=Neu
+725|Fasting gastrin over 1000 pg/mL with gastric pH below 4|Zollinger-Ellison syndrome|Atrophic gastritis|Pernicious anemia|S=GI
+726|X|vague
+727|Intestinal parasite causing iron deficiency by blood loss|Hookworm|Ascaris lumbricoides|Enterobius vermicularis|S=HO
+728|X|duplicate concept of card 580
+729|Colorectal cancer follow-up tumor marker|CEA|AFP|CA-125|S=GI
+730|Brush-border enzyme activating trypsinogen|Enteropeptidase|Pepsin|Chymotrypsin|S=GI
+731|X|garbled
+732|Bloody diarrhea without fever after undercooked beef|E. coli O157:H7|Shigella dysenteriae|Salmonella enteritidis|S=ID
+733|Rh-negative mother: prophylaxis|Anti-D immunoglobulin (RhoGAM)|Intravenous immunoglobulin|Hepatitis B immunoglobulin|S=OB
+734|Bacteria whose porin loss causes beta-lactam resistance|Gram-negative bacteria|Gram-positive bacteria|Acid-fast bacteria|S=ID
+735|Complement anaphylatoxins|C3a, C4a and C5a|C3b, C4b and C5b|C1q, C1r and C1s
+736|X|dubious
+737|ADH receptor regulating water reabsorption|V2|V1|V3|S=Neph
+738|Leukocyte with kidney-shaped nucleus|Monocyte|Neutrophil|Lymphocyte|S=HO
+739|Fetal vessel bypassing the liver|Ductus venosus|Ductus arteriosus|Foramen ovale|S=Peds
+740|Hydroxyurea target enzyme|Ribonucleotide reductase|Thymidylate synthase|Dihydrofolate reductase|S=HO
+741|X|vague
+742|X|weak
+743|Creutzfeldt-Jakob disease: EEG|Periodic sharp wave complexes|Hypsarrhythmia|3-Hz spike-and-wave|S=Neu
+744|X|vague
+745|Occlusion causing bradycardia or heart block|Right coronary artery|Left anterior descending artery|Left circumflex artery|S=Car
+746|Shock from sepsis, anaphylaxis or CNS injury|Distributive shock|Cardiogenic shock|Hypovolemic shock|S=EM
+747|X|vague
+748|X|ambiguous
+749|Nifedipine drug class|Dihydropyridine calcium channel blocker|Beta blocker|Loop diuretic|S=Car
+750|Complement deficiency raising SLE risk|C1, C2 or C4|C5 through C9|C1 esterase inhibitor

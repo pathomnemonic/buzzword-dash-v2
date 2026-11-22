@@ -1,9 +1,15 @@
 /**
- * customcards.js — User-created custom cards repository
+ * customcards.js — User-created and imported custom cards repository
  *
- * Stores custom cards in localStorage separately from save data.
- * Custom cards use the same schema as built-in cards so they
- * seamlessly enter the card selection pool during gameplay.
+ * Custom cards use the same schema as built-in cards so they seamlessly enter the card selection pool during gameplay.
+ *
+ * WHERE THEY LIVE
+ *   IndexedDB (cardstore.js) when the browser has it: room for a whole 30,000-card Anki deck. The cards are kept in a
+ *   memory cache, so getAll() and the other readers stay synchronous and never parse anything; changes are saved to
+ *   IndexedDB in batches (write-behind). `await customCards.init()` loads the cache once at start-up and moves any
+ *   cards an older version kept in localStorage into IndexedDB.
+ *   localStorage (one JSON entry, about 5 MB) is the fallback when IndexedDB is missing or blocked (some private
+ *   windows), with the old, smaller limits.
  *
  * ARCHITECTURE CONTRACT (Agent 8):
  * - Must NOT import from cards.js (prevents circular dependency)
@@ -14,18 +20,83 @@
  * - Raw imports without distractors get enabledModes: ['flashcard'] only
  * - Placeholder distractors like ['N/A', 'N/A'] are NOT allowed for runner-playable cards
  * - Supports repository subscriptions via subscribe(listener)
- * - localStorage allows up to 5 MiB per origin
  *
- * Maximum custom cards: 500 (to prevent localStorage overflow)
+ * The list getAll() returns is the cache itself: callers must not change it (it is replaced, never edited, on every change).
  */
 
 import {
   validateCard,
   normalizeComparableText
 } from './cardschema.js';
+import { idbSupported, openStore, storageEstimate } from './cardstore.js';
 
 var CUSTOM_CARDS_KEY = 'buzzword_dash_custom_cards';
-var MAX_CUSTOM_CARDS = 5000; // (an Anki deck is often a few thousand cards)
+var LIMIT_KEY = 'buzzword_dash_custom_cards_limit';
+// localStorage fallback: every card lives in one entry of about 5 MB per site
+var LS_DEFAULT_LIMIT = 5000;
+var LS_HARD_LIMIT = 50000;
+// IndexedDB: the importer reads at most 100,000 cards from one file
+var IDB_HARD_LIMIT = 100000;
+var FLUSH_DELAY_MS = 80;
+function _pageId(n) { return 'p' + String(n).padStart(6, '0'); }
+
+// ----- state -----
+var _mode = 'ls';          // 'idb' once init() has loaded IndexedDB, else 'ls' (localStorage)
+var _store = null;         // the cardstore handle (idb mode)
+var _cards = [];           // the cache: usable cards, in order. Replaced (never edited) on every change.
+var _lsRaw = null;         // ls mode: the stored text _cards was parsed from, so an unchanged entry is not parsed again
+var _version = 0;          // bumped on every change (caches below are keyed to it)
+var _index = null;         // id -> card, built on demand
+var _indexVersion = -1;
+var _haystack = null;      // lower-cased searchable text per card, built on demand
+var _haystackVersion = -1;
+var _playable = Object.create(null); // mode -> {version, list}
+// idb mode stores the cards in PAGES of up to PAGE_SIZE cards, one row per page: IndexedDB pays a fixed cost per row,
+// and 44,000 single-card rows took 14 s to save in a test browser against 0.3 s for 180 pages.
+var PAGE_SIZE = 250;
+var _pages = new Map();    // page number -> its cards (arrays are replaced, never edited, so a save in flight is safe)
+var _pageOf = new Map();   // card id -> page number
+var _tail = 0;             // the last page in use (new cards go there)
+var _dirty = new Set();    // pages changed since the last write
+var _clearPending = false; // the stored copy must be emptied before the dirty pages are written
+var _flushTimer = null;
+var _flushing = Promise.resolve();
+var _ready = null;
+var _saveError = null;     // the last background save that failed (the cards stay in memory for this session)
+var _saveErrorListeners = [];
+var _initInfo = { mode: 'ls', migrated: 0, error: '' };
+
+function _limits() {
+  return _mode === 'idb'
+    ? { def: IDB_HARD_LIMIT, hard: IDB_HARD_LIMIT, min: 1000 }
+    : { def: LS_DEFAULT_LIMIT, hard: LS_HARD_LIMIT, min: LS_DEFAULT_LIMIT };
+}
+
+/** How many custom cards the player allows themselves (their choice in the importer; the most the store takes until they change it). */
+function _limit() {
+  var l = _limits();
+  try {
+    var v = parseInt(localStorage.getItem(LIMIT_KEY), 10);
+    if (v >= l.min && v <= l.hard) return v;
+  } catch (e) { /* storage unavailable: use the default */ }
+  return l.def;
+}
+
+/** Keep imported tags small and plain: text only, no Anki housekeeping tags, at most 15, each at most 100 characters. */
+function _cleanTags(tags) {
+  var out = [];
+  for (var i = 0; i < tags.length && out.length < 15; i++) {
+    var t = typeof tags[i] === 'string' ? tags[i].trim().slice(0, 100) : '';
+    if (!t || /^(leech|marked)$/i.test(t) || out.indexOf(t) >= 0) continue;
+    out.push(t);
+  }
+  return out;
+}
+
+/** Let the page paint and respond between chunks of a long job. */
+function _yieldToUi() {
+  return new Promise(function (resolve) { setTimeout(resolve, 0); });
+}
 
 // Subscription listeners
 var _listeners = [];
@@ -49,21 +120,270 @@ function _usable(c) {
     Array.isArray(c.bw) && c.bw.length > 0 && typeof c.ans === 'string' && c.ans.length > 0;
 }
 
+// ----- the cache -----
+
+function _setList(list) {
+  _cards = list;
+  _version++;
+}
+
+/** ls mode: the list from the stored text, parsed only when the text is different from last time. */
+function _syncFromLocalStorage() {
+  var raw = null;
+  try { raw = localStorage.getItem(CUSTOM_CARDS_KEY); } catch (e) { raw = null; }
+  if (raw === _lsRaw && _lsRaw !== null) return;
+  if (raw === null && _lsRaw === null && _cards.length === 0) return;
+  _lsRaw = raw;
+  var list = [];
+  try {
+    var parsed = raw ? JSON.parse(raw) : [];
+    // whatever the stored text turns out to be, the caller gets a list of usable cards (never null, an object or a number)
+    list = Array.isArray(parsed) ? parsed.filter(_usable) : [];
+  } catch (e) { list = []; }
+  _setList(list);
+}
+
+function _current() {
+  if (_mode === 'ls') _syncFromLocalStorage();
+  return _cards;
+}
+
+function _byId(id) {
+  var cards = _current();
+  if (_index === null || _indexVersion !== _version) {
+    _index = new Map();
+    for (var i = 0; i < cards.length; i++) _index.set(cards[i].id, cards[i]);
+    _indexVersion = _version;
+  }
+  return _index.get(id) || null;
+}
+
+// ----- saving -----
+
+function _saveLocalStorage(cards) {
+  try {
+    var text = JSON.stringify(cards);
+    localStorage.setItem(CUSTOM_CARDS_KEY, text);
+    _lsRaw = text;
+    return true;
+  } catch (e) {
+    console.warn('Could not save custom cards:', e.message);
+    return false;
+  }
+}
+
+function _reportSaveError(err) {
+  _saveError = err;
+  for (var i = 0; i < _saveErrorListeners.length; i++) { try { _saveErrorListeners[i](err); } catch (e) { /* a listener must not stop the others */ } }
+}
+
+/**
+ * Work out, without changing anything, how pages change when `puts` are added or replaced and `dels` removed.
+ * @returns {{touched: Map<number, object[]>, pageOf: Map<string, number>, tail: number}}
+ */
+function _plan(puts, dels) {
+  var touched = new Map();
+  var pageOf = new Map(); // overlay on _pageOf: id -> page, or -1 for removed
+  var tail = _tail;
+  function pg(n) {
+    var a = touched.get(n);
+    if (!a) { var src = _pages.get(n); a = src ? src.slice() : []; touched.set(n, a); }
+    return a;
+  }
+  function where(id) { return pageOf.has(id) ? pageOf.get(id) : (_pageOf.has(id) ? _pageOf.get(id) : -1); }
+  function at(a, id) { for (var i = 0; i < a.length; i++) if (a[i].id === id) return i; return -1; }
+  for (var d = 0; d < dels.length; d++) {
+    var dn = where(dels[d]);
+    if (dn < 0) continue;
+    var da = pg(dn);
+    var di = at(da, dels[d]);
+    if (di >= 0) da.splice(di, 1);
+    pageOf.set(dels[d], -1);
+  }
+  for (var k = 0; k < puts.length; k++) {
+    var card = puts[k];
+    var n = where(card.id);
+    if (n >= 0) {
+      var a = pg(n);
+      var i = at(a, card.id);
+      if (i >= 0) { a[i] = card; continue; }
+    }
+    if (!tail) tail = 1;
+    var t = pg(tail);
+    if (t.length >= PAGE_SIZE) { tail++; t = pg(tail); }
+    t.push(card);
+    pageOf.set(card.id, tail);
+  }
+  return { touched: touched, pageOf: pageOf, tail: tail };
+}
+
+/** Make a plan the live page structure. `written` says the rows are already on disk (no write-behind needed). */
+function _applyPlan(plan, written) {
+  plan.touched.forEach(function (a, n) {
+    if (a.length) _pages.set(n, a); else _pages.delete(n);
+    if (!written) _dirty.add(n);
+  });
+  plan.pageOf.forEach(function (n, id) { if (n < 0) _pageOf.delete(id); else _pageOf.set(id, n); });
+  _tail = plan.tail;
+}
+
+/** The rows that write a plan's pages: {put: rows, del: ids of pages that became empty}. */
+function _rowsOf(plan) {
+  var put = [];
+  var del = [];
+  plan.touched.forEach(function (a, n) { if (a.length) put.push({ id: _pageId(n), n: n, c: a }); else del.push(_pageId(n)); });
+  return { put: put, del: del };
+}
+
+/** idb mode: write the changed pages, in one transaction. Never rejects (a failure is reported to the error listeners). */
+function _flushNow() {
+  clearTimeout(_flushTimer);
+  _flushTimer = null;
+  _flushing = _flushing.then(function () {
+    if (!_clearPending && !_dirty.size) return;
+    var clear = _clearPending;
+    var dirty = Array.from(_dirty);
+    _clearPending = false;
+    _dirty = new Set();
+    var change = { clear: clear, put: [], del: [] };
+    dirty.forEach(function (n) {
+      var a = _pages.get(n);
+      if (a && a.length) change.put.push({ id: _pageId(n), n: n, c: a }); else change.del.push(_pageId(n));
+    });
+    return _store.writeBatch(change).then(function () { _saveError = null; }, function (err) { _reportSaveError(err); });
+  });
+  return _flushing;
+}
+
+function _scheduleFlush() {
+  if (_flushTimer) return;
+  _flushTimer = setTimeout(_flushNow, FLUSH_DELAY_MS);
+}
+
+/**
+ * Make `next` the list, saving the difference. ls mode writes the whole list and reports whether that worked
+ * (when it did not, nothing changes). idb mode changes the cache at once and saves in the background.
+ * @param {object[]} next the full new list
+ * @param {{put?: object[], del?: string[], clear?: boolean}} diff what changed (idb mode)
+ * @returns {boolean}
+ */
+function _commit(next, diff) {
+  if (_mode === 'ls') {
+    if (!_saveLocalStorage(next)) return false;
+    _setList(next);
+    return true;
+  }
+  if (diff.clear) { _pages = new Map(); _pageOf = new Map(); _tail = 0; _dirty = new Set(); _clearPending = true; }
+  _applyPlan(_plan(diff.put || [], diff.del || []), false);
+  _setList(next);
+  _scheduleFlush();
+  return true;
+}
+
+function _installFlushOnHide() {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden' && _mode === 'idb') _flushNow(); });
+  window.addEventListener('pagehide', function () { if (_mode === 'idb') _flushNow(); });
+}
+
+/** First use: open IndexedDB, load the cache, move any localStorage cards across. Falls back to localStorage. */
+async function _init() {
+  if (!idbSupported()) { _initInfo = { mode: 'ls', migrated: 0, error: 'IndexedDB is not available' }; return _initInfo; }
+  var store = null;
+  try {
+    store = await openStore();
+    var rows = await store.loadAll();
+    var list = [];
+    var seen = new Set();
+    var maxN = 0;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r || !Array.isArray(r.c)) continue;
+      var arr = [];
+      for (var j = 0; j < r.c.length; j++) {
+        var c = r.c[j];
+        if (_usable(c) && !seen.has(c.id)) { seen.add(c.id); arr.push(c); list.push(c); _pageOf.set(c.id, r.n); }
+      }
+      if (arr.length) _pages.set(r.n, arr);
+      if (r.n > maxN) maxN = r.n;
+    }
+    _tail = maxN;
+
+    // Cards an earlier version kept in one localStorage entry move across, once.
+    var migrated = 0;
+    var raw = null;
+    try { raw = localStorage.getItem(CUSTOM_CARDS_KEY); } catch (e) { raw = null; }
+    if (raw) {
+      var old = [];
+      try { var parsed = JSON.parse(raw); old = Array.isArray(parsed) ? parsed.filter(_usable) : []; } catch (e) { old = []; }
+      var fresh = old.filter(function (c) { if (seen.has(c.id)) return false; seen.add(c.id); return true; });
+      if (fresh.length) {
+        var plan = _plan(fresh, []);
+        var rowsToWrite = _rowsOf(plan);
+        _store = store; // (the write below needs it)
+        await store.writeBatch({ put: rowsToWrite.put }); // throws if it does not fit: the localStorage copy is then still there
+        _applyPlan(plan, true);
+        fresh.forEach(function (c) { list.push(c); });
+        migrated = fresh.length;
+      }
+      // Only now is the old copy safe to remove (it is in IndexedDB, or was junk that held no usable card)
+      try { localStorage.removeItem(CUSTOM_CARDS_KEY); } catch (e) { /* it stays; the next start finds nothing new */ }
+    }
+    _store = store;
+    _mode = 'idb';
+    _lsRaw = null;
+    _setList(list);
+    _installFlushOnHide();
+    _initInfo = { mode: 'idb', migrated: migrated, error: '' };
+  } catch (e) {
+    if (store) store.close();
+    _store = null;
+    _mode = 'ls';
+    _initInfo = { mode: 'ls', migrated: 0, error: (e && e.message) || String(e) };
+    console.warn('Custom cards: IndexedDB is not usable, keeping them in localStorage:', _initInfo.error);
+  }
+  return _initInfo;
+}
+
 export var customCards = {
 
   /**
-   * Get all custom cards.
+   * Load the card cache (IndexedDB), once. Await this at start-up, before anything reads the cards. Never rejects.
+   * @returns {Promise<{mode: 'idb'|'ls', migrated: number, error: string}>}
+   */
+  init: function() {
+    if (!_ready) _ready = _init();
+    return _ready;
+  },
+
+  /** 'idb' or 'ls': where the cards are kept this session. */
+  getMode: function() { return _mode; },
+
+  /** Everything is written to the store (resolves when the background save has finished). */
+  flush: function() { return _flushNow(); },
+
+  /** The last background save that failed (e.g. {code: 'quota'}), or null. */
+  getSaveError: function() { return _saveError; },
+
+  /** Call back when a background save fails (the browser is out of space, say). Returns an unsubscribe function. */
+  onSaveError: function(fn) {
+    if (typeof fn !== 'function') return function() {};
+    _saveErrorListeners.push(fn);
+    return function() { var i = _saveErrorListeners.indexOf(fn); if (i >= 0) _saveErrorListeners.splice(i, 1); };
+  },
+
+  /** How much the browser says it can store and how much is used (null when it will not say). */
+  storageEstimate: storageEstimate,
+
+  /** Changes every time the list changes: caches built from the list use it as their key. */
+  version: function() { _current(); return _version; },
+
+  /**
+   * Get all custom cards. This is the cache: do not change the list or the cards in it.
    * @returns {object[]}
    */
   getAll: function() {
-    try {
-      var raw = localStorage.getItem(CUSTOM_CARDS_KEY);
-      var parsed = raw ? JSON.parse(raw) : [];
-      // whatever the stored text turns out to be, the caller gets a list of usable cards (never null, an object or a number)
-      return Array.isArray(parsed) ? parsed.filter(_usable) : [];
-    } catch (e) {
-      return [];
-    }
+    return _current();
   },
 
   /**
@@ -73,11 +393,12 @@ export var customCards = {
    */
   replaceAll: function(cards) {
     var seen = {};
+    var hard = _limits().hard;
     var kept = (Array.isArray(cards) ? cards : []).filter(function(c) {
       if (!_usable(c) || seen[c.id]) return false;
       seen[c.id] = true;
       return true;
-    }).slice(0, MAX_CUSTOM_CARDS);
+    }).slice(0, hard);
     this._saveAll(kept);
     _notifyListeners();
     return kept.length;
@@ -89,23 +410,30 @@ export var customCards = {
    * @returns {object|null}
    */
   getById: function(cardId) {
-    var cards = this.getAll();
-    for (var i = 0; i < cards.length; i++) {
-      if (cards[i].id === cardId) return cards[i];
-    }
-    return null;
+    return _byId(cardId);
   },
 
   /**
-   * Save all cards to localStorage.
+   * Make this exactly the stored list (every other change goes through a more specific method).
    * @param {object[]} cards
+   * @returns {boolean} whether it was saved
    */
   _saveAll: function(cards) {
-    try {
-      localStorage.setItem(CUSTOM_CARDS_KEY, JSON.stringify(cards));
-    } catch (e) {
-      console.warn('Could not save custom cards:', e.message);
-    }
+    _current();
+    return _commit(cards.slice(), { clear: true, put: cards });
+  },
+
+  /** The most custom cards the player has allowed (the most the store takes until they lower it). */
+  getLimit: function() { return _limit(); },
+  getHardLimit: function() { return _limits().hard; },
+  getDefaultLimit: function() { return _limits().def; },
+
+  /** Raise or lower that allowance. Returns the value now in force. */
+  setLimit: function(n) {
+    var l = _limits();
+    var v = Math.max(l.min, Math.min(l.hard, Math.round(Number(n)) || l.def));
+    try { localStorage.setItem(LIMIT_KEY, String(v)); } catch (e) { /* keep the old one */ }
+    return _limit();
   },
 
   /**
@@ -115,14 +443,14 @@ export var customCards = {
    * @returns {{ success: boolean, card: object|null, errors: ValidationIssue[], warnings: ValidationIssue[] }}
    */
   add: function(cardData) {
-    var cards = this.getAll();
+    var cards = _current();
 
     // Check count limit
-    if (cards.length >= MAX_CUSTOM_CARDS) {
+    if (cards.length >= _limit()) {
       return {
         success: false,
         card: null,
-        errors: [{ code: 'MAX_CARDS_REACHED', path: '', message: 'Maximum of ' + MAX_CUSTOM_CARDS + ' custom cards reached', severity: 'error' }],
+        errors: [{ code: 'MAX_CARDS_REACHED', path: '', message: 'Maximum of ' + _limit() + ' custom cards reached', severity: 'error' }],
         warnings: []
       };
     }
@@ -151,8 +479,7 @@ export var customCards = {
     var leakWarnings = _checkAnswerLeaks(card);
     var allWarnings = result.warnings.concat(leakWarnings);
 
-    cards.push(card);
-    this._saveAll(cards);
+    _commit(cards.concat([card]), { put: [card] });
     _notifyListeners();
 
     return {
@@ -169,14 +496,16 @@ export var customCards = {
    * @returns {number} how many were removed
    */
   removeWhere: function(shouldRemove) {
-    var cards = this.getAll();
-    var kept = cards.filter(function(c) { return !shouldRemove(c); });
-    var removed = cards.length - kept.length;
-    if (removed > 0) {
-      this._saveAll(kept);
-      _notifyListeners();
+    var cards = _current();
+    var kept = [];
+    var gone = [];
+    for (var i = 0; i < cards.length; i++) {
+      if (shouldRemove(cards[i])) gone.push(cards[i].id); else kept.push(cards[i]);
     }
-    return removed;
+    if (gone.length > 0) {
+      if (_commit(kept, kept.length === 0 ? { clear: true } : { del: gone })) _notifyListeners(); else return 0;
+    }
+    return gone.length;
   },
 
   /**
@@ -187,14 +516,15 @@ export var customCards = {
    * @returns {{ added: number, rejected: number, warnings: string[], limitReached: boolean }}
    */
   addMany: function(inputs) {
-    var cards = this.getAll();
+    var cards = _current().slice();
+    var fresh = [];
     var out = { added: 0, rejected: 0, warnings: [], limitReached: false };
     var stamp = Date.now();
     for (var i = 0; i < inputs.length; i++) {
-      if (cards.length >= MAX_CUSTOM_CARDS) {
+      if (cards.length >= _limit()) {
         out.limitReached = true;
         out.rejected += inputs.length - i;
-        out.warnings.push('Stopped at ' + MAX_CUSTOM_CARDS + ' custom cards, the most the app keeps. Delete some in My Cards to add more.');
+        out.warnings.push('Stopped at ' + _limit() + ' custom cards, the most the app keeps. Delete some in My Cards to add more.');
         break;
       }
       var card = _buildCardFromInput(inputs[i]);
@@ -208,13 +538,121 @@ export var customCards = {
         continue;
       }
       cards.push(card);
+      fresh.push(card);
       out.added++;
     }
     if (out.added > 0) {
-      this._saveAll(cards);
-      _notifyListeners();
+      if (_commit(cards, { put: fresh })) _notifyListeners();
+      else { out.added = 0; out.warnings.push('Your browser ran out of storage space, so nothing was saved.'); }
     }
     return out;
+  },
+
+  /**
+   * Add many cards in chunks without freezing the page, and refresh the ones imported before.
+   * A card whose `key` (an Anki note guid, or a hash of the card text) matches a stored card updates it in place
+   * (same id, so its study history stays); every other card is added. The whole job is saved in ONE transaction at
+   * the end: if it fails (out of space) or is cancelled, the cards imported earlier are exactly as they were.
+   *
+   * @param {object[]} inputs the same shape add() takes, plus optional `tags` (string[]) and `key` (string)
+   * @param {{chunkSize?: number, onProgress?: function(number, number, string=), limit?: number, isCancelled?: function(): boolean}} [opts]
+   *        onProgress(done, total, phase) with phase 'prepare' (checking cards) then 'save' (writing them)
+   * @returns {Promise<{added: number, updated: number, unchanged: number, rejected: number, warnings: string[], limitReached: boolean, saved: boolean, cancelled: boolean, errorCode: string}>}
+   */
+  upsertMany: async function(inputs, opts) {
+    opts = opts || {};
+    var chunk = Math.max(50, opts.chunkSize || 400);
+    var cards = _current().slice();
+    var limit = opts.limit ? Math.min(_limits().hard, opts.limit) : _limit();
+    var out = { added: 0, updated: 0, unchanged: 0, rejected: 0, warnings: [], limitReached: false, saved: true, cancelled: false, errorCode: '' };
+    var byKey = Object.create(null);
+    cards.forEach(function(c, i) { if (c.ak) byKey[c.ak] = i; });
+    var changed = [];
+    var changedSet = new Set();
+    var stamp = Date.now();
+    var total = inputs.length;
+    var progress = opts.onProgress || function() {};
+    for (var i = 0; i < total; i++) {
+      if (i > 0 && i % chunk === 0) {
+        progress(i, total, 'prepare');
+        await _yieldToUi();
+        if (opts.isCancelled && opts.isCancelled()) { out.cancelled = true; out.saved = false; out.added = out.updated = out.unchanged = 0; return out; }
+      }
+      var card = _buildCardFromInput(inputs[i]);
+      var at = card.ak && byKey[card.ak] !== undefined ? byKey[card.ak] : -1;
+      if (at < 0 && cards.length >= limit) {
+        out.limitReached = true;
+        out.rejected += total - i;
+        out.warnings.push('Stopped at ' + limit + ' custom cards, the most you have allowed. Raise the limit in the importer, or delete some in My Cards.');
+        break;
+      }
+      card.id = at >= 0 ? cards[at].id : 'custom_' + stamp + '_' + cards.length + '_' + i;
+      if (at >= 0 && cards[at].createdAt) card.createdAt = cards[at].createdAt;
+      var placeholders = _hasPlaceholderDistractors(card);
+      if (placeholders) card.enabledModes = ['flashcard'];
+      var result = validateCard(card, { strict: false, requireDistractors: !placeholders });
+      if (!result.success) {
+        out.rejected++;
+        if (out.warnings.length < 20) out.warnings.push('Card ' + (i + 1) + ': ' + ((result.errors[0] && result.errors[0].message) || 'not valid') + '. Skipped.');
+        continue;
+      }
+      if (at >= 0) {
+        var old = cards[at];
+        if (old.bw[0] === card.bw[0] && old.ans === card.ans && old.tp === card.tp && _sameTags(old.tags, card.tags) && old.subj === card.subj && _sameBody(old, card)) {
+          out.unchanged++;
+        } else {
+          cards[at] = card;
+          if (!changedSet.has(card.id)) { changedSet.add(card.id); changed.push(card); } else { changed[changed.findIndex(function(c) { return c.id === card.id; })] = card; }
+          out.updated++;
+        }
+      } else {
+        cards.push(card);
+        if (card.ak) byKey[card.ak] = cards.length - 1;
+        changedSet.add(card.id);
+        changed.push(card);
+        out.added++;
+      }
+    }
+    progress(total, total, 'prepare');
+    if (opts.isCancelled && opts.isCancelled()) { out.cancelled = true; out.saved = false; out.added = out.updated = out.unchanged = 0; return out; }
+    if (out.added > 0 || out.updated > 0) {
+      var wrote = await this._saveBatch(cards, changed, opts, function(d, n) { progress(d, n, 'save'); });
+      if (!wrote.ok) {
+        out.saved = false;
+        out.cancelled = wrote.code === 'cancelled';
+        out.errorCode = wrote.code;
+        out.warnings.unshift(wrote.code === 'quota'
+          ? 'Your browser ran out of storage space, so nothing was saved and your earlier cards are unchanged. Import fewer cards (use the tag filter) or delete some first.'
+          : (wrote.code === 'cancelled' ? 'Cancelled. Nothing was imported.' : 'Your browser could not save the cards, so nothing was imported and your earlier cards are unchanged.'));
+        out.added = 0; out.updated = 0;
+      } else {
+        _notifyListeners();
+      }
+    }
+    return out;
+  },
+
+  /**
+   * Save an imported batch as one unit and make it the list, or change nothing.
+   * @returns {Promise<{ok: boolean, code: string}>}
+   */
+  _saveBatch: async function(next, changed, opts, onSaveProgress) {
+    if (_mode === 'ls') {
+      if (!_saveLocalStorage(next)) return { ok: false, code: 'quota' };
+      _setList(next);
+      return { ok: true, code: '' };
+    }
+    await _flushNow(); // earlier edits first
+    var plan = _plan(changed, []);
+    var rows = _rowsOf(plan);
+    try {
+      await _store.writeBatch({ put: rows.put, del: rows.del }, { onProgress: onSaveProgress, isCancelled: opts && opts.isCancelled });
+    } catch (err) {
+      return { ok: false, code: (err && err.code) || 'idb' };
+    }
+    _applyPlan(plan, true);
+    _setList(next);
+    return { ok: true, code: '' };
   },
 
   /**
@@ -225,7 +663,7 @@ export var customCards = {
    * @returns {{ success: boolean, card: object|null, errors: ValidationIssue[], warnings: ValidationIssue[] }}
    */
   update: function(cardId, cardData) {
-    var cards = this.getAll();
+    var cards = _current();
     var index = -1;
     for (var i = 0; i < cards.length; i++) {
       if (cards[i].id === cardId) {
@@ -261,8 +699,9 @@ export var customCards = {
 
     var leakWarnings = _checkAnswerLeaks(updatedCard);
 
-    cards[index] = updatedCard;
-    this._saveAll(cards);
+    var next = cards.slice();
+    next[index] = updatedCard;
+    _commit(next, { put: [updatedCard] });
     _notifyListeners();
 
     return {
@@ -279,9 +718,9 @@ export var customCards = {
    * @param {string} cardId
    */
   remove: function(cardId) {
-    var cards = this.getAll();
+    var cards = _current();
     var filtered = cards.filter(function(c) { return c.id !== cardId; });
-    this._saveAll(filtered);
+    _commit(filtered, filtered.length === 0 && cards.length > 0 ? { clear: true } : { del: [cardId] });
     _notifyListeners();
   },
 
@@ -290,26 +729,29 @@ export var customCards = {
    * @returns {number}
    */
   count: function() {
-    return this.getAll().length;
+    return _current().length;
   },
 
   /**
    * Clear all custom cards.
    */
   clear: function() {
-    this._saveAll([]);
+    _current();
+    _commit([], { clear: true });
     _notifyListeners();
   },
 
   /**
-   * Get all custom cards playable in the given mode.
+   * Get all custom cards playable in the given mode (computed once per change, not per call).
    *
    * @param {string} mode
    * @returns {object[]}
    */
   getPlayable: function(mode) {
-    var cards = this.getAll();
-    return cards.filter(function(c) {
+    var cards = _current();
+    var hit = _playable[mode];
+    if (hit && hit.version === _version) return hit.list;
+    var list = cards.filter(function(c) {
       // Check enabledModes
       if (Array.isArray(c.enabledModes) && c.enabledModes.length > 0) {
         return c.enabledModes.indexOf(mode) >= 0;
@@ -322,6 +764,36 @@ export var customCards = {
         normalizeComparableText(c.d[0]) !== 'n/a' &&
         normalizeComparableText(c.d[1]) !== 'n/a';
     });
+    _playable[mode] = { version: _version, list: list };
+    return list;
+  },
+
+  /**
+   * Cards whose clues, answer, teaching point or tags contain every word of the query (case-insensitive). The text
+   * to search is built once per change, so typing in a search box over 30,000 cards stays quick.
+   * @param {string} query
+   * @returns {object[]} the whole list when the query is empty
+   */
+  search: function(query) {
+    var cards = _current();
+    var words = String(query || '').toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return cards;
+    if (_haystack === null || _haystackVersion !== _version) {
+      _haystack = new Array(cards.length);
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        _haystack[i] = (c.bw.join(' ') + ' ' + c.ans + ' ' + (c.tp || '') + ' ' + (c.tags || []).join(' ')).toLowerCase();
+      }
+      _haystackVersion = _version;
+    }
+    var out = [];
+    for (var j = 0; j < cards.length; j++) {
+      var text = _haystack[j];
+      var ok = true;
+      for (var w = 0; w < words.length; w++) { if (text.indexOf(words[w]) < 0) { ok = false; break; } }
+      if (ok) out.push(cards[j]);
+    }
+    return out;
   },
 
   /**
@@ -371,16 +843,17 @@ export var customCards = {
       return result;
     }
 
-    var existing = this.getAll();
+    var existing = _current().slice();
+    var usedIds = new Set(existing.map(function(c) { return c.id; }));
 
     // Check if we'd exceed the limit
-    if (existing.length + parsed.length > MAX_CUSTOM_CARDS) {
+    if (existing.length + parsed.length > _limit()) {
       result.warnings.push({ code: 'WOULD_EXCEED_LIMIT', path: '',
-        message: 'Import would exceed maximum of ' + MAX_CUSTOM_CARDS + ' custom cards. Only importing what fits.',
+        message: 'Import would exceed maximum of ' + _limit() + ' custom cards. Only importing what fits.',
         severity: 'warning' });
     }
 
-    var remaining = MAX_CUSTOM_CARDS - existing.length;
+    var remaining = _limit() - existing.length;
 
     for (var i = 0; i < parsed.length; i++) {
       if (result.importedCount >= remaining) {
@@ -395,15 +868,8 @@ export var customCards = {
       var raw = parsed[i];
 
       // Ensure it has a unique ID
-      if (!raw.id || typeof raw.id !== 'string') {
+      if (!raw.id || typeof raw.id !== 'string' || usedIds.has(raw.id)) {
         raw.id = 'custom_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 1000);
-      } else {
-        // Ensure ID is unique among existing + already-imported
-        var existingIds = existing.map(function(c) { return c.id; })
-          .concat(result.imported.map(function(c) { return c.id; }));
-        if (existingIds.indexOf(raw.id) >= 0) {
-          raw.id = 'custom_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 1000);
-        }
       }
 
       raw.isCustom = true;
@@ -422,6 +888,7 @@ export var customCards = {
 
       if (validation.success) {
         existing.push(raw);
+        usedIds.add(raw.id);
         result.imported.push(raw);
         result.importedCount++;
         if (validation.warnings.length > 0) {
@@ -436,7 +903,7 @@ export var customCards = {
       }
     }
 
-    this._saveAll(existing);
+    _commit(existing, { put: result.imported });
     result.success = result.importedCount > 0;
 
     if (result.importedCount > 0) {
@@ -451,18 +918,33 @@ export var customCards = {
    * @returns {string}
    */
   exportJSON: function() {
-    return JSON.stringify(this.getAll(), null, 2);
+    return JSON.stringify(_current(), null, 2);
   }
 };
+
+/** Same clues, wrong answers, explanations and deck provenance (an Open deck update that only improves the wrong answers still counts as a change). */
+function _sameBody(a, b) {
+  return JSON.stringify([a.bw, a.d, a.ww, a.deck || '', a.attr || '', a.source || '']) === JSON.stringify([b.bw, b.d, b.ww, b.deck || '', b.attr || '', b.source || '']);
+}
+
+/** Equal tag lists (both missing counts as equal). */
+function _sameTags(a, b) {
+  var x = a || [];
+  var y = b || [];
+  if (x.length !== y.length) return false;
+  for (var i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
+  return true;
+}
 
 // ===== Internal Helper Functions =====
 
 /**
  * Build a card object from the UI-friendly input format.
  */
+var _idSeq = 0;
 function _buildCardFromInput(cardData) {
   var card = {
-    id: 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    id: 'custom_' + Date.now() + '_' + (++_idSeq) + '_' + Math.floor(Math.random() * 1000), // (the counter: two cards made in the same millisecond must not share an id)
     subj: cardData.subject || 'Multisystem / Mixed',
     bw: Array.isArray(cardData.buzzwords) ? cardData.buzzwords : [],
     ans: cardData.answer || '',
@@ -472,6 +954,18 @@ function _buildCardFromInput(cardData) {
     isCustom: true,
     createdAt: Date.now()
   };
+
+  if (Array.isArray(cardData.tags)) {
+    var tags = _cleanTags(cardData.tags);
+    if (tags.length) card.tags = tags;
+  }
+  if (typeof cardData.key === 'string' && cardData.key) card.ak = cardData.key.slice(0, 120);
+  // An Open deck card remembers which deck it came from (so the deck can be updated or removed as a unit), its one-line
+  // attribution (shown on the card), the passage it was written from and, optionally, the subject discipline.
+  if (typeof cardData.deck === 'string' && cardData.deck) card.deck = cardData.deck.slice(0, 40);
+  if (typeof cardData.attr === 'string' && cardData.attr) card.attr = cardData.attr.slice(0, 160);
+  if (typeof cardData.sref === 'string' && cardData.sref) card.sref = cardData.sref.slice(0, 40);
+  if (typeof cardData.discipline === 'string' && cardData.discipline) card.source = cardData.discipline;
 
   if (cardData.whyWrong1 && card.d[0]) {
     card.ww[card.d[0]] = cardData.whyWrong1;

@@ -1,0 +1,70 @@
+891|HPV protein binding p53|E6|E7|L1|S=ID
+892|X|dubious
+893|X|trivial
+894|Myasthenia gravis: HLA association|HLA-B8|HLA-B27|HLA-DR4|S=Neu
+895|Classic cause of epiglottitis|Haemophilus influenzae type b|Streptococcus pyogenes|Corynebacterium diphtheriae|S=ID
+896|X|vague
+897|X|vague
+898|X|obscure
+899|Raynaud phenomenon: color sequence|White, blue, red|Red, white, blue|Blue, red, white|S=Rheum
+900|X|list
+901|Ganglion of cochlear nerve cell bodies|Spiral ganglion|Scarpa ganglion|Geniculate ganglion|S=Neu
+902|X|vague
+903|Inferior MI: hypotension, distended neck veins, clear lungs|Right ventricular infarction|Left ventricular failure|Hypovolemic shock|S=Car
+904|Transudative effusion from raised hydrostatic pressure|Heart failure|Tuberculosis|Pulmonary embolism|S=Pul
+905|Cranial nerve VII|Facial nerve|Vestibulocochlear nerve|Trigeminal nerve|S=Neu
+906|X|vague
+907|Chamber forming most of the anterior heart surface|Right ventricle|Left atrium|Left ventricle|S=Car
+908|Neisseria endotoxin component|Lipooligosaccharide|Lipoteichoic acid|Polysaccharide capsule|S=ID
+909|Net ATP from anaerobic glycolysis per glucose|2|4|36
+910|X|vague
+911|West Nile virus treatment|Supportive care|Acyclovir|Ribavirin|S=ID
+912|M1 antagonist for antipsychotic extrapyramidal symptoms|Benztropine|Dantrolene|Bromocriptine|S=Psy
+913|X|vague
+914|Esophagitis with linear ulcerations|Cytomegalovirus|Herpes simplex virus|Candida albicans|S=ID
+915|Km definition|Substrate concentration at half Vmax|Substrate concentration at Vmax|Enzyme concentration at half Vmax
+916|Bull neck lymphadenopathy|Corynebacterium diphtheriae|Bordetella pertussis|Streptococcus pyogenes|S=ID
+917|X|vague
+918|Complex IV inhibitor binding Fe2+ of heme|Carbon monoxide|Rotenone|Oligomycin|S=EM
+919|Same presentation as CPS I deficiency|N-acetylglutamate synthase deficiency|Ornithine transcarbamylase deficiency|Arginase deficiency
+920|X|trivial
+921|Compares people with disease to people without|Case-control study|Cohort study|Cross-sectional study
+922|CO2 versus O2 diffusion coefficient|About 20 times higher|About 2 times higher|About 20 times lower|S=Pul
+923|Myasthenia gravis: bimodal ages|About 20 and 60 years|About 5 and 40 years|About 40 and 80 years|S=Neu
+924|Subclavian steal: affected arm systolic pressure|Lower|Higher|Unchanged|S=Car
+925|Definitive diagnosis of endometriosis|Diagnostic laparoscopy|Pelvic ultrasound|CA-125|S=OB
+926|X|vague
+927|X|contested
+928|Pain out of proportion with bloody stool|Acute mesenteric ischemia|Diverticulitis|Appendicitis|S=GI
+929|X|vague
+930|X|vague
+931|X|vague
+932|Screen sickling any amount of HbS|Sodium metabisulfite test|Osmotic fragility test|Sodium nitroprusside test|S=HO
+933|Physostigmine: CNS penetration|Crosses (tertiary amine)|Does not cross (quaternary amine)|Crosses only if given intrathecally
+934|Penetrating wound involving the abdomen: below which intercostal space|4th|2nd|8th|S=Surg
+935|Contact dermatitis hypersensitivity type|Type IV|Type I|Type III
+936|X|trivial
+937|Normal role of PD-1|Peripheral tolerance|Costimulation of T cells|Antigen presentation
+938|X|vague
+939|Carotid sinus baroreceptor afferent nerve|Glossopharyngeal nerve|Vagus nerve|Trigeminal nerve|S=Neu
+940|Hypothyroidism in children: bone age|Delayed|Advanced|Equal to chronological age|S=Endo
+941|NO effect on cGMP in vascular smooth muscle|Increases|Decreases|No change
+942|Acute hemolytic transfusion reaction mechanism|Preformed host antibodies against donor ABO antigens|Donor antibodies against host IgA|Donor leukocyte antibodies in recipient lung|S=HO
+943|B cell with surface IgM but no IgD|Immature B cell|Mature naive B cell|Plasma cell
+944|Drug class for urgency incontinence|Antimuscarinics|α1 blockers|Cholinergic agonists|S=Neph
+945|X|vague
+946|X|vague
+947|Leprosy form with strong Th1 response|Tuberculoid leprosy|Lepromatous leprosy|Lucio phenomenon|S=ID
+948|I-cell disease: plasma finding|High lysosomal enzymes|Low lysosomal enzymes|High mitochondrial enzymes
+949|X|dubious
+950|X|vague
+951|X|vague
+952|G6PD product that regenerates reduced glutathione|NADPH|NADH|FADH2
+953|X|two-item
+954|Osteosarcoma: location in long bones|Metaphysis|Epiphysis|Diaphysis|S=HO
+955|X|vague
+956|Diagnostic test for malrotation|Upper GI series|Colonoscopy|HIDA scan|S=Peds
+957|X|duplicate of card 111
+958|X|trivial
+959|AIS (46,XY phenotypic female): treatment|Gonadectomy after puberty|Hysterectomy|Testosterone replacement|S=OB
+960|X|vague

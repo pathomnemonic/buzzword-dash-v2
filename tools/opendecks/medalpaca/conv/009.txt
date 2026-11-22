@@ -1,0 +1,65 @@
+416|Glycogen storage disease type IV (Andersen): deficient enzyme|Branching enzyme|Debranching enzyme|Glucose-6-phosphatase
+417|Amniotic fluid measure for Rh hemolytic disease severity|Bilirubin|Lecithin|Creatinine|S=OB
+418|Uterine tachysystole treatment|Stop the uterotonic agent|Increase the oxytocin rate|Immediate cesarean for all cases|S=OB
+419|Cranial nerve for accommodation|Oculomotor nerve (CN III)|Trochlear nerve (CN IV)|Facial nerve (CN VII)|S=Neu
+420|Macrolide resistance mechanism|Methylation of 23S rRNA|Beta-lactamase production|Altered DNA gyrase|S=ID
+421|X|garbled
+422|ASD: shunt direction|Left-to-right|Right-to-left|No shunt|S=Car
+423|X|vague
+424|Anaphylaxis to IgA-containing blood products|Selective IgA deficiency|DiGeorge syndrome|Chronic granulomatous disease|S=HO
+425|X|vague
+426|X|leaks
+427|Botulism: paralysis pattern|Descending flaccid paralysis|Ascending flaccid paralysis|Spastic paralysis|S=ID
+428|Commonest kidney stone|Calcium oxalate|Struvite|Cystine|S=Neph
+429|Excess ADH with inappropriately concentrated urine|SIADH|Central diabetes insipidus|Nephrogenic diabetes insipidus|S=Endo
+430|X|list
+431|X|obscure
+432|Linear IgG along the glomerular basement membrane|Goodpasture disease|Poststreptococcal glomerulonephritis|IgA nephropathy|S=Neph
+433|Nucleus giving vagal parasympathetics to heart, lungs and upper GI|Dorsal motor nucleus of the vagus|Nucleus ambiguus|Edinger-Westphal nucleus|S=Neu
+434|Failure of cell production in embryogenesis|Aplasia|Hypoplasia|Metaplasia|S=Multi
+435|Psychiatric side effect of beta-blockers|Depression|Mania|Obsessive-compulsive disorder|S=Psy
+436|ABL proto-oncogene product|Cytosolic tyrosine kinase|Transcription factor|GTPase|S=HO
+437|Alemtuzumab target|CD52|CD20|CD33|S=HO
+438|Pregnancy: plasma volume and RBC volume increase|Plasma 50%, RBC 30%|Plasma 30%, RBC 50%|Plasma 10%, RBC 10%|S=OB
+439|Normal pressure hydrocephalus: type|Communicating|Obstructive (noncommunicating)|Hydrocephalus ex vacuo|S=Neu
+440|X|vague
+441|Gaucher cell appearance|Crumpled tissue paper cytoplasm|Foamy soap-bubble cytoplasm|Fried-egg cytoplasm|S=HO
+442|Abacavir hypersensitivity allele|HLA-B*57:01|HLA-B*27|HLA-B*15:02|S=ID
+443|Enzyme converting sphingomyelin to ceramide|Sphingomyelinase|Glucocerebrosidase|Hexosaminidase A
+444|X|ambiguous (GH vs IGF-1)
+445|X|incomplete: definitive therapy is HSCT or immunosuppression
+446|X|trivial
+447|X|row fact wrong (pilocytic astrocytoma, not ependymoma)
+448|X|vague
+449|Bilobed leukocyte with bright red granules|Eosinophil|Basophil|Monocyte|S=HO
+450|H2PO4- formed from secreted H+ and HPO4 2-|Titratable acid|Ammonium|Bicarbonate|S=Neph
+451|Thyrotoxicosis: enzyme raised by bone turnover|Alkaline phosphatase|Amylase|Creatine kinase|S=Endo
+452|Gasless abdomen with esophageal atresia: type|Pure atresia without fistula|Atresia with distal fistula|H-type fistula|S=Peds
+453|X|duplicate concept of card 223
+454|X|trivial
+455|Commonest cause of hypoparathyroidism|Neck surgery|Vitamin D deficiency|Chronic kidney disease|S=Endo
+456|TRAP stain|Hairy cell leukemia|Chronic lymphocytic leukemia|Mantle cell lymphoma|S=HO
+457|X|obscure
+458|Secondary hypertension in young women|Fibromuscular dysplasia|Atherosclerotic renal artery stenosis|Cushing syndrome|S=Neph
+459|X|list
+460|X|trivial
+461|Pharyngeal arch giving tensor veli palatini|First arch|Second arch|Third arch
+462|X|dubious
+463|Sheath around splenic central arteriole|Periarteriolar lymphoid sheath|Marginal zone|Red pulp|S=HO
+464|Medical expulsive therapy for distal ureteral stone|Tamsulosin|Finasteride|Oxybutynin|S=Neph
+465|X|vague
+466|Hang-on-for-life primitive reflex|Moro reflex|Palmar grasp reflex|Rooting reflex|S=Peds
+467|HIT: effect of antibody-heparin-PF4 complex on platelets|Activates platelets|Inhibits platelet aggregation|Blocks thrombopoietin receptor|S=HO
+468|Example of a fastidious bacterium|Haemophilus influenzae|Escherichia coli|Staphylococcus aureus|S=ID
+469|X|vague
+470|Pancreatic tumor with watery diarrhea, hypokalemia, achlorhydria|VIPoma|Gastrinoma|Glucagonoma|S=GI
+471|Graft from the patient's own body|Autograft|Allograft|Xenograft|S=Surg
+472|ECG wave preceding atrial systole|P wave|QRS complex|T wave|S=Car
+473|X|garbled
+474|HBV marker of infectivity|HBeAg|Anti-HBs|Anti-HBc IgG|S=GI
+475|X|leaks
+476|Limbic structure for learning and memory|Hippocampus|Amygdala|Cingulate gyrus|S=Neu
+477|Cystinuria screening test|Cyanide-nitroprusside test|Benedict test|Ferric chloride test|S=Neph
+478|X|duplicate concept of card 175
+479|Actinic keratosis: mutated gene|TP53|RB1|APC|S=Multi
+480|Urine pH favoring cystine stone precipitation|Acidic|Alkaline|Neutral|S=Neph

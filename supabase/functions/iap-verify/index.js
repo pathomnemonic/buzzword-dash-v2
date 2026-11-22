@@ -13,7 +13,7 @@
 //                 (an In-App Purchase key from App Store Connect → Users and Access → Integrations → In-App Purchase)
 // The app only calls this when built with VITE_IAP_VERIFY=1.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 import {
   describeStoreProduct, tokenKey, googleConfigured, appleStoreConfigured, googleAssertion, googleUrl, parseGoogleSubscription, parseGoogleProduct,
   appleStoreJwt, appleTransactionUrls, decodeJwsPayload, parseAppleTransaction, grantFor

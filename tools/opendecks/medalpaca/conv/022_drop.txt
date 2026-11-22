@@ -1,0 +1,53 @@
+97|X|review: weak distractors or opposite/ambiguous options
+113|X|review: weak distractors or opposite/ambiguous options
+153|X|review: weak distractors or opposite/ambiguous options
+170|X|review: weak distractors or opposite/ambiguous options
+210|X|review: weak distractors or opposite/ambiguous options
+238|X|review: weak distractors or opposite/ambiguous options
+248|X|review: weak distractors or opposite/ambiguous options
+251|X|review: weak distractors or opposite/ambiguous options
+306|X|review: weak distractors or opposite/ambiguous options
+314|X|review: weak distractors or opposite/ambiguous options
+329|X|review: weak distractors or opposite/ambiguous options
+330|X|review: weak distractors or opposite/ambiguous options
+333|X|review: weak distractors or opposite/ambiguous options
+392|X|review: weak distractors or opposite/ambiguous options
+407|X|review: weak distractors or opposite/ambiguous options
+415|X|review: weak distractors or opposite/ambiguous options
+468|X|review: weak distractors or opposite/ambiguous options
+484|X|review: weak distractors or opposite/ambiguous options
+509|X|review: weak distractors or opposite/ambiguous options
+548|X|review: weak distractors or opposite/ambiguous options
+577|X|review: weak distractors or opposite/ambiguous options
+587|X|review: weak distractors or opposite/ambiguous options
+600|X|review: weak distractors or opposite/ambiguous options
+617|X|review: weak distractors or opposite/ambiguous options
+644|X|review: weak distractors or opposite/ambiguous options
+694|X|review: weak distractors or opposite/ambiguous options
+773|X|review: weak distractors or opposite/ambiguous options
+795|X|review: weak distractors or opposite/ambiguous options
+851|X|review: weak distractors or opposite/ambiguous options
+857|X|review: weak distractors or opposite/ambiguous options
+923|X|review: weak distractors or opposite/ambiguous options
+948|X|review: weak distractors or opposite/ambiguous options
+1052|X|review: weak distractors or opposite/ambiguous options
+1079|X|review: weak distractors or opposite/ambiguous options
+1091|X|review: weak distractors or opposite/ambiguous options
+1168|X|review: weak distractors or opposite/ambiguous options
+64|X|review: trivial or definition-style
+622|X|review: trivial or definition-style
+905|X|review: trivial or definition-style
+471|X|review: trivial or definition-style
+472|X|review: trivial or definition-style
+1195|X|review: trivial or definition-style
+367|X|review: trivial or definition-style
+920|X|review: trivial or definition-style
+19|X|review: trivial or definition-style
+37|X|review: trivial or definition-style
+40|X|review: trivial or definition-style
+915|X|review: trivial or definition-style
+1154|X|review: trivial or definition-style
+1008|X|review: trivial or definition-style
+412|Nerve injured in axillary dissection causing winged scapula|Long thoracic nerve|Thoracodorsal nerve|Suprascapular nerve|S=Surg
+774|Lumbosacral roots below the end of the spinal cord|Cauda equina|Conus medullaris|Filum terminale|S=Neu
+1013|Rickettsia in military recruits and POWs|Rickettsia prowazekii|Rickettsia typhi|Orientia tsutsugamushi|S=ID

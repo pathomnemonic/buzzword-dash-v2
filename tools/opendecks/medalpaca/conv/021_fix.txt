@@ -1,0 +1,119 @@
+1|Presbyopia: underlying cause|Decreased lens elasticity|Ciliary muscle paralysis|Corneal flattening
+16|Tumor evasion of CD8+ T cells|Downregulating MHC I|Downregulating PD-L1|Upregulating B7 costimulation|S=HO
+17|IgA protease action|Cleaves IgA|Cleaves IgG|Degrades C3b|S=ID
+19|ROC curve with AUC of 0.5|A bad test|An excellent test|A moderately good test
+29|X|opposite-direction distractors
+30|X|opposite-direction distractors
+38|X|opposite-direction distractors
+73|X|opposite-direction distractors
+91|X|opposite-direction distractors
+102|X|answer not in the row
+110|X|opposite-direction distractors
+113|DKA: switch saline to D5 at glucose|Less than 200|Less than 400|Less than 100|S=Endo
+120|X|answer not in the row
+129|X|answer not in the row
+157|Tigecycline beats which tetracycline resistance|Efflux pumps|Beta-lactamases|Aminoglycoside-modifying enzymes|S=ID
+168|Treg defect in MS and type 1 diabetes: CD marker|CD 25 (IL-2Rα)|CD 8|CD 40
+178|Acute interstitial nephritis: urinary casts|WBC casts|RBC casts|Muddy brown casts|S=Neph
+185|Maximum safe rate of sodium correction|0.5 mEq/L per hour|2 mEq/L per hour|10 mEq/L per hour|S=Neph
+189|X|opposite-direction distractors
+190|X|evidence too short
+195|Lung zone: alveolar pressure collapses capillaries|Zone 1|Zone 2|Zone 3|S=Pul
+212|Placenta accreta: strongest association|C-section delivery|Gestational hypertension|Advanced paternal age|S=OB
+213|Thyroid hormone mimics sympathetic effects by upregulating|β1 adrenergic receptors|Muscarinic M2 receptors|Dopamine D2 receptors|S=Endo
+217|Thiamine-dependent BCAA catabolism enzyme|Branched-chain α-ketoacid dehydrogenase|Cystathionine synthase|Phenylalanine hydroxylase
+222|X|answer not in the row
+229|X|answer not in the row
+234|X|opposite-direction distractors
+239|X|opposite-direction distractors
+259|X|opposite-direction distractors
+286|X|answer not in the row
+291|X|opposite-direction distractors
+299|X|answer not in the row
+304|X|answer not in the row
+318|X|answer not in the row
+323|Common trigger of acute chest syndrome in sickle cell|Pneumonia|Hypertension|Peptic ulcer disease|S=HO
+342|X|opposite-direction distractors
+345|Commonest bacterial pharyngitis in children|Strep pyogenes (GAS)|Corynebacterium diphtheriae|Haemophilus influenzae|S=ID
+353|E. coli adhering to epithelium without toxin|Enteropathogenic E. coli|Enterohemorrhagic E. coli|Salmonella typhi|S=ID
+382|Lymphocyte-predominant Hodgkin: typical marker|CD20 positive|CD15 and CD30 positive|CD3 positive|S=HO
+388|Alcoholic hepatitis: AST versus ALT|AST over ALT|ALT over AST|AST equals ALT|S=GI
+433|Vagal nucleus for heart, lungs, upper GI|Dorsal motor nucleus|Nucleus ambiguus|Edinger-Westphal nucleus|S=Neu
+435|X|evidence too short
+455|X|answer not in the row
+479|Actinic keratosis: mutated gene|p53|RB1|APC|S=Multi
+480|X|answer not in the row
+486|Presynaptic reuptake carrier for NE and dopamine|Norepinephrine transporter (NET)|Vesicular monoamine transporter|Choline transporter|S=Neu
+492|Third aortic arch derivatives|Common carotid and proximal ICA|Subclavian and aortic arch|Pulmonary arteries and ductus|S=Car
+510|X|opposite-direction distractors
+516|Type I hypersensitivity mechanism|IgE cross-linking on mast cells|Immune complex deposition|Cytotoxic T-cell killing
+555|X|answer not in the row
+565|X|answer not in the row
+614|Left atrial enlargement compressing left RLN|Hoarseness|Dysphagia|Horner syndrome|S=Neu
+628|X|answer not in the row
+646|Sargramostim|Recombinant GM-CSF|Epoetin alfa|Filgrastim|S=HO
+649|Antigenic drift in influenza: mechanism|Point mutations|Segment reassortment|Large genomic deletions|S=ID
+653|Enterococcus growth media|6.5% NaCl and bile|Mannitol salt agar only|Optochin-containing agar|S=ID
+655|X|opposite-direction distractors
+667|X|opposite-direction distractors
+698|X|answer not in the row
+705|New-onset ascites: test to rule out SBP|Paracentesis cell count|Serum amylase|Ascitic triglycerides|S=GI
+756|Routine Rho(D) immune globulin timing|28 weeks and postpartum|12 and 36 weeks|First prenatal visit only|S=OB
+765|X|answer not in the row
+792|X|answer not in the row
+803|X|opposite-direction distractors
+814|X|answer not in the row
+833|X|answer not in the row
+839|X|opposite-direction distractors
+844|X|opposite-direction distractors
+868|Greenstick and torus fractures: population|Pediatric populations|Elderly osteoporotic patients|Middle-aged adults|S=Surg
+874|Peptide secreted by malignancy homologous to PTH|PTH-rp|Calcitonin|Calcitriol|S=Endo
+906|Normal fetal baseline heart rate|110-160 bpm|60-100 bpm|160-200 bpm|S=OB
+922|CO2 versus O2 diffusion coefficient|About 20x higher|About 2x higher|About 5x higher|S=Pul
+924|X|opposite-direction distractors
+928|X|answer not in the row
+932|Screen sickling any amount of HbS|Metabisulfite screen|Osmotic fragility test|Sodium nitroprusside test|S=HO
+933|Physostigmine: amine class and CNS entry|Tertiary amine|Quaternary amine|Secondary amine
+940|X|answer not in the row
+941|X|opposite-direction distractors
+942|Acute hemolytic transfusion reaction mechanism|Preformed anti-ABO antibodies|Donor anti-IgA antibodies|Donor anti-HLA antibodies|S=HO
+944|X|answer not in the row
+965|Benign medullary cartilage tumor of small hand bones|Chondroma|Osteochondroma|Chondrosarcoma|S=HO
+975|X|answer not in the row
+994|X|opposite-direction distractors
+999|Gastrin receptor on parietal cells|CCKB receptor|H2 receptor|M3 receptor|S=GI
+1011|Guyon canal compression: weak pinch, little finger numb|Ulnar nerve|Median nerve|Radial nerve|S=Neu
+1022|Trigeminal branch: lower teeth and jaw sensation|V3|V1|V2|S=Neu
+1036|X|opposite-direction distractors
+1060|X|opposite-direction distractors
+1064|MAC in HIV: typical CD4 count|CD4 < 50|CD4 < 200|CD4 < 350|S=ID
+1074|X|opposite-direction distractors
+1084|Corrected calcium formula|Ca + 0.8 × (4 − albumin)|Ca + 0.2 × (4 − albumin)|Ca + 0.5 × (4 − albumin)
+1093|X|answer not in the row
+1098|X|opposite-direction distractors
+1099|Foscarnet: main toxicity|Renal insufficiency|Neutropenia|Pulmonary fibrosis|S=ID
+1120|Embryologic origin of the posterior pituitary|Neural tissue|Rathke pouch|Endoderm|S=Endo
+1127|X|evidence too short
+1128|Haemophilus influenzae growth requirements|NAD and hematin|Cysteine and charcoal|Cholesterol and serum|S=ID
+1141|X|answer not in the row
+1156|X|evidence too short
+1162|Smoker, cervical nodes, referred ear pain|Head and neck squamous cell carcinoma|Papillary thyroid carcinoma|Sialadenitis|S=HO
+1163|X|opposite-direction distractors
+1164|X|answer not in the row
+1166|X|opposite-direction distractors
+1167|Drug class contraindicated in G6PD deficiency|Sulfa drugs|Beta-lactams|Macrolides|S=HO
+1172|X|evidence too short
+1174|OCP effect on cancer risk|Decreased endometrial and ovarian cancer|Increased endometrial cancer|Decreased cervical cancer|S=OB
+1178|Twins sharing placenta and amniotic sac|Mono-chorionic, mono-amniotic|Dichorionic diamniotic|Monochorionic diamniotic|S=OB
+16|Tumor evasion of CD8+ T cells|Downregulating MHC I|Downregulating PD-L1|Secreting excess IL-2|S=HO
+353|E. coli adhering to epithelium without toxin|Enteropathogenic E. coli|Shigella flexneri|Vibrio cholerae|S=ID
+1084|X|answer too long
+1162|Smoker, cervical nodes, referred ear pain|Head and neck SCC|Papillary thyroid carcinoma|Sialadenitis|S=HO
+1174|X|opposite-direction distractors
+1162|Head and neck mass, smoker, referred ear pain|Squamous cell carcinoma (SCC)|Papillary thyroid carcinoma|Hodgkin lymphoma|S=HO
+60|Midodrine: boxed warning|Supine hypertension|Torsades de pointes|Hepatotoxicity|S=Car
+1037|X|uncertain classic demographic (row says older men)
+269|Syndrome associated with OCD|Tourette syndrome|Rett syndrome|Fragile X syndrome|S=Psy
+1039|Azole for invasive aspergillosis|Voriconazole|Fluconazole|Terbinafine|S=ID
+691|Medullary osmolality range (cortex to papilla)|300 to 1200 mOsm/L|300 to 600 mOsm/L|100 to 300 mOsm/L|S=Neph
+360|Distal RTA: α-intercalated cell defect|No new HCO3- generation|Proximal bicarbonate wasting|Aldosterone excess|S=Neph

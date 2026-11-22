@@ -1,0 +1,40 @@
+1|Presbyopia: underlying cause|Decreased lens elasticity|Increased intraocular pressure|Retinal detachment
+2|X|describe
+3|Drug of choice for syphilis|Penicillin G|Ciprofloxacin|Vancomycin
+4|X-ray sign of ankylosing spondylitis|Bamboo spine|Rugger-jersey spine|Codfish vertebrae
+5|Myeloma: serum protein gap|Greater than 4 g/dL|Less than 1 g/dL|About 2 g/dL
+6|X|ambiguous
+7|X|two-part
+8|Toxic metabolite of acetaminophen|NAPQI|Acetaldehyde|Formic acid|S=EM
+9|Hereditary breast cancer genes|BRCA1 and BRCA2|TP53 and PTEN|APC and MLH1|S=HO
+10|Peripheral arterial disease stage III symptom|Ischemic rest pain|Intermittent claudication|Asymptomatic|S=Car
+11|X|vague
+12|X|binary
+13|Cause of monospot-positive mononucleosis|Epstein-Barr virus|Cytomegalovirus|Adenovirus|S=ID
+14|Temporal bone fracture that endangers the facial nerve|Transverse fracture|Longitudinal fracture|Comminuted fracture|S=Neu
+15|Kidney cells that sense blood pressure|Juxtaglomerular cells|Macula densa cells|Podocytes
+16|Tumor evasion of CD8+ T cells|Downregulating MHC I|Upregulating MHC I|Downregulating PD-L1|S=HO
+17|IgA protease action|Cleaves IgA to allow mucosal colonization|Cleaves IgG to block opsonization|Degrades complement C3b|S=ID
+18|CGG repeat expansion in FMR1|Fragile X syndrome|Friedreich ataxia|Huntington disease|S=Peds
+19|ROC curve with AUC of 0.5|No better than chance|Perfect discrimination|100% specificity
+20|S. sanguinis bacterial group|Viridans streptococci|Group B streptococci|Enterococci|S=ID
+21|Nephrotic syndrome proteinuria threshold|Greater than 3.5 g/day|Less than 150 mg/day|About 500 mg/day
+22|X|negation
+23|Muscarinic receptor in SA and AV nodes|M2|M1|M3
+24|X|binary
+25|Upper vagina: embryologic origin|Müllerian duct|Urogenital sinus|Mesonephric duct
+26|Ovulation occurs before menses by|14 days|7 days|21 days
+27|Ascending cholangitis: usual organisms|Enteric gram-negative bacteria|Staphylococcus aureus|Candida albicans
+28|X|binary
+29|EPO level in appropriate absolute polycythemia|Increased|Decreased|Normal|S=HO
+30|ARDS: pulmonary capillary wedge pressure|Normal or low|Elevated|Markedly elevated, above 25 mmHg|S=Pul
+31|X|muddled
+32|Urine in Proteus mirabilis cystitis|Alkaline with ammonia odor|Acidic with fishy odor|Acidic with sweet maple-syrup odor|S=ID
+33|Trousseau syndrome: type of thrombosis|Migratory superficial thrombophlebitis|Hepatic vein thrombosis|Cerebral sinus thrombosis|S=HO
+34|Ocular sign of PCP intoxication|Nystagmus|Pinpoint pupils|Ptosis
+35|Adenovirus: genitourinary complication|Hemorrhagic cystitis|Orchitis|Genital warts|S=ID
+36|X|two-part
+37|Age group affected by normal pressure hydrocephalus|Elderly|Neonates|Adolescents|S=Neu
+38|Thyroid hormone effect on GI glucose absorption|Increases it|Decreases it|No effect
+39|ABPA: typical underlying conditions|Asthma or cystic fibrosis|Tuberculosis or sarcoidosis|Emphysema or lung cancer|S=Pul
+40|Superficial burn classification|First-degree|Second-degree|Third-degree|S=Surg

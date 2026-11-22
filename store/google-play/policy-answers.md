@@ -50,7 +50,7 @@ Target age: **18 and over** (medical students and professionals). Not designed f
 
 ## Government apps / Financial features / Health apps
 - Government app: **No**. Financial features: **No**.
-- Health: choose **"The app is not a health app"**... if the form asks about medical information, it is an **educational study aid for medical exams** that does not diagnose, treat or give personal medical advice (the in-app terms say so).
+- Health: complete the **Health apps declaration** (Play requires it from every app, App content page). Answer that the app has no health features, does not access health data (no Health Connect, no sensors) and is **not a medical device**; if asked for a category, it is a medical *education* study aid, not diagnostic or treatment functionality. The full description must carry the disclaimer "not a medical device and does not diagnose, treat, cure, or prevent any medical condition" plus a reminder to consult a healthcare professional (already in `store/google-play/listing.md`; policy: https://support.google.com/googleplay/android-developer/answer/12261419).
 
 ## News app, COVID-19, advertising ID
 **No**. Advertising ID: **No** (the app does not use it). Tick that you do not use the advertising ID.

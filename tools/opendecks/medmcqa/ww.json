@@ -1,0 +1,2330 @@
+{
+"2": {
+"Abdominal ultrasound": "Transabdominal ultrasound misses small and metastatic gastrinomas.",
+"Basal/maximal acid output ratio": "The acid-output ratio supports the diagnosis but does not localize tumor."
+},
+"4": {
+"Rectal prolapse": "Rectal prolapse is treated by rectopexy, not a bladder-neck plication.",
+"Vesicovaginal fistula": "A vesicovaginal fistula is repaired by closing the tract, not by Kelly's plication."
+},
+"5": {
+"Abundant primordial follicles": "Primordial follicles are depleted at menopause.",
+"Many corpora lutea": "Corpora lutea only form after ovulation, which stops at menopause."
+},
+"7": {
+"Elastin": "Elastin mutations cause supravalvular aortic stenosis and cutis laxa.",
+"Alpha-tropomyosin": "Alpha-tropomyosin is a rarer HCM gene (about 5% of families)."
+},
+"8": {
+"IgA nephropathy": "IgA nephropathy has no pulmonary hemorrhage and no anti-GBM antibodies.",
+"Minimal change disease": "Minimal change disease is a nephrotic syndrome without anti-GBM antibodies."
+},
+"11": {
+"Philadelphia-positive CML": "CML is treated with imatinib, not trastuzumab.",
+"Metastatic melanoma": "Trastuzumab is not a melanoma drug; melanoma uses checkpoint and BRAF inhibitors."
+},
+"12": {
+"Clonidine": "Clonidine does not cause a positive Coombs test.",
+"Hydralazine": "Hydralazine causes drug-induced lupus, not autoimmune hemolysis."
+},
+"13": {
+"Chadwick's sign": "Chadwick sign is a bluish discoloration of the vagina and cervix.",
+"Goodell's sign": "Goodell sign is softening of the cervix, not the lower segment."
+},
+"15": {
+"Fat necrosis": "Fat necrosis is a painless firm lump after trauma, not a cord-like vein.",
+"Lymphadenitis": "Lymphadenitis is inflamed lymph nodes, not a thrombosed superficial vein."
+},
+"18": {
+"Vibrio cholerae": "Cholera gives watery rice-water diarrhea, not dysentery.",
+"Enterotoxigenic E. coli": "ETEC causes watery traveler's diarrhea, not bloody dysentery."
+},
+"19": {
+"Serotonin": "Serotonin is not the mediator of the Lewis triple response.",
+"Dopamine": "Dopamine is a neurotransmitter and plays no role in the triple response."
+},
+"22": {
+"Posterior division": "The posterior division supplies the gluteal and sacral territory and is spared in ligation.",
+"Common iliac artery": "The common iliac artery is not ligated for PPH, which would devascularize the leg."
+},
+"24": {
+"GABA": "GABA is an inhibitory transmitter, not the hair cell transmitter.",
+"Glycine": "Glycine is an inhibitory spinal and brainstem transmitter, not the hair cell transmitter."
+},
+"28": {
+"Pale and glycolytic": "Pale glycolytic fibers are type II (fast-twitch).",
+"Large and fast-twitch": "Large, fast-twitch fibers are type II; type I fibers are small."
+},
+"37": {
+"Brown-Sequard syndrome": "Brown-Sequard syndrome is a cord hemisection with ipsilateral motor and contralateral pain loss.",
+"Tabes dorsalis": "Tabes dorsalis damages the dorsal columns, causing ataxia and loss of vibration sense."
+},
+"38": {
+"Bladder cancer": "Bladder cancer is linked to smoking, aniline dyes and Schistosoma.",
+"Gastric cancer": "Gastric cancer is linked to H. pylori, nitrates and diet, not radon."
+},
+"39": {
+"Inferior thyroid artery": "The inferior thyroid artery feeds the cervical esophagus.",
+"Bronchial arteries": "Bronchial arteries and the aorta supply the thoracic esophagus."
+},
+"40": {
+"Acid maltase": "Acid maltase deficiency is Pompe disease, with cardiomegaly.",
+"Glycogen branching enzyme": "Branching enzyme deficiency is Andersen disease, with liver cirrhosis."
+},
+"42": {
+"Lobar consolidation": "Lobar consolidation is bacterial pneumonia, not diffuse alveolar injury.",
+"Interstitial granulomas": "Interstitial granulomas are seen in sarcoidosis or hypersensitivity pneumonitis."
+},
+"45": {
+"Anemia": "Maternal anemia is not linked to caudal regression.",
+"Hypertension": "Maternal hypertension is not the recognized cause of caudal regression."
+},
+"46": {
+"Epidural hematoma": "Epidural hematoma follows trauma, with a lucid interval.",
+"Subdural hematoma": "Subdural hematoma is a subacute bridging-vein bleed, usually after trauma, not a thunderclap."
+},
+"47": {
+"Ulnar nerve": "The ulnar nerve does not supply the pronators.",
+"Radial nerve": "The radial nerve supplies supinator, not the pronators."
+},
+"49": {
+"Extended breech": "Extended breech is a presentation, not a sign at delivery of the head.",
+"Anencephaly": "Anencephaly is a neural tube defect with no neck sign."
+},
+"51": {
+"G cell": "G cells secrete gastrin, not acid.",
+"Chief cell": "Chief cells secrete pepsinogen."
+},
+"52": {
+"p-ANCA": "p-ANCA (anti-MPO) is seen in microscopic polyangiitis and EGPA.",
+"ANA": "ANA is a screening antibody for SLE and other connective tissue diseases."
+},
+"55": {
+"Vestibulocerebellum": "The vestibulocerebellum controls balance and eye movements.",
+"Spinocerebellum": "The spinocerebellum regulates ongoing movement and muscle tone."
+},
+"56": {
+"Progesterone": "Progesterone makes cervical mucus thick and abolishes ferning.",
+"FSH": "FSH acts on follicles and does not directly cause ferning."
+},
+"57": {
+"Poststreptococcal glomerulonephritis": "Poststreptococcal GN follows pharyngitis by 1-3 weeks, not 1-2 days.",
+"Minimal change disease": "Minimal change disease presents with nephrotic syndrome, not gross hematuria."
+},
+"58": {
+"Guillain-Barre syndrome": "Guillain-Barre syndrome is a monophasic ascending paralysis.",
+"Parkinson disease": "Parkinson disease is a progressive neurodegenerative disease, not relapsing demyelination."
+},
+"60": {
+"Type 1 diabetes": "Type 1 diabetes is autoimmune and polygenic, not autosomal dominant monogenic.",
+"Latent autoimmune diabetes of adults": "LADA is an autoimmune diabetes with antibodies, not a monogenic dominant form."
+},
+"65": {
+"End of isovolumetric contraction": "Isovolumetric contraction ends with opening of the aortic valve.",
+"Start of isovolumetric contraction": "Isovolumetric contraction begins with closure of the AV valves."
+},
+"66": {
+"Minimal change disease": "Minimal change disease is the most common nephrotic syndrome in children, not the commonest GN overall.",
+"Membranous nephropathy": "Membranous nephropathy is a common cause of adult nephrotic syndrome, not the commonest worldwide."
+},
+"71": {
+"Glycerol": "Glycerol is a backbone for triglycerides, not a cholesterol building block.",
+"Tyrosine": "Tyrosine is the precursor of catecholamines and thyroid hormone, not cholesterol."
+},
+"72": {
+"Arterial malformations": "Arterial malformations are not the lesion of Bean syndrome.",
+"Melanocytic nevi": "Melanocytic nevi are pigmented lesions, not blue rubber bleb nevi."
+},
+"75": {
+"Pulmonary vein": "The pulmonary vein carries oxygenated blood with lower CO2.",
+"Aorta": "The aorta carries oxygenated blood to the body."
+},
+"76": {
+"Simple columnar": "Columnar epithelium lines the gut lumen, not the peritoneum.",
+"Stratified squamous": "Stratified squamous epithelium lines the esophagus and skin."
+},
+"78": {
+"Gastric leiomyosarcoma": "Gastric leiomyosarcoma forms a bulky mass, not diffuse mural thickening.",
+"Peptic ulcer disease": "Peptic ulcer is a focal mucosal defect, not a rigid leather-bottle stomach."
+},
+"79": {
+"Marjolin ulcer": "Marjolin ulcer is a carcinoma arising in a chronic wound.",
+"Curling ulcer": "Curling ulcer is a stress ulcer after severe burns."
+},
+"82": {
+"Vagus nerve": "The vagus nerve does not carry pain from the parietal pericardium.",
+"Cardiac plexus": "The cardiac plexus carries visceral afferents, not parietal pericardial pain."
+},
+"83": {
+"Lowenstein-Jensen medium": "Lowenstein-Jensen medium grows Mycobacterium tuberculosis.",
+"MacConkey agar": "MacConkey agar grows enteric Gram-negative rods."
+},
+"84": {
+"Indomethacin": "Indomethacin closes the ductus arteriosus.",
+"Oxygen": "Oxygen promotes ductal closure after birth."
+},
+"85": {
+"Modified neutrophils": "Antitschkow cells are macrophages, not neutrophils.",
+"Modified B cells": "Antitschkow cells are macrophage derivatives, not B cells."
+},
+"88": {
+"Tuberculosis": "Mycophenolate is not an antituberculous drug.",
+"Leprosy": "Mycophenolate is not an antileprosy drug."
+},
+"90": {
+"Sensitivity": "Sensitivity is an intrinsic test property and does not change with prevalence.",
+"Specificity": "Specificity is also independent of prevalence."
+},
+"92": {
+"Emphysema": "Emphysema is airspace enlargement with alveolar wall destruction.",
+"Pulmonary alveolar proteinosis": "Alveolar proteinosis fills alveoli with surfactant-like material."
+},
+"93": {
+"Hepatocyte": "Hepatocytes are stable cells that can regenerate.",
+"Respiratory epithelium": "Respiratory epithelium is a labile cell population."
+},
+"95": {
+"Q banding": "Q banding needs fluorescence microscopy.",
+"C banding": "C banding stains centromeric heterochromatin only."
+},
+"98": {
+"Negative intrapleural pressure": "Negative intrapleural pressure keeps the lung expanded but does not stabilize small alveoli.",
+"High lung compliance": "High compliance would make alveoli collapse more easily, not less."
+},
+"103": {
+"Negri bodies": "Negri bodies are in rabies neurons.",
+"Schuffner dots": "Schuffner dots are in red cells of P. vivax malaria."
+},
+"104": {
+"Partial hydatidiform mole": "Partial moles keep p57 expression (diploid maternal genes).",
+"Ectopic pregnancy": "p57 is irrelevant in ectopic pregnancy."
+},
+"111": {
+"Fab and Fc fragments": "Fab and Fc fragments come from papain digestion, not mercaptoethanol.",
+"F(ab')2 fragments": "F(ab')2 comes from pepsin digestion, not disulfide reduction."
+},
+"114": {
+"EDTA": "EDTA is the anticoagulant of hematology samples, not culture bottles.",
+"Sodium citrate": "Sodium citrate is used for coagulation studies, not blood cultures."
+},
+"117": {
+"Libman-Sacks endocarditis": "Libman-Sacks endocarditis occurs but less often than pericarditis.",
+"Myocarditis": "Myocarditis is an uncommon lupus manifestation."
+},
+"119": {
+"Chikungunya virus": "Chikungunya is an alphavirus spread by Aedes mosquitoes.",
+"Japanese encephalitis virus": "Japanese encephalitis is a flavivirus spread by Culex mosquitoes."
+},
+"121": {
+"Right axis deviation": "Right axis deviation is an axis above +90 degrees.",
+"Normal axis": "Normal axis lies between -30 and +90 degrees."
+},
+"123": {
+"Brain": "Brain metastases occur, but less often than lung.",
+"Vagina": "Vaginal metastases occur, but less often than lung."
+},
+"124": {
+"Neonatal jaundice": "Steroids do not treat neonatal jaundice.",
+"Neonatal convulsions": "Steroids do not prevent neonatal seizures."
+},
+"127": {
+"Raised intracranial pressure": "The Denver shunt is peritoneovenous, not for raised intracranial pressure.",
+"Hemodialysis access": "Dialysis access uses fistulas and catheters, not the Denver shunt."
+},
+"128": {
+"CD4 T lymphocytes": "CD4 T cells activate macrophages but are not the origin of epithelioid cells.",
+"Eosinophils": "Eosinophils are not precursors of epithelioid cells."
+},
+"129": {
+"Ornithine transcarbamylase": "Ornithine transcarbamylase deficiency has normal ornithine and raised orotic acid.",
+"Carbamoyl phosphate synthetase I": "CPS I deficiency lowers citrulline and orotic acid, not raising ornithine."
+},
+"132": {
+"Craniotomy": "Craniotomy is for a dead fetus, not an attempted rescue of a live fetal head.",
+"Cleidotomy": "Cleidotomy is for shoulder dystocia with a dead fetus."
+},
+"133": {
+"Schizophrenia": "MMSE does not diagnose schizophrenia.",
+"Anxiety disorders": "The MMSE does not screen for anxiety disorders."
+},
+"134": {
+"Delirium tremens": "Delirium tremens is alcohol withdrawal with autonomic hyperactivity.",
+"Alzheimer disease": "Alzheimer disease causes gradual memory loss, not an acute triad."
+},
+"135": {
+"Mitral valve": "The mitral valve is usually spared; carcinoid is right-sided.",
+"Aortic valve": "The aortic valve is usually spared in carcinoid heart disease."
+},
+"136": {
+"Sclerosing adenosis": "Sclerosing adenosis confers little or no added risk.",
+"Apocrine metaplasia": "Apocrine metaplasia is a non-proliferative lesion without added risk."
+},
+"140": {
+"Edwards syndrome": "Edwards syndrome is trisomy 18.",
+"DiGeorge syndrome": "DiGeorge syndrome is a 22q11 deletion, not trisomy 13."
+},
+"141": {
+"Radial nerve": "The radial nerve gives the posterior interosseous nerve.",
+"Ulnar nerve": "The ulnar nerve does not give an interosseous branch to the anterior forearm."
+},
+"142": {
+"Primary structure": "Primary structure is the amino acid sequence.",
+"Tertiary structure": "Tertiary structure is the overall 3D fold of one chain."
+},
+"145": {
+"Mantle cell lymphoma": "Mantle cell lymphoma has t(11;14) and no starry sky pattern.",
+"Chronic myeloid leukemia": "CML shows leukocytosis with the Philadelphia chromosome, not starry sky histology."
+},
+"147": {
+"Osteoblasts": "Osteoblasts give osteosarcoma.",
+"Chondrocytes": "Chondrocytes give chondrosarcoma."
+},
+"150": {
+"HBV": "HBV is an enveloped DNA virus.",
+"HDV": "HDV is an enveloped defective RNA virus."
+},
+"153": {
+"Integrase inhibitor": "Integrase inhibitors end in -gravir and block integration.",
+"Protease inhibitor": "Protease inhibitors end in -navir, not -vudine."
+},
+"154": {
+"Endometriosis": "Endometriosis is not treated with menopausal hormone therapy.",
+"Breast cancer prevention": "Hormone therapy does not prevent breast cancer and may raise risk."
+},
+"155": {
+"Metabolic acidosis with hypoxemia": "A normal bicarbonate with high PaCO2 is not metabolic acidosis.",
+"Respiratory alkalosis with hypoxemia": "A pH of 7.00 with high PaCO2 is acidosis, not alkalosis."
+},
+"156": {
+"Testosterone to DHT": "5-alpha reductase makes DHT from testosterone.",
+"Cholesterol to pregnenolone": "Cholesterol side-chain cleavage (P450scc) makes pregnenolone."
+},
+"158": {
+"Phosphodiester bonds": "Phosphodiester bonds are cut by nucleases, not by helicase.",
+"Glycosidic bonds": "Glycosidic bonds are cleaved in base excision repair, not helicase action."
+},
+"160": {
+"Stool culture": "Stool culture does not identify rotavirus.",
+"Serum antibody titer": "Serum antibody titers are not used for diagnosis of acute rotavirus infection."
+},
+"162": {
+"Primary oocyte": "A primary oocyte is arrested in prophase I and is not ovulated.",
+"Oogonium": "Oogonia exist only in fetal life."
+},
+"163": {
+"Hydrocortisone": "Hydrocortisone is largely inactivated by placental 11-beta-HSD2.",
+"Prednisolone": "Prednisolone is also inactivated by the placenta, so it does not reach the fetus."
+},
+"164": {
+"Hyperkalemia": "Hyperkalemia causes weakness and ECG changes, not tetany.",
+"Hypernatremia": "Hypernatremia causes thirst and confusion, not neuromuscular irritability."
+},
+"167": {
+"Diltiazem": "Diltiazem dilates epicardial vessels and does not cause steal.",
+"Propranolol": "Propranolol lowers demand and does not dilate arterioles."
+},
+"170": {
+"Hypertrophic pyloric stenosis": "Pyloric stenosis causes nonbilious projectile vomiting after weeks.",
+"Esophageal atresia": "Esophageal atresia presents with drooling and a fistula, not a double bubble."
+},
+"173": {
+"CMV": "CMV mononucleosis is heterophile negative.",
+"Adenovirus": "Adenovirus causes pharyngoconjunctival fever, not a positive Paul-Bunnell."
+},
+"174": {
+"Pasteurella multocida": "Pasteurella multocida causes cellulitis after cat bites.",
+"Streptobacillus moniliformis": "Streptobacillus moniliformis causes rat-bite fever."
+},
+"179": {
+"Islet alpha-cell hyperplasia": "Alpha-cell hyperplasia would raise glucagon, not insulin.",
+"Islet D-cell hyperplasia": "D-cell hyperplasia would raise somatostatin."
+},
+"180": {
+"Albumin": "Albumin does not precipitate and redissolve in the Bence Jones heat test.",
+"Gamma globulin": "Gamma globulin is not the classic heat-reversible urine protein."
+},
+"182": {
+"Doxycycline": "Doxycycline rarely causes liver injury.",
+"Erythromycin": "Erythromycin estolate can cause cholestasis but is much less common."
+},
+"183": {
+"Bacillus subtilis spores": "B. subtilis spores monitor dry heat and ethylene oxide.",
+"Bacillus pumilus spores": "B. pumilus spores monitor radiation sterilization."
+},
+"185": {
+"Initiates breast growth": "hCG does not initiate breast growth.",
+"Initiates implantation": "Implantation is initiated by the blastocyst and progesterone, not hCG."
+},
+"186": {
+"Anterior tibial artery": "The anterior tibial artery supplies the anterior compartment, not the fibula.",
+"Popliteal artery": "The popliteal artery is the parent of the leg arteries, not the fibular nutrient artery."
+},
+"190": {
+"Brachialis": "Brachialis is supplied by the musculocutaneous nerve but is not pierced.",
+"Biceps brachii": "Biceps brachii is supplied by the nerve but not pierced by it."
+},
+"191": {
+"Mesoderm": "The pancreas has no mesodermal islet cell origin.",
+"Neuroectoderm": "Neuroectoderm is not the origin of pancreatic islets."
+},
+"194": {
+"Conjugation": "Conjugation does not occur in M. tuberculosis because it lacks plasmids.",
+"Transduction": "Transduction is not the mechanism of TB drug resistance."
+},
+"196": {
+"Medullary thyroid carcinoma": "Medullary carcinoma has amyloid stroma and calcitonin.",
+"Follicular thyroid carcinoma": "Follicular carcinoma has uniform follicles and spreads hematogenously."
+},
+"199": {
+"Dog": "Dogs are the definitive host, not the intermediate host.",
+"Cat": "Cats are not the usual intermediate host."
+},
+"200": {
+"Aquaporin-2": "AQP2 is ADH-regulated in the collecting duct.",
+"Aquaporin-5": "AQP5 is found in glands such as salivary glands."
+},
+"202": {
+"Recurrent pyogenic infections": "Recurrent pyogenic infections come from C3 deficiency.",
+"Recurrent Neisseria infections": "Recurrent Neisseria infections come from terminal complement deficiency."
+},
+"204": {
+"Hypovolemia": "Hypovolemia would not cause immediate respiratory distress after line placement.",
+"Septicemia": "Septicemia develops later, not immediately."
+},
+"212": {
+"Protein": "Preterm milk has higher protein than term milk.",
+"Sodium": "Preterm milk has higher sodium than term milk."
+},
+"216": {
+"Nonsense mutation": "A nonsense mutation creates a premature stop codon.",
+"Frameshift mutation": "A frameshift mutation arises from insertion or deletion."
+},
+"219": {
+"HPV 6 and 11": "HPV 6 and 11 cause genital warts.",
+"HPV 42 and 44": "HPV 42 and 44 are low-risk types."
+},
+"223": {
+"One artery, two veins": "One artery and two veins is an abnormal single umbilical artery.",
+"Two arteries, two veins": "Two arteries and two veins does not occur normally."
+},
+"224": {
+"Tricyclic antidepressants": "TCAs treat panic disorder long-term but are not for acute attacks.",
+"MAO inhibitors": "MAO inhibitors are a later-line long-term option."
+},
+"226": {
+"Acanthamoeba": "Acanthamoeba causes subacute granulomatous encephalitis.",
+"Gnathostoma": "Gnathostoma is a nematode causing migratory swellings."
+},
+"227": {
+"Endomyocardial fibrosis": "Endomyocardial fibrosis is a rare restrictive cardiomyopathy.",
+"Pulmonic stenosis": "Pulmonic stenosis is a less common cause of right failure."
+},
+"229": {
+"Trypanosoma cruzi": "T. cruzi is spread by reduviid bugs.",
+"Leishmania donovani": "Leishmania is spread by sand flies."
+},
+"231": {
+"Right atrium": "The right atrium forms the right border of the heart.",
+"Right ventricle": "The right ventricle forms the anterior sternocostal surface."
+},
+"237": {
+"Femoral artery": "The femoral artery lies lateral to the vein, not directly by the canal.",
+"Femoral nerve": "The femoral nerve lies outside the femoral sheath."
+},
+"238": {
+"Androgen insensitivity syndrome": "Androgen insensitivity gives primary amenorrhea without cyclic pain.",
+"Uterine agenesis": "Uterine agenesis has no endometrium to bleed."
+},
+"239": {
+"Maxillary nerve (V2)": "The maxillary nerve supplies the cheek and upper lip.",
+"Facial nerve": "The facial nerve is motor to facial muscles, not sensory to the nose tip."
+},
+"241": {
+"Chronic kidney disease": "CKD gives burr cells.",
+"Hemolytic uremic syndrome": "HUS gives schistocytes."
+},
+"244": {
+"Glycolysis": "Glycolysis is blocked by fluoride at enolase.",
+"Electron transport chain": "The electron transport chain is blocked by cyanide and CO."
+},
+"246": {
+"ADH": "ADH is from the posterior pituitary and is not elevated by pituitary adenoma commonly.",
+"Estrogen": "Estrogen does not come from a pituitary adenoma."
+},
+"249": {
+"Sole": "Lentigo maligna is not typical of the sole.",
+"Trunk": "Truncal melanoma is usually superficial spreading."
+},
+"252": {
+"Tetracyclines": "Tetracyclines are bacteriostatic.",
+"Macrolides": "Macrolides are bacteriostatic."
+},
+"253": {
+"ACE inhibitor": "ACE inhibitors vasodilate and can worsen outflow obstruction.",
+"Digoxin": "Digoxin increases contractility and worsens obstruction."
+},
+"254": {
+"Absence epilepsy": "Absence epilepsy has 3-Hz spike-and-wave, not hypsarrhythmia.",
+"Febrile seizures": "Febrile seizures have a normal interictal EEG."
+},
+"255": {
+"Torsion of fibroid": "Torsion of a fibroid causes pain but usually without fever.",
+"Preterm labor": "Preterm labor gives contractions and cervical change."
+},
+"256": {
+"Discoid lupus": "Discoid lupus gives scarring plaques.",
+"Urticaria": "Urticaria gives transient wheals."
+},
+"259": {
+"Hypothalamus": "The hypothalamus regulates temperature, not vomiting.",
+"Amygdala": "The amygdala handles emotion."
+},
+"263": {
+"Chorda tympani": "Chorda tympani carries taste from the anterior two-thirds of the tongue.",
+"Nerve to stapedius": "The nerve to stapedius is tested by the stapedial reflex."
+},
+"264": {
+"Internal oblique aponeurosis": "The internal oblique forms the conjoint tendon, not the superficial ring.",
+"Transversalis fascia": "The transversalis fascia forms the deep inguinal ring."
+},
+"265": {
+"Gram-negative bacilli": "Gram-negative bacilli are not Clostridia.",
+"Gram-positive cocci": "Gram-positive cocci are Staphylococcus and Streptococcus."
+},
+"267": {
+"Acetylcholine": "Acetylcholine is not used therapeutically because it is rapidly hydrolyzed.",
+"Neostigmine": "Neostigmine is an indirect agent and is not lipid soluble."
+},
+"272": {
+"Pelvic": "The pelvic position is second most common.",
+"Preileal": "Preileal is a less common position."
+},
+"273": {
+"Shigella sonnei": "S. sonnei does not produce Shiga toxin.",
+"Shigella flexneri": "S. flexneri does not produce Shiga toxin."
+},
+"276": {
+"Hydronephrosis": "Hydronephrosis shows a dilated collecting system.",
+"Horseshoe kidney": "Horseshoe kidney shows fused lower poles."
+},
+"280": {
+"Plasmodium vivax": "P. vivax rarely causes nephrotic syndrome.",
+"Plasmodium falciparum": "P. falciparum causes acute kidney injury, not nephrotic syndrome."
+},
+"284": {
+"Rib margins": "Rib margins are not the classic site of subperiosteal resorption.",
+"Medial proximal humerus": "The medial proximal humerus is not the classic site."
+},
+"287": {
+"Choroid plexus": "The choroid plexus produces CSF.",
+"Cavernous sinus": "The cavernous sinus is a venous sinus, not the site of CSF absorption."
+},
+"288": {
+"Salmeterol": "Salmeterol is a beta-2 agonist.",
+"Salbutamol": "Salbutamol is a beta-2 agonist."
+},
+"290": {
+"Syphilis": "Syphilis causes thoracic aortitis.",
+"Marfan syndrome": "Marfan syndrome causes thoracic root dilation."
+},
+"293": {
+"Nail-patella syndrome": "Nail-patella syndrome has nail dysplasia and absent patellae.",
+"Fabry disease": "Fabry disease has angiokeratomas and acroparesthesias."
+},
+"298": {
+"Loperamide": "Loperamide worsens opioid constipation.",
+"Naloxone": "Naloxone reverses central analgesia."
+},
+"299": {
+"Membranous nephropathy": "Membranous nephropathy has spike-and-dome GBM changes.",
+"IgA nephropathy": "IgA nephropathy has mesangial IgA deposits."
+},
+"300": {
+"Cell swelling": "Cell swelling is a feature of necrosis.",
+"Marked inflammation": "Inflammation is marked in necrosis."
+},
+"302": {
+"Ingestion": "M. tuberculosis is not usually ingested.",
+"Inoculation": "Inoculation is rare."
+},
+"305": {
+"Corpus luteum": "The corpus luteum makes progesterone.",
+"Anterior pituitary": "The pituitary makes LH, not hCG."
+},
+"306": {
+"Recurrent gum bleeding": "Gum bleeding is a mucosal bleeding pattern of platelet disorders.",
+"Recurrent hematuria": "Hematuria occurs less often."
+},
+"308": {
+"Anti-HBc": "Anti-HBc is absent after vaccination.",
+"HBsAg": "HBsAg indicates infection, not immunity."
+},
+"311": {
+"Phimosis": "Phimosis is not a cause of severe obstructive uropathy.",
+"Urethral atresia": "Urethral atresia is rare and lethal."
+},
+"320": {
+"Glycosylation": "Glycosylation is not a vitamin K step.",
+"Phosphorylation": "Phosphorylation is not a vitamin K step."
+},
+"323": {
+"Gluteus maximus weakness": "The gluteus maximus is an extensor of the hip.",
+"Piriformis weakness": "The piriformis laterally rotates the hip."
+},
+"325": {
+"Axillary": "Axillary readings underestimate core temperature.",
+"Oral": "Oral temperature is lower than core."
+},
+"326": {
+"DNA polymerase": "DNA polymerase needs a DNA template.",
+"DNA-dependent RNA polymerase": "DNA-dependent RNA polymerase makes RNA from DNA."
+},
+"329": {
+"Giardia lamblia": "Giardia lives in the duodenum and does not autoinfect.",
+"Ascaris lumbricoides": "Ascaris does not multiply within the host."
+},
+"330": {
+"Sphingomyelinase": "Sphingomyelinase deficiency is Niemann-Pick.",
+"Hexosaminidase A": "Hexosaminidase A deficiency is Tay-Sachs."
+},
+"331": {
+"Progesterone effect": "Progesterone matures and reduces cornification.",
+"FSH effect": "FSH has no direct cornification index role."
+},
+"332": {
+"Radial nerve": "The radial nerve runs in the triangular interval.",
+"Suprascapular nerve": "The suprascapular nerve passes the suprascapular notch."
+},
+"334": {
+"Intertrochanteric": "Intertrochanteric fractures have a rich blood supply.",
+"Subtrochanteric": "Subtrochanteric fractures have a rich blood supply."
+},
+"335": {
+"Candida albicans": "Candida is a yeast without a polysaccharide capsule.",
+"Aspergillus fumigatus": "Aspergillus is a filamentous mold with septate hyphae, not an encapsulated yeast."
+},
+"338": {
+"Sinus tachycardia": "Sinus tachycardia has a gradual onset and slows gradually.",
+"Atrial fibrillation": "Atrial fibrillation is irregularly irregular, not regular."
+},
+"339": {
+"Superior sagittal sinus": "The superior sagittal sinus drains the cerebral convexity.",
+"Internal jugular vein": "The great cerebral vein joins the inferior sagittal sinus, not the jugular vein directly."
+},
+"340": {
+"Sporotrichosis": "Sporotrichosis causes nodular lymphangitis after thorn pricks.",
+"Cryptococcosis": "Cryptococcosis is a meningitis and pneumonia, not a foot swelling with sinuses."
+},
+"344": {
+"Addison disease": "Addison disease causes hyperkalemic acidosis, not alkalosis with hypertension.",
+"Renal tubular acidosis": "Renal tubular acidosis causes a non-gap metabolic acidosis."
+},
+"345": {
+"Systemic sclerosis": "Systemic sclerosis causes pulmonary fibrosis but not Caplan nodules.",
+"Sarcoidosis": "Sarcoidosis causes hilar adenopathy, not rheumatoid pneumoconiotic nodules."
+},
+"348": {
+"Golgi apparatus": "The Golgi apparatus is not where calcium first deposits in injured cells.",
+"Lysosomes": "Lysosomes are not the first site of dystrophic calcification."
+},
+"354": {
+"Erb palsy": "Erb palsy causes asymmetric Moro with a limp arm.",
+"Down syndrome": "Down syndrome has hypotonia with a weak or absent Moro reflex."
+},
+"361": {
+"Asthma": "Asthma is not a contraindication to triptans.",
+"Hypothyroidism": "Hypothyroidism is not a contraindication to triptans."
+},
+"363": {
+"Cystocele": "A cystocele is repaired by anterior colporrhaphy.",
+"Chronic uterine inversion": "Chronic uterine inversion is managed with Haultain or Spinelli operations."
+},
+"365": {
+"Lysine": "Lysine is an essential ketogenic amino acid with no vitamin product.",
+"Glycine": "Glycine is a nonessential amino acid and does not make niacin."
+},
+"368": {
+"Transplacental maternal antibodies": "Transplacental maternal antibodies cause transient neonatal hypothyroidism.",
+"Dyshormonogenesis": "Dyshormonogenesis is a less common cause than dysgenesis."
+},
+"369": {
+"Primaquine": "Primaquine causes hemolysis in G6PD deficiency, not maculopathy.",
+"Quinine": "Quinine causes cinchonism, not bull's-eye maculopathy."
+},
+"370": {
+"Inulin": "Inulin measures GFR.",
+"Creatinine": "Creatinine is partly secreted, so it estimates GFR rather than plasma flow."
+},
+"372": {
+"Cortisol": "Cortisol reserve is tested with the cosyntropin or metyrapone test.",
+"TSH": "TSH reserve is tested with the TRH test."
+},
+"376": {
+"Typhoid": "Typhoid ulcers are oval, along Peyer patches.",
+"Giardiasis": "Giardiasis does not cause colonic ulcers."
+},
+"379": {
+"Tuberculosis": "The tuberculin test is for TB, not the Kveim test.",
+"Histoplasmosis": "Histoplasmosis is tested with antigen and serology, not Kveim."
+},
+"380": {
+"Golgi cells": "Golgi cells are inhibitory interneurons of the granular layer.",
+"Basket cells": "Basket cells are inhibitory interneurons of the molecular layer."
+},
+"381": {
+"First (superior) part": "The first part of the duodenum receives no ducts.",
+"Third (inferior) part": "The third part receives no ducts."
+},
+"383": {
+"Transposition of the great arteries": "TGA is cyanotic with right axis deviation.",
+"Total anomalous pulmonary venous connection": "TAPVC is cyanotic with right ventricular hypertrophy."
+},
+"384": {
+"Partial agonist": "A partial agonist produces a submaximal agonist effect.",
+"Competitive antagonist": "A competitive antagonist blocks the receptor without lowering baseline activity."
+},
+"386": {
+"NMDA blockade": "Memantine blocks NMDA, not donepezil.",
+"Dopamine agonism": "Dopamine agonists treat Parkinson disease, not Alzheimer disease."
+},
+"387": {
+"IgG": "IgG is the most abundant serum antibody, not mucosal.",
+"IgM": "IgM is the early pentameric antibody in serum."
+},
+"388": {
+"Dexamethasone": "Dexamethasone has almost no mineralocorticoid activity.",
+"Prednisolone": "Prednisolone has weak mineralocorticoid activity."
+},
+"389": {
+"Pilocytic astrocytoma": "Pilocytic astrocytoma is cystic and rarely seeds the CSF.",
+"Craniopharyngioma": "Craniopharyngioma is a suprasellar tumor from Rathke pouch."
+},
+"393": {
+"Tendon injury": "Tendon injury does not give an advancing Tinel sign.",
+"Tenosynovitis": "Tenosynovitis causes local tenderness and crepitus."
+},
+"396": {
+"IL-1": "IL-1 is not the main target of calcineurin inhibition.",
+"IL-6": "IL-6 is not the main target of cyclosporine."
+},
+"399": {
+"Prolonged PT": "Aspirin does not affect PT.",
+"Prolonged aPTT": "Aspirin does not affect aPTT."
+},
+"400": {
+"Na+/K+ ATPase": "Na+/K+ ATPase is the basolateral pump of parietal cells.",
+"Na+/K+/2Cl- cotransporter": "NKCC cotransporters are not the proton pump."
+},
+"402": {
+"Klinefelter syndrome": "Klinefelter syndrome has small testes and tall stature.",
+"Fragile X syndrome": "Fragile X causes macroorchidism and intellectual disability."
+},
+"405": {
+"Streptococcus pyogenes": "Streptococcus pyogenes causes pharyngitis, not typical lobar pneumonia.",
+"Haemophilus influenzae": "H. influenzae is a common COPD pneumonia pathogen."
+},
+"409": {
+"Schizoid": "Schizoid personality disorder shows emotional detachment without odd beliefs.",
+"Paranoid": "Paranoid personality disorder shows distrust without magical thinking."
+},
+"410": {
+"Vibrio cholerae": "Vibrio cholerae causes watery diarrhea.",
+"Salmonella Typhi": "Salmonella Typhi causes enteric fever."
+},
+"412": {
+"Ampullary": "Ampullary rupture occurs later, at 8-12 weeks.",
+"Interstitial": "Interstitial rupture occurs later, near 12-16 weeks."
+},
+"413": {
+"LH receptor": "LH acts on Leydig cells.",
+"TSH receptor": "TSH acts on the thyroid."
+},
+"416": {
+"Nephrotic syndrome": "Nephrotic syndrome is a standard indication for biopsy.",
+"Isolated hematuria": "Isolated hematuria can be an indication for biopsy."
+},
+"417": {
+"Streptococcus pyogenes": "Group A strep is CAMP negative and bacitracin sensitive.",
+"Staphylococcus aureus": "S. aureus is catalase positive and coagulase positive."
+},
+"424": {
+"Inhibits phosphodiesterase": "Phosphodiesterase inhibitors such as milrinone are different inotropes.",
+"Activates L-type Ca channels": "L-type Ca channel activation is not digoxin's mechanism."
+},
+"426": {
+"Anti-progesterone": "Clomiphene does not block progesterone receptors.",
+"Anti-androgen": "Clomiphene is not an androgen receptor blocker."
+},
+"429": {
+"Leiomyosarcoma": "Leiomyosarcoma is a pure sarcoma.",
+"Endometrial stromal sarcoma": "Endometrial stromal sarcoma is a pure sarcoma."
+},
+"430": {
+"Seminal vesicle": "The seminal vesicle contributes fructose-rich fluid.",
+"Testis": "The testis makes immotile sperm."
+},
+"432": {
+"Zanamivir": "Zanamivir is an influenza neuraminidase inhibitor.",
+"Abacavir": "Abacavir is an HIV nucleoside analog."
+},
+"433": {
+"IgA": "IgA is secretory and does not bind mast cells.",
+"IgM": "IgM is a pentameric early antibody that does not bind mast cells."
+},
+"435": {
+"Trisomy 13": "Trisomy 13 is much rarer than trisomy 21.",
+"Turner syndrome": "Turner syndrome is rarer than Down syndrome."
+},
+"438": {
+"Sertoli cells": "Sertoli cells respond to FSH.",
+"Spermatogonia": "Spermatogonia are germ cells."
+},
+"439": {
+"Cryptococcus neoformans": "Cryptococcus has narrow-based budding with a capsule.",
+"Candida albicans": "Candida forms pseudohyphae and budding yeast cells with narrow necks."
+},
+"443": {
+"Alzheimer disease": "Methylphenidate is not an Alzheimer drug.",
+"Obsessive-compulsive disorder": "Methylphenidate does not treat OCD."
+},
+"447": {
+"Hepatocellular carcinoma": "RET mutations are not seen in hepatocellular carcinoma.",
+"Breast carcinoma": "RET is not the classic breast cancer oncogene."
+},
+"450": {
+"Angiosarcoma": "Angiosarcoma is a vascular tumor of adults.",
+"Liposarcoma": "Liposarcoma is mostly an adult tumor."
+},
+"451": {
+"Neuroblastoma": "Neuroblastoma arises from neural crest.",
+"Wilms tumor": "Wilms tumor arises from renal blastema."
+},
+"452": {
+"Plasmid transfer": "The tox gene is not on a plasmid in C. diphtheriae.",
+"Chromosomal mutation": "Mutation does not create toxigenicity."
+},
+"456": {
+"Desmin": "Desmin marks smooth muscle tumors.",
+"S-100": "S-100 marks melanoma and nerve sheath tumors."
+},
+"458": {
+"Calcifediol (25-hydroxyvitamin D)": "Calcifediol is the 25-hydroxy storage form, not the active one.",
+"Ergocalciferol": "Ergocalciferol is vitamin D2, an inactive precursor."
+},
+"459": {
+"Pyruvate dehydrogenase": "Pyruvate dehydrogenase uses thiamine, lipoate, CoA, FAD and NAD.",
+"Transaminases": "Transaminases use pyridoxal phosphate."
+},
+"460": {
+"Acute myeloid leukemia": "AML is acute with many blasts.",
+"Acute lymphoblastic leukemia": "ALL is acute with lymphoblasts."
+},
+"461": {
+"Coagulase": "Coagulase clots plasma but does not cause skin exfoliation.",
+"Enterotoxin": "Enterotoxin causes food poisoning."
+},
+"463": {
+"Jejunum": "The jejunum absorbs most nutrients but not B12.",
+"Duodenum": "The duodenum absorbs iron and folate."
+},
+"465": {
+"Gonococcal arthritis": "Gonococcal arthritis is an acute suppurative joint infection.",
+"Rheumatic fever": "Rheumatic fever gives migratory polyarthritis."
+},
+"467": {
+"X-linked recessive": "X-linked recessive inheritance affects mainly males.",
+"Autosomal dominant": "Thalassemias are not dominant."
+},
+"468": {
+"X-linked recessive": "ABO is not X-linked.",
+"Mitochondrial inheritance": "ABO genes are nuclear, not mitochondrial."
+},
+"469": {
+"Inducible by hormones": "Inducible genes respond to hormones.",
+"Expressed only when an inducer is present": "Inducer-dependent genes are not housekeeping genes."
+},
+"471": {
+"Exogenous steroid use": "Exogenous steroid use does not raise LH.",
+"Turner syndrome": "Turner syndrome gives primary amenorrhea with high FSH."
+},
+"472": {
+"Isoniazid": "Isoniazid is safe in pregnancy.",
+"Ethambutol": "Ethambutol is safe in pregnancy."
+},
+"475": {
+"Base excision repair": "Base excision repair fixes small base lesions.",
+"Mismatch repair": "Mismatch repair defects cause Lynch syndrome."
+},
+"476": {
+"Multiple sclerosis": "Multiple sclerosis is not linked to thymoma.",
+"Hypergammaglobulinemia": "Thymoma can cause hypogammaglobulinemia, not hyper."
+},
+"481": {
+"Foramen of Magendie": "The foramen of Magendie drains the fourth ventricle.",
+"Foramen of Luschka": "The foramen of Luschka drains the fourth ventricle laterally."
+},
+"483": {
+"Na+-Cl- cotransporter": "The Na+-Cl- cotransporter is in the distal tubule.",
+"ENaC": "ENaC is in the collecting duct."
+},
+"489": {
+"Calcium channel blockers": "Calcium channel blockers do not raise lipids.",
+"Reserpine": "Reserpine does not raise triglycerides."
+},
+"490": {
+"Sand fly": "Sand flies transmit Leishmania.",
+"Hard tick": "Hard ticks transmit Lyme disease and tularemia."
+},
+"494": {
+"Gastric G cells": "Gastric G cells secrete gastrin.",
+"Pancreatic beta cells": "Pancreatic beta cells secrete insulin."
+},
+"495": {
+"Dabigatran": "Dabigatran is a direct thrombin inhibitor.",
+"Fondaparinux": "Fondaparinux is an indirect, injected Xa inhibitor."
+},
+"496": {
+"Amitriptyline": "Amitriptyline is a tricyclic without a tyramine reaction.",
+"Fluoxetine": "Fluoxetine is an SSRI without a tyramine reaction."
+},
+"501": {
+"Third-generation cephalosporins": "Cephalosporins are hydrolyzed by ESBLs.",
+"Aztreonam": "Aztreonam is hydrolyzed by ESBLs."
+},
+"503": {
+"HMG-CoA reductase inhibition": "HMG-CoA reductase is blocked by statins.",
+"Bile acid sequestration": "Bile acid binding is the action of resins."
+},
+"505": {
+"Metoclopramide": "Metoclopramide is a dopamine antagonist, less effective for cisplatin.",
+"Domperidone": "Domperidone is a peripheral dopamine antagonist, less effective."
+},
+"507": {
+"Mitochondria": "Mitochondria form the sperm midpiece.",
+"Nucleus": "The nucleus forms the sperm head."
+},
+"508": {
+"Gabapentin": "Gabapentin does not help Lennox-Gastaut.",
+"Tiagabine": "Tiagabine can worsen generalized seizures."
+},
+"511": {
+"CA 125": "CA 125 marks ovarian cancer.",
+"AFP": "AFP marks hepatocellular carcinoma and yolk sac tumors."
+},
+"514": {
+"Congenital rubella": "Congenital rubella gives cataracts and PDA.",
+"Congenital syphilis": "Congenital syphilis gives snuffles and Hutchinson teeth."
+},
+"516": {
+"Soap formation": "Soap formation is saponification, not the bile salt mechanism.",
+"Zwitterion formation": "Zwitterion formation is not the basis of detergent action."
+},
+"521": {
+"Myasthenia gravis": "Myasthenia gravis has anti-AChR antibodies.",
+"Systemic sclerosis": "Systemic sclerosis has anti-Scl-70 and anticentromere antibodies."
+},
+"522": {
+"Ulcerative colitis": "Ulcerative colitis affects the colon only.",
+"Cystic fibrosis": "Cystic fibrosis causes pancreatic insufficiency with normal villi."
+},
+"525": {
+"Competitive reversible inhibition": "Competitive reversible inhibition is how carbamates and edrophonium act.",
+"Uncompetitive reversible inhibition": "Organophosphates are not reversible inhibitors."
+},
+"527": {
+"Group B streptococcus": "Group B strep is identified by CAMP.",
+"Staphylococcus": "Staphylococcus does not have a capsule that swells."
+},
+"531": {
+"Transaldolase": "Transaldolase does not need TPP.",
+"Aldolase B": "Aldolase B does not need TPP."
+},
+"532": {
+"Pantothenic acid": "Pantothenic acid is a CoA component and not lipid lowering.",
+"Riboflavin": "Riboflavin is not a lipid-lowering drug."
+},
+"535": {
+"Dendritic cells": "Dendritic cells are antigen-presenting cells of lymphoid organs.",
+"B cells": "B cells are lymphocytes, not sinusoidal macrophages."
+},
+"536": {
+"Transduction": "Transduction is phage-mediated transfer.",
+"Transformation": "Transformation is uptake of naked DNA."
+},
+"537": {
+"Liver": "Liver shows nutmeg change in right failure.",
+"Spleen": "The spleen shows congestive splenomegaly."
+},
+"542": {
+"First heart sound": "The first heart sound is AV valve closure.",
+"Third heart sound": "The third heart sound is rapid ventricular filling."
+},
+"545": {
+"Flexor carpi ulnaris": "The flexor carpi ulnaris is always present.",
+"Flexor digitorum profundus": "The flexor digitorum profundus is always present."
+},
+"553": {
+"Niacin deficiency": "Niacin deficiency gives pellagra.",
+"Thiamine deficiency": "Thiamine deficiency gives beriberi."
+},
+"556": {
+"Heart": "The heart has no lobes.",
+"Spleen": "The spleen has no lobes."
+},
+"558": {
+"Skeletal muscle": "Skeletal muscle vessels dilate in hypoxia.",
+"Heart": "Coronary vessels dilate in hypoxia."
+},
+"559": {
+"Selectins": "Selectins mediate rolling.",
+"N-CAM": "N-CAM is a neural adhesion molecule."
+},
+"562": {
+"Nocardia brasiliensis": "Nocardia causes actinomycetoma, a bacterial mycetoma.",
+"Aspergillus fumigatus": "Aspergillus rarely causes mycetoma."
+},
+"564": {
+"Secondary hyperaldosteronism": "Secondary hyperaldosteronism has raised renin.",
+"Primary hypoaldosteronism": "Primary hypoaldosteronism is Addison disease."
+},
+"566": {
+"Pterygoid plexus": "The pterygoid plexus drains the face.",
+"Choroid plexus": "The choroid plexus makes CSF."
+},
+"567": {
+"Ephedrine": "Ephedrine is a sympathomimetic stimulant.",
+"Cyproheptadine": "Cyproheptadine is an antihistamine and antiserotonergic appetite stimulant."
+},
+"573": {
+"Parainfluenza virus": "Parainfluenza causes croup.",
+"Haemophilus influenzae": "H. influenzae is not a cause of viral bronchiolitis."
+},
+"577": {
+"Femoral artery": "The femoral artery is the second commonest aneurysm site.",
+"Radial artery": "Radial aneurysms are rare."
+},
+"578": {
+"Melkersson-Rosenthal syndrome": "Melkersson-Rosenthal syndrome has facial swelling and fissured tongue.",
+"Frey syndrome": "Frey syndrome is gustatory sweating."
+},
+"582": {
+"IgE": "IgE mediates allergy.",
+"IgA": "IgA is the mucosal antibody."
+},
+"583": {
+"Expiratory reserve volume": "Expiratory reserve volume is only part of FRC.",
+"Residual volume": "Residual volume remains after maximal expiration."
+},
+"586": {
+"Atropine": "Atropine lasts for days.",
+"Homatropine": "Homatropine lasts for 1-3 days."
+},
+"593": {
+"Memory loss": "Memory loss occurs in both delirium and dementia.",
+"Apraxia": "Apraxia is a feature of dementia."
+},
+"596": {
+"Myocarditis": "Myocarditis is a less common cause.",
+"Rheumatic fever": "Rheumatic fever is rare in infancy."
+},
+"597": {
+"Rifampin": "Rifampin causes orange body fluids.",
+"Isoniazid": "Isoniazid causes neuropathy and hepatitis."
+},
+"599": {
+"MacConkey broth": "MacConkey broth is a selective medium for enteric bacteria.",
+"EMB agar": "EMB agar is selective for Gram-negative rods."
+},
+"601": {
+"CD4": "CD4 marks helper T cells.",
+"CD68": "CD68 marks macrophages."
+},
+"603": {
+"Para-aortic nodes": "Para-aortic nodes drain the testis.",
+"External iliac nodes": "External iliac nodes drain the glans and deeper structures."
+},
+"605": {
+"Prazosin": "Prazosin is a competitive reversible alpha-1 blocker.",
+"Tamsulosin": "Tamsulosin is a competitive alpha-1A blocker."
+},
+"607": {
+"Lowenstein-Jensen medium": "Lowenstein-Jensen medium grows mycobacteria.",
+"Loeffler serum slope": "Loeffler serum slope grows C. diphtheriae."
+},
+"608": {
+"Rifampin": "Rifampin does not cause neuropathy.",
+"Pyrazinamide": "Pyrazinamide does not cause neuropathy."
+},
+"609": {
+"Wilms tumor": "Wilms tumor is treated with actinomycin and vincristine.",
+"Retinoblastoma": "Retinoblastoma is treated with carboplatin-based regimens."
+},
+"610": {
+"Rhabdomyoma": "Rhabdomyoma is the childhood cardiac tumor.",
+"Lipoma": "Lipoma is a rare cardiac tumor."
+},
+"611": {
+"Yersinia": "Yersinia does not vary its antigens in this way.",
+"Brucella": "Brucella does not vary its antigens."
+},
+"613": {
+"Hot flashes": "Hot flashes are common but harmless.",
+"Multiple pregnancy": "Multiple pregnancy is a risk, not a reason to stop."
+},
+"614": {
+"Pyruvate kinase": "Pyruvate kinase is a later, irreversible step but not rate-limiting.",
+"Pyruvate carboxylase": "Pyruvate carboxylase is a gluconeogenic enzyme."
+},
+"616": {
+"Chronic myeloid leukemia": "CML has no Auer rods in chronic phase.",
+"Hodgkin lymphoma": "Hodgkin lymphoma has Reed-Sternberg cells."
+},
+"618": {
+"Phosphate": "Phosphate buffers mainly intracellular fluid and urine.",
+"Ammonia": "Ammonia buffers urine."
+},
+"620": {
+"Gastrin": "Gastrin stimulates acid secretion.",
+"CCK": "CCK contracts the gallbladder."
+},
+"622": {
+"Placenta previa": "Placenta previa causes painless bleeding.",
+"Hyperemesis gravidarum": "Hyperemesis gravidarum causes vomiting."
+},
+"623": {
+"Escherichia coli": "E. coli is not the transformation organism of Griffith.",
+"Bacillus subtilis": "B. subtilis is a spore-forming Gram-positive rod."
+},
+"624": {
+"Group discussion": "Group discussion is not evidence-based therapy.",
+"Supportive counselling only": "Supportive counselling alone is less effective than CBT."
+},
+"626": {
+"Chorda tympani injury": "Chorda tympani injury causes loss of taste.",
+"Glossopharyngeal injury": "Glossopharyngeal injury affects the pharynx and taste."
+},
+"628": {
+"Clonidine": "Clonidine is an adjunct for autonomic symptoms.",
+"Disulfiram": "Disulfiram is for maintenance."
+},
+"629": {
+"Hypertension": "Verapamil is used for hypertension.",
+"Angina pectoris": "Verapamil is used for angina."
+},
+"630": {
+"Inflammatory bowel disease": "Rome criteria are not used for IBD.",
+"Neuroendocrine tumors": "Neuroendocrine tumors use WHO grading."
+},
+"631": {
+"Dopamine metabolite": "Dopamine is metabolized to HVA.",
+"Epinephrine metabolite": "Epinephrine is metabolized to VMA."
+},
+"632": {
+"Aortic stenosis": "Aortic stenosis is not the commonest in Noonan syndrome.",
+"Atrial septal defect": "ASD is rarer than pulmonary stenosis."
+},
+"634": {
+"Borrelia recurrentis": "B. recurrentis causes epidemic relapsing fever.",
+"Borrelia hermsii": "B. hermsii causes tick-borne relapsing fever."
+},
+"636": {
+"Candida albicans": "Candida rarely causes meningitis in AIDS.",
+"Haemophilus influenzae": "H. influenzae is a less common cause."
+},
+"651": {
+"G2/M": "G2/M is the most radiosensitive phase.",
+"Mitosis": "Mitosis is radiosensitive."
+},
+"653": {
+"Autosomal dominant": "Cystic fibrosis is not dominant.",
+"X-linked recessive": "Cystic fibrosis is not X-linked."
+},
+"654": {
+"IL-4": "IL-4 is a Th2 cytokine.",
+"IL-5": "IL-5 is a Th2 cytokine."
+},
+"655": {
+"Venography": "Venography detects DVT, not PE directly.",
+"Chest X-ray": "Chest X-ray is often normal in PE."
+},
+"656": {
+"Apoenzyme": "Apoenzyme is the protein part without cofactor.",
+"Coenzyme": "Coenzymes are small organic cofactors."
+},
+"659": {
+"CYP2D6": "CYP2D6 handles fewer drugs.",
+"CYP1A2": "CYP1A2 handles fewer drugs."
+},
+"661": {
+"Renal cell carcinoma": "Bortezomib is not a standard renal cell cancer drug.",
+"Pancreatic carcinoma": "Bortezomib is not used for pancreatic cancer."
+},
+"662": {
+"Metachromatic leukodystrophy": "Metachromatic leukodystrophy is arylsulfatase A deficiency.",
+"Tay-Sachs disease": "Tay-Sachs is hexosaminidase A deficiency."
+},
+"664": {
+"Constrictive pericarditis": "Constrictive pericarditis does not cause electrical alternans.",
+"Restrictive cardiomyopathy": "Restrictive cardiomyopathy does not cause electrical alternans."
+},
+"665": {
+"Thiamine pyrophosphate": "Thiamine pyrophosphate is a coenzyme for decarboxylases.",
+"FMN": "FMN is a flavin coenzyme."
+},
+"666": {
+"Simple columnar": "Simple columnar epithelium lines the gut.",
+"Pseudostratified ciliated columnar": "Ciliated columnar epithelium lines the airways."
+},
+"672": {
+"Protein": "Cow milk has more protein.",
+"Minerals": "Cow milk has more minerals."
+},
+"673": {
+"First MTP joint": "The first MTP joint is classic for gout.",
+"Hip": "The hip is rarely involved in pseudogout."
+},
+"676": {
+"LDL": "LDL carries cholesterol to peripheral tissues.",
+"VLDL": "VLDL carries triglycerides from liver."
+},
+"678": {
+"Lung cancer": "BRCA is not a lung cancer gene.",
+"Gastric cancer": "BRCA is not mainly a gastric cancer gene."
+},
+"680": {
+"No dehydration": "No dehydration is alert with normal drinking.",
+"Severe dehydration": "Severe dehydration is lethargic and cannot drink."
+},
+"684": {
+"Glutamine and arginine": "Glutamine donates nitrogen elsewhere.",
+"Glycine and ornithine": "Glycine and ornithine are not the two nitrogen donors."
+},
+"685": {
+"Clostridioides difficile": "C. difficile causes pseudomembranous colitis after antibiotics.",
+"Clostridium botulinum": "C. botulinum causes a flaccid paralysis from preformed toxin."
+},
+"686": {
+"Hypercalcemia": "Hypercalcemia is a vitamin D toxicity feature.",
+"Liver damage": "Liver damage is a feature of vitamin A or niacin excess."
+},
+"691": {
+"Facial nerve": "The facial nerve is not part of the gag reflex arc.",
+"Trigeminal nerve": "The trigeminal nerve is not part of the gag arc."
+},
+"692": {
+"Tyrosine": "FIGLU is not a tyrosine intermediate.",
+"Alanine": "FIGLU is not an alanine intermediate."
+},
+"695": {
+"Seizures": "Seizures are not a presenting feature of Friedreich ataxia.",
+"Optic atrophy": "Optic atrophy occurs later, if at all."
+},
+"696": {
+"Gardnerella vaginalis": "Gardnerella dominates in bacterial vaginosis.",
+"Escherichia coli": "E. coli is a vaginal pathogen, not the protective flora."
+},
+"698": {
+"Albumin": "Albumin carries bilirubin but is not its source.",
+"Transferrin": "Transferrin carries iron, not bilirubin."
+},
+"699": {
+"Rickets": "Rickets causes bowing and rachitic rosary, not subperiosteal hemorrhage.",
+"Hypervitaminosis A": "Vitamin A excess causes bone pain and hepatic damage, not scurvy-like bleeding."
+},
+"705": {
+"Group A streptococcus": "Group A strep is a rare neonatal pathogen.",
+"Enterococcus faecalis": "Enterococcus faecalis is a later or nosocomial cause."
+},
+"706": {
+"Glioblastoma multiforme": "Glioblastoma is not specific for NF1.",
+"Vestibular schwannoma": "Bilateral vestibular schwannoma defines NF2."
+},
+"708": {
+"Cocaine dependence": "Naltrexone does not treat cocaine dependence.",
+"Anorexia nervosa": "Naltrexone is not an anorexia nervosa drug."
+},
+"711": {
+"Deep vein thrombosis": "DVT is assessed by ultrasound, not the Trendelenburg test.",
+"Arterial insufficiency": "Arterial insufficiency is assessed with ankle-brachial index."
+},
+"712": {
+"Latanoprost": "Latanoprost has no beta-blocking bronchospasm effect.",
+"Acetazolamide": "Acetazolamide is a carbonic anhydrase inhibitor, not a beta blocker."
+},
+"715": {
+"Spasticity": "Spasticity is an upper motor neuron sign.",
+"Hyperactive stretch reflex": "Hyperactive stretch reflexes are an upper motor neuron sign."
+},
+"717": {
+"Meropenem": "Meropenem is hydrolyzed by NDM metallo-beta-lactamases.",
+"Penicillins": "Penicillins are hydrolyzed by beta-lactamases."
+},
+"719": {
+"Flumazenil": "Flumazenil reverses benzodiazepines.",
+"Naloxone": "Naloxone reverses opioids."
+},
+"721": {
+"Early decelerations": "Early decelerations reflect head compression and are benign.",
+"Variable decelerations": "Variable decelerations reflect cord compression."
+},
+"724": {
+"Upper esophagus": "Upper esophageal perforation follows instrumentation.",
+"Middle esophagus": "Midesophageal rupture is less common."
+},
+"726": {
+"Anencephaly": "Anencephaly causes polyhydramnios.",
+"Esophageal atresia": "Esophageal atresia causes polyhydramnios."
+},
+"729": {
+"Calcitriol": "Calcitriol is made from cholesterol.",
+"Cortisol": "Cortisol is made from cholesterol."
+},
+"730": {
+"Macrolides": "Macrolides block the 50S ribosome.",
+"Aminoglycosides": "Aminoglycosides block the 30S ribosome."
+},
+"738": {
+"Hydrogen peroxide": "Hydrogen peroxide is less reactive than the hydroxyl radical.",
+"Superoxide radical": "Superoxide is less reactive than hydroxyl radical."
+},
+"740": {
+"Dermatomyositis": "Dermatomyositis shows perifascicular atrophy.",
+"Myasthenia gravis": "Myasthenia gravis has a normal muscle biopsy."
+},
+"741": {
+"Femoral hernia": "Femoral hernias cause groin swelling below the inguinal ligament.",
+"Spigelian hernia": "Spigelian hernias occur lateral to the rectus."
+},
+"745": {
+"Prostacyclin (PGI2)": "PGI2 inhibits platelet aggregation.",
+"Nitric oxide": "Nitric oxide inhibits platelet aggregation."
+},
+"746": {
+"Respiratory acidosis": "Respiratory acidosis would give hypoventilation.",
+"Metabolic alkalosis": "Metabolic alkalosis would give slow breathing."
+},
+"747": {
+"Carpal tunnel syndrome": "Carpal tunnel syndrome is tested by Phalen and Tinel signs.",
+"Cubital tunnel syndrome": "Cubital tunnel syndrome is tested at the elbow."
+},
+"753": {
+"Strong vasoconstriction": "EMLA does not cause strong vasoconstriction.",
+"Motor block only": "EMLA gives sensory anesthesia, not a motor-only block."
+},
+"754": {
+"Naloxone": "Naloxone reverses opioids.",
+"Flumazenil": "Flumazenil reverses benzodiazepines."
+},
+"757": {
+"Patent ductus arteriosus": "PDA is less common in Down syndrome.",
+"Coarctation of the aorta": "Coarctation is not a typical Down lesion."
+},
+"759": {
+"Atrial septal defect": "ASD rarely reaches Eisenmenger syndrome.",
+"Patent ductus arteriosus": "PDA is a less common cause."
+},
+"762": {
+"Silicosis": "Silicosis raises TB and lung cancer risk, not mesothelioma.",
+"Anthracosis": "Anthracosis is benign carbon deposition."
+},
+"763": {
+"Granulosa cell tumor": "Granulosa cell tumors have Call-Exner bodies.",
+"Choriocarcinoma": "Choriocarcinoma has syncytiotrophoblast and hCG."
+},
+"772": {
+"Atrial septal defect": "ASD gives a fixed split S2 and no leg claudication.",
+"Patent ductus arteriosus": "PDA gives a continuous murmur."
+},
+"776": {
+"Collagen defect": "Collagen defects cause Ehlers-Danlos or osteogenesis imperfecta.",
+"Integrin defect": "Integrin defects cause Glanzmann thrombasthenia and leukocyte adhesion deficiency."
+},
+"777": {
+"Chromosome 13": "BRCA2 is on chromosome 13.",
+"Chromosome 22": "Chromosome 22 holds the BCR gene."
+},
+"780": {
+"Right second intercostal space": "The right second space is the aortic area.",
+"Left second intercostal space": "The left second space is the pulmonic area."
+},
+"782": {
+"Masseter": "The masseter closes the jaw.",
+"Temporalis": "The temporalis closes the jaw."
+},
+"784": {
+"Infracardiac": "Infracardiac TAPVC is the least common type.",
+"Cardiac": "Cardiac TAPVC is less common than supracardiac."
+},
+"789": {
+"Ulnar artery": "The ulnar artery is at the wrist but not in the snuffbox.",
+"Brachial artery": "The brachial artery is at the elbow."
+},
+"797": {
+"Vincristine": "Vincristine causes neuropathy.",
+"Methotrexate": "Methotrexate causes mucositis and marrow suppression."
+},
+"799": {
+"Phenytoin": "Phenytoin does not control JME well.",
+"Carbamazepine": "Carbamazepine can worsen myoclonus."
+},
+"800": {
+"Pelvic inflammatory disease": "PID causes fever and cervical motion tenderness.",
+"Appendicitis": "Appendicitis has fever, migration and leukocytosis."
+},
+"801": {
+"Facioscapulohumeral dystrophy": "FSHD has facial and shoulder weakness without calf enlargement.",
+"Myotonic dystrophy": "Myotonic dystrophy has myotonia and wasting."
+},
+"803": {
+"Fresh frozen plasma": "Plasma is not the first-line resuscitation fluid.",
+"Platelet transfusion": "Platelets are not used for burn fluid loss."
+},
+"806": {
+"Rifampin": "Rifampin colors body fluids orange.",
+"Dapsone": "Dapsone causes hemolysis and methemoglobinemia."
+},
+"808": {
+"Mumps": "Mumps gives parotid swelling.",
+"Tuberculous lymphadenitis": "Tuberculous lymphadenitis is usually unilateral and chronic."
+},
+"810": {
+"Placenta previa": "Placenta previa bleeding is maternal.",
+"Succenturiate placenta": "Succenturiate placenta is an accessory lobe that may cause bleeding."
+},
+"811": {
+"Albendazole": "Albendazole is for most intestinal nematodes.",
+"Praziquantel": "Praziquantel is for flukes and tapeworms."
+},
+"813": {
+"Vitamin B1": "Thiamine is a decarboxylase cofactor.",
+"Vitamin E": "Vitamin E is an antioxidant."
+},
+"816": {
+"Laminated membrane": "The laminated membrane is acellular.",
+"Adventitia": "The adventitia is the host reaction."
+},
+"819": {
+"Amiodarone": "Amiodarone is for ventricular or refractory arrhythmias.",
+"Lidocaine": "Lidocaine is for ventricular arrhythmias."
+},
+"821": {
+"Hypouricemia": "Hypouricemia would be the opposite effect.",
+"Hypoglycemia": "Fructose does not cause hypoglycemia in normal subjects."
+},
+"822": {
+"Ventral pons": "Pontine hemorrhage is a smaller fraction.",
+"Cerebellum": "Cerebellar hemorrhage is less frequent."
+},
+"824": {
+"Koplik spots": "Koplik spots belong to measles.",
+"Rose spots": "Rose spots belong to typhoid."
+},
+"825": {
+"Astrocytes": "Astrocytes support the blood-brain barrier.",
+"Oligodendrocytes": "Oligodendrocytes myelinate CNS axons."
+},
+"832": {
+"Amantadine": "Amantadine is ineffective against H1N1.",
+"Rimantadine": "Rimantadine is ineffective against H1N1."
+},
+"833": {
+"T cells": "Hairy cell leukemia is not T-cell.",
+"Myeloid cells": "It is not myeloid."
+},
+"834": {
+"Single-stranded linear": "mtDNA is not single-stranded.",
+"Double-stranded linear": "mtDNA is not linear."
+},
+"838": {
+"Apical nodes": "Apical nodes are the final axillary group.",
+"Paratracheal nodes": "Paratracheal nodes drain the medial breast to the mediastinum."
+},
+"839": {
+"G1 phase": "G1 prepares for S phase.",
+"G2 phase": "G2 prepares for mitosis."
+},
+"847": {
+"Volume of distribution": "Volume of distribution determines the loading dose.",
+"Oral bioavailability": "Bioavailability adjusts oral dose."
+},
+"848": {
+"TSH and ACTH": "TSH and ACTH come from basophils.",
+"FSH and LH": "FSH and LH come from basophils."
+},
+"849": {
+"Retained products": "Retained products are a later cause.",
+"Genital tract trauma": "Trauma is a less common cause."
+},
+"850": {
+"Methimazole": "Methimazole is teratogenic in the first trimester.",
+"Radioactive iodine": "Radioactive iodine is contraindicated."
+},
+"854": {
+"Lingual nerve": "The lingual nerve carries general sensation from the anterior two-thirds.",
+"Hypoglossal nerve": "The hypoglossal nerve is motor."
+},
+"856": {
+"Influenza virus": "Influenza has hemagglutinin and neuraminidase.",
+"Parainfluenza virus": "Parainfluenza has HN protein."
+},
+"857": {
+"Coagulative necrosis": "Coagulative necrosis is seen in most solid organ infarcts.",
+"Caseous necrosis": "Caseous necrosis is seen in TB."
+},
+"859": {
+"Tay-Sachs disease": "Tay-Sachs is less common.",
+"Wolman disease": "Wolman disease is rare."
+},
+"861": {
+"Orthostatic hypotension": "Orthostatic hypotension is treated by midodrine.",
+"Stable angina": "Angina is treated by nitrates."
+},
+"862": {
+"Cubitus varus": "Cubitus varus follows supracardiac fractures.",
+"Tennis elbow": "Tennis elbow is lateral epicondylitis."
+},
+"868": {
+"Papillary": "Papillary RCC is less common.",
+"Medullary": "Medullary carcinoma is rare."
+},
+"869": {
+"Tonic-clonic seizures": "Ethosuximide is not for tonic-clonic seizures.",
+"Myoclonic seizures": "Ethosuximide is not for myoclonic seizures."
+},
+"871": {
+"Asthma": "Asthma does not cause abscess.",
+"Pulmonary hypertension": "Pulmonary hypertension does not cause abscess."
+},
+"873": {
+"Vacuolating cytotoxin": "Vacuolating cytotoxin damages cells.",
+"CagA": "CagA is a virulence factor."
+},
+"876": {
+"Lateral cord": "The lateral cord gives musculocutaneous and median.",
+"Medial cord": "The medial cord gives ulnar and median."
+},
+"878": {
+"Aldolase": "Aldolase is a glycolytic enzyme.",
+"Glycogen phosphorylase": "Glycogen phosphorylase breaks glycogen."
+},
+"879": {
+"Chest rise": "Chest rise can be misleading.",
+"Auscultation": "Auscultation can be misleading."
+},
+"882": {
+"Hydrocortisone": "Hydrocortisone is short-acting.",
+"Prednisolone": "Prednisolone is intermediate-acting."
+},
+"886": {
+"Heat-stable toxin": "ST acts through guanylate cyclase.",
+"Shiga toxin": "Shiga toxin inhibits protein synthesis."
+},
+"887": {
+"Staphylococcus aureus infection": "Staph infections are not tracked with anti-DNase B.",
+"Corynebacterium diphtheriae infection": "Diphtheria is not tracked with anti-DNase B."
+},
+"889": {
+"Infection": "Infection is second.",
+"Malignancy": "Malignancy is third."
+},
+"890": {
+"Short arm of chromosome 7": "The short arm of chromosome 7 does not hold CFTR.",
+"Long arm of chromosome 5": "Chromosome 5 holds APC."
+},
+"892": {
+"Metoclopramide": "Metoclopramide causes EPS.",
+"Omeprazole": "Omeprazole does not prolong QT."
+},
+"896": {
+"Amygdala": "The amygdala handles emotional memory.",
+"Prefrontal cortex": "The prefrontal cortex handles working memory."
+},
+"899": {
+"Open choledocholithotomy": "Open choledocholithotomy is more invasive.",
+"Percutaneous choledocholithotomy": "Percutaneous removal is less common."
+},
+"900": {
+"Colorectal carcinoma": "Colorectal carcinoma shows CDX2 and CK20.",
+"Renal cell carcinoma": "Renal cell carcinoma shows PAX8 and CD10."
+},
+"901": {
+"No treatment": "No treatment risks infection.",
+"Full four-drug treatment": "Full treatment is for active disease."
+},
+"904": {
+"Body": "The body is less often involved.",
+"Tail": "The tail is less often involved."
+},
+"910": {
+"Agglutination test": "Agglutination tests include Widal.",
+"Precipitation test": "Precipitation tests include VDRL flocculation."
+},
+"911": {
+"Ectopic pregnancy": "Ectopic pregnancy shows adnexal mass.",
+"Missed abortion": "Missed abortion shows a nonviable fetus."
+},
+"912": {
+"Carbaminohemoglobin": "Carbaminohemoglobin is about 20%.",
+"Dissolved CO2": "Dissolved CO2 is about 7%."
+},
+"915": {
+"Panacinar": "Panacinar emphysema is lower lobe.",
+"Paraseptal": "Paraseptal emphysema is subpleural."
+},
+"920": {
+"Gram stain": "Gram stain does not separate them.",
+"Catalase test": "Catalase is negative for both."
+},
+"921": {
+"Tyrosine aminotransferase": "Tyrosine aminotransferase deficiency is type II.",
+"Homogentisate oxidase": "Homogentisate oxidase deficiency is alkaptonuria."
+},
+"922": {
+"Atherosclerotic plaque rupture": "Plaque rupture causes thrombosis.",
+"Aneurysm thrombosis": "Aneurysm thrombosis is less common."
+},
+"923": {
+"Atrial fibrillation": "AF is not the usual terminal rhythm.",
+"Complete AV block": "AV block is a less frequent cause."
+},
+"924": {
+"Hereditary spherocytosis": "Spherocytosis causes anemia without dactylitis.",
+"Iron deficiency anemia": "Iron deficiency does not cause dactylitis."
+},
+"926": {
+"Rheumatoid arthritis": "Rheumatoid arthritis does not metastasize.",
+"Congenital umbilical defect": "Congenital defects do not appear as nodules."
+},
+"927": {
+"Immune thrombocytopenia": "ITP is less common.",
+"Preeclampsia": "Preeclampsia is less common."
+},
+"928": {
+"Testosterone receptors": "Receptors are not the basis.",
+"Hormone levels": "Hormone levels are not the basis."
+},
+"934": {
+"Behcet disease": "Behcet disease has oral ulcers.",
+"Lyme arthritis": "Lyme arthritis follows tick bite."
+},
+"937": {
+"Serratus anterior": "Serratia anterior paralysis causes winging.",
+"Deltoid": "Deltoid paralysis causes loss of abduction."
+},
+"939": {
+"Kala-azar": "Kala-azar has fever and splenomegaly.",
+"African sleeping sickness": "Sleeping sickness has Winterbottom sign."
+},
+"940": {
+"Articular cartilage": "Articular cartilage is hyaline.",
+"Costal cartilage": "Costal cartilage is hyaline."
+},
+"942": {
+"Aminoacyl-tRNA synthetase": "Aminoacyl synthetase charges tRNA.",
+"Peptidase": "Peptidase cleaves peptides."
+},
+"943": {
+"IgG FTA-ABS": "IgG FTA-ABS can reflect maternal antibodies.",
+"VDRL": "VDRL IgG can reflect maternal antibodies."
+},
+"945": {
+"Clostridium perfringens": "C. perfringens has box-car rods.",
+"Clostridium histolyticum": "C. histolyticum is proteolytic."
+},
+"946": {
+"G2/M": "G2/M arrest involves 14-3-3.",
+"S/G2": "S/G2 is not the p53 checkpoint."
+},
+"948": {
+"Mumps": "Mumps has parotitis.",
+"Rubella": "Rubella has lymphadenopathy."
+},
+"949": {
+"Increased H+ secretion": "H+ secretion is not increased.",
+"Hepatic biotransformation": "Biotransformation is hepatic."
+},
+"955": {
+"DiGeorge syndrome": "DiGeorge is congenital.",
+"Parathyroid hypoplasia": "Parathyroid hypoplasia is congenital."
+},
+"956": {
+"Megaloblastic anemia": "Megaloblastic anemia is aspirated easily.",
+"Thalassemia": "Thalassemia is aspirated easily."
+},
+"958": {
+"Pouch of Douglas": "The pouch of Douglas is peritoneal.",
+"Uterovesical pouch": "The uterovesical pouch is peritoneal."
+},
+"959": {
+"Umbilical hernia": "Umbilical hernia is a congenital feature.",
+"Neonatal jaundice": "Neonatal jaundice is a congenital feature."
+},
+"960": {
+"Antidepressants": "Antidepressants have less EPS.",
+"Antiepileptics": "Antiepileptics have less EPS."
+},
+"961": {
+"Seminal vesicle": "The seminal vesicle has no corpora amylacea.",
+"Thymus": "The thymus has Hassall corpuscles."
+},
+"963": {
+"Proline": "Proline is common but not the most.",
+"Phenylalanine": "Phenylalanine is rare."
+},
+"965": {
+"Cecum": "Cecal volvulus is second.",
+"Stomach": "Gastric volvulus is rare."
+},
+"969": {
+"Mucoepidermoid carcinoma": "Mucoepidermoid carcinoma is mixed.",
+"Pleomorphic adenoma": "Pleomorphic adenoma is benign."
+},
+"972": {
+"Vaccine alone later": "Vaccine alone is insufficient.",
+"Isolation only": "Isolation does not protect."
+},
+"977": {
+"Klebsiella": "Klebsiella is urease positive but not breath-test target.",
+"Ureaplasma": "Ureaplasma is urease positive but not breath-test target."
+},
+"980": {
+"Rifampin": "Rifampin resistance is via rpoB.",
+"Ethambutol": "Ethambutol resistance is via embB."
+},
+"981": {
+"Superficial": "Superficial BCC is less common.",
+"Pigmented": "Pigmented BCC is less common."
+},
+"982": {
+"Malonate": "Malonate inhibits complex II.",
+"Oligomycin": "Oligomycin inhibits ATP synthase."
+},
+"984": {
+"Platelet aggregation": "Platelet aggregation requires fibrinogen.",
+"Fibrinolysis": "Fibrinolysis is plasmin."
+},
+"985": {
+"Benzoyl peroxide": "Benzoyl peroxide is for mild acne.",
+"Azelaic acid": "Azelaic acid is for mild acne."
+},
+"987": {
+"Ketamine": "Ketamine causes emergence reactions.",
+"Enflurane": "Enflurane can cause seizures."
+},
+"989": {
+"Thirst relief": "Thirst relief is subjective.",
+"Arterial PaO2": "PaO2 is not perfusion."
+},
+"997": {
+"Vitamin C": "Vitamin C is not bound by avidin.",
+"Pyridoxine": "Pyridoxine is not bound by avidin."
+},
+"998": {
+"Cytotoxic T cells": "Cytotoxic T cells are adaptive.",
+"Memory B cells": "Memory B cells are adaptive."
+},
+"1001": {
+"Sensory neuropathy": "Sensory neuropathy is not a feature.",
+"Motor neuropathy": "Motor neuropathy is not a feature."
+},
+"1002": {
+"Foramen ovale": "Foramen ovale transmits V3.",
+"Foramen rotundum": "Foramen rotundum transmits V2."
+},
+"1003": {
+"Rubella": "Rubella causes congenital syndrome.",
+"Mumps": "Mumps causes parotitis."
+},
+"1004": {
+"Metacercaria": "Metacercariae infect for other flukes.",
+"Miracidium": "Miracidia infect snails."
+},
+"1017": {
+"Desflurane": "Desflurane does not cause seizures.",
+"Halothane": "Halothane does not cause seizures."
+},
+"1020": {
+"Stretch reflex": "Stretch reflexes return later.",
+"Crossed extensor reflex": "Crossed extensor reflex returns later."
+},
+"1021": {
+"Hepatitis A virus": "HAV is usually benign.",
+"Hepatitis C virus": "HCV rarely causes fulminant hepatitis."
+},
+"1025": {
+"CT chest": "CT chest does not show shunt.",
+"Impedance plethysmography": "Plethysmography tests DVT."
+},
+"1026": {
+"Flaviviridae": "Flaviviridae include dengue.",
+"Bunyaviridae": "Bunyaviridae include hantavirus."
+},
+"1027": {
+"Thrombocytopenia": "Thrombocytopenia has normal PT.",
+"Aspirin use": "Aspirin has normal PT."
+},
+"1030": {
+"Western blot": "Western blot is positive later.",
+"Lymph node biopsy": "Biopsy is not used."
+},
+"1037": {
+"Proctosigmoidoscopy": "Proctosigmoidoscopy sees only the rectum.",
+"Double-contrast barium enema": "Barium enema does not treat bleeding."
+},
+"1038": {
+"Aortic arch crossing": "Aortic arch is a later site.",
+"Diaphragmatic hiatus": "Hiatus is a later site."
+},
+"1039": {
+"Schizophrenia": "Schizophrenia has delusions.",
+"Depression": "Depression has low mood."
+},
+"1040": {
+"Ligase": "Ligases need ATP.",
+"Hydrolase": "Hydrolases use water."
+},
+"1041": {
+"S gene": "S gene encodes HBsAg.",
+"C gene": "C gene encodes core."
+},
+"1042": {
+"Cheek advancement flap": "Cheek advancement uses other vessels.",
+"Forehead flap": "Forehead flaps use supratrochlear."
+},
+"1043": {
+"Beta blockers": "Beta blockers may worsen spasm.",
+"High-dose aspirin": "High-dose aspirin may worsen spasm."
+},
+"1045": {
+"Type I (IgE-mediated)": "Type I is IgE mediated.",
+"Type III (immune complex)": "Type III is immune complex."
+},
+"1048": {
+"Osteosarcoma": "Osteosarcoma arises in the metaphysis.",
+"Ewing sarcoma": "Ewing sarcoma arises in the diaphysis."
+},
+"1049": {
+"Flumazenil": "Flumazenil is a competitive antagonist, not an inverse agonist.",
+"Zolpidem": "Zolpidem is an agonist at the benzodiazepine site."
+},
+"1050": {
+"Alanine": "Alanine is not the amide donor for asparagine.",
+"Histidine": "Histidine is not the amide donor for asparagine."
+},
+"1055": {
+"GH and prolactin": "GH and prolactin are anterior pituitary hormones.",
+"TSH and FSH": "TSH and FSH are anterior pituitary hormones."
+},
+"1057": {
+"Conidia": "Conidia are external asexual spores.",
+"Chlamydospores": "Chlamydospores are thick-walled resting spores."
+},
+"1064": {
+"Metacarpophalangeal joints": "MCP joints are commonly involved in rheumatoid arthritis.",
+"Proximal interphalangeal joints": "PIP joints are commonly involved in rheumatoid arthritis."
+},
+"1066": {
+"Port-wine stain": "Port-wine stains persist for life.",
+"Cavernous hemangioma": "Cavernous hemangiomas rarely regress completely."
+},
+"1069": {
+"E3 and E4": "E3 and E4 are not the oncogenic HPV proteins.",
+"E8 and E10": "E8 and E10 are not the oncogenic HPV proteins."
+},
+"1072": {
+"Capsule": "The capsule resists phagocytosis, not adhesion.",
+"Flagella": "Flagella provide motility."
+},
+"1073": {
+"Coral-red fluorescence": "Erythrasma fluoresces coral-red.",
+"Blue-white fluorescence": "Vitiligo appears blue-white under Wood lamp."
+},
+"1074": {
+"Duodenal atresia": "Duodenal atresia gives a double bubble sign.",
+"Jejunal atresia": "Jejunal atresia gives a triple bubble sign."
+},
+"1076": {
+"Taenia saginata larva": "T. saginata larva is Cysticercus bovis.",
+"Diphyllobothrium latum": "D. latum has a plerocercoid larva."
+},
+"1078": {
+"Systemic sclerosis": "Systemic sclerosis has anti-Scl-70 antibodies.",
+"SLE": "SLE has anti-dsDNA and anti-Smith antibodies."
+},
+"1079": {
+"Depression": "Depression is not the PANDAS disorder.",
+"Schizophrenia": "Schizophrenia is not the PANDAS disorder."
+},
+"1085": {
+"B lymphocytes": "B lymphocytes carry CD19 and CD20.",
+"Cytotoxic T lymphocytes": "Cytotoxic T cells carry CD8."
+},
+"1086": {
+"Dendrites": "Dendrites have few voltage-gated sodium channels.",
+"Soma": "The soma has fewer sodium channels than the hillock."
+},
+"1087": {
+"Benzodiazepines": "Benzodiazepines are not effective for OCD.",
+"Chlorpromazine": "Chlorpromazine is an antipsychotic."
+},
+"1090": {
+"Enalapril": "Enalapril is an ACE inhibitor.",
+"Ramipril": "Ramipril is an ACE inhibitor."
+},
+"1096": {
+"Lymphocyte predominant": "Lymphocyte predominant Hodgkin lymphoma is rare and nodal.",
+"Lymphocyte depleted": "Lymphocyte depleted is the rarest and aggressive."
+},
+"1098": {
+"External laryngeal nerve": "The external laryngeal nerve supplies cricothyroid.",
+"Internal laryngeal nerve": "The internal laryngeal nerve is sensory above the folds."
+},
+"1099": {
+"Gram stain": "Both organisms are Gram-positive cocci.",
+"Catalase": "Both organisms are catalase positive."
+},
+"1101": {
+"Histoplasma capsulatum": "Histoplasma causes granulomatous lung disease.",
+"Proteus mirabilis": "Proteus causes urinary infection."
+},
+"1107": {
+"Isoproterenol and propranolol": "Isoproterenol and propranolol compete at one receptor.",
+"Isoproterenol and salbutamol": "Isoproterenol and salbutamol are both beta agonists."
+},
+"1108": {
+"Glibenclamide": "Glibenclamide is a sulfonylurea that needs beta cells.",
+"Empagliflozin": "Empagliflozin is an SGLT2 inhibitor."
+},
+"1111": {
+"Coelomic epithelium": "Coelomic epithelium forms the gonadal ridge.",
+"Surface ectoderm": "Surface ectoderm forms skin."
+},
+"1115": {
+"Presentation": "Presentation is the part at the pelvic inlet.",
+"Attitude": "Attitude is fetal posture."
+},
+"1116": {
+"Tryptophan": "Tryptophan metabolism defects cause Hartnup disease.",
+"Leucine": "Leucine metabolism defects cause maple syrup urine disease."
+},
+"1118": {
+"Hyperkalemia": "Hyperkalemia is not seen in hypomagnesemia.",
+"Hypercalcemia": "Hypercalcemia is not seen in hypomagnesemia."
+},
+"1119": {
+"HLA-DR2": "DR2 is linked to multiple sclerosis.",
+"HLA-DR3": "DR3 is linked to type 1 diabetes and SLE."
+},
+"1122": {
+"Metabolic acidosis": "Metabolic acidosis does not follow gastric loss.",
+"Respiratory alkalosis": "Respiratory alkalosis is not seen in pyloric stenosis."
+},
+"1127": {
+"N-acetylgalactosamine": "N-acetylgalactosamine is in chondroitin sulfate.",
+"Glucuronic acid": "Glucuronic acid is a component of hyaluronate but not the viscosity source."
+},
+"1128": {
+"Postpartum hemorrhage": "Ergot treats postpartum hemorrhage.",
+"Anemia": "Anemia is not a contraindication."
+},
+"1132": {
+"Timolol": "Timolol lowers aqueous production.",
+"Brimonidine": "Brimonidine lowers aqueous production."
+},
+"1137": {
+"Acute onset": "Acute onset is a good prognostic sign.",
+"Prominent mood symptoms": "Mood symptoms predict good outcome."
+},
+"1139": {
+"Fluoride": "Fluoride inhibits enolase.",
+"Fluoroacetate": "Fluoroacetate inhibits aconitase."
+},
+"1141": {
+"Malignant hypertension": "Malignant hypertension causes hyperplastic arteriolitis.",
+"Multiple myeloma": "Multiple myeloma causes cast nephropathy."
+},
+"1143": {
+"Aspartate": "Aspartate feeds the urea cycle.",
+"Uracil": "Uracil is a pyrimidine."
+},
+"1144": {
+"Posterior element": "Posterior element TB is less common.",
+"Anterior": "Anterior TB is less common."
+},
+"1145": {
+"Burkholderia cepacia": "Burkholderia cepacia is a later, resistant pathogen.",
+"Aeromonas": "Aeromonas is not a CF pathogen."
+},
+"1149": {
+"Beta blockers": "Beta blockers are not harmful in renal artery stenosis.",
+"Calcium channel blockers": "Calcium channel blockers are not harmful."
+},
+"1152": {
+"Palate": "Palate tumors are biopsied.",
+"Buccal mucosa": "Buccal tumors are biopsied."
+},
+"1155": {
+"Mycobacterium marinum": "M. marinum causes fish tank granuloma.",
+"Mycobacterium fortuitum": "M. fortuitum causes wound infections."
+},
+"1158": {
+"Nocturnal penile tumescence": "Penile tumescence occurs in REM.",
+"Frequent dreaming": "Dreaming occurs in REM."
+},
+"1160": {
+"Penicillins": "Penicillins rarely cause fixed eruptions.",
+"Macrolides": "Macrolides rarely cause fixed eruptions."
+},
+"1161": {
+"Glycine": "Glycine is not a GABA metabolite.",
+"Aspartate": "Aspartate is not a GABA metabolite."
+},
+"1163": {
+"Medullary carcinoma": "Medullary carcinoma is usually unilateral.",
+"Inflammatory carcinoma": "Inflammatory carcinoma is usually unilateral."
+},
+"1165": {
+"Autosomal dominant": "Wilson disease is not dominant.",
+"X-linked recessive": "Wilson disease is not X-linked."
+},
+"1168": {
+"Syphilis": "Syphilis causes late losses.",
+"Cervical incompetence": "Cervical incompetence causes second trimester loss."
+},
+"1169": {
+"Tuberculosis": "TB can occur at any CD4 count.",
+"Candidiasis": "Candidiasis is not a cause of pneumonia at this count."
+},
+"1170": {
+"Arterial route": "The arterial route is less important.",
+"Axillary lymph nodes": "Axillary nodes drain lymph."
+},
+"1172": {
+"Intracerebral bleed": "Intracerebral bleed is rare.",
+"Spinal fracture": "Spinal fracture is rare with modified ECT."
+},
+"1179": {
+"Subepithelial humps": "Subepithelial humps are PSGN.",
+"Spike and dome pattern": "Spike and dome is membranous nephropathy."
+},
+"1182": {
+"Ion-exchange chromatography": "Ion exchange separates by charge.",
+"Size-exclusion chromatography": "Size exclusion separates by size."
+},
+"1184": {
+"Phenylketonuria": "PKU has not been treated by gene therapy as the first.",
+"Cystic fibrosis": "Cystic fibrosis gene therapy came later."
+},
+"1185": {
+"Ovarian stroma": "The ovarian stroma makes androgens.",
+"Sertoli cells": "Sertoli cells are testicular."
+},
+"1187": {
+"Hypophysectomy": "Hypophysectomy removes the pituitary.",
+"Thyroidectomy": "Thyroidectomy does not cause Nelson syndrome."
+},
+"1188": {
+"Cannabis": "Cannabis causes euphoria.",
+"LSD": "LSD causes visual hallucinations."
+},
+"1189": {
+"Superior thyroid artery": "The superior thyroid artery is related to the external laryngeal nerve.",
+"Middle thyroid vein": "The middle thyroid vein is not nerve-related."
+},
+"1190": {
+"Iron": "Transferrin carries iron.",
+"Zinc": "Zinc is bound to albumin."
+},
+"1191": {
+"Wiskott-Aldrich syndrome": "Wiskott-Aldrich has thrombocytopenia.",
+"Chronic granulomatous disease": "CGD has NADPH oxidase defect."
+},
+"1192": {
+"Asthma": "Asthma is a use of ipratropium.",
+"Peptic ulcer": "Peptic ulcer is not a contraindication."
+},
+"1194": {
+"Fetal maturity": "Fetal maturity uses L/S ratio.",
+"Labor progress": "Labor progress uses the partogram."
+},
+"1196": {
+"SA node": "The SA node is the pacemaker.",
+"Bundle of His": "The bundle of His conducts rapidly."
+},
+"1204": {
+"Duplication of pancreas": "Duplication does not describe divisum.",
+"Annular pancreas": "Annular pancreas is a ring around duodenum."
+},
+"1206": {
+"Surgery": "Surgery is for low-risk disease.",
+"Radiotherapy": "Radiotherapy is not needed."
+},
+"1208": {
+"Plasmodium malariae": "P. malariae shows band forms.",
+"Plasmodium vivax": "P. vivax has enlarged cells."
+},
+"1211": {
+"Fulvestrant": "Fulvestrant is a breast cancer drug.",
+"Tamoxifen": "Tamoxifen is a breast cancer drug."
+},
+"1212": {
+"Chocolate agar": "Chocolate agar grows Haemophilus.",
+"Blood agar": "Blood agar is nonselective."
+},
+"1214": {
+"Primary sclerosing cholangitis": "PSC has beaded bile ducts.",
+"Amyloidosis": "Amyloidosis infiltrates organs."
+},
+"1215": {
+"Hemithyroidectomy": "Hemithyroidectomy is insufficient.",
+"Radioiodine ablation": "Radioiodine does not treat C-cell cancer."
+},
+"1216": {
+"Cholesterol crystals": "Cholesterol crystals are different.",
+"Phospholipid inclusions": "Phospholipid inclusions are lamellar bodies."
+},
+"1218": {
+"Alcohol use": "Alcohol is a cofactor.",
+"Poor oral hygiene": "Poor oral hygiene is minor."
+},
+"1219": {
+"NMDA receptor antagonist": "NMDA antagonists include felbamate.",
+"GABA mimetic": "GABA mimetics include vigabatrin."
+},
+"1220": {
+"Mitochondria": "Mitochondria do beta oxidation.",
+"Smooth ER": "Smooth ER elongates fatty acids."
+},
+"1227": {
+"Phenytoin": "Phenytoin causes gingival hyperplasia.",
+"Barbiturates": "Barbiturates do not stain teeth."
+},
+"1230": {
+"Palmitate": "Palmitate is the end product.",
+"Stearate": "Stearate is a longer product."
+},
+"1233": {
+"Measles virus": "Measles has H protein.",
+"Respiratory syncytial virus": "RSV has F protein."
+},
+"1236": {
+"Menon lytic cocktail": "The Menon regimen is a lytic cocktail.",
+"Stroganoff regimen": "The Stroganoff regimen is sedative."
+},
+"1241": {
+"XLD agar": "XLD agar grows Salmonella.",
+"Deoxycholate agar": "Deoxycholate agar is for enteric bacteria."
+},
+"1243": {
+"External laryngeal nerve": "The external laryngeal nerve is motor.",
+"Recurrent laryngeal nerve": "The recurrent laryngeal nerve is lower."
+},
+"1246": {
+"HSV-1": "HSV-1 is mostly oral.",
+"VZV": "VZV causes shingles."
+},
+"1247": {
+"Beta-oxidation": "Beta oxidation uses FAD and NAD.",
+"ATP synthase": "ATP synthase contains F0 and F1."
+},
+"1248": {
+"Necrosis": "Necrosis is propidium positive.",
+"S-phase entry": "S-phase entry is not shown by annexin."
+},
+"1253": {
+"Ampicillin": "Ampicillin does not displace bilirubin.",
+"Phenobarbitone": "Phenobarbitone induces conjugation."
+},
+"1255": {
+"Enterovirus": "Enteroviruses are picornaviruses.",
+"Orthomyxovirus": "Orthomyxoviruses include influenza."
+},
+"1257": {
+"Breast abscess": "Breast abscess needs drainage.",
+"Fibroadenoma": "Fibroadenoma is removed."
+},
+"1258": {
+"Meningitis": "Meningitis shows neck stiffness.",
+"Microcephaly": "Microcephaly has a small head."
+},
+"1259": {
+"Burkitt lymphoma": "Burkitt lymphoma has starry sky.",
+"Chronic myeloid leukemia": "CML has Philadelphia chromosome."
+},
+"1261": {
+"Radical hysterectomy": "Radical hysterectomy is too early.",
+"Repeat Pap in 12 months": "Repeat Pap is insufficient."
+},
+"1263": {
+"Gilbert syndrome": "Gilbert has unconjugated hyperbilirubinemia.",
+"Crigler-Najjar syndrome": "Crigler-Najjar has unconjugated hyperbilirubinemia."
+},
+"1265": {
+"LH": "Inhibin does not suppress LH.",
+"TSH": "Inhibin does not suppress TSH."
+},
+"1268": {
+"GERD staging": "Milan is not for GERD.",
+"Hepatic encephalopathy grading": "Milan is not for encephalopathy."
+},
+"1271": {
+"BPH": "BPH thickens the bladder wall.",
+"Schistosomiasis": "Schistosomiasis causes calcified bladder."
+},
+"1272": {
+"Arteries": "Arteries hold about 13%.",
+"Arterioles": "Arterioles hold little blood."
+},
+"1274": {
+"Salbutamol": "Salbutamol is short-acting.",
+"Terbutaline": "Terbutaline is short-acting."
+},
+"1280": {
+"Area 4": "Area 4 is primary motor.",
+"Area 6": "Area 6 is premotor."
+},
+"1285": {
+"Suitable for rare diseases": "Cohorts are poor for rare diseases.",
+"Inexpensive": "Cohorts are expensive."
+},
+"1286": {
+"Transamination of pyruvate": "Pyruvate gives alanine.",
+"Removal of hydroxymethyl from serine": "Serine gives glycine."
+},
+"1287": {
+"Aerosol inhalation": "Aerosols are not the route.",
+"Person-to-person spread": "Person-to-person spread is rare."
+},
+"1289": {
+"Esophagus": "The esophagus has stratified squamous epithelium.",
+"Trachea": "The trachea has respiratory epithelium."
+},
+"1292": {
+"Kidney": "The kidney gives pale infarcts.",
+"Heart": "The heart gives pale infarcts."
+},
+"1293": {
+"Red blood cells": "Red cells use glucose.",
+"Brain": "The brain uses glucose."
+},
+"1294": {
+"Impaired right conjugate gaze": "A right frontal lesion does not impair right gaze.",
+"Impaired upward gaze": "Upward gaze is a midbrain function."
+},
+"1298": {
+"Lateral pectoral nerve palsy": "The lateral pectoral nerve supplies pectoralis major.",
+"Thoracodorsal nerve palsy": "The thoracodorsal nerve supplies latissimus dorsi."
+},
+"1300": {
+"Crizotinib": "Crizotinib targets ALK.",
+"Ibrutinib": "Ibrutinib targets BTK."
+},
+"1303": {
+"Gastroesophageal reflux": "Reflux is treated by fundoplication.",
+"Hiatus hernia": "Hiatus hernia is repaired."
+},
+"1304": {
+"Pyoderma gangrenosum": "Pyoderma gangrenosum is less common.",
+"Episcleritis": "Episcleritis is less common."
+},
+"1305": {
+"Jejunum": "The jejunum has plicae.",
+"Ileum": "The ileum has Peyer patches."
+},
+"1310": {
+"Streptolysin O": "Streptolysin O lyses cells.",
+"Streptolysin S": "Streptolysin S lyses cells."
+},
+"1312": {
+"mRNA": "The Feulgen stain does not stain mRNA.",
+"Protein": "It does not stain protein."
+},
+"1314": {
+"Inability to perform fine movements": "Apraxia is fine movement.",
+"Inability to name colors": "Color agnosia is color naming."
+},
+"1317": {
+"Medulloblastoma": "Medulloblastoma occurs in children.",
+"Astrocytoma": "Astrocytoma is not typical in HIV."
+},
+"1320": {
+"Intrinsic factor": "Intrinsic factor is for B12.",
+"Enterokinase": "Enterokinase activates trypsinogen."
+},
+"1325": {
+"Achalasia": "Achalasia has dysphagia.",
+"Scleroderma esophagus": "Scleroderma esophagus has reflux."
+},
+"1328": {
+"Fatty acid oxidation": "Red cells lack mitochondria.",
+"Ketone body oxidation": "They cannot use ketones."
+},
+"1329": {
+"Naegleria fowleri": "Naegleria causes acute meningoencephalitis.",
+"Entamoeba coli": "Entamoeba coli is a commensal."
+},
+"1330": {
+"Cholestyramine": "Cholestyramine is not recommended.",
+"Steroids": "Steroids are not used."
+},
+"1331": {
+"Alar plate": "The alar plate gives sensory neurons.",
+"Roof plate": "The roof plate is dorsal."
+},
+"1334": {
+"Neostigmine": "Neostigmine is longer-acting.",
+"Pyridostigmine": "Pyridostigmine is longer-acting."
+},
+"1337": {
+"Ductus venosus": "The ductus venosus becomes ligamentum venosum.",
+"Ductus arteriosus": "The ductus arteriosus becomes ligamentum arteriosum."
+},
+"1338": {
+"GLUT4": "GLUT4 is insulin-dependent.",
+"Sodium channel": "The sodium channel is not the carrier."
+},
+"1341": {
+"Enterokinase": "Enterokinase activates trypsinogen.",
+"Trypsin": "Trypsin activates pancreatic zymogens."
+},
+"1351": {
+"Posterior urethral valves": "PUV is a boy's cause.",
+"Neurogenic bladder": "Neurogenic bladder is rarer."
+},
+"1352": {
+"Chest X-ray": "Chest X-ray is insensitive.",
+"MRI": "MRI is not first."
+},
+"1353": {
+"Mania": "Mania has elevated mood.",
+"Somatoform disorder": "Somatoform disorders have symptoms."
+},
+"1354": {
+"Cardiac tamponade": "Tamponade has pulsus paradoxus.",
+"Severe LV failure": "Severe LVF has pulsus alternans."
+},
+"1356": {
+"Neonatal diabetes": "Neonatal diabetes causes hyperglycemia.",
+"Neonatal hepatitis": "Neonatal hepatitis causes cholestasis."
+},
+"1358": {
+"Blocks the Na+/Cl- symporter": "The Na+/Cl- symporter is blocked by thiazides.",
+"Blocks the H+/K+ ATPase": "The H+/K+ ATPase is blocked by omeprazole."
+},
+"1360": {
+"Aortic valve closure": "Aortic valve closure gives S2.",
+"Heart sound transmission": "Heart sounds are separate."
+},
+"1361": {
+"Hypocapnia": "Hypocapnia is not the cause.",
+"Hypoxia": "Hypoxia is not the cause."
+},
+"1365": {
+"Low platelet count": "Platelets are normal in HDN.",
+"Prolonged bleeding time": "Bleeding time is normal."
+},
+"1374": {
+"Schizoid personality disorder": "Schizoid is detached.",
+"Anankastic personality disorder": "Anankastic is perfectionistic."
+}
+}

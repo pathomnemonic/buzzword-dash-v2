@@ -508,7 +508,7 @@ export var settingsMethods = {
       content.appendChild(aboutRow);
       var disclaimer = createElement('div', {
         className: 'setting-sublabel',
-        text: 'Dx Dash is a study aid, not medical advice. Content may contain errors; verify important facts against authoritative sources.'
+        text: 'Dx Dash is a study aid. It is not a medical device, does not diagnose, treat, cure or prevent any medical condition, and is not medical advice. Always consult a qualified healthcare professional for medical decisions. Content may contain errors; verify important facts against authoritative sources.'
       });
       disclaimer.style.cssText = 'margin:4px 0 12px;line-height:1.4;font-size:11px';
       content.appendChild(disclaimer);

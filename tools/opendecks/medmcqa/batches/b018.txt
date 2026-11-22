@@ -1,0 +1,31 @@
+1017|NEU|se|Inhalational anesthetic that can precipitate seizures|Enflurane|Desflurane|Halothane|Enflurane can provoke seizures in epileptic patients; desflurane and halothane do not.
+1020|NEU|mech|First reflex to return after spinal shock|Withdrawal (flexor) reflex|Stretch reflex|Inverse stretch reflex|The withdrawal reflex has a low threshold and returns first, followed by stretch reflexes.
+1021|ID|dx|Fulminant hepatitis in a pregnant woman|Hepatitis E virus|Hepatitis A virus|Hepatitis C virus|HEV carries about 20% fulminant hepatitis risk in pregnancy.
+1023|MIX|mech|HLA gene location|Short arm of chromosome 6|Long arm of chromosome 6|Short arm of chromosome 3|The MHC/HLA complex lies on 6p.
+1025|CAR|lab|Paradoxical embolism: detection of the shunt|Bubble-contrast echocardiography|CT chest|Impedance plethysmography|Agitated saline shows right-to-left shunting through a patent foramen ovale.
+1026|ID|dx|Neonatal cataract, deafness, cardiac defect: maternal virus family|Togaviridae|Flaviviridae|Bunyaviridae|Congenital rubella syndrome comes from rubella virus, a togavirus.
+1027|HEM|lab|Isolated prolonged PT with normal PTT|Early vitamin K deficiency|Thrombocytopenia|Aspirin use|Factor VII has the shortest half-life, so PT lengthens first in vitamin K deficiency or warfarin.
+1028|HEM|ph|Recombinant IL-2 for melanoma and renal cell carcinoma|Aldesleukin|Levamisole|Methotrexate|Aldesleukin is high-dose recombinant IL-2 immunotherapy.
+1030|ID|lab|Acute HIV (window period): best test|p24 antigen or HIV RNA assay|Western blot|Lymph node biopsy|Viral antigen and RNA appear before antibodies in acute infection.
+1037|GI|lab|Most useful test for profuse lower GI bleeding|Colonoscopy|Proctosigmoidoscopy|Double-contrast barium enema|Colonoscopy locates the source and permits treatment.
+1038|GI|mech|Most common site of esophageal foreign body impaction|Cricopharyngeus|Aortic arch crossing|Diaphragmatic hiatus|The upper esophageal sphincter is the narrowest and strongest constriction.
+1039|PSY|dx|Irresistible urge to repeat an act|Obsessive-compulsive disorder|Schizophrenia|Depression|OCD is recurrent obsessions with repetitive compulsions.
+1040|MIX|mech|Enzyme cleaving covalent bonds without hydrolysis|Lyase|Ligase|Hydrolase|Lyases break bonds without water or oxidation; hydrolases use water.
+1041|ID|mech|HBV gene encoding reverse transcriptase|P gene|S gene|C gene|The large P gene encodes DNA polymerase, reverse transcriptase and RNase H.
+1042|SUR|mech|Abbe-Estlander flap|Lip-switch flap based on the labial artery|Cheek advancement flap based on facial artery|Forehead flap based on supratrochlear artery|The Abbe-Estlander flap reconstructs lip defects, such as after lip carcinoma, on the labial artery.
+1043|CAR|mg|Prinzmetal (vasospastic) angina: main drugs|Nitrates and calcium channel blockers|Beta blockers|High-dose aspirin|Vasospastic angina responds to vasodilators; beta blockers and aspirin may worsen it.
+1045|MIX|mech|Hemolytic transfusion reaction hypersensitivity type|Type II (antibody-mediated)|Type I (IgE-mediated)|Type III (immune complex)|IgG or IgM binding to red cell antigens activates complement.
+1048|HEM|dx|Epiphyseal bone tumor|Giant cell tumor|Osteosarcoma|Ewing sarcoma|Giant cell tumor and chondroblastoma arise in the epiphysis.
+1049|MIX|ph|Inverse agonist at the benzodiazepine site of GABA-A|Beta-carbolines|Flumazenil|Zolpidem|Flumazenil is a competitive antagonist, zolpidem an agonist; beta-carbolines are inverse agonists.
+1050|MIX|mech|Nitrogen donor converting aspartate to asparagine|Glutamine|Alanine|Histidine|Asparagine synthetase transfers the amide nitrogen of glutamine.
+1051|OB|dx|Double set-up examination|Suspected placenta previa|Manual removal of placenta|Twin pregnancy|A vaginal exam in the operating room with cesarean ready is used for suspected placenta previa with bleeding.
+1055|END|mech|Hormones released from the posterior pituitary|ADH and oxytocin|GH and prolactin|TSH and FSH|ADH and oxytocin are made in hypothalamic nuclei and released from the neurohypophysis.
+1057|ID|mech|Sporangium contains|Sporangiospores|Conidia|Chlamydospores|Sporangiospores are asexual spores inside the sporangium, as in Mucor and Rhizopus.
+1059|CAR|dx|Familial hypercholesterolemia defect|LDL receptor|Apo A-I|Lipoprotein lipase|Defective LDL receptors raise LDL and cause tendon xanthomas and early coronary disease.
+1060|NEU|mech|Afferent fiber from the Golgi tendon organ|Ib|Ia|II|The Golgi tendon organ sends Ib afferents that mediate the inverse stretch reflex.
+1064|RHE|dx|Joint typically spared in rheumatoid arthritis|Distal interphalangeal joints|Metacarpophalangeal joints|Proximal interphalangeal joints|Rheumatoid arthritis spares the DIP joints, which osteoarthritis and psoriatic arthritis involve.
+1066|PED|dx|Vascular lesion that regresses spontaneously|Strawberry (infantile) hemangioma|Port-wine stain|Cavernous hemangioma|Infantile hemangiomas appear in the first weeks, grow for a year and mostly involute by age 9.
+1069|OB|mech|HPV oncoproteins in cervical carcinogenesis|E6 and E7|E3 and E4|E8 and E10|E6 degrades p53 and E7 inactivates Rb.
+1072|ID|mech|Bacterial organ of adhesion|Fimbriae (pili)|Capsule|Flagella|Fimbriae mediate attachment to host surfaces.
+1073|MIX|lab|Tinea versicolor under Wood lamp|Golden-yellow fluorescence|Coral-red fluorescence|Blue-white fluorescence|Malassezia gives golden-yellow fluorescence; erythrasma is coral-red.
+1074|GI|dx|Frostberg reverse-3 sign on barium|Periampullary carcinoma|Duodenal atresia|Jejunal atresia|A reverse-3 contour of the duodenal loop indicates a periampullary mass.

@@ -1,0 +1,219 @@
+{
+  "deck": "openstax-ap-1e",
+  "retrieved": "2026-10-12",
+  "book": {
+    "title": "Anatomy and Physiology",
+    "edition": "1st edition (OpenStax, 2013; the edition now marked retired)",
+    "uuid": "14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22",
+    "version": "ccce780",
+    "archive": "https://openstax.org/apps/archive/20260604.144757",
+    "page": "https://openstax.org/books/anatomy-and-physiology/pages/1-introduction",
+    "licence": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "licenceUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "bookLicenceFromArchive": {
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "name": "Creative Commons Attribution License"
+    },
+    "revised": "2022-01-27T17:52:49+00:00"
+  },
+  "sections": [
+    {
+      "ref": "17.3",
+      "id": "220a804e-2280-4c55-adbc-7a34d4810839",
+      "title": "The Pituitary Gland and Hypothalamus",
+      "subject": "Endocrinology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:220a804e-2280-4c55-adbc-7a34d4810839.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/17-3-the-pituitary-gland-and-hypothalamus",
+      "chars": 16721
+    },
+    {
+      "ref": "17.4",
+      "id": "6218af68-bd2e-4934-9d00-137fb8384dfb",
+      "title": "The Thyroid Gland",
+      "subject": "Endocrinology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:6218af68-bd2e-4934-9d00-137fb8384dfb.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/17-4-the-thyroid-gland",
+      "chars": 9991
+    },
+    {
+      "ref": "17.5",
+      "id": "77840296-c962-4f13-a9c6-d9927605fcf4",
+      "title": "The Parathyroid Glands",
+      "subject": "Endocrinology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:77840296-c962-4f13-a9c6-d9927605fcf4.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/17-5-the-parathyroid-glands",
+      "chars": 3243
+    },
+    {
+      "ref": "17.6",
+      "id": "91a5f6cb-65d9-441e-b08d-eb2cb4c4cc91",
+      "title": "The Adrenal Glands",
+      "subject": "Endocrinology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:91a5f6cb-65d9-441e-b08d-eb2cb4c4cc91.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/17-6-the-adrenal-glands",
+      "chars": 12427
+    },
+    {
+      "ref": "17.9",
+      "id": "93048ca2-ed02-4cf8-a310-8a8474fc1b21",
+      "title": "The Endocrine Pancreas",
+      "subject": "Endocrinology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:93048ca2-ed02-4cf8-a310-8a8474fc1b21.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/17-9-the-endocrine-pancreas",
+      "chars": 10991
+    },
+    {
+      "ref": "19.2",
+      "id": "302812e9-2d2d-4e44-8075-4bb75db53f36",
+      "title": "Cardiac Muscle and Electrical Activity",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:302812e9-2d2d-4e44-8075-4bb75db53f36.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/19-2-cardiac-muscle-and-electrical-activity",
+      "chars": 27648
+    },
+    {
+      "ref": "19.3",
+      "id": "22c3f969-ab9d-4df0-8baf-5b1a99372fac",
+      "title": "Cardiac Cycle",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:22c3f969-ab9d-4df0-8baf-5b1a99372fac.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/19-3-cardiac-cycle",
+      "chars": 9783
+    },
+    {
+      "ref": "19.4",
+      "id": "49351638-09b0-4ab1-85cd-e62ba09ffccb",
+      "title": "Cardiac Physiology",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:49351638-09b0-4ab1-85cd-e62ba09ffccb.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/19-4-cardiac-physiology",
+      "chars": 32590
+    },
+    {
+      "ref": "20.2",
+      "id": "03841c4c-9e9a-4822-95b2-12273c843a4e",
+      "title": "Blood Flow, Blood Pressure, and Resistance",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:03841c4c-9e9a-4822-95b2-12273c843a4e.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/20-2-blood-flow-blood-pressure-and-resistance",
+      "chars": 29262
+    },
+    {
+      "ref": "20.3",
+      "id": "797b2238-a9ed-4012-b9af-ce0a25172732",
+      "title": "Capillary Exchange",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:797b2238-a9ed-4012-b9af-ce0a25172732.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/20-3-capillary-exchange",
+      "chars": 8252
+    },
+    {
+      "ref": "20.4",
+      "id": "5f4c74cd-b9f4-432c-b12b-24b7f1474a4f",
+      "title": "Homeostatic Regulation of the Vascular System",
+      "subject": "Cardiology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:5f4c74cd-b9f4-432c-b12b-24b7f1474a4f.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/20-4-homeostatic-regulation-of-the-vascular-system",
+      "chars": 26994
+    },
+    {
+      "ref": "22.3",
+      "id": "bbaedbf4-4d78-4b7c-bc94-2a742f0f2f8c",
+      "title": "The Process of Breathing",
+      "subject": "Pulmonology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:bbaedbf4-4d78-4b7c-bc94-2a742f0f2f8c.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/22-3-the-process-of-breathing",
+      "chars": 25542
+    },
+    {
+      "ref": "22.4",
+      "id": "98519dc2-a601-4193-a1e9-844a560771a4",
+      "title": "Gas Exchange",
+      "subject": "Pulmonology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:98519dc2-a601-4193-a1e9-844a560771a4.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/22-4-gas-exchange",
+      "chars": 14896
+    },
+    {
+      "ref": "22.5",
+      "id": "decfd7ca-eb64-49fc-a319-cf341109fc2e",
+      "title": "Transport of Gases",
+      "subject": "Pulmonology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:decfd7ca-eb64-49fc-a319-cf341109fc2e.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/22-5-transport-of-gases",
+      "chars": 13781
+    },
+    {
+      "ref": "22.6",
+      "id": "11673dd9-55e6-46d9-8b78-b06df85246bd",
+      "title": "Modifications in Respiratory Functions",
+      "subject": "Pulmonology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:11673dd9-55e6-46d9-8b78-b06df85246bd.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/22-6-modifications-in-respiratory-functions",
+      "chars": 8078
+    },
+    {
+      "ref": "25.5",
+      "id": "ec43dac9-2850-402e-9a47-7f0fb16bcfb7",
+      "title": "Physiology of Urine Formation",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:ec43dac9-2850-402e-9a47-7f0fb16bcfb7.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/25-5-physiology-of-urine-formation",
+      "chars": 9419
+    },
+    {
+      "ref": "25.6",
+      "id": "f8201348-cb61-4874-9c86-074ef0fcb9b4",
+      "title": "Tubular Reabsorption",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:f8201348-cb61-4874-9c86-074ef0fcb9b4.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/25-6-tubular-reabsorption",
+      "chars": 27213
+    },
+    {
+      "ref": "25.7",
+      "id": "b8ebb2e5-7a01-46d3-9c16-f258683cd8ed",
+      "title": "Regulation of Renal Blood Flow",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:b8ebb2e5-7a01-46d3-9c16-f258683cd8ed.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/25-7-regulation-of-renal-blood-flow",
+      "chars": 5235
+    },
+    {
+      "ref": "25.8",
+      "id": "d3100137-9cb1-41a9-b898-426d639a251c",
+      "title": "Endocrine Regulation of Kidney Function",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:d3100137-9cb1-41a9-b898-426d639a251c.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/25-8-endocrine-regulation-of-kidney-function",
+      "chars": 6842
+    },
+    {
+      "ref": "26.3",
+      "id": "ca0c80ce-7586-419b-a890-6bdad12ec809",
+      "title": "Electrolyte Balance",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:ca0c80ce-7586-419b-a890-6bdad12ec809.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/26-3-electrolyte-balance",
+      "chars": 15431
+    },
+    {
+      "ref": "26.4",
+      "id": "3960fe89-f680-46c1-a27d-96c7a84a3c85",
+      "title": "Acid-Base Balance",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:3960fe89-f680-46c1-a27d-96c7a84a3c85.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/26-4-acid-base-balance",
+      "chars": 12267
+    },
+    {
+      "ref": "26.5",
+      "id": "39570e34-df6e-41e7-875d-3d62f92be3c7",
+      "title": "Disorders of Acid-Base Balance",
+      "subject": "Nephrology",
+      "url": "https://openstax.org/apps/archive/20260604.144757/contents/14fb4ad7-39a1-4eee-ab6e-3ef2482e3e22@ccce780:39570e34-df6e-41e7-875d-3d62f92be3c7.json",
+      "readerUrl": "https://openstax.org/books/anatomy-and-physiology/pages/26-5-disorders-of-acid-base-balance",
+      "chars": 9849
+    }
+  ]
+}

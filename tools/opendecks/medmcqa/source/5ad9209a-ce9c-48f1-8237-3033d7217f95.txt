@@ -1,0 +1,1 @@
+Ans. D. Not Regulated(Ref: Harper 31/e page 410)The expression of some genes is constitutive, meaning that they are expressed at a reasonably constant rate and not known to be subject to regulation. These are often referred to as housekeeping genes.An inducible gene is one whose expression increases in response to an inducer or activator, a specific positive regulatory signal

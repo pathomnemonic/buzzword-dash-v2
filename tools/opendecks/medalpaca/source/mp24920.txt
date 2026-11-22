@@ -1,0 +1,2 @@
+What biological mechanism is responsible for fibroblast activation and fibrosis in Riedel's thyroiditis?
+In Riedel's thyroiditis, release of cytokines (e.g. TGF-β, IL-13) leads to fibroblast activation and fibrosis.

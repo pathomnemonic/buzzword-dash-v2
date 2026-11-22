@@ -1,0 +1,32 @@
+776|HEM|mech|Hereditary spherocytosis defect|Red-cell membrane skeleton protein deficiency (spectrin, ankyrin)|Collagen defect|Integrin defect|Loss of spectrin and ankyrin destabilizes the red-cell membrane so cells become spherocytes.
+777|HEM|mech|BRCA1 chromosome location|Chromosome 17|Chromosome 13|Chromosome 22|BRCA1 is on 17q and BRCA2 on 13q; both are DNA repair genes.
+778|MIX|mech|Epigenetics|Heritable change in gene expression without DNA sequence change|Change in nucleotide sequence|Change in chromosome number|Epigenetic effects include DNA methylation and histone modification.
+780|CAR|lab|Mitral valve auscultation site|Left fifth intercostal space (apex)|Right second intercostal space|Left second intercostal space|The mitral area is at the apex; aortic is right second and pulmonic left second.
+782|NEU|mech|Main muscle that opens the jaw|Lateral pterygoid|Masseter|Temporalis|The lateral pterygoid protrudes and depresses the mandible; masseter, temporalis and medial pterygoid close it.
+783|CAR|ph|Why esmolol is ultra-short-acting|Rapid hydrolysis by red-cell esterases|High lipid solubility|Extensive protein binding|Esmolol is a beta-1 blocker with a half-life of about 8 minutes because esterases break it down.
+784|PED|dx|Most common type of total anomalous pulmonary venous connection|Supracardiac|Infracardiac|Cardiac|Supracardiac TAPVC, draining via a vertical vein to the innominate vein, is the commonest type at about 45%.
+789|SUR|mech|Artery in the anatomical snuffbox|Radial artery|Ulnar artery|Brachial artery|The radial artery crosses the snuffbox floor, where scaphoid tenderness suggests scaphoid fracture.
+797|CAR|se|Cardiotoxic cancer drug with vacuolar degeneration and myofibrillar loss|Doxorubicin (anthracyclines)|Vincristine|Methotrexate|Anthracycline cardiomyopathy shows vacuolar degeneration and loss of myofibrils.
+799|NEU|mg|Juvenile myoclonic epilepsy: drug of choice|Valproate|Phenytoin|Carbamazepine|Valproate controls most JME patients; carbamazepine and phenytoin can worsen myoclonus.
+800|OB|dx|Brief mid-cycle unilateral lower abdominal pain, no fever or leukocytosis|Mittelschmerz|Pelvic inflammatory disease|Appendicitis|Mittelschmerz is ovulation pain lasting 12-24 hours.
+801|NEU|dx|Calf pseudohypertrophy|Duchenne muscular dystrophy|Facioscapulohumeral dystrophy|Myotonic dystrophy|Fat and connective tissue replace muscle in Duchenne dystrophy, enlarging the calves.
+803|EM|mg|Fluid for burn resuscitation in the first 24 hours|Lactated Ringer's|Fresh frozen plasma|Platelet transfusion|The Parkland formula uses lactated Ringer's, 4 mL/kg per % burn in adults.
+806|ID|se|Leprosy drug causing skin discoloration and ichthyosis|Clofazimine|Rifampin|Dapsone|Clofazimine causes reddish-black skin discoloration and dryness.
+808|ID|dx|Bull neck|Diphtheria|Mumps|Tuberculous lymphadenitis|Severe diphtheria causes massive cervical lymphadenopathy and edema, with an adherent pseudomembrane.
+810|OB|dx|Sinusoidal fetal heart rate (fetal anemia): cause among these|Vasa previa|Placenta previa|Succenturiate placenta|A sinusoidal pattern signals severe fetal anemia, as from fetal blood loss in vasa previa.
+811|ID|ph|Onchocerciasis drug of choice|Ivermectin|Albendazole|Praziquantel|Ivermectin is used for onchocerca and strongyloides; albendazole for most other nematodes.
+813|MIX|mech|Hydroxylation of proline in collagen requires|Vitamin C|Vitamin B1|Vitamin E|Vitamin C is the cofactor of prolyl and lysyl hydroxylase; deficiency causes scurvy.
+814|END|dx|Whipple triad|Insulinoma|Glucagonoma|Gastrinoma|Whipple triad is fasting hypoglycemia symptoms, low glucose, and relief with glucose, the clue to insulinoma.
+816|ID|mech|Only living layer of a hydatid cyst|Germinal layer|Laminated membrane|Adventitia|The germinal epithelium produces brood capsules and scolices.
+819|CAR|mg|First drug for stable PSVT after vagal maneuvers|Adenosine|Amiodarone|Lidocaine|Adenosine briefly blocks the AV node, breaking the reentry circuit.
+820|ID|lab|Proteus biochemical reaction|Phenylalanine deaminase positive|Oxidase positive|Lactose fermentation|Proteus is phenylalanine deaminase and urease positive and swarms on agar.
+821|MIX|mech|Fructose overload effect|Hyperuricemia with hypertriglyceridemia|Hypouricemia|Hypoglycemia|Rapid fructokinase use depletes ATP and raises uric acid, and fructose also drives lipogenesis.
+822|NEU|dx|Most common site of hypertensive brain hemorrhage|Putamen|Ventral pons|Cerebellum|Hypertensive intracerebral hemorrhage most often arises from small penetrating vessels at the putamen.
+823|MIX|mech|Mutation causing a frameshift|Insertion or deletion not a multiple of three|Transition|Transversion|Insertions or deletions of bases shift the reading frame; substitutions do not.
+824|ID|dx|Scrub typhus hallmark lesion|Eschar|Koplik spots|Rose spots|Orientia tsutsugamushi, spread by chigger bites, leaves an eschar with lymphadenopathy and rash; doxycycline treats it.
+825|NEU|mech|Phagocytes of the brain|Microglia|Astrocytes|Oligodendrocytes|Microglia are the CNS counterparts of macrophages.
+826|NEU|mech|Circadian rhythm pacemaker|Suprachiasmatic nucleus|Raphe nuclei|Red nucleus|The suprachiasmatic nucleus is the master clock, driven by light input from the retina.
+831|NEP|dx|Poststreptococcal glomerulonephritis syndrome|Nephritic syndrome|Nephrotic syndrome|Chronic renal failure|PSGN gives hematuria, hypertension and low C3 with subepithelial humps.
+832|ID|ph|H1N1 influenza prophylaxis|Oseltamivir|Amantadine|Rimantadine|Oseltamivir is the neuraminidase inhibitor used since H1N1 is resistant to adamantanes.
+833|HEM|dx|Hairy cell leukemia cell lineage|B cells|T cells|Myeloid cells|Hairy cell leukemia is a B-cell neoplasm with massive splenomegaly and pancytopenia.
+834|MIX|mech|Mitochondrial DNA structure|Double-stranded circular|Single-stranded linear|Double-stranded linear|Human mtDNA is a double-stranded circle of about 16,500 base pairs.

@@ -1,0 +1,2 @@
+For what type of acid-base disturbance is Winters formula used to predict respiratory compensation?
+Winters formula is used to calculate the predicted respiratory compensation for a simple metabolic acidosis.

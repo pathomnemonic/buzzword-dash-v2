@@ -54,16 +54,23 @@ function isCardEligibleForFlashcard(card) {
 /**
  * Patch missing fields onto custom cards that bypass hub cleanCards().
  */
+var _patched = new WeakMap();
 function patchCardDefaults(c) {
-  if (c.exams === undefined) c.exams = [];
-  if (c.baseDifficulty === undefined) c.baseDifficulty = 2;
-  if (c.questionType === undefined) c.questionType = 'buzzword_dx';
-  if (c.source === undefined) c.source = 'clinical_medicine';
-  if (c.tags === undefined) c.tags = c.subj ? [c.subj.toLowerCase()] : [];
-  if (c.hx === undefined) c.hx = false;
-  if (c.yr === undefined) c.yr = 2;
-  if (c.pearls === undefined) c.pearls = c.tp ? [c.tp.split('.')[0]] : [];
-  return c;
+  // A copy, never the stored card itself (customCards hands out its cache): and remembered, so a 30,000-card deck is
+  // patched once, not on every run.
+  var hit = c && _patched.get(c);
+  if (hit) return hit;
+  var p = c && c.isCustom ? Object.assign({}, c) : c; // (built-in cards are patched in place, as before)
+  if (p.exams === undefined) p.exams = [];
+  if (p.baseDifficulty === undefined) p.baseDifficulty = 2;
+  if (p.questionType === undefined) p.questionType = 'buzzword_dx';
+  if (p.source === undefined) p.source = 'clinical_medicine';
+  if (p.tags === undefined) p.tags = p.subj ? [p.subj.toLowerCase()] : [];
+  if (p.hx === undefined) p.hx = false;
+  if (p.yr === undefined) p.yr = 2;
+  if (p.pearls === undefined) p.pearls = p.tp ? [p.tp.split('.')[0]] : [];
+  if (p !== c) _patched.set(c, p);
+  return p;
 }
 
 /**
@@ -373,6 +380,8 @@ export class FlashcardMode {
       baseDifficulty: card.baseDifficulty || 2,
       exams: card.exams || [],
       questionType: card.questionType || 'buzzword_dx',
+      // the Anki tags of an imported card (built-in cards keep their own tags to themselves)
+      tags: card.isCustom && Array.isArray(card.tags) ? card.tags.slice(0, 12) : [],
       revealed: this.state === SESSION_STATES.REVEALED
     };
   }
@@ -413,7 +422,9 @@ export class FlashcardMode {
       distractors: card.d || [],
       whyWrong: whyWrong,
       pearls: card.pearls || [],
-      exception: card.exception || null
+      exception: card.exception || null,
+      // an Open deck card's one-line credit ("OpenStax A&P, CC BY 4.0")
+      attribution: card.attr || ''
     };
   }
 

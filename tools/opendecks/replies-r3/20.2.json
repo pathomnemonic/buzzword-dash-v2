@@ -1,0 +1,40 @@
+[
+{
+"subj": "Cardiology",
+"bw": [
+"Bleeding, dehydration, vomiting, severe burns",
+"Silent until 10–20 percent of volume is lost"
+],
+"ans": "Hypovolemia",
+"d": [
+"Hypervolemia",
+"Hypoxemia"
+],
+"tp": "Patients may be asymptomatic until 10–20 percent of blood volume is lost. Treatment is IV fluid replacement.",
+"ww": {
+"Hypervolemia": "Hypervolemia is excess fluid volume.",
+"Hypoxemia": "Hypoxemia is low arterial oxygen, not low volume."
+},
+"source_ref": "20.2",
+"evidence": "Low blood volume, called hypovolemia, may be caused by bleeding, dehydration, vomiting, severe burns, or some medications used to treat hypertension."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Heart failure, cirrhosis, hyperaldosteronism",
+"Water and sodium retention"
+],
+"ans": "Hypervolemia",
+"d": [
+"Hypovolemia",
+"Ischemia"
+],
+"tp": "It results from retention of water and sodium; treatment means reversing the cause.",
+"ww": {
+"Hypovolemia": "Hypovolemia is low blood volume.",
+"Ischemia": "Ischemia is insufficient blood flow to a tissue, not excess volume."
+},
+"source_ref": "20.2",
+"evidence": "Hypervolemia, excessive fluid volume, may be caused by retention of water and sodium, as seen in patients with heart failure, liver cirrhosis, some forms of kidney disease, hyperaldosteronism, and some glucocorticoid steroid treatments."
+}
+]

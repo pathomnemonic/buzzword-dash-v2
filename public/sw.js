@@ -21,7 +21,7 @@ function pruneAssets() {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== ASSETS).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.indexOf('dx-') === 0 && k !== CACHE && k !== ASSETS).map((k) => caches.delete(k)))) // (only this game's caches: other games on the same host keep theirs)
       .then(pruneAssets)
       .then(() => self.clients.claim())
   );
@@ -44,6 +44,12 @@ self.addEventListener('fetch', (event) => {
 
   if (req.mode === 'navigate') {
     event.respondWith(fetch(req, { cache: 'no-cache' }).then(store).catch(() => caches.match(req).then((r) => r || caches.match('./'))));
+    return;
+  }
+  // Open decks (/decks/*.json): fetched on demand, never precached. Network first so an updated deck or list is seen at once,
+  // and the last copy is used when offline (a deck already added to My Cards does not need the network at all).
+  if (/\/decks\/[^/]+\.json$/.test(url.pathname)) {
+    event.respondWith(fetch(req, { cache: 'no-cache' }).then(store).catch(() => caches.match(req).then((r) => r || Response.error())));
     return;
   }
   if (HASHED.test(url.pathname)) {

@@ -1,0 +1,33 @@
+Licence evidence for the source of the "OpenStax Anatomy & Physiology (1st edition)" open deck.
+
+Retrieved 2026-10-12.
+
+1. Copyright page of the official PDF (https://assets.openstax.org/oscms-prodcms/media/documents/AnatomyandPhysiology-OP.pdf, revision AP-2013-003(03/17)-LC), verbatim:
+
+   "(c)2017 Rice University. Textbook content produced by OpenStax is licensed under a Creative Commons
+   Attribution 4.0 International License (CC BY 4.0). Under this license, any user of this textbook or the textbook
+   contents herein must provide proper attribution as follows:
+     - If you redistribute this textbook in a digital format (including but not limited to PDF and HTML), then you
+       must retain on every page the following attribution:
+       "Download for free at https://openstax.org/details/books/anatomy-and-physiology."
+     - If you redistribute part of this textbook, then you must retain in every digital format page view (including
+       but not limited to PDF and HTML) and on every physical printed page the following attribution:
+       "Download for free at https://openstax.org/details/books/anatomy-and-physiology."
+   ...
+   Trademarks: The OpenStax name, OpenStax logo, OpenStax book covers, OpenStax CNX name, OpenStax CNX logo, ...
+   Rice University name, and Rice University logo are not subject to the license and may not be reproduced without
+   the prior and express written consent of Rice University."
+
+2. OpenStax CMS record https://openstax.org/apps/cms/api/v2/pages/?type=books.Book&slug=anatomy-and-physiology :
+   book_state "retired", license_name "Creative Commons Attribution License", license_version "4.0",
+   license_url https://creativecommons.org/licenses/by/4.0/ .
+
+3. OpenStax archive JSON of the book (used as the text source): "license": {"url": "http://creativecommons.org/licenses/by/4.0/", "name": "Creative Commons Attribution License"}.
+
+4. The web reader footer of https://openstax.org/books/anatomy-and-physiology/pages/1-introduction says: "Textbook content produced by OpenStax
+   is licensed under a Creative Commons Attribution License." (One templated "Attribution information" box on that page still mentions
+   CC-BY-NC-SA; the PDF, the CMS record, the archive metadata and the footer all say CC BY 4.0. Flagged as an open point in docs/OPEN-DECKS.md.)
+
+NOT used: Anatomy and Physiology 2e (the current edition) is CC BY-NC-SA 4.0 per its CMS record and web page, so it is excluded. In fact
+every OpenStax book that is still "live" except Physics and Introduction to Intellectual Property is CC BY-NC-SA 4.0 now, including
+Microbiology, Biology 2e, Pharmacology for Nurses and Medical-Surgical Nursing; only the retired earlier editions remain CC BY 4.0.

@@ -1,0 +1,76 @@
+[
+{
+"subj": "Pulmonology",
+"bw": [
+"Total pressure is the sum of partial pressures"
+],
+"ans": "Dalton’s law",
+"d": [
+"Boyle’s law",
+"Henry’s law"
+],
+"tp": "Each gas in a mixture exerts its own pressure independent of the others, and gases move from higher to lower partial pressure.",
+"ww": {
+"Boyle’s law": "Boyle’s law relates the pressure and volume of a gas.",
+"Henry’s law": "Henry’s law relates gas concentration in a liquid to solubility and partial pressure."
+},
+"source_ref": "22.4",
+"evidence": "Dalton’s law describes the behavior of nonreactive gases in a gaseous mixture and states that a specific gas type in a mixture exerts its own pressure; thus, the total pressure exerted by a mixture of gases is the sum of the partial pressures of the gases in the mixture."
+},
+{
+"subj": "Pulmonology",
+"bw": [
+"Dissolved gas depends on solubility and pressure",
+"Gas in blood"
+],
+"ans": "Henry’s law",
+"d": [
+"Dalton’s law",
+"Boyle’s law"
+],
+"tp": "Very little nitrogen dissolves in blood because its solubility is low.",
+"ww": {
+"Dalton’s law": "Dalton’s law adds partial pressures within a gas mixture.",
+"Boyle’s law": "Boyle’s law relates gas pressure and volume."
+},
+"source_ref": "22.4",
+"evidence": "Henry’s law states that the concentration of gas in a liquid is directly proportional to the solubility and partial pressure of that gas."
+},
+{
+"subj": "Pulmonology",
+"bw": [
+"Alveolar air compared with atmospheric air",
+"Gas exchange adds CO2 and removes O2"
+],
+"ans": "Less oxygen, more carbon dioxide",
+"d": [
+"More oxygen, less carbon dioxide",
+"Less water vapor"
+],
+"tp": "Alveolar air also has more water vapor because the respiratory system humidifies incoming air.",
+"ww": {
+"More oxygen, less carbon dioxide": "Gas exchange does the opposite.",
+"Less water vapor": "Incoming air is humidified, so alveolar air has more water vapor."
+},
+"source_ref": "22.4",
+"evidence": "In addition, alveolar air contains a greater amount of carbon dioxide and less oxygen than atmospheric air."
+},
+{
+"subj": "Pulmonology",
+"bw": [
+"CO2 gradient across the respiratory membrane"
+],
+"ans": "About 5 mm Hg",
+"d": [
+"About 64 mm Hg",
+"About 25 mm Hg"
+],
+"tp": "Blood about 45 mm Hg versus alveoli about 40 mm Hg. CO2’s much greater solubility compensates for the small gradient.",
+"ww": {
+"About 64 mm Hg": "That is the oxygen gradient.",
+"About 25 mm Hg": "The CO2 gradient is far smaller than 25."
+},
+"source_ref": "22.4",
+"evidence": "However, the partial pressure difference is less than that of oxygen, about 5 mm Hg."
+}
+]

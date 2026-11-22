@@ -1,0 +1,70 @@
+961|First-line treatment of iron deficiency anemia|Oral ferrous sulfate|Intramuscular vitamin B12|Oral folic acid|S=HO
+962|Artery supplying the anal canal below the pectinate line|Inferior rectal artery|Superior rectal artery|Middle rectal artery|S=GI
+963|Antidiabetic drug used for PCOS-related infertility|Metformin|Glyburide|Acarbose|S=Endo
+964|X|trivial
+965|Benign medullary cartilage tumor of small hand bones|Enchondroma|Osteochondroma|Chondrosarcoma|S=HO
+966|Enzyme adding random nucleotides in V(D)J recombination|Terminal deoxynucleotidyl transferase|RAG1/RAG2|Activation-induced cytidine deaminase
+967|X|vague
+968|PTH excess: renal acidosis type|Type 2 (proximal) RTA|Type 1 (distal) RTA|Type 4 RTA|S=Neph
+969|MEK inhibitor combined with vemurafenib|Trametinib|Imatinib|Rituximab|S=HO
+970|Staphylococcal scalded skin syndrome: cause|Staphylococcus aureus|Streptococcus pyogenes|Pseudomonas aeruginosa|S=ID
+971|Biliary disease linked to ulcerative colitis|Primary sclerosing cholangitis|Primary biliary cholangitis|Choledocholithiasis|S=GI
+972|True ophthalmic emergency glaucoma|Acute angle-closure glaucoma|Primary open-angle glaucoma|Normal-tension glaucoma|S=EM
+973|Cells secreting calcitonin|Parafollicular C cells|Follicular cells|Chief cells|S=Endo
+974|Transverse myelitis: typical spinal level|Thoracic cord|Cervical cord|Sacral cord|S=Neu
+975|ARB effect on bradykinin|None, unlike ACE inhibitors|Increases bradykinin|Decreases bradykinin|S=Car
+976|HIV gene encoding reverse transcriptase|pol|gag|env|S=ID
+977|Brain cavernous hemangioma complication|Intraparenchymal hemorrhage|Subarachnoid hemorrhage|Ischemic stroke|S=Neu
+978|Aminoglycoside uptake requirement|Oxygen-dependent transport|Anaerobic uptake|Passive diffusion|S=ID
+979|Tumor associated with anti-NMDA receptor encephalitis|Ovarian teratoma|Small cell lung cancer|Thymoma|S=Neu
+980|Th2 cytokine driving IgE class switching|IL-4|IFN-γ|IL-12|S=Pul
+981|Antidepressant class for migraine prophylaxis|Tricyclic antidepressants|Bupropion|MAO inhibitors|S=Neu
+982|X|duplicate concept of card 701
+983|Prevention through vaccination and health promotion|Primary prevention|Secondary prevention|Tertiary prevention
+984|Intracellular iron storage protein|Ferritin|Transferrin|Ceruloplasmin|S=HO
+985|X|vague
+986|Neurologic injury from forceps delivery|Facial nerve palsy|Klumpke palsy|Phrenic nerve palsy|S=Peds
+987|X|vague
+988|Head turns toward a stroked cheek|Rooting reflex|Moro reflex|Palmar grasp reflex|S=Peds
+989|Xanthoma of the eyelids|Xanthelasma|Tendon xanthoma|Eruptive xanthoma
+990|Most effective CBT for OCD|Exposure and response prevention|Psychodynamic therapy|Dialectical behavior therapy|S=Psy
+991|Calcineurin inhibitor binding FKBP|Tacrolimus|Cyclosporine|Mycophenolate
+992|Erythema nodosum in coccidioidomycosis and histoplasmosis|Robust immune response|Dissemination|Immunodeficiency|S=ID
+993|X|definition
+994|Valsalva strain with intact baroreflex: heart rate|Increases|Decreases|No change|S=Neu
+995|X|duplicate concept of card 72
+996|Multiple sclerosis: HLA association|HLA-DR2|HLA-B27|HLA-DR4|S=Neu
+997|X|vague
+998|TRALI mechanism|Donor anti-leukocyte antibodies|Volume overload|Recipient anti-IgA antibodies|S=Pul
+999|Gastrin receptor on parietal cells|CCK-B receptor|H2 receptor|M3 receptor|S=GI
+1000|Commonest cause of hematochezia in ESRD|Angiodysplasia|Diverticulosis|Hemorrhoids|S=GI
+1001|Commonest cause of death in CLL|Infection|Tumor lysis syndrome|Intracranial hemorrhage|S=HO
+1002|Intra-abdominal abscess antibiotic coverage|Metronidazole plus a gram-negative agent|Penicillin G alone|Doxycycline alone|S=ID
+1003|Collateral between celiac and SMA|Pancreaticoduodenal arcades|Marginal artery of Drummond|Arc of Riolan|S=GI
+1004|X|duplicate of card 265
+1005|Blood smear after autosplenectomy in sickle cell disease|Howell-Jolly bodies|Heinz bodies|Basophilic stippling|S=HO
+1006|Enzyme deficient in alkaptonuria|Homogentisate oxidase|Phenylalanine hydroxylase|Fumarylacetoacetate hydrolase
+1007|Cuneocerebellar tract cell bodies|External cuneate nucleus|Clarke nucleus|Gracile nucleus|S=Neu
+1008|X|vague
+1009|Salivary gland cancer with mucinous and squamous cells|Mucoepidermoid carcinoma|Adenoid cystic carcinoma|Pleomorphic adenoma|S=HO
+1010|X|duplicate of card 231
+1011|Ulnar nerve compression at Guyon canal|Weak pinch with little finger numbness|Thenar atrophy with thumb numbness|Wrist drop|S=Neu
+1012|X|vague
+1013|Rickettsia in military recruits and POWs|Rickettsia prowazekii|Rickettsia rickettsii|Rickettsia typhi|S=ID
+1014|Primary spontaneous pneumothorax: typical patient|Tall, thin young men|Obese older women|Elderly smokers with COPD|S=Pul
+1015|Thalassemia: therapy improving survival|Iron chelation|Hydroxyurea|Folate alone|S=HO
+1016|Typhoid: constipation or pea-soup diarrhea|Salmonella typhi|Salmonella enteritidis|Vibrio cholerae|S=ID
+1017|X|two-item
+1018|X|list
+1019|Adrenal insufficiency with preserved mineralocorticoid|Secondary and tertiary|Primary (Addison)|Congenital adrenal hyperplasia|S=Endo
+1020|System for wakefulness and arousal|Reticular activating system|Limbic system|Basal ganglia|S=Neu
+1021|Airway obstruction reversible with a bronchodilator|Asthma|COPD|Bronchiectasis|S=Pul
+1022|Trigeminal branch for mandibular teeth sensation|V3 (mandibular)|V1 (ophthalmic)|V2 (maxillary)|S=Neu
+1023|Receptor of the internal urethral sphincter|α1 receptor|M3 receptor|β3 receptor|S=Neph
+1024|X|duplicate of card 740
+1025|X|duplicate of card 666
+1026|Ovarian cancer monitoring marker|CA-125|AFP|CEA|S=OB
+1027|X|two-item
+1028|X|vague
+1029|X|vague
+1030|TSST-1 producer|Staphylococcus aureus|Streptococcus pyogenes|Clostridium perfringens|S=ID

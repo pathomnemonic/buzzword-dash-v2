@@ -1,0 +1,2 @@
+What cofactor is converted to DHF during the conversion of dUMP to dTMP via Thymidylate synthase?
+Conversion of dUMP to dTMP via Thymidylate synthase converts the cofactor methylene THF to DHF.

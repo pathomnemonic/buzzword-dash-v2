@@ -1,0 +1,2 @@
+What is the ABL proto-oncogene, and what is its function when stimulated?
+The ABL proto-oncogene encodes for a cytosolic Tyrosine Kinase that when stimulated leads to cell division.

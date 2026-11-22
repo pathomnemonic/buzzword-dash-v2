@@ -1,0 +1,31 @@
+90|MIX|mech|Positive predictive value changes most with|Disease prevalence|Sensitivity|Specificity|PPV rises as prevalence rises and falls as prevalence falls; sensitivity and specificity do not depend on prevalence.
+91|HEM|ph|Rituximab target antigen|CD20|CD34|CD55|Rituximab is an anti-CD20 antibody used in B-cell lymphomas and autoimmune disease.
+92|PUL|dx|Airway smooth muscle hyperplasia and hypertrophy (remodeling)|Asthma|Emphysema|Pulmonary alveolar proteinosis|Repeated airway inflammation in asthma causes remodeling, including bronchial smooth muscle hypertrophy.
+93|MIX|mech|Permanent (non-dividing) cell type|Neuron|Hepatocyte|Respiratory epithelium|Permanent cells (neurons, cardiac and skeletal muscle) are terminally differentiated and cannot regenerate; hepatocytes are stable cells.
+95|MIX|lab|Karyotype under light microscope: standard banding|G (Giemsa) banding|Q banding|C banding|G banding stains condensed chromosomes with Giemsa to produce the standard karyotype.
+98|PUL|mech|What stabilizes small alveoli|Surfactant lowering surface tension|Negative intrapleural pressure|High lung compliance|Surfactant lowers surface tension most in small alveoli, preventing their collapse.
+99|CAR|ph|Statin mechanism of action|Inhibit HMG-CoA reductase|Inhibit HMG-CoA synthase|Inhibit intestinal cholesterol absorption|Statins competitively inhibit HMG-CoA reductase, blocking conversion of HMG-CoA to mevalonate.
+101|MIX|lab|LDH isozyme predominant in cardiac muscle|LD-1|LD-3|LD-5|Heart is rich in LD-1 (H4); in myocardial infarction LD-1 rises above LD-2.
+103|ID|lab|Vaccinia/variola cytoplasmic inclusion bodies|Guarnieri bodies|Negri bodies|Schuffner dots|Guarnieri bodies are eosinophilic inclusions of poxviruses; Negri bodies are rabies.
+104|OB|lab|p57 immunostain loss distinguishes|Complete hydatidiform mole|Partial hydatidiform mole|Ectopic pregnancy|p57 is a maternally expressed gene, lost in the androgenetic complete mole but retained in partial moles.
+105|CAR|ph|Beta blocker with alpha-1 blockade and antioxidant effect|Carvedilol|Esmolol|Atenolol|Carvedilol blocks beta-1, beta-2 and alpha-1 receptors, so it vasodilates peripherally.
+106|NEP|mech|Na+/H+ exchanger is the main Na reabsorption route in|Proximal convoluted tubule|Thick ascending limb|Distal convoluted tubule|The PCT apical Na+/H+ antiporter couples Na entry to H+ secretion; the thick limb uses NKCC2.
+110|GI|mech|Nerve of Latarjet|Stomach (vagal supply to lesser curvature and pylorus)|Heart|Urinary bladder|The nerve of Latarjet is the anterior vagal branch supplying the lesser curvature and pylorus of the stomach.
+111|MIX|lab|2-Mercaptoethanol splits an immunoglobulin into|Two heavy and two light chains|Two Fab and one Fc fragment|One Fab and two Fc fragments|Mercaptoethanol cleaves only disulfide bonds; papain is what yields Fab and Fc.
+112|RHE|lab|Most sensitive antibody test for SLE|ANA|Anti-dsDNA|Anti-Smith|ANA is the best screening test; anti-dsDNA and anti-Smith are more specific.
+114|ID|lab|Anticoagulant used for blood culture bottles|Sodium polyanethol sulfonate (SPS)|EDTA|Sodium citrate|SPS is the anticoagulant of blood culture media.
+117|RHE|dx|Most common cardiac manifestation of SLE|Pericarditis|Libman-Sacks endocarditis|Myocarditis|Pericarditis is the commonest cardiac involvement in SLE; Libman-Sacks endocarditis and myocarditis also occur.
+119|ID|dx|H5N1|Avian influenza A virus|Chikungunya virus|Japanese encephalitis virus|H5N1 is an avian influenza subtype causing human disease after contact with infected poultry.
+121|CAR|lab|QRS axis of -45 degrees|Left axis deviation|Right axis deviation|Normal axis|An axis more negative than -30 degrees is left axis deviation.
+123|OB|dx|Choriocarcinoma: most common metastatic site|Lung|Brain|Vagina|Choriocarcinoma spreads hematogenously, most often to the lungs.
+124|OB|prev|Antenatal corticosteroids at 32 weeks prevent|Neonatal respiratory distress syndrome|Neonatal jaundice|Neonatal convulsions|Corticosteroids accelerate fetal lung maturity in pregnancies at risk of preterm birth.
+125|PED|dx|Hexosaminidase A deficiency|Tay-Sachs disease|Niemann-Pick disease|Gaucher disease|Tay-Sachs accumulates GM2 ganglioside; unlike Niemann-Pick it has no organomegaly.
+127|GI|mg|Denver peritoneovenous shunt|Refractory ascites|Raised intracranial pressure|Hemodialysis access|The Denver shunt relieves ascites from chronic liver disease by draining peritoneal fluid into the venous system.
+128|MIX|mech|Epithelioid cells and giant cells of granulomas derive from|Monocyte-macrophages|CD4 T lymphocytes|Eosinophils|Epithelioid cells are activated macrophages; CD4 T cells drive the reaction but are not the origin.
+129|MIX|mech|HHH syndrome (hyperammonemia, hyperornithinemia, homocitrullinuria) defect|Mitochondrial ornithine transporter (permease)|Ornithine transcarbamylase|Carbamoyl phosphate synthetase I|Ornithine cannot enter mitochondria, so it accumulates and the urea cycle stalls, causing hyperammonemia.
+132|OB|mg|Last-resort rescue for entrapped after-coming head: push back and cesarean|Zavanelli maneuver|Craniotomy|Cleidotomy|The Zavanelli maneuver replaces the fetus higher into the vagina and uterus, followed by cesarean delivery.
+133|PSY|lab|Mini-Mental State Examination screens for|Dementia|Schizophrenia|Anxiety disorders|The 30-point MMSE is a screening test for cognitive impairment and dementia.
+134|PSY|dx|Confusion, ataxia, ophthalmoplegia|Wernicke encephalopathy|Delirium tremens|Alzheimer disease|The Wernicke triad reflects thiamine deficiency; give thiamine before glucose.
+135|CAR|dx|Carcinoid heart disease: valve most affected|Tricuspid valve|Mitral valve|Aortic valve|Carcinoid causes right-sided valvular lesions (tricuspid regurgitation, pulmonic stenosis) because the lungs inactivate serotonin.
+136|HEM|dx|Proliferative breast lesion with moderately increased invasive cancer risk|Atypical ductal hyperplasia|Sclerosing adenosis|Apocrine metaplasia|Atypical hyperplasia moderately raises risk; non-proliferative lesions and sclerosing adenosis confer little or none.
+138|MIX|dx|Skin hyperextensible with normal elastic recoil|Ehlers-Danlos syndrome|Cutis laxa|Pseudoxanthoma elasticum|Ehlers-Danlos has a collagen defect with stretchy skin that recoils normally; in cutis laxa the skin sags.

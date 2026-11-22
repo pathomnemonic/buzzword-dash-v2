@@ -1,0 +1,4 @@
+An investigator studying targeted therapy in patients with gastrointestinal stromal tumors requires a reliable test to determine the spatial distribution of CD117-positive cells in biopsy specimens. Which of the following is the most appropriate test?
+Options: A) Flow cytometry; B) Immunohistochemistry; C) Northern blot; D) Fluorescence in-situ hybridization
+".
+The keyed answer is B) Immunohistochemistry.

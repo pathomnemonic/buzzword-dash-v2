@@ -2478,6 +2478,8 @@ class Storage {
         this.data = deepClone(DEFAULTS);
         // Also clear custom cards storage
         try { localStorage.removeItem('buzzword_dash_custom_cards'); } catch (e) { /* best-effort */ }
+        // ...and the IndexedDB copy where imported decks live (customcards.js); the page reloads straight after a reset
+        try { if (typeof indexedDB !== 'undefined' && indexedDB) indexedDB.deleteDatabase('dxdash_cards'); } catch (e) { /* best-effort */ }
         try { localStorage.removeItem(STORAGE_KEY + '_newer'); } catch (e) { /* best-effort */ }
         break;
     }

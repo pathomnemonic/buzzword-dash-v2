@@ -1,0 +1,2 @@
+What scoring system is used to assess an individual's risk for DVT?
+The Wells score is used to determine whether an individual is at a high or low risk for DVT.

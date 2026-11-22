@@ -1,0 +1,2392 @@
+[
+ {
+  "n": 2,
+  "row": 31694,
+  "reason": "describe"
+ },
+ {
+  "n": 6,
+  "row": 7428,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 7,
+  "row": 1394,
+  "reason": "two-part"
+ },
+ {
+  "n": 11,
+  "row": 17293,
+  "reason": "vague"
+ },
+ {
+  "n": 12,
+  "row": 1851,
+  "reason": "binary"
+ },
+ {
+  "n": 19,
+  "row": 27472,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 22,
+  "row": 33679,
+  "reason": "negation"
+ },
+ {
+  "n": 24,
+  "row": 31903,
+  "reason": "binary"
+ },
+ {
+  "n": 28,
+  "row": 17447,
+  "reason": "binary"
+ },
+ {
+  "n": 29,
+  "row": 32120,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 30,
+  "row": 32098,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 31,
+  "row": 5031,
+  "reason": "muddled"
+ },
+ {
+  "n": 36,
+  "row": 18436,
+  "reason": "two-part"
+ },
+ {
+  "n": 37,
+  "row": 21973,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 38,
+  "row": 15495,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 40,
+  "row": 18193,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 41,
+  "row": 5205,
+  "reason": "two-answer list"
+ },
+ {
+  "n": 43,
+  "row": 29931,
+  "reason": "vague comparison"
+ },
+ {
+  "n": 49,
+  "row": 25044,
+  "reason": "not a single fact"
+ },
+ {
+  "n": 53,
+  "row": 20798,
+  "reason": "list"
+ },
+ {
+  "n": 57,
+  "row": 1810,
+  "reason": "trivial definition"
+ },
+ {
+  "n": 59,
+  "row": 19435,
+  "reason": "trivial"
+ },
+ {
+  "n": 61,
+  "row": 32766,
+  "reason": "garbled"
+ },
+ {
+  "n": 62,
+  "row": 32445,
+  "reason": "dubious fact"
+ },
+ {
+  "n": 63,
+  "row": 22397,
+  "reason": "vague"
+ },
+ {
+  "n": 64,
+  "row": 29646,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 70,
+  "row": 17241,
+  "reason": "row fact imprecise: basolateral Na/HCO3 cotransport"
+ },
+ {
+  "n": 73,
+  "row": 29862,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 74,
+  "row": 16934,
+  "reason": "trivial"
+ },
+ {
+  "n": 79,
+  "row": 2036,
+  "reason": "vague"
+ },
+ {
+  "n": 83,
+  "row": 10617,
+  "reason": "garbled"
+ },
+ {
+  "n": 84,
+  "row": 7969,
+  "reason": "garbled"
+ },
+ {
+  "n": 85,
+  "row": 31172,
+  "reason": "two-part"
+ },
+ {
+  "n": 86,
+  "row": 21418,
+  "reason": "long mechanism"
+ },
+ {
+  "n": 88,
+  "row": 15528,
+  "reason": "vague"
+ },
+ {
+  "n": 89,
+  "row": 17986,
+  "reason": "dubious"
+ },
+ {
+  "n": 91,
+  "row": 26293,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 95,
+  "row": 25161,
+  "reason": "vague"
+ },
+ {
+  "n": 97,
+  "row": 24524,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 98,
+  "row": 15779,
+  "reason": "definition"
+ },
+ {
+  "n": 100,
+  "row": 25068,
+  "reason": "leaks and long"
+ },
+ {
+  "n": 102,
+  "row": 31988,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 110,
+  "row": 29837,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 113,
+  "row": 18143,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 114,
+  "row": 17034,
+  "reason": "vague"
+ },
+ {
+  "n": 120,
+  "row": 15293,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 121,
+  "row": 3794,
+  "reason": "definition"
+ },
+ {
+  "n": 124,
+  "row": 29340,
+  "reason": "dubious"
+ },
+ {
+  "n": 125,
+  "row": 16878,
+  "reason": "dubious"
+ },
+ {
+  "n": 126,
+  "row": 4211,
+  "reason": "odd"
+ },
+ {
+  "n": 129,
+  "row": 5232,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 132,
+  "row": 7432,
+  "reason": "vague"
+ },
+ {
+  "n": 133,
+  "row": 31168,
+  "reason": "trivial"
+ },
+ {
+  "n": 135,
+  "row": 32901,
+  "reason": "vague"
+ },
+ {
+  "n": 136,
+  "row": 17933,
+  "reason": "odd"
+ },
+ {
+  "n": 139,
+  "row": 15125,
+  "reason": "weak distractors"
+ },
+ {
+  "n": 140,
+  "row": 27058,
+  "reason": "obscure"
+ },
+ {
+  "n": 142,
+  "row": 27255,
+  "reason": "vague"
+ },
+ {
+  "n": 143,
+  "row": 14933,
+  "reason": "trivial"
+ },
+ {
+  "n": 144,
+  "row": 2701,
+  "reason": "vague"
+ },
+ {
+  "n": 145,
+  "row": 14859,
+  "reason": "outdated: antibiotics no longer routine for uncomplicated diverticulitis"
+ },
+ {
+  "n": 148,
+  "row": 29251,
+  "reason": "vague"
+ },
+ {
+  "n": 150,
+  "row": 12434,
+  "reason": "dubious"
+ },
+ {
+  "n": 153,
+  "row": 33584,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 156,
+  "row": 27066,
+  "reason": "obscure"
+ },
+ {
+  "n": 158,
+  "row": 20850,
+  "reason": "leaks"
+ },
+ {
+  "n": 163,
+  "row": 33662,
+  "reason": "dubious"
+ },
+ {
+  "n": 170,
+  "row": 7447,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 172,
+  "row": 17735,
+  "reason": "vague"
+ },
+ {
+  "n": 180,
+  "row": 32833,
+  "reason": "list"
+ },
+ {
+  "n": 184,
+  "row": 32641,
+  "reason": "two-part"
+ },
+ {
+  "n": 186,
+  "row": 16793,
+  "reason": "two-item"
+ },
+ {
+  "n": 189,
+  "row": 26282,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 190,
+  "row": 7700,
+  "reason": "evidence too short"
+ },
+ {
+  "n": 193,
+  "row": 19108,
+  "reason": "dubious"
+ },
+ {
+  "n": 194,
+  "row": 25192,
+  "reason": "binary"
+ },
+ {
+  "n": 200,
+  "row": 8376,
+  "reason": "duplicate fact of card 75"
+ },
+ {
+  "n": 204,
+  "row": 17704,
+  "reason": "vague"
+ },
+ {
+  "n": 208,
+  "row": 18422,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 209,
+  "row": 21539,
+  "reason": "vague"
+ },
+ {
+  "n": 210,
+  "row": 31757,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 214,
+  "row": 12636,
+  "reason": "uncertain fact"
+ },
+ {
+  "n": 215,
+  "row": 27153,
+  "reason": "two-part"
+ },
+ {
+  "n": 216,
+  "row": 2094,
+  "reason": "vague"
+ },
+ {
+  "n": 221,
+  "row": 17936,
+  "reason": "vague"
+ },
+ {
+  "n": 222,
+  "row": 24750,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 225,
+  "row": 17254,
+  "reason": "imprecise"
+ },
+ {
+  "n": 228,
+  "row": 2784,
+  "reason": "vague"
+ },
+ {
+  "n": 229,
+  "row": 24978,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 234,
+  "row": 24975,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 235,
+  "row": 25093,
+  "reason": "vague"
+ },
+ {
+  "n": 238,
+  "row": 22550,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 239,
+  "row": 24958,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 243,
+  "row": 1023,
+  "reason": "vague"
+ },
+ {
+  "n": 244,
+  "row": 20601,
+  "reason": "dubious"
+ },
+ {
+  "n": 248,
+  "row": 21373,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 251,
+  "row": 31622,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 258,
+  "row": 29824,
+  "reason": "duplicate concept of card 52"
+ },
+ {
+  "n": 259,
+  "row": 13784,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 262,
+  "row": 17252,
+  "reason": "dubious"
+ },
+ {
+  "n": 263,
+  "row": 33595,
+  "reason": "imprecise"
+ },
+ {
+  "n": 264,
+  "row": 13281,
+  "reason": "wrong fact"
+ },
+ {
+  "n": 267,
+  "row": 13998,
+  "reason": "list"
+ },
+ {
+  "n": 268,
+  "row": 24470,
+  "reason": "vague"
+ },
+ {
+  "n": 272,
+  "row": 8375,
+  "reason": "odd"
+ },
+ {
+  "n": 274,
+  "row": 24664,
+  "reason": "vague"
+ },
+ {
+  "n": 278,
+  "row": 33162,
+  "reason": "list"
+ },
+ {
+  "n": 284,
+  "row": 31209,
+  "reason": "two-item"
+ },
+ {
+  "n": 286,
+  "row": 24477,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 287,
+  "row": 27395,
+  "reason": "trivial"
+ },
+ {
+  "n": 291,
+  "row": 13047,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 293,
+  "row": 22137,
+  "reason": "weak"
+ },
+ {
+  "n": 294,
+  "row": 32191,
+  "reason": "vague"
+ },
+ {
+  "n": 295,
+  "row": 33646,
+  "reason": "garbled"
+ },
+ {
+  "n": 296,
+  "row": 12838,
+  "reason": "formula"
+ },
+ {
+  "n": 298,
+  "row": 12317,
+  "reason": "vague"
+ },
+ {
+  "n": 299,
+  "row": 27063,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 301,
+  "row": 22117,
+  "reason": "vague"
+ },
+ {
+  "n": 304,
+  "row": 7566,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 306,
+  "row": 27252,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 309,
+  "row": 1573,
+  "reason": "contested fact (Serratia)"
+ },
+ {
+  "n": 312,
+  "row": 21829,
+  "reason": "imprecise"
+ },
+ {
+  "n": 313,
+  "row": 32505,
+  "reason": "dubious"
+ },
+ {
+  "n": 314,
+  "row": 18501,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 316,
+  "row": 20585,
+  "reason": "vague"
+ },
+ {
+  "n": 318,
+  "row": 1002,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 320,
+  "row": 33171,
+  "reason": "trivial"
+ },
+ {
+  "n": 326,
+  "row": 24993,
+  "reason": "vague"
+ },
+ {
+  "n": 329,
+  "row": 29869,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 330,
+  "row": 25147,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 331,
+  "row": 27920,
+  "reason": "vague"
+ },
+ {
+  "n": 332,
+  "row": 12495,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 333,
+  "row": 32837,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 334,
+  "row": 24562,
+  "reason": "duplicate concept of card 56"
+ },
+ {
+  "n": 336,
+  "row": 31117,
+  "reason": "imprecise"
+ },
+ {
+  "n": 339,
+  "row": 21536,
+  "reason": "vague"
+ },
+ {
+  "n": 340,
+  "row": 22419,
+  "reason": "trivial"
+ },
+ {
+  "n": 341,
+  "row": 24819,
+  "reason": "obscure"
+ },
+ {
+  "n": 342,
+  "row": 26183,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 347,
+  "row": 20594,
+  "reason": "imprecise"
+ },
+ {
+  "n": 349,
+  "row": 7384,
+  "reason": "trivial"
+ },
+ {
+  "n": 358,
+  "row": 1959,
+  "reason": "duplicate concept of card 207"
+ },
+ {
+  "n": 361,
+  "row": 24517,
+  "reason": "two-part"
+ },
+ {
+  "n": 363,
+  "row": 22739,
+  "reason": "vague"
+ },
+ {
+  "n": 367,
+  "row": 16072,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 369,
+  "row": 12440,
+  "reason": "vague"
+ },
+ {
+  "n": 373,
+  "row": 27867,
+  "reason": "vague"
+ },
+ {
+  "n": 376,
+  "row": 24354,
+  "reason": "faulty fact"
+ },
+ {
+  "n": 380,
+  "row": 13345,
+  "reason": "vague"
+ },
+ {
+  "n": 387,
+  "row": 17753,
+  "reason": "list"
+ },
+ {
+  "n": 392,
+  "row": 13064,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 394,
+  "row": 27325,
+  "reason": "dubious"
+ },
+ {
+  "n": 399,
+  "row": 27523,
+  "reason": "vague"
+ },
+ {
+  "n": 400,
+  "row": 32956,
+  "reason": "uncertain"
+ },
+ {
+  "n": 402,
+  "row": 24651,
+  "reason": "vague"
+ },
+ {
+  "n": 404,
+  "row": 12829,
+  "reason": "trivial"
+ },
+ {
+  "n": 407,
+  "row": 33113,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 409,
+  "row": 31607,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 413,
+  "row": 24671,
+  "reason": "garbled"
+ },
+ {
+  "n": 415,
+  "row": 17031,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 421,
+  "row": 8299,
+  "reason": "garbled"
+ },
+ {
+  "n": 425,
+  "row": 28111,
+  "reason": "vague"
+ },
+ {
+  "n": 426,
+  "row": 22107,
+  "reason": "leaks"
+ },
+ {
+  "n": 430,
+  "row": 8534,
+  "reason": "list"
+ },
+ {
+  "n": 431,
+  "row": 28395,
+  "reason": "obscure"
+ },
+ {
+  "n": 435,
+  "row": 80,
+  "reason": "evidence too short"
+ },
+ {
+  "n": 440,
+  "row": 18468,
+  "reason": "vague"
+ },
+ {
+  "n": 444,
+  "row": 12619,
+  "reason": "ambiguous (GH vs IGF-1)"
+ },
+ {
+  "n": 445,
+  "row": 15195,
+  "reason": "incomplete: definitive therapy is HSCT or immunosuppression"
+ },
+ {
+  "n": 446,
+  "row": 31861,
+  "reason": "trivial"
+ },
+ {
+  "n": 447,
+  "row": 5682,
+  "reason": "row fact wrong (pilocytic astrocytoma, not ependymoma)"
+ },
+ {
+  "n": 448,
+  "row": 22324,
+  "reason": "vague"
+ },
+ {
+  "n": 453,
+  "row": 5755,
+  "reason": "duplicate concept of card 223"
+ },
+ {
+  "n": 454,
+  "row": 27078,
+  "reason": "trivial"
+ },
+ {
+  "n": 455,
+  "row": 10513,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 457,
+  "row": 16774,
+  "reason": "obscure"
+ },
+ {
+  "n": 459,
+  "row": 32938,
+  "reason": "list"
+ },
+ {
+  "n": 462,
+  "row": 12028,
+  "reason": "dubious"
+ },
+ {
+  "n": 465,
+  "row": 32122,
+  "reason": "vague"
+ },
+ {
+  "n": 468,
+  "row": 13951,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 469,
+  "row": 16904,
+  "reason": "vague"
+ },
+ {
+  "n": 471,
+  "row": 7975,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 472,
+  "row": 31706,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 473,
+  "row": 5142,
+  "reason": "garbled"
+ },
+ {
+  "n": 475,
+  "row": 7049,
+  "reason": "leaks"
+ },
+ {
+  "n": 478,
+  "row": 32512,
+  "reason": "duplicate concept of card 175"
+ },
+ {
+  "n": 480,
+  "row": 29507,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 484,
+  "row": 33129,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 489,
+  "row": 22236,
+  "reason": "vague"
+ },
+ {
+  "n": 490,
+  "row": 7755,
+  "reason": "vague"
+ },
+ {
+  "n": 491,
+  "row": 26264,
+  "reason": "contested (SIADH is euvolemic)"
+ },
+ {
+  "n": 493,
+  "row": 17164,
+  "reason": "vague"
+ },
+ {
+  "n": 494,
+  "row": 25758,
+  "reason": "trivial"
+ },
+ {
+  "n": 496,
+  "row": 21311,
+  "reason": "outdated"
+ },
+ {
+  "n": 499,
+  "row": 29365,
+  "reason": "vague"
+ },
+ {
+  "n": 500,
+  "row": 15167,
+  "reason": "outdated"
+ },
+ {
+  "n": 501,
+  "row": 14855,
+  "reason": "vague"
+ },
+ {
+  "n": 502,
+  "row": 33589,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 504,
+  "row": 33010,
+  "reason": "trivial"
+ },
+ {
+  "n": 508,
+  "row": 1908,
+  "reason": "vague"
+ },
+ {
+  "n": 509,
+  "row": 29635,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 510,
+  "row": 26269,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 511,
+  "row": 32245,
+  "reason": "list"
+ },
+ {
+  "n": 512,
+  "row": 12976,
+  "reason": "contradictory"
+ },
+ {
+  "n": 514,
+  "row": 20682,
+  "reason": "duplicate concept of card 410"
+ },
+ {
+  "n": 515,
+  "row": 24832,
+  "reason": "dubious"
+ },
+ {
+  "n": 517,
+  "row": 3661,
+  "reason": "vague"
+ },
+ {
+  "n": 519,
+  "row": 12009,
+  "reason": "double"
+ },
+ {
+  "n": 526,
+  "row": 19482,
+  "reason": "list"
+ },
+ {
+  "n": 529,
+  "row": 24701,
+  "reason": "time-varying"
+ },
+ {
+  "n": 531,
+  "row": 4189,
+  "reason": "vague"
+ },
+ {
+  "n": 533,
+  "row": 31317,
+  "reason": "garbled"
+ },
+ {
+  "n": 534,
+  "row": 8853,
+  "reason": "dubious"
+ },
+ {
+  "n": 535,
+  "row": 31638,
+  "reason": "vague"
+ },
+ {
+  "n": 537,
+  "row": 33797,
+  "reason": "vague"
+ },
+ {
+  "n": 538,
+  "row": 4910,
+  "reason": "dubious"
+ },
+ {
+  "n": 540,
+  "row": 21288,
+  "reason": "dubious number"
+ },
+ {
+  "n": 546,
+  "row": 33609,
+  "reason": "vague"
+ },
+ {
+  "n": 547,
+  "row": 28183,
+  "reason": "list"
+ },
+ {
+  "n": 548,
+  "row": 17775,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 550,
+  "row": 28099,
+  "reason": "vague"
+ },
+ {
+  "n": 553,
+  "row": 18275,
+  "reason": "vague"
+ },
+ {
+  "n": 554,
+  "row": 21478,
+  "reason": "vague"
+ },
+ {
+  "n": 555,
+  "row": 32617,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 559,
+  "row": 1881,
+  "reason": "dubious"
+ },
+ {
+  "n": 561,
+  "row": 15883,
+  "reason": "vague"
+ },
+ {
+  "n": 563,
+  "row": 13864,
+  "reason": "contested"
+ },
+ {
+  "n": 565,
+  "row": 33063,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 571,
+  "row": 17294,
+  "reason": "list"
+ },
+ {
+  "n": 575,
+  "row": 28331,
+  "reason": "obscure"
+ },
+ {
+  "n": 576,
+  "row": 27798,
+  "reason": "vague"
+ },
+ {
+  "n": 577,
+  "row": 13436,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 583,
+  "row": 8835,
+  "reason": "contested"
+ },
+ {
+  "n": 584,
+  "row": 18159,
+  "reason": "vague"
+ },
+ {
+  "n": 585,
+  "row": 8535,
+  "reason": "vague"
+ },
+ {
+  "n": 587,
+  "row": 26812,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 592,
+  "row": 21374,
+  "reason": "duplicate concept of card 248"
+ },
+ {
+  "n": 593,
+  "row": 18825,
+  "reason": "list"
+ },
+ {
+  "n": 596,
+  "row": 32749,
+  "reason": "obscure"
+ },
+ {
+  "n": 597,
+  "row": 25792,
+  "reason": "vague"
+ },
+ {
+  "n": 599,
+  "row": 1999,
+  "reason": "duplicate of card 416"
+ },
+ {
+  "n": 600,
+  "row": 25138,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 603,
+  "row": 8882,
+  "reason": "incomplete"
+ },
+ {
+  "n": 605,
+  "row": 13995,
+  "reason": "list"
+ },
+ {
+  "n": 611,
+  "row": 24397,
+  "reason": "vague"
+ },
+ {
+  "n": 613,
+  "row": 31284,
+  "reason": "garbled"
+ },
+ {
+  "n": 617,
+  "row": 25116,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 619,
+  "row": 17789,
+  "reason": "trivial"
+ },
+ {
+  "n": 622,
+  "row": 29653,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 623,
+  "row": 18044,
+  "reason": "vague"
+ },
+ {
+  "n": 624,
+  "row": 29336,
+  "reason": "trivial"
+ },
+ {
+  "n": 626,
+  "row": 4777,
+  "reason": "vague"
+ },
+ {
+  "n": 628,
+  "row": 19269,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 630,
+  "row": 4888,
+  "reason": "list"
+ },
+ {
+  "n": 632,
+  "row": 25040,
+  "reason": "vague"
+ },
+ {
+  "n": 635,
+  "row": 27842,
+  "reason": "dubious"
+ },
+ {
+  "n": 643,
+  "row": 8939,
+  "reason": "vague"
+ },
+ {
+  "n": 644,
+  "row": 19097,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 655,
+  "row": 11971,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 656,
+  "row": 15168,
+  "reason": "vague"
+ },
+ {
+  "n": 662,
+  "row": 7033,
+  "reason": "weak"
+ },
+ {
+  "n": 663,
+  "row": 31966,
+  "reason": "obscure"
+ },
+ {
+  "n": 667,
+  "row": 17988,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 670,
+  "row": 27118,
+  "reason": "list"
+ },
+ {
+  "n": 682,
+  "row": 25103,
+  "reason": "vague"
+ },
+ {
+  "n": 685,
+  "row": 27064,
+  "reason": "two-item"
+ },
+ {
+  "n": 690,
+  "row": 32457,
+  "reason": "dubious"
+ },
+ {
+  "n": 694,
+  "row": 15086,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 697,
+  "row": 21673,
+  "reason": "trivial"
+ },
+ {
+  "n": 698,
+  "row": 31112,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 703,
+  "row": 20381,
+  "reason": "duplicate of card 302"
+ },
+ {
+  "n": 704,
+  "row": 7642,
+  "reason": "contested"
+ },
+ {
+  "n": 706,
+  "row": 18882,
+  "reason": "contested"
+ },
+ {
+  "n": 708,
+  "row": 547,
+  "reason": "list"
+ },
+ {
+  "n": 710,
+  "row": 17306,
+  "reason": "trivial"
+ },
+ {
+  "n": 712,
+  "row": 19101,
+  "reason": "weak"
+ },
+ {
+  "n": 713,
+  "row": 18516,
+  "reason": "vague"
+ },
+ {
+  "n": 717,
+  "row": 32675,
+  "reason": "duplicate of card 437"
+ },
+ {
+  "n": 718,
+  "row": 29349,
+  "reason": "vague"
+ },
+ {
+  "n": 719,
+  "row": 1355,
+  "reason": "duplicate of card 558"
+ },
+ {
+  "n": 720,
+  "row": 28445,
+  "reason": "vague"
+ },
+ {
+  "n": 723,
+  "row": 8362,
+  "reason": "row fact wrong (IIA/IIB are separated by spinal accessory nerve)"
+ },
+ {
+  "n": 726,
+  "row": 22334,
+  "reason": "vague"
+ },
+ {
+  "n": 728,
+  "row": 15964,
+  "reason": "duplicate concept of card 580"
+ },
+ {
+  "n": 731,
+  "row": 6881,
+  "reason": "garbled"
+ },
+ {
+  "n": 736,
+  "row": 29165,
+  "reason": "dubious"
+ },
+ {
+  "n": 742,
+  "row": 26172,
+  "reason": "weak"
+ },
+ {
+  "n": 744,
+  "row": 24483,
+  "reason": "vague"
+ },
+ {
+  "n": 747,
+  "row": 13411,
+  "reason": "vague"
+ },
+ {
+  "n": 748,
+  "row": 13852,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 757,
+  "row": 31855,
+  "reason": "duplicate concept of card 39"
+ },
+ {
+  "n": 759,
+  "row": 29360,
+  "reason": "vague"
+ },
+ {
+  "n": 760,
+  "row": 33648,
+  "reason": "trivial"
+ },
+ {
+  "n": 763,
+  "row": 1527,
+  "reason": "duplicate concept of card 318"
+ },
+ {
+  "n": 764,
+  "row": 8201,
+  "reason": "duplicate concept of card 705"
+ },
+ {
+  "n": 765,
+  "row": 2754,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 766,
+  "row": 5283,
+  "reason": "duplicate concept of card 90"
+ },
+ {
+  "n": 767,
+  "row": 13363,
+  "reason": "vague"
+ },
+ {
+  "n": 768,
+  "row": 31134,
+  "reason": "trivial"
+ },
+ {
+  "n": 769,
+  "row": 8141,
+  "reason": "duplicate concept of card 18"
+ },
+ {
+  "n": 773,
+  "row": 17585,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 775,
+  "row": 7069,
+  "reason": "two-item"
+ },
+ {
+  "n": 776,
+  "row": 15876,
+  "reason": "duplicate concept of card 642"
+ },
+ {
+  "n": 780,
+  "row": 33039,
+  "reason": "vague"
+ },
+ {
+  "n": 782,
+  "row": 20590,
+  "reason": "vague"
+ },
+ {
+  "n": 785,
+  "row": 12871,
+  "reason": "duplicate of card 495"
+ },
+ {
+  "n": 789,
+  "row": 13409,
+  "reason": "dubious"
+ },
+ {
+  "n": 790,
+  "row": 14965,
+  "reason": "duplicate concept of card 671"
+ },
+ {
+  "n": 792,
+  "row": 17566,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 795,
+  "row": 21431,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 798,
+  "row": 13357,
+  "reason": "vague"
+ },
+ {
+  "n": 799,
+  "row": 21292,
+  "reason": "duplicate of card 224"
+ },
+ {
+  "n": 801,
+  "row": 27272,
+  "reason": "vague"
+ },
+ {
+  "n": 803,
+  "row": 29177,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 806,
+  "row": 5206,
+  "reason": "vague"
+ },
+ {
+  "n": 807,
+  "row": 8818,
+  "reason": "outdated: doxycycline now preferred for chlamydia"
+ },
+ {
+  "n": 809,
+  "row": 29496,
+  "reason": "two-part"
+ },
+ {
+  "n": 810,
+  "row": 28234,
+  "reason": "vague"
+ },
+ {
+  "n": 811,
+  "row": 16535,
+  "reason": "vague"
+ },
+ {
+  "n": 813,
+  "row": 7171,
+  "reason": "duplicate of card 199"
+ },
+ {
+  "n": 814,
+  "row": 18832,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 818,
+  "row": 7581,
+  "reason": "vague"
+ },
+ {
+  "n": 819,
+  "row": 1655,
+  "reason": "duplicate concept"
+ },
+ {
+  "n": 821,
+  "row": 28406,
+  "reason": "trivial"
+ },
+ {
+  "n": 825,
+  "row": 15220,
+  "reason": "list"
+ },
+ {
+  "n": 826,
+  "row": 22317,
+  "reason": "two-item"
+ },
+ {
+  "n": 827,
+  "row": 15163,
+  "reason": "two-part"
+ },
+ {
+  "n": 828,
+  "row": 14857,
+  "reason": "trivial"
+ },
+ {
+  "n": 833,
+  "row": 32609,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 835,
+  "row": 7689,
+  "reason": "dubious"
+ },
+ {
+  "n": 837,
+  "row": 11099,
+  "reason": "duplicate concept of card 525"
+ },
+ {
+  "n": 838,
+  "row": 32891,
+  "reason": "vague"
+ },
+ {
+  "n": 839,
+  "row": 15551,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 841,
+  "row": 17770,
+  "reason": "vague"
+ },
+ {
+  "n": 844,
+  "row": 24542,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 851,
+  "row": 32322,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 854,
+  "row": 12752,
+  "reason": "duplicate concept of card 860"
+ },
+ {
+  "n": 857,
+  "row": 22380,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 861,
+  "row": 4885,
+  "reason": "list"
+ },
+ {
+  "n": 863,
+  "row": 1022,
+  "reason": "vague"
+ },
+ {
+  "n": 865,
+  "row": 18222,
+  "reason": "contested"
+ },
+ {
+  "n": 870,
+  "row": 13501,
+  "reason": "row fact wrong (CagA is not the mucus-degrading factor)"
+ },
+ {
+  "n": 871,
+  "row": 32927,
+  "reason": "uncertain"
+ },
+ {
+  "n": 872,
+  "row": 13656,
+  "reason": "duplicate of card 867"
+ },
+ {
+  "n": 876,
+  "row": 21324,
+  "reason": "imprecise"
+ },
+ {
+  "n": 877,
+  "row": 27416,
+  "reason": "duplicate concept of card 18"
+ },
+ {
+  "n": 879,
+  "row": 5174,
+  "reason": "two-item"
+ },
+ {
+  "n": 888,
+  "row": 13471,
+  "reason": "vague"
+ },
+ {
+  "n": 889,
+  "row": 32984,
+  "reason": "vague"
+ },
+ {
+  "n": 892,
+  "row": 29596,
+  "reason": "dubious"
+ },
+ {
+  "n": 896,
+  "row": 25065,
+  "reason": "vague"
+ },
+ {
+  "n": 897,
+  "row": 32856,
+  "reason": "vague"
+ },
+ {
+  "n": 900,
+  "row": 18187,
+  "reason": "list"
+ },
+ {
+  "n": 902,
+  "row": 32976,
+  "reason": "vague"
+ },
+ {
+  "n": 905,
+  "row": 29648,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 910,
+  "row": 15899,
+  "reason": "vague"
+ },
+ {
+  "n": 913,
+  "row": 19394,
+  "reason": "vague"
+ },
+ {
+  "n": 915,
+  "row": 16937,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 917,
+  "row": 16961,
+  "reason": "vague"
+ },
+ {
+  "n": 920,
+  "row": 12168,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 923,
+  "row": 22426,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 924,
+  "row": 18270,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 926,
+  "row": 32657,
+  "reason": "vague"
+ },
+ {
+  "n": 927,
+  "row": 12196,
+  "reason": "contested"
+ },
+ {
+  "n": 928,
+  "row": 18237,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 929,
+  "row": 12473,
+  "reason": "vague"
+ },
+ {
+  "n": 930,
+  "row": 26174,
+  "reason": "vague"
+ },
+ {
+  "n": 931,
+  "row": 33,
+  "reason": "vague"
+ },
+ {
+  "n": 936,
+  "row": 5002,
+  "reason": "trivial"
+ },
+ {
+  "n": 938,
+  "row": 29924,
+  "reason": "vague"
+ },
+ {
+  "n": 940,
+  "row": 24670,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 941,
+  "row": 22087,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 944,
+  "row": 8512,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 945,
+  "row": 11966,
+  "reason": "vague"
+ },
+ {
+  "n": 946,
+  "row": 29720,
+  "reason": "vague"
+ },
+ {
+  "n": 948,
+  "row": 25769,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 949,
+  "row": 22605,
+  "reason": "dubious"
+ },
+ {
+  "n": 950,
+  "row": 4649,
+  "reason": "vague"
+ },
+ {
+  "n": 951,
+  "row": 31668,
+  "reason": "vague"
+ },
+ {
+  "n": 953,
+  "row": 5216,
+  "reason": "two-item"
+ },
+ {
+  "n": 955,
+  "row": 1601,
+  "reason": "vague"
+ },
+ {
+  "n": 957,
+  "row": 4856,
+  "reason": "duplicate of card 111"
+ },
+ {
+  "n": 958,
+  "row": 28106,
+  "reason": "trivial"
+ },
+ {
+  "n": 964,
+  "row": 27394,
+  "reason": "trivial"
+ },
+ {
+  "n": 967,
+  "row": 26302,
+  "reason": "vague"
+ },
+ {
+  "n": 975,
+  "row": 13060,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 982,
+  "row": 16544,
+  "reason": "duplicate concept of card 701"
+ },
+ {
+  "n": 985,
+  "row": 21384,
+  "reason": "vague"
+ },
+ {
+  "n": 993,
+  "row": 29757,
+  "reason": "definition"
+ },
+ {
+  "n": 994,
+  "row": 13786,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 995,
+  "row": 5575,
+  "reason": "duplicate concept of card 72"
+ },
+ {
+  "n": 997,
+  "row": 17072,
+  "reason": "vague"
+ },
+ {
+  "n": 1004,
+  "row": 29575,
+  "reason": "duplicate of card 265"
+ },
+ {
+  "n": 1008,
+  "row": 15842,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 1010,
+  "row": 16094,
+  "reason": "duplicate of card 231"
+ },
+ {
+  "n": 1012,
+  "row": 33629,
+  "reason": "vague"
+ },
+ {
+  "n": 1017,
+  "row": 6848,
+  "reason": "two-item"
+ },
+ {
+  "n": 1018,
+  "row": 18149,
+  "reason": "list"
+ },
+ {
+  "n": 1024,
+  "row": 14883,
+  "reason": "duplicate of card 740"
+ },
+ {
+  "n": 1025,
+  "row": 32135,
+  "reason": "duplicate of card 666"
+ },
+ {
+  "n": 1027,
+  "row": 13987,
+  "reason": "two-item"
+ },
+ {
+  "n": 1028,
+  "row": 27167,
+  "reason": "vague"
+ },
+ {
+  "n": 1029,
+  "row": 21774,
+  "reason": "vague"
+ },
+ {
+  "n": 1034,
+  "row": 22003,
+  "reason": "vague"
+ },
+ {
+  "n": 1036,
+  "row": 11973,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1037,
+  "row": 13429,
+  "reason": "uncertain classic demographic (row says older men)"
+ },
+ {
+  "n": 1040,
+  "row": 4643,
+  "reason": "vague"
+ },
+ {
+  "n": 1041,
+  "row": 27847,
+  "reason": "ambiguous"
+ },
+ {
+  "n": 1042,
+  "row": 13994,
+  "reason": "list"
+ },
+ {
+  "n": 1050,
+  "row": 32426,
+  "reason": "vague"
+ },
+ {
+  "n": 1052,
+  "row": 5292,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 1053,
+  "row": 24730,
+  "reason": "vague"
+ },
+ {
+  "n": 1059,
+  "row": 12849,
+  "reason": "formula"
+ },
+ {
+  "n": 1060,
+  "row": 19407,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1061,
+  "row": 22498,
+  "reason": "imprecise"
+ },
+ {
+  "n": 1063,
+  "row": 31153,
+  "reason": "time-varying"
+ },
+ {
+  "n": 1065,
+  "row": 1398,
+  "reason": "vague"
+ },
+ {
+  "n": 1068,
+  "row": 17701,
+  "reason": "vague"
+ },
+ {
+  "n": 1071,
+  "row": 1751,
+  "reason": "duplicate concept of card 353"
+ },
+ {
+  "n": 1074,
+  "row": 24952,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1075,
+  "row": 666,
+  "reason": "dubious"
+ },
+ {
+  "n": 1079,
+  "row": 18539,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 1083,
+  "row": 32342,
+  "reason": "vague"
+ },
+ {
+  "n": 1084,
+  "row": 12764,
+  "reason": "answer too long"
+ },
+ {
+  "n": 1085,
+  "row": 12741,
+  "reason": "vague"
+ },
+ {
+  "n": 1090,
+  "row": 821,
+  "reason": "dubious"
+ },
+ {
+  "n": 1091,
+  "row": 1358,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 1093,
+  "row": 24434,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 1095,
+  "row": 24695,
+  "reason": "garbled"
+ },
+ {
+  "n": 1098,
+  "row": 14062,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1101,
+  "row": 29471,
+  "reason": "obscure"
+ },
+ {
+  "n": 1103,
+  "row": 27612,
+  "reason": "vague"
+ },
+ {
+  "n": 1105,
+  "row": 12653,
+  "reason": "vague"
+ },
+ {
+  "n": 1106,
+  "row": 18820,
+  "reason": "duplicate of card 984"
+ },
+ {
+  "n": 1108,
+  "row": 4785,
+  "reason": "vague"
+ },
+ {
+  "n": 1111,
+  "row": 20863,
+  "reason": "outdated threshold"
+ },
+ {
+  "n": 1117,
+  "row": 7287,
+  "reason": "duplicate concept of card 248"
+ },
+ {
+  "n": 1122,
+  "row": 22549,
+  "reason": "vague"
+ },
+ {
+  "n": 1124,
+  "row": 7290,
+  "reason": "duplicate of card 253"
+ },
+ {
+  "n": 1125,
+  "row": 25145,
+  "reason": "vague"
+ },
+ {
+  "n": 1127,
+  "row": 16809,
+  "reason": "evidence too short"
+ },
+ {
+  "n": 1129,
+  "row": 17818,
+  "reason": "vague"
+ },
+ {
+  "n": 1130,
+  "row": 32968,
+  "reason": "vague"
+ },
+ {
+  "n": 1131,
+  "row": 32340,
+  "reason": "imprecise"
+ },
+ {
+  "n": 1132,
+  "row": 18596,
+  "reason": "vague"
+ },
+ {
+  "n": 1134,
+  "row": 4715,
+  "reason": "vague"
+ },
+ {
+  "n": 1137,
+  "row": 8978,
+  "reason": "duplicate concept of card 942"
+ },
+ {
+  "n": 1139,
+  "row": 5194,
+  "reason": "row fact wrong"
+ },
+ {
+  "n": 1141,
+  "row": 8460,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 1143,
+  "row": 1580,
+  "reason": "vague"
+ },
+ {
+  "n": 1144,
+  "row": 21377,
+  "reason": "garbled"
+ },
+ {
+  "n": 1145,
+  "row": 10566,
+  "reason": "dubious"
+ },
+ {
+  "n": 1154,
+  "row": 21872,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 1156,
+  "row": 7711,
+  "reason": "evidence too short"
+ },
+ {
+  "n": 1158,
+  "row": 4766,
+  "reason": "vague"
+ },
+ {
+  "n": 1159,
+  "row": 24826,
+  "reason": "vague"
+ },
+ {
+  "n": 1160,
+  "row": 8809,
+  "reason": "duplicate of card 224"
+ },
+ {
+  "n": 1161,
+  "row": 20810,
+  "reason": "vague"
+ },
+ {
+  "n": 1163,
+  "row": 18612,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1164,
+  "row": 31683,
+  "reason": "answer not in the row"
+ },
+ {
+  "n": 1165,
+  "row": 15090,
+  "reason": "trivial"
+ },
+ {
+  "n": 1166,
+  "row": 28292,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1168,
+  "row": 24500,
+  "reason": "review: weak distractors or opposite/ambiguous options"
+ },
+ {
+  "n": 1169,
+  "row": 7981,
+  "reason": "vague"
+ },
+ {
+  "n": 1170,
+  "row": 8885,
+  "reason": "outdated vaccine recommendation"
+ },
+ {
+  "n": 1172,
+  "row": 8045,
+  "reason": "evidence too short"
+ },
+ {
+  "n": 1174,
+  "row": 21879,
+  "reason": "opposite-direction distractors"
+ },
+ {
+  "n": 1177,
+  "row": 29784,
+  "reason": "vague"
+ },
+ {
+  "n": 1187,
+  "row": 22330,
+  "reason": "list"
+ },
+ {
+  "n": 1188,
+  "row": 2146,
+  "reason": "trivial"
+ },
+ {
+  "n": 1190,
+  "row": 32800,
+  "reason": "vague"
+ },
+ {
+  "n": 1192,
+  "row": 22259,
+  "reason": "vague"
+ },
+ {
+  "n": 1193,
+  "row": 19310,
+  "reason": "two-part"
+ },
+ {
+  "n": 1194,
+  "row": 2759,
+  "reason": "vague"
+ },
+ {
+  "n": 1195,
+  "row": 15932,
+  "reason": "review: trivial or definition-style"
+ },
+ {
+  "n": 1197,
+  "row": 31648,
+  "reason": "duplicate concept of card 131"
+ },
+ {
+  "n": 1199,
+  "row": 17372,
+  "reason": "dubious"
+ },
+ {
+  "n": 1200,
+  "row": 13537,
+  "reason": "duplicate of card 275"
+ }
+]

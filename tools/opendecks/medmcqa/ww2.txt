@@ -1,0 +1,150 @@
+335|Candida is a yeast without a polysaccharide capsule.|Aspergillus is a filamentous mold with septate hyphae, not an encapsulated yeast.
+338|Sinus tachycardia has a gradual onset and slows gradually.|Atrial fibrillation is irregularly irregular, not regular.
+339|The superior sagittal sinus drains the cerebral convexity.|The great cerebral vein joins the inferior sagittal sinus, not the jugular vein directly.
+340|Sporotrichosis causes nodular lymphangitis after thorn pricks.|Cryptococcosis is a meningitis and pneumonia, not a foot swelling with sinuses.
+344|Addison disease causes hyperkalemic acidosis, not alkalosis with hypertension.|Renal tubular acidosis causes a non-gap metabolic acidosis.
+345|Systemic sclerosis causes pulmonary fibrosis but not Caplan nodules.|Sarcoidosis causes hilar adenopathy, not rheumatoid pneumoconiotic nodules.
+348|The Golgi apparatus is not where calcium first deposits in injured cells.|Lysosomes are not the first site of dystrophic calcification.
+354|Erb palsy causes asymmetric Moro with a limp arm.|Down syndrome has hypotonia with a weak or absent Moro reflex.
+361|Asthma is not a contraindication to triptans.|Hypothyroidism is not a contraindication to triptans.
+363|A cystocele is repaired by anterior colporrhaphy.|Chronic uterine inversion is managed with Haultain or Spinelli operations.
+365|Lysine is an essential ketogenic amino acid with no vitamin product.|Glycine is a nonessential amino acid and does not make niacin.
+368|Transplacental maternal antibodies cause transient neonatal hypothyroidism.|Dyshormonogenesis is a less common cause than dysgenesis.
+369|Primaquine causes hemolysis in G6PD deficiency, not maculopathy.|Quinine causes cinchonism, not bull's-eye maculopathy.
+370|Inulin measures GFR.|Creatinine is partly secreted, so it estimates GFR rather than plasma flow.
+372|Cortisol reserve is tested with the cosyntropin or metyrapone test.|TSH reserve is tested with the TRH test.
+376|Typhoid ulcers are oval, along Peyer patches.|Giardiasis does not cause colonic ulcers.
+379|The tuberculin test is for TB, not the Kveim test.|Histoplasmosis is tested with antigen and serology, not Kveim.
+380|Golgi cells are inhibitory interneurons of the granular layer.|Basket cells are inhibitory interneurons of the molecular layer.
+381|The first part of the duodenum receives no ducts.|The third part receives no ducts.
+383|TGA is cyanotic with right axis deviation.|TAPVC is cyanotic with right ventricular hypertrophy.
+384|A partial agonist produces a submaximal agonist effect.|A competitive antagonist blocks the receptor without lowering baseline activity.
+386|Memantine blocks NMDA, not donepezil.|Dopamine agonists treat Parkinson disease, not Alzheimer disease.
+387|IgG is the most abundant serum antibody, not mucosal.|IgM is the early pentameric antibody in serum.
+388|Dexamethasone has almost no mineralocorticoid activity.|Prednisolone has weak mineralocorticoid activity.
+389|Pilocytic astrocytoma is cystic and rarely seeds the CSF.|Craniopharyngioma is a suprasellar tumor from Rathke pouch.
+393|Tendon injury does not give an advancing Tinel sign.|Tenosynovitis causes local tenderness and crepitus.
+396|IL-1 is not the main target of calcineurin inhibition.|IL-6 is not the main target of cyclosporine.
+399|Aspirin does not affect PT.|Aspirin does not affect aPTT.
+400|Na+/K+ ATPase is the basolateral pump of parietal cells.|NKCC cotransporters are not the proton pump.
+402|Klinefelter syndrome has small testes and tall stature.|Fragile X causes macroorchidism and intellectual disability.
+405|Streptococcus pyogenes causes pharyngitis, not typical lobar pneumonia.|H. influenzae is a common COPD pneumonia pathogen.
+409|Schizoid personality disorder shows emotional detachment without odd beliefs.|Paranoid personality disorder shows distrust without magical thinking.
+410|Vibrio cholerae causes watery diarrhea.|Salmonella Typhi causes enteric fever.
+412|Ampullary rupture occurs later, at 8-12 weeks.|Interstitial rupture occurs later, near 12-16 weeks.
+413|LH acts on Leydig cells.|TSH acts on the thyroid.
+416|Nephrotic syndrome is a standard indication for biopsy.|Isolated hematuria can be an indication for biopsy.
+417|Group A strep is CAMP negative and bacitracin sensitive.|S. aureus is catalase positive and coagulase positive.
+424|Phosphodiesterase inhibitors such as milrinone are different inotropes.|L-type Ca channel activation is not digoxin's mechanism.
+426|Clomiphene does not block progesterone receptors.|Clomiphene is not an androgen receptor blocker.
+429|Leiomyosarcoma is a pure sarcoma.|Endometrial stromal sarcoma is a pure sarcoma.
+430|The seminal vesicle contributes fructose-rich fluid.|The testis makes immotile sperm.
+432|Zanamivir is an influenza neuraminidase inhibitor.|Abacavir is an HIV nucleoside analog.
+433|IgA is secretory and does not bind mast cells.|IgM is a pentameric early antibody that does not bind mast cells.
+435|Trisomy 13 is much rarer than trisomy 21.|Turner syndrome is rarer than Down syndrome.
+438|Sertoli cells respond to FSH.|Spermatogonia are germ cells.
+439|Cryptococcus has narrow-based budding with a capsule.|Candida forms pseudohyphae and budding yeast cells with narrow necks.
+443|Methylphenidate is not an Alzheimer drug.|Methylphenidate does not treat OCD.
+447|RET mutations are not seen in hepatocellular carcinoma.|RET is not the classic breast cancer oncogene.
+450|Angiosarcoma is a vascular tumor of adults.|Liposarcoma is mostly an adult tumor.
+451|Neuroblastoma arises from neural crest.|Wilms tumor arises from renal blastema.
+452|The tox gene is not on a plasmid in C. diphtheriae.|Mutation does not create toxigenicity.
+456|Desmin marks smooth muscle tumors.|S-100 marks melanoma and nerve sheath tumors.
+458|Calcifediol is the 25-hydroxy storage form, not the active one.|Ergocalciferol is vitamin D2, an inactive precursor.
+459|Pyruvate dehydrogenase uses thiamine, lipoate, CoA, FAD and NAD.|Transaminases use pyridoxal phosphate.
+460|AML is acute with many blasts.|ALL is acute with lymphoblasts.
+461|Coagulase clots plasma but does not cause skin exfoliation.|Enterotoxin causes food poisoning.
+463|The jejunum absorbs most nutrients but not B12.|The duodenum absorbs iron and folate.
+465|Gonococcal arthritis is an acute suppurative joint infection.|Rheumatic fever gives migratory polyarthritis.
+467|X-linked recessive inheritance affects mainly males.|Thalassemias are not dominant.
+468|ABO is not X-linked.|ABO genes are nuclear, not mitochondrial.
+469|Inducible genes respond to hormones.|Inducer-dependent genes are not housekeeping genes.
+471|Exogenous steroid use does not raise LH.|Turner syndrome gives primary amenorrhea with high FSH.
+472|Isoniazid is safe in pregnancy.|Ethambutol is safe in pregnancy.
+475|Base excision repair fixes small base lesions.|Mismatch repair defects cause Lynch syndrome.
+476|Multiple sclerosis is not linked to thymoma.|Thymoma can cause hypogammaglobulinemia, not hyper.
+481|The foramen of Magendie drains the fourth ventricle.|The foramen of Luschka drains the fourth ventricle laterally.
+483|The Na+-Cl- cotransporter is in the distal tubule.|ENaC is in the collecting duct.
+489|Calcium channel blockers do not raise lipids.|Reserpine does not raise triglycerides.
+490|Sand flies transmit Leishmania.|Hard ticks transmit Lyme disease and tularemia.
+494|Gastric G cells secrete gastrin.|Pancreatic beta cells secrete insulin.
+495|Dabigatran is a direct thrombin inhibitor.|Fondaparinux is an indirect, injected Xa inhibitor.
+496|Amitriptyline is a tricyclic without a tyramine reaction.|Fluoxetine is an SSRI without a tyramine reaction.
+501|Cephalosporins are hydrolyzed by ESBLs.|Aztreonam is hydrolyzed by ESBLs.
+503|HMG-CoA reductase is blocked by statins.|Bile acid binding is the action of resins.
+505|Metoclopramide is a dopamine antagonist, less effective for cisplatin.|Domperidone is a peripheral dopamine antagonist, less effective.
+507|Mitochondria form the sperm midpiece.|The nucleus forms the sperm head.
+508|Gabapentin does not help Lennox-Gastaut.|Tiagabine can worsen generalized seizures.
+511|CA 125 marks ovarian cancer.|AFP marks hepatocellular carcinoma and yolk sac tumors.
+514|Congenital rubella gives cataracts and PDA.|Congenital syphilis gives snuffles and Hutchinson teeth.
+516|Soap formation is saponification, not the bile salt mechanism.|Zwitterion formation is not the basis of detergent action.
+521|Myasthenia gravis has anti-AChR antibodies.|Systemic sclerosis has anti-Scl-70 and anticentromere antibodies.
+522|Ulcerative colitis affects the colon only.|Cystic fibrosis causes pancreatic insufficiency with normal villi.
+525|Competitive reversible inhibition is how carbamates and edrophonium act.|Organophosphates are not reversible inhibitors.
+527|Group B strep is identified by CAMP.|Staphylococcus does not have a capsule that swells.
+531|Transaldolase does not need TPP.|Aldolase B does not need TPP.
+532|Pantothenic acid is a CoA component and not lipid lowering.|Riboflavin is not a lipid-lowering drug.
+535|Dendritic cells are antigen-presenting cells of lymphoid organs.|B cells are lymphocytes, not sinusoidal macrophages.
+536|Transduction is phage-mediated transfer.|Transformation is uptake of naked DNA.
+537|Liver shows nutmeg change in right failure.|The spleen shows congestive splenomegaly.
+542|The first heart sound is AV valve closure.|The third heart sound is rapid ventricular filling.
+545|The flexor carpi ulnaris is always present.|The flexor digitorum profundus is always present.
+553|Niacin deficiency gives pellagra.|Thiamine deficiency gives beriberi.
+556|The heart has no lobes.|The spleen has no lobes.
+558|Skeletal muscle vessels dilate in hypoxia.|Coronary vessels dilate in hypoxia.
+559|Selectins mediate rolling.|N-CAM is a neural adhesion molecule.
+562|Nocardia causes actinomycetoma, a bacterial mycetoma.|Aspergillus rarely causes mycetoma.
+564|Secondary hyperaldosteronism has raised renin.|Primary hypoaldosteronism is Addison disease.
+566|The pterygoid plexus drains the face.|The choroid plexus makes CSF.
+567|Ephedrine is a sympathomimetic stimulant.|Cyproheptadine is an antihistamine and antiserotonergic appetite stimulant.
+573|Parainfluenza causes croup.|H. influenzae is not a cause of viral bronchiolitis.
+577|The femoral artery is the second commonest aneurysm site.|Radial aneurysms are rare.
+578|Melkersson-Rosenthal syndrome has facial swelling and fissured tongue.|Frey syndrome is gustatory sweating.
+582|IgE mediates allergy.|IgA is the mucosal antibody.
+583|Expiratory reserve volume is only part of FRC.|Residual volume remains after maximal expiration.
+586|Atropine lasts for days.|Homatropine lasts for 1-3 days.
+593|Memory loss occurs in both delirium and dementia.|Apraxia is a feature of dementia.
+596|Myocarditis is a less common cause.|Rheumatic fever is rare in infancy.
+597|Rifampin causes orange body fluids.|Isoniazid causes neuropathy and hepatitis.
+599|MacConkey broth is a selective medium for enteric bacteria.|EMB agar is selective for Gram-negative rods.
+601|CD4 marks helper T cells.|CD68 marks macrophages.
+603|Para-aortic nodes drain the testis.|External iliac nodes drain the glans and deeper structures.
+605|Prazosin is a competitive reversible alpha-1 blocker.|Tamsulosin is a competitive alpha-1A blocker.
+607|Lowenstein-Jensen medium grows mycobacteria.|Loeffler serum slope grows C. diphtheriae.
+608|Rifampin does not cause neuropathy.|Pyrazinamide does not cause neuropathy.
+609|Wilms tumor is treated with actinomycin and vincristine.|Retinoblastoma is treated with carboplatin-based regimens.
+610|Rhabdomyoma is the childhood cardiac tumor.|Lipoma is a rare cardiac tumor.
+611|Yersinia does not vary its antigens in this way.|Brucella does not vary its antigens.
+613|Hot flashes are common but harmless.|Multiple pregnancy is a risk, not a reason to stop.
+614|Pyruvate kinase is a later, irreversible step but not rate-limiting.|Pyruvate carboxylase is a gluconeogenic enzyme.
+616|CML has no Auer rods in chronic phase.|Hodgkin lymphoma has Reed-Sternberg cells.
+618|Phosphate buffers mainly intracellular fluid and urine.|Ammonia buffers urine.
+620|Gastrin stimulates acid secretion.|CCK contracts the gallbladder.
+622|Placenta previa causes painless bleeding.|Hyperemesis gravidarum causes vomiting.
+623|E. coli is not the transformation organism of Griffith.|B. subtilis is a spore-forming Gram-positive rod.
+624|Group discussion is not evidence-based therapy.|Supportive counselling alone is less effective than CBT.
+626|Chorda tympani injury causes loss of taste.|Glossopharyngeal injury affects the pharynx and taste.
+628|Clonidine is an adjunct for autonomic symptoms.|Disulfiram is for maintenance.
+629|Verapamil is used for hypertension.|Verapamil is used for angina.
+630|Rome criteria are not used for IBD.|Neuroendocrine tumors use WHO grading.
+631|Dopamine is metabolized to HVA.|Epinephrine is metabolized to VMA.
+632|Aortic stenosis is not the commonest in Noonan syndrome.|ASD is rarer than pulmonary stenosis.
+634|B. recurrentis causes epidemic relapsing fever.|B. hermsii causes tick-borne relapsing fever.
+636|Candida rarely causes meningitis in AIDS.|H. influenzae is a less common cause.
+651|G2/M is the most radiosensitive phase.|Mitosis is radiosensitive.
+653|Cystic fibrosis is not dominant.|Cystic fibrosis is not X-linked.
+654|IL-4 is a Th2 cytokine.|IL-5 is a Th2 cytokine.
+655|Venography detects DVT, not PE directly.|Chest X-ray is often normal in PE.
+656|Apoenzyme is the protein part without cofactor.|Coenzymes are small organic cofactors.
+659|CYP2D6 handles fewer drugs.|CYP1A2 handles fewer drugs.
+661|Bortezomib is not a standard renal cell cancer drug.|Bortezomib is not used for pancreatic cancer.
+662|Metachromatic leukodystrophy is arylsulfatase A deficiency.|Tay-Sachs is hexosaminidase A deficiency.
+664|Constrictive pericarditis does not cause electrical alternans.|Restrictive cardiomyopathy does not cause electrical alternans.
+665|Thiamine pyrophosphate is a coenzyme for decarboxylases.|FMN is a flavin coenzyme.
+666|Simple columnar epithelium lines the gut.|Ciliated columnar epithelium lines the airways.
+672|Cow milk has more protein.|Cow milk has more minerals.
+673|The first MTP joint is classic for gout.|The hip is rarely involved in pseudogout.
+676|LDL carries cholesterol to peripheral tissues.|VLDL carries triglycerides from liver.
+678|BRCA is not a lung cancer gene.|BRCA is not mainly a gastric cancer gene.
+680|No dehydration is alert with normal drinking.|Severe dehydration is lethargic and cannot drink.
+684|Glutamine donates nitrogen elsewhere.|Glycine and ornithine are not the two nitrogen donors.

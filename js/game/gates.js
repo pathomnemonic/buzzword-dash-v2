@@ -36,18 +36,25 @@ var LANE_X = [-3, 0, 3];
 // Until cardschema.js (Agent 8) is available, we patch defaults inline.
 // Once cardschema.js ships, replace with: import { normalizeCard } from '../cardschema.js';
 
+var _patched = new WeakMap();
 function patchCardDefaults(c) {
   if (!c) return c;
-  if (c.exams === undefined) c.exams = [];
-  if (c.baseDifficulty === undefined) c.baseDifficulty = 2;
-  if (c.questionType === undefined) c.questionType = 'buzzword_dx';
-  if (c.source === undefined) c.source = 'clinical_medicine';
-  if (c.tags === undefined) c.tags = c.subj ? [c.subj.toLowerCase()] : [];
-  if (c.hx === undefined) c.hx = false;
-  if (c.yr === undefined) c.yr = 2;
-  if (c.pearls === undefined) c.pearls = c.tp ? [c.tp.split('.')[0]] : [];
-  if (c.enabledModes === undefined) c.enabledModes = ['endless', 'study', 'weakness', 'daily', 'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race', 'flashcard'];
-  return c;
+  // A copy, never the stored card itself (customCards hands out its cache): and remembered, so a 30,000-card deck is
+  // patched once, not on every run.
+  var hit = c && _patched.get(c);
+  if (hit) return hit;
+  var p = c && c.isCustom ? Object.assign({}, c) : c; // (built-in cards are patched in place, as before)
+  if (p.exams === undefined) p.exams = [];
+  if (p.baseDifficulty === undefined) p.baseDifficulty = 2;
+  if (p.questionType === undefined) p.questionType = 'buzzword_dx';
+  if (p.source === undefined) p.source = 'clinical_medicine';
+  if (p.tags === undefined) p.tags = p.subj ? [p.subj.toLowerCase()] : [];
+  if (p.hx === undefined) p.hx = false;
+  if (p.yr === undefined) p.yr = 2;
+  if (p.pearls === undefined) p.pearls = p.tp ? [p.tp.split('.')[0]] : [];
+  if (p.enabledModes === undefined) p.enabledModes = ['endless', 'study', 'weakness', 'daily', 'versus', 'mp_highscore', 'mp_suddendeath', 'mp_race', 'flashcard'];
+  if (p !== c) _patched.set(c, p);
+  return p;
 }
 
 // ===== DETERMINISTIC RNG =====
@@ -115,7 +122,10 @@ export function getCardPool(options) {
   if (includeCustomCards) {
     var customs = customCards.getAll();
     for (var ci = 0; ci < customs.length; ci++) {
-      allCards.push(patchCardDefaults(customs[ci]));
+      var cu = customs[ci];
+      // Imported flashcards (30,000 of them is normal) can never be in a runner pool: skip them before any work is done on them
+      if (Array.isArray(cu.enabledModes) && cu.enabledModes.length > 0 && cu.enabledModes.indexOf(mode) < 0) continue;
+      allCards.push(patchCardDefaults(cu));
     }
   }
 
@@ -126,6 +136,7 @@ export function getCardPool(options) {
   } catch (_e) { /* storage unavailable; use default */ }
 
   var filtered = [];
+  var disabledSet = disabledCardIds.length > 8 ? new Set(disabledCardIds) : null;
 
   for (var i = 0; i < allCards.length; i++) {
     var c = allCards[i];
@@ -134,7 +145,7 @@ export function getCardPool(options) {
     if (subjects.indexOf(c.subj) < 0) continue;
 
     // ── Disabled cards ──
-    if (disabledCardIds.indexOf(c.id) >= 0) continue;
+    if (disabledSet ? disabledSet.has(c.id) : disabledCardIds.indexOf(c.id) >= 0) continue;
 
     // ── Mode eligibility ──
     if (c.enabledModes && c.enabledModes.length > 0) {

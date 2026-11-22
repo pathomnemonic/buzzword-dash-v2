@@ -7,7 +7,7 @@
 //   charge.dispute.created, charge.dispute.updated and charge.dispute.closed.
 // Every request is checked against the webhook signing secret first; anything unsigned is refused.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 import { verifyStripeSignature, handleEvent, chargeReturned } from '../_shared/billing.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';

@@ -1,0 +1,2 @@
+Which gram staining group possesses porins in their cellular wall?
+Gram-negative bacteria possess porins in their cellular wall, which they can downregulate in order to develop β-lactam resistance.

@@ -1,0 +1,3 @@
+An investigator is studying the effects of zinc deprivation on cancer cell proliferation. It is hypothesized that because zinc is known to be a component of transcription factor motifs, zinc deprivation will result in slower tumor growth. To test this hypothesis, tumor cells are cultured on media containing low and high concentrations of zinc. During the experiment, a labeled oligonucleotide probe is used to identify the presence of a known transcription factor. The investigator most likely used which of the following laboratory techniques?
+Options: A) Western blot; B) Northern blot; C) PCR; D) Southwestern blot.
+The keyed answer is D) Southwestern blot.

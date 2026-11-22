@@ -161,7 +161,7 @@ class Game {
     this.gatesActive = false;
     this.answerLocked = false;
     this.committedLane = 1;
-    this.recentIds = []; this._retryQueue = []; this._retriedIds = {};
+    this.recentIds = []; this._retryQueue = []; this._retriedIds = {}; this._knownThisRun = {};
     this.runCards = [];
 
     // Seeded card order support
@@ -868,7 +868,7 @@ class Game {
     this.envPropSpawnTimer = 0.5; this.speedLineTimer = 0;
     this.shakeTimer = 0;
 
-    this.runCards = []; this.recentIds = []; this._retryQueue = []; this._retriedIds = {};
+    this.runCards = []; this.recentIds = []; this._retryQueue = []; this._retriedIds = {}; this._knownThisRun = {};
     this._hazards.reset();
     this._setHazardClass(null);
     this.feedbackTimer = 0; this.teachTimer = 0;
@@ -1634,8 +1634,8 @@ class Game {
         c.position.x = magnetX(c.position.x, this.playerGroup.position.x, c.position.z, dt);
       }
 
-      // A dash pulls in every coin between the runner and the gate, from any lane, so dashing never costs coins
-      var dashPull = this.rushPropelTimer > 0 && c.userData.type === 'coin' && !c.userData.collected && c.position.z > this.gateZ - 2 && c.position.z < 2 * VISUAL_SPEED;
+      // A dash pulls in every coin, power-up and heart between the runner and the gate, from any lane, so dashing never costs pickups
+      var dashPull = this.rushPropelTimer > 0 && (c.userData.type === 'coin' || c.userData.type === 'powerup' || c.userData.type === 'heart') && !c.userData.collected && c.position.z > this.gateZ - 2 && c.position.z < 2 * VISUAL_SPEED;
       if (dashPull) {
         c.position.x += (this.playerGroup.position.x - c.position.x) * Math.min(1, dt * 14);
         c.userData.dashPulled = true;
@@ -1656,7 +1656,7 @@ class Game {
             this.coinMeshes.splice(ci, 1);
           }
         }
-      } else if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED && !c.userData.collected) {
+      } else if (c.position.z > -3 * VISUAL_SPEED && c.position.z < 2 * VISUAL_SPEED + (c.userData.dashPulled ? 8 : 0) && !c.userData.collected) {
         var inLane = c.userData.lane === this.currentLane;
         var closeEnough = Math.abs(LANE_X[this.currentLane] - c.position.x) < 1.8;
 

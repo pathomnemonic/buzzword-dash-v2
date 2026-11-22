@@ -1,0 +1,39 @@
+592|NEP|dx|Chronic laxative abuse: renal stone type|Ammonium urate|Xanthine|Cystine|Laxative abuse causes volume depletion and acid urine loss, favoring ammonium urate stones.
+593|PSY|dx|Feature separating delirium from dementia|Disturbed consciousness|Memory loss|Apraxia|Delirium has acute onset with clouded, fluctuating consciousness; in dementia consciousness is clear.
+596|PED|dx|Commonest cause of heart failure in infancy|Congenital heart disease|Myocarditis|Rheumatic fever|Structural congenital lesions most often cause infant heart failure, with VSD the commonest.
+597|ID|se|Anti-TB drug causing red-green color blindness|Ethambutol|Rifampin|Isoniazid|Ethambutol causes dose-related optic neuritis, so check visual acuity and color vision.
+598|GI|dx|Most common site of GI tuberculosis|Terminal ileum (ileocecal region)|Stomach|Duodenum|Intestinal TB favors the ileocecal region.
+599|ID|lab|Anaerobic culture medium|Robertson cooked meat medium|MacConkey broth|EMB agar|Cooked meat broth supports anaerobes.
+601|HEM|lab|B-lymphocyte marker|CD19|CD4|CD68|CD19, CD20 and CD22 are B-cell antigens; CD4 marks helper T cells and CD68 macrophages.
+603|SUR|mech|First nodes draining cancer of scrotal skin|Superficial inguinal nodes|Para-aortic nodes|External iliac nodes|Scrotal skin drains to superficial inguinal nodes, whereas the testis drains to para-aortic nodes.
+605|CAR|ph|Alpha-blocker binding covalently|Phenoxybenzamine|Prazosin|Tamsulosin|Phenoxybenzamine forms a covalent bond with alpha receptors, giving irreversible, noncompetitive blockade.
+607|ID|lab|Culture medium for most fungi|Sabouraud dextrose agar|Lowenstein-Jensen medium|Loeffler serum slope|Sabouraud agar is the standard fungal medium; LJ is for mycobacteria.
+608|ID|ph|Pyridoxine is given with which anti-TB drug|Isoniazid|Rifampin|Pyrazinamide|Isoniazid interferes with pyridoxine and causes peripheral neuropathy, which B6 prevents.
+609|HEM|ph|Melphalan main indication|Multiple myeloma|Wilms tumor|Retinoblastoma|Melphalan is an alkylating agent most effective in multiple myeloma.
+610|CAR|dx|Most common primary cardiac tumor in adults|Atrial myxoma|Rhabdomyoma|Lipoma|Myxomas are benign, mostly in the left atrium; rhabdomyoma is the childhood tumor, linked to tuberous sclerosis.
+611|ID|mech|Antigenic variation causing relapsing fever|Borrelia|Yersinia|Brucella|Borrelia changes surface antigens to escape immunity, causing relapses.
+612|GI|mech|Main mechanism of GERD|Transient LES relaxations|Hiatal hernia|Gastric hyposecretion|Transient lower esophageal sphincter relaxations account for most reflux episodes.
+613|OB|se|Clomiphene adverse effect requiring immediate stop|Visual disturbances|Hot flashes|Multiple pregnancy|Visual symptoms mean stop clomiphene; hot flashes are the commonest but benign effect.
+614|MIX|mech|Rate-limiting enzyme of glycolysis|Phosphofructokinase-1|Pyruvate kinase|Pyruvate carboxylase|PFK-1 makes fructose-1,6-bisphosphate and is the key allosteric control point.
+615|END|mech|Neuronal glucose transporter|GLUT3|GLUT2|GLUT4|Neurons use GLUT3, while GLUT1 serves the blood-brain barrier endothelium.
+616|HEM|dx|Auer rods|Acute myeloid leukemia|Chronic myeloid leukemia|Hodgkin lymphoma|Auer rods are fused myeloperoxidase-positive granules in myeloblasts.
+618|NEP|mech|Most important extracellular buffer|Bicarbonate|Phosphate|Ammonia|The bicarbonate-carbonic acid system is the main buffer of the extracellular fluid.
+619|NEU|mech|Stylohyoid muscle nerve supply|Facial nerve|Glossopharyngeal nerve|Vagus nerve|Stylohyoid is supplied by the facial nerve, as is the posterior belly of digastric.
+620|GI|mech|Hormone that initiates migrating motor complexes|Motilin|Gastrin|CCK|Motilin surges every 90-100 minutes in the interdigestive state to start the migrating motor complex.
+622|OB|dx|Obstetric condition most commonly causing consumptive coagulopathy|Placental abruption|Placenta previa|Hyperemesis gravidarum|Abruption releases tissue thromboplastin into the maternal circulation, triggering DIC.
+623|ID|mech|Griffith transformation experiment organism|Streptococcus pneumoniae|Escherichia coli|Bacillus subtilis|Bacterial transformation was discovered in pneumococci.
+624|PSY|mg|Evidence-based psychotherapy for depression|Cognitive behavior therapy|Group discussion|Supportive counselling only|CBT, developed by Aaron Beck, has the strongest evidence for depression.
+626|NEU|dx|Gustatory sweating after parotidectomy|Aberrant auriculotemporal nerve regeneration|Chorda tympani injury|Glossopharyngeal injury|Frey syndrome comes from misdirected regrowth of parasympathetic fibers to sweat glands.
+628|PSY|mg|Uncomplicated alcohol withdrawal: drug of choice|Benzodiazepines|Clonidine|Disulfiram|Benzodiazepines are the drugs of choice for detoxification; disulfiram is for maintenance.
+629|CAR|se|Verapamil contraindication|Complete heart block|Hypertension|Angina pectoris|Verapamil slows AV conduction and depresses the SA node, so it is avoided in heart block.
+630|GI|dx|Rome criteria|Irritable bowel syndrome|Inflammatory bowel disease|Neuroendocrine tumors|Rome criteria define IBS by recurrent abdominal pain linked to defecation or stool change.
+631|GI|lab|5-HIAA|Serotonin metabolite|Dopamine metabolite|Epinephrine metabolite|5-HIAA is the urinary breakdown product of serotonin, raised in carcinoid syndrome.
+632|PED|dx|Most common cardiac anomaly in Noonan syndrome|Pulmonary stenosis|Aortic stenosis|Atrial septal defect|Noonan syndrome most often has pulmonary valve stenosis.
+634|ID|dx|Lyme disease agent|Borrelia burgdorferi|Borrelia recurrentis|Borrelia hermsii|Lyme disease is caused by B. burgdorferi, spread by Ixodes ticks.
+636|ID|dx|Most common cause of meningitis in AIDS|Cryptococcus neoformans|Candida albicans|Haemophilus influenzae|Cryptococcal meningitis is insidious in advanced HIV and shows capsules on India ink.
+641|CAR|lab|ECG with no recognizable P waves|Atrial fibrillation|Atrial flutter|PSVT|Atrial fibrillation is irregularly irregular without distinct P waves; flutter shows sawtooth waves.
+644|EM|dx|Miosis, salivation, sweating, urinary incontinence|Cholinesterase inhibitor (carbamate or organophosphate) poisoning|Anticholinergic poisoning|Opioid poisoning|Muscarinic excess with miosis, secretions, bradycardia and incontinence signals cholinesterase inhibition.
+645|NEP|dx|Adult polycystic kidney disease inheritance|Autosomal dominant|Autosomal recessive|X-linked recessive|ADPKD features large cystic kidneys, liver cysts and berry aneurysms.
+651|HEM|mech|Most radioresistant cell-cycle phase|Late S phase|G2/M|Mitosis|Cells are most radiosensitive in G2/M and least in late S phase.
+653|PUL|dx|Cystic fibrosis inheritance|Autosomal recessive|Autosomal dominant|X-linked recessive|Cystic fibrosis is an autosomal recessive CFTR chloride channel disorder.
+654|MIX|mech|Th1 cytokines|IFN-gamma and IL-2|IL-4|IL-5|Th1 cells make IFN-gamma, IL-2 and TNF-beta to activate macrophages.

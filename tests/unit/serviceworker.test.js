@@ -36,14 +36,15 @@ describe('service worker caches', () => {
     expect([...sw.stores['dx-dash-b1'].keys()].sort()).toEqual(['https://x.test/', 'https://x.test/portraits/hero-face.webp']);
   });
 
-  it('on activation drops old build caches but keeps the asset cache', async () => {
+  it('on activation drops old build caches but keeps the asset cache and other games\' caches', async () => {
     const sw = load();
     sw.stores['dx-dash-old'] = new Map([['a', 1]]);
+    sw.stores['language-dash-b1'] = new Map([['theirs', 1]]);
     sw.stores['dx-assets'] = new Map([['https://x.test/assets/a-12345678.js', 1]]);
     let waited;
     sw.listeners.activate({ waitUntil: (p) => { waited = p; } });
     await waited;
-    expect(Object.keys(sw.stores).sort()).toEqual(['dx-assets']);
+    expect(Object.keys(sw.stores).sort()).toEqual(['dx-assets', 'language-dash-b1']);
     expect(sw.stores['dx-assets'].size).toBe(1);
   });
 
@@ -53,5 +54,12 @@ describe('service worker caches', () => {
     sw.listeners.fetch({ request: { method: 'POST', url: 'https://x.test/a', mode: 'cors' }, respondWith: () => { responded = true; } });
     sw.listeners.fetch({ request: { method: 'GET', url: 'https://other.test/a', mode: 'cors' }, respondWith: () => { responded = true; } });
     expect(responded).toBe(false);
+  });
+
+  it('never precaches Open decks: they are fetched when needed, network first, and the last copy serves offline', async () => {
+    const sw = load();
+    await sw.request('https://x.test/decks/index.json');
+    expect([...sw.stores['dx-dash-b1'].keys()]).toEqual(['https://x.test/decks/index.json']);
+    expect(sw.stores['dx-assets']).toBeUndefined();
   });
 });

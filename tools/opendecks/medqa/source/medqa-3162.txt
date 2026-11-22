@@ -1,0 +1,3 @@
+An investigator studying disorders of hemostasis performs gene expression profiling in a family with a specific type of bleeding disorder. These patients were found to have abnormally large von Willebrand factor (vWF) multimers in their blood. Genetic analysis shows that the underlying cause is a mutation in the ADAMTS13 gene. This mutation results in a deficiency of the encoded metalloprotease, which is responsible for cleavage of vWF. Which of the following additional laboratory findings is most likely in these patients?
+Options: A) Elevated haptoglobin; B) Urinary red blood cell casts; C) Elevated platelet count; D) Fragmented erythrocytes.
+The keyed answer is D) Fragmented erythrocytes.

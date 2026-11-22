@@ -1,0 +1,65 @@
+546|X|vague
+547|X|list
+548|Autonomic division of the anterior hypothalamus|Parasympathetic|Sympathetic|Somatic motor|S=Neu
+549|Tumor suppressor gene in breast, prostate and endometrial cancer|PTEN|APC|VHL|S=HO
+550|X|vague
+551|Proximal median nerve injury: hand posture|Pope's blessing|Wrist drop|Waiter's tip|S=Neu
+552|Decidualized endometrium without chorionic villi|Ectopic pregnancy|Hydatidiform mole|Endometritis|S=OB
+553|X|vague
+554|X|vague
+555|Chlamydia/gonorrhea screening age for sexually active women|24 years or younger|Under 18 years|Under 35 years|S=ID
+556|Why HbF binds oxygen avidly|Reduced binding of 2,3-BPG|Greater binding of 2,3-BPG|Stronger Bohr effect|S=HO
+557|Commonest cause of skin abscesses|Staphylococcus aureus|Streptococcus pyogenes|Pseudomonas aeruginosa|S=ID
+558|Antimitochondrial antibodies|Primary biliary cholangitis|Primary sclerosing cholangitis|Autoimmune hepatitis|S=GI
+559|X|dubious
+560|Pleural fluid pH of 7.40-7.55|Transudate|Exudate|Empyema|S=Pul
+561|X|vague
+562|Cancer type spreading via lymphatics to regional nodes|Carcinomas|Sarcomas|Gliomas|S=HO
+563|X|contested
+564|PCP prophylaxis after renal transplant|TMP-SMX|Fluconazole|Acyclovir|S=ID
+565|Gastric ulcers with raised intracranial pressure|Cushing ulcer|Curling ulcer|Marjolin ulcer|S=GI
+566|Low-dose epinephrine receptor effect|β-adrenergic activation|α1 activation|Muscarinic activation|S=Multi
+567|Lenticulostriate artery stroke: structures involved|Striatum and internal capsule|Occipital cortex and thalamus|Pons and cerebellum|S=Neu
+568|Segment reabsorbing about 8% of filtered Ca2+|Distal convoluted tubule|Proximal tubule|Thick ascending limb|S=Neph
+569|Topiramate ocular adverse effect|Acute angle-closure glaucoma|Retinal detachment|Optic neuritis|S=Neu
+570|Imaging to confirm duodenal hematoma|Abdominal CT|Plain abdominal X-ray|Barium enema|S=Surg
+571|X|list
+572|Classification of esophagogastric junction tumors|Siewert classification|Lauren classification|Child-Pugh classification|S=GI
+573|Renal blood flow autoregulation mechanisms|Myogenic response and tubuloglomerular feedback|Renin-angiotensin and ADH|Sympathetic tone and ANP|S=Neph
+574|Amifostine mechanism (cisplatin protection)|Free radical scavenger|Iron chelator|Folate analog|S=HO
+575|X|obscure
+576|X|vague
+577|Age group for calcific aortic stenosis|Over 60 years|Teenagers|20 to 30 years|S=Car
+578|P. vivax and P. ovale fever periodicity|Every 48 hours|Every 24 hours|Every 72 hours|S=ID
+579|Infant: scaphoid abdomen, bowel sounds over left chest|Congenital diaphragmatic hernia|Pyloric stenosis|Duodenal atresia|S=Peds
+580|Fetal lung maturity: lecithin:sphingomyelin ratio|Greater than 2|Less than 1|Equal to 1|S=OB
+581|Hyperammonemia drug reducing ammoniagenic colonic bacteria|Rifaximin|Lactulose|Sodium benzoate|S=GI
+582|Inflammatory breast cancer: skin appearance|Peau d'orange|Café-au-lait spots|Port-wine stain|S=HO
+583|X|contested
+584|X|vague
+585|X|vague
+586|Commonest site of colorectal carcinoma|Rectosigmoid|Cecum|Transverse colon|S=GI
+587|Hematuria in genitourinary cancer|Painless|Colicky and severe|Associated with fever|S=Neph
+588|Vasculitis coexisting with polymyalgia rheumatica|Giant cell arteritis|Takayasu arteritis|Polyarteritis nodosa|S=Rheum
+589|Anxiety, insomnia, high LFTs, macrocytosis|Alcohol use disorder|Generalized anxiety disorder|Major depressive disorder|S=Psy
+590|Nitrate partner drug that blunts reflex tachycardia|Beta-blockers|Loop diuretics|ACE inhibitors|S=Car
+591|Inability to recall personal information after trauma|Dissociative amnesia|Korsakoff syndrome|Transient global amnesia|S=Psy
+592|X|duplicate concept of card 248
+593|X|list
+594|Purely ketogenic amino acids|Leucine and lysine|Alanine and glycine|Tyrosine and tryptophan
+595|GAS product used to dissolve clots|Streptokinase|Streptolysin O|Hyaluronidase|S=ID
+596|X|obscure
+597|X|vague
+598|Predominant inflammatory cell 2-3 days after injury|Macrophages|Eosinophils|Basophils|S=HO
+599|X|duplicate of card 416
+600|HFI: effect of phosphate depletion|Inhibits glycogenolysis and gluconeogenesis|Stimulates both|Inhibits glycolysis only
+601|Vitelline duct connects|Yolk sac to midgut|Allantois to bladder|Amnion to chorion|S=OB
+602|Ribavirin: nucleoside analog of|Guanosine|Adenosine|Thymidine|S=ID
+603|X|incomplete
+604|LDL 190 mg/dL or higher: treatment|High-intensity statin|Lifestyle modification alone|Ezetimibe alone|S=Car
+605|X|list
+606|Diabetes drug class raising heart failure risk|Thiazolidinediones|Sulfonylureas|Metformin|S=Car
+607|X|vague
+608|Site of isotonic reabsorption in the nephron|Proximal convoluted tubule|Thick ascending limb|Collecting duct|S=Neph
+609|Inducers of E-selectin expression|IL-1 and TNF|IL-4 and IL-5|IL-10 and TGF-β
+610|Lung period when terminal sacs form|Saccular period|Canalicular period|Alveolar period|S=Pul

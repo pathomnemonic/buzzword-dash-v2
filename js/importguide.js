@@ -30,6 +30,104 @@ export var IMPORT_PATHS = [
   }
 ];
 
+/**
+ * Popular decks, each with the page that is the official place to get it. Dx Dash never downloads them for you:
+ * AnkiWeb needs a login and limits bulk downloads, AnkiHub is a subscription, and the decks are licensed for personal
+ * study only (see docs/ANKING-INTEGRATION.md). The player gets their own copy, exports it from Anki and drops the file here.
+ * `verified` says whether the link was a real deck page when it was checked (false = a search page on the site).
+ */
+export var POPULAR_DECKS = [
+  {
+    id: 'anking-step',
+    name: 'AnKing Step Deck (Step 1, 2 and 3)',
+    blurb: '30,000+ cards tagged by Sketchy, Boards & Beyond, First Aid, Pathoma and UWorld. Tags look like #AK_Step1_v12::#B&B::\u2026',
+    site: 'AnkiHub',
+    url: 'https://www.ankihub.net/step-deck',
+    verified: true,
+    tip: 'Free AnkiHub account to look around; a paid plan keeps the deck synced in Anki.'
+  },
+  {
+    id: 'zanki',
+    name: 'Zanki (Step 1)',
+    blurb: 'A large community deck combining the usual Step 1 resources (Boards & Beyond, Pathoma, Sketchy, First Aid).',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=zanki',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'lightyear',
+    name: 'Lightyear (Step 1 / Step 2)',
+    blurb: 'A condensed community deck drawing on Boards & Beyond, Pathoma, First Aid and Sketchy.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=lightyear',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'pepper',
+    name: 'Pepper (Step 1)',
+    blurb: 'A community Step 1 deck.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=pepper%20step',
+    verified: false,
+    tip: 'Search results: pick the version by the original author, and the newest one.'
+  },
+  {
+    id: 'dirty-medicine',
+    name: 'Dirty Medicine',
+    blurb: 'Community decks that go with the Dirty Medicine study material.',
+    site: 'AnkiWeb',
+    url: 'https://ankiweb.net/shared/decks?search=dirty%20medicine',
+    verified: false,
+    tip: 'Search results: some of these decks are only sold by their authors.'
+  },
+  {
+    id: 'own',
+    name: 'Any deck of your own',
+    blurb: 'Anything you have in Anki: a class deck, a friend\u2019s deck, your own cards.',
+    site: 'Anki',
+    url: 'https://docs.ankiweb.net/manual/exporting',
+    verified: true,
+    tip: 'Anki\u2019s own guide to exporting.'
+  }
+];
+
+/** The same three steps for every deck. */
+export var POPULAR_DECK_STEPS = [
+  'Tap the deck\u2019s button to open its official page and get the deck into your own Anki (an account or subscription may be needed).',
+  'In Anki on a computer: File \u203A Export, format \u201CAnki Deck Package (*.apkg)\u201D, pick the deck, keep \u201CInclude tags\u201D ticked. Scheduling and media are not needed.',
+  'Come back here, choose that file (or drop it on the box), then tick the tags you want and tap Import.'
+];
+
+/** Why there is no one-tap download. Shown on request. */
+export var NO_AUTO_DOWNLOAD = [
+  'AnkiWeb asks you to sign in and limits bulk downloads on purpose, and its pages do not allow other websites to read them. A web app cannot fetch a deck from there.',
+  'AnkiHub is a subscription service that syncs decks through the Anki add-on.',
+  'Shared decks are licensed for your own study, not for redistribution, so Dx Dash does not bundle or mirror them. You download your own copy; this app only reads it on your device.'
+];
+
+/**
+ * The short blurb at the top of the "Open decks" list (shown in a <details>, open on first view). Data, so the screen,
+ * the tests and docs/OPEN-DECKS.md all say the same thing.
+ */
+export var OPEN_DECKS_INTRO = {
+  whyTitle: 'Why these decks?',
+  why: [
+    'These are the decks we can give you with one tap: each is published under an open licence, needs no account, and credits its authors.',
+    'Popular decks such as AnKing, Zanki, Pepper and Lightyear need a login or are for personal use only, and many are built on paid resources, so we cannot bundle or auto-download them.',
+    'Some decks may come from community datasets; every deck shows its source and licence.',
+    'None of them is checked for exam accuracy. Check anything important against a trusted source.'
+  ],
+  ownTitle: 'Add your own',
+  ownSteps: [
+    'Download any deck yourself: AnKing from its official page, any other .apkg, or an Anki text export.',
+    'Tap \u201CChoose file\u201D in the importer below, or drag the file in.',
+    'Filter by tags, then import. Cards stay on your device.',
+    'AI helper: copy the prompt and paste the reply to turn your notes into runner questions.'
+  ]
+};
+
 /** What a row of a plain file should look like, shown under the file picker. */
 export var FORMAT_HELP = [
   'One card per line. Front, a tab (or comma), then back.',
@@ -56,23 +154,39 @@ export var QUIZ_CARD_EXAMPLE = {
  */
 export function buildAiPrompt() {
   return [
-    'You are converting my flashcards into multiple-choice quiz cards for a medical-exam study game (USMLE / COMLEX).',
+    'You are converting my flashcards into quick-fire multiple-choice cards for a medical-exam game (USMLE / COMLEX). In the game the player sees 2-4 short clues for about 3 seconds, then must pick the right answer from THREE options (the answer plus two wrong ones). So every card must be answerable from the clues alone, with exactly one defensible option, and it must still take real knowledge to answer.',
     '',
-    'I will paste my cards after this message, one per line (front, then back) or as free text. Turn each real card into ONE JSON object and reply with ONE JSON array and nothing else (no commentary, no code fences).',
-    '',
-    'Each object has exactly these fields:',
+    'Reply with ONE JSON array and nothing else (no commentary, no code fences). One object per usable card, with exactly these fields:',
     '- "subj": one of ' + SUBJECTS.map(function (s) { return '"' + s + '"'; }).join(', ') + '. Use "Multisystem / Mixed" if unsure.',
-    '- "bw": 1 to 4 short clues (strings) that point to the answer, like exam buzzwords. Taken from my card; do not invent facts.',
-    '- "ans": the correct answer, short (a diagnosis, drug, mechanism, or next step). Under 80 characters. Plain text.',
-    '- "d": exactly 2 wrong answers: plausible look-alikes of the same kind as the answer (two other diagnoses, two other drugs). Never "N/A", never "None of the above", never the correct answer.',
-    '- "tp": a one or two sentence teaching point, from my card where possible.',
-    '- "ww": an object whose keys are exactly the two wrong answers in "d" and whose values say in one short sentence why each is wrong.',
+    '- "bw": 2 to 4 clues, each 1-8 words, taken from my card (no invented facts). Together they must point to ONE answer. Rules for clues:',
+    '  * Never put the answer, a synonym of it, its definition, or members of it in a clue. Cover-the-answer test: if someone who never studied this could get it just from the words ("only adenine bases" -> poly A; "erythromycin, azithromycin" -> macrolides; "malignancy of plasma cells" -> myeloma), the clue is a giveaway: use a finding, a number, a named sign or an association instead.',
+    '  * Name the thing being asked about, and what is asked, when the card asks a property: "Pseudomonas aeruginosa", "Oxygen requirement" (not just vague symptoms that fit many organisms). If the card asks for a cause, mechanism, threshold or next step, one clue must say so ("Most common cause", "Mechanism", "Next step").',
+    '  * Use specific buzzwords (findings, numbers, named signs), not generic words like "serious", "common", "treatment".',
+    '- "ans": a TERM, not a sentence: a diagnosis, organism, drug, test, structure, receptor, mechanism, or number, normally 1-4 words (never more than 8). If my card\'s back is a sentence or explanation, extract its key term. If the card asks "what is X?" and the back describes X, flip it: put the description in "bw" and the NAME in "ans".',
+    '- "d": exactly 2 wrong answers. Each must be a real term of the SAME KIND as "ans" (if the answer is a mechanism, give two other mechanisms; if a cause, two other causes; if a number, nearby numbers; if a drug, drugs of the same class) and of similar length, that a half-prepared student could actually pick. Never opposites ("increased / decreased / no change"), never a disease when the answer is a mechanism, never silly, never a different category, never "N/A" or "None of the above", and never something that is also correct or that the clues already rule out.',
+    '- "tp": one or two sentences of teaching point, using only facts from my card.',
+    '- "ww": an object whose keys are exactly the two wrong answers in "d"; each value is one short sentence on why it is wrong here (state what it actually is or does, not just "not the answer").',
     '',
-    'Rules:',
-    '- Plain text only: no HTML, no markdown, no line breaks inside strings.',
-    '- If a card is not a clear question with one short answer (long lists, images, definitions with no single answer), skip it and keep going.',
-    '- If a cloze like {{c1::answer}} appears, the hidden part is the answer.',
-    '- Do not change medical facts. If you are unsure a fact is right, skip that card.',
+    'Which cards to make. Be generous: skipping is the exception, and a good card is one fact -> one short term (organism, drug, test, mechanism, cause, number, classic association, or a vignette -> diagnosis).',
+    '* A long or two-part question is NOT a reason to skip. "What are the effects / consequences / triggers / reasons for X?" or "what is X and what is it called?" whose back contains one crisp term (hyponatremia, M3 receptor, hepatotoxicity, tendon rupture, LH surge): make one card on that term.',
+    '* SKIP only when the card is: a list, steps or sequence with no single key item; pure definition with no name to find; yes/no; "which is NOT / wrong pair" with the options missing; an image; or the back is vague, contradicts itself, or you are not sure it is medically correct (check against what you know, not just my card).',
+    '* Do not rewrite facts. Do not make a card whose answer is trivial for a first-year student (the clues restate the answer, or the wrong options are absurd for the clues).',
+    '* Variety: make at most two cards with the same answer, and word repeated question types differently.',
+    'Ignore HTML tags and tags/subject columns. If a cloze like {{c1::answer}} appears, the hidden part is the answer.',
+    '',
+    'Check every card before you write it: (1) the answer is not readable in the clues; (2) the clues say what is being asked; (3) the answer is a short term; (4) both wrong answers are the same kind of thing and a student could pick them; (5) only one option is correct.',
+    '',
+    'Bad vs good (same fact):',
+    '- Bad: bw ["Narrowed pulmonary valve","Obstructed outflow"], ans "Narrowing of the pulmonary valve obstructing right ventricular outflow" (answer is in the clue, and is a sentence).',
+    '  Good: bw ["Ejection click","Crescendo-decrescendo murmur, left upper sternal border","Noonan syndrome"], ans "Pulmonic stenosis", d ["Aortic stenosis","Tetralogy of Fallot"].',
+    '- Bad: bw ["Diabetes mellitus","Fasting glucose threshold"], ans "126 mg/dL", d ["1 mg/dL","5000 mg/dL"] (both wrong answers are absurd).',
+    '  Good: ans "126 mg/dL", d ["100 mg/dL","140 mg/dL"].',
+    '- Bad: bw ["Metformin","Mechanism"], ans "Decreases hepatic gluconeogenesis", d ["Type 2 diabetes","Lactic acidosis"] (diseases offered for a mechanism question).',
+    '  Good: ans "Decreased hepatic gluconeogenesis", d ["Closes pancreatic K-ATP channels","Inhibits DPP-4"].',
+    '- Bad: bw ["Antibiotic class","Penicillin, amoxicillin"], ans "Beta-lactams" (clue lists members of the answer).',
+    '  Good: bw ["Antibiotic class","Four-membered ring","Inhibits cell-wall cross-linking"], ans "Beta-lactams", d ["Macrolides","Aminoglycosides"].',
+    '- Bad: bw ["Gram-positive coccus","Pneumonia"], ans "Polysaccharide capsule" (clues fit dozens of things; the question is never named).',
+    '  Good: bw ["Streptococcus pneumoniae","Main virulence factor"], ans "Polysaccharide capsule", d ["M protein","Protein A"].',
     '',
     'Example of one object:',
     JSON.stringify(QUIZ_CARD_EXAMPLE),
@@ -106,6 +220,12 @@ export function normalizeAiCard(raw) {
     ww: {}
   };
   Object.keys(ww && typeof ww === 'object' ? ww : {}).forEach(function (k) { card.ww[clean(k)] = clean(ww[k]); });
+  // Optional provenance, written by the Open decks generator (tools/opendecks): the passage the card came from and one
+  // sentence of it that supports the answer. Players' own AI replies simply do not have them.
+  var ref = clean(raw.source_ref || raw.sourceRef || '');
+  var ev = clean(raw.evidence || '');
+  if (ref) card.source_ref = ref;
+  if (ev) card.evidence = ev;
   return card;
 }
 
@@ -138,13 +258,44 @@ export function parseAiReply(text) {
   }
   var cards = [];
   var skipped = 0;
+  var reasons = {};
+  var seen = {};
+  function skip(why) { skipped++; reasons[why] = (reasons[why] || 0) + 1; }
   parsed.forEach(function (raw) {
     var card = normalizeAiCard(raw);
     var ok = card && card.bw.length && card.ans && card.d.length === 2 &&
       card.d.every(function (x) { return x.toLowerCase() !== card.ans.toLowerCase() && !/^(n\/a|none of the above|all of the above)$/i.test(x); }) &&
       card.d[0].toLowerCase() !== card.d[1].toLowerCase();
-    if (ok) cards.push(card); else skipped++;
+    if (!ok) { skip('missing clues, an answer or two different wrong answers'); return; }
+    // Quality screens: a free chat AI often ignores parts of the prompt; these catch the three commonest ways a card becomes unplayable.
+    if (wordCount(card.ans) > MAX_ANSWER_WORDS) { skip('the answer was a whole sentence'); return; }
+    if (answerInClues(card)) { skip('a clue gave the answer away'); return; }
+    var key = card.ans.toLowerCase() + '|' + card.d.map(function (x) { return x.toLowerCase(); }).sort().join('|');
+    if (seen[key]) { skip('a duplicate card'); return; }
+    seen[key] = true;
+    cards.push(card);
   });
-  if (!cards.length) return { cards: [], error: 'No usable cards in that reply (each needs clues, an answer and exactly two different wrong answers).', skipped: skipped };
-  return { cards: cards, error: null, skipped: skipped };
+  if (!cards.length) return { cards: [], error: 'No usable cards in that reply (each needs clues, an answer and exactly two different wrong answers).', skipped: skipped, reasons: reasons };
+  return { cards: cards, error: null, skipped: skipped, reasons: reasons };
+}
+
+var MAX_ANSWER_WORDS = 8;
+var STOP_WORDS = /^(the|and|with|from|that|this|than|more|less|into|over|under|about|of|in|on|to|a|an|is|are|for|by|or|as|at|it|its|not|no|days?|weeks?|months?|years?|hours?|minutes?|seconds?|per|water|hard|level|levels|normal|rate|high|low)$/i;
+
+function wordCount(text) { return String(text).trim().split(/\s+/).filter(Boolean).length; }
+
+function keyWords(text) {
+  return String(text).toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter(function (w) { return w.length >= 4 && !STOP_WORDS.test(w); });
+}
+
+/** True when the clues contain the answer, or most of its key words (the card would give itself away). */
+function answerInClues(card) {
+  var clues = card.bw.join(' ').toLowerCase();
+  var ans = card.ans.toLowerCase();
+  if (ans.length >= 4 && clues.indexOf(ans) >= 0) return true;
+  if (/^[\d<>~\u2265\u2264\u00b1+-]/.test(card.ans.trim())) return false; // a number or threshold: the clues name the quantity, not the value
+  var words = keyWords(card.ans);
+  if (!words.length) return false;
+  var hit = words.filter(function (w) { return clues.indexOf(w) >= 0; }).length;
+  return words.length === 1 ? hit === 1 : hit / words.length > 0.6;
 }

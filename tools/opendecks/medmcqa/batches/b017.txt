@@ -1,0 +1,31 @@
+955|END|dx|Most common cause of hypoparathyroidism|Iatrogenic (neck surgery)|DiGeorge syndrome|Parathyroid hypoplasia|Accidental removal or devascularization of the parathyroids during thyroidectomy is the commonest cause.
+956|HEM|lab|Dry tap on marrow aspiration|Hairy cell leukemia|Megaloblastic anemia|Thalassemia|Marrow fibrosis in hairy cell leukemia prevents aspiration, so a trephine biopsy is needed.
+957|NEU|mech|Foramen transversarium transmits|Vertebral artery|Sigmoid sinus|Inferior petrosal sinus|The vertebral artery (V2 segment) passes through the cervical transverse foramina, except usually C7.
+958|OB|mech|Wolffian duct remnant in females: location|Broad ligament (Gartner duct)|Pouch of Douglas|Uterovesical pouch|Gartner duct remnants lie in the broad ligament and lateral vaginal wall.
+959|END|dx|Most common presentation of juvenile hypothyroidism|Growth retardation|Umbilical hernia|Neonatal jaundice|Acquired hypothyroidism in children presents with slowed growth and delayed bone age.
+960|PSY|se|Class causing extrapyramidal side effects|Antipsychotics|Antidepressants|Antiepileptics|Antipsychotics cause dystonia, parkinsonism, akathisia and tardive dyskinesia through D2 blockade.
+961|NEP|mech|Corpora amylacea|Prostate|Seminal vesicle|Thymus|Corpora amylacea are laminated hyaline concretions in the prostate that increase with age.
+963|MIX|mech|Most abundant amino acid in collagen|Glycine|Proline|Phenylalanine|Every third residue in collagen is glycine (Gly-X-Y).
+965|GI|dx|Most common site of volvulus|Sigmoid colon|Cecum|Stomach|The sigmoid colon is the commonest site of gastrointestinal volvulus.
+969|HEM|dx|Salivary tumor with perineural invasion|Adenoid cystic carcinoma|Mucoepidermoid carcinoma|Pleomorphic adenoma|Adenoid cystic carcinoma has a strong tendency for perineural spread.
+972|PED|prev|Newborn of an HBsAg-positive mother|HBIG plus hepatitis B vaccine within 12 hours|Isolation only|Vaccine alone after 1 month|Both HBIG and the first vaccine dose are given at separate sites within 12 hours of birth.
+973|HEM|dx|Birbeck granules|Langerhans cell histiocytosis|Hodgkin lymphoma|Gastrointestinal stromal tumor|Birbeck (tennis-racket) granules are seen in Langerhans cells, which express S-100 and CD1a.
+977|GI|lab|Positive rapid urea breath test|H. pylori|Klebsiella|Ureaplasma|H. pylori urease splits labeled urea, releasing labeled CO2 in the breath.
+979|PUL|mech|Reflex preventing lung over-inflation|Hering-Breuer reflex|Chemoreceptor reflex|Cough reflex|Stretch receptors in airway smooth muscle inhibit inspiration at large tidal volumes.
+980|ID|mech|InhA overexpression causes cross-resistance of isoniazid with|Ethionamide|Rifampin|Ethambutol|InhA is the target of both isoniazid and ethionamide; katG mutation causes high-level isoniazid resistance alone.
+981|HEM|dx|Most common subtype of basal cell carcinoma (rodent ulcer)|Nodular|Superficial|Pigmented|Nodular BCC accounts for about 90% of cases.
+982|MIX|mech|Complex IV (cytochrome oxidase) inhibitor|Cyanide|Malonate|Oligomycin|Cyanide, carbon monoxide and azide block cytochrome oxidase; malonate hits complex II and oligomycin ATP synthase.
+984|HEM|mech|von Willebrand factor function|Platelet adhesion (GPIb) and carries factor VIII|Platelet aggregation|Fibrinolysis|vWF bridges platelets to subendothelial collagen and stabilizes factor VIII.
+985|MIX|ph|Severe cystic acne: drug of choice|Isotretinoin|Benzoyl peroxide|Azelaic acid|Isotretinoin is a vitamin A analog for severe cystic acne and is strongly teratogenic.
+987|MIX|ph|Anesthetic with antiemetic effect favored for day surgery|Propofol|Ketamine|Enflurane|Propofol is rapid-acting, antiemetic and gives early ambulation.
+989|EM|mg|Best bedside sign of adequate fluid resuscitation in shock|Rising urine output|Thirst relief|Arterial PaO2|Urine output reflects renal and end-organ perfusion.
+993|NEP|lab|SIADH laboratory findings|Hyponatremia with urine sodium above 20 mEq/L|Hypernatremia with high urine sodium|Hyponatremia with hyperkalemia|Water retention causes dilutional hyponatremia, while sodium is still excreted in concentrated urine.
+994|NEP|mech|Substance freely filtered and neither reabsorbed nor secreted|Inulin|PAH|Glucose|Inulin clearance equals GFR; PAH measures renal plasma flow.
+997|MIX|dx|Raw egg white excess causes deficiency of|Biotin|Vitamin C|Pyridoxine|Avidin in raw egg white binds biotin; cooking denatures it.
+998|MIX|mech|Innate lymphocyte killing virus-infected cells|NK cells|Cytotoxic T cells|Memory B cells|NK cells provide early innate defense against virus-infected and tumor cells.
+1001|NEU|dx|Shy-Drager syndrome is parkinsonism plus|Autonomic failure|Sensory neuropathy|Motor neuropathy|Shy-Drager syndrome is multisystem atrophy with parkinsonism, autonomic failure and often cerebellar ataxia.
+1002|NEU|mech|Middle meningeal artery enters the skull through|Foramen spinosum|Foramen ovale|Foramen rotundum|The middle meningeal artery, a branch of the maxillary artery, passes through foramen spinosum.
+1003|ID|dx|Subacute sclerosing panencephalitis|Measles|Rubella|Mumps|SSPE is a late fatal complication of persistent measles virus infection.
+1004|ID|mech|Infective stage of Schistosoma|Cercaria|Metacercaria|Miracidium|Cercariae penetrate skin; for other trematodes the metacercaria is infective.
+1007|PSY|dx|Sweating, yawning, lacrimation, tachycardia, piloerection|Opioid withdrawal|Cocaine withdrawal|Marijuana withdrawal|Opioid withdrawal is unpleasant but rarely dangerous, with dilated pupils and piloerection.
+1008|PED|dx|Metabolic cause of childhood cirrhosis|Alpha-1 antitrypsin deficiency|Celiac disease|Phenylketonuria|Alpha-1 antitrypsin deficiency causes liver cirrhosis in children and emphysema in adults.

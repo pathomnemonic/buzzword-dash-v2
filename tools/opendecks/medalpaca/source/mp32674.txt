@@ -1,0 +1,2 @@
+What is Alemtuzumab, and what specific component of lymphocytes does it target as an antitumor monoclonal antibody?
+Alemtuzumab is an antitumor monoclonal antibody, and it targets CD52 of lymphocytes.

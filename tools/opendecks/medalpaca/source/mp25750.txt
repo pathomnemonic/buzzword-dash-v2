@@ -1,0 +1,2 @@
+What is the relative risk reduction of developing the flu for patients who receive a flu shot compared to unvaccinated patients, if 2% of vaccinated patients develop the flu while 8% of unvaccinated patients develop the flu?
+If 2% of patients who receive a flu shot develop the flu, while 8% of unvaccinated patients develop the flu, the relative risk reduction is 0.75.

@@ -1,0 +1,86 @@
+[
+ {
+  "source_ref": "25.8",
+  "ans": "GFR and renal blood flow fall",
+  "bw0": "Angiotensin II in blood loss",
+  "reason": "review: source contradicts standard physiology (Ang II keeps GFR up by efferent constriction) and its own chapter 26.3; a wrong answer is arguably right"
+ },
+ {
+  "source_ref": "19.4",
+  "ans": "Hyperthyroidism",
+  "bw0": "Tachycardia correlated",
+  "reason": "review: hint restates the answer ('excess thyroid hormone')"
+ },
+ {
+  "source_ref": "19.4",
+  "ans": "Hyperkalemia",
+  "bw0": "High blood potassium",
+  "reason": "review: hint restates the answer; source describes the effect differently in 19.4 ('weak and flaccid') and 26.3 ('will not relax')"
+ },
+ {
+  "source_ref": "26.4",
+  "ans": "Minutes",
+  "bw0": "Exhaling CO2 raises",
+  "reason": "review: unclear stem; three time-scale cards confuse each other"
+ },
+ {
+  "source_ref": "26.4",
+  "ans": "Seconds",
+  "bw0": "Time for blood chemical",
+  "reason": "review: unclear stem; three time-scale cards confuse each other"
+ },
+ {
+  "source_ref": "26.4",
+  "ans": "Hours to days",
+  "bw0": "Kidneys excrete H+",
+  "reason": "review: unclear stem; three time-scale cards confuse each other"
+ },
+ {
+  "source_ref": "26.3",
+  "ans": "Hyponatremia",
+  "bw0": "Lower-than-normal",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "26.3",
+  "ans": "Hyperkalemia",
+  "bw0": "Elevated blood potassium",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "26.3",
+  "ans": "Hypophosphatemia",
+  "bw0": "Low blood phosphate",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "26.3",
+  "ans": "Hyperphosphatemia",
+  "bw0": "High blood phosphate",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "20.2",
+  "ans": "Hypovolemia",
+  "bw0": "Low blood volume",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "20.2",
+  "ans": "Hypervolemia",
+  "bw0": "Excess fluid volume",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "26.4",
+  "ans": "Hypercapnia",
+  "bw0": "Abnormally elevated",
+  "reason": "review: hint restated the answer"
+ },
+ {
+  "source_ref": "26.4",
+  "ans": "Hypocapnia",
+  "bw0": "Abnormally low",
+  "reason": "review: hint restated the answer"
+ }
+]

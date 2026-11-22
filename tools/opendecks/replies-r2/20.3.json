@@ -1,0 +1,21 @@
+[
+{
+"subj": "Cardiology",
+"bw": [
+"Glucose, amino acids and ions cross a capillary",
+"Via transporters in channels"
+],
+"ans": "Facilitated diffusion",
+"d": [
+"Simple diffusion",
+"Bulk flow"
+],
+"tp": "Glucose, ions and larger molecules may also leave the blood through intercellular clefts.",
+"ww": {
+"Simple diffusion": "Gases and lipid-soluble molecules diffuse directly through the membrane.",
+"Bulk flow": "Bulk flow is the pressure-driven mass movement of fluid, not a transporter process."
+},
+"source_ref": "20.3",
+"evidence": "Glucose, amino acids, and ions—including sodium, potassium, calcium, and chloride—use transporters to move through specific channels in the membrane by facilitated diffusion."
+}
+]

@@ -1,0 +1,2 @@
+What is the mechanism by which IgA crosses epithelial cells?
+IgA crosses epithelial cells by transcytosis, which involves the transport of the antibody molecule across the cell through vesicles. This allows IgA to reach mucosal surfaces and provide protection against pathogens.

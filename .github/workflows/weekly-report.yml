@@ -1,0 +1,98 @@
+name: Weekly card report
+
+# Read-only refresh of the card-quality numbers. It never pushes, commits or opens issues:
+# the output is a job summary plus a downloadable workflow artifact.
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weekly-report
+  cancel-in-progress: false
+
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  CI: 'true'
+  NODE_VERSION: '22'
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run card-quality scripts
+        shell: bash
+        run: |
+          mkdir -p reports
+          : > reports/status.txt
+          # Every step is recorded rather than aborting, so one failing script still leaves the other reports.
+          run_step() {
+            name="$1"; shift
+            if "$@" > "reports/${name}.txt" 2>&1; then
+              echo "${name}: pass" >> reports/status.txt
+            else
+              echo "${name}: FAIL (exit $?)" >> reports/status.txt
+            fi
+          }
+          run_step validate-cards npm run validate:cards
+          run_step audit-cards npm run audit:cards -- --weak --dups
+          if [ -f tools/audit-content.mjs ]; then
+            run_step audit-content node tools/audit-content.mjs
+          fi
+          # The content stats script may be added later: pick up the first matching npm script if it exists.
+          stats_script=$(node -e "const s=require('./package.json').scripts||{};console.log(Object.keys(s).find(k=>/^(content[:-]stats|stats[:-]content|cards[:-]stats)$/.test(k))||'')")
+          if [ -n "$stats_script" ]; then
+            run_step "$stats_script" npm run "$stats_script"
+          else
+            echo "content stats: no npm script found, skipped" >> reports/status.txt
+          fi
+
+      - name: Write job summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "# Weekly card report"
+            echo
+            echo "Run date: $(date -u +%Y-%m-%d)"
+            echo
+            echo '## Status'
+            echo '```'
+            cat reports/status.txt 2>/dev/null || echo "no status recorded"
+            echo '```'
+            for f in reports/*.txt; do
+              [ "$(basename "$f")" = "status.txt" ] && continue
+              echo
+              echo "<details><summary>$(basename "$f" .txt)</summary>"
+              echo
+              echo '```'
+              head -c 20000 "$f"
+              echo '```'
+              echo
+              echo "</details>"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-card-report
+          path: reports
+          retention-days: 30
+          if-no-files-found: warn

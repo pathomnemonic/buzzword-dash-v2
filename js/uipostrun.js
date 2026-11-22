@@ -198,6 +198,12 @@ export var postRunMethods = {
     tpEl.style.marginTop = '5px';
     if (ok) tpEl.style.cssText = 'margin-top:4px;font-size:11px;color:var(--text-muted)';
     card.appendChild(tpEl);
+    if (c.attr) {
+      var srcEl = createElement('p', { attributes: { 'data-role': 'source-line' } });
+      setText(srcEl, 'Source: ' + c.attr);
+      srcEl.style.cssText = 'margin-top:3px;font-size:10px;color:var(--text-muted)';
+      card.appendChild(srcEl);
+    }
     if (!ok) {
       var whyWrong = (c.ww && c.ww[r.choice]) || '';
       if (whyWrong) {
@@ -278,7 +284,7 @@ export var postRunMethods = {
       setText(document.getElementById('qrCounter'), (idx + 1) + ' / ' + cards.length);
       setText(document.getElementById('qrBuzzwords'), cards[idx].card.bw.join(' • '));
       setText(document.getElementById('qrAnswer'), '✓ ' + cards[idx].card.ans);
-      setText(document.getElementById('qrTeaching'), cards[idx].card.tp);
+      setText(document.getElementById('qrTeaching'), cards[idx].card.tp + (cards[idx].card.attr ? '  (Source: ' + cards[idx].card.attr + ')' : ''));
       var qrDivider = document.getElementById('qrDivider');
       if (qrDivider) qrDivider.style.display = 'none';
       var qrReveal = document.getElementById('qrRevealBtn');

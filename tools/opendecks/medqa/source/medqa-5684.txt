@@ -1,0 +1,3 @@
+A 12-year-old African American is exposed to pollen while playing outside. The allergen stimulates TH2 cells of his immune system to secrete a factor that leads to B-cell class switching to IgE. What factor is secreted by the TH2 cell?
+Options: A) IFN-gamma; B) IL-4; C) IL-17; D) TGF-beta.
+The keyed answer is B) IL-4.

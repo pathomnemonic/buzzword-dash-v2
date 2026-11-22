@@ -1,0 +1,80 @@
+1031|Urethritis with negative Gram stain|Chlamydia trachomatis|Neisseria gonorrhoeae|Gardnerella vaginalis|S=ID
+1032|ACL tear: joint finding|Immediate hemarthrosis|Effusion developing over days|Joint warmth with fever|S=Surg
+1033|SLE antibodies linked to thrombosis|Antiphospholipid antibodies|Anti-Jo-1|Anti-centromere|S=Rheum
+1034|X|vague
+1035|Antifungal causing thrombophlebitis|Amphotericin B|Fluconazole|Terbinafine|S=ID
+1036|Estrogen effect on coagulation factor production|Increases|Decreases|No change|S=HO
+1037|Whipple disease: typical patient|Older men|Young women|Children|S=GI
+1038|Cystine stones on plain X-ray|Faintly radiopaque|Radiolucent|Densely radiopaque|S=Neph
+1039|Azole for invasive aspergillosis|Voriconazole|Fluconazole|Nystatin|S=ID
+1040|X|vague
+1041|X|ambiguous
+1042|X|list
+1043|Vaccine schedule in preterm infants|Chronologic age|Corrected gestational age|Delayed until term weight|S=Peds
+1044|Enzyme hydrolyzing triglycerides in chylomicrons|Lipoprotein lipase|Hepatic lipase|Hormone-sensitive lipase
+1045|Viruses most associated with viral myocarditis|Coxsackie B virus and adenovirus|Rotavirus and norovirus|Hepatitis A virus and rhinovirus|S=Car
+1046|PPD hypersensitivity type|Type IV|Type II|Type III|S=ID
+1047|Rhinovirus optimal growth temperature|33°C|37°C|41°C|S=ID
+1048|Ischemic stroke at 12-24 hours: histology|Red neurons|Macrophage infiltration|Glial scar|S=Neu
+1049|Parasympathetic nerve to foregut and midgut|Vagus nerve|Pelvic splanchnic nerves|Greater splanchnic nerve|S=GI
+1050|X|vague
+1051|Coagulase-positive staphylococcus|Staphylococcus aureus|Staphylococcus epidermidis|Staphylococcus saprophyticus|S=ID
+1052|Weight loss with increased appetite|Hyperthyroidism|Hypothyroidism|Cushing syndrome|S=Endo
+1053|X|vague
+1054|Vitamin depleted by methotrexate|Folate|Vitamin B12|Vitamin K|S=HO
+1055|Routine gestational diabetes screening timing|24 to 28 weeks|8 to 12 weeks|36 to 40 weeks|S=OB
+1056|Remnants of the obliterated umbilical arteries|Medial umbilical folds|Median umbilical fold|Lateral umbilical folds|S=Surg
+1057|Bacterium with cholesterol in its membrane|Mycoplasma pneumoniae|Chlamydia trachomatis|Legionella pneumophila|S=ID
+1058|Hürthle cells and lymphoid follicles in the thyroid|Hashimoto thyroiditis|Graves disease|Subacute granulomatous thyroiditis|S=Endo
+1059|X|formula
+1060|Relative polycythemia: plasma volume|Decreased|Increased|Normal|S=HO
+1061|X|imprecise
+1062|Fetal anemia from parvovirus B19: treatment|Intrauterine RBC transfusion|Maternal acyclovir|Maternal oral iron|S=OB
+1063|X|time-varying
+1064|MAC infection in HIV: CD4 count below|50 cells/μL|200 cells/μL|500 cells/μL|S=ID
+1065|X|vague
+1066|Cephalosporin for viridans or HACEK endocarditis|Ceftriaxone|Cephalexin|Cefixime|S=Car
+1067|Elderly: constipation, LLQ pain, fever, leukocytosis|Acute diverticulitis|Ischemic colitis|Appendicitis|S=GI
+1068|X|vague
+1069|Lactational mastitis antibiotic|Dicloxacillin|Metronidazole|Nystatin|S=OB
+1070|Targets of anti-SSA and anti-SSB antibodies|Ribonucleoproteins|Histones|Centromere proteins|S=Rheum
+1071|X|duplicate concept of card 353
+1072|Commonest tracheoesophageal anomaly (85%)|Esophageal atresia with distal fistula|Isolated esophageal atresia|H-type fistula|S=Peds
+1073|Amiodarone: effect of class II activity|Heart block or bradycardia|Pulmonary fibrosis|Corneal deposits|S=Car
+1074|Low distal Na+: macula densa effect on afferent arteriole|Dilation|Constriction|No change|S=Neph
+1075|X|dubious
+1076|Treatment of plague|Streptomycin or gentamicin|Penicillin G|Metronidazole|S=ID
+1077|Embryonic origin of the adrenal medulla|Neural crest|Mesoderm|Endoderm|S=Endo
+1078|Confirmatory test for Pneumocystis pneumonia|Bronchoalveolar lavage|Blood culture|Urine antigen|S=ID
+1079|Stimulus for GI somatostatin secretion|Low pH|Vagal stimulation|Amino acids|S=GI
+1080|Sildenafil, tadalafil, vardenafil class|PDE-5 inhibitors|Alpha blockers|Nitrates
+1081|X|vague
+1082|Site of bile salt absorption|Terminal ileum|Duodenum|Jejunum|S=GI
+1083|X|vague
+1084|Corrected calcium formula|Ca + 0.8 × (4 − albumin)|Ca + 0.2 × (4 − albumin)|Ca − 0.8 × (4 − albumin)
+1085|X|vague
+1086|X|vague
+1087|Disinfectant halogenating proteins and nucleic acids|Iodine|Ethanol|Formaldehyde|S=ID
+1088|Loperamide receptor|μ-opioid receptor|Muscarinic M3 receptor|5-HT3 receptor|S=GI
+1089|X|vague
+1090|X|dubious
+1091|Random error: effect on precision|Reduces precision|Reduces accuracy only|Increases precision
+1092|Lysosomal targeting tag added in the Golgi|Mannose-6-phosphate|Ubiquitin|KDEL sequence
+1093|Comatose infant with subdural hematoma|Abusive head trauma|Epidural hematoma from birth trauma|Neonatal sepsis|S=Peds
+1094|Proximal tubule regulation mechanism|Glomerulotubular balance|Tubuloglomerular feedback|Renin-angiotensin system|S=Neph
+1095|X|garbled
+1096|Ligand for CD21 on B cells|C3d|C5a|C1q
+1097|Foscarnet: analog of|Pyrophosphate|Guanosine|Cytosine|S=ID
+1098|Primary hypothyroidism: TSH|Increased|Decreased|Normal|S=Endo
+1099|Foscarnet toxicity|Nephrotoxicity|Neutropenia|Pulmonary fibrosis|S=ID
+1100|X|vague
+1101|X|obscure
+1102|RBC Cl-/HCO3- exchanger|Band 3 protein|Spectrin|Ankyrin|S=HO
+1103|X|vague
+1104|Neurogenic tumors: mediastinal location|Posterior mediastinum|Anterior mediastinum|Middle mediastinum|S=Pul
+1105|X|vague
+1106|X|duplicate of card 984
+1107|Secondary TB: lobes affected|Upper lobes|Lower lobes|Right middle lobe|S=Pul
+1108|X|vague
+1109|Platelet receptor for ADP|P2Y12|Glycoprotein IIb/IIIa|PAR-1|S=HO
+1110|Medium where S. aureus ferments and turns yellow|Mannitol salt agar|MacConkey agar|Eosin methylene blue agar|S=ID

@@ -1,0 +1,1 @@
+EHEC can be differentiated from other E.coli as it is sorbitol non fermenter, hence it produces colorless colony on Sorbitol MacConkey media whereas others can ferment sorbitol producing pink colony.

@@ -26,13 +26,20 @@
 import { requireGate } from './pro.js';
 import { applyProLock } from './proui.js';
 import { track } from './analytics/index.js';
-import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply } from './importguide.js';
-import { copyText } from './platform.js';
+import { IMPORT_PATHS, FORMAT_HELP, FORMAT_EXAMPLE, buildAiPrompt, parseAiReply, POPULAR_DECKS, POPULAR_DECK_STEPS, NO_AUTO_DOWNLOAD } from './importguide.js';
+import { copyText, openExternal } from './platform.js';
+import { renderFilterPanel } from './ankifilterui.js';
+import { renderOpenDecks } from './opendecksui.js';
+import { guessSubject } from './ankitags.js';
+import { stripHtml, hashKey, splitTags, noteRecords, clozeCards, parseCloze, isMediaOnly } from './ankinotes.js';
+import { readApkg, friendlyApkgMessage, MAX_PARSED_CARDS } from './apkgparse.js';
+import { startApkgRead } from './apkgclient.js';
 
 // ===== LIMITS =====
-var MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
-var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB
-var MAX_CARDS_PER_IMPORT = 5000;
+var MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB: only the collection inside is read, so media does not count against memory
+var MAX_DELIMITED_TEXT_LENGTH = 10 * 1024 * 1024; // 10 MB pasted
+var MAX_DELIMITED_FILE_BYTES = 80 * 1024 * 1024;  // 80 MB for a text export read from a file
+var MAX_CARDS_PER_IMPORT = 5000; // what importRaw takes when the caller does not say otherwise
 
 // ===== STATE =====
 var _mounted = false;
@@ -40,20 +47,8 @@ var _containerEl = null;
 var _dependencies = null;
 var _parsedCards = null;
 var _abortController = null;
-
-// ===== LIBRARIES (bundled, loaded only when an .apkg is imported, so they also work offline) =====
-
-async function loadJSZip() {
-  var mod = await import('jszip');
-  return mod.default || mod;
-}
-
-async function loadSqlJs() {
-  var mods = await Promise.all([import('sql.js'), import('sql.js/dist/sql-wasm.wasm?url')]);
-  var init = mods[0].default || mods[0];
-  var wasmUrl = mods[1].default;
-  return init({ locateFile: function () { return wasmUrl; } });
-}
+var _readJob = null; // the .apkg being read right now (see apkgclient.js)
+var _openDecks = null; // the Open decks list (see opendecksui.js)
 
 // ===== BOM HANDLING =====
 
@@ -67,64 +62,6 @@ function stripBOM(text) {
     return text.slice(1);
   }
   return text;
-}
-
-// ===== HTML STRIPPING =====
-
-/**
- * Strip HTML tags from a string and decode common entities.
- * @param {string} html
- * @returns {string}
- */
-function stripHtml(html) {
-  if (!html) return '';
-  var text = html.replace(/\[sound:[^\]]*\]/gi, ' ').replace(/<[^>]*>/g, ' ');
-  text = text.replace(/&amp;/g, '&');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
-  text = text.replace(/&quot;/g, '"');
-  text = text.replace(/&#39;/g, "'");
-  text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&#x27;|&apos;/g, "'");
-  text = text.replace(/\s+/g, ' ');
-  return text.trim();
-}
-
-/** A side that is only a picture or sound placeholder ("[image]", empty after tags are removed) cannot be studied as text. */
-function isMediaOnly(text) {
-  var t = String(text || '').trim();
-  return t === '' || /^\[?\s*(image|img|picture|photo|audio|sound|video)[^\]a-z]*\]?$/i.test(t);
-}
-
-// ===== CLOZE NOTES ({{c1::answer::hint}}) =====
-
-/**
- * Turn a cloze note into one card per cloze number: the front hides that number's answer as [...] (or
- * [hint]) while the other clozes are shown, and the back is the answer, with the note's extra field.
- * @param {string[]} fields the note's fields
- * @returns {Array<{front: string, back: string}>|null} null when the note has no cloze
- */
-function clozeCards(fields) {
-  var text = fields[0] || '';
-  var re = /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
-  var nums = [];
-  var m;
-  while ((m = re.exec(text))) { if (nums.indexOf(m[1]) < 0) nums.push(m[1]); }
-  if (!nums.length) return null;
-  var extra = stripHtml(fields[1] || '');
-  var out = [];
-  nums.forEach(function (n) {
-    var answers = [];
-    var front = text.replace(/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g, function (all, num, ans, hint) {
-      if (num === n) { answers.push(stripHtml(ans)); return '[' + (hint ? stripHtml(hint) : '...') + ']'; }
-      return ans;
-    });
-    var back = answers.join(', ');
-    if (extra) back += ' (' + extra + ')';
-    front = stripHtml(front);
-    if (front && back) out.push({ front: front, back: back });
-  });
-  return out;
 }
 
 // ===== CSV/TSV PARSING (RFC 4180 compliant with liberal extensions) =====
@@ -158,8 +95,9 @@ function parseDelimitedText(text, options) {
     return { cards: [], warnings: ['No text provided.'] };
   }
 
-  if (text.length > MAX_DELIMITED_TEXT_LENGTH) {
-    return { cards: [], warnings: ['Text exceeds maximum size limit of ' + Math.round(MAX_DELIMITED_TEXT_LENGTH / 1024 / 1024) + ' MB.'] };
+  var maxLength = options.maxLength || MAX_DELIMITED_TEXT_LENGTH;
+  if (text.length > maxLength) {
+    return { cards: [], warnings: ['Text exceeds maximum size limit of ' + Math.round(maxLength / 1024 / 1024) + ' MB.'] };
   }
 
   text = stripBOM(text);
@@ -168,9 +106,10 @@ function parseDelimitedText(text, options) {
   var directives = {};
   var lines = text.split(/\r\n|\n|\r/);
   var skip = 0;
-  while (skip < lines.length && /^#[a-z ]+:/i.test(lines[skip])) {
+  while (skip < lines.length && /^#/.test(lines[skip])) {
+    // "#separator:tab" style settings are read; any other "# comment" line is just skipped
     var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
-    directives[dm[1].trim().toLowerCase()] = dm[2].trim();
+    if (dm) directives[dm[1].trim().toLowerCase()] = dm[2].trim();
     skip++;
   }
   if (skip > 0) text = lines.slice(skip).join('\n');
@@ -187,14 +126,19 @@ function parseDelimitedText(text, options) {
 
   // Auto-detect delimiter if not specified
   if (!delimiter) {
-    var firstChunk = text.substring(0, Math.min(text.length, 2000));
-    var tabCount = 0;
-    var commaCount = 0;
-    for (var ci = 0; ci < firstChunk.length; ci++) {
-      if (firstChunk[ci] === '\t') tabCount++;
-      if (firstChunk[ci] === ',') commaCount++;
+    // A tab on the first non-empty line means a TSV (clinical text is full of commas, so counting them would guess wrong)
+    var firstLine = (text.split(/\r\n|\n|\r/).find(function (l) { return l.trim() !== ''; })) || '';
+    if (firstLine.indexOf('\t') >= 0) delimiter = '\t';
+    else {
+      var firstChunk = text.substring(0, Math.min(text.length, 2000));
+      var tabCount = 0;
+      var commaCount = 0;
+      for (var ci = 0; ci < firstChunk.length; ci++) {
+        if (firstChunk[ci] === '\t') tabCount++;
+        if (firstChunk[ci] === ',') commaCount++;
+      }
+      delimiter = tabCount >= commaCount ? '\t' : ',';
     }
-    delimiter = tabCount >= commaCount ? '\t' : ',';
   }
 
   var frontCol = typeof options.frontColumn === 'number' ? options.frontColumn : 0;
@@ -202,6 +146,17 @@ function parseDelimitedText(text, options) {
 
   // Parse into rows of fields using RFC 4180-style state machine
   var rows = _parseCSVRows(text, delimiter, warnings);
+
+  // Note type names (when the export has them) tell "optional reversed" notes, whose 3rd field is just a "y" flag
+  var ntIdx = parseInt(directives['notetype column'], 10) - 1;
+  var twoFieldRows = rows.map(function (r) { return ntIdx >= 0 && /optional reversed|type in the answer/i.test(r[ntIdx] || ''); });
+
+  // Anki's own GUID and tags columns: kept per row (they key re-imports and feed the tag filter) before they are dropped
+  var guidIdx = parseInt(directives['guid column'], 10) - 1;
+  var tagsIdx = parseInt(directives['tags column'], 10) - 1;
+  var rowMeta = rows.map(function (r) {
+    return { guid: guidIdx >= 0 ? (r[guidIdx] || '').trim() : '', tags: tagsIdx >= 0 ? splitTags(r[tagsIdx]) : [] };
+  });
 
   // Drop Anki's GUID / note type / deck / tags columns so only the card fields are left
   if (Object.keys(metaCols).length) {
@@ -218,6 +173,13 @@ function parseDelimitedText(text, options) {
 
   var cards = [];
   var minCols = Math.max(frontCol, backCol) + 1;
+  var seenKeys = Object.create(null);
+  function push(rec) {
+    // the same note twice in one file: the first one wins
+    if (rec.key && seenKeys[rec.key]) return;
+    if (rec.key) seenKeys[rec.key] = true;
+    cards.push(rec);
+  }
 
   for (var ri = startRow; ri < rows.length; ri++) {
     var row = rows[ri];
@@ -230,13 +192,24 @@ function parseDelimitedText(text, options) {
       warnings.push('Row ' + (ri + 1) + ': expected at least ' + minCols + ' columns, got ' + row.length + '. Skipped.');
       continue;
     }
+    var meta = rowMeta[ri] || { guid: '', tags: [] };
+
+    // Cloze text ({{c1::answer}}) in a plain export: one card per cloze, like the .apkg importer
+    if (/\{\{c\d+::/i.test(row[frontCol] || '')) {
+      var nr = noteRecords(row.slice(frontCol), { guid: meta.guid, tags: meta.tags });
+      if (nr.records.length) { nr.records.forEach(push); continue; }
+    }
 
     var front = row[frontCol] ? row[frontCol].trim() : '';
     var back = row[backCol] ? row[backCol].trim() : '';
+    var extraCols = [];
 
-    // If back column is not specified and there are more columns, join them
+    // If back column is not specified and there are more columns, join the non-empty ones
+    // (empty columns are left out: Anki pads every note out to the note type's field count)
     if (backCol === 1 && row.length > 2 && options.backColumn === undefined) {
-      back = row.slice(1).join(', ').trim();
+      extraCols = row.slice(2).filter(function (c) { return c.trim() !== ''; });
+      if (!twoFieldRows[ri]) back = [back].concat(extraCols).filter(function (c) { return c !== ''; }).join(', ').trim();
+      else extraCols = [];
     }
 
     if (stripTags) {
@@ -244,22 +217,20 @@ function parseDelimitedText(text, options) {
       back = stripHtml(back.replace(/<br\s*\/?>/gi, ' / '));
     }
 
-    // Cloze text ({{c1::answer}}) in a plain export: one card per cloze, like the .apkg importer
-    if (/\{\{c\d+::/.test(front)) {
-      var cz = clozeCards([front, back]);
-      if (cz && cz.length) { cz.forEach(function (c) { cards.push(c); }); continue; }
-    }
-
     if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) {
-      cards.push({ front: front, back: back });
+      push({
+        front: front, back: back, teach: '', tags: meta.tags,
+        guid: meta.guid, key: meta.guid || hashKey(front + '\u0001' + back),
+        suspended: false, buried: false, hasExtra: extraCols.length > 0
+      });
     } else if (front || back) {
       warnings.push('Row ' + (ri + 1) + ': one side is empty or only a picture/sound. Skipped.');
     }
   }
 
-  if (cards.length > MAX_CARDS_PER_IMPORT) {
-    warnings.push('Truncated to ' + MAX_CARDS_PER_IMPORT + ' cards (found ' + cards.length + ').');
-    cards = cards.slice(0, MAX_CARDS_PER_IMPORT);
+  if (cards.length > MAX_PARSED_CARDS) {
+    warnings.push('Only the first ' + MAX_PARSED_CARDS + ' cards were read (found ' + cards.length + ').');
+    cards = cards.slice(0, MAX_PARSED_CARDS);
   }
 
   return { cards: cards, warnings: warnings };
@@ -373,136 +344,57 @@ function _parseCSVRows(text, delim, warnings) {
 // ===== APKG PARSING =====
 
 /**
- * Parse an .apkg file (Anki deck package).
- * Loads JSZip and sql.js dynamically from CDN.
- * The .apkg is a ZIP containing a SQLite database with notes table.
- * Fields in each note are separated by \x1f (unit separator). [2]
- *
- * SQLite resources are cleaned in finally blocks per Section 28.3.
- * File size is checked before loading per Section 28.3.
+ * Parse an .apkg / .colpkg file (Anki deck package) into importable records.
+ * Only the collection database inside the ZIP is read (never the media), so the file may be several GB: see apkgzip.js.
+ * Reads on the calling thread; the importer screen uses startApkgRead (a Web Worker) so the page stays responsive.
  *
  * @param {File} file - A File object (.apkg)
- * @param {object} [options]
- * @returns {Promise<{ cards: Array<{front: string, back: string}>, warnings: string[] }>}
+ * @param {{onProgress?: function(string, number, number): void, isCancelled?: function(): boolean}} [options]
+ * @returns {Promise<{ cards: object[], warnings: string[] }>} on failure: no cards and one friendly sentence in warnings
  */
 async function parseApkg(file, options) {
   options = options || {};
-  var warnings = [];
-
-  if (!file) {
-    return { cards: [], warnings: ['No file provided.'] };
-  }
-
-  // File size limit check (Section 28.3)
+  if (!file) return { cards: [], warnings: ['No file provided.'] };
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return {
-      cards: [],
-      warnings: ['File too large (' + Math.round(file.size / 1024 / 1024) + ' MB). Maximum is ' + Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024) + ' MB.']
-    };
+    return { cards: [], warnings: ['File too large (' + (file.size / 1024 / 1024 / 1024).toFixed(1) + ' GB). Maximum is ' + Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024 / 1024) + ' GB.'] };
   }
-
-  // Read the file as ArrayBuffer
-  var arrayBuffer = await file.arrayBuffer();
-
-  // Unzip with JSZip
-  var JSZip = await loadJSZip();
-  var zip = await JSZip.loadAsync(arrayBuffer);
-
-  // Look for the SQLite database file inside the ZIP
-  var dbFile = null;
-  // collection.anki21 holds the real notes when present (collection.anki2 is then only a stand-in)
-  var dbFilenames = ['collection.anki21', 'collection.anki2'];
-
-  for (var fi = 0; fi < dbFilenames.length; fi++) {
-    if (zip.files[dbFilenames[fi]]) {
-      dbFile = zip.files[dbFilenames[fi]];
-      break;
-    }
-  }
-
-  if (!dbFile) {
-    var modern = !!zip.files['collection.anki21b'];
-    return {
-      cards: [],
-      warnings: [
-        modern
-          ? 'This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.'
-          : 'Could not find a collection in the .apkg file. Re-export it from Anki with "Support older Anki versions" ticked.'
-      ]
-    };
-  }
-
-  // Extract the database file as Uint8Array
-  var dbData = await dbFile.async('uint8array');
-
-  // Initialize sql.js with WASM
-  var SQL = await loadSqlJs();
-
-  // Open the database — cleanup in finally (Section 28.3)
-  var db = null;
-  var stmt = null;
-  var results = [];
-
+  var cards = [];
   try {
-    db = new SQL.Database(dbData);
-
-    try {
-      stmt = db.prepare('SELECT flds FROM notes');
-
-      while (stmt.step()) {
-        var row = stmt.get();
-        var flds = row[0];
-
-        if (typeof flds === 'string') {
-          var fields = flds.split('\x1f');
-          var cloze = clozeCards(fields);
-          if (cloze) {
-            cloze.forEach(function (c) { results.push(c); });
-          } else if (fields.length >= 2) {
-            var front = stripHtml(fields[0]).trim();
-            var back = stripHtml(fields[1]).trim();
-            if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) {
-              results.push({ front: front, back: back });
-            } else {
-              warnings.push('A note with only a picture or sound was skipped.');
-            }
-          }
-        }
-      }
-    } finally {
-      // Always free the statement (Section 28.3)
-      if (stmt) {
-        try { stmt.free(); } catch (e) {
-          // Best-effort cleanup: statement may already be freed.
-        }
-      }
-    }
+    var stats = await readApkg(file, {
+      emit: function (batch) { for (var i = 0; i < batch.length; i++) cards.push(batch[i]); },
+      onProgress: options.onProgress,
+      isCancelled: options.isCancelled
+    });
+    return { cards: stats.stub ? [] : cards, warnings: stats.warnings };
   } catch (e) {
-    warnings.push('Error reading notes from database: ' + (e.message || String(e)));
-  } finally {
-    // Always close the database (Section 28.3)
-    if (db) {
-      try { db.close(); } catch (e) {
-        // Best-effort cleanup: db may already be closed.
-      }
-    }
+    return { cards: [], warnings: [friendlyApkgMessage(e)] };
   }
-
-  // A deck exported without "Support older Anki versions" holds a single note asking you to update Anki
-  if (results.length === 1 && /update to the latest anki/i.test(results[0].front + ' ' + results[0].back)) {
-    results = [];
-    warnings.push('This deck was exported in the newest Anki format, which cannot be read here. In Anki choose Export, tick "Support older Anki versions", and import the new file.');
-  }
-
-  if (results.length > MAX_CARDS_PER_IMPORT) {
-    warnings.push('Truncated to ' + MAX_CARDS_PER_IMPORT + ' cards (found ' + results.length + ').');
-    results = results.slice(0, MAX_CARDS_PER_IMPORT);
-  }
-
-  return { cards: results, warnings: warnings };
 }
 
 // ===== RAW IMPORT (flashcard-only, no placeholder distractors) =====
+
+/**
+ * One parsed card as the input customCards takes: a flashcard-only card (Section 9.4), no distractors, so it is
+ * only offered in Flashcard mode. Keeps the Anki tags, a re-import key and the subject the tags point at.
+ * @returns {object|null} null when a side is empty
+ */
+function cardInput(card) {
+  var front = (card.front || '').trim();
+  var back = (card.back || '').trim();
+  if (!front || !back) return null;
+  var tags = Array.isArray(card.tags) ? card.tags : [];
+  return {
+    subject: guessSubject(tags),
+    buzzwords: [front],
+    answer: back,
+    distractors: [],
+    teachingPoint: card.teach || back,
+    tags: tags,
+    key: card.key || hashKey(front + '\u0001' + back),
+    enabledModes: ['flashcard']
+  };
+}
+
 
 /**
  * Import raw front/back cards as flashcard-only custom cards.
@@ -530,29 +422,17 @@ function importRaw(cards, options) {
   var customCards = _dependencies.customCards;
   if (!requireGate('anki_import', { used: cards.length })) return { imported: 0, rejected: 0, warnings: ['Importing a deck this size needs Dx Dash Pro.'] };
 
-  var limit = Math.min(cards.length, MAX_CARDS_PER_IMPORT);
+  var limit = Math.min(cards.length, options.limit || MAX_CARDS_PER_IMPORT);
   var batch = [];
 
   for (var i = 0; i < limit; i++) {
-    var card = cards[i];
-    var front = (card.front || '').trim();
-    var back = (card.back || '').trim();
-
-    if (!front || !back) {
+    var card = cardInput(cards[i]);
+    if (!card) {
       rejected++;
       warnings.push('Card ' + (i + 1) + ': empty front or back. Skipped.');
       continue;
     }
-
-    // A raw flashcard-only card (Section 9.4): no distractors, so it is only offered in Flashcard mode
-    batch.push({
-      subject: 'Multisystem / Mixed',
-      buzzwords: [front],
-      answer: back,
-      distractors: [],
-      teachingPoint: back,
-      enabledModes: ['flashcard']
-    });
+    batch.push(card);
   }
 
   if (typeof customCards.addMany === 'function') {
@@ -574,12 +454,50 @@ function importRaw(cards, options) {
     });
   }
 
-  if (cards.length > MAX_CARDS_PER_IMPORT) {
-    warnings.push('Only the first ' + MAX_CARDS_PER_IMPORT + ' cards were processed.');
+  if (cards.length > limit) {
+    warnings.push('Only the first ' + limit + ' cards were processed.');
   }
 
   track('anki_import', { outcome: imported > 0 ? 'ok' : 'empty', cards: imported, skipped: rejected, kind: (options && options.kind) || 'file' });
   return { imported: imported, rejected: rejected, warnings: warnings };
+}
+
+/**
+ * Import the cards the player picked, in chunks (so the page stays responsive on a 30,000 card deck), reporting
+ * progress. A card whose Anki guid (or text) was imported before updates that card instead of adding a copy.
+ *
+ * @param {object[]} cards parsed cards (see parseApkg)
+ * @param {{onProgress?: function(number, number), kind?: string}} [options]
+ * @returns {Promise<{imported: number, updated: number, unchanged: number, rejected: number, warnings: string[], saved: boolean, limitReached: boolean}>}
+ */
+async function importSelected(cards, options) {
+  options = options || {};
+  var empty = { imported: 0, updated: 0, unchanged: 0, rejected: 0, warnings: [], saved: true, limitReached: false, cancelled: false };
+  if (!cards || !Array.isArray(cards) || cards.length === 0) return Object.assign(empty, { warnings: ['No cards to import.'] });
+  if (!_dependencies || !_dependencies.customCards) return Object.assign(empty, { warnings: ['Custom cards module not available.'] });
+  var customCards = _dependencies.customCards;
+  if (!requireGate('anki_import', { used: cards.length })) return Object.assign(empty, { warnings: ['Importing a deck this size needs Dx Dash Pro.'] });
+
+  var inputs = [];
+  var rejected = 0;
+  cards.forEach(function (c) {
+    var inp = cardInput(c);
+    if (inp) inputs.push(inp); else rejected++;
+  });
+
+  var res;
+  if (typeof customCards.upsertMany === 'function') {
+    res = await customCards.upsertMany(inputs, { onProgress: options.onProgress, isCancelled: options.isCancelled });
+  } else {
+    var many = customCards.addMany(inputs);
+    res = { added: many.added, updated: 0, unchanged: 0, rejected: many.rejected, warnings: many.warnings, saved: true, limitReached: !!many.limitReached, cancelled: false };
+  }
+  var out = {
+    imported: res.added, updated: res.updated, unchanged: res.unchanged, rejected: res.rejected + rejected,
+    warnings: res.warnings, saved: res.saved, limitReached: res.limitReached, cancelled: !!res.cancelled
+  };
+  track('anki_import', { outcome: out.imported + out.updated > 0 ? 'ok' : 'empty', cards: out.imported, skipped: out.rejected, kind: options.kind || 'file' });
+  return out;
 }
 
 // ===== BACKEND AI CONVERSION (Section 28.4) =====
@@ -835,7 +753,9 @@ function mount(container, dependencies) {
 function unmount() {
   _mounted = false;
   _parsedCards = null;
+  if (_openDecks) { try { _openDecks.destroy(); } catch (e) { /* already gone */ } _openDecks = null; }
 
+  if (_readJob) { try { _readJob.cancel(); } catch (e) { /* already finished */ } _readJob = null; }
   if (_abortController) {
     try { _abortController.abort(); } catch (e) {
       // Best-effort cleanup.
@@ -872,6 +792,62 @@ function _renderUI() {
   section.appendChild(_el('h4', { text: '📥 Bring in your own cards' }));
   section.appendChild(_el('p', { text: 'Two ways in. Pick one; both take a minute.', style: muted }));
 
+  // ----- Open decks: ready-made decks under open licences, one tap, no login (js/opendecksui.js) -----
+  var openDecksHost = _el('div', { className: 'open-decks-host' });
+  section.appendChild(openDecksHost);
+
+  // ----- Popular decks: where to get them, then pick the tags you want -----
+  var popular = _el('div', { className: 'anki-popular', style: { margin: '10px 0 14px' } });
+  var popHead = _el('h5', { text: '\uD83D\uDCDA Import a popular deck', style: { margin: '4px 0' } });
+  applyProLock(popHead, 'anki_import');
+  popular.appendChild(popHead);
+  popular.appendChild(_el('p', { text: 'AnKing, Zanki, Lightyear and other decks: get your copy from the official page, then choose exactly which tags to bring in.', style: muted }));
+  var deckList = _el('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px', margin: '8px 0' } });
+  POPULAR_DECKS.forEach(function (d) {
+    var card = _el('div', { className: 'popular-deck', dataset: { deck: d.id }, style: { border: '1px solid rgba(187,102,255,.25)', borderRadius: '10px', padding: '8px 10px', display: 'flex', gap: '8px', alignItems: 'center' } });
+    var info = _el('div', { style: { flex: '1', minWidth: '0' } });
+    info.appendChild(_el('div', { text: d.name, style: { fontWeight: '700', fontSize: '13px' } }));
+    info.appendChild(_el('div', { text: d.blurb, style: { fontSize: '11px', color: 'var(--text-secondary, #aaa)', lineHeight: '1.4' } }));
+    info.appendChild(_el('div', { text: d.tip, style: { fontSize: '11px', color: 'var(--text-muted, #888)', lineHeight: '1.4' } }));
+    card.appendChild(info);
+    var open = _el('a', { className: 'btn btn-outline btn-sm', text: (d.verified ? 'Open on ' : 'Search on ') + d.site, style: { flex: 'none', textDecoration: 'none', textAlign: 'center' } });
+    open.href = d.url;
+    open.target = '_blank';
+    open.rel = 'noopener noreferrer';
+    open.setAttribute('aria-label', 'Open the official page for ' + d.name + ' on ' + d.site);
+    open.addEventListener('click', function (ev) { ev.preventDefault(); openExternal(d.url); });
+    card.appendChild(open);
+    deckList.appendChild(card);
+  });
+  popular.appendChild(deckList);
+  var steps = _el('ol', { style: { margin: '6px 0 8px', paddingLeft: '20px', fontSize: '12px', lineHeight: '1.6' } });
+  POPULAR_DECK_STEPS.forEach(function (st) { steps.appendChild(_el('li', { text: st })); });
+  popular.appendChild(steps);
+  var dropZone = _el('label', { className: 'anki-dropzone', style: { display: 'block', border: '2px dashed rgba(187,102,255,.4)', borderRadius: '12px', padding: '14px', textAlign: 'center', fontSize: '12px', cursor: 'pointer', color: 'var(--text-secondary, #aaa)' } });
+  dropZone.appendChild(_el('span', { text: 'Drop your .apkg, .colpkg or .txt here, or tap to choose it' }));
+  var deckFile = _el('input', { type: 'file', accept: '.apkg,.colpkg,.csv,.tsv,.txt', style: { display: 'block', margin: '8px auto 0', fontSize: '12px', maxWidth: '100%' } });
+  deckFile.setAttribute('aria-label', 'Choose an Anki deck export (.apkg, .colpkg, .txt)');
+  dropZone.appendChild(deckFile);
+  popular.appendChild(dropZone);
+  var readBox = _el('div', { className: 'anki-readbox', style: { display: 'none', margin: '8px 0' } });
+  var readBar = _el('progress', { style: { width: '100%' } });
+  readBar.max = 100; readBar.value = 0;
+  readBar.setAttribute('aria-label', 'Reading the deck');
+  var readLabel = _el('div', { style: { fontSize: '12px', color: 'var(--text-secondary, #aaa)', margin: '4px 0', lineHeight: '1.5' } });
+  readLabel.setAttribute('aria-live', 'polite');
+  var readCancel = _el('button', { className: 'btn btn-outline btn-sm btn-block', text: 'Cancel', type: 'button' });
+  readBox.appendChild(readBar); readBox.appendChild(readLabel); readBox.appendChild(readCancel);
+  popular.appendChild(readBox);
+  var whyNot = _el('details', { className: 'import-howto', style: { margin: '8px 0' } });
+  whyNot.appendChild(_el('summary', { text: 'Why is there no automatic download?', style: { cursor: 'pointer', fontSize: '12px' } }));
+  var whyList = _el('ul', { style: { margin: '6px 0 0', paddingLeft: '18px', fontSize: '11px', lineHeight: '1.5', color: 'var(--text-secondary, #aaa)' } });
+  NO_AUTO_DOWNLOAD.forEach(function (t) { whyList.appendChild(_el('li', { text: t })); });
+  whyNot.appendChild(whyList);
+  popular.appendChild(whyNot);
+  var filterHost = _el('div', { className: 'anki-filter-host' });
+  popular.appendChild(filterHost);
+  section.appendChild(popular);
+
   // ----- How-to (always visible; the first path is open) -----
   IMPORT_PATHS.forEach(function (path, idx) {
     var details = _el('details', { className: 'import-howto', style: { margin: '8px 0' } });
@@ -884,16 +860,9 @@ function _renderUI() {
   });
 
   // ----- Path 1: flashcards -----
-  var ankiHead = _el('h5', { text: 'Anki or spreadsheet cards', style: { margin: '14px 0 4px' } });
+  var ankiHead = _el('h5', { text: 'Or paste cards from Anki or a spreadsheet', style: { margin: '14px 0 4px' } });
   applyProLock(ankiHead, 'anki_import');
   section.appendChild(ankiHead);
-  var fileInput = _el('input', {
-    type: 'file', accept: '.apkg,.csv,.tsv,.txt',
-    style: { width: '100%', marginBottom: '8px', fontSize: '12px', color: 'var(--text-primary, #fff)' }
-  });
-  fileInput.setAttribute('aria-label', 'Upload an Anki export or spreadsheet (.apkg, .txt, .csv, .tsv)');
-  section.appendChild(fileInput);
-
   var pasteArea = _el('textarea', {
     rows: 5, placeholder: 'Or paste cards here: front, a tab or comma, then back. One card per line.', style: fieldStyle
   });
@@ -968,17 +937,20 @@ function _renderUI() {
     }
     var pasteText = pasteArea.value.trim();
     if (pasteText) return parseDelimitedText(pasteText);
-    if (fileInput.files && fileInput.files.length > 0) return await parseFileInput(fileInput.files[0]);
-    return { cards: [], warnings: ['Nothing to import yet. Upload a file or paste your cards first.'] };
+    return { cards: [], warnings: ['Nothing to import yet. Paste your cards first, or choose a file in the box above.'] };
   }
 
   async function parseFileInput(file) {
     var name = file.name.toLowerCase();
-    if (name.endsWith('.apkg')) {
-      setStatus('Reading the Anki deck…');
-      return await parseApkg(file);
+    if (name.endsWith('.apkg') || name.endsWith('.colpkg')) {
+      setStatus('');
+      if (file.size > MAX_FILE_SIZE_BYTES) return { cards: [], warnings: ['That file is ' + (file.size / 1073741824).toFixed(1) + ' GB, more than the ' + Math.round(MAX_FILE_SIZE_BYTES / 1073741824) + ' GB this app can open. Export a smaller part of the deck from Anki.'] };
+      return await readApkgFile(file);
     }
-    return parseDelimitedText(await file.text());
+    if (file.size > MAX_DELIMITED_FILE_BYTES) return { cards: [], warnings: ['That text file is ' + Math.round(file.size / 1048576) + ' MB, more than the ' + Math.round(MAX_DELIMITED_FILE_BYTES / 1048576) + ' MB this app reads as text. Export the deck as an .apkg instead, or a smaller part of it.'] };
+    setStatus('Reading ' + file.name + '…');
+    await new Promise(function (r) { setTimeout(r, 0); }); // let the message paint before the (synchronous) parse
+    return parseDelimitedText(await file.text(), { maxLength: MAX_DELIMITED_FILE_BYTES });
   }
 
   exampleBtn.addEventListener('click', function () {
@@ -1000,20 +972,106 @@ function _renderUI() {
     }, 250);
   });
 
-  fileInput.addEventListener('change', async function () {
-    if (!fileInput.files || fileInput.files.length === 0) return;
+  var panel = null;
+  function closePanel() { if (panel) { panel.destroy(); panel = null; } }
+
+  function storeInfo() {
+    var cc = _dependencies && _dependencies.customCards;
+    var all = cc && typeof cc.getAll === 'function' ? cc.getAll() : [];
+    var keys = Object.create(null);
+    all.forEach(function (c) { if (c.ak) keys[c.ak] = true; });
+    // sizes are estimated from a sample (serializing 30,000 cards just to show a number would freeze the page)
+    var bytes = 0;
     try {
-      setStatus('Reading file…');
-      var result = await parseFileInput(fileInput.files[0]);
-      _parsedCards = result.cards;
-      showPreview(result);
-      if (result.cards.length) setStatus('Ready. Tap "Import as flashcards".', GREEN);
-      else setStatus(result.warnings[0] || 'No cards found in that file.', RED);
+      var n = Math.min(all.length, 200);
+      for (var i = 0; i < n; i++) bytes += JSON.stringify(all[Math.floor(i * all.length / n)]).length;
+      bytes = n ? Math.round(bytes / n * all.length) : 0;
+    } catch (e) { bytes = 0; }
+    return {
+      count: all.length, bytes: bytes, keys: keys,
+      mode: cc && typeof cc.getMode === 'function' ? cc.getMode() : 'ls',
+      estimate: cc && typeof cc.storageEstimate === 'function' ? cc.storageEstimate : null,
+      limit: cc && cc.getLimit ? cc.getLimit() : MAX_CARDS_PER_IMPORT,
+      hardLimit: cc && cc.getHardLimit ? cc.getHardLimit() : MAX_CARDS_PER_IMPORT,
+      setLimit: function (n) { return cc && cc.setLimit ? cc.setLimit(n) : n; }
+    };
+  }
+
+  if (_dependencies && _dependencies.customCards) {
+    _openDecks = renderOpenDecks(openDecksHost, {
+      customCards: _dependencies.customCards, toast: _dependencies.toast, openExternal: openExternal, storeInfo: storeInfo,
+      scrollToImporter: function () { if (popular.scrollIntoView) popular.scrollIntoView({ block: 'start' }); }
+    });
+  }
+
+  function showReadProgress(stage, done, total) {
+    var pct = total ? Math.min(100, Math.round(done / total * 100)) : 0;
+    var mb = function (b) { return (b / 1048576).toFixed(b < 10485760 ? 1 : 0) + ' MB'; };
+    var text;
+    if (stage === 'open') text = 'Opening the deck…';
+    else if (stage === 'unpack') { text = 'Unpacking the notes (' + mb(done) + ' of ' + mb(total) + '). The pictures and sounds are skipped.'; readBar.value = Math.round(pct * 0.3); }
+    else if (stage === 'sql') text = 'Opening the notes…';
+    else { text = 'Reading notes: ' + done.toLocaleString('en-US') + ' of ' + total.toLocaleString('en-US') + '…'; readBar.value = 30 + Math.round(pct * 0.7); }
+    readLabel.textContent = text;
+  }
+
+  /** Read an .apkg in the background (a Web Worker where there is one) with progress and a Cancel button. */
+  async function readApkgFile(file) {
+    var cards = [];
+    readBar.value = 0;
+    readLabel.textContent = 'Opening the deck…';
+    readBox.style.display = '';
+    var job = startApkgRead(file, {
+      onCards: function (batch) { for (var i = 0; i < batch.length; i++) cards.push(batch[i]); },
+      onProgress: function (stage, done, total) { if (_mounted) showReadProgress(stage, done, total); }
+    });
+    _readJob = job;
+    readCancel.onclick = function () { job.cancel(); };
+    try {
+      var stats = await job.promise;
+      return { cards: stats.stub ? [] : cards, warnings: stats.warnings || [] };
     } catch (e) {
-      _parsedCards = null;
+      return { cards: [], warnings: [friendlyApkgMessage(e)], cancelled: !!(e && e.code === 'cancelled') };
+    } finally {
+      if (_readJob === job) _readJob = null;
+      readBox.style.display = 'none';
+    }
+  }
+
+  /** Read a chosen or dropped file and show the tag picker for it. */
+  async function openFile(file) {
+    closePanel();
+    try {
+      var result = await parseFileInput(file);
+      if (!_mounted) return;
+      if (!result.cards.length) { setStatus(result.warnings[0] || 'No cards found in that file.', result.cancelled ? 'var(--accent-gold, #ffd54f)' : RED); return; }
+      setStatus('');
+      panel = renderFilterPanel(filterHost, {
+        records: result.cards, warnings: result.warnings, title: file.name, store: storeInfo(),
+        onImport: async function (picked, o) {
+          var res = await importSelected(picked, { kind: 'filtered', onProgress: o.onProgress, isCancelled: o.isCancelled });
+          if (res.imported + res.updated > 0 && _dependencies && _dependencies.toast) _dependencies.toast('Imported ' + res.imported + ' cards' + (res.updated ? ', refreshed ' + res.updated : '') + '.');
+          return res;
+        },
+        onClose: closePanel
+      });
+      if (filterHost.scrollIntoView) filterHost.scrollIntoView({ block: 'nearest' });
+    } catch (e) {
       setStatus('Could not read that file: ' + (e.message || String(e)), RED);
       if (_dependencies && _dependencies.reportError) _dependencies.reportError(e, { system: 'ankiimport', operation: 'parseFile' });
     }
+  }
+
+  deckFile.addEventListener('change', function () { if (deckFile.files && deckFile.files.length) openFile(deckFile.files[0]); });
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.style.borderColor = 'var(--accent-green, #44ff88)'; });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.style.borderColor = 'rgba(187,102,255,.4)'; });
+  });
+  dropZone.addEventListener('drop', function (e) {
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) openFile(f);
   });
 
   rawImportBtn.addEventListener('click', async function () {
@@ -1025,11 +1083,13 @@ function _renderUI() {
         return;
       }
       rawImportBtn.disabled = true;
-      var result = importRaw(cardResult.cards);
+      var result = await importSelected(cardResult.cards, { kind: 'paste' });
       setStatus(
         'Imported ' + result.imported + ' flashcard' + (result.imported === 1 ? '' : 's') + '.' +
-        (result.rejected > 0 ? ' ' + result.rejected + ' skipped.' : '') + ' Find them in Flashcard mode.',
-        result.imported > 0 ? GREEN : RED
+        (result.updated ? ' ' + result.updated + ' refreshed.' : '') +
+        (result.rejected > 0 ? ' ' + result.rejected + ' skipped.' : '') + ' Find them in Flashcard mode.' +
+        (result.saved === false && result.warnings[0] ? ' ' + result.warnings[0] : ''),
+        result.imported + result.updated > 0 ? GREEN : RED
       );
       rawImportBtn.disabled = false;
       _parsedCards = null;
@@ -1053,6 +1113,11 @@ function _renderUI() {
     }
   });
 
+  function topReason(reasons) {
+    var keys = Object.keys(reasons || {}).sort(function (x, y) { return reasons[y] - reasons[x]; });
+    return keys.length ? 'most often: ' + keys[0] : '';
+  }
+
   aiImportBtn.addEventListener('click', function () {
     try {
       var parsed = parseAiReply(aiArea.value);
@@ -1063,7 +1128,7 @@ function _renderUI() {
       var firstErr = res.rejected[0] && res.rejected[0].errors && res.rejected[0].errors[0];
       setStatus(
         'Imported ' + res.importedCount + ' quiz card' + (res.importedCount === 1 ? '' : 's') + '.' +
-        (skipped ? ' ' + skipped + ' skipped' + (firstErr ? ' (' + firstErr.message + ')' : '') + '.' : '') +
+        (skipped ? ' ' + skipped + ' skipped' + (topReason(parsed.reasons) ? ' (' + topReason(parsed.reasons) + ')' : (firstErr ? ' (' + firstErr.message + ')' : '')) + '.' : '') +
         (res.importedCount ? ' They are in your runs now. Skim them in My Cards.' : ''),
         res.importedCount > 0 ? GREEN : RED
       );
@@ -1086,6 +1151,10 @@ export var ankiImport = {
   clozeCards: clozeCards,
   stripHtml: stripHtml,
   importRaw: importRaw,
+  importSelected: importSelected,
+  noteRecords: noteRecords,
+  parseCloze: parseCloze,
+  hashKey: hashKey,
   convertWithBackend: convertWithBackend,
   mount: mount,
   unmount: unmount

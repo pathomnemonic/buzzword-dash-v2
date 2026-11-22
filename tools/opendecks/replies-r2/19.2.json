@@ -1,0 +1,155 @@
+[
+{
+"subj": "Cardiology",
+"bw": [
+"Heart starts its own impulses at a fixed rate",
+"Skeletal and smooth muscle cannot"
+],
+"ans": "Autorhythmicity",
+"d": [
+"Tetany",
+"Summation"
+],
+"tp": "Heart rate is modulated by the endocrine and nervous systems, but the heart’s ability to start its own impulses is autorhythmicity.",
+"ww": {
+"Tetany": "Tetany is sustained involuntary contraction, which the heart avoids.",
+"Summation": "Summation is the adding of twitches in skeletal muscle and is not the heart’s self-starting property."
+},
+"source_ref": "19.2",
+"evidence": "This property is known as autorhythmicity."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"AV node under extreme SA stimulation",
+"Typical maximum heart rate, young adult"
+],
+"ans": "220 per minute",
+"d": [
+"120 per minute",
+"350 per minute"
+],
+"tp": "Damaged or drug-stimulated hearts can beat faster, but then they can no longer pump blood effectively.",
+"ww": {
+"120 per minute": "The AV node can transmit impulses well above 120 per minute.",
+"350 per minute": "The AV node limit is 220 per minute in a healthy young person."
+},
+"source_ref": "19.2",
+"evidence": "With extreme stimulation by the SA node, the AV node can transmit impulses maximally at 220 per minute."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Interatrial band",
+"Carries the impulse from right to left atrium"
+],
+"ans": "Bachmann’s bundle",
+"d": [
+"Bundle of His",
+"Moderator band"
+],
+"tp": "Bachmann’s bundle carries the impulse across the atria in addition to the internodal pathways.",
+"ww": {
+"Bundle of His": "The bundle of His runs from the AV node into the interventricular septum.",
+"Moderator band": "Part of the right bundle branch runs in the moderator band, which supplies the right papillary muscles."
+},
+"source_ref": "19.2",
+"evidence": "In addition, there is a specialized pathway called Bachmann’s bundle or the interatrial band that conducts the impulse directly from the right atrium to the left atrium."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Some SA impulses reach the AV node, others do not",
+"Some P waves have no QRS"
+],
+"ans": "Second-degree (incomplete) AV block",
+"d": [
+"First-degree (partial) AV block",
+"Third-degree (complete) AV block"
+],
+"tp": "In a second-degree block the ECG shows some P waves not followed by a QRS complex while others look normal.",
+"ww": {
+"First-degree (partial) AV block": "A first-degree block delays every impulse but all get through.",
+"Third-degree (complete) AV block": "In a third-degree block no impulses are coordinated with the ventricles."
+},
+"source_ref": "19.2",
+"evidence": "A second-degree or incomplete block occurs when some impulses from the SA node reach the AV node and continue, while others do not."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Non-SA site starts a premature beat",
+"Caused by ischemia, caffeine or digitalis"
+],
+"ans": "Ectopic focus",
+"d": [
+"Bundle branch block",
+"Junctional rhythm"
+],
+"tp": "Occasional ectopic beats are usually transitory and not life threatening, but chronic ones can lead to arrhythmia or fibrillation.",
+"ww": {
+"Bundle branch block": "A bundle branch block is an interruption of conduction, not a new impulse source.",
+"Junctional rhythm": "Junctional rhythm is a sustained rhythm originating in the AV node, as described for chronic arrhythmias."
+},
+"source_ref": "19.2",
+"evidence": "Such an area, which may actually be a component of the conduction system or some other contractile cells, is known as an ectopic focus or ectopic pacemaker."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Treats ventricular fibrillation",
+"Shock from an external source",
+"Stops the heart so the SA node restarts it"
+],
+"ans": "Defibrillation",
+"d": [
+"Artificial pacemaker implantation",
+"Echocardiography"
+],
+"tp": "External automated defibrillators are placed in schools, restaurants and airports and give simple verbal instructions.",
+"ww": {
+"Artificial pacemaker implantation": "An artificial pacemaker gives ongoing impulses to the heart muscle to speed up the rate, not a single shock.",
+"Echocardiography": "Echocardiography is an ultrasound test of pumping, not a treatment."
+},
+"source_ref": "19.2",
+"evidence": "A defibrillator effectively stops the heart so that the SA node can trigger a normal conduction cycle."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Small portable battery-powered device",
+"Records ECG for about 24 hours"
+],
+"ans": "Holter monitor",
+"d": [
+"Echocardiogram",
+"12-lead electrocardiograph"
+],
+"tp": "A Holter records during the patient’s normal routine, unlike a standard electrocardiograph.",
+"ww": {
+"Echocardiogram": "An echocardiogram is an ultrasound test of pumping effectiveness.",
+"12-lead electrocardiograph": "A 12-lead electrocardiograph is the standard instrument, not the portable 24-hour device."
+},
+"source_ref": "19.2",
+"evidence": "In continuous ambulatory electrocardiographs, the patient wears a small, portable, battery-operated device known as a Holter monitor, or simply a Holter, that continuously monitors heart electrical activity, typically for a period of 24 hours during the patient’s normal routine."
+},
+{
+"subj": "Cardiology",
+"bw": [
+"Resting heart rate under 50 beats per minute",
+"Normal only in trained athletes"
+],
+"ans": "Bradycardia",
+"d": [
+"Tachycardia",
+"Fibrillation"
+],
+"tp": "A few exceptionally trained aerobic athletes have resting rates of 30–40 beats per minute without disease.",
+"ww": {
+"Tachycardia": "Tachycardia is an abnormally fast rate.",
+"Fibrillation": "Fibrillation is uncoordinated beating, not a slow regular rate."
+},
+"source_ref": "19.2",
+"evidence": "While a few exceptionally trained aerobic athletes demonstrate resting heart rates in the range of 30–40 beats per minute (the lowest recorded figure is 28 beats per minute for Miguel Indurain, a cyclist), for most individuals, rates lower than 50 beats per minute would indicate a condition called bradycardia."
+}
+]

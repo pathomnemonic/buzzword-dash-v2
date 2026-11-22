@@ -1,0 +1,29 @@
+300|MIX|mech|Apoptosis hallmark versus necrosis: plasma membrane|Intact plasma membrane|Cell swelling|Marked inflammation|Apoptotic cells shrink with an intact membrane and are cleared by phagocytes without inflammation.
+302|PUL|mech|Usual route of M. tuberculosis infection|Inhalation of droplet nuclei|Ingestion|Inoculation|TB spreads by aerosolized bacilli in droplet nuclei from coughing patients.
+305|OB|mech|Source of hCG|Syncytiotrophoblast|Corpus luteum|Anterior pituitary|hCG is made by the syncytiotrophoblast of the placenta after implantation.
+306|HEM|dx|Most common bleeding manifestation of moderate-severe hemophilia A|Recurrent hemarthrosis|Recurrent gum bleeding|Recurrent hematuria|Recurrent joint bleeds are the typical manifestation of hemophilia A.
+307|MIX|mech|2,3-BPG effect on hemoglobin|Lowers O2 affinity, promoting O2 release|Raises O2 affinity|Buffers blood pH|2,3-BPG, made in glycolysis, stabilizes the T form and aids oxygen unloading in tissues.
+308|ID|lab|Serologic marker after hepatitis B vaccination|Anti-HBs|Anti-HBc|HBsAg|The vaccine contains only HBsAg, so immunity shows as anti-HBs without anti-HBc.
+311|PED|dx|Most common cause of severe obstructive uropathy in boys|Posterior urethral valves|Phimosis|Urethral atresia|Posterior urethral valves are leaflets in the prostatic urethra, affecting about 1 in 8,000 boys.
+312|MIX|mech|Axoneme (9+2 microtubule arrangement)|Cilia|Mitochondria|Ribosomes|The axoneme of a cilium has nine outer microtubule doublets and two central microtubules.
+319|NEU|dx|Broca aphasia|Nonfluent, effortful speech with preserved comprehension|Fluent speech with impaired comprehension|Fluent speech with impaired repetition|Broca aphasia is nonfluent and labored, lesion in the inferior frontal lobe.
+320|HEM|mech|Vitamin K post-translational modification of clotting factors|Gamma-carboxylation of glutamate|Glycosylation|Phosphorylation|Vitamin K carboxylates glutamate residues of factors II, VII, IX and X so they bind calcium.
+321|END|mech|Skeletal muscle glucose transporter|GLUT4|GLUT2|GLUT3|GLUT4 is insulin-sensitive, and exercise also moves it to the muscle membrane without insulin.
+323|NEU|dx|Positive Trendelenburg sign|Gluteus medius weakness|Gluteus maximus weakness|Piriformis weakness|Gluteus medius (superior gluteal nerve) stabilizes the pelvis in single-leg stance.
+325|MIX|mech|Temperature site closest to core body temperature|Rectal|Axillary|Oral|Rectal temperature varies least with the environment; oral is about 0.5 C lower.
+326|MIX|mech|Enzyme making DNA from an RNA template|Reverse transcriptase|DNA polymerase|DNA-dependent RNA polymerase|Retroviruses carry RNA-dependent DNA polymerase (reverse transcriptase).
+329|ID|dx|Intestinal helminth with hyperinfection in immunosuppressed hosts|Strongyloides stercoralis|Giardia lamblia|Ascaris lumbricoides|Strongyloides is an important opportunist in immunocompromised hosts, because filariform larvae can autoinfect.
+330|MIX|dx|Gaucher disease enzyme deficiency|Glucocerebrosidase (beta-glucosidase)|Sphingomyelinase|Hexosaminidase A|Gaucher cells are macrophages full of glucosylceramide, with hepatosplenomegaly and bone erosion.
+331|OB|lab|Vaginal cornification index reflects|Estrogen effect|Progesterone effect|FSH effect|Vaginal epithelial cornification rises with estrogen.
+332|NEU|mech|Quadrangular space contents|Axillary nerve and posterior circumflex humeral artery|Radial nerve and profunda brachii artery|Suprascapular nerve and artery|The space is bounded by teres minor, teres major, long head of triceps and humerus.
+334|SUR|dx|Femoral neck fracture most prone to avascular necrosis|Subcapital|Intertrochanteric|Subtrochanteric|Subcapital fractures disrupt the ascending retinacular vessels, causing avascular necrosis and nonunion.
+335|ID|mech|Encapsulated pathogenic fungus|Cryptococcus neoformans|Candida albicans|Aspergillus fumigatus|Cryptococcus has a polysaccharide capsule, shown by India ink.
+336|NEP|se|Acetazolamide adverse effect|Paresthesias|Metabolic alkalosis|Hyperkalemia|Carbonic anhydrase inhibitors cause paresthesias, bicarbonate diuresis with metabolic acidosis, and hypokalemia.
+338|CAR|dx|Sudden-onset regular palpitations at 150/min|PSVT|Sinus tachycardia|Atrial fibrillation|Abrupt onset and a regular narrow tachycardia suggest paroxysmal supraventricular tachycardia.
+339|NEU|mech|Vein of Galen drains into|Straight sinus|Superior sagittal sinus|Internal jugular vein|The great cerebral vein of Galen joins the inferior sagittal sinus to form the straight sinus.
+340|ID|dx|Chronic foot swelling with multiple discharging sinuses|Mycetoma|Sporotrichosis|Cryptococcosis|Mycetoma bursts into chronic sinuses discharging grains.
+344|NEP|dx|Metabolic alkalosis with hypertension and hypokalemia|Primary mineralocorticoid excess|Addison disease|Renal tubular acidosis|Mineralocorticoid excess increases acid and potassium excretion and expands volume.
+345|RHE|dx|Caplan syndrome: pneumoconiosis plus|Rheumatoid arthritis|Systemic sclerosis|Sarcoidosis|Caplan syndrome is rheumatoid nodules in the lungs of pneumoconiosis patients.
+348|MIX|mech|Dystrophic calcification begins in which organelle|Mitochondria|Golgi apparatus|Lysosomes|Mitochondria are the first organelle affected by calcification in injured cells.
+349|NEU|dx|Wernicke area lesion|Fluent speech with impaired comprehension|Nonfluent speech with intact comprehension|Impaired repetition with intact comprehension|Wernicke area in the superior temporal lobe is the sensory speech area.
+354|PED|dx|Moro reflex persisting beyond 6 months|Cerebral damage|Erb palsy|Down syndrome|The Moro reflex normally fades by 3-6 months, and persistence points to brain damage.

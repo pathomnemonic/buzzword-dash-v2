@@ -1,0 +1,10 @@
+# a comment line
+#separator:tab
+#html:true
+#guid column:1
+#notetype column:2
+#deck column:3
+#tags column:7
+G1	Basic	Test	BP <90 and HR >100 in <b>shock</b>	Hypovolemic &amp; septic shock &#8805; 2 types		tag1 tag2
+G2	Basic (optional reversed card)	Test	Antidote for heparin	Protamine	y	
+G3	Cloze	Test	{{c1::Warfarin}} inhibits {{c2::VKOR}}	INR		

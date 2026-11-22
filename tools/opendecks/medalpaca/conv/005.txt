@@ -1,0 +1,55 @@
+186|X|two-item
+187|Coproporphyrinogen oxidase product|Protoporphyrinogen IX|Uroporphyrinogen III|Porphobilinogen
+188|Cells that kill tumors downregulating MHC I|Natural killer cells|CD8+ cytotoxic T cells|Plasma cells|S=HO
+189|Septic shock: cardiac index|Increased|Decreased|Unchanged|S=Car
+190|Benign capillary vascular tumor of infants|Strawberry (infantile) hemangioma|Cherry hemangioma|Angiosarcoma|S=HO
+191|Methotrexate toxicity reversal|Leucovorin|Flumazenil|N-acetylcysteine|S=EM
+192|Empiric antibiotics for epiglottitis|Ceftriaxone plus vancomycin|Oral amoxicillin alone|Metronidazole plus ciprofloxacin|S=ID
+193|X|dubious
+194|X|binary
+195|Lung zone where high alveolar pressure compresses capillaries|Zone 1|Zone 2|Zone 3|S=Pul
+196|Cystic salivary tumor with lymphoid stroma|Warthin tumor|Pleomorphic adenoma|Mucoepidermoid carcinoma|S=HO
+197|Definitive treatment of HELLP syndrome|Delivery|Platelet transfusion|Plasma exchange|S=OB
+198|Systemic spread of S. pyogenes exotoxins A, B, C|Scarlet fever|Rheumatic fever|Poststreptococcal glomerulonephritis|S=ID
+199|Vancomycin infusion reaction: mechanism|Direct mast cell degranulation|IgE-mediated hypersensitivity|Complement-mediated hemolysis|S=ID
+200|X|duplicate fact of card 75
+201|DNA repair for replication errors|Mismatch repair|Nucleotide excision repair|Base excision repair|S=Multi
+202|Straight leg raise positive: disc herniation at roots|L5 or S1|L2 or L3|C6 or C7|S=Neu
+203|Driving force for gas diffusion|Partial pressure gradient|Hydrostatic pressure gradient|Oncotic pressure gradient
+204|X|vague
+205|Multiple pink plaques with collarette scale|Pityriasis rosea|Guttate psoriasis|Tinea corporis
+206|Electrolyte abnormality in cystic fibrosis|Hyponatremia|Hypercalcemia|Hyperkalemia|S=Neph
+207|Bacterial mimic of Kaposi sarcoma in HIV|Bartonella henselae|Bacillus anthracis|Klebsiella pneumoniae|S=ID
+208|X|ambiguous
+209|X|vague
+210|Pancreatic secretion at low flow: Cl- concentration|High|Low|Unchanged|S=GI
+211|Denosumab mimics which endogenous protein|Osteoprotegerin|Calcitonin|Parathyroid hormone
+212|X|vague
+213|Thyroid hormone mimics sympathetic effects by upregulating|β1 adrenergic receptors|α1 adrenergic receptors|Muscarinic M2 receptors|S=Endo
+214|X|uncertain fact
+215|X|two-part
+216|X|vague
+217|Thiamine-dependent enzyme in branched-chain amino acid catabolism|Branched-chain α-ketoacid dehydrogenase|Cystathionine synthase|Phenylalanine hydroxylase
+218|Dexrazoxane (anthracycline cardioprotection): chelates|Iron|Copper|Lead|S=HO
+219|Cell source of NO acting on vascular smooth muscle|Endothelial cells|Fibroblasts|Erythrocytes
+220|Smoker: wheeze, high CO2, respiratory acidosis|COPD exacerbation|Pulmonary embolism|Pneumothorax|S=Pul
+221|X|vague
+222|MAO inhibitor plus tyramine-rich food|Hypertensive crisis|Serotonin syndrome|Hypotension|S=Psy
+223|Gas gangrene from traumatic open wound|Clostridium perfringens|Clostridium botulinum|Bacillus anthracis|S=ID
+224|Bone disease predisposing to osteosarcoma in the elderly|Paget disease of bone|Osteoporosis|Osteomalacia|S=HO
+225|X|imprecise
+226|Cells secreting K+ in the collecting duct|Principal cells|Intercalated cells|Macula densa cells|S=Neph
+227|Bronchiolitis in infants under 2 months: high risk of|Apnea or respiratory failure|Pneumothorax|Pleural effusion|S=Peds
+228|X|vague
+229|Prerenal azotemia: BUN to creatinine ratio|Greater than 20:1|Less than 10:1|About 1:1|S=Neph
+230|Fraction of filtered urea reabsorbed in the PCT|50%|10%|90%|S=Neph
+231|BCG vaccination: false-positive test|Tuberculin skin test (PPD)|Interferon-gamma release assay|Sputum AFB smear|S=ID
+232|BCG vaccine type|Live attenuated|Inactivated (killed)|Conjugate|S=ID
+233|ALS: EMG finding|Fibrillations and positive sharp waves|Decremental response on repetitive stimulation|Myotonic discharges|S=Neu
+234|Prerenal azotemia: tubular Na+ and water reabsorption|Increased|Decreased|Unchanged|S=Neph
+235|X|vague
+236|Oxidase-positive genus|Neisseria|Escherichia|Klebsiella|S=ID
+237|Anorexia nervosa: skin and lab finding|Hypercarotenemia|Hypercalcemia|Hyperglycemia|S=Psy
+238|Motilin secretion occurs during|Fasting|The fed state|Gastric distension|S=GI
+239|Collagen change in skin aging|Decreased synthesis with increased crosslinking|Increased synthesis with decreased crosslinking|Increased synthesis with increased crosslinking|S=Multi
+240|Amino acids conjugated to bile acids|Glycine or taurine|Glutamine or aspartate|Alanine or serine|S=GI

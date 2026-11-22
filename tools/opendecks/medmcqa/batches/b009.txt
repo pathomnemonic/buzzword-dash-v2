@@ -1,0 +1,35 @@
+471|OB|dx|Obese woman with hirsutism, high LH and high androgens|PCOS|Exogenous steroid use|Turner syndrome|PCOS gives hyperandrogenism, raised LH, anovulation and obesity.
+472|ID|se|Anti-TB drug contraindicated in pregnancy|Streptomycin|Isoniazid|Ethambutol|Streptomycin is an aminoglycoside that causes fetal ototoxicity; HRZ-based regimens are used in pregnancy.
+473|CAR|dx|Raised lipoprotein(a) predisposes to|Atherosclerosis|Cirrhosis|Pancreatitis|Lp(a) resembles LDL, is linked to apoB-100, and is strongly associated with atherosclerosis and MI.
+474|MIX|se|Anticholinergic (antimuscarinic) side effect|Dry mouth|Salivation|Sweating|Muscarinic blockade reduces secretions, so mouth and skin go dry.
+475|MIX|mech|Xeroderma pigmentosum defect|Nucleotide excision repair|Base excision repair|Mismatch repair|XP patients cannot excise UV-induced thymine dimers; mismatch repair defects cause Lynch syndrome.
+476|NEU|dx|Thymoma association|Myasthenia gravis|Multiple sclerosis|Hypergammaglobulinemia|About 30% of myasthenia gravis patients have thymoma and most have thymic abnormalities.
+479|OB|ph|Ritodrine (tocolytic) receptor action|Beta-2 agonist|Alpha-1 antagonist|Beta blocker|Ritodrine relaxes the uterus by beta-2 stimulation; side effects include maternal tachycardia and hyperglycemia.
+481|NEU|mech|Foramen connecting lateral and third ventricles|Foramen of Monro|Foramen of Magendie|Foramen of Luschka|The interventricular foramen of Monro joins each lateral ventricle to the third ventricle.
+482|MIX|mech|Leukocyte rolling on endothelium|Selectins|Integrins|Defensins|Selectins mediate rolling; integrins then mediate firm adhesion.
+483|NEP|mech|Thick ascending limb luminal transporter|Na+-K+-2Cl- cotransporter|Na+-Cl- cotransporter|ENaC|NKCC2 is the loop diuretic target in the thick ascending limb.
+487|NEP|mech|Atrial natriuretic peptide effect|Natriuresis and lower blood volume|Raised renin secretion|Raised aldosterone secretion|ANP is released on atrial stretch and promotes sodium and water loss while suppressing renin and aldosterone.
+489|CAR|se|Antihypertensive that raises triglycerides|Beta blockers|Calcium channel blockers|Reserpine|Beta blockers can raise triglycerides, as can glucocorticoids, estrogen and thiazides.
+490|ID|mech|Chagas disease vector|Reduviid (kissing) bug|Sand fly|Hard tick|T. cruzi is transmitted by reduviid bugs and can damage the heart and GI tract.
+494|GI|mech|Cholecystokinin secreting site|Duodenal I cells|Gastric G cells|Pancreatic beta cells|CCK is released from duodenal mucosa in response to fats and amino acids and contracts the gallbladder.
+495|HEM|ph|Oral direct factor Xa inhibitor|Rivaroxaban|Dabigatran|Fondaparinux|Rivaroxaban, apixaban and edoxaban are oral Xa inhibitors; dabigatran is a thrombin inhibitor.
+496|PSY|se|Hypertensive crisis after eating cheese|MAO inhibitor (tranylcypromine)|Amitriptyline|Fluoxetine|MAOIs block tyramine breakdown, so tyramine-rich food triggers a pressor response.
+499|PUL|dx|Hamman sign: crunching sound with each heartbeat|Pneumomediastinum|Pericardial effusion|Constrictive pericarditis|Hamman sign is heard over the precordium in spontaneous mediastinal emphysema.
+501|ID|mg|ESBL-producing Klebsiella: reliable drug class|Carbapenems|Third-generation cephalosporins|Aztreonam|ESBLs hydrolyze cephalosporins and aztreonam, so carbapenems like imipenem are used.
+502|MIX|lab|Protein separation by molecular size|Gel filtration chromatography|Affinity chromatography|Ion-exchange chromatography|Gel filtration (size exclusion) separates by size; ion exchange separates by charge.
+503|CAR|ph|Gemfibrozil mechanism|PPAR-alpha activation (raises lipoprotein lipase)|HMG-CoA reductase inhibition|Bile acid sequestration|Fibrates activate PPAR-alpha, increasing lipoprotein lipase and lowering triglycerides.
+505|GI|ph|Cisplatin-induced emesis: drug of choice|Ondansetron|Metoclopramide|Domperidone|Ondansetron is a 5-HT3 antagonist used to prevent chemotherapy-induced vomiting.
+506|ID|lab|Negri bodies|Rabies|Prion disease|Measles|Negri bodies are eosinophilic cytoplasmic inclusions in neurons of rabies.
+507|MIX|mech|Acrosomal cap of sperm derives from|Golgi apparatus|Mitochondria|Nucleus|Acrosome formation starts from Golgi granules that coalesce over the nucleus.
+508|NEU|mg|Lennox-Gastaut syndrome: effective drug among these|Lamotrigine|Gabapentin|Tiagabine|Lamotrigine helps Lennox-Gastaut, as do valproate, topiramate, felbamate and rufinamide.
+509|OB|mech|Site of meiosis in males|Seminiferous tubules|Epididymis|Vas deferens|Spermatogenesis, including meiosis, occurs in the seminiferous tubules.
+511|GI|lab|Best tumor marker for pancreatic cancer|CA 19-9|CA 125|AFP|CA 19-9 is the marker for pancreatic cancer but is not recommended for screening.
+514|PED|dx|Neonate: hydrocephalus, chorioretinitis, diffuse intracranial calcification|Congenital toxoplasmosis|Congenital rubella|Congenital syphilis|The classic toxoplasmosis triad is hydrocephalus, chorioretinitis and intracranial calcifications.
+516|GI|mech|Bile salts' detergent action due to|Amphipathic structure|Soap formation|Zwitterion formation|Bile acids have both polar and nonpolar faces, so they emulsify fat and form micelles.
+517|GI|mech|Killian dehiscence|Cricopharyngeus region of the hypopharynx|Nasopharynx|Distal esophagus|Killian dehiscence is the weak triangle between thyropharyngeus and cricopharyngeus where Zenker diverticulum arises.
+519|END|dx|Most common manifestation of MEN1|Parathyroid hyperplasia or adenoma|Thyroid tumor|Adrenal tumor|Primary hyperparathyroidism affects over 98% of MEN1 patients; the three Ps are parathyroid, pituitary and pancreas.
+520|HEM|lab|Alpha-fetoprotein is raised in|Hepatoblastoma|Seminoma|Choriocarcinoma|AFP marks hepatocellular carcinoma, hepatoblastoma and non-seminomatous germ cell tumors such as yolk sac tumor.
+521|RHE|lab|Anti-Ro (SS-A) antibodies|Subacute cutaneous lupus|Myasthenia gravis|Systemic sclerosis|Anti-Ro is associated with subacute cutaneous lupus and neonatal lupus with congenital heart block.
+522|GI|dx|Duodenal villous atrophy with crypt hyperplasia|Celiac disease|Ulcerative colitis|Cystic fibrosis|Celiac disease flattens duodenal villi in response to gluten.
+525|EM|mech|Organophosphate inhibition of acetylcholinesterase|Irreversible covalent inhibition|Competitive reversible inhibition|Uncompetitive reversible inhibition|Organophosphates phosphorylate the esteratic site of cholinesterase and cannot be washed out.
+527|ID|lab|Quellung (capsular swelling) reaction|Pneumococcus|Group B streptococcus|Staphylococcus|Type-specific antiserum makes the pneumococcal capsule appear swollen.

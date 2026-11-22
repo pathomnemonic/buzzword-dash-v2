@@ -1,0 +1,39 @@
+[
+{
+"subj": "Nephrology",
+"bw": [
+"Major cation of the extracellular fluid",
+"Half of the osmotic gradient across cells"
+],
+"ans": "Sodium",
+"d": [
+"Potassium",
+"Calcium"
+],
+"tp": "Excess dietary sodium appears to be a major factor in hypertension in some people. Excretion is mainly by the kidneys.",
+"ww": {
+"Potassium": "Potassium is the major intracellular cation and has little effect on osmotic pressure.",
+"Calcium": "Calcium is mostly in bone and is not the main extracellular cation."
+},
+"source_ref": "26.3",
+"evidence": "Sodium is the major cation of the extracellular fluid."
+},
+{
+"subj": "Nephrology",
+"bw": [
+"Aldosterone is released when"
+],
+"ans": "Rising potassium, falling sodium or pressure",
+"d": [
+"Falling potassium, rising sodium or pressure",
+"High blood calcium"
+],
+"tp": "Aldosterone raises plasma water by reducing excretion of sodium and therefore water.",
+"ww": {
+"Falling potassium, rising sodium or pressure": "These are the opposite conditions and would not call for aldosterone.",
+"High blood calcium": "Calcium is regulated by PTH, calcitriol and calcitonin."
+},
+"source_ref": "26.3",
+"evidence": "Aldosterone is released if blood levels of potassium increase, if blood levels of sodium severely decrease, or if blood pressure decreases."
+}
+]

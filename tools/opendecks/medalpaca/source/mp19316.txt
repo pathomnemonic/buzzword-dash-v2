@@ -1,0 +1,2 @@
+How does resistance to macrolides, specifically -thromycin, occur and what is the specific mechanism behind it?
+Resistance to macrolides, specifically -thromycin, occurs via post-transcriptional methylation of the 23S bacterial rRNA.

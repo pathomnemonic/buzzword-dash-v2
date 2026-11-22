@@ -1,0 +1,499 @@
+{"i":3041,"w":["Growth hormone falls when the stalk is compressed, since GHRH delivery is blocked.","LH also falls, because GnRH cannot reach the pituitary."]}
+{"i":4086,"w":["Albuterol is a bronchodilator and would raise, not lower, FEV1.","Epinephrine dilates airways and does not provoke bronchoconstriction."]}
+{"i":8771,"w":["Tertiary prevention limits complications and disability of established disease.","Quaternary prevention avoids overmedicalization and unnecessary interventions."]}
+{"i":1439,"w":["Wilson disease is autosomal recessive copper overload with liver and basal ganglia disease.","Friedreich ataxia is a GAA repeat disorder with ataxia and cardiomyopathy, not chorea."]}
+{"i":8349,"w":["Ebstein anomaly is associated with lithium, not carbamazepine.","Tooth discoloration comes from tetracyclines."]}
+{"i":5788,"w":["Munchausen syndrome (factitious disorder) seeks the sick role without external gain.","Conversion disorder causes unconscious neurologic symptoms without conscious deception."]}
+{"i":4568,"w":["Fibronectin is an extracellular matrix adhesion glycoprotein, not the Marfan defect.","Laminin is a basement membrane protein and is not defective in Marfan syndrome."]}
+{"i":3938,"w":["Loop diuretics increase calcium excretion and can worsen bone loss.","Amlodipine is neutral for bone and calcium handling."]}
+{"i":6744,"w":["Calcineurin inhibitors (tacrolimus, cyclosporine) block IL-2 transcription.","mTOR inhibitors (sirolimus) block T cell proliferation via IL-2 signaling."]}
+{"i":354,"w":["Zidovudine mainly causes bone marrow suppression and myopathy.","Efavirenz causes CNS effects such as vivid dreams, not pancreatitis."]}
+{"i":895,"w":["The cuneate fasciculus carries upper limb vibration and proprioception, which are spared.","The anterior corticospinal tract controls motor function, not sensation."]}
+{"i":1065,"w":["Anti-CCP antibodies are specific for rheumatoid arthritis.","Anti-Scl-70 (topoisomerase I) marks diffuse systemic sclerosis."]}
+{"i":8969,"w":["Pinpoint pupils are a sign of opioid intoxication.","Vertical nystagmus suggests phencyclidine or a brainstem lesion."]}
+{"i":5294,"w":["Lymphocyte-mediated thyroid destruction is Hashimoto thyroiditis.","High LDL cholesterol is a feature of hypothyroidism, not hyperthyroid Graves disease."]}
+{"i":5417,"w":["Glanzmann thrombasthenia is a GpIIb/IIIa defect with normal platelet size and normal ristocetin response.","Von Willebrand disease has normal-sized platelets and a ristocetin defect corrected by normal plasma."]}
+{"i":5564,"w":["The locus ceruleus makes norepinephrine, not serotonin.","The substantia nigra makes dopamine."]}
+{"i":1045,"a":"Human chorionic gonadotropin (hCG)","w":["Prolactin excess causes amenorrhea but not nausea and a pregnancy picture.","Thyrotropin would not explain nausea, urinary frequency and breast tenderness first."]}
+{"i":4532,"bw":["Anxious patient self-escalating prescribed dose","Likely drug?"],"w":["Buspirone is not habit-forming and rarely leads to dose escalation.","Hydroxyzine is a non-addictive sedating antihistamine."]}
+{"i":4393,"w":["ALA dehydratase deficiency causes neurovisceral attacks without blistering.","Uroporphyrinogen III synthase deficiency causes congenital erythropoietic porphyria in infancy."]}
+{"i":3359,"d":["Impaired biliary copper excretion","Chronic hypertension"],"w":["Impaired biliary copper excretion is Wilson disease, with liver and neurologic disease.","Hypertension causes concentric hypertrophy, not restrictive cardiomyopathy with diabetes."]}
+{"i":3657,"w":["Doxycycline treats tickborne and atypical infections, not sporotrichosis.","Azithromycin is not effective against Sporothrix schenckii."]}
+{"i":1464,"bw":["Kidney graft rejection weeks after transplant","Endothelialitis, interstitial mononuclear cells","Mediator?"],"w":["Preformed antibodies cause hyperacute rejection within minutes to hours.","Immune complex deposition is a type III mechanism, not acute cellular rejection."]}
+{"i":9157,"w":["Hib is a protein-conjugate vaccine, not a plain polysaccharide.","Live attenuated influenza vaccine is not polysaccharide and is avoided in sickle cell patients."]}
+{"i":1581,"w":["The hypoglossal nerve is not typically affected in Lyme neuroborreliosis.","The olfactory nerve is not a classic Lyme target."]}
+{"i":3476,"w":["Tay-Sachs shows cherry-red spot without hepatosplenomegaly.","Gaucher disease has hepatosplenomegaly and bone pain but no cherry-red macula."]}
+{"i":2403,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":4030,"w":["Pneumonia causes fever and focal consolidation on chest film.","Myocardial infarction would show ECG changes and troponin elevation."]}
+{"i":9918,"w":["The external iliac vein is a deep vein, whereas the tender cord is superficial.","The anterior tibial artery is not a vein and does not form palpable thrombosed cords."]}
+{"i":7877,"w":["Vitamin B6 deficiency causes neuropathy, seizures and sideroblastic anemia.","Folate deficiency causes megaloblastic anemia, not Wernicke encephalopathy."]}
+{"i":9907,"w":["69,XXY is the triploid karyotype of a partial mole.","45,X is Turner syndrome and is not a molar karyotype."]}
+{"i":158,"w":["B12 deficiency raises both homocysteine and methylmalonic acid.","Vitamin C deficiency causes scurvy and does not raise homocysteine."]}
+{"i":885,"w":["Supraspinatus is supplied by the suprascapular nerve.","Subscapularis is supplied by the upper and lower subscapular nerves."]}
+{"i":2433,"w":["Inulin clearance measures GFR.","Creatinine clearance estimates GFR, not renal plasma flow."]}
+{"i":3995,"bw":["VRE turns drug-sensitive after drug-free generations","Mechanism?"],"w":["A point mutation would not revert 20% of a population in a few generations.","A virus (phage) infection does not remove resistance genes in this setting."]}
+{"i":9143,"x":"keyed answer (malabsorption) not a runner-friendly term for the distilled concept"}
+{"i":9984,"w":["Osteogenesis imperfecta causes fragile bones with blue sclerae and a family history.","Rickets causes bowing and growth plate widening from vitamin D deficiency."]}
+{"i":2514,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":5692,"a":"Upper eyelid droop","w":["Loss of smell is CN I and not related to an oculomotor palsy.","Loss of the nasolabial fold is CN VII facial palsy."]}
+{"i":1561,"bw":["Pancytopenia, blasts with Auer rods","Leukemia type?"],"w":["Hairy cell leukemia shows cells with hairy projections and TRAP positivity, not Auer rods.","CML has a high WBC with mature myeloid forms and the Philadelphia chromosome."]}
+{"i":7763,"w":["Lateral medullary (Wallenberg) syndrome causes ipsilateral facial and contralateral body sensory loss.","Weber syndrome (midbrain) causes CN III palsy with contralateral hemiparesis."]}
+{"i":8234,"w":["The superior mesenteric artery supplies the midgut, not the sigmoid colon.","The celiac artery supplies the foregut."]}
+{"i":3350,"w":["Clozapine causes significant weight gain.","Chlorpromazine, a low-potency typical, causes sedation and weight gain."]}
+{"i":4948,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":5313,"w":["Viridans streptococci cause endocarditis after dental procedures and are not nafcillin resistant.","E. coli is a gram-negative rod, but the culture shows gram-positive cocci."]}
+{"i":3499,"w":["Vascular IgA deposits mark IgA vasculitis or nephropathy, not deafness and family history.","Anti-PLA2R antibodies cause membranous nephropathy in adults."]}
+{"i":7164,"w":["JC virus causes progressive multifocal leukoencephalopathy.","CMV causes retinitis and colitis in AIDS, not primary CNS lymphoma."]}
+{"i":4415,"a":"Fusion","bw":["Pancreas divisum","Which embryologic step failed?"],"w":["Apoptosis is not the step that joins the ventral and dorsal pancreatic buds.","Notochord signaling is involved in early pancreatic bud induction, not duct fusion."]}
+{"i":2349,"w":["Physostigmine is an anticholinesterase and would worsen organophosphate toxicity.","Carbachol is a cholinergic agonist and would worsen toxicity."]}
+{"i":1332,"w":["Cortisol is low because ACTH falls when the pituitary is infarcted.","LH is low from loss of gonadotropin secretion."]}
+{"i":9481,"w":["Alveolar macrophages clear particles under 2 microns that reach the alveoli.","Nasal vibrissae filter particles larger than about 10 microns."]}
+{"i":3907,"a":"14;18 translocation","d":["11;14 translocation","8;14 translocation"],"w":["11;14 is the mantle cell lymphoma translocation (cyclin D1).","8;14 is the Burkitt lymphoma translocation (MYC)."]}
+{"i":3004,"w":["Hirschsprung disease is aganglionosis, not caused by CFTR mutations.","Neural tube defects are not linked to cystic fibrosis."]}
+{"i":10062,"w":["Pro-B cell development occurs in the bone marrow.","Double-positive T cells form in the thymic cortex."]}
+{"i":9116,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":4586,"w":["Plantarflexion (standing on tiptoes) is tibial nerve and is preserved.","The ankle reflex depends on the tibial nerve (S1) and is intact."]}
+{"i":3798,"w":["Inguinal hernia repair does not involve the pelvic ureter.","A Foley catheter does not injure the ureter near the bladder."]}
+{"i":4787,"bw":["B-cell CD21 (complement receptor 2)","Virus that uses it?"],"w":["Measles virus uses SLAM and CD46, not CD21.","HPV infects basal epithelial cells through heparan sulfate."]}
+{"i":8084,"w":["Heterozygotes carry one mutant and one normal allele, which cannot describe males with a single X.","Homozygous means two identical alleles, which males cannot have for X-linked genes."]}
+{"i":8177,"w":["Mumps (Rubulavirus) causes parotitis, not a descending rash with Koplik spots.","Group A strep causes scarlet fever with a sandpaper rash, not coryza and conjunctivitis."]}
+{"i":226,"w":["Lithium is renally cleared and nephrotoxic, so it is avoided in renal impairment.","Lamotrigine does not treat acute mania."]}
+{"i":9162,"bw":["Gluconeogenesis bypass step","Converts F1,6BP to F6P: which enzyme?"],"w":["Phosphofructokinase-1 catalyzes the opposite, glycolytic, step.","Pyruvate kinase is a glycolytic enzyme replaced by pyruvate carboxylase and PEPCK."]}
+{"i":959,"bw":["Infant stridor worse with feeding","Relieved by neck extension","Diagnosis?"],"w":["Laryngomalacia improves when the infant is prone and does not cause vomiting.","Subglottic stenosis causes persistent stridor not changing with neck position."]}
+{"i":1627,"a":"Proteasome inhibition (ubiquitinated proteins accumulate)","x":"drop"}
+{"i":85,"w":["A positive Babinski sign is an upper motor neuron finding.","Pronator drift indicates upper motor neuron weakness."]}
+{"i":3690,"w":["Klinefelter has an extra X, so a Barr body is present, not absent.","Klinefelter patients have a second X chromosome (47,XXY), not its absence."]}
+{"i":6996,"w":["Paranoid personality disorder features distrust, not magical thinking and odd dress.","Schizophrenia requires psychosis lasting 6 months or more with functional decline."]}
+{"i":418,"w":["Stevens-Johnson syndrome is not a calcium channel blocker effect.","Bloody diarrhea is not a diltiazem adverse effect."]}
+{"i":4142,"w":["Edrophonium, not bethanechol, is used to test for myasthenia gravis.","Pilocarpine, not bethanechol, constricts the pupil."]}
+{"i":2861,"w":["IL-12 acts on T cells, not directly on B cells.","Granzymes are released by CD8 T cells and NK cells."]}
+{"i":2729,"w":["HLA-B27 is linked to seronegative spondyloarthropathies.","HLA-DQ2 is linked to celiac disease."]}
+{"i":4099,"w":["UGU to CGC changes cysteine to arginine, a missense mutation.","AUG to UCA changes the start codon and amino acid, not a stop codon."]}
+{"i":3267,"w":["Crohn disease is a transmural inflammation, not a true diverticulum.","Appendicitis is inflammation of the appendix, not an ileal outpouching."]}
+{"i":267,"bw":["Pinpoint pupils, respiratory depression","Reversed by IV drug: which receptor?"],"a":"μ-opioid receptor","w":["Flumazenil acts at GABA-A to reverse benzodiazepines.","5-HT2A is the receptor targeted by LSD and some antipsychotics."]}
+{"i":2093,"a":"Left 5th ICS, midclavicular line","d":["Left 7th ICS, midaxillary line","Left 5th ICS, midaxillary line"],"w":["The 7th space in the midaxillary line overlies the lower lung, diaphragm and spleen.","The midaxillary line at the 5th space lies lateral to the cardiac apex."]}
+{"i":5938,"w":["Cortisol comes from the adrenal cortex zona fasciculata.","Estrogen is made by the ovaries and adipose tissue, not chromaffin cells."]}
+{"i":9000,"w":["Tension headaches are bilateral, band-like and mild without nausea.","Cluster headaches are strictly unilateral periorbital with tearing and autonomic features."]}
+{"i":2760,"w":["Mastitis is painful and erythematous, with fever.","Breast cancer usually presents as a mass, but papilloma is the commonest cause of bloody discharge."]}
+{"i":6918,"bw":["Intern berates student after rebuke from superior","Defense mechanism?"],"w":["Projection attributes one's own feelings to someone else.","Reaction formation converts an unacceptable impulse into its opposite."]}
+{"i":482,"w":["Gi coupling (M2 and M4) inhibits adenylyl cyclase and slows the heart.","Increased K+ conductance is the M2 effect in the SA node."]}
+{"i":1069,"bw":["Falciparum malaria endemic in Africa","Protective genetic variant?"],"a":"Glutamic acid substitution in beta-globin","d":["ALAS2 gene defect","Diamond-Blackfan ribosomal defect"],"w":["ALAS2 defects cause X-linked sideroblastic anemia and do not protect against malaria.","Diamond-Blackfan anemia is a ribosomal protein defect causing red cell aplasia."]}
+{"i":2703,"w":["Complement is consumed in type III hypersensitivity, so C3 is not raised.","IgE rises in type I hypersensitivity and parasitic infection."]}
+{"i":4200,"w":["Leucine is an essential branched-chain amino acid and is not the supplement in PKU.","Histidine is essential and is not deficient in PKU."]}
+{"i":7822,"w":["Pernicious anemia follows autoimmune gastritis, not duodenal ulcers.","Gastric outlet obstruction can follow scarring, but anterior ulcers classically perforate."]}
+{"i":3063,"w":["TSH alone would not evaluate hyperlipidemia.","Glucose alone does not address lipids as the initial test."]}
+{"i":9013,"w":["The common cold lasts about a week and improves.","Streptococcal pharyngitis causes sore throat without prolonged purulent rhinorrhea."]}
+{"i":8210,"w":["Cytotoxic T cells need MHC I to recognize targets, so MHC I loss helps tumors escape them.","B cells make antibodies and do not directly kill tumor cells."]}
+{"i":8950,"w":["Acetylcholinesterase inhibitors cause cholinergic excess, not paralysis from sodium channel block.","Botulinum toxin (not saxitoxin) cleaves SNARE proteins such as syntaxin."]}
+{"i":3813,"w":["Prostaglandin E1 keeps the ductus open.","Digoxin does not close a PDA."]}
+{"i":5338,"w":["Clonazepam is not first-line for OCD and adds dependence risk.","Psychodynamic therapy plus an antipsychotic is not first-line treatment for OCD."]}
+{"i":6503,"w":["Lamotrigine does not cause angle-closure glaucoma.","Gabapentin does not cause angle-closure glaucoma."]}
+{"i":7978,"bw":["Nondepolarizing paralytic","Histamine release: hives, hypotension"],"w":["Vecuronium causes minimal histamine release.","Cisatracurium has minimal histamine release and is Hofmann-eliminated."]}
+{"i":2947,"w":["Doxycycline is avoided in pregnancy because of effects on teeth and bone.","Mefloquine alone is not adequate treatment for severe or resistant falciparum malaria."]}
+{"i":6232,"w":["Anaphase II nondisjunction gives two normal gametes and two abnormal ones.","Metaphase II is not the stage where chromosomes segregate wrongly in this pattern."]}
+{"i":8186,"w":["M phase is blocked by vinca alkaloids and taxanes.","G2 phase is the target of bleomycin."]}
+{"i":76,"w":["Integrins anchor cells at hemidesmosomes, targeted in bullous pemphigoid.","Collagen VII is the target in epidermolysis bullosa acquisita."]}
+{"i":5790,"w":["Insulin inhibits hormone-sensitive lipase and promotes fat storage.","Acetylcholine does not stimulate adipose lipolysis."]}
+{"i":8228,"d":["Increased right ventricular compliance","Increased cerebral vascular resistance"],"w":["Chronic pressure overload stiffens the right ventricle, lowering compliance.","Cerebral vascular resistance falls with hypercapnia, not rises."]}
+{"i":4589,"w":["Repeating in 6 months applies to HPV-positive or unknown HPV status cases.","Immediate colposcopy is for HPV-positive ASC-US or high-grade lesions."]}
+{"i":6802,"w":["The end plate potential follows ACh binding, a later step.","Ca2+ is released into the cytosol, not the synaptic cleft."]}
+{"i":3999,"w":["Methyldopa is a central alpha-2 agonist and does not cause reflex tachycardia.","Labetalol blocks beta and alpha-1 receptors and prevents reflex tachycardia."]}
+{"i":6720,"w":["Brief psychotic disorder lasts less than 1 month.","Schizotypal personality disorder involves odd beliefs without frank psychosis."]}
+{"i":797,"a":"Modified smooth muscle cells","w":["Dysplastic melanocytes produce nevi or melanoma, not tender subungual papules.","Injured nerve cells form traumatic neuromas, not cold-sensitive blue papules."]}
+{"i":5358,"w":["Nitrates act on vascular smooth muscle, not cardiac muscle.","Pulmonary arteries are not the principal site of nitroglycerin's anti-anginal action."]}
+{"i":4518,"a":"Atropine","w":["Methacholine is a muscarinic agonist and would worsen cholinergic effects.","Echothiophate is an irreversible cholinesterase inhibitor."]}
+{"i":9713,"a":"Interstitial T-cell infiltrate","w":["Mesangial IgA deposition is IgA nephropathy.","Papillary necrosis follows chronic NSAID use or sickle cell disease and causes sloughed papillae."]}
+{"i":9642,"w":["Nusinersen treats spinal muscular atrophy.","Glatiramer acetate treats multiple sclerosis."]}
+{"i":9512,"w":["GnRH analogs suppress androgen production and do not treat baldness with libido loss in this way.","Alpha-1 antagonists treat BPH symptoms and cause orthostasis."]}
+{"i":8109,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":5828,"a":"Methylation of maternal chromosome 15","d":["Microdeletion of long arm of chromosome 7","Deletion of Phe508 on maternal chromosome 7"],"w":["Deletion of 7q11 causes Williams syndrome with elfin facies and supravalvular aortic stenosis.","Phe508 deletion is the CFTR mutation of cystic fibrosis."]}
+{"i":10001,"w":["The main stem bronchus has cartilage plates and goblet cells.","Respiratory bronchioles have alveolar outpouchings and are the start of the respiratory zone."]}
+{"i":6275,"w":["Deferoxamine chelates iron in iron overload.","Dimercaprol chelates arsenic, mercury and lead."]}
+{"i":5101,"w":["Polymorphic P waves suggest wandering atrial pacemaker.","Wide QRS complexes without P waves suggest ventricular rhythm."]}
+{"i":3886,"w":["Cyproheptadine treats serotonin syndrome.","Propranolol would not treat malignant hyperthermia."]}
+{"i":1025,"w":["Uridine treats hereditary orotic aciduria, which has normal ammonia.","Galactose avoidance treats galactosemia."]}
+{"i":1385,"w":["Aspergillus prophylaxis is not recommended in HIV patients.","CMV prophylaxis is not recommended at CD4 162."]}
+{"i":8022,"w":["Plaque psoriasis has larger, well-demarcated scaly plaques.","Pemphigus vulgaris causes flaccid bullae, not scaly papules."]}
+{"i":2654,"bw":["GM2 ganglioside accumulation, neurodegeneration","Missing enzyme?"],"w":["Sphingomyelinase deficiency causes Niemann-Pick disease.","Galactocerebrosidase deficiency causes Krabbe disease."]}
+{"i":10048,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":5900,"w":["Lacrimation is a feature of opioid withdrawal.","Seizures suggest alcohol or benzodiazepine withdrawal."]}
+{"i":9084,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":8813,"w":["Factor IX deficiency is hemophilia B and does not prolong bleeding time.","Fibrinogen deficiency prolongs PT and PTT as well."]}
+{"i":9949,"w":["Shivering is a later response when core temperature falls.","The diving reflex causes bradycardia on face immersion, not heat conservation in the hands."]}
+{"i":8193,"w":["Slow-wave sleep is reduced, not increased, in depression.","REM latency is shortened in depression."]}
+{"i":773,"w":["Flexor digitorum profundus flexes the distal joints, which are intact.","Flexor carpi ulnaris flexes and adducts the wrist."]}
+{"i":8352,"a":"Left 5th ICS, midclavicular line","d":["Right lower sternal border","Right 2nd intercostal space"],"w":["The right lower sternal border is the tricuspid area.","The right second intercostal space is the aortic area."]}
+{"i":4145,"w":["Prophylactic ceftriaxone is not a vaccine and is not routine after splenectomy.","Parenteral nutrition does not prevent post-splenectomy infection."]}
+{"i":4901,"a":"Type II hypersensitivity","d":["Type IV hypersensitivity","Graft-versus-host disease"],"w":["Type IV hypersensitivity is T-cell mediated acute rejection, appearing days to months later.","Graft-versus-host disease is donor lymphocytes attacking the recipient, not a recipient antibody reaction."]}
+{"i":5771,"w":["Folic acid prevents neural tube defects but not isotretinoin teratogenicity.","Vitamin B6 does not prevent isotretinoin birth defects."]}
+{"i":9214,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":6531,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":2090,"a":"Urolithiasis","w":["Pancreatitis is a didanosine effect.","Palm and sole hyperpigmentation is seen with emtricitabine."]}
+{"i":4703,"w":["LSD causes visual hallucinations and mydriasis without formication and hyperthermia.","PCP causes nystagmus, violence and analgesia."]}
+{"i":5553,"a":"Decreased hepatic gluconeogenesis","w":["Sulfonylureas close beta-cell K+ channels to release insulin.","Glitazones activate PPAR-gamma to improve insulin sensitivity."]}
+{"i":9598,"w":["DNA gyrase is the target of fluoroquinolones.","The 30S ribosomal subunit is the target of aminoglycosides and tetracyclines."]}
+{"i":285,"w":["Cesarean delivery follows maternal stabilization and does not stop the seizure.","Oxytocin induces labor but does not treat an eclamptic seizure."]}
+{"i":5115,"w":["RNA polymerase II is inhibited by alpha-amanitin.","Desmoglein is cleaved by exfoliative toxin in scalded skin syndrome."]}
+{"i":6973,"a":"Squirrels","w":["Deer carry ticks that transmit Lyme disease, not plague.","Birds carry psittacosis and West Nile virus, not plague."]}
+{"i":3320,"w":["Denial is an unconscious refusal to accept reality.","Dissociation is a temporary alteration of identity or awareness."]}
+{"i":9156,"w":["Streptococcal pharyngitis leads to rheumatic fever, which mainly affects the mitral valve.","Fibrillin defects cause mitral valve prolapse and aortic dilation."]}
+{"i":8662,"a":"Na+/K+-ATPase failure","w":["Caspase 9 activation drives apoptosis, which shrinks cells.","Reduced caspase 7 would impair apoptosis, not cause cell swelling."]}
+{"i":7250,"w":["Desmosome antibodies cause pemphigus with a positive Nikolsky sign.","Tissue transglutaminase antibodies mark celiac disease."]}
+{"i":9164,"w":["CD56 is a natural killer cell marker.","CD3 is a T cell marker."]}
+{"i":2114,"w":["5-FU inhibits thymidylate synthase.","NSAIDs inhibit cyclooxygenase and do not cause mucositis with raised transaminases."]}
+{"i":4196,"a":"Calcified spherules, empty nuclei","d":["Polygonal cells around amyloid","Colloid scalloping"],"w":["Polygonal cells in amyloid stroma are medullary thyroid carcinoma.","Scalloped colloid with hyperplasia is the pattern of Graves disease."]}
+{"i":3364,"w":["A vocal cord nodule is a smooth benign lesion from voice overuse.","Leukoplakia is a white premalignant patch, not a vegetating lesion that bleeds."]}
+{"i":4857,"w":["Medulloblastoma is a solid midline tumor of small blue cells.","Craniopharyngioma is a suprasellar calcified cystic tumor from Rathke pouch."]}
+{"i":1269,"w":["Mesolimbic blockade treats positive symptoms and does not cause galactorrhea.","Nigrostriatal blockade causes parkinsonism."]}
+{"i":3786,"w":["Flumazenil reverses benzodiazepines.","Naloxone reverses opioids."]}
+{"i":6403,"w":["Topoisomerase, not helicase, relieves supercoiling.","Primase, not helicase, makes the RNA primer."]}
+{"i":793,"w":["Decreasing aqueous production treats glaucoma.","Corneal collagen cross-linking treats keratoconus."]}
+{"i":5964,"a":"Left testicular-renal vein junction","d":["Right testicular vein-IVC junction","Aorta-testicular artery junction"],"w":["The right testicular vein enters the IVC obliquely with good flow.","The testicular arteries arise from the aorta and do not form varicoceles."]}
+{"i":8286,"w":["The indirect Coombs test detects free serum antibodies, not complement on red cells.","Anti-centromere antibodies mark limited systemic sclerosis."]}
+{"i":336,"bw":["Sciatica after heavy lifting","Positive straight-leg raise","Cause?"],"d":["Vertebral body compromise","Inflammatory spinal degeneration"],"w":["Vertebral fracture or metastasis causes focal pain with systemic signs.","Spondyloarthritis gives morning stiffness in young men, not post-lifting sciatica."]}
+{"i":7136,"w":["A fecalith is the typical obstruction in adults.","Ingested foreign bodies rarely cause appendicitis."]}
+{"i":1153,"w":["Esophageal adenocarcinoma follows Barrett esophagus from GERD.","Gallbladder carcinoma is linked to gallstones and chronic Salmonella carriage."]}
+{"i":3384,"a":"Inspiratory drop in systolic BP","w":["Tracheal deviation points to tension pneumothorax.","Paradoxical chest wall motion is flail chest."]}
+{"i":4828,"w":["The Golgi modifies and sorts proteins.","Peroxisomes oxidize very long chain fatty acids."]}
+{"i":1589,"x":"answer options reduce to opposite comparatives (checker rule)"}
+{"i":8577,"w":["Pretransfusion Coombs testing prevents hemolysis, not febrile reactions.","ABO and Rh typing prevents hemolytic reactions."]}
+{"i":8490,"w":["The A-a gradient is increased in ARDS because of shunting.","The chest film shows bilateral infiltrates in ARDS."]}
+{"i":9416,"bw":["Neonatal jaundice, unconjugated bilirubin","No response to phototherapy","Diagnosis?"],"w":["Gilbert syndrome is mild and does not cause severe neonatal jaundice.","Type II responds to phenobarbital, unlike type I."]}
+{"i":9106,"w":["Evans blue binds albumin and measures plasma volume.","Heavy water distributes into total body water."]}
+{"i":5684,"w":["IFN-gamma drives Th1 differentiation and IgG switching.","IL-17 comes from Th17 cells and recruits neutrophils."]}
+{"i":5129,"w":["Quinidine prolongs QT and commonly causes torsades.","Sotalol causes dose-dependent QT prolongation and torsades."]}
+{"i":5422,"w":["Hemorrhoids cause painless bleeding or prolapse, not tearing pain.","A perianal abscess causes constant throbbing pain with swelling and fever."]}
+{"i":8166,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":8246,"w":["Substernal pain suggests cardiac or esophageal disease.","Hematemesis points to upper GI bleeding."]}
+{"i":1928,"w":["Reticulocytes are low in aplastic anemia because the marrow fails.","Haptoglobin is low or normal; it falls with hemolysis."]}
+{"i":8397,"w":["Deltoid (axillary nerve, C5-C6) is weak in Erb palsy.","Infraspinatus (suprascapular nerve, C5-C6) is weak in Erb palsy."]}
+{"i":6373,"w":["Tonic-clonic seizures are treated with valproate or phenytoin, not ethosuximide.","Tourette syndrome is treated with antipsychotics or alpha-2 agonists."]}
+{"i":8668,"w":["Carbon monoxide poisoning gives cherry-red skin with a normal PaO2.","Anemia would not explain lactic acidosis during nitroprusside infusion."]}
+{"i":6197,"w":["V2 exits through the foramen rotundum.","V1 exits through the superior orbital fissure."]}
+{"i":3414,"w":["Nephrotic syndrome shows fatty and waxy casts with heavy proteinuria.","Poststreptococcal GN shows RBC casts and hematuria."]}
+{"i":2356,"a":"Endothelial junction separation","d":["Decreased plasma oncotic pressure","Fluid produced by bacteria"],"w":["Low oncotic pressure causes transudates in nephrotic syndrome or cirrhosis.","The edema is host vascular leak, not fluid made by bacteria."]}
+{"i":3181,"w":["Anserine bursitis causes medial knee pain below the joint line.","A medial meniscus tear causes locking and joint-line tenderness."]}
+{"i":390,"w":["Impetigo causes honey-crusted lesions.","Viral conjunctivitis causes watery red eyes without a periorbital rash."]}
+{"i":4995,"a":"Gas in bowel wall","w":["Double bubble sign indicates duodenal atresia.","Group B strep sepsis presents in the first days with respiratory distress."]}
+{"i":8862,"bw":["Propranolol overdose, refractory bradycardia","Hypotension","First-line antidote?"],"w":["Atropine seldom corrects beta-blocker bradycardia.","Adenosine slows the AV node and would worsen bradycardia."]}
+{"i":6714,"w":["The posterior pituitary releases ADH normally, and levels here are high.","The supraoptic nucleus makes ADH, which is elevated in nephrogenic DI."]}
+{"i":1963,"bw":["Inhibits thrombin and factor Xa via antithrombin","Which drug?"],"w":["Apixaban inhibits only factor Xa directly.","Fondaparinux inhibits only factor Xa through antithrombin."]}
+{"i":5638,"w":["Rh disease needs an Rh-negative mother and a strongly positive Coombs test.","G6PD deficiency has Heinz bodies and a negative Coombs test."]}
+{"i":1131,"w":["Acarbose blocks intestinal alpha-glucosidase and does not raise insulin.","Exogenous insulin suppresses endogenous insulin and C-peptide."]}
+{"i":1227,"a":"Inhibited bone growth","d":["Atrialization of the ventricle","Gray coloring of the skin"],"w":["Atrialization of the right ventricle (Ebstein anomaly) follows lithium.","Gray baby syndrome follows chloramphenicol in neonates."]}
+{"i":5688,"bw":["Rhyming speech: 'pine, dine, doc'","Thought process?"],"a":"Disorganized thinking","d":["Flight of ideas","Thought blocking"],"w":["Flight of ideas has meaningful links between rapid topics.","Thought blocking is a sudden interruption of speech."],"p":"Clang associations (word choice by sound) are a form of disorganized thinking seen in schizophrenia and mania."}
+{"i":9188,"w":["Carvedilol blocks alpha and beta receptors without partial agonism.","Esmolol is a short-acting beta-1 blocker without ISA."]}
+{"i":2204,"w":["Kimmelstiel-Wilson nodules appear in advanced diabetic nephropathy.","Microalbuminuria already reflects structural glomerular change."]}
+{"i":8724,"w":["Oral thrush occurs in infants and healthy adults.","Vaginal candidiasis is common in healthy women."]}
+{"i":1736,"w":["Primary oocytes do not arrest in metaphase I.","Anaphase is not an arrest point in oogenesis."]}
+{"i":492,"w":["Alpha-2 agonists act centrally and do not relax the prostate.","Muscarinic agonists contract the bladder and worsen retention."]}
+{"i":6682,"bw":["Emphysema in a young adult plus ascites","Mechanism of the liver disease?"],"a":"Defective protein folding","d":["Excessive protease activity","Hyperplasia of mucous glands"],"w":["Unopposed protease activity explains the lung injury, not the liver disease.","Mucous gland hyperplasia is chronic bronchitis."]}
+{"i":7318,"a":"Aromatic amine exposure","w":["Vinyl chloride causes hepatic angiosarcoma.","Alcohol is not a recognized bladder cancer risk factor."]}
+{"i":504,"bw":["Intra-arterial acetylcholine dilates arteries","Which mediator?"],"w":["Endothelin is a vasoconstrictor.","Adrenal norepinephrine constricts vessels through alpha-1 receptors."]}
+{"i":3171,"w":["Diethylcarbamazine treats Loa loa and lymphatic filariasis.","Mebendazole treats intestinal nematodes."]}
+{"i":8291,"w":["The left ventricle lies more posterior and lateral.","The right atrium forms the right border of the heart."]}
+{"i":4720,"bw":["Hexagonal urinary crystals","Poorly reabsorbed amino acid?"],"a":"Lysine","d":["Aspartic acid","Phenylalanine"],"w":["Aspartate is not carried by the COLA transporter.","Phenylalanine is a neutral amino acid, affected in Hartnup disease."],"p":"Cystinuria (COLA: cystine, ornithine, lysine, arginine): defective renal transporter causes hexagonal cystine stones."}
+{"i":8253,"w":["Tetanus toxoid is inactivated and safe in HIV.","Hib is an inactivated conjugate vaccine and is safe."]}
+{"i":7392,"bw":["Magnesium ammonium phosphate stones","Urease-splitting organisms","Predisposing factor?"],"a":"Urinary tract infection","w":["Uric acid precipitation forms radiolucent urate stones.","Ethylene glycol ingestion causes calcium oxalate stones."]}
+{"i":1075,"w":["Hepatitis A does not cause a serum-sickness-like prodrome.","Campylobacter causes diarrhea, not hepatitis."]}
+{"i":4640,"w":["Glucose-6-phosphatase deficiency is von Gierke disease.","Debranching enzyme deficiency (Cori disease) impairs cleaving of alpha-1,6 bonds."]}
+{"i":3266,"w":["Salmonella causes osteomyelitis in sickle cell disease.","Staphylococcus aureus causes osteomyelitis and skin infection, not typical sickle cell pneumonia."]}
+{"i":370,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":2457,"w":["5-alpha reductase deficiency causes ambiguous genitalia in 46,XY.","17-alpha-hydroxylase deficiency causes hypertension and absent puberty."]}
+{"i":9337,"a":"Previous suicide attempt","w":["Female sex has more attempts but fewer completed suicides.","Being married is protective."]}
+{"i":5650,"w":["Troponin I stays elevated for 7-10 days and cannot detect reinfarction early.","LDH rises late and stays high for days."]}
+{"i":9744,"w":["Central transtentorial herniation causes bilateral pupil and consciousness changes.","Upward herniation follows a posterior fossa mass."]}
+{"i":7916,"bw":["Chronic pyelonephritis in reflux","Biopsy finding?"],"a":"Tubular colloid casts","d":["Eosinophilic interstitial infiltrate","Foamy histiocytes"],"w":["Eosinophilic infiltrates indicate acute interstitial nephritis.","Foamy histiocytes mark xanthogranulomatous pyelonephritis."]}
+{"i":7237,"bw":["Bile-resistant anaerobic GNRs in foot abscess","Normal flora site?"],"w":["Skin flora are mainly staphylococci and streptococci.","Oropharyngeal anaerobes are Prevotella and Fusobacterium."]}
+{"i":8781,"w":["ACL injury gives an anterior drawer and a positive Lachman test.","LCL injury causes lateral laxity with varus stress."]}
+{"i":2886,"w":["The radial nerve supplies the dorsum of the thumb.","The medial antebrachial cutaneous nerve supplies the medial forearm."]}
+{"i":8414,"w":["Propranolol first leaves alpha stimulation unopposed and may cause a hypertensive crisis.","Atenolol is a beta-blocker with the same risk."]}
+{"i":1861,"a":"Superior segment, right lower lobe","w":["The anterior segment of the right upper lobe is not dependent when supine.","The left lower bronchus is less vertical, so aspiration there is less common."]}
+{"i":7111,"bw":["Infant: hypertension, low aldosterone, high testosterone","Elevated intermediate?"],"a":"11-deoxycorticosterone","d":["17-hydroxyprogesterone","Renin"],"w":["17-hydroxyprogesterone rises in 21-hydroxylase deficiency.","Renin is suppressed by the mineralocorticoid excess."],"p":"11-beta-hydroxylase deficiency raises 11-deoxycorticosterone (hypertension, low renin) and androgens (virilization)."}
+{"i":5633,"w":["Collagen synthesis depends on vitamin C, not vitamin D.","Iron absorption is regulated by hepcidin and is not the defect in osteomalacia."]}
+{"i":6748,"w":["Pulsus parvus et tardus is aortic stenosis.","Fixed splitting of S2 is atrial septal defect."]}
+{"i":9073,"w":["Osteoporosis is a glucocorticoid toxicity.","Pancytopenia is typical of azathioprine or mycophenolate."]}
+{"i":7017,"x":"keyed text (spiral-shaped bacteria) not a runner-friendly term"}
+{"i":6562,"w":["Cat feces transmit Toxoplasma.","Listeria is foodborne, not sexually transmitted."]}
+{"i":1494,"a":"Low C-peptide, high insulin","d":["High C-peptide, high insulin","Low insulin, low C-peptide"],"w":["High insulin with high C-peptide means endogenous secretion, as in insulinoma.","Low insulin cannot cause hypoglycemia after an insulin overdose."]}
+{"i":4008,"w":["Hyaline membranes occur in ARDS or neonatal respiratory distress.","Anti-GBM antibodies cause Goodpasture syndrome."]}
+{"i":7691,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":9641,"w":["Pituitary tumors cause bitemporal hemianopia and hormonal syndromes.","Thalamic lesions cause sensory loss and cognitive deficits."]}
+{"i":830,"w":["Conduct disorder involves violating others' rights and rules.","ADHD causes inattention and hyperactivity rather than targeted defiance."]}
+{"i":8738,"w":["Trolamine salicylate absorbs UVB only.","Vitamin E is an antioxidant, not a sunscreen filter."]}
+{"i":7481,"w":["Plaque rupture causes MI in older adults.","Cardiac myxoma causes positional syncope and a tumor plop."]}
+{"i":2200,"a":"NCC inhibitor in distal tubule","d":["NKCC inhibitor in loop of Henle","ENaC inhibitor in collecting duct"],"w":["Loop diuretics (NKCC) cause hypocalcemia and ototoxicity.","ENaC inhibitors (amiloride) are potassium sparing."]}
+{"i":7794,"w":["Aspergillus otitis externa is rare and occurs in diabetics or after antibiotics.","Streptococcus pneumoniae causes otitis media, not otitis externa."]}
+{"i":216,"bw":["Crossing over between homologous chromosomes","Which phase?"],"w":["Anaphase I separates homologous chromosomes.","Metaphase II aligns sister chromatids."]}
+{"i":4893,"w":["Paget disease affects older adults.","Osteopetrosis causes dense brittle bones and cytopenias."]}
+{"i":5487,"w":["Phosphorylation is a regulatory modification, not how enteropeptidase activates trypsinogen.","Ubiquitination tags proteins for proteasomal degradation."]}
+{"i":8170,"w":["A CBC is nonspecific and does not exclude ectopic pregnancy.","Urinalysis would not exclude a pregnancy-related cause."]}
+{"i":6057,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":9125,"w":["AFP marks yolk sac tumors and does not explain hyperthyroidism.","Metanephrines mark pheochromocytoma."]}
+{"i":4551,"w":["Alpha-2 agonists do not directly dilate arteries.","Negative inotropy is a beta-blocker effect."]}
+{"i":420,"bw":["Karyotyping for Down syndrome","Cells arrested in which phase?"],"w":["Prophase chromosomes are less condensed.","S phase is DNA synthesis, not condensed chromosomes."]}
+{"i":8832,"w":["Single-positive CD4+ cells appear after positive selection.","Th2 cells differentiate in the periphery."]}
+{"i":7883,"w":["Venodilation reduces preload without causing steal.","Dilation of large epicardial arteries does not divert flow."]}
+{"i":6759,"w":["Gingival hyperplasia follows phenytoin, cyclosporine or nifedipine.","Interstitial nephritis is caused by NSAIDs and penicillins."]}
+{"i":9719,"a":"Increased hematocrit","w":["Aniridia occurs with Wilms tumor (WAGR).","Gynecomastia is not a typical RCC feature."]}
+{"i":4364,"bw":["Polysaccharide-protein conjugate vaccine at 1 year","Target pathogen?"],"a":"Streptococcus pneumoniae","w":["Hepatitis A vaccine is inactivated whole virus.","Varicella vaccine is live attenuated."]}
+{"i":5557,"w":["Etoposide inhibits topoisomerase II.","Cytarabine is a pyrimidine antimetabolite."]}
+{"i":7585,"w":["Constrictive pericarditis causes JVD, which is absent here.","Hemochromatosis causes cirrhosis, not acute hepatic vein obstruction with polycythemia."]}
+{"i":2050,"w":["APOE e4 is a late-onset susceptibility allele, not a causal gene.","CAG repeats cause Huntington disease."]}
+{"i":6354,"x":"answer options are near-duplicate comparative pairs (checker rule)"}
+{"i":4503,"w":["Lactotrophs produce prolactin (prolactinoma).","Astroglial cells give pilocytic astrocytomas."]}
+{"i":1652,"a":"Blocks acetylcholine release","d":["Acetylcholinesterase inhibition","Postsynaptic receptor antagonism"],"w":["Acetylcholinesterase inhibitors (organophosphates) cause cholinergic excess.","Postsynaptic nicotinic blockade is the action of curare."]}
+{"i":5411,"w":["Conduct disorder involves rule violations and aggression.","Mania is a mood episode with grandiosity and decreased need for sleep."]}
+{"i":8235,"w":["Alpha-1 activation would cause vasoconstriction, not flushing and dry mouth.","Antihistamines block, not activate, histamine receptors."]}
+{"i":2141,"w":["Arachidonic acid is the precursor of prostaglandins and leukotrienes.","L-arginine is the precursor of nitric oxide."]}
+{"i":5950,"w":["Glutaraldehyde crosslinks proteins.","Iodine halogenates nucleic acids."]}
+{"i":7609,"w":["Papillary necrosis follows analgesics, diabetes or sickle cell disease.","Acute interstitial nephritis shows interstitial inflammation with eosinophils."]}
+{"i":2062,"a":"Heat-resistant DNA polymerase","d":["Heat-sensitive DNA polymerase","Reverse transcriptase"],"w":["A heat-sensitive polymerase would be destroyed at the denaturation step.","Reverse transcriptase makes DNA from RNA and is not used in standard PCR amplification."]}
+{"i":1261,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":9625,"w":["Bradykinin comes from the kallikrein-kinin system, not mast cell granules.","Interferon-gamma is a T cell cytokine, not a mast cell mediator."]}
+{"i":5403,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":1989,"w":["Glycogen storage disease causes hypoglycemia and hepatomegaly, not anemia-driven organ enlargement.","Lymphoma would not explain chronic anemia with marrow expansion."]}
+{"i":5351,"w":["Cogwheel rigidity is a parkinsonian sign from substantia nigra loss.","Vertical gaze palsy follows dorsal midbrain lesions."]}
+{"i":8661,"w":["LDL falls, not rises, with exercise and a healthy diet.","VLDL falls with exercise and low carbohydrate intake."]}
+{"i":4651,"w":["Schizophreniform disorder lasts 1 to 6 months.","Schizophrenia needs symptoms for at least 6 months."]}
+{"i":7733,"w":["Hydrochlorothiazide worsens hypokalemia.","Lisinopril lowers aldosterone indirectly but does not correct hypokalemia like an aldosterone antagonist."]}
+{"i":386,"w":["Nitric oxide is not raised by neprilysin inhibition.","Leukotrienes are not neprilysin substrates."]}
+{"i":273,"w":["Exaggerated reflexes indicate an upper motor neuron lesion, not root compression.","Anterior thigh sensation is supplied by L2-L3, not S1."]}
+{"i":9429,"a":"Type IV collagen","d":["Type II collagen","Type VI collagen"],"w":["Type II collagen is found in cartilage.","Type VI collagen forms microfibrils and is not the Goodpasture target."]}
+{"i":5990,"w":["E-selectin mediates rolling, not tight adhesion.","ICAM-1 is the endothelial ligand; the defect in LAD type 1 is the integrin."]}
+{"i":3170,"w":["Praziquantel treats schistosomiasis and tapeworms.","Diethylcarbamazine treats filariasis."]}
+{"i":6694,"w":["Clonorchis sinensis is a liver fluke causing cholangitis.","Schistosoma mansoni causes portal fibrosis, not a calcified cyst with daughter cysts."]}
+{"i":1743,"a":"Epinephrine","w":["Pilocarpine constricts the pupil and opens the angle, so it is used in treatment.","Acetazolamide lowers aqueous production and is part of treatment."]}
+{"i":1190,"a":"Bromocriptine","w":["Estrogen does not lower prolactin and can stimulate prolactinomas.","Metoclopramide is a D2 antagonist that raises prolactin."]}
+{"i":5009,"a":"Delayed tubal ovum transit","w":["Increased sweat chloride is cystic fibrosis.","NADPH oxidase deficiency causes chronic granulomatous disease."]}
+{"i":6994,"w":["Exons are retained in mature mRNA.","The poly(A) tail is added, not removed, during mRNA processing."]}
+{"i":525,"w":["T lymphocytes are infected by HIV and HTLV.","Monocytes are infected by CMV and HIV, not parvovirus."]}
+{"i":4842,"a":"Extra chromosome in placental tissue","w":["Estriol is a quad screen marker, not diagnostic.","Inhibin A is a screening marker, not diagnostic."]}
+{"i":7124,"w":["Citalopram is an SSRI and shares the sexual side effects.","Tranylcypromine is an MAOI that can cause sexual dysfunction and dietary risks."]}
+{"i":6339,"w":["GABA is reduced in Huntington disease.","Acetylcholine is also reduced in Huntington disease."]}
+{"i":145,"w":["Tamponade causes hypotension, muffled heart sounds and JVD.","MI shows localized ST changes and a troponin rise."]}
+{"i":4667,"w":["Tensor fasciae latae is supplied by the superior gluteal nerve.","Semitendinosus is supplied by the tibial division of the sciatic nerve."]}
+{"i":3370,"w":["Hyperthyroidism is not caused by energy deficiency.","Hyperkalemia is not a feature of the female athlete triad."]}
+{"i":1028,"w":["Immune evasion refers to pathogens escaping host immunity.","Tolerance is the lack of response to self antigens."]}
+{"i":401,"a":"Thyroid peroxidase inhibitors (thionamides)","d":["Radioactive iodine","Levothyroxine"],"w":["Radioactive iodine is contraindicated in pregnancy.","Levothyroxine treats hypothyroidism, not Graves hyperthyroidism."]}
+{"i":3162,"w":["Haptoglobin is low in hemolysis, not elevated.","TTP causes thrombocytopenia, not an elevated platelet count."]}
+{"i":8515,"bw":["Contralateral leg weakness","Urinary incontinence, abulia","Occluded artery?"],"w":["A posterior cerebral artery infarct causes contralateral visual field loss.","Vertebrobasilar infarcts cause brainstem and cerebellar signs."]}
+{"i":5134,"w":["Drug-induced mania shows elevated mood and pressured speech.","Restless legs syndrome is a nocturnal urge to move the legs relieved by movement."]}
+{"i":6703,"bw":["Same-sex fantasies, mocks same-sex couples","Defense mechanism?"],"w":["Acting out expresses an impulse through behavior rather than an opposite attitude.","Intellectualization uses abstract thinking to avoid feelings."]}
+{"i":7927,"w":["ADP is the product after hydrolysis and leaves in the power stroke.","Troponin C binds calcium and exposes myosin-binding sites."]}
+{"i":3432,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":9311,"w":["Folate deficiency causes megaloblastic anemia.","Riboflavin deficiency causes cheilosis and glossitis."]}
+{"i":6886,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":2719,"w":["G cells secrete gastrin.","I cells secrete cholecystokinin."]}
+{"i":750,"w":["NADPH oxidase deficiency is chronic granulomatous disease.","Leukopenia is not characteristic of Wiskott-Aldrich syndrome."]}
+{"i":3473,"w":["Methylmalonic acid is raised in B12 deficiency.","Aldolase B deficiency causes hereditary fructose intolerance."]}
+{"i":9611,"w":["Labia majora derive from the labioscrotal swellings.","Bartholin glands correspond to the male bulbourethral glands."]}
+{"i":5540,"a":"Blocks norepinephrine reuptake","d":["Releases stored norepinephrine","Blocks acetylcholine release"],"w":["Releasing stored norepinephrine is the amphetamine mechanism.","Blocking acetylcholine release is the action of botulinum toxin."]}
+{"i":4179,"w":["Withdrawal under 24 hours causes tremor and anxiety, not delirium tremens.","Delirium tremens rarely begins as late as 5-6 days."]}
+{"i":3459,"a":"Volume depletion","w":["Aminoglycoside ATN shows muddy brown casts and high urine sodium.","Obstruction shows hydronephrosis with variable urine indices."]}
+{"i":6933,"bw":["Binds antibody but needs a carrier","Immunogenic term?"],"w":["An adjuvant boosts an immune response but does not bind antibody.","The carrier is the large molecule the hapten attaches to."]}
+{"i":8344,"w":["Tetanospasmin causes spastic paralysis from Clostridium tetani.","Botulinum toxin causes flaccid paralysis."]}
+{"i":9617,"a":"Cortisol suppresses, ACTH high","d":["No suppression, low ACTH","No suppression, high ACTH"],"w":["Adrenal tumors secrete cortisol autonomously with low ACTH and do not suppress.","Ectopic ACTH sources, such as small cell lung cancer, do not suppress with dexamethasone."]}
+{"i":3417,"x":"answer options are opposites (checker rule) and the fact is trivial"}
+{"i":217,"bw":["Nissl stain: soma and dendrites, not axon","Which organelle?"],"w":["Lysosomes digest cellular waste and are not what Nissl stain labels.","Microtubules run in axons and are not Nissl bodies."]}
+{"i":4037,"bw":["Painful third-trimester bleeding","Hypertonic uterus, fetal distress","Diagnosis?"],"w":["Placenta previa is painless.","Vasa previa causes painless bleeding with fetal bradycardia after membrane rupture."]}
+{"i":4624,"w":["Borderline patients have unstable relationships and fear abandonment with impulsivity.","Avoidant patients desire relationships but avoid them from fear of rejection."]}
+{"i":4999,"w":["Pyridostigmine is the long-acting maintenance drug.","Physostigmine crosses the blood-brain barrier and is not used for this test."]}
+{"i":8547,"a":"Decreased cGMP degradation","d":["Adenylyl cyclase activation","Guanylyl cyclase inhibition"],"w":["Adenylyl cyclase activation raises cAMP, the beta agonist mechanism.","Guanylyl cyclase inhibition would lower cGMP, opposing PDE5 inhibitors."]}
+{"i":2830,"w":["IL-5 recruits and activates eosinophils.","IL-11 stimulates platelet production."]}
+{"i":7596,"x":"keyed text (denudation of basement membrane) not a runner-friendly term"}
+{"i":2820,"w":["Altered squalene epoxidase is the terbinafine target.","Beta-glucan synthase mutations confer echinocandin resistance."]}
+{"i":3856,"w":["Meiotic nondisjunction gives 47 chromosomes.","Mitotic nondisjunction gives mosaicism with 47 chromosomes in some cells."]}
+{"i":509,"bw":["Spatial distribution of CD117 cells in tissue","Which test?"],"w":["Northern blot detects RNA and does not show tissue distribution.","Flow cytometry measures cell populations in suspension, not tissue architecture."]}
+{"i":1194,"w":["N-acetylcysteine treats acetaminophen overdose.","Deferoxamine treats iron overdose."]}
+{"i":5141,"a":"Increased erythropoietin","w":["Increased cortisol causes Cushing syndrome with central obesity and striae.","Increased bradykinin occurs with ACE inhibitors and causes cough or angioedema."]}
+{"i":3460,"w":["Protein S deficiency does not cause resistance to activated protein C.","Protein C deficiency gives a normal APC response with low protein C levels."]}
+{"i":5787,"a":"Increased frequency of channel opening","d":["Prolonged chloride channel opening","Sodium channel inactivation"],"w":["Prolonged opening is the barbiturate mechanism.","Sodium channel inactivation is the phenytoin mechanism."]}
+{"i":3966,"x":"answer options are opposite comparatives (checker rule)"}
+{"i":6510,"w":["Tamsulosin relaxes smooth muscle without shrinking the prostate.","Prazosin relaxes smooth muscle and does not reduce prostate size."]}
+{"i":9843,"w":["Accelerated repolarization would shorten the action potential, the opposite effect.","Depolarization depends on sodium channels, not potassium channels."]}
+{"i":9079,"d":["Increased sodium filtration","Increased creatinine absorption"],"w":["Filtration falls in shock because of low renal perfusion.","Creatinine is filtered and secreted, not significantly reabsorbed."]}
+{"i":2711,"w":["Dental caries are caused by Streptococcus mutans.","Subacute sclerosing panencephalitis follows measles."]}
+{"i":7008,"w":["Lateral meniscus tears cause lateral joint-line pain.","PCL injury causes posterior tibial sag after a dashboard injury."]}
+{"i":7655,"w":["Klinefelter syndrome (47,XXY) causes hypogonadism and gynecomastia.","Trisomy 21 causes intellectual disability and characteristic facies."]}
+{"i":2333,"bw":["Bilateral adrenalectomy for Cushing disease","Hyperpigmentation, ACTH over 1000, field loss","Next step?"],"a":"Pituitary radiotherapy","d":["Metyrapone","Glucocorticoid dose reduction"],"w":["Metyrapone blocks cortisol synthesis, but the adrenals are already removed.","Reducing glucocorticoids would raise ACTH further and does not shrink the tumor."],"p":"Nelson syndrome: after bilateral adrenalectomy for Cushing disease, the pituitary adenoma enlarges, causing high ACTH, pigmentation and visual field loss; treat with pituitary surgery or radiation."}
+{"i":7306,"w":["CA 19-9 marks pancreatic and biliary cancer.","AFP marks yolk sac tumor and hepatocellular carcinoma."]}
+{"i":1295,"w":["Lamotrigine causes rash and Stevens-Johnson syndrome.","Carbamazepine causes hyponatremia, aplastic anemia and neural tube defects."]}
+{"i":8226,"w":["High-dose vitamin A is teratogenic.","Progesterone does not prevent neural tube defects."]}
+{"i":10119,"bw":["Made in skin by UV light","Vitamin D form?"],"w":["Ergocalciferol (D2) is plant-derived and comes from the diet.","1,25-dihydroxyvitamin D is made by renal hydroxylation, not sunlight directly."]}
+{"i":8407,"w":["Karyolysis is nuclear dissolution, the last stage.","Karyorrhexis is nuclear fragmentation, which follows pyknosis."]}
+{"i":5617,"bw":["Adult nephrotic syndrome","Subepithelial deposits, thick GBM","Antibody target?"],"w":["IgA complexes cause IgA nephropathy.","Collagen IV defects cause Alport syndrome."]}
+{"i":9553,"w":["Etanercept does not cause liver fibrosis.","Hydroxychloroquine rarely affects the liver but causes retinal toxicity."]}
+{"i":3314,"w":["Reactive arthritis follows GI or GU infection.","Myocarditis follows viral infection or diphtheria."]}
+{"i":5671,"bw":["Recurrent mild jaundice","Isolated unconjugated hyperbilirubinemia","Diagnosis?"],"w":["Crigler-Najjar II is more severe and presents in infancy.","Hemolytic anemia raises indirect bilirubin with anemia and reticulocytosis."]}
+{"i":10061,"w":["Vision relays through the lateral geniculate nucleus of the thalamus.","Proprioception relays through the ventral posterolateral nucleus."]}
+{"i":3307,"a":"Increased lipolysis","d":["Inhibition of insulin release","Increased glycolysis"],"w":["Glucagon does not inhibit insulin release, which falls only as a response to glucose.","Glucagon inhibits glycolysis and favors gluconeogenesis."]}
+{"i":3937,"w":["Western blot detects proteins using antibodies.","Northern blot detects RNA."]}
+{"i":635,"w":["Bradykinin causes pain and vasodilation, not the main asthma bronchoconstrictor.","Serotonin is not a central mediator of asthma."]}
+{"i":835,"a":"Increased RV stroke volume","d":["Increased peripheral vascular resistance","Increased systemic venous compliance"],"w":["Increased systemic resistance would worsen left-sided murmurs such as mitral regurgitation.","Venous compliance does not explain the inspiratory increase."]}
+{"i":6421,"w":["L4-L5 herniation compresses L5 and causes foot drop.","L5-S1 herniation compresses S1 and diminishes the Achilles reflex."]}
+{"i":5149,"w":["Calcium oxalate stones are radio-opaque.","Struvite stones are radio-opaque and follow infection."]}
+{"i":7443,"a":"Amlodipine","w":["Propranolol is a nonselective beta-blocker that worsens vasospasm.","Phenylephrine is a vasoconstrictor and would worsen Raynaud phenomenon."]}
+{"i":6520,"w":["Pramlintide is an amylin analog.","Canagliflozin is an SGLT2 inhibitor."]}
+{"i":246,"w":["CD4 marks T helper cells.","CD8 marks cytotoxic T cells."]}
+{"i":1287,"w":["Leuprolide is a GnRH analog.","Metyrapone blocks cortisol synthesis in Cushing syndrome."]}
+{"i":1182,"bw":["Anosmia, absent puberty","Developmental cause?"],"a":"Failed neuronal migration","d":["Expansile suprasellar tumor","Defect in steroid production"],"w":["A suprasellar tumor would not cause lifelong anosmia with isolated hypogonadotropic hypogonadism.","A steroid synthesis defect gives high gonadotropins, not low."],"p":"Kallmann syndrome: failure of GnRH neuron migration from the olfactory placode causes anosmia and hypogonadotropic hypogonadism."}
+{"i":5255,"w":["Fluconazole treats Candida.","Azithromycin treats chlamydia and does not treat Trichomonas."]}
+{"i":4660,"a":"Venous valve incompetence","d":["Decreased lymphatic flow","Decreased plasma oncotic pressure"],"w":["Lymphedema is non-pitting and does not improve with elevation.","Low oncotic pressure causes generalized edema, not stasis changes."]}
+{"i":173,"w":["WBC casts indicate pyelonephritis or interstitial nephritis.","Hyaline casts are nonspecific."]}
+{"i":3070,"w":["Pilocarpine stimulates sweating.","Phenylephrine is an alpha-1 agonist, not an anhidrotic."]}
+{"i":5160,"bw":["Secretes Mullerian-inhibiting substance","Which cell?"],"w":["Leydig cells make testosterone.","Granulosa cells are ovarian cells making estradiol."]}
+{"i":5824,"w":["Salt-and-pepper skull is a sign of hyperparathyroidism.","Elevated IgG4 is autoimmune pancreatitis."]}
+{"i":7561,"bw":["Pleuritic chest pain, diffuse ST elevation","3 days after MI","Treatment?"],"w":["Atorvastatin does not treat pericarditis.","Lisinopril does not treat pericarditis."]}
+{"i":3193,"w":["Nocardia is weakly acid-fast and aerobic.","Streptococcus pneumoniae does not form sulfur granules."]}
+{"i":8037,"w":["Hematocrit is raised in polycythemia vera.","Platelet count is often high in polycythemia vera."]}
+{"i":2704,"a":"Benign thymus tumor (thymoma)","d":["Neurogenic tumor","Esophageal duplication cyst"],"w":["Neurogenic tumors lie in the posterior mediastinum.","Duplication cysts are posterior mediastinal developmental anomalies."]}
+{"i":10082,"w":["Acetaminophen causes hepatotoxicity, not respiratory alkalosis with anion gap acidosis.","Gabapentin overdose causes sedation, not tinnitus and metabolic acidosis."]}
+{"i":7675,"w":["Ketone bodies are synthesized in mitochondria.","Alpha-oxidation occurs in peroxisomes."]}
+{"i":9639,"w":["Median nerve injury spares the wrist extensors.","Axillary nerve injury follows shoulder dislocation or surgical neck fracture."]}
+{"i":7925,"w":["The ureteric bud forms the collecting system.","The mesonephric duct forms male genital ducts and gives rise to the ureteric bud."]}
+{"i":9788,"w":["Lancet-shaped diplococci describe Streptococcus pneumoniae.","Long branching filaments describe Actinomyces or Nocardia."]}
+{"i":2024,"x":"answer is a six-word comparative phrase (checker rule)"}
+{"i":9105,"w":["Cafe-au-lait spots occur in neurofibromatosis type 1.","A port-wine stain occurs in Sturge-Weber syndrome."]}
+{"i":6082,"a":"Polygenic","w":["Mitochondrial inheritance passes only through the mother.","X-linked recessive inheritance affects mostly males, and type 1 diabetes is not Mendelian."]}
+{"i":254,"w":["Glucagon treats beta-blocker overdose.","Flumazenil reverses benzodiazepines."]}
+{"i":1955,"w":["Dopamine agonists suppress prolactin, which is not how clomiphene works.","Ovarian LH receptor activation is hCG-like, not clomiphene."]}
+{"i":1395,"w":["Inspiratory stridor indicates upper airway obstruction.","A pericardial friction rub indicates pericarditis."]}
+{"i":8012,"w":["Melanoma is S-100 and HMB-45 positive.","Squamous cell carcinoma expresses cytokeratin."]}
+{"i":2662,"w":["Bethanechol stimulates detrusor contraction and would worsen dyssynergia.","Neostigmine raises cholinergic tone and would worsen outlet obstruction."]}
+{"i":2615,"w":["Isotretinoin treats acne and causes craniofacial and cardiac defects.","Warfarin treats DVT and causes nasal hypoplasia."]}
+{"i":3683,"w":["The stapes base is fixed in otosclerosis, a conductive loss.","Tympanic membrane damage causes conductive hearing loss."]}
+{"i":8715,"w":["IL-4 drives Th2 and IgE responses.","IL-8 is a neutrophil chemoattractant."]}
+{"i":957,"w":["Muscular septal defects are less common and often close.","Endocardial cushion defects cause AV septal defects, common in Down syndrome."]}
+{"i":8575,"w":["Trisomy 18 causes clenched fists, rocker-bottom feet and heart defects.","22q11 deletion causes DiGeorge syndrome with cardiac, thymic and parathyroid defects."]}
+{"i":4068,"w":["Arenaviruses cause Lassa fever and lymphocytic choriomeningitis.","Picornaviruses (polio, coxsackie) do not cause PML."]}
+{"i":2149,"w":["Disc herniation causes mechanical radicular pain that improves with rest.","Osteoporosis causes fractures but not urinary hesitancy."]}
+{"i":8810,"a":"Thyroid dysgenesis","w":["Beckwith-Wiedemann causes macroglossia and hypoglycemia, not hypotonia and a hoarse cry.","Biliary atresia causes conjugated hyperbilirubinemia with acholic stools."]}
+{"i":6357,"a":"Plastics manufacturing exposure","w":["Acetaminophen overdose causes centrilobular necrosis, not angiosarcoma.","Hepatitis B causes hepatocellular carcinoma."]}
+{"i":8616,"w":["The vagus carries aortic baroreceptor afferents, but carotid sinus afferents travel in CN IX.","The trigeminal nerve carries facial sensation and does not mediate the baroreflex."]}
+{"i":9723,"w":["Optic glioma is associated with neurofibromatosis type 1.","Acute leukemia is associated with Down syndrome."]}
+{"i":3049,"w":["The second gas effect speeds induction with nitrous oxide, not postoperative hypoxia.","Laryngospasm causes upper airway obstruction and stridor, usually during emergence."]}
+{"i":1927,"w":["Splenic sequestration shows high reticulocytes with a large spleen.","Vaso-occlusive crisis is painful with high reticulocytes."]}
+{"i":2446,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":7438,"w":["FMR1 CGG expansion causes fragile X syndrome.","DMPK CTG expansion causes myotonic dystrophy."]}
+{"i":8080,"w":["The obturator nerve supplies the hip adductors.","The inferior gluteal nerve supplies gluteus maximus (hip extension)."]}
+{"i":2845,"w":["ATM loss causes ataxia-telangiectasia.","Myotonin protein kinase defects cause myotonic dystrophy."]}
+{"i":4686,"bw":["Emotionally cold loner","No desire for relationships","Cluster A type?"],"a":"Schizoid","d":["Schizotypal","Avoidant"],"w":["Schizotypal patients have odd beliefs and eccentric behavior, unlike this indifference.","Avoidant patients want relationships but fear rejection."]}
+{"i":3561,"w":["Gout causes acute monoarthritis with crystals.","Septic arthritis is acute, febrile and monoarticular."]}
+{"i":6978,"w":["Diabetic retinopathy shows hemorrhages and neovascularization without cupping.","Macular degeneration causes central loss with drusen."]}
+{"i":5270,"w":["Cocaine intoxication causes mydriasis, tachycardia and hyperthermia but not nystagmus.","Serotonin syndrome features clonus, hyperreflexia and hyperthermia."]}
+{"i":782,"a":"Thiazide diuretic","d":["ACE inhibitor","Beta-blocker"],"w":["ACE inhibitors are less effective in Black patients and have higher angioedema risk.","Beta-blockers are not first line for uncomplicated hypertension."]}
+{"i":9905,"w":["Disc herniation causes radicular pain with a positive straight leg test.","Facet joint syndrome causes pain with extension but no vertebral slippage."]}
+{"i":10134,"w":["Modafinil treats hypersomnia, not insomnia.","CPAP treats sleep apnea."]}
+{"i":4241,"w":["Premedication does not prevent anti-IgA anaphylaxis.","Type-specific blood still contains IgA."]}
+{"i":9531,"a":"High-flow 100% oxygen","w":["Verapamil is for prophylaxis, not acute attacks.","Ergotamine is slow-acting and not first line for cluster headache."]}
+{"i":8451,"w":["Syphilitic chancres are painless and indurated.","Lymphogranuloma venereum has a transient painless ulcer followed by buboes."]}
+{"i":5497,"bw":["Pericarditis in advanced CKD","Cause?"],"a":"Nitrogenous waste (uremia)","d":["Immunologic serositis","Medication adverse effect"],"w":["Lupus serositis is unlikely here, with normal anti-DNA antibodies.","No offending drug is described; uremic toxins explain pericarditis in advanced CKD."],"p":"Uremia causes fibrinous pericarditis with a friction rub, which improves with dialysis."}
+{"i":9282,"a":"Meniscal tear history","w":["Varicose veins dilate veins and do not form a popliteal synovial cyst.","A purine-rich diet causes gout, not a popliteal cyst."]}
+{"i":205,"w":["Hysteroscopy with D&C is more invasive and used if the biopsy is inadequate.","Saline infusion sonography evaluates focal lesions after a nondiagnostic evaluation."]}
+{"i":2478,"w":["Fasciotomy treats compartment syndrome, not burn eschar.","Amputation is for nonviable limbs."]}
+{"i":2294,"a":"Nucleic acid amplification testing","d":["Pap smear","Rapid plasma reagin test"],"w":["Cervical cancer screening starts at age 21.","RPR screens for syphilis in high-risk groups, not as the routine adolescent test."]}
+{"i":1317,"w":["Krukenberg tumors are metastatic signet ring tumors, typically bilateral.","Serous cystadenoma does not secrete hCG or AFP."]}
+{"i":967,"a":"Escitalopram (SSRI)","d":["Diazepam","Amitriptyline"],"w":["Benzodiazepines do not treat depression and carry dependence risk.","Amitriptyline is a TCA with anticholinergic effects and overdose toxicity."]}
+{"i":3465,"bw":["Opening snap, low-pitched diastolic rumble","Atrial fibrillation","Underlying mechanism?"],"a":"Increased left atrial pressure","d":["Increased LV end-diastolic pressure","Left-to-right shunting"],"w":["LV end-diastolic pressure is normal or low in mitral stenosis because inflow is obstructed.","A left-to-right shunt causes volume overload and pulmonary hypertension, not an opening snap."],"p":"Mitral stenosis (rheumatic) raises left atrial pressure, causing atrial enlargement, atrial fibrillation, dyspnea and pulmonary hypertension."}
+{"i":7514,"a":"Megestrol acetate (progestin)","d":["Anastrozole","Nafarelin"],"w":["Anastrozole is an aromatase inhibitor used in breast cancer.","Nafarelin is a GnRH agonist used for endometriosis."]}
+{"i":8425,"w":["Graves disease gives diffuse uptake with a goiter and orbitopathy.","Thyroid storm is a decompensated crisis with fever and delirium."]}
+{"i":2725,"w":["Hypermagnesemia is not a feature of refeeding.","Hyponatremia is not the key refeeding abnormality."]}
+{"i":1346,"w":["ESR is nonspecific and does not assess bone turnover in CKD.","CRP is an inflammation marker, not a bone marker."]}
+{"i":4323,"w":["Prophylactic antibiotics do not prevent postoperative pneumonia and promote resistance.","Hyperbaric oxygen is not used for pneumonia prevention."]}
+{"i":1663,"a":"NSAIDs and rest","d":["Joint aspiration with antibiotics","MRI of the hip"],"w":["Aspiration with antibiotics is for suspected septic arthritis, with fever and refusal to bear weight.","MRI is not needed for classic transient synovitis."]}
+{"i":5887,"a":"Increased fetal hemoglobin","d":["Increased hemoglobin A","Increased hemoglobin S"],"w":["Hemoglobin A is normal adult hemoglobin, which is reduced in sickle disease.","HbS is the abnormal hemoglobin and drives sickling."]}
+{"i":2631,"a":"Asthma","w":["Urinary retention is an anticholinergic issue, not a propranolol contraindication.","Warfarin does not contraindicate propranolol, though levels need monitoring."]}
+{"i":7241,"a":"Diphenhydramine","w":["Dantrolene treats neuroleptic malignant syndrome.","Propranolol treats akathisia, not acute dystonia."]}
+{"i":4664,"a":"Over-the-counter NSAIDs","w":["Surgery is reserved for cauda equina syndrome or progressive deficits.","Epidural steroids are for persistent radicular pain after conservative therapy."]}
+{"i":6812,"bw":["Dementia and wide-based gait","Urinary incontinence","Cause of the incontinence?"],"a":"Inability to suppress voiding","d":["Detrusor-sphincter dyssynergia","Impaired detrusor contractility"],"w":["Dyssynergia occurs with spinal cord lesions above the sacrum.","Impaired contractility gives overflow incontinence with retention."],"p":"Normal pressure hydrocephalus (wet, wobbly, wacky) causes urge incontinence from frontal loss of control over micturition."}
+{"i":6658,"w":["Bedside exploration is for unstable patients with hard signs.","MRI is slow and not first line for penetrating neck vascular injury."]}
+{"i":6594,"w":["Repeating vitals at the next visit does not exclude a white coat effect.","Creatinine screens for kidney disease and does not confirm hypertension."]}
+{"i":2380,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":1093,"w":["Vestibular neuritis causes vertigo without hearing loss.","BPPV is brief positional vertigo without hearing loss."]}
+{"i":4831,"w":["Glioblastoma is an intra-axial ring-enhancing tumor.","Schwannoma arises at the cerebellopontine angle on CN VIII."]}
+{"i":4228,"a":"Thromboembolic stroke","w":["Aortic dissection is the classic Marfan complication.","Medullary thyroid cancer occurs in MEN 2B, which also has a marfanoid habitus."]}
+{"i":7243,"w":["Postpartum blues are mild and brief, without psychosis.","Major depressive disorder lacks delusions about the infant."]}
+{"i":8112,"bw":["Lynch syndrome (MLH1, MSH2)","Gynecologic risk-reducing surgery?"],"a":"Hysterectomy and salpingo-oophorectomy","d":["Prophylactic mastectomy","Prophylactic proctocolectomy"],"w":["Lynch syndrome does not significantly raise breast cancer risk.","Proctocolectomy is for FAP, whereas Lynch uses colonoscopic surveillance."],"p":"Lynch syndrome carries high lifetime risks of endometrial and ovarian cancer; hysterectomy with oophorectomy is offered after childbearing, with colonoscopy surveillance."}
+{"i":4928,"w":["Pes anserine bursitis causes medial knee pain.","LCL injury causes lateral laxity with varus stress."]}
+{"i":7415,"w":["Biparietal diameter is used in the second trimester.","Serum beta-hCG does not date a pregnancy accurately."]}
+{"i":1347,"a":"Decreased TSH","w":["Anti-Mi-2 antibodies mark dermatomyositis, which shows a rash and elevated CK.","An elevated ESR suggests polymyalgia rheumatica or inflammation, not thyrotoxic myopathy."]}
+{"i":8805,"w":["Hyperkalemia occurs in primary adrenal insufficiency with aldosterone loss.","Hypokalemia is not a feature of secondary adrenal insufficiency."]}
+{"i":9957,"a":"Cubital tunnel","w":["Guyon canal compression spares the dorsal hand.","Carpal tunnel affects the median nerve in the lateral three digits."]}
+{"i":7044,"w":["MRI is slower and not needed before thrombolysis.","CT angiography follows to find a large vessel occlusion but does not replace noncontrast CT."]}
+{"i":7801,"a":"Continue current medication","w":["Switching to bupropion is premature before an adequate 4-6 week trial.","Adding lithium is augmentation for treatment-resistant depression."]}
+{"i":6107,"a":"Hemoglobin electrophoresis","w":["Iron studies assess iron deficiency or overload.","A peripheral smear suggests but does not confirm sickle cell disease."]}
+{"i":1450,"a":"Nasal oxymetazoline","d":["Anterior nasal packing","IV nitroglycerin"],"w":["Anterior packing is used if vasoconstrictors and cautery fail.","Nitroglycerin lowers blood pressure and does not stop epistaxis."]}
+{"i":5585,"a":"Needle thoracostomy","d":["Thoracotomy","FAST exam"],"w":["Thoracotomy is for penetrating trauma with arrest.","A FAST exam delays treatment of obvious tension physiology."]}
+{"i":3543,"w":["Oral fluconazole is reserved for extensive or recurrent disease.","Topical steroids would worsen a fungal infection."]}
+{"i":9716,"a":"Distended gallbladder","w":["PSC gives beaded biliary strictures inside and outside the liver.","A nodular liver suggests cirrhosis, not obstructive painless jaundice."]}
+{"i":7310,"w":["A CT scan stages disease but gives no histologic diagnosis.","A leukocyte count does not diagnose lymphoma."]}
+{"i":7187,"a":"Weight loss","w":["Colchicine treats gout, not osteoarthritis.","MRI is not needed for typical osteoarthritis."]}
+{"i":766,"a":"Scheduled cesarean delivery","w":["Increasing the AZT dose does not suppress the viral load enough.","Intrapartum nevirapine is an older single-dose option with resistance risk."]}
+{"i":3782,"w":["Lorazepam would not treat a hypoglycemic seizure.","An EEG delays treatment of an obvious metabolic cause."]}
+{"i":7049,"w":["Septic shock has low SVR and warm extremities.","Cardiogenic shock has high PCWP and distended neck veins."]}
+{"i":69,"w":["Antiphospholipid antibodies cause thrombosis but not heavy proteinuria.","Estrogen degradation is not impaired in nephrotic syndrome."]}
+{"i":5059,"w":["A stress fracture shows focal bony tenderness and radiographic callus.","Osteomyelitis causes fever, swelling and raised inflammatory markers."]}
+{"i":7744,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":91,"w":["Amantadine is no longer recommended because of widespread resistance.","Supportive care alone may be insufficient for a high-risk patient such as an asthmatic."]}
+{"i":966,"bw":["Atypical endometrial hyperplasia","Woman desiring fertility","Next step?"],"a":"Progestin-only therapy","d":["Hysterectomy and salpingo-oophorectomy","Observation with annual biopsy"],"w":["Hysterectomy ends fertility and is standard once childbearing is complete.","Observation is inadequate because atypical hyperplasia can progress to cancer."]}
+{"i":5712,"w":["Type I is IgE-mediated and immediate.","Type III is immune complex disease, usually with systemic features."]}
+{"i":3647,"w":["Ultrasound can show endometriomas but cannot exclude disease.","Endometrial biopsy samples the lining and does not diagnose endometriosis."]}
+{"i":6153,"w":["A chest radiograph is not recommended for lung cancer screening.","Abdominal ultrasound screens for aortic aneurysm in some men."]}
+{"i":4980,"a":"Positive direct Coombs test","d":["Codocytes (target cells)","Decreased serum ferritin"],"w":["Target cells are seen in thalassemia and liver disease.","Ferritin is not decreased by CLL unless iron deficiency coexists."]}
+{"i":2618,"a":"Relaxation of pelvic ligaments","d":["Placental abruption","Vertebral compression fracture"],"w":["Abruption causes painful vaginal bleeding and uterine tenderness.","Compression fractures follow osteoporosis or trauma."]}
+{"i":5943,"w":["Oral calcium and calcitriol follow IV therapy and are too slow for acute symptoms.","Oral magnesium does not promptly correct hypocalcemic tetany."]}
+{"i":9863,"a":"History of bladder cancer","w":["Pioglitazone does not require avoidance in renal impairment.","Pancreatitis is a concern with GLP-1 agonists and DPP-4 inhibitors, not glitazones."]}
+{"i":325,"w":["EMG shows a myopathic pattern but does not confirm the specific diagnosis.","The Tensilon test is for myasthenia gravis."]}
+{"i":5993,"a":"Intranasal fluticasone","d":["Oral amoxicillin","Oral acetaminophen"],"w":["Antibiotics do not treat allergic rhinitis.","Acetaminophen treats pain or fever but not allergic inflammation."]}
+{"i":97,"w":["Sarcoma botryoides is a vaginal tumor of young girls.","Vaginal melanoma is rare and causes pigmented lesions."]}
+{"i":4467,"a":"Monitoring","w":["Azithromycin and ceftriaxone treat bacterial infections, not viral bronchiolitis.","Intubation is for respiratory failure, which is absent."]}
+{"i":3507,"a":"Admission with IV penicillin G","d":["Outpatient oral penicillin V","Outpatient azithromycin"],"w":["Outpatient oral treatment is unsafe with confusion, tachypnea and low blood pressure.","Outpatient azithromycin does not treat severe pneumonia."]}
+{"i":2220,"x":"rewrite not supported by source text (answer absent from keyed option)"}
+{"i":1128,"bw":["Hot swollen wrist, urethral discharge","Sexually active man","Next step?"],"a":"Arthrocentesis","w":["MRI is not the first step for acute septic arthritis.","Methotrexate would worsen an infected joint."]}
+{"i":2610,"bw":["Mobile, rubbery, painless breast mass","Young woman","Diagnosis?"],"w":["Phyllodes tumors are large and rapidly growing with a leaf-like pattern.","Fat necrosis follows trauma and mimics cancer with calcifications."]}
+{"i":5265,"w":["Ondansetron treats nausea but does not speed gastric emptying.","Octreotide slows gut motility."]}
+{"i":5628,"a":"Lhermitte sign","w":["Fatigable weakness suggests myasthenia gravis.","Ipsilateral vibration loss suggests Brown-Sequard syndrome."]}
+{"i":8994,"w":["Retrograde urethrography is for blood at the meatus.","IV pyelography is insensitive for bladder injury."]}
+{"i":8656,"a":"Splinting","w":["Release surgery is for refractory or severe cases.","Gabapentin does not treat the underlying nerve compression."]}
+{"i":8538,"w":["E. coli causes cystitis and pyelonephritis, and the Gram stain would show rods.","Staphylococcus saprophyticus causes cystitis in young women."]}
+{"i":7163,"a":"Prolonged PTT","d":["Prolonged bleeding time","Low platelet count"],"w":["Bleeding time is normal in hemophilia because platelets work.","Platelet count is normal in hemophilia."]}
+{"i":1549,"w":["Suppression is a mature defense that consciously postpones a concern.","Reaction formation is a neurotic defense turning an impulse into its opposite."]}
+{"i":4107,"w":["Omeprazole raises gastric pH and may raise VAP risk.","Ranitidine raises gastric pH and may raise VAP risk."]}
+{"i":3605,"w":["Vitamin K deficiency causes coagulopathy.","Vitamin B12 deficiency causes megaloblastic anemia and neuropathy."]}
+{"i":6453,"a":"Chronic hypoxia","w":["Ischemic heart disease causes left heart failure.","Chronic kidney disease does not cause right axis deviation or cor pulmonale."]}
+{"i":6157,"bw":["Asymmetric leg weakness, absent reflexes","Radicular pain","MRI finding?"],"w":["Conus medullaris syndrome is more symmetric with mixed motor signs and early sphincter loss.","Sacroiliitis causes buttock pain, not radicular weakness with absent reflexes."]}
+{"i":1061,"a":"Maternal age","w":["Chronic hypertension raises preeclampsia risk more than early loss.","Hypercoagulability is linked to recurrent loss, but most early losses are chromosomal."]}
+{"i":1387,"a":"Metformin","d":["Glipizide","Basal insulin"],"w":["Sulfonylureas cause hypoglycemia and weight gain and are not first line.","Insulin is reserved for severe hyperglycemia or failure of other agents."]}
+{"i":6503,"bw":["Antiepileptic causing angle-closure glaucoma","Which drug?"]}
+{"i":10014,"bw":["Type III collagen","Where is it most abundant?"],"a":"Reticular fibers","d":["Nucleus pulposus","Corneal stroma"],"w":["The nucleus pulposus is rich in type II collagen.","Corneal stroma is mainly type I collagen."]}
+{"i":1494,"bw":["Hypoglycemia, exogenous insulin overdose","C-peptide level?"],"a":"Low C-peptide","d":["High C-peptide","Normal C-peptide"],"w":["High C-peptide indicates endogenous insulin, as in insulinoma or sulfonylurea use.","Normal C-peptide implies normal endogenous secretion, which exogenous insulin suppresses."]}
+{"i":8661,"a":"High density lipoprotein (HDL)"}
+{"i":7987,"w":["Folate intermediates are mimicked by sulfonamides and trimethoprim.","Retinoic acid is a vitamin A derivative, not an antibiotic target."]}
+{"i":3459,"bw":["Rising BUN/creatinine, low urine sodium","After aggressive diuresis","Cause?"]}
+{"i":2478,"bw":["Circumferential full-thickness burn","Absent distal pulses","Next step?"]}
+{"i":4831,"bw":["Dural-based mass in an older adult","Well-circumscribed, extra-axial, seizure","Diagnosis?"]}
+{"i":3543,"bw":["Hypopigmented patches: hyphae and yeast","'Spaghetti and meatballs'","Treatment?"]}
+{"i":7310,"bw":["Suspected lymphoma: cervical nodes","Mediastinal widening","Confirmatory test?"]}
+{"i":5059,"bw":["Burning forefoot pain, 3rd-4th metatarsals","Palpable click","Diagnosis?"]}
+{"i":5628,"a":"Electrical pain with neck flexion"}
+{"i":4107,"bw":["Stress ulcer prophylaxis","Lowers ventilator pneumonia risk?"]}
+{"i":5995,"d":["Neurofibrillary tangles","Lewy bodies"]}
+{"i":6332,"s":"Nephrology","d":["Oral metronidazole","Surgical exploration"]}
+{"i":8442,"a":"Esomeprazole use"}
+{"i":7475,"a":"Remove guns from the house","d":["Hospitalization","Family therapy"]}
+{"i":7113,"d":["Cerebellopontine angle tumor","AICA obstruction"]}
+{"i":9906,"d":["Ceftriaxone alone","Ceftriaxone, vancomycin, ampicillin"]}
+{"i":8771,"bw":["Mammogram, colonoscopy, Pap smear","Asymptomatic adult screening","Level of prevention?"]}
+{"i":1736,"bw":["Oocyte arrest points in meiosis","Primary and secondary oocyte?"]}
+{"i":3171,"bw":["River blindness: black fly vector","Itchy nodules","Drug of choice?"]}
+{"i":3786,"bw":["Agitation, hyperreflexia: serotonin syndrome","Unresponsive to benzodiazepine","Antidote?"]}
+{"i":4551,"bw":["Alpha-2 agonist antihypertensive","Clonidine, methyldopa","Mechanism?"]}
+{"i":8414,"bw":["Pheochromocytoma with episodic headache","Palpitations","First drug before surgery?"]}
+{"i":9531,"bw":["Acute cluster headache with tearing, Horner","First-line treatment?"]}
+{"i":3181,"bw":["Bricklayer, swollen tender kneecap","Pain after kneeling","Structure affected?"]}
+{"i":7008,"bw":["Pop and locking after a tackle","Pain with external rotation","Injured structure?"]}
+{"i":3507,"bw":["Elderly man with confusion, RR 31","Pneumococcal pneumonia","Setting and therapy?"]}
+{"i":6153,"bw":["Ex-smoker with 35 pack-years, age 68","Quit 5 years ago","Screening test?"]}
+{"i":3973,"bw":["Truncal stiffness, painful spasms","Continuous motor activity on EMG","Lung cancer: antibody?"]}
+{"i":4994,"bw":["Hot red knee, purulent fluid","Rheumatoid arthritis, diabetes","Empiric antibiotic?"]}

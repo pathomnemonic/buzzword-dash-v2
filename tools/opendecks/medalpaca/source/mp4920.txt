@@ -1,0 +1,2 @@
+Among different types of post-transplant complications, which condition is characterized by the proliferation of immunocompetent T-cells from the graft, leading to the rejection of host cells that express "foreign" proteins?
+Graft-versus-host-disease (GVHD) is a post-transplant complication that presents with immunocompetent T-cells from the graft proliferating and rejecting host cells that express "foreign" proteins.

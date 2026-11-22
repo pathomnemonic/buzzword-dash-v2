@@ -25,7 +25,7 @@ describe('Anki import', () => {
   it('reads front and back from an .apkg and strips HTML', async () => {
     const f = await makeApkg(['<b>Drug of choice for anaphylaxis</b>\x1fEpinephrine<br>IM', 'Antidote for heparin\x1fProtamine sulfate', 'only one field']);
     const r = await ankiImport.parseApkg(f);
-    expect(r.cards).toEqual([
+    expect(r.cards).toMatchObject([
       { front: 'Drug of choice for anaphylaxis', back: 'Epinephrine IM' },
       { front: 'Antidote for heparin', back: 'Protamine sulfate' }
     ]);
@@ -34,9 +34,9 @@ describe('Anki import', () => {
   it('turns cloze notes into one card per cloze number, with hints', async () => {
     const f = await makeApkg(['{{c1::Warfarin}} inhibits {{c2::vitamin K epoxide reductase::enzyme}}\x1fINR monitoring']);
     const r = await ankiImport.parseApkg(f);
-    expect(r.cards).toEqual([
-      { front: '[...] inhibits vitamin K epoxide reductase', back: 'Warfarin (INR monitoring)' },
-      { front: 'Warfarin inhibits [enzyme]', back: 'vitamin K epoxide reductase (INR monitoring)' }
+    expect(r.cards).toMatchObject([
+      { front: '[...] inhibits vitamin K epoxide reductase', back: 'Warfarin', teach: 'Warfarin inhibits vitamin K epoxide reductase \u2014 INR monitoring' },
+      { front: 'Warfarin inhibits [enzyme]', back: 'vitamin K epoxide reductase', teach: 'Warfarin inhibits vitamin K epoxide reductase \u2014 INR monitoring' }
     ]);
   });
 
@@ -50,7 +50,7 @@ describe('Anki import', () => {
     zip.file('collection.anki21', mk('Real question\x1fReal answer'));
     const buf = await zip.generateAsync({ type: 'uint8array' });
     const r = await ankiImport.parseApkg({ size: buf.length, arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) });
-    expect(r.cards).toEqual([{ front: 'Real question', back: 'Real answer' }]);
+    expect(r.cards).toMatchObject([{ front: 'Real question', back: 'Real answer' }]);
   });
 
   it('explains the newest Anki format instead of importing the placeholder note', async () => {
@@ -72,14 +72,14 @@ describe('CSV and TSV import', () => {
   it('reads Anki text exports (tab separated), quoted fields and BOMs', () => {
     const tsv = '﻿Cardio\tFirst-line for stable angina\nQ2\t"Beta blocker, e.g. ""metoprolol"""\n';
     const r = ankiImport.parseDelimitedText(tsv);
-    expect(r.cards).toEqual([
+    expect(r.cards).toMatchObject([
       { front: 'Cardio', back: 'First-line for stable angina' },
       { front: 'Q2', back: 'Beta blocker, e.g. "metoprolol"' }
     ]);
   });
   it('reads CSV with multiline quoted fields', () => {
     const r = ankiImport.parseDelimitedText('front,back\n"Line one\nline two",Answer\n', { hasHeaders: true });
-    expect(r.cards).toEqual([{ front: 'Line one\nline two', back: 'Answer' }]);
+    expect(r.cards).toMatchObject([{ front: 'Line one\nline two', back: 'Answer' }]);
   });
   it('imports raw cards as flashcard-only custom cards without placeholder answers', () => {
     expect(typeof ankiImport.importRaw).toBe('function');

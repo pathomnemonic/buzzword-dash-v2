@@ -1,0 +1,1 @@
+Glucose-6-phosphate is oxidized by NADP+ dependent Glucose-6-phosphate dehydrogenase (GPD). 6-phospho glucono lactone is formed. One molecule of NADPH is formed in the reaction. This is the rate-limiting step. Regulation is effected by this enzyme Reference: Vasudevan 7th ed, pg 130

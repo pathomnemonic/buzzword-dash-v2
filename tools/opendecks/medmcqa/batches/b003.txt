@@ -1,0 +1,30 @@
+140|PED|dx|Trisomy 13|Patau syndrome|Edwards syndrome|DiGeorge syndrome|Patau features include cutis aplasia, microphthalmia, microcephaly, holoprosencephaly and polydactyly.
+141|NEU|mech|Anterior interosseous nerve is a branch of|Median nerve|Radial nerve|Ulnar nerve|The anterior interosseous nerve comes off the median nerve and supplies the deep anterior forearm muscles.
+142|MIX|mech|Alpha helix and beta-pleated sheet|Secondary structure|Primary structure|Tertiary structure|Alpha helices and beta sheets are secondary structure, held by hydrogen bonds along the backbone.
+143|SUR|lab|Warthin tumor on technetium pertechnetate scan|Hot (increased uptake)|Cold (no uptake)|Normal background uptake|Warthin tumor is rich in mitochondria and so concentrates pertechnetate; it is the second most common benign parotid tumor.
+144|OB|lab|First-trimester serum markers for Down syndrome screening|hCG and PAPP-A|hCG and AFP|AFP and estriol|First-trimester screening combines nuchal translucency with hCG and PAPP-A.
+145|HEM|dx|'Starry sky' lymphoma histology|Burkitt lymphoma|Mantle cell lymphoma|Chronic myeloid leukemia|Burkitt shows sheets of monotonous lymphoid cells with tingible-body macrophages giving the starry sky.
+146|GI|dx|Barrett esophagus: required histology|Intestinal metaplasia|Squamous dysplasia|Squamous hyperplasia|Barrett is columnar metaplasia of the distal esophagus with intestinal-type goblet cells.
+147|HEM|dx|Ewing sarcoma cell of origin|Neuroectodermal cells|Osteoblasts|Chondrocytes|Ewing sarcoma and PNET are small round cell tumors in the neuroectodermal family.
+150|ID|mech|Non-enveloped hepatitis virus|HAV|HBV|HDV|HAV is a non-enveloped picornavirus, as is HEV; HBV, HCV and HDV are enveloped.
+153|ID|ph|Lamivudine drug class|Nucleoside reverse transcriptase inhibitor|Non-nucleoside reverse transcriptase inhibitor|Protease inhibitor|Lamivudine is an NRTI used in HIV and hepatitis B.
+154|OB|mg|Menopausal hormone therapy main indication|Vasomotor symptoms (hot flashes)|Endometriosis|Breast cancer prevention|Menopausal hormone therapy is chiefly given for hot flashes.
+155|PUL|lab|pH 7.00, PaCO2 80, HCO3 28, PaO2 60|Acute respiratory acidosis with hypoxemia|Metabolic acidosis with hypoxemia|Respiratory alkalosis with hypoxemia|A very low pH with a high PaCO2 and near-normal bicarbonate is acute respiratory acidosis (type II respiratory failure).
+156|END|mech|Aromatase converts|Androgens to estrogens|Estrogens to androgens|Progesterone to cortisol|Aromatase makes estrogens from androgens, including in peripheral tissues like fat.
+158|MIX|mech|DNA replication: helicase unzipping breaks|Hydrogen bonds|Phosphodiester bonds|Glycosidic bonds|Helicase separates the strands by breaking hydrogen bonds between base pairs.
+160|ID|lab|Rotavirus diagnosis|Stool antigen detection (ELISA)|Stool culture|Serum antibody titer|Rotavirus is diagnosed by detecting viral antigen in stool.
+162|OB|mech|Oocyte stage retrieved for IVF|Secondary oocyte|Primary oocyte|Oogonium|The follicle is aspirated just before ovulation, so the retrieved oocyte is a secondary (metaphase II) oocyte.
+163|OB|ph|Prenatal treatment of congenital adrenal hyperplasia|Dexamethasone|Hydrocortisone|Prednisolone|Maternal dexamethasone crosses the placenta to suppress fetal androgen excess and prevent virilization of female fetuses.
+164|END|dx|Chvostek sign|Hypocalcemia|Hypercalcemia|Hypernatremia|Tapping the facial nerve at the parotid twitches facial muscles in hypocalcemia; Trousseau sign uses a BP cuff.
+167|CAR|ph|Coronary steal phenomenon|Dipyridamole|Diltiazem|Propranolol|Arteriolar vasodilators like dipyridamole dilate normal vessels and divert blood away from stenosed ones.
+170|PED|dx|Bilious vomiting, double bubble sign, maternal polyhydramnios|Duodenal atresia|Hypertrophic pyloric stenosis|Esophageal atresia|Duodenal atresia gives gas in the stomach and duodenum on X-ray; it is associated with Down syndrome.
+173|ID|lab|Positive Paul-Bunnell test|EBV|CMV|Adenovirus|The Paul-Bunnell test detects heterophile antibody of infectious mononucleosis from EBV; CMV mononucleosis is heterophile-negative.
+174|ID|dx|Cat-scratch disease agent|Bartonella henselae|Pasteurella multocida|Streptobacillus moniliformis|B. henselae causes cat-scratch disease, bacillary angiomatosis and bacillary peliosis.
+179|END|dx|Nesidioblastosis|Islet beta-cell hyperplasia|Islet alpha-cell hyperplasia|Islet D-cell hyperplasia|Nesidioblastosis is focal or diffuse beta-cell hyperplasia causing hyperinsulinism, seen in infants of diabetic mothers and Beckwith-Wiedemann syndrome.
+180|HEM|lab|Urine protein that precipitates on warming and redissolves on boiling|Bence Jones protein|Albumin|Gamma globulin|Bence Jones protein is monoclonal light chains in urine of multiple myeloma patients.
+182|GI|se|Most common antibiotic cause of drug-induced liver injury|Amoxicillin-clavulanate|Doxycycline|Erythromycin|Amoxicillin-clavulanate typically causes inflammatory cholestatic liver injury.
+183|ID|lab|Biological indicator for autoclave sterilization|Bacillus stearothermophilus spores|Bacillus subtilis spores|Bacillus pumilus spores|Spores of the thermophile B. stearothermophilus test steam sterilization.
+185|OB|mech|hCG main early-pregnancy function|Maintains the corpus luteum|Initiates breast growth|Initiates implantation|hCG, which resembles LH, rescues the corpus luteum so progesterone continues.
+186|MIX|mech|Nutrient artery of the fibula|Peroneal artery|Anterior tibial artery|Popliteal artery|The fibula is supplied by the peroneal artery and the tibia by the posterior tibial artery.
+188|CAR|mech|Baroreceptor stimulation (high BP) causes|Decreased heart rate and BP|Increased heart rate and BP|Increased cardiac contractility|Baroreceptor firing raises vagal (parasympathetic) tone and lowers sympathetic output.
+189|HEM|ph|Steroidal irreversible aromatase inhibitor|Exemestane|Anastrozole|Letrozole|Exemestane irreversibly inactivates aromatase; anastrozole and letrozole are reversible non-steroidal inhibitors.

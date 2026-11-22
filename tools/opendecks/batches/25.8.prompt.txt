@@ -1,0 +1,61 @@
+You are converting my flashcards into quick-fire multiple-choice cards for a medical-exam game (USMLE / COMLEX). In the game the player sees 2-4 short clues for about 3 seconds, then must pick the right answer from THREE options (the answer plus two wrong ones). So every card must be answerable from the clues alone, with exactly one defensible option.
+
+Reply with ONE JSON array and nothing else (no commentary, no code fences). One object per usable card, with exactly these fields:
+- "subj": one of "Neurology", "Cardiology", "Nephrology", "Psychiatry", "Gastroenterology", "Pulmonology", "Infectious Disease", "Endocrinology", "Hematology/Oncology", "Rheumatology", "Obstetrics/Gynecology", "Pediatrics", "Surgery", "Emergency Medicine", "Multisystem / Mixed". Use "Multisystem / Mixed" if unsure.
+- "bw": 2 to 4 clues, each 1-8 words, taken from my card (no invented facts). Together they must point to ONE answer. Rules for clues:
+  * Never put the answer, or its key words, in a clue.
+  * Name the thing being asked about, and what is asked, when the card asks a property: "Pseudomonas aeruginosa", "Oxygen requirement" (not just vague symptoms that fit many organisms).
+  * Use specific buzzwords (findings, numbers, named signs), not generic words like "serious", "common", "treatment".
+- "ans": a TERM, not a sentence: a diagnosis, organism, drug, test, structure, receptor, mechanism, or number, normally 1-4 words (never more than 8). If my card's back is a sentence or explanation, extract its key term. If the card asks "what is X?" and the back describes X, flip it: put the description in "bw" and the NAME in "ans".
+- "d": exactly 2 wrong answers. Each must be a real term of the same kind and similar length as "ans" that a student could actually confuse with it (sibling diagnoses, drugs of the same class, nearby numbers, other items from the same list). Never opposites ("increased / decreased / no change"), never silly or a different category, never "N/A" or "None of the above", and never something that is also correct.
+- "tp": one or two sentences of teaching point, using only facts from my card.
+- "ww": an object whose keys are exactly the two wrong answers in "d"; each value is one short sentence on why it is wrong here (state what it actually is or does, not just "not the answer").
+
+Make a card when my card boils down to: one fact -> one short term (name the organism, drug, test, mechanism, cause, number, classic association, or a vignette -> diagnosis).
+SKIP the card (no object at all) when it is: a list, steps or sequence; a definition or "explain / what are the consequences / how does it differ" question; yes/no; two questions in one; "which is NOT / wrong pair" with options missing; an image; or when the back is vague, contradicts itself, or you are not sure it is medically correct. Do not rewrite facts. One card per fact: do not make two cards with the same answer and distractors.
+Ignore HTML tags and tags/subject columns. If a cloze like {{c1::answer}} appears, the hidden part is the answer.
+
+Bad vs good (same fact):
+- Bad: bw ["Narrowed descending aorta","Hypertension"], ans "Narrowing of the descending aorta beyond the great vessels" (answer is in the clue, and is a sentence).
+  Good: bw ["Arm hypertension","Weak leg pulses","Leg cramps"], ans "Coarctation of the aorta", d ["Aortic valve stenosis","Patent ductus arteriosus"].
+- Bad: bw ["Menorrhagia"], ans "More than 80 ml", d ["Less than 20 ml","Less than 40 ml"] (both wrong answers are absurd for heavy bleeding).
+  Good: ans "More than 80 ml", d ["More than 40 ml","More than 120 ml"].
+- Bad: bw ["Volatile anesthetics","Rigidity"], ans "Hypermetabolic muscle crisis triggered by volatile anesthetics".
+  Good: ans "Malignant hyperthermia", d ["Neuroleptic malignant syndrome","Serotonin syndrome"].
+- Bad: bw ["Lung infections","Weak immunity"], ans "Obligate aerobe" (clues fit dozens of organisms; the question being asked is never named).
+  Good: bw ["Pseudomonas aeruginosa","Oxygen requirement"], ans "Obligate aerobe", d ["Obligate anaerobe","Microaerophile"].
+
+Example of one object:
+{"subj":"Cardiology","bw":["Fever","New murmur","Janeway lesions"],"ans":"Infective Endocarditis","d":["Rheumatic Fever","Atrial Myxoma"],"tp":"Janeway lesions are painless; Osler nodes are painful. Blood cultures before antibiotics.","ww":{"Rheumatic Fever":"Migratory arthritis and Jones criteria, not embolic skin lesions.","Atrial Myxoma":"Positional dyspnea and a tumor plop."}}
+
+My cards:
+
+Extra rules for this batch (the text below is a textbook passage, not flashcards; treat each fact worth a quiz question as a card):
+- Add two more fields to each object: "source_ref" (the passage id given below) and "evidence" (ONE sentence copied word for word from the passage that proves the answer).
+- "bw" is what a player reads while running: 1 to 3 short clues, each under 60 characters, 130 characters in total, and it must not contain the answer.
+- "ans" and each wrong answer must be under 50 characters. Exactly one answer may be defensible.
+- Never use a fact that is not in the passage.
+
+Passage id: 25.8
+
+Endocrine Regulation of Kidney Function
+25.8 Endocrine Regulation of Kidney Function
+Learning Objectives
+By the end of this section, you will be able to:
+Describe how each of the following functions in the extrinsic control of GFR: renin–angiotensin mechanism, natriuretic peptides, and sympathetic adrenergic activity
+Describe how each of the following works to regulate reabsorption and secretion, so as to affect urine volume and composition: renin–angiotensin system, aldosterone, antidiuretic hormone, and natriuretic peptides
+Name and define the roles of other hormones that regulate kidney control
+Several hormones have specific, important roles in regulating kidney function. They act to stimulate or inhibit blood flow. Some of these are endocrine, acting from a distance, whereas others are paracrine, acting locally.
+Renin–Angiotensin–Aldosterone
+Renin is an enzyme that is produced by the juxtaglomerular (JG) cells of the afferent arteriole at the JGA. It enzymatically converts angiotensinogen (made by the liver, freely circulating) into angiotensin I. Its release is stimulated by prostaglandins and NO from the JGA in response to decreased extracellular fluid volume.
+ACE is not a hormone but it is functionally important in regulating systemic blood pressure and kidney function. It is produced in the lungs but binds to the surfaces of endothelial cells in the afferent arterioles and glomerulus. It enzymatically converts inactive angiotensin I into active angiotensin II. ACE is important in raising blood pressure. People with high blood pressure are sometimes prescribed ACE inhibitors to lower their blood pressure.
+Angiotensin II is a potent vasoconstrictor that plays an immediate role in the regulation of blood pressure. It acts systemically to cause vasoconstriction as well as constriction of both the afferent and efferent arterioles of the glomerulus. In instances of blood loss or dehydration, it reduces both GFR and renal blood flow, thereby limiting fluid loss and preserving blood volume. Its release is usually stimulated by decreases in blood pressure, and so the preservation of adequate blood pressure is its primary role.
+Aldosterone, often called the “salt-retaining hormone,” is released from the adrenal cortex in response to angiotensin II or directly in response to increased plasma K+. It promotes Na+ reabsorption by the nephron, promoting the retention of water. It is also important in regulating K+, promoting its excretion. (This dual effect on two minerals and its origin in the adrenal cortex explains its designation as a mineralocorticoid.) As a result, renin has an immediate effect on blood pressure due to angiotensin II–stimulated vasoconstriction and a prolonged effect through Na+ recovery due to aldosterone. At the same time that aldosterone causes increased recovery of Na+, it also causes greater loss of K+. Progesterone is a steroid that is structurally similar to aldosterone. It binds to the aldosterone receptor and weakly stimulates Na+ reabsorption and increased water recovery. This process is unimportant in men due to low levels of circulating progesterone. It may cause increased retention of water during some periods of the menstrual cycle in women when progesterone levels increase.
+Antidiuretic Hormone (ADH)
+Diuretics are drugs that can increase water loss by interfering with the recapture of solutes and water from the forming urine. They are often prescribed to lower blood pressure. Coffee, tea, and alcoholic beverages are familiar diuretics. ADH, a 9-amino acid peptide released by the posterior pituitary, works to do the exact opposite. It promotes the recovery of water, decreases urine volume, and maintains plasma osmolarity and blood pressure. It does so by stimulating the movement of aquaporin proteins into the apical cell membrane of principal cells of the collecting ducts to form water channels, allowing the transcellular movement of water from the lumen of the collecting duct into the interstitial space in the medulla of the kidney by osmosis. From there, it enters the vasa recta capillaries to return to the circulation. Water is attracted by the high osmotic environment of the deep kidney medulla.
+Endothelin
+Endothelins, 21-amino acid peptides, are extremely powerful vasoconstrictors. They are produced by endothelial cells of the renal blood vessels, mesangial cells, and cells of the DCT. Hormones stimulating endothelin release include angiotensin II, bradykinin, and epinephrine. They do not typically influence blood pressure in healthy people. On the other hand, in people with diabetic kidney disease, endothelin is chronically elevated, resulting in sodium retention. They also diminish GFR by damaging the podocytes and by potently vasoconstricting both the afferent and efferent arterioles.
+Natriuretic Hormones
+Natriuretic hormones are peptides that stimulate the kidneys to excrete sodium—an effect opposite that of aldosterone. Natriuretic hormones act by inhibiting aldosterone release and therefore inhibiting Na+ recovery in the collecting ducts. If Na+ remains in the forming urine, its osmotic force will cause a concurrent loss of water. Natriuretic hormones also inhibit ADH release, which of course will result in less water recovery. Therefore, natriuretic peptides inhibit both Na+ and water recovery. One example from this family of hormones is atrial natriuretic hormone (ANH), a 28-amino acid peptide produced by heart atria in response to over-stretching of the atrial wall. The over-stretching occurs in persons with elevated blood pressure or heart failure. It increases GFR through concurrent vasodilation of the afferent arteriole and vasoconstriction of the efferent arteriole. These events lead to an increased loss of water and sodium in the forming urine. It also decreases sodium reabsorption in the DCT. There is also B-type natriuretic peptide (BNP) of 32 amino acids produced in the ventricles of the heart. It has a 10-fold lower affinity for its receptor, so its effects are less than those of ANH. Its role may be to provide “fine tuning” for the regulation of blood pressure. BNP’s longer biologic half-life makes it a good diagnostic marker of congestive heart failure (Figure 25.21).
+Parathyroid Hormone
+Parathyroid hormone (PTH) is an 84-amino acid peptide produced by the parathyroid glands in response to decreased circulating Ca++ levels. Among its targets is the PCT, where it stimulates the hydroxylation of calcidiol to calcitriol (1,25-hydroxycholecalciferol, the active form of vitamin D). It also blocks reabsorption of phosphate (PO3–), causing its loss in the urine. The retention of phosphate would result in the formation of calcium phosphate in the plasma, reducing circulating Ca++ levels. By ridding the blood of phosphate, higher circulating Ca++ levels are permitted.

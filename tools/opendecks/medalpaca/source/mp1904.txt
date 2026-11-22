@@ -1,0 +1,2 @@
+What molecule may inhibit the electron transport chain (ETC), and by binding to which element does it prevent the transfer of electrons to O2 in complex IV?
+Carbon monoxide may inhibit the ETC, and by binding to Fe2+, it prevents the transfer of electrons to O2 in complex IV.
