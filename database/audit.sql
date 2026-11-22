@@ -6,7 +6,7 @@
 WITH
   signed_in AS (SELECT unnest(ARRAY[
     'cancel_group_request', 'can_see_activity', 'can_see_post', 'cohort_create', 'cohort_join', 'cohort_kick', 'cohort_leave',
-    'cohort_search', 'cohort_set_role', 'cohort_war_standings', 'create_group', 'delete_my_account', 'discover_groups',
+    'cohort_search', 'cohort_set_role', 'cohort_war_standings', 'create_group', 'delete_my_account', 'delete_my_dxdash_data', 'delete_my_login_everywhere', 'discover_groups',
     'find_buddies', 'force_save', 'get_feed', 'get_my_pro', 'get_shared_deck', 'give_kudos', 'group_goal_status',
     'group_leaderboard', 'group_requests', 'has_block_between', 'is_group_member', 'join_group', 'join_public_group',
     'leave_group', 'my_buddy_listing', 'my_cohort', 'my_groups', 'my_recent_kudos', 'publish_deck', 'push_save',

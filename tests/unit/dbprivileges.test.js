@@ -46,7 +46,7 @@ const callable = async (db, role) => (await db.query(`
 // Everything the app is allowed to call. A new function is NOT on this list until someone decides it should be.
 const SIGNED_IN = [
   'cancel_group_request', 'can_see_activity', 'can_see_post', 'cohort_create', 'cohort_join', 'cohort_kick', 'cohort_leave',
-  'cohort_search', 'cohort_set_role', 'cohort_war_standings', 'create_group', 'delete_my_account', 'discover_groups',
+  'cohort_search', 'cohort_set_role', 'cohort_war_standings', 'create_group', 'delete_my_account', 'delete_my_dxdash_data', 'delete_my_login_everywhere', 'discover_groups',
   'find_buddies', 'force_save', 'get_feed', 'get_my_pro', 'get_shared_deck', 'give_kudos', 'group_goal_status',
   'group_leaderboard', 'group_requests', 'has_block_between', 'is_group_member', 'join_group', 'join_public_group',
   'leave_group', 'my_buddy_listing', 'my_cohort', 'my_groups', 'my_recent_kudos', 'publish_deck', 'push_save',
@@ -62,7 +62,7 @@ const OPEN_TO_ALL = ['count_consent', 'delete_analytics', 'ingest_analytics'];
 const MUST_BE_CLOSED = [
   'pro_grant', 'pro_grant_until', 'pro_grant_item', 'pro_grant_library', 'pro_revoke', 'pro_revoke_plan', 'pro_revoke_item',
   'pro_revoke_library', 'pro_has_item', 'pro_make_code', 'pro_event_once', 'pro_link_customer', 'pro_customer_user',
-  'pro_user_customer', 'pro_forget_user', 'apple_token_save', 'apple_token_get', 'pro_store_claim', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
+  'pro_user_customer', 'pro_forget_user', 'dxdash_forget_user', 'dxdash_check_deletable', 'apple_token_save', 'apple_token_get', 'pro_store_claim', 'ranked_apply', 'ranked_try_settle', 'cohort_add_war_points', 'analytics_purge', 'keep_richest_save'
 ];
 
 describe('with the database files run in order, then lockdown.sql', () => {
@@ -290,7 +290,11 @@ describe('deleting an account while a subscription is still billing', () => {
     await db.query(`SELECT pro_grant_until('${B}', now() + interval '3000 days', 'lifetime', 'stripe', false)`);
     await db.query(`SELECT pro_grant_item('${B}', 'trail_fire', 'stripe', 'pi_1')`);
     await db.query(`SELECT pro_link_customer('cus_B', '${B}')`);
+    // deleting only the Dx Dash data keeps the shared sign-in ...
     await as(B, () => db.query('SELECT delete_my_account()'));
+    expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${B}'`)).rows[0].n).toBe(1);
+    // ... and "everywhere" removes it
+    await as(B, () => db.query('SELECT delete_my_login_everywhere()'));
     expect((await db.query(`SELECT count(*)::int AS n FROM auth.users WHERE id = '${B}'`)).rows[0].n).toBe(0);
     // ... and their payment records went with them
     for (const t of ['pro_entitlements', 'pro_items', 'pro_stripe_customers']) {

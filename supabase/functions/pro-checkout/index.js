@@ -106,9 +106,14 @@ Deno.serve(async function (req) {
       return json({ ok: true });
     }
 
-    // Delete the account for good. A subscription that is still billing is cancelled first (immediately, no further
-    // charge), and if that cannot be done the account is NOT deleted, so nobody keeps paying for an account that is gone.
-    if (body.action === 'delete_account') {
+    // Delete the member's data, for good. A subscription that is still billing is cancelled first (immediately, no further
+    // charge), and if that cannot be done nothing is deleted, so nobody keeps paying for data that is gone.
+    //   delete_account     removes Dx Dash's data only. The sign-in itself stays, because it can be shared with other apps on
+    //                      this Supabase project; it must never be able to delete that. (This is also the name older copies
+    //                      of the app send, so they cannot delete a shared login either.)
+    //   delete_everywhere  does the same and then deletes the sign-in itself, and with it the member's place in every app.
+    if (body.action === 'delete_account' || body.action === 'delete_everywhere') {
+      var everywhere = body.action === 'delete_everywhere';
       if (customerId) {
         var mine;
         try { mine = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=20'); } catch (e) {
@@ -123,8 +128,9 @@ Deno.serve(async function (req) {
           }
         }
       }
-      // Apple requires that deleting an account also revokes its Sign in with Apple login. If Apple cannot be reached, nothing is deleted.
-      if (hasAppleLogin(user)) {
+      // Apple requires that deleting an account also revokes its Sign in with Apple login. That is the login itself, so it
+      // happens only when the login is being deleted. If Apple cannot be reached, nothing is deleted.
+      if (everywhere && hasAppleLogin(user)) {
         var appleTok = await admin.rpc('apple_token_get', { p_user: user.id });
         if (appleTok && appleTok.data && appleConfigured(appleEnv)) {
           try {
@@ -142,11 +148,13 @@ Deno.serve(async function (req) {
           console.warn('pro-checkout delete: Apple login has no stored token or the APPLE_* secrets are not set; deleting without revoking');
         }
       }
-      var forgot = await admin.rpc('pro_forget_user', { p_user: user.id });
-      if (forgot && forgot.error) { console.error('pro-checkout delete: could not clear payment records', forgot.error.message); return json({ error: 'Could not delete the account. Please try again.' }, 500); }
-      var gone = await admin.auth.admin.deleteUser(user.id);
-      if (gone && gone.error) { console.error('pro-checkout delete: could not delete user', gone.error.message); return json({ error: 'Could not delete the account. Please try again.' }, 500); }
-      return json({ ok: true, cancelled: customerId ? true : false });
+      var forgot = await admin.rpc('dxdash_forget_user', { p_user: user.id });
+      if (forgot && forgot.error) { console.error('pro-checkout delete: could not clear the data', forgot.error.message); return json({ error: 'Could not delete your data. Please try again.' }, 500); }
+      if (everywhere) {
+        var gone = await admin.auth.admin.deleteUser(user.id);
+        if (gone && gone.error) { console.error('pro-checkout delete: could not delete user', gone.error.message); return json({ error: 'Could not delete the login. Your Dx Dash data is gone; please try again.' }, 500); }
+      }
+      return json({ ok: true, scope: everywhere ? 'everywhere' : 'app', cancelled: customerId ? true : false });
     }
 
     // What Stripe says about this member's subscription right now: is it renewing, or set to end? (The app never assumes

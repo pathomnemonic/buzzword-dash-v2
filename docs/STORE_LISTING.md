@@ -59,7 +59,7 @@ Match these to `public/privacy.html`.
 - Data collected only if the player uses online features: *Email address* (optional account), *User IDs* (account identifier), *Name* (display name), *App activity* (scores, streaks, game progress, shared run summaries and kudos).
 - *Crash logs* and *Diagnostics* only if the player switches on "Help fix problems" in Settings (off by default): anonymous, not linked to the user.
 - Purpose: app functionality and account management. Not used for advertising or analytics. Not sold.
-- Encrypted in transit: yes. Users can request deletion: yes (in-app **Delete my account**).
+- Encrypted in transit: yes. Users can request deletion: yes (in-app **Delete my Dx Dash data** and **Delete my login everywhere**).
 - Data shared with third parties: no (Supabase acts as a processor hosting the data).
 
 **Apple → App Privacy ("nutrition label")**

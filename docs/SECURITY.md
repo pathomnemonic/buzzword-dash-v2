@@ -46,3 +46,14 @@ Why: Supabase gives every new function and table to the signed-in and signed-out
 ## 5. What cannot be made airtight
 
 The game runs in the player's browser, so a determined player can edit their own device (give themselves a cosmetic, switch on Pro screens locally). They cannot change what the server says they have bought, cannot touch anyone else's data, and the cards and cosmetics they could unlock are all cosmetic or already shipped to the browser. Do not put anything in the client that must stay secret.
+
+## Shared sign-in: deleting data is not deleting the login
+
+Dx Dash shares one Supabase project, and so one sign-in, with other apps. Deleting must never be able to remove a login another app depends on, so there are two separate actions:
+
+- **Delete my Dx Dash data** (`delete_my_dxdash_data()`, the older name `delete_my_account()`, and the payment function's `delete_account`): removes every row Dx Dash holds for the player, found from the foreign keys to `auth.users` plus the payment records, cancels a subscription that is still billing first, and leaves `auth.users` alone. It does not revoke Sign in with Apple, because that login is shared.
+- **Delete my login everywhere** (`delete_my_login_everywhere()` and the payment function's `delete_everywhere`): the same, then deletes the sign-in, which removes the player from every app on the project. The app asks for a typed `DELETE`. This is the one that revokes Sign in with Apple.
+
+A guest's anonymous sign-in belongs to Dx Dash alone, so a guest's deletion removes it too.
+
+**Deployment order matters.** The currently deployed `pro-checkout` treats `delete_account` as "delete the login", and a new app would send that for the data-only choice. Before shipping a build with the two buttons: (1) run `database/schema.sql`, then `lockdown.sql`, then `audit.sql` (no rows); (2) redeploy `pro-checkout`; (3) only then release the app. Older installed copies keep working: their `delete_account` now deletes data only.

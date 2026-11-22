@@ -265,20 +265,36 @@ function renderGuest(body, deps, status) {
   body.appendChild(note('Signing in on a new device loads your saved progress there. We only use your email for sign-in and password resets.'));
   var guestData = createElement('div');
   guestData.style.marginTop = '10px';
-  guestData.appendChild(deleteAccountButton(deps));
+  guestData.appendChild(deleteAccountButton(deps, 'app'));   // (a guest's anonymous sign-in is this app's alone, so deleting their data removes it too)
   guestData.lastChild.textContent = 'Delete my online data';
   guestData.lastChild.style.marginLeft = '0';
   body.appendChild(guestData);
 }
 
-/** Permanent deletion, behind a clear confirmation (required by the app stores). */
-function deleteAccountButton(deps) {
-  var b = button('Delete my account', function () {
-    var ok = window.confirm('Delete your account and all online data (profile, scores, friends, groups and cloud save)? A subscription that is still billing is cancelled with it, and Pro and items you bought are lost. This cannot be undone. Progress saved on this device stays.');
+/**
+ * Permanent deletion, behind a clear confirmation (required by the app stores). Two buttons for a signed-in player, because the
+ * sign-in can be shared with other apps: one removes only what Dx Dash holds, the other also removes the sign-in itself.
+ * @param {*} deps
+ * @param {'app'|'everywhere'} scope
+ */
+function deleteAccountButton(deps, scope) {
+  var everywhere = scope === 'everywhere';
+  var b = button(everywhere ? 'Delete my login everywhere' : 'Delete my Dx Dash data', function () {
+    var ok;
+    if (everywhere) {
+      ok = window.confirm('Delete your login everywhere? This removes your Dx Dash data (profile, scores, friends, groups, cloud save, Pro and anything you bought; a subscription that is still billing is cancelled) AND your sign-in itself, so you also lose access to every other app that uses this login. This cannot be undone. Progress saved on this device stays.');
+      if (ok) {
+        var typed = window.prompt('To confirm, type DELETE');
+        ok = typeof typed === 'string' && typed.trim().toUpperCase() === 'DELETE';
+        if (!ok && typed !== null) deps.toast('Nothing was deleted.');
+      }
+    } else {
+      ok = window.confirm('Delete your Dx Dash data (profile, scores, friends, groups, cloud save)? A subscription that is still billing is cancelled with it, and Pro and items you bought are lost. Your sign-in stays, so the same login still works in other apps. This cannot be undone. Progress saved on this device stays.');
+    }
     if (!ok) return Promise.resolve();
-    return deps.leaderboard.deleteAccount().then(function (res) {
-      track('account_event', { action: 'delete_requested', ok: !!res.success });
-      deps.toast(res.success ? 'Your account and online data were deleted.' : (res.error || 'Could not delete the account.'));
+    return deps.leaderboard.deleteAccount(everywhere ? 'everywhere' : 'app').then(function (res) {
+      track('account_event', { action: everywhere ? 'delete_everywhere_requested' : 'delete_requested', ok: !!res.success });
+      deps.toast(res.success ? (everywhere ? 'Your login and all your online data were deleted.' : 'Your Dx Dash online data was deleted.') : (res.error || 'Could not delete.'));
       deps.rerender();
     });
   }, 'btn-outline');
@@ -324,7 +340,8 @@ function renderSignedIn(body, deps, status) {
 
   var out = createElement('div');
   out.style.marginTop = '16px';
-  out.appendChild(deleteAccountButton(deps));
+  out.appendChild(deleteAccountButton(deps, 'app'));
+  out.appendChild(deleteAccountButton(deps, 'everywhere'));
   out.appendChild(button('Sign out', function () {
     var flush = deps.cloudSync ? deps.cloudSync.sync() : Promise.resolve();
     return flush.then(function () { return deps.leaderboard.signOut(); }).then(function (res) {

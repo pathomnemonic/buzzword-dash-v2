@@ -38,7 +38,7 @@ Android, one iPhone from the last three years, one older iPhone, and one tablet 
 
 ## 5b. Accounts, purchases and data safety (the ones that cost real money or progress)
 - Sign in with **each** provider (Google, Apple, Microsoft, email link, email + password), as a guest ("I am new") and as a returning player ("I have an account"). The app must come back signed in after the browser sheet, with the same coins and characters (guest upgrades keep everything).
-- On iPhone specifically: Sign in with Apple, then **Delete my account**: the Apple sign-in must disappear from Settings → Apple ID → Sign in with Apple → Apps using Apple ID within a minute.
+- On iPhone specifically: Sign in with Apple, then **Delete my login everywhere** (the Apple sign-in is revoked only by this one; **Delete my Dx Dash data** leaves the shared sign-in): the Apple sign-in must disappear from Settings → Apple ID → Sign in with Apple → Apps using Apple ID within a minute.
 - Buy a subscription and an item with a sandbox / test account; restore on a second device or after reinstalling; refund one in the store console and open the app twice: it must disappear.
 - Clear the app's storage (Android: Settings → Apps → Dx Dash → Storage → Clear storage; iPhone: Settings → Dx Dash → remove website data, or offload and reinstall) and relaunch: the game must offer "Restore your progress?" with the right numbers. With an account it must instead load the cloud save.
 - Airplane mode during a purchase and during sign-in: nothing is charged twice and the app explains what happened.

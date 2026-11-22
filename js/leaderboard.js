@@ -514,17 +514,24 @@ var leaderboard = {
   },
 
   /**
-   * Permanently delete this account and all its online data (scores, friends,
-   * groups, cloud save). The player continues as a fresh guest.
+   * Permanently delete this player's online data. The sign-in can be shared with other apps on the same Supabase project, so
+   * there are two scopes:
+   *   'app' (the default): everything Dx Dash holds (scores, friends, groups, cloud save, purchases). The sign-in stays.
+   *   'everywhere': the same, and then the sign-in itself, which removes the player from every app.
+   * A guest's anonymous sign-in belongs to this app alone, so for a guest both scopes remove it.
+   * The player continues as a fresh guest.
+   * @param {'app'|'everywhere'} [scope]
    * @returns {Promise<{success: boolean, error: string|null}>}
    */
-  deleteAccount: function () {
+  deleteAccount: function (scope) {
     if (!_client || !_userId) return Promise.resolve({ success: false, error: 'Not signed in' });
-    // First the payment function: it cancels a subscription that is still billing and then deletes the account. If it is
-    // not there (no web payments on this project) the database does the deletion itself, and refuses while a
-    // subscription is still billing, so nothing keeps charging an account that has gone.
+    var everywhere = scope === 'everywhere' || leaderboard.isGuest();
+    // First the payment function: it cancels a subscription that is still billing and then deletes. If it is not there (no
+    // web payments on this project) the database does the deletion itself, and refuses while a subscription is still
+    // billing, so nothing keeps charging someone whose data has gone.
     // (a guest has bought nothing, so there is nothing to cancel)
-    var viaPayments = (leaderboard.isGuest() ? Promise.resolve({ error: 'not available' }) : leaderboard.proFunction('delete_account')).then(function (r) {
+    var action = scope === 'everywhere' ? 'delete_everywhere' : 'delete_account';
+    var viaPayments = (leaderboard.isGuest() ? Promise.resolve({ error: 'not available' }) : leaderboard.proFunction(action)).then(function (r) {
       if (r && r.ok) return { done: true };
       var msg = (r && r.error) || '';
       if (!msg || /not set up|not available|not found|unknown request|failed to send|could not reach/i.test(msg)) return { done: false };
@@ -533,7 +540,7 @@ var leaderboard = {
     return viaPayments.then(function (first) {
       if (first.error) return { error: { message: first.error } };
       if (first.done) return {};
-      return _client.rpc('delete_my_account');
+      return _client.rpc(everywhere ? 'delete_my_login_everywhere' : 'delete_my_dxdash_data');
     }).then(function (res) {
       if (res.error) return { success: false, error: res.error.message };
       return _client.auth.signOut().catch(function () { return null; }).then(function () {

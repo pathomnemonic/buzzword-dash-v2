@@ -882,11 +882,74 @@ $$;
 
 
 -- ==================== ACCOUNT DELETION ====================
--- Lets a player delete their own account and every row tied to it (profile,
--- scores, friends, groups, saves...) since all of those cascade from auth.users.
--- The app stores require an in-app way to do this.
+-- Two different things, because the sign-in can be shared with other apps on the same Supabase project:
+--
+--   1. Delete my Dx Dash data   (delete_my_dxdash_data; the old name delete_my_account does the same)
+--        removes every row Dx Dash holds for the player (profile, scores, friends, groups, saves, payment records...) and
+--        leaves the sign-in itself alone, so the same login keeps working in the other apps.
+--   2. Delete my login everywhere   (delete_my_login_everywhere)
+--        does 1, then deletes the sign-in (auth.users), which removes the player from every app on the project.
+--
+-- The app stores require an in-app way to delete an account. Both are offered, with plain warnings.
 
-CREATE OR REPLACE FUNCTION delete_my_account()
+-- What "Dx Dash data" means: every row in this schema that points at the player's login, found from the foreign keys
+-- themselves (so a table added later is covered without editing this function), plus the payment records, which hold a
+-- user id but no foreign key. Rows that merely mention the player as an optional creator are kept and unlinked.
+-- Service role / the two functions below only.
+CREATE OR REPLACE FUNCTION dxdash_forget_user(p_user uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  r record;
+BEGIN
+  IF p_user IS NULL THEN
+    RAISE EXCEPTION 'No user';
+  END IF;
+  IF to_regprocedure('public.pro_forget_user(uuid)') IS NOT NULL THEN
+    EXECUTE 'SELECT public.pro_forget_user($1)' USING p_user;
+  END IF;
+  FOR r IN
+    SELECT c.conrelid::regclass::text AS tbl, a.attname::text AS col, c.confdeltype AS act
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+    WHERE c.contype = 'f' AND c.confrelid = 'auth.users'::regclass AND n.nspname = 'public' AND array_length(c.conkey, 1) = 1
+    ORDER BY 1, 2
+  LOOP
+    IF r.act = 'n' THEN
+      EXECUTE format('UPDATE %s SET %I = NULL WHERE %I = $1', r.tbl, r.col, r.col) USING p_user;
+    ELSE
+      EXECUTE format('DELETE FROM %s WHERE %I = $1', r.tbl, r.col) USING p_user;
+    END IF;
+  END LOOP;
+END;
+$$;
+
+-- A subscription that is still billing must be cancelled first, or it would go on charging someone whose data is gone.
+-- (The website's delete buttons do that through the payment function.)
+CREATE OR REPLACE FUNCTION dxdash_check_deletable(p_user uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF p_user IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+  IF to_regclass('public.pro_entitlements') IS NOT NULL THEN
+    IF EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = p_user AND source = 'stripe' AND plan IN ('monthly', 'yearly', 'pass3m') AND until > now()) THEN
+      RAISE EXCEPTION 'You have a subscription that is still billing. Cancel it first (Settings, Dx Dash Pro, Manage subscription), then delete your data.';
+    END IF;
+  END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION delete_my_dxdash_data()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -895,26 +958,46 @@ AS $$
 DECLARE
   uid uuid := auth.uid();
 BEGIN
-  IF uid IS NULL THEN
-    RAISE EXCEPTION 'Not authenticated';
-  END IF;
-  -- A subscription that is still billing must be cancelled first, or it would go on charging an account that no longer
-  -- exists. (The website's delete button does that through the payment function and deletes the account itself.)
-  IF to_regclass('public.pro_entitlements') IS NOT NULL THEN
-    IF EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = uid AND source = 'stripe' AND plan IN ('monthly', 'yearly', 'pass3m') AND until > now()) THEN
-      RAISE EXCEPTION 'You have a subscription that is still billing. Cancel it first (Settings, Dx Dash Pro, Manage subscription), then delete your account.';
-    END IF;
-  END IF;
-  -- their payment records go too (those tables do not cascade from the login)
-  IF to_regprocedure('public.pro_forget_user(uuid)') IS NOT NULL THEN
-    EXECUTE 'SELECT public.pro_forget_user($1)' USING uid;
-  END IF;
+  PERFORM public.dxdash_check_deletable(uid);
+  PERFORM public.dxdash_forget_user(uid);
+END;
+$$;
+
+-- The name older copies of the app call. It must never delete a shared sign-in, so it only deletes the Dx Dash data.
+CREATE OR REPLACE FUNCTION delete_my_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  PERFORM public.delete_my_dxdash_data();
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION delete_my_login_everywhere()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+BEGIN
+  PERFORM public.dxdash_check_deletable(uid);
+  PERFORM public.dxdash_forget_user(uid);
   DELETE FROM auth.users WHERE id = uid;
 END;
 $$;
 
+REVOKE ALL ON FUNCTION dxdash_forget_user(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION dxdash_check_deletable(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION delete_my_dxdash_data() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION delete_my_account() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION delete_my_login_everywhere() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION delete_my_dxdash_data() TO authenticated;
 GRANT EXECUTE ON FUNCTION delete_my_account() TO authenticated;
+GRANT EXECUTE ON FUNCTION delete_my_login_everywhere() TO authenticated;
 
 
 -- ==================== RANKED MULTIPLAYER ====================

@@ -400,7 +400,7 @@ describe('opt-in diagnostics', () => {
 });
 
 describe('account deletion', () => {
-  it('removes the caller and everything tied to them, and only them', async () => {
+  it('"delete my login everywhere" removes the caller and everything tied to them, and only them', async () => {
     const D = '44444444-4444-4444-4444-444444444444';
     const E = '55555555-5555-5555-5555-555555555555';
     await db.exec(`INSERT INTO auth.users VALUES ('${D}'), ('${E}')`);
@@ -415,7 +415,7 @@ describe('account deletion', () => {
     await as(E, () => db.query('SELECT give_kudos($1)', [post]));
     await as(D, () => db.query('SELECT give_kudos($1)', [theirs]));
 
-    await as(D, () => db.query('SELECT delete_my_account()'));
+    await as(D, () => db.query('SELECT delete_my_login_everywhere()'));
 
     const count = async (sql, p) => Number((await db.query(sql, p)).rows[0].n);
     expect(await count('SELECT count(*) AS n FROM auth.users WHERE id = $1', [D])).toBe(0);
@@ -429,12 +429,37 @@ describe('account deletion', () => {
     expect(await count('SELECT count(*) AS n FROM activity_events WHERE id = $1', [theirs])).toBe(1);
   });
 
-  it('requires a signed-in user', async () => {
-    await db.exec("SET app.uid = ''; SET ROLE authenticated;");
-    let failed = false;
-    try { await db.query('SELECT delete_my_account()'); } catch (e) { failed = true; }
-    await db.exec('RESET ROLE');
-    expect(failed).toBe(true);
+  it('"delete my Dx Dash data" (and the old delete_my_account name) removes every row but leaves the shared sign-in', async () => {
+    for (const fn of ['delete_my_dxdash_data', 'delete_my_account']) {
+      const U = fn === 'delete_my_dxdash_data' ? '66666666-6666-6666-6666-666666666666' : '77777777-7777-7777-7777-777777777777';
+      const V = '88888888-8888-8888-8888-888888888888';
+      await db.exec(`INSERT INTO auth.users VALUES ('${U}') ON CONFLICT DO NOTHING; INSERT INTO auth.users VALUES ('${V}') ON CONFLICT DO NOTHING;`);
+      await as(U, () => db.query(`SELECT upsert_player_profile($1,'Leaver','a','{}',10,1,true)`, [U]));
+      await as(U, () => db.query(`SELECT push_save('{"x":1}'::jsonb, 1, NULL)`));
+      await as(U, () => db.query(`INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'Leaver',5,$2)`, [U, 'keep-' + fn]));
+      await db.query("INSERT INTO friends (requester_id, addressee_id, status) VALUES ($1,$2,'accepted')", [U, V]);
+      await as(U, () => db.query('SELECT ' + fn + '()'));
+      // the login survives, so the same sign-in keeps working in the other apps
+      expect(Number((await db.query('SELECT count(*) AS n FROM auth.users WHERE id = $1', [U])).rows[0].n)).toBe(1);
+      // and no Dx Dash table holds anything for them: every uuid column of every table in this schema is checked
+      const cols = (await db.query(`SELECT table_name AS t, column_name AS c FROM information_schema.columns WHERE table_schema = 'public' AND data_type = 'uuid'`)).rows;
+      for (const { t, c } of cols) {
+        const kind = (await db.query(`SELECT table_type FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1`, [t])).rows[0];
+        if (!kind || kind.table_type !== 'BASE TABLE') continue;
+        const n = Number((await db.query(`SELECT count(*) AS n FROM public."${t}" WHERE "${c}" = $1`, [U])).rows[0].n);
+        expect(n, t + '.' + c + ' still holds the leaver').toBe(0);
+      }
+    }
+  });
+
+  it('cannot be called by a stranger, and the helper functions are not open to players', async () => {
+    for (const fn of ['delete_my_account()', 'delete_my_dxdash_data()', 'delete_my_login_everywhere()']) {
+      await db.exec("SET app.uid = ''; SET ROLE authenticated;");
+      let failed = false;
+      try { await db.query('SELECT ' + fn); } catch (e) { failed = true; }
+      await db.exec('RESET ROLE');
+      expect(failed, fn).toBe(true);
+    }
   });
 });
 

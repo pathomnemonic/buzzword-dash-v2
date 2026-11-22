@@ -16,7 +16,7 @@ Play Console → **Policy and programs → App content**. Answer each item as be
 Does your app collect or share any of the required user data types? **Yes** (only if the player uses the optional online features).
 
 Is all of the user data collected by your app encrypted in transit? **Yes**.
-Do you provide a way for users to request that their data be deleted? **Yes.** In-app: Friends → Account → Delete my account. Web link to paste: `https://pathomnemonic.github.io/buzzword-dash-v2/delete-account.html`
+Do you provide a way for users to request that their data be deleted? **Yes.** In-app: Friends → Account → Delete my Dx Dash data (keeps a sign-in shared with other apps) or Delete my login everywhere (removes the sign-in too). Web link to paste: `https://pathomnemonic.github.io/buzzword-dash-v2/delete-account.html`
 
 | Data type | Collected | Shared | Optional | Why | 
 |---|---|---|---|---|
@@ -56,7 +56,7 @@ Target age: **18 and over** (medical students and professionals). Not designed f
 **No**. Advertising ID: **No** (the app does not use it). Tick that you do not use the advertising ID.
 
 ## Account deletion (new Play requirement)
-Provide: in-app path (Friends → Account → Delete my account) and the web link above.
+Provide: in-app path (Friends → Account → Delete my Dx Dash data, or Delete my login everywhere) and the web link above.
 
 ## Declarations you may be asked for
 - Permissions: network, vibration, and notifications (the optional daily study reminder, which the player turns on; Android 13+ asks them first). No sensitive permissions.

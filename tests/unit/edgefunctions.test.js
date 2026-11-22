@@ -197,22 +197,22 @@ describe('pro-checkout: deleting an account', () => {
     return { status: res.status, body: await res.json() };
   };
 
-  it('cancels a subscription that is still billing, then deletes the account', async () => {
+  it('"delete everywhere" cancels a subscription that is still billing, then deletes the login', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     customerId = 'cus_1';
     stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }, { id: 'sub_old', status: 'canceled' }, { id: 'sub_due', status: 'past_due' }] } : {});
-    const r = await call(h, { action: 'delete_account' }, 'good');
+    const r = await call(h, { action: 'delete_everywhere' }, 'good');
     expect(r.status).toBe(200);
     expect(stripeCalls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['subscriptions/sub_live', 'subscriptions/sub_due']);
     expect(deleted).toEqual(['u1']);
-    expect(db.map((c) => c[0])).toContain('pro_forget_user');
+    expect(db.map((c) => c[0])).toContain('dxdash_forget_user');
   });
 
   it('does NOT delete the account when the subscription could not be cancelled, so nothing keeps charging', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     customerId = 'cus_1'; cancelFails = true;
     stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }] } : {});
-    const r = await call(h, { action: 'delete_account' }, 'good');
+    const r = await call(h, { action: 'delete_everywhere' }, 'good');
     expect(r.status).toBe(502);
     expect(r.body.error).toMatch(/nothing was deleted/i);
     expect(deleted).toEqual([]);
@@ -220,18 +220,18 @@ describe('pro-checkout: deleting an account', () => {
 
   it('deletes straight away when there is nothing to cancel, and never for a guest or a stranger', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
-    expect((await call(h, { action: 'delete_account' }, 'good')).status).toBe(200);
+    expect((await call(h, { action: 'delete_everywhere' }, 'good')).status).toBe(200);
     expect(deleted).toEqual(['u1']);
     deleted.length = 0;
-    expect((await call(h, { action: 'delete_account' }, 'guest')).status).toBe(403);
-    expect((await call(h, { action: 'delete_account' })).status).toBe(401);
-    expect((await call(h, { action: 'delete_account', user_id: 'someone-else' }, 'nobody')).status).toBe(401);
+    expect((await call(h, { action: 'delete_everywhere' }, 'guest')).status).toBe(403);
+    expect((await call(h, { action: 'delete_everywhere' })).status).toBe(401);
+    expect((await call(h, { action: 'delete_everywhere', user_id: 'someone-else' }, 'nobody')).status).toBe(401);
     expect(deleted).toEqual([]);
   });
 
   it('deletes only the signed-in account, whatever the page says', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
-    await call(h, { action: 'delete_account', user_id: 'victim', id: 'victim' }, 'good');
+    await call(h, { action: 'delete_everywhere', user_id: 'victim', id: 'victim' }, 'good');
     expect(deleted).toEqual(['u1']);
   });
 });
@@ -254,10 +254,10 @@ describe('pro-checkout: Sign in with Apple and account deletion', () => {
     expect(db.filter((c) => c[0] === 'apple_token_save')).toEqual([]);
   });
 
-  it('revokes the Apple login before deleting the account', async () => {
+  it('"delete everywhere" revokes the Apple login before deleting the login', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     appleToken = 'r_stored_token';
-    const r = await call(h, { action: 'delete_account' }, 'apple');
+    const r = await call(h, { action: 'delete_everywhere' }, 'apple');
     expect(r.status).toBe(200);
     const sent = stripeCalls.find((c) => c.path === 'APPLE auth/revoke');
     expect(sent.body).toMatchObject({ client_id: 'com.example.web', token: 'r_stored_token', token_type_hint: 'refresh_token' });
@@ -268,7 +268,7 @@ describe('pro-checkout: Sign in with Apple and account deletion', () => {
   it('does NOT delete the account when Apple cannot be reached, because Apple requires the revoke', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     appleToken = 'r_stored_token'; appleStatus = 500;
-    const r = await call(h, { action: 'delete_account' }, 'apple');
+    const r = await call(h, { action: 'delete_everywhere' }, 'apple');
     expect(r.status).toBe(502);
     expect(r.body.error).toMatch(/nothing was deleted/i);
     expect(deleted).toEqual([]);
@@ -277,11 +277,51 @@ describe('pro-checkout: Sign in with Apple and account deletion', () => {
   it('still deletes an Apple login that has no stored token (signed in before this existed), and never calls Apple for anyone else', async () => {
     const h = await boot('../../supabase/functions/pro-checkout/index.js');
     appleToken = '';
-    expect((await call(h, { action: 'delete_account' }, 'apple')).status).toBe(200);
+    expect((await call(h, { action: 'delete_everywhere' }, 'apple')).status).toBe(200);
     expect(stripeCalls.some((c) => String(c.path).startsWith('APPLE'))).toBe(false);
     appleToken = 'r_other';
-    expect((await call(h, { action: 'delete_account' }, 'good')).status).toBe(200);
+    expect((await call(h, { action: 'delete_everywhere' }, 'good')).status).toBe(200);
     expect(stripeCalls.some((c) => String(c.path).startsWith('APPLE'))).toBe(false);
+  });
+});
+
+
+
+describe('pro-checkout: deleting only this app\'s data (the sign-in can be shared with other apps)', () => {
+  const call = async (h, body, jwt) => {
+    const res = await h(post(body, jwt ? { authorization: 'Bearer ' + jwt } : {}));
+    return { status: res.status, body: await res.json() };
+  };
+
+  it('delete_account (also what older copies of the app send) clears the data and NEVER deletes the sign-in', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    customerId = 'cus_1';
+    stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }] } : {});
+    const r = await call(h, { action: 'delete_account' }, 'good');
+    expect(r.status).toBe(200);
+    expect(r.body.scope).toBe('app');
+    expect(stripeCalls.filter((c) => c.method === 'DELETE').map((c) => c.path)).toEqual(['subscriptions/sub_live']);   // (billing still stops)
+    expect(db.map((c) => c[0])).toContain('dxdash_forget_user');
+    expect(deleted).toEqual([]);
+  });
+
+  it('does not touch the Apple login either, because that login is shared', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    appleToken = 'r_stored_token';
+    expect((await call(h, { action: 'delete_account' }, 'apple')).status).toBe(200);
+    expect(stripeCalls.some((c) => String(c.path).startsWith('APPLE'))).toBe(false);
+    expect(deleted).toEqual([]);
+  });
+
+  it('still refuses a guest or a stranger, and still stops if the subscription cannot be cancelled', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    expect((await call(h, { action: 'delete_account' }, 'guest')).status).toBe(403);
+    expect((await call(h, { action: 'delete_account' })).status).toBe(401);
+    customerId = 'cus_1'; cancelFails = true;
+    stripeReply = (path) => (path.startsWith('subscriptions?') ? { data: [{ id: 'sub_live', status: 'active' }] } : {});
+    const r = await call(h, { action: 'delete_account' }, 'good');
+    expect(r.status).toBe(502);
+    expect(db.map((c) => c[0])).not.toContain('dxdash_forget_user');
   });
 });
 

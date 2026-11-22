@@ -275,7 +275,7 @@ Only if you want purchases made on a phone to show on the website and on a new p
 Run `docs/DEVICE-TESTING.md` on at least one Android phone and one iPhone, writing down model and OS version. The ones that matter most (section 5b of that file):
 1. First launch: tutorial plays; offline run works in airplane mode.
 2. Sign in with each provider, once as a guest ("I am new") and once as a returning player. You must come back to the app signed in, with the same coins.
-3. iPhone: Sign in with Apple, then **Delete my account**. Within a minute the app must vanish from iPhone **Settings → [your name] → Sign-In & Security → Sign in with Apple**.
+3. iPhone: Sign in with Apple, then **Delete my login everywhere** (the Apple sign-in is revoked only by this one; **Delete my Dx Dash data** leaves the shared sign-in). Within a minute the app must vanish from iPhone **Settings → [your name] → Sign-In & Security → Sign in with Apple**.
 4. Buy a subscription and an item with a test account; restore after reinstalling; refund in the store console and open the app twice.
 5. Clear the app's storage and relaunch: it offers "Restore your progress?". iPhone: Settings → Dx Dash → remove website data, or offload and reinstall.
 6. Airplane mode during a purchase and during sign-in: nothing charged twice.

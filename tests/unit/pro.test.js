@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { sanitizeProConfig, defaultProConfig, GATE_FEATURES, DEFAULT_GATES } from '../../js/proconfig.js';
 import { setProConfigForTest, proConfig, sanitizeConfig } from '../../js/remoteconfig.js';
 import {
@@ -11,7 +11,10 @@ import { cleanEvent } from '../../js/analytics/catalog.js';
 const DAY = 86400000;
 const NOW = new Date('2026-11-10T12:00:00').getTime(); // a Tuesday
 
-beforeEach(() => { resetProForTest(); setProConfigForTest(null); localStorage.clear(); setSellableForTest(true); });
+// The tests pass NOW into the code, but some code reads the real clock too (a store subscription's end date). Pin the clock to NOW so
+// the real date can never make a test pass or fail (this one broke on 22 November, once the real date passed the hard-coded NOW).
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(NOW); resetProForTest(); setProConfigForTest(null); localStorage.clear(); setSellableForTest(true); });
+afterEach(() => { vi.useRealTimers(); });
 
 /** A fake store plugin shaped like capacitor-plugin-cdv-purchase, with subscriptions. */
 function fakePlugin(o) {

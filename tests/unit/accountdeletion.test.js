@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 let calls;
 let fnReply;      // what the pro-checkout function answers to delete_account
-let rpcReply;     // what the database answers to delete_my_account
+let rpcReply;     // what the database answers to the delete functions
 let user;
 
 function fakeClient() {
@@ -39,12 +39,27 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); delete window.supabase; });
 
 describe('deleting an account', () => {
-  it('goes through the payment function first, which cancels any subscription and deletes the account', async () => {
+  it('goes through the payment function first, which cancels any subscription and deletes the Dx Dash data (not the shared sign-in)', async () => {
     const lb = await boot();
     const res = await lb.deleteAccount();
     expect(calls.filter((c) => c.startsWith('fn:') || c.startsWith('rpc:'))).toEqual(['fn:delete_account']);
     expect(res.success).toBe(true);
     expect(calls).toContain('signInAnonymously');
+  });
+
+  it('"everywhere" is a separate, explicit request that also deletes the sign-in', async () => {
+    const lb = await boot();
+    expect((await lb.deleteAccount('everywhere')).success).toBe(true);
+    expect(calls.filter((c) => c.startsWith('fn:') || c.startsWith('rpc:'))).toEqual(['fn:delete_everywhere']);
+  });
+
+  it('the default scope can never reach the database function that deletes the sign-in', async () => {
+    fnReply = () => ({ data: null, error: { message: 'Requested function was not found' } });
+    await (await boot()).deleteAccount();
+    await (await boot()).deleteAccount('app');   // (a fresh boot each time: after a deletion the app carries on as a guest)
+    expect(calls).not.toContain('rpc:delete_my_login_everywhere');
+    expect(calls).not.toContain('rpc:delete_my_account');
+    expect(calls).toContain('rpc:delete_my_dxdash_data');
   });
 
   it('does not delete when the function says the subscription could not be cancelled', async () => {
@@ -61,7 +76,7 @@ describe('deleting an account', () => {
     fnReply = () => ({ data: null, error: { message: 'Requested function was not found' } });
     let lb = await boot();
     expect((await lb.deleteAccount()).success).toBe(true);
-    expect(calls).toContain('rpc:delete_my_account');
+    expect(calls).toContain('rpc:delete_my_dxdash_data');
 
     calls = [];
     rpcReply = () => ({ error: { message: 'You have a subscription that is still billing. Cancel it first.' } });
@@ -77,6 +92,6 @@ describe('deleting an account', () => {
     const lb = await boot();
     expect((await lb.deleteAccount()).success).toBe(true);
     expect(calls.filter((c) => c.startsWith('fn:'))).toEqual([]);
-    expect(calls).toContain('rpc:delete_my_account');
+    expect(calls).toContain('rpc:delete_my_login_everywhere');   // (a guest's anonymous sign-in is this app's alone)
   });
 });
