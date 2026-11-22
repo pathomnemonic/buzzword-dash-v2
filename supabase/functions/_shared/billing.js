@@ -73,6 +73,25 @@ export function periodOf(price) {
   return '';
 }
 
+/** The billing period each plan's Stripe Price must have ('' = a one-time price). A Price set up differently is never sold. */
+export var EXPECTED_PERIOD = { yearly: 'P1Y', pass3m: 'P3M', monthly: 'P1M', lifetime: '' };
+
+/**
+ * Is this Stripe Price the one the plan needs? Returns '' when it is, or a sentence saying what is wrong. This stops, for
+ * example, a lifetime plan whose Price was created as monthly (which would bill every month), or a 3-month pass whose Price
+ * renews monthly, from ever reaching a customer.
+ */
+export function priceProblem(productId, price) {
+  var def = PRODUCTS[productId];
+  if (!def) return 'Unknown product.';
+  if (!price || price.active === false) return 'the Price is archived or missing';
+  if (!Number(price.unit_amount)) return 'the Price has no fixed amount';
+  var want = EXPECTED_PERIOD[def.plan];
+  var have = periodOf(price);
+  if (want !== have) return 'the Price renews ' + (have || 'never (one-time)') + ' but ' + def.plan + ' needs ' + (want || 'a one-time price');
+  return '';
+}
+
 /** What the app shows for a product: the same shape the phone paywall gets from the store. */
 export function describePrice(id, price) {
   var cents = Number(price && price.unit_amount) || 0;

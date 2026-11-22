@@ -61,7 +61,10 @@ async function boot(file) {
 beforeEach(() => {
   db = []; stripeCalls = []; owned = []; held = null; dbReady = true; customerId = ''; deleted = []; cancelFails = false; appleToken = ''; appleStatus = 200; storeReply = { status: 200, body: {} }; claimResult = 'ok';
   users = { apple: { id: 'ua', email: 'p@example.com', is_anonymous: false, identities: [{ provider: 'apple' }] }, good: { id: 'u1', email: 'a@example.com', is_anonymous: false }, guest: { id: 'g1', email: '', is_anonymous: true } };
-  stripeReply = (path) => ({ id: 'cs_1', url: 'https://checkout.stripe.com/pay/cs_1', data: [] });
+  // (Prices as Stripe returns them: the yearly one renews every year, the lifetime one is one-time, like the real ones must be)
+  stripeReply = (path) => (path === 'prices/price_y' ? { id: 'price_y', active: true, unit_amount: 1999, currency: 'usd', recurring: { interval: 'year', interval_count: 1 } }
+    : path === 'prices/price_l' ? { id: 'price_l', active: true, unit_amount: 3999, currency: 'usd', recurring: null }
+    : { id: 'cs_1', url: 'https://checkout.stripe.com/pay/cs_1', data: [] });
   globalThis.fetch = vi.fn(async (url, init) => {
     if (String(url).startsWith('https://appleid.apple.com/')) {
       stripeCalls.push({ path: 'APPLE ' + String(url).replace('https://appleid.apple.com/', ''), method: init.method, body: Object.fromEntries(new URLSearchParams(init.body)) });
@@ -187,6 +190,20 @@ describe('pro-checkout', () => {
     stripeCalls.length = 0;
     expect((await call(h, { action: 'checkout', plan: 'lifetime' }, 'good')).status).toBe(409);
     expect(stripeCalls.filter((c) => c.method === 'POST')).toEqual([]);
+  });
+
+  it('never sells a plan whose Stripe Price is set up wrongly (a lifetime price that renews monthly, a pass that renews monthly)', async () => {
+    const h = await boot('../../supabase/functions/pro-checkout/index.js');
+    const base = stripeReply;
+    stripeReply = (path) => (path === 'prices/price_l' ? { id: 'price_l', active: true, unit_amount: 3999, currency: 'usd', recurring: { interval: 'month', interval_count: 1 } } : base(path));
+    const r = await call(h, { action: 'checkout', plan: 'lifetime' }, 'good');
+    expect(r.status).toBe(503);
+    expect(r.body.error).toMatch(/not set up correctly/i);
+    expect(stripeCalls.filter((c) => c.path === 'checkout/sessions')).toEqual([]);
+    // an archived price is not sold either (a fresh start, because prices are remembered for five minutes)
+    const h2 = await boot('../../supabase/functions/pro-checkout/index.js');
+    stripeReply = (path) => (path === 'prices/price_y' ? { id: 'price_y', active: false, unit_amount: 1999, recurring: { interval: 'year', interval_count: 1 } } : base(path));
+    expect((await call(h2, { action: 'checkout', plan: 'yearly' }, 'good')).status).toBe(503);
   });
 });
 

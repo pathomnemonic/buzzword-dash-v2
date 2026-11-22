@@ -230,3 +230,8 @@ Without it, a phone purchase is known only to the phone. With it (`supabase/func
 ## Sign in with Apple and account deletion
 
 Apple requires that deleting an account also revokes the Sign in with Apple login. The app keeps the Apple token server-side only (table `apple_tokens`) and `pro-checkout` revokes it on deletion. Set the secrets `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the .p8 key text, with a "Sign in with Apple" capability) and `APPLE_CLIENT_ID` (the same Services ID that Supabase's Apple provider uses). Without them the account is still deleted (the function logs that it could not revoke), so set them before an iOS launch.
+
+
+## Prices must match their plan (checked by the server)
+
+`pro-checkout` reads each Stripe Price named in the `STRIPE_PRICE_*` secrets and sells a plan only when the Price is active, has a fixed amount, and has the right billing period: yearly renews every year, the 3-month pass every 3 months, monthly every month, and lifetime must be a **one-time** price. A mismatch (for example a lifetime Price created as "recurring monthly") is logged, hidden from the paywall, and refused at checkout with "not set up correctly yet. You have not been charged." Create the lifetime Price as **One time**, not recurring. The webhook events to subscribe to are the seven in `docs/LAUNCH_CHECKLIST.md` 4.5 (not just three).

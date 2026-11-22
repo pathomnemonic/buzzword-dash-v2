@@ -10,7 +10,7 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
-import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, priceProblem, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
 import { isPremiumItem } from '../_shared/premium.js';
 import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin } from '../_shared/applesignin.js';
 
@@ -45,7 +45,13 @@ async function prices() {
   if (Date.now() - _prices.at < 5 * 60 * 1000) return _prices.list;
   var list = [];
   for (var id of configuredProducts(env)) {
-    try { list.push(describePrice(id, await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env])))); } catch (e) { console.error('price for ' + id + ' failed', e && e.message); } // (one bad Price id must not hide the others)
+    try {
+      var price = await stripe('prices/' + encodeURIComponent(env[PRODUCTS[id].env]));
+      // a Price that does not match its plan (a lifetime price that renews, a 3-month pass that renews monthly) is never offered
+      var wrong = priceProblem(id, price);
+      if (wrong) { console.error('price for ' + id + ' is not sold: ' + wrong); continue; }
+      list.push(describePrice(id, price));
+    } catch (e) { console.error('price for ' + id + ' failed', e && e.message); } // (one bad Price id must not hide the others)
   }
   if (!list.length) throw new Error('No plan could be loaded. Check the STRIPE_PRICE_* secrets are Price ids (price_...) from the same Stripe mode as the secret key.');
   _prices = { at: Date.now(), list: list };
@@ -242,6 +248,10 @@ Deno.serve(async function (req) {
     if (body.action === 'checkout') {
       var wanted = productFor(body.plan);
       if (!wanted) return json({ error: 'Unknown plan.' }, 400);
+      // only a plan whose Stripe Price is set up the way the plan needs (right period, one-time for lifetime) is ever sold
+      // (a plan with no Price id set at all is left to answer "not for sale yet" below)
+      var sellable = env[wanted.def.env] ? await prices() : [];
+      if (env[wanted.def.env] && !sellable.some(function (x) { return x.id === wanted.id; })) return json({ error: 'That plan is not set up correctly yet. You have not been charged.' }, 503);
       // someone who holds Pro for life has nothing left to buy: stop before Stripe is touched
       var held = await admin.from('pro_entitlements').select('plan, until').eq('user_id', user.id).maybeSingle();
       if (held && held.data && held.data.plan === 'lifetime' && new Date(held.data.until).getTime() > Date.now()) return json({ error: 'You already have Pro for life.' }, 409);

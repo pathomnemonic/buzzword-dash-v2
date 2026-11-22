@@ -412,3 +412,22 @@ describe('what the payer is told before paying', () => {
     }
   });
 });
+
+
+import { priceProblem } from '../../supabase/functions/_shared/billing.js';
+describe('a Stripe Price must match its plan', () => {
+  const rec = (interval, n) => ({ active: true, unit_amount: 1000, recurring: { interval, interval_count: n } });
+  it('accepts the right shapes', () => {
+    expect(priceProblem('dxdash_pro_yearly', rec('year', 1))).toBe('');
+    expect(priceProblem('dxdash_pro_pass3m', rec('month', 3))).toBe('');
+    expect(priceProblem('dxdash_pro_monthly', rec('month', 1))).toBe('');
+    expect(priceProblem('dxdash_pro_lifetime', { active: true, unit_amount: 3999, recurring: null })).toBe('');
+  });
+  it('rejects a lifetime price that renews, a 3-month pass that renews monthly, an archived price and a free one', () => {
+    expect(priceProblem('dxdash_pro_lifetime', rec('month', 1))).toMatch(/one-time/);
+    expect(priceProblem('dxdash_pro_pass3m', rec('month', 1))).toMatch(/P1M/);
+    expect(priceProblem('dxdash_pro_yearly', { ...rec('year', 1), active: false })).toMatch(/archived/);
+    expect(priceProblem('dxdash_pro_monthly', { active: true, unit_amount: 0, recurring: { interval: 'month', interval_count: 1 } })).toMatch(/fixed amount/);
+    expect(priceProblem('nope', rec('month', 1))).toMatch(/unknown/i);
+  });
+});
