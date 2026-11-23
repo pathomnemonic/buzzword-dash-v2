@@ -1,8 +1,8 @@
 # In-app tip jar (Android and iOS)
 
-On the website a tip is the plain link in `VITE_TIP_URL`. The stores do not allow an external payment link inside an app, so in the phone apps a tip is a small **consumable in-app purchase** (Google Play Billing / Apple StoreKit 2) through `capacitor-plugin-cdv-purchase`. A tip unlocks nothing and gives no coins; it is consumed at once so the same amount can be given again, and there is nothing to restore.
+On the website a tip is the Stripe payment link in `js/tipconfig.js` (`TIP_PAYMENT_URL`). The stores do not allow an external payment link inside an app, so in the phone apps a tip is a small **consumable in-app purchase** (Google Play Billing / Apple StoreKit 2) through `capacitor-plugin-cdv-purchase`. A tip unlocks nothing and gives no coins; it is consumed at once so the same amount can be given again, and there is nothing to restore.
 
-The code: `js/tipjar.js` (store logic), `js/tipui.js` (the sheet), `js/tips.js` (when to ask: after a good run, from the 5th run, at most weekly, never during a run). If the store has none of the products, nothing about tips appears in the app (no dead button).
+The code: `js/tipjar.js` (store logic), `js/tipui.js` (the sheet), `js/tips.js` (the website link; there is no post-run prompt: the tip is only a quiet row in Settings > About). If the store has none of the products, nothing about tips appears in the app (no dead button).
 
 ## Product ids (must match exactly, in both stores)
 
@@ -40,4 +40,4 @@ Prices shown in the app are read from the store, in the player's own currency. C
 
 - The stores keep 15% (Play, small business and first $1M; Apple Small Business Program, under $1M) or up to 30%. You are the merchant of record only for taxes you owe on your income; the stores collect and remit sales tax/VAT.
 - Do not tie a tip to any in-game benefit (coins, items, removing ads). That would make it a normal in-app item with different rules, and it changes the privacy and review answers.
-- A web visitor is still sent to `VITE_TIP_URL` (Ko-fi etc.). The two paths are separate.
+- A web visitor is sent to the Stripe link in `js/tipconfig.js`. The two paths are separate. Never the Ko-fi page (reserved for another app; `js/tips.js` refuses it).

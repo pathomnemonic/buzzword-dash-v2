@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { createTipJar, TIP_PRODUCTS } from '../../js/tipjar.js';
-import { shouldShowTipPrompt } from '../../js/tips.js';
 import { cleanEvent } from '../../js/analytics/catalog.js';
 
 /** A fake store plugin shaped like capacitor-plugin-cdv-purchase. */
@@ -95,15 +94,5 @@ describe('tip jar', function () {
   it('refuses an unknown product and a second purchase while one is open', async function () {
     var j = jar(fakePlugin(), 'android', []);
     expect((await j.buy('nope')).error).toBe('unavailable');
-  });
-});
-
-describe('tip prompt with the in-app jar', function () {
-  var base = { tipUrl: '', optedOut: false, totalRuns: 10, lastPromptAt: 0, now: 1e12, correct: 12, accuracy: 80 };
-  it('shows with the jar and no link, still politely', function () {
-    expect(shouldShowTipPrompt(Object.assign({}, base))).toBe(false);
-    expect(shouldShowTipPrompt(Object.assign({}, base, { iap: true }))).toBe(true);
-    expect(shouldShowTipPrompt(Object.assign({}, base, { iap: true, optedOut: true }))).toBe(false);
-    expect(shouldShowTipPrompt(Object.assign({}, base, { iap: true, totalRuns: 2 }))).toBe(false);
   });
 });

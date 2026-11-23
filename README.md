@@ -315,13 +315,7 @@ The service worker's cache is named after the build (the commit in CI), so every
 
 ## Tips (Optional)
 
-Dx Dash is free. To let players leave a tip, create a page on Ko-fi, Buy Me a Coffee, GitHub Sponsors or a Stripe Payment Link, then set its URL at build time:
-
-```
-VITE_TIP_URL=https://ko-fi.com/yourname
-```
-
-(In GitHub, add it as a repository variable named `VITE_TIP_URL`.) With no URL set, no tip UI is shown. When set, a "Support the developer" button appears in Settings, and a rare note appears after a good run: never during a run or exam, only after five or more runs, at most once a week, and players can turn it off for good. Only `https` links are accepted.
+Dx Dash is free and tips are purely voluntary. On the website the tip is a Stripe payment link: paste Dx Dash's own link into the one constant in `js/tipconfig.js` (`TIP_PAYMENT_URL`). With it empty, no tip entry shows. When set, a quiet "Support the developer" row appears in Settings > About. There is no popup and no prompt after a run, nothing is ever gated by a tip, and it is separate from Pro. The PathoMnemonic Ko-fi page is reserved for another app and is refused by `js/tips.js`. The phone apps use the in-app tip jar instead (`docs/TIP-JAR.md`).
 
 ## Leaderboard, Friends and Invites Setup (Optional)
 

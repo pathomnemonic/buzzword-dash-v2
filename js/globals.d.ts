@@ -2,7 +2,6 @@
 interface ImportMetaEnv {
   readonly PROD: boolean;
   readonly DEV: boolean;
-  readonly VITE_TIP_URL?: string;
   readonly VITE_ERROR_ENDPOINT?: string;
   readonly [key: string]: any;
 }

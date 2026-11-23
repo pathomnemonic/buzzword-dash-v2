@@ -536,13 +536,13 @@ export var settingsMethods = {
       credits.appendChild(creditsBody);
       content.appendChild(credits);
 
-      // Optional tip link (only when a tip page is configured at build time)
+      // Optional, quiet tip entry: the website's Stripe payment link (js/tipconfig.js) or the phone apps' in-app jar. Never gates anything.
       if (getTipUrl() || tipJarReady()) {
         var tipRow = createElement('div', { className: 'setting-row' });
         var tipLabel = createElement('div');
         tipLabel.style.flex = '1';
         tipLabel.appendChild(createElement('div', { text: '☕ Support the developer' }));
-        tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Dx Dash is free. Tips help keep it going.' }));
+        tipLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Entirely optional. Dx Dash is free, and a tip unlocks nothing.' }));
         tipRow.appendChild(tipLabel);
         var tipBtn = createElement('button', { className: 'btn btn-gold btn-sm', text: 'Leave a tip', attributes: { type: 'button' } });
         tipBtn.addEventListener('click', function () { trackEvent('tip_prompt', { step: 'opened_settings' }); if (tipJarReady()) openTipJar(function (m) { self._showToast(m); }); else openTipPage(); });

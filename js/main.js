@@ -25,8 +25,7 @@ import { renderLibraryBanner } from './proui.js';
 import * as proModule from './pro.js';
 import { registerProProducts, refreshPro, probeSellable, libraryUnlocked, waitForWebPayment, waitForWebItem, requireGate, checkGate, checkCancelFollowThrough, clearPaymentPending, forgetServerPro } from './pro.js';
 import { installProUi, setProUiDeps } from './proui.js';
-import { probeTipJar, tipJarReady } from './tipjar.js';
-import { openTipJar } from './tipui.js';
+import { probeTipJar } from './tipjar.js';
 import { game } from './game/engine.js';
 import { ui } from './ui.js';
 import { storage, STORAGE_DEFAULTS } from './storage.js';
@@ -55,7 +54,6 @@ import { getDashControl, attachDashPrompt } from './dashcontrol.js';
 import { TOURNAMENT_SIZE, isoWeekKey } from './challenge.js';
 import { mountFlyers } from './homefx.js';
 import { updateAttentionDots } from './attentiondots.js';
-import { getTipUrl, openTipPage, shouldShowTipPrompt } from './tips.js';
 import { initNative, isNative } from './native.js';
 import { loadingLine } from './flavor.js';
 import { isRankedRun } from './rules.js';
@@ -683,43 +681,7 @@ function attachTipPrompt() {
   });
   if (asked) return;
   if ((storage.data.settings.runsFinished || 0) % 3 === 0) renderLibraryBanner(content, 'postrun');
-  var shouldShow = shouldShowTipPrompt({
-    tipUrl: getTipUrl(),
-    iap: tipJarReady(),
-    optedOut: !!storage.get('tipPromptOff'),
-    totalRuns: storage.data.history.recentRuns.length,
-    lastPromptAt: storage.get('lastTipPromptAt') || 0,
-    now: Date.now(),
-    correct: game.correct,
-    accuracy: total > 0 ? Math.round(game.correct / total * 100) : 0
-  });
-  if (!shouldShow) return;
-  storage.set('lastTipPromptAt', Date.now());
-  var tipFacts = { trigger: 'postrun', runs_total: storage.get('runsFinished') || 0, days_since_install: storage.data.settings.firstRunAt ? Math.floor((Date.now() - storage.data.settings.firstRunAt) / 86400000) : 0 };
-  trackEvent('tip_prompt', Object.assign({ step: 'shown' }, tipFacts));
-
-  var box = document.createElement('div');
-  box.style.cssText = 'margin:14px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,215,0,0.4);text-align:center;background:rgba(255,215,0,0.06)';
-  var text = document.createElement('div');
-  text.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-bottom:8px';
-  text.textContent = 'Enjoying Dx Dash? It is free and always will be. If it is helping your studying, a small tip helps keep it going.';
-  box.appendChild(text);
-
-  var row = document.createElement('div');
-  row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;justify-content:center';
-  function makeButton(label, cls, onClick) {
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'btn btn-sm ' + cls;
-    b.textContent = label;
-    b.addEventListener('click', onClick);
-    row.appendChild(b);
-  }
-  makeButton('\u2615 Leave a tip', 'btn-gold', function () { trackEvent('tip_prompt', Object.assign({ step: 'clicked' }, tipFacts)); if (tipJarReady()) openTipJar(function (m) { ui._showToast(m); }); else openTipPage(); box.remove(); });
-  makeButton('Not now', 'btn-outline', function () { trackEvent('tip_prompt', Object.assign({ step: 'dismissed' }, tipFacts)); box.remove(); });
-  makeButton('Don\u2019t ask again', 'btn-outline', function () { storage.set('tipPromptOff', true); box.remove(); });
-  box.appendChild(row);
-  content.appendChild(box);
+  // (no tip note here any more: the tip entry lives quietly in Settings and never interrupts a result)
 }
 
 var MODE_LABELS = {
