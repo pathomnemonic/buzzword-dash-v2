@@ -55,4 +55,11 @@ describe('calendar day accuracy and cards studied', () => {
     storage.finalizeExamSession({ examId: 'e-1', date: '2026-11-23', total: 10, correct: 6, wrong: 4, accuracy: 60, durationSec: 60, bySubject: {}, cardResults: [] });
     expect(storage.data.progression.totalCardsStudied).toBe(before + 10);
   });
+  it('flashcard answers feed the lifetime totals and the correct-answers quest', () => {
+    const p = storage.data.progression;
+    const c0 = p.totalCorrect, w0 = p.totalWrong;
+    storage.finalizeFlashcardSession({ sessionId: 'f-2', total: 4, correct: 3, wrong: 1, cardResults: [] });
+    expect(p.totalCorrect).toBe(c0 + 3);
+    expect(p.totalWrong).toBe(w0 + 1);
+  });
 });

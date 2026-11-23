@@ -2053,6 +2053,9 @@ class Storage {
     // Stats
     p.flashcardSessions++;
     p.flashcardCorrect += summary.correct || 0;
+    // a card answered is a card answered: flashcard right/missed also feed the lifetime totals (and so Accuracy) and today's quests
+    p.totalCorrect += summary.correct || 0;
+    p.totalWrong += summary.wrong || 0;
     p.flashcardWrong += summary.wrong || 0;
     p.totalCardsStudied += summary.total || 0;
     p.totalPlayTimeMs += summary.durationMs || 0;
@@ -2077,7 +2080,9 @@ class Storage {
 
     // Quests: flashcards seen and known today
     var questsBefore = this._completedQuestIds();
-    this._applyQuestMetrics({ flashcards: summary.total || 0, flashcardsKnown: summary.correct || 0, flashcardSessions: (summary.total || 0) > 0 ? 1 : 0 });
+    var flashSubjects = {};
+    (summary.cardResults || []).forEach(function (r) { if (r && r.subject) flashSubjects[r.subject] = true; });
+    this._applyQuestMetrics({ flashcards: summary.total || 0, flashcardsKnown: summary.correct || 0, flashcardSessions: (summary.total || 0) > 0 ? 1 : 0, correct: summary.correct || 0, subjects: Object.keys(flashSubjects) });
     var flashQuests = this._completedQuestIds().filter(function (id) { return questsBefore.indexOf(id) < 0; });
 
     // Achievements

@@ -14,6 +14,7 @@ import { renderAnalyticsSettings } from './analyticsui.js';
 import { storyFor } from './stories.js';
 import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
+import { confirmExitTutorial } from './tutorialexit.js';
 import { audio } from './audio.js';
 import { LOCKER_ITEMS, DELISTED_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
@@ -429,10 +430,18 @@ export var settingsMethods = {
       resetWrap.appendChild(explain('Reset erases your coins, unlocks, stats and settings from this device. It cannot be undone, so save a backup first.'));
       var resetBtn = createElement('button', { className: 'btn btn-red btn-block', text: '🗑 Reset all progress', attributes: { type: 'button' } });
       resetBtn.addEventListener('click', function () {
-        if (confirm('Reset ALL progress? This cannot be undone.')) {
-          storage.reset();
-          window.location.reload();
-        }
+        // (an in-page box, not window.confirm: some browsers silently suppress native dialogs, which made this button look dead)
+        confirmExitTutorial({
+          id: 'resetAllConfirm',
+          title: 'Reset all progress?',
+          text: 'This erases your coins, unlocks, stats and settings from this device. It cannot be undone.',
+          stayLabel: 'Keep my progress',
+          exitLabel: 'Reset everything',
+          onExit: function () {
+            storage.reset();
+            window.location.reload();
+          }
+        });
       });
       resetWrap.appendChild(resetBtn);
       content.appendChild(resetWrap);

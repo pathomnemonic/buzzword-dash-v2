@@ -104,6 +104,14 @@ export function liveCards() {
   return CARDS.concat(customCards.getAll()).filter(function (c) { return disabled.indexOf(c.id) < 0; });
 }
 
+/**
+ * Reviews due right now, counted the one way every screen counts them: cards that are in the library, not switched off,
+ * and seen before (Home, Stats and the Flashcards picker used to disagree because Home also counted removed and disabled cards).
+ */
+export function liveDueCount() {
+  return storage.getDueCount(liveCards().map(function (c) { return c.id; }));
+}
+
 /** The cards each plan step is about (for the runner; flashcards pick their own). */
 function stepCards(step, plan, cards) {
   var stats = storage.get('cardStats') || {};
@@ -363,7 +371,7 @@ export function renderPerformance(container, ui) {
     function refreshPace() {
       var st = storage.get('cardStats') || {};
       var un = cards.filter(function (c) { return !st[c.id] || !st[c.id].seen; }).length;
-      var p = examPace({ examDate: storage.get('examDate') || '', unseen: un, due: storage.getDueCount(), dailyGoal: storage.get('dailyGoal') || 20 });
+      var p = examPace({ examDate: storage.get('examDate') || '', unseen: un, due: liveDueCount(), dailyGoal: storage.get('dailyGoal') || 20 });
       paceLine.textContent = p ? p.text : 'Add your exam date and the plan paces the days you have left.';
     }
     var r1 = el('div', 'perf-field');

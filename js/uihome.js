@@ -10,7 +10,7 @@ import { storage } from './storage.js';
 import { requireGate } from './pro.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { firstWeekState } from './firstweek.js';
-import { getTodayPlan, stepButtons, shortLabel } from './statsview.js';
+import { getTodayPlan, stepButtons, shortLabel, liveDueCount } from './statsview.js';
 import { bonusSubjectFor, BONUS_COINS_PER_CORRECT, BONUS_COINS_CAP } from './progress.js';
 import { SUBJECTS } from './cardmeta.js';
 import { localDateKey } from './uihelpers.js';
@@ -110,7 +110,7 @@ export var homeMethods = {
     var pct = Math.min(100, Math.round(done / goal * 100));
     var streak = storage.getStreakStatus();
     // One line: today's count, the streak (a flame that moves), the shield that protects it and the reviews due
-    var due = storage.getDueCount();
+    var due = liveDueCount();
     var line = createElement('div', { className: 'goal-line' });
     line.appendChild(createElement('span', { text: '🎯 Today ' + done + '/' + goal + (done >= goal ? ' ✅' : '') }));
     if (streak.shields > 0) line.appendChild(createElement('span', { text: '🛡 ' + streak.shields }));
@@ -186,7 +186,7 @@ export var homeMethods = {
     var goal = storage.get('dailyGoal') || 20;
     var done = storage.getStudiedToday();
     line('🎯 ' + done + ' of ' + goal + ' cards today' + (done >= goal ? ' ✅' : ''));
-    var due = storage.getDueCount();
+    var due = liveDueCount();
     line(due > 0 ? '🔁 ' + due + ' card' + (due === 1 ? '' : 's') + ' due for review' : '🔁 No reviews due');
     // The next study step, right here: no trip to the Performance tab
     var today = getTodayPlan();

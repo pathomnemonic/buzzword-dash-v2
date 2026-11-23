@@ -34,6 +34,7 @@
  * - Agent 18 (card hub): CARDS, SUBJECTS, EXAM_FILTERS, QUESTION_TYPES
  */
 
+import { confirmExitTutorial } from './tutorialexit.js';
 import { renderLibraryBanner } from './proui.js';
 import { requireGate, proLive, isPro } from './pro.js';
 import { fitActiveScreens } from './fitscreen.js';
@@ -1800,13 +1801,22 @@ class UI {
   restoreBackup(file) {
     var self = this;
     if (!file) return;
-    if (!confirm('Replace ALL current progress with this backup?')) return;
-    file.text().then(function (text) {
-      var result = restoreBackup(text, storage, customCards);
-      if (result.ok) {
-        window.location.reload();
-      } else {
-        self._showToast(result.error);
+    // (in-page box: some browsers silently suppress native dialogs)
+    confirmExitTutorial({
+      id: 'restoreBackupConfirm',
+      title: 'Restore this backup?',
+      text: 'This replaces ALL your current progress with the backup. It cannot be undone.',
+      stayLabel: 'Cancel',
+      exitLabel: 'Replace my progress',
+      onExit: function () {
+        file.text().then(function (text) {
+          var result = restoreBackup(text, storage, customCards);
+          if (result.ok) {
+            window.location.reload();
+          } else {
+            self._showToast(result.error);
+          }
+        });
       }
     });
   }
