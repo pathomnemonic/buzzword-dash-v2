@@ -88,12 +88,13 @@ function section(id, icon, title, hint, build, gateFeature, lockedNote) {
 
 function tile(icon, value, label, onTap, accent) {
   var t = createElement('button', { className: 'perf-tile', attributes: { type: 'button' } });
-  t.appendChild(el('div', 'perf-tile-icon', icon));
+  var ic = el('div', 'perf-tile-icon', icon);
+  ic.setAttribute('aria-hidden', 'true');
+  t.appendChild(ic);
   var v = el('div', 'perf-tile-value', value);
   if (accent) v.style.color = accent;
   t.appendChild(v);
   t.appendChild(el('div', 'perf-tile-label', label));
-  t.setAttribute('aria-label', label + ': ' + value);
   if (onTap) t.addEventListener('click', onTap);
   return t;
 }
@@ -128,7 +129,7 @@ export function shortLabel(step) {
 
 export function stepButtons(ui, step, plan, cards, small, before) {
   var row = el('div', 'perf-step-buttons');
-  var run = createElement('button', { className: 'btn btn-green ' + (small ? 'btn-sm' : ''), text: '🏃 Run it', attributes: { type: 'button', 'aria-label': 'Run ' + shortLabel(step) } });
+  var run = createElement('button', { className: 'btn btn-green ' + (small ? 'btn-sm' : ''), text: '🏃 Run it', attributes: { type: 'button', 'aria-label': 'Run it: ' + shortLabel(step) } });
   run.addEventListener('click', function () {
     if (before) before();
     // Flashcard-only cards (imported from Anki) have no wrong answers, so the runner cannot use them: only the others go

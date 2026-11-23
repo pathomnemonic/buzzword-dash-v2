@@ -56,7 +56,7 @@ describe('Performance tab', () => {
     storage.data.progression.totalWrong = 30;
     storage.set('examDate', new Date(Date.now() + 40 * DAY).toISOString().slice(0, 10));
     const c = mount();
-    const tiles = [...c.querySelectorAll('.perf-tile')].map((t) => t.getAttribute('aria-label'));
+    const tiles = [...c.querySelectorAll('.perf-tile')].map((t) => t.querySelector('.perf-tile-label').textContent + ': ' + t.querySelector('.perf-tile-value').textContent);
     expect(tiles[0]).toMatch(/^Due now: \d+$/);
     expect(tiles[1]).toBe('Accuracy: 70%');
     expect(tiles[2]).toMatch(/^To exam: (39|40)d$/);
