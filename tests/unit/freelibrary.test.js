@@ -24,7 +24,9 @@ describe('the free library: 300 cards, evenly across the subjects', () => {
     expect(types.size).toBeGreaterThanOrEqual(2);
   });
   it('is the list the picker produces (so it can be regenerated, but must not be after launch)', () => {
-    const again = pickFreeCards(Array.from(CARD_BY_ID.values()), SUBJECTS, 20);
+    // (the free list is a frozen file; the picker is only checked over the cards that existed when it was made. Cards added
+    // since by the later Dx batches, ids like dxd01 or dxe01, are never in it and must not change it.)
+    const again = pickFreeCards(Array.from(CARD_BY_ID.values()).filter((c) => !/^dx[a-z]\d+$/.test(c.id)), SUBJECTS, 20);
     expect(again).toEqual(FREE_CARD_IDS_BY_SUBJECT);
   });
 });
