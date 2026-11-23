@@ -46,7 +46,7 @@ async function controls(page, screenId) {
 test.describe('no dead controls', () => {
   for (const [screenId, label] of SCREENS) {
     test(label + ': every control does something', async ({ page }) => {
-      test.setTimeout(240000);
+      test.setTimeout(480000); // (a crawl clicks every control on the screen one by one; a slow CI machine needs minutes)
       await openApp(page, '/?debug=1');
       await page.waitForFunction(() => window.__ui);
       await show(page, screenId);
@@ -103,7 +103,7 @@ const SHEETS = ['filtersSheet', 'speedSheet', 'challengeSheet', 'flashcardsSheet
 test.describe('no dead controls in the Home pop-ups', () => {
   for (const sheet of SHEETS) {
     test(sheet + ': every control does something', async ({ page }) => {
-      test.setTimeout(120000);
+      test.setTimeout(240000);
       await openApp(page, '/?debug=1');
       await page.waitForFunction(() => window.__ui);
       const names = await (async () => {
@@ -157,12 +157,12 @@ const SECTIONS = ['sound', 'look', 'study', 'rules', 'data', 'about'];
 test.describe('no dead controls in the settings sections', () => {
   for (const section of SECTIONS) {
     test('settings > ' + section + ': every control does something', async ({ page }) => {
-      test.setTimeout(150000);
+      test.setTimeout(420000); // (settings > study has ~100 controls: it timed out as a whole at 150s, which looked like dead controls)
       await openApp(page, '/?debug=1');
       await page.waitForFunction(() => window.__ui);
       const open = async () => {
         await page.evaluate((id) => { window.__ui.show('screenSettings'); window.__ui._settingsSection = id; window.__ui.renderSettings(); }, section);
-        await page.waitForTimeout(700);
+        await page.waitForTimeout(350);
       };
       await open();
       const list = await controls(page, 'screenSettings');
@@ -192,7 +192,7 @@ test.describe('no dead controls in the settings sections', () => {
         });
         let err = '';
         await handle.click({ timeout: 8000 }).catch((e) => { err = String(e.message).split('\n')[0]; });
-        await page.waitForTimeout(450);
+        await page.waitForTimeout(300);
         const mut = await page.evaluate(() => window.__mut);
         if (!(dialogs > 0 || mut > 0)) dead.push(`${c.tag} "${c.text}"${err ? ' CLICK FAILED: ' + err : ''}`);
         await page.keyboard.press('Escape').catch(() => {});

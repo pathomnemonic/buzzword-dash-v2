@@ -93,10 +93,15 @@ function buildCardPool(options) {
     var wanted = {};
     options.cardIds.forEach(function (id) { wanted[id] = true; });
     var disabledNow = storage.get('disabledCards') || [];
-    return {
-      cards: allCards.filter(function (c) { return wanted[c.id] && disabledNow.indexOf(c.id) < 0; }),
-      error: null
-    };
+    // (kept in the caller's order: "Due for review, most overdue first" must be dealt in that order, not re-shuffled)
+    var byId = {};
+    allCards.forEach(function (c) { byId[c.id] = c; });
+    var ordered = [];
+    options.cardIds.forEach(function (id) {
+      var c = byId[id];
+      if (c && wanted[id] && disabledNow.indexOf(id) < 0) { ordered.push(c); wanted[id] = false; }
+    });
+    return { cards: ordered, error: null, ordered: true };
   }
 
   // If subjects is empty, use all
@@ -172,6 +177,19 @@ function buildCardPool(options) {
   return { cards: pool, error: null };
 }
 
+/** An explicit card list is dealt as given (first `count`), one card per diagnosis. */
+function takeInOrder(cards, count) {
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < cards.length && out.length < (count || 20); i++) {
+    var k = answerKey(cards[i].ans);
+    if (seen[k]) continue;
+    seen[k] = true;
+    out.push(cards[i]);
+  }
+  return out;
+}
+
 /**
  * Select cards for the session using spaced repetition weighting.
  */
@@ -207,7 +225,7 @@ function selectCards(pool, count) {
       else if (hoursSince > 168) w *= 3;
       else if (hoursSince > 72) w *= 2;
       else if (hoursSince > 24) w *= 1.5;
-    } else {
+    } else if (s.seen > 0) {
       w *= 3;
     }
 
@@ -273,6 +291,7 @@ export class FlashcardMode {
     this.sessionId = null;
     this.parentSessionId = null;
     this.kind = null; // 'primary' | 'missed_review'
+    this._revealedAt = 0;
     this.state = SESSION_STATES.IDLE;
     this.cards = [];
     this.currentIndex = 0;
@@ -314,7 +333,7 @@ export class FlashcardMode {
       return { success: false, error: poolResult.error };
     }
 
-    var selected = selectCards(poolResult.cards, options.cardCount || 20);
+    var selected = poolResult.ordered ? takeInOrder(poolResult.cards, options.cardCount || 20) : selectCards(poolResult.cards, options.cardCount || 20);
     if (selected.length === 0) {
       return {
         success: false,
@@ -401,6 +420,7 @@ export class FlashcardMode {
     }
 
     this.state = SESSION_STATES.REVEALED;
+    this._revealedAt = Date.now();
 
     var card = this.cards[this.currentIndex];
     var whyWrong = [];
@@ -450,7 +470,7 @@ export class FlashcardMode {
       cardId: card.id,
       card: card,
       rating: result,
-      revealedAt: Date.now(),
+      revealedAt: this._revealedAt || Date.now(),
       ratedAt: Date.now()
     });
 

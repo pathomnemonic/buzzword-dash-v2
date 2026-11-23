@@ -10,7 +10,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { describeRules } from './rules.js';
 import { runVerdict } from './flavor.js';
-import { localDateKey, trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { trapFocus, releaseFocusTrap } from './uihelpers.js';
 import { openCardReport } from './cardreport.js';
 
 export var postRunMethods = {
@@ -161,13 +161,7 @@ export var postRunMethods = {
     // Confetti on new best
     if (game.isNewBest) this.showConfetti();
 
-    // Calendar update
-    if (total > 0) {
-      var calData = storage.get('calendarData') || {};
-      var todayKey = localDateKey(new Date());
-      calData[todayKey] = Math.round(game.correct / total * 100);
-      storage.set('calendarData', calData);
-    }
+    // (the calendar's day accuracy is kept by storage.addStudiedToday from the whole day's answers)
 
     this.updateRushVignette(0);
   },

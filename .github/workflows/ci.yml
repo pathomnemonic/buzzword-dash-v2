@@ -145,10 +145,12 @@ jobs:
     # (pinned: "ubuntu-latest" moved to Ubuntu 26.04, which Playwright 1.52 cannot install browsers on; move this when Playwright is upgraded)
     runs-on: ubuntu-24.04
     needs: build
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         project: [chromium, firefox, webkit]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
 
@@ -171,14 +173,14 @@ jobs:
           name: dist
           path: dist
 
-      - name: Run E2E tests (${{ matrix.project }})
-        run: npx playwright test --project=${{ matrix.project }}
+      - name: Run E2E tests (${{ matrix.project }} ${{ matrix.shard }}/2)
+        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
 
       - name: Upload failure screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-screenshots-${{ matrix.project }}
+          name: playwright-screenshots-${{ matrix.project }}-${{ matrix.shard }}
           path: test-results/**/*.png
           retention-days: 7
 
@@ -186,6 +188,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces-${{ matrix.project }}
+          name: playwright-traces-${{ matrix.project }}-${{ matrix.shard }}
           path: test-results/**/*.zip
           retention-days: 7

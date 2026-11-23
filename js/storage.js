@@ -1141,9 +1141,13 @@ class Storage {
     h.completedExamIds.push(summary.examId);
     if (h.completedExamIds.length > 100) h.completedExamIds = h.completedExamIds.slice(-100);
 
-    this.addStudiedToday((summary.correct || 0) + (summary.wrong || 0), summary.correct || 0);
+    var answeredInExam = (summary.correct || 0) + (summary.wrong || 0);
+    this.addStudiedToday(answeredInExam, summary.correct || 0);
+    // exam answers are cards studied too: they count toward the "cards studied" badges
+    this.data.progression.totalCardsStudied += answeredInExam;
+    var examAchievements = this._evaluateAchievements(null);
     this.save();
-    return { applied: true, duplicate: false };
+    return { applied: true, duplicate: false, newlyUnlockedAchievementIds: examAchievements };
   }
 
   // ===== STREAK STATUS & WEEKLY GOAL =====
@@ -1228,6 +1232,10 @@ class Storage {
     if (correct) {
       var rights = this.data.history.dailyCorrect;
       rights[key] = (rights[key] || 0) + Math.min(correct, count);
+    }
+    // the day's accuracy over everything answered today, not just the latest run
+    if (this.data.history.dailyCorrect[key] != null && counts[key] > 0) {
+      this.data.history.calendarData[key] = Math.min(100, Math.round(this.data.history.dailyCorrect[key] / counts[key] * 100));
     }
     // Keep about three years, so the streak calendar can be paged back
     var keys = Object.keys(counts).sort();
@@ -1825,13 +1833,7 @@ class Storage {
       }
     }
 
-    // --- Calendar ---
-    if (summary.encountersCompleted > 0) {
-      var calKey = todayKey();
-      var total = summary.correct + summary.wrong;
-      var acc = total > 0 ? Math.round(summary.correct / total * 100) : 0;
-      this.data.history.calendarData[calKey] = acc;
-    }
+    // (the day's accuracy in calendarData is kept by addStudiedToday from the whole day's totals, not this run alone)
     var streakStep = this.addStudiedToday(summary.encountersCompleted || 0, summary.correct || 0);
     if (streakStep) {
       if (streakStep.shieldUsed) result.shieldUsed = true;
@@ -2071,7 +2073,7 @@ class Storage {
       this.data.history.completedFlashcardSessionIds = this.data.history.completedFlashcardSessionIds.slice(-200);
     }
 
-    this.addStudiedToday(summary.total || 0);
+    this.addStudiedToday(summary.total || 0, summary.correct || 0);
 
     // Quests: flashcards seen and known today
     var questsBefore = this._completedQuestIds();
