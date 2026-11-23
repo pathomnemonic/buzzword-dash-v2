@@ -142,7 +142,8 @@ jobs:
           retention-days: 1
 
   e2e:
-    runs-on: ubuntu-latest
+    # (pinned: "ubuntu-latest" moved to Ubuntu 26.04, which Playwright 1.52 cannot install browsers on; move this when Playwright is upgraded)
+    runs-on: ubuntu-24.04
     needs: build
     strategy:
       fail-fast: false
