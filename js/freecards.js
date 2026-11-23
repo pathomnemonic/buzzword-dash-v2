@@ -33,7 +33,7 @@ export var FREE_CARD_IDS_BY_SUBJECT = {
  ],
   "Emergency Medicine": ["em004", "em007", "em014", "em018", "em019", "em061", "em063", "em069", "em077", "em091", "em092", "em093", "em094", "em095", "em096", "em098", "em142", "em172", "em175", "em179"
  ],
-  "Multisystem / Mixed": ["dxd08", "dxd09", "dxe01", "dxe02", "dxe12", "dxe13", "dxe14", "dxe15", "dxe16", "dxe28", "dxe29", "mu032", "mu050", "mu051", "mu052", "mu054", "mu060", "mu119", "mu141", "mu180"
+  "Multisystem / Mixed": ["mu030", "mu032", "mu033", "mu041", "mu042", "mu043", "mu045", "mu046", "mu050", "mu051", "mu052", "mu053", "mu054", "mu055", "mu060", "mu119", "mu141", "mu146", "mu147", "mu180"
  ]
 };
 
