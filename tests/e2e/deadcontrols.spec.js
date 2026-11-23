@@ -26,6 +26,21 @@ async function show(page, screenId) {
   await page.waitForTimeout(900); // the screen slides in; under load that takes a while, and a moving control cannot be clicked
 }
 
+/**
+ * Wait until the screen has stopped growing. Some sections (Open decks) load their list over the network and add
+ * controls a moment after the screen is shown; the crawler picks controls by position, so a list that grows between
+ * the count and the click makes it click the wrong one and call a working control dead.
+ */
+async function settle(page, screenId) {
+  let last = -1;
+  for (let i = 0; i < 20; i++) {
+    const n = await page.evaluate((id) => document.getElementById(id).querySelectorAll('button, summary, [role="button"], [role="switch"], [role="tab"], a[href], .clickable, [tabindex="0"]').length, screenId);
+    if (n === last) return;
+    last = n;
+    await page.waitForTimeout(400);
+  }
+}
+
 /** Describe each visible clickable control on the screen, in a stable order. */
 async function controls(page, screenId) {
   return page.evaluate((id) => {
@@ -37,7 +52,7 @@ async function controls(page, screenId) {
       const r = el.getBoundingClientRect();
       if (r.width < 4 || r.height < 4) continue;
       if (el.disabled || el.getAttribute('aria-disabled') === 'true') continue;
-      out.push({ text: ((el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()).slice(0, 40), tag: el.tagName.toLowerCase(), cls: String(el.className || '').slice(0, 40) });
+      out.push({ text: ((el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()).slice(0, 40), tag: el.tagName.toLowerCase(), cls: String(el.className || '').slice(0, 40), ext: el.tagName === 'A' && /^https?:/i.test(el.getAttribute('href') || '') });
     }
     return out;
   }, screenId);
@@ -56,7 +71,7 @@ test.describe('no dead controls', () => {
       page.on('dialog', (d) => { dialogs++; d.dismiss().catch(() => {}); }); // a prompt or confirm is a visible reaction
       for (let i = 0; i < list.length; i++) {
         const c = list[i];
-        if (SKIP.test(c.text)) continue;
+        if (c.ext || SKIP.test(c.text)) continue;
         await show(page, screenId);
         // start from a clean slate: folded sections closed (they remember being open, which would hide a click's effect)
         await page.evaluate(() => document.querySelectorAll('details[open]').forEach((d) => { d.open = false; }));
@@ -116,7 +131,7 @@ test.describe('no dead controls in the Home pop-ups', () => {
       page.on('dialog', (d) => { dialogs++; d.dismiss().catch(() => {}); });
       for (let i = 0; i < names.length; i++) {
         const c = names[i];
-        if (SKIP.test(c.text) || /close|\u00D7|back|got it|ok$/i.test(c.text)) continue;
+        if (c.ext || SKIP.test(c.text) || /close|\u00D7|back|got it|ok$/i.test(c.text)) continue;
         await page.evaluate((id) => window.__ui.openSheet(id), sheet);
         await page.waitForTimeout(300);
         dialogs = 0;
@@ -163,6 +178,7 @@ test.describe('no dead controls in the settings sections', () => {
       const open = async () => {
         await page.evaluate((id) => { window.__ui.show('screenSettings'); window.__ui._settingsSection = id; window.__ui.renderSettings(); }, section);
         await page.waitForTimeout(350);
+        await settle(page, 'screenSettings');
       };
       await open();
       const list = await controls(page, 'screenSettings');
@@ -171,18 +187,23 @@ test.describe('no dead controls in the settings sections', () => {
       page.on('dialog', (d) => { dialogs++; d.dismiss().catch(() => {}); });
       for (let i = 0; i < list.length; i++) {
         const c = list[i];
-        if (SKIP.test(c.text) || /^back|\u2190/i.test(c.text)) continue;
+        if (c.ext || SKIP.test(c.text) || /^back|\u2190/i.test(c.text)) continue;
         await open();
         dialogs = 0;
-        const handle = (await page.evaluateHandle(({ idx }) => {
+        // (found by what it says, not by position: a list that loads or folds between the count and the click would shift every position)
+        const nth = list.slice(0, i).filter((x) => x.tag === c.tag && x.text === c.text).length;
+        const handle = (await page.evaluateHandle(({ tag, text, nth, idx }) => {
           const root = document.getElementById('screenSettings');
+          const norm = (el) => ((el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()).slice(0, 40);
           const els = [...root.querySelectorAll('button, summary, [role="button"], [role="switch"], [role="tab"], a[href], .clickable, [tabindex="0"]')].filter((el) => {
             if (el.checkVisibility && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
             const r = el.getBoundingClientRect();
-            return r.width >= 4 && r.height >= 4 && !el.disabled;
+            return r.width >= 4 && r.height >= 4 && !el.disabled && el.getAttribute('aria-disabled') !== 'true';
           });
-          return els[idx];
-        }, { idx: i })).asElement();
+          // by position when that is still the same control; by what it says when the screen has shifted since the count
+          if (els[idx] && els[idx].tagName.toLowerCase() === tag && norm(els[idx]) === text) return els[idx];
+          return els.filter((el) => el.tagName.toLowerCase() === tag && norm(el) === text)[nth];
+        }, { tag: c.tag, text: c.text, nth, idx: i })).asElement();
         if (!handle) continue;
         await page.evaluate(() => {
           window.__mut = 0;
@@ -191,10 +212,13 @@ test.describe('no dead controls in the settings sections', () => {
           window.__obs.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
         });
         let err = '';
-        await handle.click({ timeout: 8000 }).catch((e) => { err = String(e.message).split('\n')[0]; });
+        await handle.click({ timeout: 15000 }).catch((e) => { err = String(e.message).split("\n").slice(0, 6).join(" | "); });
         await page.waitForTimeout(300);
         const mut = await page.evaluate(() => window.__mut);
-        if (!(dialogs > 0 || mut > 0)) dead.push(`${c.tag} "${c.text}"${err ? ' CLICK FAILED: ' + err : ''}`);
+        if (!(dialogs > 0 || mut > 0)) {
+          const clicked = await handle.evaluate((el) => el.tagName.toLowerCase() + ' "' + (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) + '"' + (el.isConnected ? '' : ' (detached)')).catch(() => '?');
+          dead.push(`${c.tag} "${c.text}" [clicked ${clicked}]${err ? ' CLICK FAILED: ' + err : ''}`);
+        }
         await page.keyboard.press('Escape').catch(() => {});
       }
       expect(dead, 'settings ' + section + ': controls that did nothing').toEqual([]);

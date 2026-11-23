@@ -6,7 +6,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 3 : undefined,
+  workers: process.env.CI ? 2 : undefined, // (the 3D pages are heavy on a 4-core runner; more workers made clicks time out)
   // a run that cannot finish must END and report, not hang for an hour: the job has its own cap too
   globalTimeout: process.env.CI ? 35 * 60 * 1000 : undefined,
   reporter: process.env.CI
