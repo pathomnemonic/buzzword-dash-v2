@@ -1,0 +1,65 @@
+# PARTIAL card proposals still to apply (59)
+
+Mechanical application: `/tmp`-style script is not needed; for each P-number below edit the card `id` in `js/cards/*.js`, replacing the `old` text with `new` from `docs/proposed-card-changes.json` (entry number = P-number, 1-based) AFTER applying the panel adjustment (the adjustment text is in Orion's message of 23 Nov; copy it into each row's note). Then run `node tools/audit-leaks.mjs`, `npm run validate:cards`, and CI. Hard limits: clues <=260 chars per card, >=3 clues, no clue may contain the answer's distinctive words, never touch `js/freecards.js`. Send the diff back for review.
+
+| P | card | field |
+|---|---|---|
+| P017 | c045 | pearls[2] |
+| P019 | c069 | tp |
+| P022 | c168 | tp |
+| P023 | c161 | tp |
+| P024 | c137 | pearls[2] |
+| P027 | he106 | pearls[0] |
+| P030 | c160 | tp |
+| P032 | ne034 | tp |
+| P033 | ne069 | tp |
+| P034 | g187 | tp |
+| P040 | ne095 | pearls[2] |
+| P041 | em046 | pearls[1] |
+| P042 | ne025 | tp |
+| P043 | id096 | tp |
+| P047 | en164 | pearls[0] |
+| P048 | p056 | pearls[1] |
+| P050 | p165 | tp |
+| P055 | g090 | pearls[2] |
+| P059 | g163 | tp |
+| P063 | g046 | pearls[1] |
+| P068 | g031 | pearls[2] |
+| P070 | g033 | tp |
+| P073 | pe100 | pearls[1] |
+| P076 | id147 | pearls[0] |
+| P080 | pe013 | pearls[1] |
+| P081 | pu077 | tp |
+| P082 | pu077 | pearls[0] |
+| P094 | id061 | tp |
+| P095 | id061 | pearls[0] |
+| P098 | id108 | tp |
+| P100 | id097 | pearls[0] |
+| P101 | id122 | pearls[0] |
+| P108 | en099 | tp |
+| P111 | en149 | tp |
+| P112 | en183 | pearls[1] |
+| P119 | he193 | pearls[1] |
+| P121 | he243 | tp |
+| P123 | he164 | tp |
+| P124 | he181 | tp |
+| P125 | mu234 | tp |
+| P133 | rh096 | tp |
+| P143 | em048 | pearls[0] |
+| P145 | ob024 | tp |
+| P146 | ob024 | pearls[2] |
+| P148 | ob050 | tp |
+| P152 | ob036 | tp |
+| P153 | ob036 | pearls[0] |
+| P154 | ob126 | tp |
+| P155 | ob126 | pearls[0] |
+| P156 | ob171 | tp |
+| P160 | pe074 | pearls[2] |
+| P161 | pe057 | pearls[2] |
+| P162 | pe059 | pearls[0] |
+| P163 | pe095 | pearls[0] |
+| P164 | pe032 | tp |
+| P165 | su187 | tp |
+| P171 | em011 | tp |
+| P172 | em011 | pearls[2] |
+| P173 | em095 | tp |
