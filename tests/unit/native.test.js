@@ -28,6 +28,7 @@ describe('native app helpers', () => {
   });
 
   it('the tip link still works on the web (it is only hidden inside the store apps)', () => {
-    expect(getTipUrl()).toBe(''); // no VITE_TIP_URL in tests: nothing configured
+    // on the web it is the configured Stripe link (js/tipconfig.js), or nothing while none is set; never the Ko-fi page
+    expect(getTipUrl() === '' || /^https:\/\/buy\.stripe\.com\//.test(getTipUrl())).toBe(true);
   });
 });
