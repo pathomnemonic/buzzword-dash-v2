@@ -1,0 +1,95 @@
+name: E2E nightly
+
+# The full browser suite: Chromium, Firefox and WebKit, four shards each. It is not part of the push gate (ci.yml runs a short
+# Chromium smoke set); it runs every night and can be started by hand from the Actions tab.
+
+on:
+  schedule:
+    - cron: '17 9 * * *'   # 09:17 UTC every day
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: true
+
+env:
+  TZ: UTC
+  LANG: en_US.UTF-8
+  CI: 'true'
+  NODE_VERSION: '22'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # (the browser tests exercise buying a Locker item; the shipped builds in deploy.yml and android.yml leave it off)
+          VITE_FEATURE_LOCKER_ITEMS: '1'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 1
+
+  e2e:
+    # (pinned: see ci.yml)
+    runs-on: ubuntu-24.04
+    needs: build
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Run E2E tests (${{ matrix.project }} ${{ matrix.shard }}/4)
+        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/4
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots-${{ matrix.project }}-${{ matrix.shard }}
+          path: test-results/**/*.png
+          retention-days: 7
+
+      - name: Upload trace artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-${{ matrix.project }}-${{ matrix.shard }}
+          path: test-results/**/*.zip
+          retention-days: 7

@@ -141,16 +141,13 @@ jobs:
           path: dist
           retention-days: 1
 
-  e2e:
+  # The gate is a short Chromium smoke run (the files in "test:e2e:smoke"). The full suite, with every browser, runs nightly:
+  # .github/workflows/e2e-nightly.yml. (The 3D game renders in software on a hosted runner, so the whole suite takes longer than a push should wait.)
+  e2e-smoke:
     # (pinned: "ubuntu-latest" moved to Ubuntu 26.04, which Playwright 1.52 cannot install browsers on; move this when Playwright is upgraded)
     runs-on: ubuntu-24.04
     needs: build
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [chromium, firefox, webkit]
-        shard: [1, 2]
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -165,7 +162,7 @@ jobs:
           key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps ${{ matrix.project }}
+        run: npx playwright install --with-deps chromium
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -173,14 +170,14 @@ jobs:
           name: dist
           path: dist
 
-      - name: Run E2E tests (${{ matrix.project }} ${{ matrix.shard }}/2)
-        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
+      - name: Run the Chromium smoke tests
+        run: npm run test:e2e:smoke
 
       - name: Upload failure screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-screenshots-${{ matrix.project }}-${{ matrix.shard }}
+          name: playwright-screenshots-smoke
           path: test-results/**/*.png
           retention-days: 7
 
@@ -188,6 +185,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces-${{ matrix.project }}-${{ matrix.shard }}
+          name: playwright-traces-smoke
           path: test-results/**/*.zip
           retention-days: 7
