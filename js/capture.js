@@ -38,14 +38,23 @@ var STYLE = [
   '#countdownOverlay, #feedbackToast, .toast, .notice-chip, .update-banner, #updateBanner, .new-dot, #powerupRow, #rushEl,',
   '.lesson-dot, .install-banner, #revengeCardBanner { display: none !important; }',
   'body.capture-hide-answers #answerRow { visibility: hidden !important; }',
+  '#feedbackEl, #teachEl { display: none !important; }',
   '#captureLabels { position: fixed; inset: 0; pointer-events: none; z-index: 40; }',
-  '#captureLabels .cap-gate { position: absolute; transform: translate(-50%, -100%); width: 31%; text-align: center; font: 800 19px/1.15 system-ui, sans-serif;',
-  '  color: #fff; padding: 8px 6px; border-radius: 14px; border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }',
+  // the three answer chips are one size and one style: only the label and the lane's own color differ
+  '#captureLabels .cap-gate { position: absolute; transform: translate(-50%, -100%); width: 31%; height: 76px; box-sizing: border-box; overflow: hidden;',
+  '  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font: 800 20px/1.1 system-ui, sans-serif;',
+  '  color: #fff; padding: 4px 6px; border-radius: 14px; border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }',
   '#captureLabels .cap-gate small { display: block; font-size: 11px; letter-spacing: .08em; opacity: .9; margin-bottom: 2px; }',
-  '#captureOverlay { position: fixed; left: 0; right: 0; z-index: 41; pointer-events: none; text-align: center; padding: 0 22px; transform: rotate(-2deg); }',
+  '#captureOverlay { position: fixed; left: 0; right: 0; bottom: 6%; z-index: 41; pointer-events: none; text-align: center; padding: 0 22px; transform: rotate(-2deg); }',
   '#captureOverlay .cap-line { display: block; font: 900 40px/1.02 Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .01em;',
   '  color: #fff; -webkit-text-stroke: 9px #000; paint-order: stroke fill; text-shadow: 0 5px 0 #000, 0 9px 14px rgba(0,0,0,.55); }',
-  '#captureOverlay .cap-hot { color: #ffe14a; }'
+  '#captureOverlay .cap-hot { color: #ffe14a; }',
+  '#captureBubble { position: fixed; z-index: 42; pointer-events: none; box-sizing: border-box; background: #fff; color: #1b1440; border: 5px solid #1b1440; border-radius: 26px;',
+  '  padding: 12px 16px 14px; text-align: center; box-shadow: 0 8px 0 rgba(0,0,0,.28); font-family: system-ui, sans-serif; }',
+  '#captureBubble .cap-answer { display: block; font-weight: 900; color: #0a8f45; line-height: 1.05; margin-bottom: 6px; }',
+  '#captureBubble .cap-teach { display: block; font-weight: 700; line-height: 1.22; }',
+  '#captureBubble .cap-tail { position: absolute; width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 24px solid #1b1440; }',
+  '#captureBubble .cap-tail::after { content: ""; position: absolute; left: -12px; top: -29px; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 18px solid #fff; }'
 ].join('\n');
 
 function param(name) {
@@ -134,16 +143,15 @@ export function startCapture(deps) {
   }
 
   // The three answers, big and clear, each over its own gate, and how many clues the viewer has had
-  function drawChoiceLabels(clueCount) {
+  function drawChoiceLabels() {
     game.camera.updateMatrixWorld();
     var box = document.createElement('div');
     box.id = 'captureLabels';
     var W = window.innerWidth, H = window.innerHeight;
-    var tops = [];
-    [0, 1, 2].forEach(function (i) {
-      var v = new game.camera.position.constructor(LANE_X[i], 3.4, GATES_NEAR); // just above the gate's top bar
-      v.project(game.camera);
-      var x = [0.175, 0.5, 0.825][i] * W, y = (-v.y * 0.5 + 0.5) * H; // (a third of the width each: the three lanes are close together on screen)
+    var v = new game.camera.position.constructor(0, 3.4, GATES_NEAR); // just above the gates' top bars (all three share one height)
+    v.project(game.camera);
+    var y = (-v.y * 0.5 + 0.5) * H;
+    var chips = [0, 1, 2].map(function (i) {
       var chip = document.createElement('div');
       chip.className = 'cap-gate';
       var tag = document.createElement('small'); tag.textContent = ['LEFT', 'CENTER', 'RIGHT'][i];
@@ -151,11 +159,18 @@ export function startCapture(deps) {
       chip.appendChild(document.createTextNode(game.gates[i].label));
       var ans = document.getElementById('ans' + i);
       chip.style.background = ans ? getComputedStyle(ans).backgroundColor : '#5b4bd6';
-      chip.style.left = x + 'px'; chip.style.top = y + 'px';
-      tops.push(y);
+      // (a third of the width each: the three lanes are close together on screen; the same top and size for all three)
+      chip.style.left = ([0.175, 0.5, 0.825][i] * W) + 'px'; chip.style.top = y + 'px';
       box.appendChild(chip);
+      return chip;
     });
     document.body.appendChild(box);
+    // one font size for all three: the largest at which the longest answer still fits its chip
+    var size = 24;
+    for (; size > 13; size--) {
+      chips.forEach(function (c) { c.style.fontSize = size + 'px'; });
+      if (chips.every(function (c) { return c.scrollHeight <= c.clientHeight + 1 && c.scrollWidth <= c.clientWidth + 1; })) break;
+    }
   }
 
   // Text added for the viewer (not part of the game): bold, outlined caption lettering, the way social posts caption a clip
@@ -171,7 +186,6 @@ export function startCapture(deps) {
       span.textContent = l.text;
       el.appendChild(span);
     });
-    el.style.top = Math.round(document.getElementById('buzzBox').getBoundingClientRect().bottom + 16) + 'px';
     document.body.appendChild(el);
   }
 
@@ -196,13 +210,60 @@ export function startCapture(deps) {
     var cam = game.camera;
     if (!game.cameraBasePos) return;
     if (celebrate) {
-      cam.position.set(LANE_X[lane], 2.0, 5.6);
-      cam.lookAt(LANE_X[lane], 1.3, -3);
+      cam.position.set(LANE_X[lane], 2.0, 6.0);
+      cam.lookAt(LANE_X[lane], 3.5, -3); // (looking higher puts the hero low in the frame, under the speech bubble)
     } else {
       cam.position.copy(game.cameraBasePos);
       cam.lookAt(0, 1, -20);
     }
     cam.updateProjectionMatrix();
+  }
+
+  // The clue box, much larger than in play: the clue is the content of a post. One size for every slide of a set (the size that fits all the clues).
+  function fitClueBox() {
+    var buzz = document.getElementById('buzzText'), boxEl = document.getElementById('buzzBox');
+    var limit = window.innerHeight * 0.30;
+    setText(buzz, clues.join(' \u2022 '));
+    var size = 44;
+    for (; size > 16; size--) {
+      buzz.style.setProperty('font-size', size + 'px', 'important');
+      buzz.style.setProperty('line-height', '1.1', 'important');
+      buzz.style.setProperty('text-transform', 'uppercase', 'important');
+      if (boxEl.getBoundingClientRect().bottom <= limit) break;
+    }
+    api.clueFontPx = size;
+  }
+
+  // The answer and the teaching point in a speech bubble coming from the hero
+  function drawBubble() {
+    var old = document.getElementById('captureBubble'); if (old) old.remove();
+    var W = window.innerWidth;
+    game.camera.updateMatrixWorld();
+    var head = new game.camera.position.constructor(LANE_X[lane], 2.3, 0);
+    head.project(game.camera);
+    var headX = (head.x * 0.5 + 0.5) * W, headY = (-head.y * 0.5 + 0.5) * window.innerHeight;
+    var top = document.getElementById('buzzBox').getBoundingClientRect().bottom + 12;
+    var bottom = headY - 30; // room for the tail
+    var b = document.createElement('div');
+    b.id = 'captureBubble';
+    var ans = document.createElement('span'); ans.className = 'cap-answer'; ans.textContent = '\u2713 ' + card.ans;
+    var tp = document.createElement('span'); tp.className = 'cap-teach'; tp.textContent = card.tp;
+    b.appendChild(ans); b.appendChild(tp);
+    var tail = document.createElement('span'); tail.className = 'cap-tail';
+    b.appendChild(tail);
+    b.style.left = '14px'; b.style.right = '14px'; b.style.top = Math.round(top) + 'px';
+    document.body.appendChild(b);
+    // the biggest text that fits between the clue box and the hero's head
+    var teachPx = 26;
+    for (; teachPx > 14; teachPx--) {
+      ans.style.fontSize = Math.round(teachPx * 1.45) + 'px';
+      tp.style.fontSize = teachPx + 'px';
+      if (top + b.getBoundingClientRect().height <= bottom) break;
+    }
+    var h = b.getBoundingClientRect().height;
+    tail.style.top = (h - 3) + 'px';
+    tail.style.left = Math.max(30, Math.min(W - 28 - 34, headX - 14 - 17)) + 'px';
+    api.bubblePx = { answer: Math.round(teachPx * 1.45), teaching: teachPx };
   }
 
   // A run in progress: obstacles and coins on the track, placed the same way every time for the same card and map
@@ -262,15 +323,14 @@ export function startCapture(deps) {
       // the correct gate properly lit (the game's own tint is faint), the other two left as they are
       var lit = game.gateMeshes[lane] && game.gateMeshes[lane].children[0] && game.gateMeshes[lane].children[0].material;
       if (lit) { lit.transparent = true; lit.opacity = 0.7; lit.emissive && lit.emissive.setHex(0x00cc55); lit.emissiveIntensity = 0.9; }
-      ui.showFeedback(card, true, lane, false);
-      ui.showStudyTeaching(card);
       ui.hideAnswerChoices();
       document.body.classList.add('capture-hide-answers');
     }
     if (name === 'choices') [0, 1, 2].forEach(function (i) { document.getElementById('ans' + i).classList.remove('active'); });
-    ui.fitQuestionHud();
+    var bub = document.getElementById('captureBubble'); if (bub) bub.remove();
+    if (name === 'correct') drawBubble();
     if (name === 'choices') {
-      drawChoiceLabels(clues.length);
+      drawChoiceLabels();
       drawOverlay([{ text: clues.length + (clues.length === 1 ? ' clue in' : ' clues in') }, { text: 'which gate?', hot: true }]);
     }
     api.current = name;
@@ -303,9 +363,11 @@ export function startCapture(deps) {
       frozen = true;
       game.update = function () {}; // nothing moves from here on; main.js keeps rendering the scene each frame
       game._adaptResolution = function () {}; // and the picture quality stays put
+      ui.fitQuestionHud = function () {}; // (the game shrinks the clue text to fit; capture sets its own, bigger, fixed size)
       // (no run summary, nothing saved: the run is never finished)
       var hud = document.getElementById('hud'); if (hud) hud.classList.remove('off');
       if (game.cameraBasePos) { game.camera.fov = game.baseFOV; }
+      fitClueBox();
       buildGates();
       dress(); // (a first pass starts the obstacle and prop models downloading; the second, below, uses them)
     }
