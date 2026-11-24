@@ -38,6 +38,7 @@
 
 import { getAuthRedirectUrl, parseAuthLink, isNative } from './native.js';
 import { AUTH_PROVIDERS, providerOf } from './authproviders.js';
+import { nativeAppleAvailable, authorizeWithApple, isAppleCancel } from './applenative.js';
 
 var SUPABASE_URL = 'YOUR_SUPABASE_URL';
 var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
@@ -407,13 +408,30 @@ var leaderboard = {
    * @returns {Promise<{success: boolean, redirected?: boolean, error: string|null}>}
    */
   signInWithProvider: function (provider, opts) {
+    function nativeAppleSignIn() {
+      return authorizeWithApple().then(function (a) {
+        return _client.auth.signInWithIdToken({ provider: 'apple', token: a.identityToken, nonce: a.nonce }).then(function (res) {
+          if (res.error) return { success: false, error: providerError(res.error, 'Apple', false) };
+          // Keep a revocable token server side (an App Store rule for deleting the account); never blocks signing in.
+          if (a.authorizationCode) setTimeout(function () { leaderboard.proFunction('apple_code', { code: a.authorizationCode }); }, 500);
+          return { success: true, redirected: false, error: null };
+        });
+      }).catch(function (e) {
+        if (isAppleCancel(e)) return { success: false, cancelled: true, error: null };
+        return { success: false, error: 'Could not sign in with Apple. Try the email option instead.' };
+      });
+    }
     if (!_client) return Promise.resolve({ success: false, error: 'Not configured' });
     var def = AUTH_PROVIDERS[provider];
     if (!def) return Promise.resolve({ success: false, error: 'That sign-in option is not available.' });
     var native = isNative();
+    var wantsLink = !!(opts && opts.link) && !!(_session && _session.user && _session.user.is_anonymous);
+    // iPhone and iPad: the system "Sign in with Apple" sheet signs an existing account in. (A guest upgrading in place
+    // and the website keep the web sign-in, which can attach the login to the guest.)
+    if (provider === 'apple' && !wantsLink && nativeAppleAvailable()) return nativeAppleSignIn();
     var options = { redirectTo: getRedirectUrl(), skipBrowserRedirect: native };
     if (def.scopes) options.scopes = def.scopes;
-    var link = !!(opts && opts.link) && !!(_session && _session.user && _session.user.is_anonymous);
+    var link = wantsLink;
     var request = link
       ? _client.auth.linkIdentity({ provider: provider, options: options })
       : _client.auth.signInWithOAuth({ provider: provider, options: options });

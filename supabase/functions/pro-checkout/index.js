@@ -12,14 +12,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, priceProblem, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
 import { isPremiumItem } from '../_shared/premium.js';
-import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin } from '../_shared/applesignin.js';
+import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin, appleCodeForm, markIosToken, revokeTarget } from '../_shared/applesignin.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
 Object.keys(PRODUCTS).forEach(function (id) { env[PRODUCTS[id].env] = Deno.env.get(PRODUCTS[id].env) || ''; });
 env.SITE_URL = Deno.env.get('SITE_URL') || '';
 var appleEnv = {};
-['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY', 'APPLE_CLIENT_ID'].forEach(function (k) { appleEnv[k] = Deno.env.get(k) || ''; });
+['APPLE_TEAM_ID', 'APPLE_KEY_ID', 'APPLE_PRIVATE_KEY', 'APPLE_CLIENT_ID', 'APPLE_BUNDLE_ID'].forEach(function (k) { appleEnv[k] = Deno.env.get(k) || ''; });
 var admin = createClient(Deno.env.get('SUPABASE_URL') || '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '', { auth: { persistSession: false } });
 
 var CORS = {
@@ -112,6 +112,28 @@ Deno.serve(async function (req) {
       return json({ ok: true });
     }
 
+    // The iOS app's native Sign in with Apple hands the app a one-time code. Exchange it here (the key never leaves the server)
+    // for a refresh token, so that deleting the account can revoke the login. Stored marked as an iOS token.
+    if (body.action === 'apple_code') {
+      var code = String(body.code || '');
+      if (!hasAppleLogin(user) || code.length < 10 || code.length > 4000 || !appleConfigured(appleEnv)) return json({ error: 'Nothing to keep.' }, 400);
+      try {
+        var tres = await fetch('https://appleid.apple.com/auth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(await appleCodeForm(appleEnv, code, Math.floor(Date.now() / 1000))).toString()
+        });
+        var tjson = await tres.json().catch(function () { return {}; });
+        if (!tres.ok || !tjson.refresh_token) throw new Error('Apple said ' + tres.status);
+        var savedIos = await admin.rpc('apple_token_save', { p_user: user.id, p_token: markIosToken(tjson.refresh_token) });
+        if (savedIos && savedIos.error) throw new Error(savedIos.error.message);
+      } catch (e) {
+        console.error('pro-checkout apple_code failed', e && e.message);
+        return json({ error: 'Could not save.' }, 502);
+      }
+      return json({ ok: true });
+    }
+
     // Delete the member's data, for good. A subscription that is still billing is cancelled first (immediately, no further
     // charge), and if that cannot be done nothing is deleted, so nobody keeps paying for data that is gone.
     //   delete_account     removes Dx Dash's data only. The sign-in itself stays, because it can be shared with other apps on
@@ -140,10 +162,11 @@ Deno.serve(async function (req) {
         var appleTok = await admin.rpc('apple_token_get', { p_user: user.id });
         if (appleTok && appleTok.data && appleConfigured(appleEnv)) {
           try {
+            var target = revokeTarget(appleEnv, appleTok.data);
             var ares = await fetch('https://appleid.apple.com/auth/revoke', {
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams(await appleRevokeForm(appleEnv, appleTok.data, Math.floor(Date.now() / 1000))).toString()
+              body: new URLSearchParams(await appleRevokeForm(target.env, target.token, Math.floor(Date.now() / 1000))).toString()
             });
             if (!revokeSucceeded({ status: ares.status, body: await ares.text().catch(function () { return ''; }) })) throw new Error('Apple said ' + ares.status);
           } catch (e) {

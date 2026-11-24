@@ -27,7 +27,7 @@ workflows:
           npx vite build
       - name: Create the iOS project
         script: |
-          npm i --no-save @capacitor/ios
+          npm i --no-save @capacitor/ios @capacitor-community/apple-sign-in   # the native "Sign in with Apple" sheet (iOS only; js/applenative.js)
           npx cap add ios
           npx cap sync ios
           npx capacitor-assets generate --ios
@@ -60,6 +60,10 @@ workflows:
           # Apple wants a privacy manifest for the app itself; ios-config/PrivacyInfo.xcprivacy matches the App Privacy answers
           plutil -lint ios-config/PrivacyInfo.xcprivacy
           cp ios-config/PrivacyInfo.xcprivacy ios/App/App/PrivacyInfo.xcprivacy
+          # Sign in with Apple capability: the entitlement file below, switched on in the project (the App ID must also have the
+          # capability enabled in the Apple Developer portal, docs/SIGNIN.md)
+          plutil -lint ios-config/App.entitlements
+          cp ios-config/App.entitlements ios/App/App/App.entitlements
           ruby -e '
             require "xcodeproj"
             proj = Xcodeproj::Project.open("ios/App/App.xcodeproj")
@@ -67,6 +71,8 @@ workflows:
             group = proj.main_group.find_subpath("App", true)
             ref = group.new_file("PrivacyInfo.xcprivacy")
             target.resources_build_phase.add_file_reference(ref, true)
+            group.new_file("App.entitlements")
+            target.build_configurations.each { |c| c.build_settings["CODE_SIGN_ENTITLEMENTS"] = "App/App.entitlements" }
             target.build_configurations.each { |c| c.build_settings["TARGETED_DEVICE_FAMILY"] = "1,2" }  # iPhone and iPad (the layout adapts; iPad screenshots are in assets/store/ipad)
             proj.save'
       - name: Set up code signing

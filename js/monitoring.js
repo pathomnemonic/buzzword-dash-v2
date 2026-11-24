@@ -12,6 +12,7 @@
  */
 
 import { addReportListener } from './errors.js';
+import { getNativePlatform } from './native.js';
 
 export var APP_TAG = 'dx-dash';
 // These two are public client keys (they ship in the page by design); neither is a secret.
@@ -33,14 +34,14 @@ export function cleanSentryEvent(event, allowed) {
   event.user = undefined;
   if (event.request) event.request = { url: scrubUrl(event.request.url) };
   event.breadcrumbs = undefined;
-  event.tags = Object.assign({}, event.tags, { app: APP_TAG });
+  event.tags = Object.assign({}, event.tags, { app: APP_TAG, platform: getNativePlatform() }); // (platform: web, ios or android, so the apps' reports can be told apart; same consent gate everywhere)
   return event;
 }
 
 /** The PostHog event with the app tag and a scrubbed address; null drops it. */
 export function cleanPosthogEvent(cp, allowed) {
   if (!allowed() || !cp) return null;
-  cp.properties = Object.assign({}, cp.properties, { app: APP_TAG });
+  cp.properties = Object.assign({}, cp.properties, { app: APP_TAG, platform: getNativePlatform() });
   if (cp.properties.$current_url) cp.properties.$current_url = scrubUrl(cp.properties.$current_url) + (cp.properties.screen ? '#' + cp.properties.screen : '');
   return cp;
 }

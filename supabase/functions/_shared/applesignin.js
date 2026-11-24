@@ -66,3 +66,35 @@ export function hasAppleLogin(user) {
   for (var i = 0; i < ids.length; i++) if (ids[i] && ids[i].provider === 'apple') return true;
   return !!(user.app_metadata && (user.app_metadata.provider === 'apple' || (user.app_metadata.providers || []).indexOf('apple') >= 0));
 }
+
+/**
+ * The iOS app signs in with Apple natively, which makes Apple issue the login to the app's bundle id, not to the web Services
+ * ID. A refresh token is revoked with the same client id it was issued to, so those tokens are stored with this prefix.
+ */
+export var IOS_TOKEN_PREFIX = 'ios:';
+export var DEFAULT_BUNDLE_ID = 'com.pathomnemonic.dxdash';
+
+/** Mark a refresh token as one issued to the iOS app. */
+export function markIosToken(refreshToken) {
+  return IOS_TOKEN_PREFIX + String(refreshToken || '');
+}
+
+/** The settings and bare token to use for a stored token: the bundle id for an iOS one, the Services ID otherwise. */
+export function revokeTarget(env, stored) {
+  var s = String(stored || '');
+  if (s.indexOf(IOS_TOKEN_PREFIX) === 0) {
+    return { env: Object.assign({}, env, { APPLE_CLIENT_ID: env.APPLE_BUNDLE_ID || DEFAULT_BUNDLE_ID }), token: s.slice(IOS_TOKEN_PREFIX.length) };
+  }
+  return { env: env, token: s };
+}
+
+/** The form to POST to https://appleid.apple.com/auth/token to turn the app's one-time authorization code into a refresh token. */
+export async function appleCodeForm(env, code, nowSec) {
+  var target = revokeTarget(env, IOS_TOKEN_PREFIX);
+  return {
+    client_id: target.env.APPLE_CLIENT_ID,
+    client_secret: await appleClientSecret(target.env, nowSec),
+    code: String(code || ''),
+    grant_type: 'authorization_code'
+  };
+}

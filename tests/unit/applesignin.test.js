@@ -56,3 +56,24 @@ describe('revoking a Sign in with Apple login', () => {
     expect(hasAppleLogin(null)).toBe(false);
   });
 });
+
+describe('the iOS app signs in natively, so its login belongs to the bundle id', () => {
+  it('marks an iOS token, and revokes it with the bundle id (the web Services ID would be refused)', async () => {
+    const { markIosToken, revokeTarget, DEFAULT_BUNDLE_ID } = await import('../../supabase/functions/_shared/applesignin.js');
+    expect(markIosToken('r1')).toBe('ios:r1');
+    const ios = revokeTarget(ENV, 'ios:r1');
+    expect(ios.token).toBe('r1');
+    expect(ios.env.APPLE_CLIENT_ID).toBe(DEFAULT_BUNDLE_ID);
+    expect(revokeTarget({ ...ENV, APPLE_BUNDLE_ID: 'com.other.app' }, 'ios:r1').env.APPLE_CLIENT_ID).toBe('com.other.app');
+    const web = revokeTarget(ENV, 'plain-token');
+    expect(web.token).toBe('plain-token');
+    expect(web.env.APPLE_CLIENT_ID).toBe('com.example.dxdash.web');
+  });
+
+  it('swaps the one-time code for a token with a secret made for the bundle id', async () => {
+    const { appleCodeForm } = await import('../../supabase/functions/_shared/applesignin.js');
+    const form = await appleCodeForm(ENV, 'abc.def.ghi', 1_800_000_000);
+    expect(form).toMatchObject({ client_id: 'com.pathomnemonic.dxdash', code: 'abc.def.ghi', grant_type: 'authorization_code' });
+    expect(JSON.parse(b64(form.client_secret.split('.')[1]).toString()).sub).toBe('com.pathomnemonic.dxdash');
+  });
+});

@@ -165,11 +165,12 @@ function renderGuest(body, deps, status) {
         track('account_event', { action: 'oauth_started', method: p.id });
         deps.leaderboard.signInWithProvider(p.id, { link: _mode === 'signup' }).then(function (res) {
           if (res.success) {
-            _busyMessage = 'Opening ' + p.label + '…';
+            if (res.redirected !== false) _busyMessage = 'Opening ' + p.label + '…';
             deps.rerender();
             return;
           }
           pb.disabled = false;
+          if (res.cancelled) return; // the player closed the Apple sheet: nothing to report
           track('account_event', { action: 'oauth_failed', method: p.id });
           deps.toast(res.error || 'Could not sign in with ' + p.label + '.');
         });

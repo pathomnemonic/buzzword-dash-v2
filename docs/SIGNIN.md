@@ -20,7 +20,18 @@ A provider that is listed but not switched on shows "<Provider> sign-in is not s
 ## Rules the stores impose
 
 - **App Store**: an app that offers Google (or any third-party login) must also offer Sign in with Apple. That is why Apple is on by default; do not remove it from an iOS build.
-- **Apple account deletion**: Apple requires that deleting an account also revokes the Sign in with Apple token. Deleting an account in the app removes all your data, but revoking the token needs Apple's REST call with your key; add it to the delete path before shipping an iOS build.
+- **Apple account deletion**: done. Deleting the login everywhere revokes the Sign in with Apple token first (Edge Function `pro-checkout`, secrets `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_CLIENT_ID`, and optionally `APPLE_BUNDLE_ID`, default `com.pathomnemonic.dxdash`). If Apple cannot be reached, nothing is deleted.
+
+## Native "Sign in with Apple" on iPhone and iPad
+
+In the iOS app "Continue with Apple" opens the system sheet (Face ID) instead of a web page (`js/applenative.js`, `leaderboard.signInWithProvider`). The sheet's token goes to Supabase with `signInWithIdToken`. A guest upgrading in place ("I am new"), the website and Android still use the web sign-in, because Supabase can attach a login to a guest only through the web flow.
+
+One-time setup (none of it can be done from the code):
+1. **Apple Developer → Identifiers → App IDs → `com.pathomnemonic.dxdash` → Capabilities**: tick **Sign in with Apple** and save. Without this the signed build fails with an entitlement error (Codemagic creates the profile from the App ID).
+2. **Supabase → Authentication → Providers → Apple**: in **Client IDs** list both the Services ID (web) and the bundle id, comma separated: `<services id>,com.pathomnemonic.dxdash`. Without the bundle id Supabase rejects the native token.
+3. **Edge Function secrets**: the four `APPLE_*` secrets above, so the app's one-time code can be swapped for a revocable token (`apple_code`) and revoked on deletion. A native login is revoked with the bundle id, a web login with the Services ID (the app marks which).
+4. The iOS build (`codemagic.yaml`) installs the plugin `@capacitor-community/apple-sign-in`, copies `ios-config/App.entitlements` and sets `CODE_SIGN_ENTITLEMENTS`. It has not run yet: expect to read the first build log.
+
 - **Google Play** needs the data-safety form to mention sign-in with Google (email address).
 
 ## How accounts combine

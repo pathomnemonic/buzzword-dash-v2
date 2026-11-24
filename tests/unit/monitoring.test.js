@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import { scrubUrl, cleanSentryEvent, cleanPosthogEvent, APP_TAG, SENTRY_DSN, POSTHOG_KEY } from '../../js/monitoring.js';
 import { buildCsp } from '../../tools/csp.mjs';
@@ -14,7 +14,7 @@ describe('the optional crash and page-view services', () => {
     expect(out.user).toBeUndefined();
     expect(out.breadcrumbs).toBeUndefined();
     expect(out.request).toEqual({ url: 'https://h.io/p' });
-    expect(out.tags).toEqual({ system: 'audio', app: APP_TAG });
+    expect(out.tags).toEqual({ system: 'audio', app: APP_TAG, platform: 'web' });
     expect(cleanSentryEvent(ev, () => false)).toBeNull();
   });
   it('PostHog events always carry app=dx-dash, never a hash, and vanish when consent is withdrawn', () => {
@@ -35,5 +35,25 @@ describe('the optional crash and page-view services', () => {
     const main = fs.readFileSync('js/main.js', 'utf8');
     expect(main).toMatch(/import\.meta\.env\.PROD && import\.meta\.env\.VITE_FEATURE_CAPTURE !== '1'\) import\('\.\/monitoring\.js'\)/);
     expect(main).not.toMatch(/^import .* from '\.\/monitoring\.js'/m);
+  });
+});
+
+describe('the same consent rules inside the iPhone, iPad and Android apps', () => {
+  it('main.js starts monitoring in every production build, native or not, and it is the same consent-gated code', async () => {
+    const fs = await import('node:fs');
+    const main = fs.readFileSync('js/main.js', 'utf8');
+    expect(main).toMatch(/import\.meta\.env\.PROD && import\.meta\.env\.VITE_FEATURE_CAPTURE !== '1'\) import\('\.\/monitoring\.js'\)/);
+    expect(main).not.toMatch(/isNative\(\)[^\n]*monitoring\.js/);
+  });
+
+  it('native events are labelled with their platform and still vanish when consent is off', async () => {
+    vi.resetModules();
+    vi.doMock('../../js/native.js', async (orig) => ({ ...(await orig()), getNativePlatform: () => 'ios' }));
+    const m = await import('../../js/monitoring.js');
+    expect(m.cleanSentryEvent({ tags: {} }, () => true).tags).toMatchObject({ app: 'dx-dash', platform: 'ios' });
+    expect(m.cleanPosthogEvent({ properties: {} }, () => true).properties).toMatchObject({ app: 'dx-dash', platform: 'ios' });
+    expect(m.cleanSentryEvent({ tags: {} }, () => false)).toBeNull();
+    expect(m.cleanPosthogEvent({ properties: {} }, () => false)).toBeNull();
+    vi.doUnmock('../../js/native.js');
   });
 });
