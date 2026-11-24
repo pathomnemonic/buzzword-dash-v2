@@ -1,0 +1,102 @@
+{
+ "disclaimer": "Original educational teaching vignette — not an actual exam question.",
+ "caption_footer": "Not medical advice. Original educational teaching vignette — not an actual exam question.",
+ "gauntlet": "Weekly Gauntlet: the same 30 cards for everyone, one life. A new Gauntlet starts every Monday at 00:00 UTC (Sunday 5 PM Arizona time).",
+ "posts": [
+  {
+   "day": "Mon",
+   "series": "5 Clues #1",
+   "type": "clues",
+   "card": "pe024",
+   "answer": "Kawasaki Disease",
+   "clues": [
+    "High fever ≥5 days",
+    "Cervical LAD",
+    "Conjunctivitis",
+    "Strawberry tongue",
+    "Extremity changes"
+   ],
+   "reveal_day": "Tue"
+  },
+  {
+   "day": "Tue",
+   "series": "Duel #1",
+   "type": "duel",
+   "cards": [
+    "pe024",
+    "pe021"
+   ],
+   "answer": "Kawasaki Disease",
+   "vs": "Scarlet Fever",
+   "shared_clue": "Strawberry tongue",
+   "separator": "Conjunctivitis",
+   "separator_card": "pe024",
+   "reveal_day": "Wed"
+  },
+  {
+   "day": "Wed",
+   "series": "5 Clues #2",
+   "type": "clues",
+   "card": "em004",
+   "answer": "Anticholinergic Toxicity",
+   "clues": [
+    "Delirium",
+    "Urinary retention",
+    "Decreased bowel sounds",
+    "Dilated pupils",
+    "Hot dry red skin"
+   ],
+   "reveal_day": "Thu"
+  },
+  {
+   "day": "Thu",
+   "series": "5 Clues #3",
+   "type": "clues",
+   "card": "n050",
+   "answer": "Normal Pressure Hydrocephalus",
+   "clues": [
+    "Elderly",
+    "Dementia",
+    "Incontinence",
+    "Gait apraxia",
+    "Ventriculomegaly"
+   ],
+   "reveal_day": "Fri"
+  },
+  {
+   "day": "Fri",
+   "series": "Duel #2",
+   "type": "duel",
+   "cards": [
+    "g023",
+    "g022"
+   ],
+   "answer": "VIPoma",
+   "vs": "Zollinger-Ellison Syndrome",
+   "shared_clue": "Pancreatic mass",
+   "separator": "Watery diarrhea",
+   "separator_card": "g023",
+   "reveal_day": "Sat"
+  },
+  {
+   "day": "Sat",
+   "series": "Weekly Gauntlet teaser",
+   "type": "teaser"
+  },
+  {
+   "day": "Sun",
+   "series": "5 Clues #4",
+   "type": "clues",
+   "card": "mu054",
+   "answer": "DiGeorge Syndrome",
+   "clues": [
+    "Cleft palate",
+    "Cardiac defects",
+    "Hypocalcemia",
+    "Absent thymus",
+    "22q11.2 deletion"
+   ],
+   "reveal_day": "Mon (week 2)"
+  }
+ ]
+}
