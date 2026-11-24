@@ -14,7 +14,7 @@
  *             A shorter list reveals only those clues.
  *   theme     the page colors: classic (default), winter, spring, summer, autumn, ocean, forest, ember, amber, rose
  *   score, coins, streak   the numbers on the top bar (default 0, 0, 0), so every state of a post set matches
- *   state     the state to open on (default "start")
+ *   state     the state to open on (default "clue-1")
  *
  * The page exposes window.__capture (see docs/CAPTURE.md): states, goto(name), next(), prev(), ready.
  * Use a fresh browser context, a 540x675 viewport and deviceScaleFactor 2 to get 1080x1350 images.
@@ -22,14 +22,26 @@
 
 import { spawnGates, updateGateHighlights } from './game/gates.js';
 import { removeAndDispose, LANE_X } from './game/enginedefs.js';
+import { spawnObstacle, spawnCoinsForObstacle, spawnCoinBatch } from './game/obstacles.js';
+import { flashGateResult } from './game/gates.js';
 import { setText } from './dom.js';
+
+var GATES_FAR = -70;      // where they stand before the choices (small, down the track)
+var GATES_NEAR = -8;      // where the gates stand in the choices state (close enough to read the answers)
+var GATES_PASSING = 0.3;  // where they stand while the runner is going through
 
 var STYLE = [
   // everything that is not the game: pop-ups, nav, dev and account chrome
   '#dailyReward, #tutorialOverlay, #bottomNav, #noticeDock, #pauseBtn, #dashBtn, #autoBtn, #sideRun, #sideKeys, #opponentHud,',
   '#countdownOverlay, #feedbackToast, .toast, .notice-chip, .update-banner, #updateBanner, .new-dot, #powerupRow, #rushEl,',
   '.lesson-dot, .install-banner, #revengeCardBanner { display: none !important; }',
-  'body.capture-hide-answers #answerRow { visibility: hidden !important; }'
+  'body.capture-hide-answers #answerRow { visibility: hidden !important; }',
+  '#captureLabels { position: fixed; inset: 0; pointer-events: none; z-index: 40; }',
+  '#captureLabels .cap-gate { position: absolute; transform: translate(-50%, -100%); width: 31%; text-align: center; font: 800 19px/1.15 system-ui, sans-serif;',
+  '  color: #fff; padding: 8px 6px; border-radius: 14px; border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }',
+  '#captureLabels .cap-gate small { display: block; font-size: 11px; letter-spacing: .08em; opacity: .9; margin-bottom: 2px; }',
+  '#captureLabels .cap-count { position: absolute; left: 50%; transform: translateX(-50%); font: 800 20px/1 system-ui, sans-serif; color: #fff;',
+  '  background: rgba(20, 10, 50, .82); padding: 9px 18px; border-radius: 999px; border: 3px solid #ffd54a; white-space: nowrap; }'
 ].join('\n');
 
 function param(name) {
@@ -78,7 +90,7 @@ export function startCapture(deps) {
   if (!order.length) order = card.bw.map(function (_, i) { return i; });
   var clues = order.map(function (i) { return card.bw[i]; });
 
-  var names = ['start'];
+  var names = [];
   clues.forEach(function (_, i) { names.push('clue-' + (i + 1)); });
   names.push('choices', 'correct');
 
@@ -112,6 +124,57 @@ export function startCapture(deps) {
     if (game.playerShadow) game.playerShadow.position.x = LANE_X[l];
   }
 
+  // The three answers, big and clear, each over its own gate, and how many clues the viewer has had
+  function drawChoiceLabels(clueCount) {
+    game.camera.updateMatrixWorld();
+    var box = document.createElement('div');
+    box.id = 'captureLabels';
+    var W = window.innerWidth, H = window.innerHeight;
+    var buzzRect = document.getElementById('buzzBox').getBoundingClientRect();
+    var tops = [];
+    [0, 1, 2].forEach(function (i) {
+      var v = new game.camera.position.constructor(LANE_X[i], 3.4, GATES_NEAR); // just above the gate's top bar
+      v.project(game.camera);
+      var x = [0.175, 0.5, 0.825][i] * W, y = (-v.y * 0.5 + 0.5) * H; // (a third of the width each: the three lanes are close together on screen)
+      var chip = document.createElement('div');
+      chip.className = 'cap-gate';
+      var tag = document.createElement('small'); tag.textContent = ['LEFT', 'CENTER', 'RIGHT'][i];
+      chip.appendChild(tag);
+      chip.appendChild(document.createTextNode(game.gates[i].label));
+      var ans = document.getElementById('ans' + i);
+      chip.style.background = ans ? getComputedStyle(ans).backgroundColor : '#5b4bd6';
+      chip.style.left = x + 'px'; chip.style.top = y + 'px';
+      tops.push(y);
+      box.appendChild(chip);
+    });
+    var count = document.createElement('div');
+    count.className = 'cap-count';
+    count.textContent = clueCount + (clueCount === 1 ? ' clue' : ' clues') + ' in \u2014 which gate?';
+    count.style.top = Math.round(buzzRect.bottom + 10) + 'px';
+    box.appendChild(count);
+    document.body.appendChild(box);
+  }
+
+  // A run in progress: obstacles and coins on the track, placed the same way every time for the same card and map
+  function dress() {
+    var seed = 2166136261;
+    var key = card.id + '|' + (game.currentSkin ? game.currentSkin.name : '');
+    for (var k = 0; k < key.length; k++) { seed ^= key.charCodeAt(k); seed = Math.imul(seed, 16777619); }
+    var realRandom = Math.random;
+    Math.random = function () { seed = (seed + 0x6D2B79F5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    try {
+      game.obstacleMeshes.slice().forEach(function (m) { removeAndDispose(game.scene, m); });
+      game.obstacleMeshes.length = 0;
+      game.coinMeshes.slice().forEach(function (m) { removeAndDispose(game.scene, m); });
+      game.coinMeshes.length = 0;
+      [-12, -22, -34, -48].forEach(function (z) {
+        var made = spawnObstacle(game.scene, game.obstacleMeshes, null, { spawnZ: z });
+        if (made) spawnCoinsForObstacle(game.scene, game.coinMeshes, made, z, 1);
+      });
+      [-4, -18, -30, -44].forEach(function (z) { spawnCoinBatch(game.scene, game.coinMeshes, z, 1); });
+    } finally { Math.random = realRandom; }
+  }
+
   function clearFeedback() {
     var fb = document.getElementById('feedbackEl'); if (fb) { fb.className = ''; setText(fb, ''); }
     var tb = document.getElementById('teachEl'); if (tb) { tb.classList.remove('show'); setText(tb, ''); }
@@ -124,24 +187,23 @@ export function startCapture(deps) {
     ui.updateHud(game);
     var buzz = document.getElementById('buzzText');
     document.body.classList.toggle('capture-hide-answers', name !== 'choices' && name !== 'correct');
-    if (name === 'start') {
-      setText(buzz, 'GET READY');
-      placeGates(-60); setLane(1);
-    } else if (/^clue-\d+$/.test(name)) {
+    var labels = document.getElementById('captureLabels');
+    if (labels) labels.remove();
+    if (/^clue-\d+$/.test(name)) {
       var n = parseInt(name.slice(5), 10);
       setText(buzz, clues.slice(0, n).join(' • '));
-      placeGates(-60); setLane(1);
+      placeGates(GATES_FAR); setLane(1);
     } else if (name === 'choices') {
       setText(buzz, clues.join(' • '));
       ui.showAnswerChoices(game.gates);
-      placeGates(-13); setLane(1);
+      document.body.classList.add('capture-hide-answers'); // (the big labels below replace the small lane chips)
+      placeGates(GATES_NEAR); setLane(1);
       updateGateHighlights(game.gateMeshes, -1); // no gate lit up: nothing hints at the answer
     } else if (name === 'correct') {
       setText(buzz, clues.join(' • '));
-      ui.showAnswerChoices(game.gates);
       setLane(lane);
-      placeGates(-13);
-      game.gateMeshes.forEach(function (m) { m.visible = false; }); // (the gate is behind the runner now)
+      placeGates(GATES_PASSING); // the runner is going through the correct gate
+      flashGateResult(game.gateMeshes, game.gates, lane);
       ui.showFeedback(card, true, lane, false);
       ui.showStudyTeaching(card);
       ui.hideAnswerChoices();
@@ -149,6 +211,7 @@ export function startCapture(deps) {
     }
     if (name === 'choices') [0, 1, 2].forEach(function (i) { document.getElementById('ans' + i).classList.remove('active'); });
     ui.fitQuestionHud();
+    if (name === 'choices') drawChoiceLabels(clues.length);
     api.current = name;
     document.body.setAttribute('data-capture-state', name);
     return settle(700);
@@ -176,7 +239,8 @@ export function startCapture(deps) {
       // the camera in its resting place (a run's opening fly-in would otherwise leave it wherever it was when frozen)
       if (game.cameraBasePos) { game.camera.position.copy(game.cameraBasePos); game.camera.fov = game.baseFOV; game.camera.updateProjectionMatrix(); game.camera.lookAt(0, 1, -20); }
       buildGates();
-      render(param('state') || 'start').then(function () { api.ready = true; document.documentElement.setAttribute('data-capture-ready', '1'); });
+      dress();
+      render(param('state') || 'clue-1').then(function () { api.ready = true; document.documentElement.setAttribute('data-capture-ready', '1'); });
     } else if (waited > 30000) {
       clearInterval(poll);
       api.error = 'the question never appeared';

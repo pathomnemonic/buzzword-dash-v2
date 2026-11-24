@@ -25,7 +25,7 @@ http://localhost:4173/?capture=pe024&map=Neural%20Highway&lane=2&clues=0,1,2,3,4
 | `clues` | the reveal order as 0-based positions in the card's clue list, e.g. `2,0,1,3,4`. Default: the card's own order. A shorter list reveals only those clues |
 | `theme` | page colors: `classic` (default), `winter`, `spring`, `summer`, `autumn`, `ocean`, `forest`, `ember`, `amber`, `rose` |
 | `score`, `coins`, `streak` | the numbers on the top bar (default 0) |
-| `state` | the state to open on (default `start`) |
+| `state` | the state to open on (default `clue-1`) |
 
 Use a fresh browser context (nothing from a real profile), viewport 540 x 675 and `deviceScaleFactor: 2` for 1080 x 1350 images.
 
@@ -45,12 +45,13 @@ for (const state of await page.evaluate(() => window.__capture.states)) {
 
 ## The states
 
-1. `start`: the scene with the clue box reading "GET READY" (the game's own text), gates far away.
-2. `clue-1` ... `clue-N`: the clue box shows only the clues revealed so far, one more each step, in the order given by `clues` (default: the card's own order). In normal play all clues show at once; this progressive reveal exists only here.
-3. `choices`: all clues, the three answers in the answer bar (the correct one in `lane`, the distractors in the card's own order), gates close, no lane lit up.
-4. `correct`: the runner in the correct lane, "✓ answer" and the card's teaching point (Study-mode presentation).
+The sequence has no "start" frame: a post begins at `clue-1`.
 
-Nothing moves between states (the world is frozen), the top bar is fixed, the dev and pop-up chrome is hidden, and no run is ever finished or saved.
+1. `clue-1` ... `clue-N`: the clue box shows only the clues revealed so far, one more each step, in the order given by `clues` (default: the card's own order). In normal play all clues show at once; this progressive reveal exists only here. Put the vaguest clue first.
+2. `choices`: all clues revealed, the three gates close to the camera, and each answer on a big readable chip over its own gate (LEFT / CENTER / RIGHT), plus a capture-only line "N clues in — which gate?" (N is the number of clues in this post's sequence). The correct answer is in `lane`; the distractors are in the card's own order; no gate is lit up.
+3. `correct`: the runner going through the correct gate (the gate lit green around the runner), "✓ answer" and the card's teaching point (Study-mode presentation).
+
+The scene is dressed like a run in progress: coins, obstacles and the map's props, placed the same way for the same card and map. Nothing moves between states, the top bar is fixed, the dev and pop-up chrome is hidden, and no run is ever finished or saved.
 
 ## Design note
 
