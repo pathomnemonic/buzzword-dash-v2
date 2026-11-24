@@ -13,6 +13,8 @@
  *   clues     the order to reveal the clues in, as 0-based positions in the card's clue list (default: the card's own order).
  *             A shorter list reveals only those clues.
  *   theme     the page colors: classic (default), winter, spring, summer, autumn, ocean, forest, ember, amber, rose
+ *   scenes    the moment shown on each clue slide, a comma list cycled over clue-1, clue-2, ...: run, swap, jump, slide, monster, wave
+ *             (default: run, swap, jump, monster, slide, wave, then swap, jump, ...). choices and correct always keep their own composition
  *   score, coins, streak   the numbers on the top bar (default 0, 0, 0), so every state of a post set matches
  *   state     the state to open on (default "clue-1")
  *
@@ -39,6 +41,12 @@ var STYLE = [
   '.lesson-dot, .install-banner, #revengeCardBanner { display: none !important; }',
   'body.capture-hide-answers #answerRow { visibility: hidden !important; }',
   '#feedbackEl, #teachEl { display: none !important; }',
+  // the clue slides: a bolder, more attractive clue box (the choices and correct states keep the plain game box)
+  'body.capture-clue-slide #buzzBox { background: linear-gradient(180deg, #fffdf2 0%, #fff3c4 100%) !important; border: 6px solid #1b1440 !important; border-radius: 28px !important;',
+  '  box-shadow: 0 8px 0 #1b1440, 0 14px 24px rgba(0,0,0,.3) !important; padding: 16px 18px 18px !important; }',
+  'body.capture-clue-slide #buzzText { color: #1b1440 !important; font-weight: 900 !important; letter-spacing: .005em !important; }',
+  '#buzzText .cap-dot { color: #c9a227; }',
+  '#buzzText .cap-new { background: linear-gradient(transparent 52%, #ffd84a 52%, #ffd84a 92%, transparent 92%); padding: 0 .12em; border-radius: 4px; }',
   '#captureLabels { position: fixed; inset: 0; pointer-events: none; z-index: 40; }',
   // (the overlays keep 13.5% of the frame's height clear at the bottom: about 180 px of a 1350 px export, so a 110 px footer band plus margin never touches them)
   // the three answer chips are one size and one style: only the label and the lane's own color differ
@@ -115,6 +123,7 @@ export function startCapture(deps) {
     ready: false,
     card: { id: card.id, answer: card.ans, clues: clues, distractors: card.d.slice(0, 2), teaching: card.tp },
     states: names,
+    scene: '',
     quality: getQuality(),
     pose: '',
     current: '',
@@ -207,6 +216,83 @@ export function startCapture(deps) {
     }
   }
 
+  // ---- moments from a run, for the clue slides ----
+  var SCENES = ['run', 'swap', 'jump', 'slide', 'monster', 'wave'];
+  var DEFAULT_ORDER = ['run', 'swap', 'jump', 'monster', 'slide', 'wave'];
+  var sceneList = (param('scenes') || '').split(',').map(function (x) { return x.trim(); }).filter(function (x) { return SCENES.indexOf(x) >= 0; });
+  function sceneFor(n) {
+    if (sceneList.length) return sceneList[(n - 1) % sceneList.length];
+    if (n <= DEFAULT_ORDER.length) return DEFAULT_ORDER[n - 1];
+    return DEFAULT_ORDER[1 + ((n - 2) % (DEFAULT_ORDER.length - 1))]; // after the first round, cycle without repeating the plain run
+  }
+  var extraObstacle = null;
+
+  function resetMoment() {
+    var pg = game.playerGroup;
+    if (extraObstacle) { removeAndDispose(game.scene, extraObstacle); game.obstacleMeshes = game.obstacleMeshes.filter(function (o) { return o !== extraObstacle; }); extraObstacle = null; }
+    if (game.examMonster) game.examMonster.visible = false;
+    if (pg) { pg.rotation.set(0, 0, 0); pg.scale.set(1, 1, 1); pg.position.y = 0; }
+  }
+
+  function addObstacle(kind, z) {
+    var before = game.obstacleMeshes.length;
+    spawnObstacle(game.scene, game.obstacleMeshes, { lane: 1, type: kind, variantId: kind === 'slide' ? 'hanging_sign' : 'gurney', spawnOffset: z / 2.2 }, null);
+    extraObstacle = game.obstacleMeshes[before] || null;
+  }
+
+  function showMonster() {
+    var m = game.examMonster;
+    if (!m) return false;
+    var model = !!m.userData.isModelMonster, ground = model && !m.userData.flying;
+    var size = Math.min(0.5, 0.45 * (m.userData.displayScale || 1)); // (about the size the game draws it when it is close behind the runner)
+    m.visible = true;
+    m.scale.set(size, size, size);
+    m.position.set(LANE_X[1] + 0.6, ground ? 0.1 : 1.4, 2.6);
+    m.rotation.order = 'YXZ';
+    m.rotation.set(0.05, 0, 0);
+    (game._monsterFade || []).forEach(function (fr) { if (!fr.animated) fr.m.opacity = fr.base; });
+    if (model) for (var i = 0; i < 30; i++) updateModelAnimation(m, 0.016, ground ? 'run' : 'idle');
+    return true;
+  }
+
+  function applyScene(scene, n) {
+    var pg = game.playerGroup;
+    var animator = pg.userData && pg.userData.animator;
+    var step = function (state, count) { for (var i = 0; i < count; i++) updateModelAnimation(pg, 0.016, state); };
+    api.scene = scene;
+    if (scene === 'swap') {
+      var dir = n % 2 ? 1 : -1;
+      setLane(1);
+      pg.position.x = LANE_X[1] + dir * 1.2;   // between two lanes
+      pg.rotation.z = dir * -0.2;              // leaning into the move, as the game does
+      if (animator) step('run', 20);
+    } else if (scene === 'jump') {
+      setLane(1);
+      addObstacle('jump', -1.1);
+      pg.position.y = 1.35;
+      pg.scale.y = 1.06;
+      if (animator) step('jump', 22);
+    } else if (scene === 'slide') {
+      setLane(1);
+      addObstacle('slide', -1.0);
+      var hasClip = animator && animator.hasClip && animator.hasClip('slide');
+      pg.scale.set(1, 1 - (hasClip ? 0.04 : 0.08), 1);
+      pg.position.y = hasClip ? -0.05 : -0.38;
+      if (!hasClip) pg.rotation.x = -0.5;
+      if (animator) step('slide', 22);
+    } else if (scene === 'monster') {
+      setLane(1);
+      if (!showMonster()) api.scene = 'run (no monster in this build)';
+      if (animator) step('run', 20);
+    } else if (scene === 'wave') {
+      setLane(1);
+      if (animator) step('wave', 40);
+    } else { // run
+      setLane(1);
+      if (animator) step('run', 20);
+    }
+  }
+
   function setCamera(celebrate) {
     var cam = game.camera;
     if (!game.cameraBasePos) return;
@@ -221,18 +307,41 @@ export function startCapture(deps) {
   }
 
   // The clue box, much larger than in play: the clue is the content of a post. One size for every slide of a set (the size that fits all the clues).
-  function fitClueBox() {
+  function fitTo(limitFraction, startPx, minPx, slide) {
     var buzz = document.getElementById('buzzText'), boxEl = document.getElementById('buzzBox');
-    var limit = window.innerHeight * 0.30;
+    document.body.classList.toggle('capture-clue-slide', slide);
     setText(buzz, clues.join(' \u2022 '));
-    var size = 44;
-    for (; size > 16; size--) {
+    var size = startPx;
+    for (; size > minPx; size--) {
       buzz.style.setProperty('font-size', size + 'px', 'important');
       buzz.style.setProperty('line-height', '1.1', 'important');
       buzz.style.setProperty('text-transform', 'uppercase', 'important');
-      if (boxEl.getBoundingClientRect().bottom <= limit) break;
+      if (boxEl.getBoundingClientRect().bottom <= window.innerHeight * limitFraction) break;
     }
-    api.clueFontPx = size;
+    document.body.classList.remove('capture-clue-slide');
+    return size;
+  }
+
+  // Two sizes, each one for every slide of its kind: the clue slides (as big as the full clue set allows) and the choices / correct slides (the v4 size)
+  function fitClueBox() {
+    api.clueFontPx = fitTo(0.30, 44, 16, false);          // choices and correct: all clues within 30% of the frame, as in v4
+    api.clueSlideFontPx = fitTo(0.47, 72, 18, true);      // clue slides: noticeably bigger, within 47% of the frame
+  }
+
+  // The clue box for a state: styled and big on the clue slides, the plain v4 box on the others
+  function showClues(n, slide) {
+    var buzz = document.getElementById('buzzText');
+    document.body.classList.toggle('capture-clue-slide', slide);
+    buzz.style.setProperty('font-size', (slide ? api.clueSlideFontPx : api.clueFontPx) + 'px', 'important');
+    if (!slide) { setText(buzz, clues.slice(0, n).join(' \u2022 ')); return; }
+    while (buzz.firstChild) buzz.removeChild(buzz.firstChild);
+    clues.slice(0, n).forEach(function (c, i) {
+      if (i) { var dot = document.createElement('span'); dot.className = 'cap-dot'; dot.textContent = ' \u2022 '; buzz.appendChild(dot); }
+      var sp = document.createElement('span');
+      if (i === n - 1) sp.className = 'cap-new'; // the clue just revealed is highlighted
+      sp.textContent = c;
+      buzz.appendChild(sp);
+    });
   }
 
   // The answer and the teaching point in a speech bubble coming from the hero
@@ -297,27 +406,30 @@ export function startCapture(deps) {
     // the top bar shows fixed numbers, whatever the run had counted up to the moment it was frozen (set first: updateHud also hides the feedback)
     game.score = intParam('score'); game.coins = intParam('coins'); game.streak = intParam('streak');
     ui.updateHud(game);
-    var buzz = document.getElementById('buzzText');
     document.body.classList.toggle('capture-hide-answers', name !== 'choices' && name !== 'correct');
     var labels = document.getElementById('captureLabels');
     if (labels) labels.remove();
     drawOverlay(null);
     var celebrate = name === 'correct';
+    resetMoment();
     setCamera(celebrate);
     poseHero(celebrate);
     if (/^clue-\d+$/.test(name)) {
       var n = parseInt(name.slice(5), 10);
-      setText(buzz, clues.slice(0, n).join(' • '));
+      showClues(n, true);
       placeGates(GATES_FAR); setLane(1);
+      applyScene(sceneFor(n), n);
       if (n === 1) drawOverlay([{ text: 'Can you guess' }, { text: 'the diagnosis?', hot: true }]);
     } else if (name === 'choices') {
-      setText(buzz, clues.join(' • '));
+      showClues(clues.length, false);
+      api.scene = 'run';
       ui.showAnswerChoices(game.gates);
       document.body.classList.add('capture-hide-answers'); // (the big labels below replace the small lane chips)
       placeGates(GATES_NEAR); setLane(1);
       updateGateHighlights(game.gateMeshes, -1); // no gate lit up: nothing hints at the answer
     } else if (name === 'correct') {
-      setText(buzz, clues.join(' • '));
+      showClues(clues.length, false);
+      api.scene = 'celebrate';
       setLane(lane);
       placeGates(GATES_CELEBRATE);
       flashGateResult(game.gateMeshes, game.gates, lane);
