@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { enabledProviders, providerOf, providerLabel, onlyAvailable, AUTH_PROVIDERS } from '../../js/authproviders.js';
 
 describe('which sign-in options are offered', () => {
-  it('defaults to Google, Apple and Microsoft (the App Store wants Apple next to any other)', () => {
-    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure']);
+  it('defaults to Google, Apple, Microsoft and Discord (the App Store wants Apple next to any other)', () => {
+    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure', 'discord']);
   });
 
   it('treats a build setting that is set but empty (an unset GitHub variable) as the default', () => {
     vi.stubEnv('VITE_AUTH_PROVIDERS', '');
-    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure']);
+    expect(enabledProviders().map((p) => p.id)).toEqual(['google', 'apple', 'azure', 'discord']);
     vi.stubEnv('VITE_AUTH_PROVIDERS', 'none');
     expect(enabledProviders()).toEqual([]);
     vi.unstubAllEnvs();
