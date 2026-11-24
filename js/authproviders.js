@@ -1,7 +1,7 @@
 /**
  * authproviders.js — the "Continue with ..." sign-in options.
  *
- * Which ones are offered is a build setting, VITE_AUTH_PROVIDERS (a comma-separated list, default "google,apple,azure"), and a
+ * Which ones are offered is a build setting, VITE_AUTH_PROVIDERS (a comma-separated list, default "google,apple,azure,discord"), and a
  * provider must also be switched on in Supabase (Authentication → Sign In / Providers); one that is not switched on is
  * simply not shown (see onlyAvailable). Only providers that always hand over a verified email are listed: a sign-in with no email is treated as a
  * guest everywhere (no purchases, no codes, no trial), so an option that can come back without one would be a trap.
@@ -27,7 +27,7 @@ export var AUTH_PROVIDERS = {
   facebook: { id: 'facebook', label: 'Facebook', icon: 'f', scopes: 'email' }
 };
 
-var DEFAULT_LIST = 'google,apple,azure';
+var DEFAULT_LIST = 'google,apple,azure,discord';
 
 /** The providers to offer, in the order listed in the setting. Unknown names are ignored. */
 export function enabledProviders(setting) {
