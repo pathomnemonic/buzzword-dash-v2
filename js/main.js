@@ -1359,6 +1359,8 @@ function init() {
     if (!leaderboardModule || !leaderboardModule.leaderboard.isAuthenticated()) return;
     leaderboardModule.leaderboard.reportDiagnostic(report);
   });
+  // Optional crash and page-view services: production only, never in the capture build, and only for players who agreed (js/monitoring.js)
+  if (import.meta.env.PROD && import.meta.env.VITE_FEATURE_CAPTURE !== '1') import('./monitoring.js').then(function (m) { m.startMonitoring({ storage: storage, analytics: analytics }); }).catch(function () { /* monitoring is optional */ });
   installChunkRecovery(function () { trackEvent('chunk_failed', { chunk: 'app', online: navigator.onLine !== false }); ui._showToast("Part of the app did not load. Reload the page to update."); });
   ui.init();
   ui.onStudyPlanRun = startStudyPlanRun;

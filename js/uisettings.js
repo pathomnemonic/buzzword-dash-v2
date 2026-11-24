@@ -230,6 +230,7 @@ export var settingsMethods = {
           }
           storage.set(s.key, newVal);
           if (s.key === 'reminders') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
+          if (s.key === 'sendDiagnostics') document.dispatchEvent(new CustomEvent('dx:diagnostics-changed'));
           toggle.classList.toggle('on');
           toggle.setAttribute('aria-checked', newVal ? 'true' : 'false');
           if (s.key === 'colorblindMode' || s.key === 'dyslexiaFont') self.applySettings();

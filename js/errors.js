@@ -43,7 +43,22 @@ export function reportError(error, context = {}) {
   }
 
   sendRemote(msg, stack, context);
+  notifyReportListeners(error, msg, context);
   notifyObserver({ kind: 'error', message: msg, stack: stack, system: context.system, operation: context.operation, recoverable: context.recoverable });
+}
+
+var _reportListeners = [];
+
+/** Also hear every reported error, with the Error itself (the optional crash-report services listen here). Returns a function that stops listening. */
+export function addReportListener(fn) {
+  _reportListeners.push(fn);
+  return function () { _reportListeners = _reportListeners.filter(function (f) { return f !== fn; }); };
+}
+
+function notifyReportListeners(error, msg, context) {
+  for (var i = 0; i < _reportListeners.length; i++) {
+    try { _reportListeners[i](error instanceof Error ? error : new Error(msg), context || {}); } catch (e) { /* a listener must never break reporting */ }
+  }
 }
 
 var _observer = null;

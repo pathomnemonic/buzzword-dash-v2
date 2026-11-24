@@ -33,6 +33,9 @@ Do you provide a way for users to request that their data be deleted? **Yes.** I
 | App info and performance → **Crash logs** | Yes | No | **Yes (off by default; the player switches it on)** | Analytics (bug fixing) |
 | App info and performance → **Diagnostics** | Yes | No | **Yes (same switch)** | Analytics (bug fixing) |
 
+Note on service providers: with the "Help fix problems" switch on, crash reports go to Sentry, and with anonymous usage statistics agreed, screen views and error messages also go to PostHog. Both act as service providers on our behalf (Google does not count that as "sharing"), neither runs for anyone who has not opted in, and neither receives an account identifier, name or scores. If Google's form asks, App activity → App interactions is also processed by PostHog, optional and tied to the same consent.
+
+
 Everything else (location, contacts, photos, files, financial, health, messages, audio, web browsing, search history, installed apps): **not collected**.
 "Shared" is **No** for everything except the live-multiplayer network address: Supabase is a service provider that hosts the data for us, which Google does not count as sharing.
 Crash/diagnostic data is not linked to the user (no ID is stored with it).

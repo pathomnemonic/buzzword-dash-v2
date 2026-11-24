@@ -63,11 +63,13 @@
     "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.4",
+    "@sentry/browser": "^10.78.0",
     "@supabase/supabase-js": "2.117.3",
     "capacitor-plugin-cdv-purchase": "^13.18.0",
     "fzstd": "^0.1.1",
     "jszip": "^3.10.2",
     "peerjs": "1.5.4",
+    "posthog-js": "^1.454.2",
     "sql.js": "^1.8.0",
     "three": "0.160.0"
   }

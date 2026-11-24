@@ -44,6 +44,8 @@ export function buildCsp(opts) {
     } catch { /* a malformed URL just means no Supabase host is allowed */ }
   }
   PEER_HOSTS.forEach(function (h) { connect.push('https://' + h, 'wss://' + h); });
+  // the optional crash and page-view services (js/monitoring.js): Sentry's ingest host and PostHog's event host
+  connect.push('https://o4512486931169280.ingest.us.sentry.io', 'https://us.i.posthog.com');
   var scripts = ["'self'", "'wasm-unsafe-eval'"].concat(inlineScripts(opts.html || '').map(scriptHash));
   return [
     "default-src 'self'",
