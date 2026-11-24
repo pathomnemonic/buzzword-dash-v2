@@ -13,8 +13,9 @@
  *   clues     the order to reveal the clues in, as 0-based positions in the card's clue list (default: the card's own order).
  *             A shorter list reveals only those clues.
  *   theme     the page colors: classic (default), winter, spring, summer, autumn, ocean, forest, ember, amber, rose
- *   scenes    the moment shown on each clue slide, a comma list cycled over clue-1, clue-2, ...: run, swap, jump, slide, monster, wave
- *             (default: run, swap, jump, monster, slide, wave, then swap, jump, ...). choices and correct always keep their own composition
+ *   scenes    the moment shown on each clue slide, a comma list cycled over clue-1, clue-2, ...:
+ *             motion: run, swap, jump, slide, monster;  camera-facing gestures (the hero's own clips): wave, ponder, flourish
+ *             (default: wave, then motion and gesture shots in a rotation that depends on the card). choices and correct always keep their own composition
  *   score, coins, streak   the numbers on the top bar (default 0, 0, 0), so every state of a post set matches
  *   state     the state to open on (default "clue-1")
  *
@@ -22,12 +23,14 @@
  * Use a fresh browser context, a 540x675 viewport and deviceScaleFactor 2 to get 1080x1350 images.
  */
 
+import * as THREE from 'three';
 import { spawnGates, updateGateHighlights } from './game/gates.js';
 import { removeAndDispose, LANE_X } from './game/enginedefs.js';
 import { spawnObstacle, spawnCoinsForObstacle, spawnCoinBatch } from './game/obstacles.js';
 import { flashGateResult } from './game/gates.js';
 import { setText } from './dom.js';
 import { updateModelAnimation } from './game/charactermodel.js';
+import { baseClipName } from './game/clipnames.js';
 import { getQuality } from './game/quality.js';
 
 var GATES_FAR = -70;      // where they stand before the choices (small, down the track)
@@ -217,21 +220,54 @@ export function startCapture(deps) {
   }
 
   // ---- moments from a run, for the clue slides ----
-  var SCENES = ['run', 'swap', 'jump', 'slide', 'monster', 'wave'];
-  var DEFAULT_ORDER = ['run', 'swap', 'jump', 'monster', 'slide', 'wave'];
+  var MOTION = ['swap', 'jump', 'monster', 'slide'];
+  var SCENES = ['run', 'swap', 'jump', 'slide', 'monster', 'wave', 'ponder', 'flourish'];
   var sceneList = (param('scenes') || '').split(',').map(function (x) { return x.trim(); }).filter(function (x) { return SCENES.indexOf(x) >= 0; });
+  var cardHash = 0;
+  for (var ci = 0; ci < card.id.length; ci++) cardHash = (cardHash * 31 + card.id.charCodeAt(ci)) >>> 0;
+  function defaultOrder() {
+    // the motion shots rotate with the card, so different posts lead with different moments
+    var r = cardHash % MOTION.length;
+    var m = MOTION.slice(r).concat(MOTION.slice(0, r));
+    return ['wave', m[0], 'ponder', m[1], m[2], m[3], 'flourish'];
+  }
   function sceneFor(n) {
     if (sceneList.length) return sceneList[(n - 1) % sceneList.length];
-    if (n <= DEFAULT_ORDER.length) return DEFAULT_ORDER[n - 1];
-    return DEFAULT_ORDER[1 + ((n - 2) % (DEFAULT_ORDER.length - 1))]; // after the first round, cycle without repeating the plain run
+    var order = defaultOrder();
+    if (n <= order.length) return order[n - 1];
+    var loop = order.slice(1); // after the first round, cycle without repeating the opening wave
+    return loop[(n - order.length - 1) % loop.length];
   }
   var extraObstacle = null;
+
+  // The hero's own clips (never made up): the first clip on the model whose name matches, played once from its start
+  function playClip(pg, patterns, seconds) {
+    var animator = pg.userData && pg.userData.animator;
+    if (!animator) return '';
+    for (var p = 0; p < patterns.length; p++) {
+      for (var i = 0; i < animator.clipNames.length; i++) {
+        if (patterns[p].test(baseClipName(animator.clipNames[i]))) {
+          var action = animator.actions[animator.clipNames[i]];
+          animator.mixer.stopAllAction();
+          action.reset(); action.setLoop(2200, 1); action.clampWhenFinished = true; action.enabled = true; action.play();
+          animator.state = null; animator.current = null;
+          animator.mixer.update(seconds);
+          return baseClipName(animator.clipNames[i]);
+        }
+      }
+    }
+    return '';
+  }
 
   function resetMoment() {
     var pg = game.playerGroup;
     if (extraObstacle) { removeAndDispose(game.scene, extraObstacle); game.obstacleMeshes = game.obstacleMeshes.filter(function (o) { return o !== extraObstacle; }); extraObstacle = null; }
     if (game.examMonster) game.examMonster.visible = false;
-    if (pg) { pg.rotation.set(0, 0, 0); pg.scale.set(1, 1, 1); pg.position.y = 0; }
+    if (pg) {
+      pg.rotation.set(0, 0, 0); pg.scale.set(1, 1, 1); pg.position.y = 0;
+      var an = pg.userData && pg.userData.animator;
+      if (an) { an.mixer.stopAllAction(); an.state = null; an.current = null; }
+    }
   }
 
   function addObstacle(kind, z) {
@@ -284,19 +320,46 @@ export function startCapture(deps) {
       setLane(1);
       if (!showMonster()) api.scene = 'run (no monster in this build)';
       if (animator) step('run', 20);
-    } else if (scene === 'wave') {
+    } else if (scene === 'wave' || scene === 'ponder' || scene === 'flourish') {
+      // camera-facing gesture shots, played from the hero's own clips
       setLane(1);
-      if (animator) step('wave', 40);
+      pg.rotation.y = scene === 'ponder' ? Math.PI - 0.45 : Math.PI;
+      var clip = '';
+      if (scene === 'wave') clip = playClip(pg, [/^wave$/i, /^cheer$/i, /^dance$/i, /clapping/i], 0.8);
+      else if (scene === 'flourish') clip = playClip(pg, [/^sword_slash$/i, /^punch$/i, /^dance$/i, /clapping/i, /^cheer$/i], 0.5);
+      if (!clip) { // a hero with no such clip stands and faces the camera in its idle clip: never an invented pose
+        clip = playClip(pg, [/^idle/i], 0.7) || 'none';
+        pg.rotation.y = Math.PI - 0.45;
+        scene = scene === 'wave' ? 'ponder' : scene;
+      }
+      api.scene = scene + ' (' + clip + ')';
     } else { // run
       setLane(1);
       if (animator) step('run', 20);
     }
   }
 
-  function setCamera(celebrate) {
+  var GESTURES = ['wave', 'ponder', 'flourish'];
+
+  // Frame a camera-facing hero so every hero fills about the same share of the frame, whatever its model's size
+  function frameHero() {
+    var pg = game.playerGroup, cam = game.camera;
+    var box = new THREE.Box3().setFromObject(pg);
+    var h = box.max.y - box.min.y, cy = (box.max.y + box.min.y) / 2;
+    if (!isFinite(h) || h < 1.0 || h > 3.2) { h = 1.9; cy = 0.95; } // (a box swollen by effects or helper meshes: use a typical hero's size)
+    var half = Math.tan((cam.fov * Math.PI / 180) / 2);
+    var dist = h / (2 * half * 0.46);                 // the hero fills 46% of the frame's height
+    var visible = 2 * dist * half;                    // frame height in world units at the hero
+    cam.position.set(0, cy + 0.15, dist);
+    cam.lookAt(0, cy + 0.06 * visible, 0);            // the hero a little below the middle: clue box above, caption below
+    cam.updateProjectionMatrix();
+  }
+  function setCamera(celebrate, gesture) {
     var cam = game.camera;
     if (!game.cameraBasePos) return;
-    if (celebrate) {
+    if (gesture) {
+      cam.position.set(0, 1.9, 5.0); // (reframed to the hero's own size once it is posed: frameHero)
+    } else if (celebrate) {
       cam.position.set(LANE_X[lane], 2.0, 6.0);
       cam.lookAt(LANE_X[lane], 3.5, -3); // (looking higher puts the hero low in the frame, under the speech bubble)
     } else {
@@ -412,13 +475,16 @@ export function startCapture(deps) {
     drawOverlay(null);
     var celebrate = name === 'correct';
     resetMoment();
-    setCamera(celebrate);
+    var clueN = /^clue-(\d+)$/.exec(name);
+    var wanted = clueN ? sceneFor(parseInt(clueN[1], 10)) : '';
+    setCamera(celebrate, GESTURES.indexOf(wanted) >= 0);
     poseHero(celebrate);
     if (/^clue-\d+$/.test(name)) {
       var n = parseInt(name.slice(5), 10);
       showClues(n, true);
       placeGates(GATES_FAR); setLane(1);
       applyScene(sceneFor(n), n);
+      if (GESTURES.indexOf(sceneFor(n)) >= 0) frameHero();
       if (n === 1) drawOverlay([{ text: 'Can you guess' }, { text: 'the diagnosis?', hot: true }]);
     } else if (name === 'choices') {
       showClues(clues.length, false);

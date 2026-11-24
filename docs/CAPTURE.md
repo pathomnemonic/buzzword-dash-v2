@@ -25,7 +25,7 @@ http://localhost:4173/?capture=pe024&map=Neural%20Highway&lane=2&clues=0,1,2,3,4
 | `clues` | the reveal order as 0-based positions in the card's clue list, e.g. `2,0,1,3,4`. Default: the card's own order. A shorter list reveals only those clues |
 | `theme` | page colors: `classic` (default), `winter`, `spring`, `summer`, `autumn`, `ocean`, `forest`, `ember`, `amber`, `rose` |
 | `score`, `coins`, `streak` | the numbers on the top bar (default 0) |
-| `scenes` | the moment shown on each clue slide, a comma list cycled over clue-1, clue-2, ...: `run`, `swap`, `jump`, `slide`, `monster`, `wave`. Default: run, swap, jump, monster, slide, wave, then swap, jump, ... |
+| `scenes` | the moment shown on each clue slide, a comma list cycled over clue-1, clue-2, ...: motion `run`, `swap`, `jump`, `slide`, `monster`; camera-facing gestures `wave`, `ponder`, `flourish`. Default: `wave` on the opening slide, then the motion shots and a `ponder` and a `flourish` in an order that rotates with the card id (so different posts lead with different moments) |
 | `state` | the state to open on (default `clue-1`) |
 
 Use a fresh browser context (nothing from a real profile), viewport 540 x 675 and `deviceScaleFactor: 2` for 1080 x 1350 images.
@@ -60,7 +60,13 @@ The sequence has no "start" frame: a post begins at `clue-1`.
 
 **Editorial overlays** are bold outlined caption lettering added for the viewer, not game UI, so they read as a post's caption (white and yellow, heavy outline and shadow, a slight tilt, in the lower part of the frame with a bottom safe zone of at least 150 px at 1080x1350 (they stop about 163-175 px above the bottom edge), so a 110 px footer band never touches them, and they never cover the clues or the gates). They are drawn by capture mode only (`#captureOverlay`).
 
-**Moments.** Each clue slide shows a different moment from a run, so a post reads like footage and not one frozen frame: the hero mid lane-swap (leaning between two lanes, alternating side), jumping a gurney (airborne, jump clip), sliding under a hanging sign (the slide clip or the crouch), the monster right behind the runner, and the hero waving (the game's own wave clip). `choices` is always the plain running frame and `correct` is always the celebration frame. `window.__capture.scene` names the moment on the current slide.
+**Moments.** Each clue slide shows a different moment from a run, so a post reads like footage and not one frozen frame. Motion shots: the hero mid lane-swap (leaning between two lanes, alternating side), jumping a gurney, sliding under a hanging sign, the monster right behind the runner. Camera-facing gesture shots (the hero turns to the camera, framed to the same share of the frame whatever its size), always played from the hero's own animation clips, never invented:
+- `wave`: the hero's Wave clip; heroes without one use their Cheer, Dance or Clapping clip.
+- `flourish`: Sword_Slash or Punch where the hero has them, otherwise Dance, Clapping or Cheer.
+- `ponder`: the hero standing in its Idle clip, turned slightly toward the camera. (The models have no shrug, thinking or pointing clip, so this is the honest stand-in for a thinking beat.)
+- A hero with none of the needed clips stands in its Idle clip. `window.__capture.scene` names the moment and the clip, e.g. `wave (Cheer)`.
+
+Clips on the heroes, for reference: Wave (nurse, paramedic, intern, adventurer, rogue, king, ninja, orc, explorer, robot), Cheer (hooded, barbarian, knight, mage, scout), Dance (wizard), Clapping (alien), Punch, Sword_Slash. `choices` is always the plain running frame and `correct` is always the celebration frame.
 
 The scene is dressed like a run in progress: coins, obstacles and the map's props, placed the same way for the same card and map. Nothing moves between states, the top bar is fixed, the dev and pop-up chrome is hidden, and no run is ever finished or saved.
 
