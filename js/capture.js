@@ -40,13 +40,14 @@ var STYLE = [
   'body.capture-hide-answers #answerRow { visibility: hidden !important; }',
   '#feedbackEl, #teachEl { display: none !important; }',
   '#captureLabels { position: fixed; inset: 0; pointer-events: none; z-index: 40; }',
+  // (the overlays keep 13.5% of the frame's height clear at the bottom: about 180 px of a 1350 px export, so a 110 px footer band plus margin never touches them)
   // the three answer chips are one size and one style: only the label and the lane's own color differ
   '#captureLabels .cap-gate { position: absolute; transform: translate(-50%, -100%); width: 31%; height: 76px; box-sizing: border-box; overflow: hidden;',
   '  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font: 800 20px/1.1 system-ui, sans-serif;',
   '  color: #fff; padding: 4px 6px; border-radius: 14px; border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }',
   '#captureLabels .cap-gate small { display: block; font-size: 11px; letter-spacing: .08em; opacity: .9; margin-bottom: 2px; }',
-  '#captureOverlay { position: fixed; left: 0; right: 0; bottom: 6%; z-index: 41; pointer-events: none; text-align: center; padding: 0 22px; transform: rotate(-2deg); }',
-  '#captureOverlay .cap-line { display: block; font: 900 40px/1.02 Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .01em;',
+  '#captureOverlay { position: fixed; left: 0; right: 0; bottom: 13.5%; z-index: 41; pointer-events: none; text-align: center; padding: 0 22px; transform: rotate(-2deg); }',
+  '#captureOverlay .cap-line { display: block; font: 900 36px/1.02 Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .01em;',
   '  color: #fff; -webkit-text-stroke: 9px #000; paint-order: stroke fill; text-shadow: 0 5px 0 #000, 0 9px 14px rgba(0,0,0,.55); }',
   '#captureOverlay .cap-hot { color: #ffe14a; }',
   '#captureBubble { position: fixed; z-index: 42; pointer-events: none; box-sizing: border-box; background: #fff; color: #1b1440; border: 5px solid #1b1440; border-radius: 26px;',

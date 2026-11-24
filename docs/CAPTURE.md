@@ -57,7 +57,7 @@ The sequence has no "start" frame: a post begins at `clue-1`.
 
 **Clue text** is much larger than in play, one size for every slide of a post: the largest size (44 px down to 16 px at a 540 px wide frame) at which ALL of the post's clues fit within 30% of the frame's height. Long clue sets get a smaller size; the longest free card (244 characters of clues) lands at 16 px over six lines and still fits. The box grows as clues are added and the text size never changes between slides. The in-game clue box is untouched.
 
-**Editorial overlays** are bold outlined caption lettering added for the viewer, not game UI, so they read as a post's caption (white and yellow, heavy outline and shadow, a slight tilt, in the lower third of the frame so they never cover the clues or the gates). They are drawn by capture mode only (`#captureOverlay`).
+**Editorial overlays** are bold outlined caption lettering added for the viewer, not game UI, so they read as a post's caption (white and yellow, heavy outline and shadow, a slight tilt, in the lower part of the frame with a bottom safe zone of at least 150 px at 1080x1350 (they stop about 163-175 px above the bottom edge), so a 110 px footer band never touches them, and they never cover the clues or the gates). They are drawn by capture mode only (`#captureOverlay`).
 
 The scene is dressed like a run in progress: coins, obstacles and the map's props, placed the same way for the same card and map. Nothing moves between states, the top bar is fixed, the dev and pop-up chrome is hidden, and no run is ever finished or saved.
 
