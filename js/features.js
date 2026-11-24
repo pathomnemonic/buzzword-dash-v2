@@ -33,6 +33,8 @@
  * can be bought until this is on, so the first release sells only Dx Dash Pro. Build with VITE_FEATURE_LOCKER_ITEMS=1 to sell them (docs/PRO.md
  * has the store products and the backend steps). Tests build with it on.
  *
+ * capture: the screenshot mode for social posts (js/capture.js, docs/CAPTURE.md). Only in a build made with VITE_FEATURE_CAPTURE=1; never in a shipped build.
+ *
  * backend: false in a build made with VITE_NO_BACKEND=1 (the standalone copy of the game that has no Supabase or Stripe behind it).
  * That build has no Dx Dash Pro, no real-money items (those become ordinary coin items again, with their old level
  * unlocks), and no accounts, friends or leaderboards (no Supabase address is given, so they are not reachable).
@@ -51,5 +53,6 @@ export var FEATURES = {
   studyBuddies: flag(import.meta.env && import.meta.env.VITE_FEATURE_STUDY_BUDDIES),
   rankedMatches: flag(import.meta.env && import.meta.env.VITE_FEATURE_RANKED_MATCHES),
   pro: flag(import.meta.env && import.meta.env.VITE_FEATURE_PRO),
-  lockerItems: flag(import.meta.env && import.meta.env.VITE_FEATURE_LOCKER_ITEMS)
+  lockerItems: flag(import.meta.env && import.meta.env.VITE_FEATURE_LOCKER_ITEMS),
+  capture: flag(import.meta.env && import.meta.env.VITE_FEATURE_CAPTURE)
 };

@@ -1249,6 +1249,10 @@ function init() {
   // Load the question database in the background; screens that show counts refresh when it arrives
   loadCards().then(function () {
     setLibraryUnlocked(libraryUnlocked());
+    if (captureModule) {
+      captureModule.then(function (m) { m.startCapture({ game: game, ui: ui, storage: storage, launchRun: launchRun, cardById: CARD_BY_ID }); });
+      return;
+    }
     ui.renderHome();
     ui.renderSubjects();
   }).catch(function (e) {
@@ -1269,6 +1273,12 @@ function init() {
     Object.defineProperty(window, '__cards', { get: function () { return CARDS; } }); // (CARDS is filled in after the first paint)
   }
   storage.load();
+  // Screenshot mode for social posts: only in a VITE_FEATURE_CAPTURE=1 build, only on a ?capture=<card> page (docs/CAPTURE.md)
+  // (written with the build variable inline, so a normal build drops the branch and does not even emit js/capture.js)
+  var captureWanted = import.meta.env.VITE_FEATURE_CAPTURE === '1' && /[?&]capture=/.test(window.location.search);
+  var captureModule = (import.meta.env.VITE_FEATURE_CAPTURE === '1' && /[?&]capture=/.test(window.location.search)) ? import('./capture.js') : null;
+  if (captureWanted) storage.data.firstRunComplete = true; // (no first-run tutorial over the capture)
+  if (captureModule) captureModule.then(function (m) { m.prepareCapture(storage); });
   // In the phone apps the save is also kept in a file (the browser storage can be cleared by the system); if this game started
   // empty and the file holds a fuller save, it is offered back before the first-run tutorial
   storage.onSaved = scheduleNativeBackup;
