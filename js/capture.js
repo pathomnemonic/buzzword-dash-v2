@@ -25,10 +25,12 @@ import { removeAndDispose, LANE_X } from './game/enginedefs.js';
 import { spawnObstacle, spawnCoinsForObstacle, spawnCoinBatch } from './game/obstacles.js';
 import { flashGateResult } from './game/gates.js';
 import { setText } from './dom.js';
+import { updateModelAnimation } from './game/charactermodel.js';
+import { getQuality } from './game/quality.js';
 
 var GATES_FAR = -70;      // where they stand before the choices (small, down the track)
 var GATES_NEAR = -8;      // where the gates stand in the choices state (close enough to read the answers)
-var GATES_PASSING = 0.3;  // where they stand while the runner is going through
+var GATES_CELEBRATE = -3.5; // where they stand behind the runner in the celebration frame
 
 var STYLE = [
   // everything that is not the game: pop-ups, nav, dev and account chrome
@@ -40,8 +42,10 @@ var STYLE = [
   '#captureLabels .cap-gate { position: absolute; transform: translate(-50%, -100%); width: 31%; text-align: center; font: 800 19px/1.15 system-ui, sans-serif;',
   '  color: #fff; padding: 8px 6px; border-radius: 14px; border: 3px solid #fff; box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }',
   '#captureLabels .cap-gate small { display: block; font-size: 11px; letter-spacing: .08em; opacity: .9; margin-bottom: 2px; }',
-  '#captureLabels .cap-count { position: absolute; left: 50%; transform: translateX(-50%); font: 800 20px/1 system-ui, sans-serif; color: #fff;',
-  '  background: rgba(20, 10, 50, .82); padding: 9px 18px; border-radius: 999px; border: 3px solid #ffd54a; white-space: nowrap; }'
+  '#captureOverlay { position: fixed; left: 0; right: 0; z-index: 41; pointer-events: none; text-align: center; padding: 0 22px; transform: rotate(-2deg); }',
+  '#captureOverlay .cap-line { display: block; font: 900 40px/1.02 Impact, Haettenschweiler, "Arial Black", "Arial Narrow Bold", system-ui, sans-serif; text-transform: uppercase; letter-spacing: .01em;',
+  '  color: #fff; -webkit-text-stroke: 9px #000; paint-order: stroke fill; text-shadow: 0 5px 0 #000, 0 9px 14px rgba(0,0,0,.55); }',
+  '#captureOverlay .cap-hot { color: #ffe14a; }'
 ].join('\n');
 
 function param(name) {
@@ -74,6 +78,9 @@ export function startCapture(deps) {
   var card = deps.cardById.get(param('capture'));
   if (!card) { window.__capture = { ready: false, error: 'unknown card id: ' + param('capture') }; return; }
 
+  // full graphics, whatever the machine: all 3D models, bloom, shadows, full resolution (the main.js setting can be overwritten by a later save restore)
+  storage.data.settings.quality = 'high';
+  storage.data.settings.perfHint = '';
   // fixed page colors (the default look changes by season, time of day and after every run)
   storage.data.settings.uiTheme = param('theme') || 'classic';
   document.dispatchEvent(new CustomEvent('dx:theme-changed'));
@@ -98,6 +105,8 @@ export function startCapture(deps) {
     ready: false,
     card: { id: card.id, answer: card.ans, clues: clues, distractors: card.d.slice(0, 2), teaching: card.tp },
     states: names,
+    quality: getQuality(),
+    pose: '',
     current: '',
     goto: null, next: null, prev: null
   };
@@ -130,7 +139,6 @@ export function startCapture(deps) {
     var box = document.createElement('div');
     box.id = 'captureLabels';
     var W = window.innerWidth, H = window.innerHeight;
-    var buzzRect = document.getElementById('buzzBox').getBoundingClientRect();
     var tops = [];
     [0, 1, 2].forEach(function (i) {
       var v = new game.camera.position.constructor(LANE_X[i], 3.4, GATES_NEAR); // just above the gate's top bar
@@ -147,12 +155,54 @@ export function startCapture(deps) {
       tops.push(y);
       box.appendChild(chip);
     });
-    var count = document.createElement('div');
-    count.className = 'cap-count';
-    count.textContent = clueCount + (clueCount === 1 ? ' clue' : ' clues') + ' in \u2014 which gate?';
-    count.style.top = Math.round(buzzRect.bottom + 10) + 'px';
-    box.appendChild(count);
     document.body.appendChild(box);
+  }
+
+  // Text added for the viewer (not part of the game): bold, outlined caption lettering, the way social posts caption a clip
+  function drawOverlay(lines) {
+    var old = document.getElementById('captureOverlay'); if (old) old.remove();
+    if (!lines || !lines.length) return;
+    var el = document.createElement('div');
+    el.id = 'captureOverlay';
+    el.setAttribute('aria-hidden', 'true');
+    lines.forEach(function (l) {
+      var span = document.createElement('span');
+      span.className = 'cap-line' + (l.hot ? ' cap-hot' : '');
+      span.textContent = l.text;
+      el.appendChild(span);
+    });
+    el.style.top = Math.round(document.getElementById('buzzBox').getBoundingClientRect().bottom + 16) + 'px';
+    document.body.appendChild(el);
+  }
+
+  // The runner: running pose for the question frames, a cheer facing the camera for the answer
+  function poseHero(celebrate) {
+    var pg = game.playerGroup;
+    if (!pg) return;
+    pg.rotation.y = celebrate ? Math.PI : 0;
+    pg.position.y = 0;
+    var animated = !!(pg.userData && pg.userData.animator);
+    if (animated) {
+      var state = celebrate ? 'celebrate' : 'run';
+      for (var i = 0; i < (celebrate ? 45 : 20); i++) updateModelAnimation(pg, 0.016, state); // (0.7 s into the cheer, or a few strides in)
+      api.pose = celebrate ? 'celebrate (clip played 0.7 s in)' : 'run';
+    } else if (celebrate) {
+      pg.position.y = 0.35; // a hop for a hero built from shapes: it has no clips
+      api.pose = 'celebrate (hop; this hero has no animation clips)';
+    }
+  }
+
+  function setCamera(celebrate) {
+    var cam = game.camera;
+    if (!game.cameraBasePos) return;
+    if (celebrate) {
+      cam.position.set(LANE_X[lane], 2.0, 5.6);
+      cam.lookAt(LANE_X[lane], 1.3, -3);
+    } else {
+      cam.position.copy(game.cameraBasePos);
+      cam.lookAt(0, 1, -20);
+    }
+    cam.updateProjectionMatrix();
   }
 
   // A run in progress: obstacles and coins on the track, placed the same way every time for the same card and map
@@ -189,10 +239,15 @@ export function startCapture(deps) {
     document.body.classList.toggle('capture-hide-answers', name !== 'choices' && name !== 'correct');
     var labels = document.getElementById('captureLabels');
     if (labels) labels.remove();
+    drawOverlay(null);
+    var celebrate = name === 'correct';
+    setCamera(celebrate);
+    poseHero(celebrate);
     if (/^clue-\d+$/.test(name)) {
       var n = parseInt(name.slice(5), 10);
       setText(buzz, clues.slice(0, n).join(' • '));
       placeGates(GATES_FAR); setLane(1);
+      if (n === 1) drawOverlay([{ text: 'Can you guess' }, { text: 'the diagnosis?', hot: true }]);
     } else if (name === 'choices') {
       setText(buzz, clues.join(' • '));
       ui.showAnswerChoices(game.gates);
@@ -202,8 +257,11 @@ export function startCapture(deps) {
     } else if (name === 'correct') {
       setText(buzz, clues.join(' • '));
       setLane(lane);
-      placeGates(GATES_PASSING); // the runner is going through the correct gate
+      placeGates(GATES_CELEBRATE);
       flashGateResult(game.gateMeshes, game.gates, lane);
+      // the correct gate properly lit (the game's own tint is faint), the other two left as they are
+      var lit = game.gateMeshes[lane] && game.gateMeshes[lane].children[0] && game.gateMeshes[lane].children[0].material;
+      if (lit) { lit.transparent = true; lit.opacity = 0.7; lit.emissive && lit.emissive.setHex(0x00cc55); lit.emissiveIntensity = 0.9; }
       ui.showFeedback(card, true, lane, false);
       ui.showStudyTeaching(card);
       ui.hideAnswerChoices();
@@ -211,7 +269,10 @@ export function startCapture(deps) {
     }
     if (name === 'choices') [0, 1, 2].forEach(function (i) { document.getElementById('ans' + i).classList.remove('active'); });
     ui.fitQuestionHud();
-    if (name === 'choices') drawChoiceLabels(clues.length);
+    if (name === 'choices') {
+      drawChoiceLabels(clues.length);
+      drawOverlay([{ text: clues.length + (clues.length === 1 ? ' clue in' : ' clues in') }, { text: 'which gate?', hot: true }]);
+    }
     api.current = name;
     document.body.setAttribute('data-capture-state', name);
     return settle(700);
@@ -225,23 +286,37 @@ export function startCapture(deps) {
   api.next = function () { var i = names.indexOf(api.current); return api.goto(Math.min(names.length - 1, i + 1)); };
   api.prev = function () { var i = names.indexOf(api.current); return api.goto(Math.max(0, i - 1)); };
 
+  // 3D models arrive a moment after the run starts; the run's own rebuild only happens at the start, so rebuild here as they land
+  var lastModelAt = Date.now();
+  var frozen = false;
+  window.addEventListener('buzzword:model-ready', function () {
+    lastModelAt = Date.now();
+    if (frozen && api.ready) { game._rebuildPlayer(); render(api.current); }
+  });
+
   // start a Study run on just this card, then freeze the world the moment its first question is in place
   deps.launchRun('study', [card.id], { planCardIds: [card.id], allowContinue: false });
   var waited = 0;
   var poll = setInterval(function () {
     waited += 100;
-    if (game.card && game.card.id === card.id && game.gatesActive && game.gateMeshes && game.gateMeshes.length === 3) {
-      clearInterval(poll);
+    if (!frozen && game.card && game.card.id === card.id && game.gatesActive && game.gateMeshes && game.gateMeshes.length === 3) {
+      frozen = true;
       game.update = function () {}; // nothing moves from here on; main.js keeps rendering the scene each frame
       game._adaptResolution = function () {}; // and the picture quality stays put
       // (no run summary, nothing saved: the run is never finished)
       var hud = document.getElementById('hud'); if (hud) hud.classList.remove('off');
-      // the camera in its resting place (a run's opening fly-in would otherwise leave it wherever it was when frozen)
-      if (game.cameraBasePos) { game.camera.position.copy(game.cameraBasePos); game.camera.fov = game.baseFOV; game.camera.updateProjectionMatrix(); game.camera.lookAt(0, 1, -20); }
+      if (game.cameraBasePos) { game.camera.fov = game.baseFOV; }
       buildGates();
+      dress(); // (a first pass starts the obstacle and prop models downloading; the second, below, uses them)
+    }
+    // wait until the models have stopped arriving (full-quality hero, obstacles and props), then dress the track and show the first state
+    if (frozen && !api.ready && !api._finishing && (Date.now() - lastModelAt > 4000 || waited > 30000)) {
+      api._finishing = true;
+      clearInterval(poll);
+      game._rebuildPlayer();
       dress();
       render(param('state') || 'clue-1').then(function () { api.ready = true; document.documentElement.setAttribute('data-capture-ready', '1'); });
-    } else if (waited > 30000) {
+    } else if (!frozen && waited > 40000) {
       clearInterval(poll);
       api.error = 'the question never appeared';
     }

@@ -1277,7 +1277,7 @@ function init() {
   // (written with the build variable inline, so a normal build drops the branch and does not even emit js/capture.js)
   var captureWanted = import.meta.env.VITE_FEATURE_CAPTURE === '1' && /[?&]capture=/.test(window.location.search);
   var captureModule = (import.meta.env.VITE_FEATURE_CAPTURE === '1' && /[?&]capture=/.test(window.location.search)) ? import('./capture.js') : null;
-  if (captureWanted) storage.data.firstRunComplete = true; // (no first-run tutorial over the capture)
+  if (captureWanted) { storage.data.firstRunComplete = true; storage.data.settings.quality = 'high'; } // (no first-run tutorial over the capture; full graphics, whatever the machine)
   if (captureModule) captureModule.then(function (m) { m.prepareCapture(storage); });
   // In the phone apps the save is also kept in a file (the browser storage can be cleared by the system); if this game started
   // empty and the file holds a fuller save, it is offered back before the first-run tutorial

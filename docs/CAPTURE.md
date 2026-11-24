@@ -43,13 +43,19 @@ for (const state of await page.evaluate(() => window.__capture.states)) {
 
 `window.__capture.next()` and `.prev()` step one state; `window.__capture.current` and `document.body[data-capture-state]` name the state.
 
+## Graphics quality
+
+Captures always render at the game's **High** tier: all 3D hero and monster models, 3D obstacles and props, bloom, shadows and full resolution (up to 2x). The game's own "Auto" setting would pick **Low** on a headless or software-rendered browser (it detects SwiftShader), which is why earlier captures showed the simple stand-in hero. Capture mode sets Graphics to High itself, ignores any performance hint, and waits for the 3D models to finish loading (about 4 seconds of quiet) before it reports ready. `window.__capture.quality` shows the tier in use.
+
 ## The states
 
 The sequence has no "start" frame: a post begins at `clue-1`.
 
-1. `clue-1` ... `clue-N`: the clue box shows only the clues revealed so far, one more each step, in the order given by `clues` (default: the card's own order). In normal play all clues show at once; this progressive reveal exists only here. Put the vaguest clue first.
-2. `choices`: all clues revealed, the three gates close to the camera, and each answer on a big readable chip over its own gate (LEFT / CENTER / RIGHT), plus a capture-only line "N clues in — which gate?" (N is the number of clues in this post's sequence). The correct answer is in `lane`; the distractors are in the card's own order; no gate is lit up.
-3. `correct`: the runner going through the correct gate (the gate lit green around the runner), "✓ answer" and the card's teaching point (Study-mode presentation).
+1. `clue-1` ... `clue-N`: the clue box shows only the clues revealed so far, one more each step, in the order given by `clues` (default: the card's own order). In normal play all clues show at once; this progressive reveal exists only here. Put the vaguest clue first. `clue-1` also carries the editorial overlay "CAN YOU GUESS THE DIAGNOSIS?".
+2. `choices`: all clues revealed, the three gates close to the camera, each answer on a big readable chip over its own gate (LEFT / CENTER / RIGHT), and the editorial overlay "N CLUES IN / WHICH GATE?" (N is the number of clues in this post's sequence). The correct answer is in `lane`; the distractors are in the card's own order; no gate is lit up.
+3. `correct`: a capture-only celebration that never happens in play: the correct gate lit green, the hero standing in front of it facing the camera and cheering. The pose is the game's own `celebrate` animation state (the hero's own victory clip where `js/game/clipnames.js` defines one, otherwise its wave, dance, thumbs-up or clap clip), advanced 0.7 s into the clip. A hero built from shapes with no clips gets a small hop instead (`window.__capture.pose` says which). The "✓ answer" and the card's teaching point show as in Study mode.
+
+**Editorial overlays** are bold outlined caption lettering added for the viewer, not game UI, so they read as a post's caption (white and yellow, heavy outline and shadow, a slight tilt). They are drawn by capture mode only (`#captureOverlay`).
 
 The scene is dressed like a run in progress: coins, obstacles and the map's props, placed the same way for the same card and map. Nothing moves between states, the top bar is fixed, the dev and pop-up chrome is hidden, and no run is ever finished or saved.
 
