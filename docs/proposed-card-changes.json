@@ -1764,7 +1764,7 @@
     "field": "pearls[2]",
     "old": "Most common preventable cause of intellectual disability",
     "new": "A leading preventable cause of intellectual disability (alongside fetal alcohol spectrum disorder)",
-    "source": "https://www.aap.org/en/patient-care/immunizations/shared-clinical-decision-making-for-immunizations/",
+    "source": "https://pubmed.ncbi.nlm.nih.gov/36827521/",
     "confidence": "low",
     "severity": "low",
     "rationale": "Contradicts p146/ob135/pe174 (\"most common preventable\" = FASD).",
