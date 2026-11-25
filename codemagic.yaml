@@ -11,6 +11,9 @@ workflows:
     environment:
       node: 22
       xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.pathomnemonic.dxdash
       vars:
         VITE_BASE_PATH: /
         # Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as secure variables in Codemagic (same values as on GitHub)
@@ -75,7 +78,6 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files com.pathomnemonic.dxdash --type IOS_APP_STORE --create
           keychain add-certificates
           xcode-project use-profiles
       - name: Build the signed app
