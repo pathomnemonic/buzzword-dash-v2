@@ -168,6 +168,7 @@ card = pickResult ? pickResult.card : null;
     document.getElementById('rushEl').classList.remove('show');
 
     this.encounterStartTime = performance.now();
+    this._firstInputAt = null; // (stamped by _noteAnswerInput on the player's first lane input)
 
     var presentedAnswers = [this.gates[0].label, this.gates[1].label, this.gates[2].label];
     // How long the player has before the answer locks in (used to plan reading the question aloud in time)
@@ -179,6 +180,13 @@ card = pickResult ? pickResult.card : null;
       correctLane: correctLane,
       secondsToLock: secondsToLock
     });
+  },
+
+  /** The player's first lane input on this encounter: the moment they started committing to an answer. */
+  _noteAnswerInput() {
+    if (this.gatesActive && !this.answerLocked && this._firstInputAt == null) {
+      this._firstInputAt = performance.now();
+    }
   },
 
   _resolveEncounter() {
@@ -205,8 +213,11 @@ card = pickResult ? pickResult.card : null;
     var ok = gate.correct;
     if (ok && card && card.id) (this._knownThisRun || (this._knownThisRun = {}))[card.id] = true; // answered right once: not asked again in this run
 
-    // Track decision time
-    var decisionMs = resolvedAt - this.encounterStartTime;
+    // Track decision time: how long the player took to start committing to an answer once the card and the
+    // three choices were on screen (the HUD shows all three from the start of the encounter), not how long
+    // the gates took to travel to the runner. A player who never steers decided by staying in their lane,
+    // so their decision time runs to the resolution.
+    var decisionMs = (this._firstInputAt != null ? this._firstInputAt : resolvedAt) - this.encounterStartTime;
     if (ok && decisionMs > 0) {
       if (this.fastestDecisionMs === null || decisionMs < this.fastestDecisionMs) {
         this.fastestDecisionMs = decisionMs;
@@ -231,7 +242,7 @@ card = pickResult ? pickResult.card : null;
       rushed: wasRushing,
       rushStacks: stacks,
       clueShownAt: this.encounterStartTime,
-      firstInputAt: null,
+      firstInputAt: this._firstInputAt,
       committedAt: resolvedAt,
       resolvedAt: resolvedAt,
       decisionMs: decisionMs,
@@ -325,7 +336,9 @@ card = pickResult ? pickResult.card : null;
       this.wrong++;
       this.streak = 0;
       this.multiplier = Math.max(1, this.multiplier - 1);
-      this.lives--;
+      // Study mode is sold as "no lives lost": the counter is not touched there. (It used to fall on every
+      // wrong answer anyway, far below zero over a long session, while only the fatal branch was gated.)
+      if (this.mode !== GAME_MODES.STUDY) this.lives--;
 
       this.stumbleTimer = 0.3;
 
