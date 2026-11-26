@@ -62,4 +62,15 @@ describe('service worker caches', () => {
     expect([...sw.stores['dx-dash-b1'].keys()]).toEqual(['https://x.test/decks/index.json']);
     expect(sw.stores['dx-assets']).toBeUndefined();
   });
+
+  it('serves remote-config.json network first, so an edited config reaches existing players', async () => {
+    const sw = load();
+    const url = 'https://x.test/remote-config.json';
+    const stale = { ok: true, url, stale: true, clone() { return this; } };
+    sw.stores['dx-dash-b1'] = new Map([[url, stale]]);
+    await sw.request(url);
+    // the cached copy was replaced by the fresh network answer, not served stale
+    expect(sw.stores['dx-dash-b1'].get(url)).not.toBe(stale);
+    expect(sw.stores['dx-dash-b1'].get(url).url).toBe(url);
+  });
 });
