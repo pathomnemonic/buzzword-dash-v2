@@ -263,7 +263,14 @@ function maybeShowMultiplayerResult() {
   else if (outcome === 'loss') message = 'Rival won ' + them + '–' + you;
   else message = '🤝 Tie game: ' + you;
   showMultiplayerMessage(message, 'var(--accent-gold)');
-  if (storage.recordMultiplayerGame) storage.recordMultiplayerGame(outcome === 'win');
+  if (storage.recordMultiplayerGame) {
+    if (outcome === 'win') storage.recordMultiplayerGame(true);
+    // The result is recorded here, when the match is decided, which can be after the player's own run
+    // was finalized: check the badges now, so Victor and Dominant arrive with the result instead of
+    // waiting for the next launch's catch-up check.
+    var mpUnlocked = storage.checkAchievements(null);
+    if (mpUnlocked.length) ui.showAchievementNotification(mpUnlocked);
+  }
   if (isRankedActive()) finishRankedMatch(outcome === 'tie' ? 'draw' : outcome);
 }
 
@@ -973,6 +980,10 @@ function launchRun(mode, orderedCardIds, modeConfig) {
   game.start({
     mode: mode,
     runId: currentRunId,
+    // A head-to-head run carries its match id into the run summary, so the game is counted under the
+    // match it belonged to. Only while that match is live and undecided: after it ends the id is stale
+    // (a Play Again tap in the results window must not stamp the finished match onto a new run).
+    matchId: isMultiplayerMode(mode) && multiplayerMatchStarted && !multiplayerLocalResult && multiplayerClient ? (multiplayerClient.matchId || null) : null,
     // Head-to-head matches use the standard speed so both players run the same track
     userSpeed: isMultiplayerMode(mode) ? 1 : (storage.get('userSpeed') || 1),
     orderedCardIds: orderedCardIds,

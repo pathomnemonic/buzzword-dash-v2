@@ -1815,11 +1815,13 @@ class Storage {
     }
 
     // --- Multiplayer ---
+    // The game is counted here, from the match id the run was started with. The win is not: a Versus
+    // match is decided only when both players have finished, which is often after this run has been
+    // finalized, so wins are recorded by recordMultiplayerGame at the moment the match is decided
+    // (see maybeShowMultiplayerResult in main.js). The summary's result field stays 'none' because the
+    // engine cannot know the outcome when it builds the summary.
     if (summary.multiplayer && summary.multiplayer.matchId) {
       p.multiplayerGamesPlayed++;
-      if (summary.multiplayer.result === 'win') {
-        p.multiplayerWins++;
-      }
     }
 
     // --- Per-encounter card/subject stats ---
@@ -2307,8 +2309,9 @@ class Storage {
 
   // ===== MULTIPLAYER STATS =====
 
+  // Called when a Versus match is decided (both players finished, or a forfeit): records the win.
+  // The game itself was already counted by finalizeRun from the run summary's matchId.
   recordMultiplayerGame(won) {
-    this.data.progression.multiplayerGamesPlayed++;
     if (won) this.data.progression.multiplayerWins++;
     this.save();
   }
