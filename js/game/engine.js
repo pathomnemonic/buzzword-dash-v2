@@ -214,6 +214,7 @@ class Game {
 
     // Timing
     this.encounterStartTime = 0;
+    this._firstInputAt = null;
     this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;
 
@@ -471,8 +472,8 @@ class Game {
     this.powerupFX = new PowerUpFX(this.scene);
     var self = this;
     this._inputDispose = setupInput(this.renderer.domElement, {
-        moveLeft: function() { if (self.targetLane > 0) { self.targetLane--; self._sfx('lane'); self._tut('action', 'moveLeft'); } },
-        moveRight: function() { if (self.targetLane < 2) { self.targetLane++; self._sfx('lane'); self._tut('action', 'moveRight'); } },
+        moveLeft: function() { self._noteAnswerInput(); if (self.targetLane > 0) { self.targetLane--; self._sfx('lane'); self._tut('action', 'moveLeft'); } },
+        moveRight: function() { self._noteAnswerInput(); if (self.targetLane < 2) { self.targetLane++; self._sfx('lane'); self._tut('action', 'moveRight'); } },
         jump: function() { self.jump(); },
         slide: function() { self.slide(); },
         rush: function() { self.addRushStack(); },
@@ -879,7 +880,7 @@ class Game {
 
     this.celebrateTimer = 0; this.flourishTimer = 0; this._trackGlow = 0; this._removeSecret(false); this._secret = null; this.stumbleTimer = 0;
     this.landingTimer = 0; this.wasJumping = false;
-    this.encounterStartTime = 0; this.lastEncounterTime = 0;
+    this.encounterStartTime = 0; this._firstInputAt = null; this.lastEncounterTime = 0;
     this.fastestDecisionMs = null;
     this.isNewBest = false; this._runEnded = false; this._runSummary = null;
     this.runCoinsCollected = 0; this.runPowerupsCollected = 0; this.runCoinsMissed = 0;
@@ -936,6 +937,7 @@ class Game {
         var away = performance.now() - this._pausedAt;
         this._pausedTotalMs = (this._pausedTotalMs || 0) + away;
         if (this.encounterStartTime) this.encounterStartTime += away;
+        if (this._firstInputAt) this._firstInputAt += away; // (a decision stamped before the pause shifts with the clue time)
         this._pausedAt = 0;
       }
       this._transition(GAME_STATES.PLAYING);
