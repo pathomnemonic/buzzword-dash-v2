@@ -269,7 +269,6 @@ export function refreshPro(deps) {
   var iap = deps.iap || getIap();
   var asked = 0;
   var libraryOwned = null;
-  var trialStarted = false;
   var ownedItems = [];
   var storeItems = [];      // owned through the phone's store: never taken back by the server
   var serverItems = null;   // what the server lists as paid for (null until it has answered properly)
@@ -288,18 +287,10 @@ export function refreshPro(deps) {
   if (lb && lb.isAuthenticated && lb.isAuthenticated() && lb.getMyPro) {
     // (a phone-store purchase is first checked with the store and attached to the account, so what the server says below includes it)
     jobs.push((iapVerifyEnabled() ? iap.start().catch(function () { return false; }).then(function () { return verifyStorePurchases(lb, iap, { now: now }); }).catch(function () { return 0; }) : Promise.resolve(0)).then(function () { return lb.getMyPro(); }).then(function (r) {
-      // every account (not a guest) gets one free 7-day trial: start it the first time we see it is unused
-      if (r && !r.active && r.trial_available && lb.startProTrial && proLive()) {
-        return lb.startProTrial().then(function (t) {
-          if (t && t.ok) {
-            trialStarted = true;
-            return lb.getMyPro();
-          }
-          return r;
-        }).catch(function () { return r; });
-      }
-      return r;
-    }).then(function (r) {
+      // The answer is only read here, never acted on: whether the account may still start its one free
+      // trial is remembered for the offer (trialAvailable), and the trial itself starts only from the
+      // player's own tap on that offer (startProTrial below). Starting it here, as this used to, burned
+      // the one trial start_my_trial allows the first time a player merely signed in.
       if (!r || r.error) return; // no answer: keep what we had (never read a failed call as "no Pro")
       asked++;
       writeJson(TRIAL_KEY, { available: !!r.trial_available });
@@ -351,9 +342,25 @@ export function refreshPro(deps) {
     if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned });
     if (libraryUnlocked() !== libBefore && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:library-changed'));
     if (isPro(now) !== before && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
-    if (trialStarted && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-trial-started'));
     return proStatus();
   });
+}
+
+/**
+ * Start the account's one free 7-day trial. This is the only place a trial ever starts, and it is called
+ * only from the player's own tap on the trial offer (proui.js): the server allows exactly one start per
+ * account, so a start must never happen as a side effect of signing in or of a status refresh.
+ * Resolves the Pro status after the start.
+ */
+export function startProTrial(lb) {
+  if (!lb || !lb.startProTrial) return Promise.resolve(proStatus());
+  return lb.startProTrial().then(function (t) {
+    if (!t || !t.ok) return proStatus();
+    return refreshPro({ lb: lb }).then(function (st) {
+      if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-trial-started'));
+      return st;
+    });
+  }).catch(function () { return proStatus(); });
 }
 
 /**
