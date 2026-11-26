@@ -1258,8 +1258,11 @@ function init() {
   }).catch(function (e) {
     reportError(e, { system: 'cards', operation: 'load', recoverable: true });
   });
-  // ?debug=1 exposes the engine on window.__game for measuring performance
-  if (/[?&]debug=1(&|$)/.test(window.location.search)) {
+  // ?debug=1 exposes the engine on window.__game for measuring performance and for the browser tests.
+  // Only in a dev or test build (import.meta.env.DEV, or VITE_FEATURE_DEBUG=1 as CI sets): written with the
+  // build variables inline, like capture mode below, so a shipped build drops the whole branch and the live
+  // game, Pro and save objects are never reachable from the console of the real app.
+  if ((import.meta.env.DEV || import.meta.env.VITE_FEATURE_DEBUG === '1') && /[?&]debug=1(&|$)/.test(window.location.search)) {
     window.__game = game;
     window.__ui = ui;
     window.__useRankedTestClient = useRankedTestClient;
