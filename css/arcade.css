@@ -2476,10 +2476,8 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 @media (max-height: 860px) {
   .se-body em { display: none; }
   .sheet-entry { padding: 5px 9px; }
-  .se-body span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 }
 @media (max-height: 580px) {
-  .se-body span { -webkit-line-clamp: 1; }
   .sheet-list { gap: 4px; }
   .sheet-card h2 { font-size: 17px; }
 }
