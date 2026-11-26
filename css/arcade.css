@@ -1534,9 +1534,10 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .locker-tabs .locker-tab .tab-icon { display: block; font-size: 16px; line-height: 1.1; }
 .hero-card { margin: 8px 0 4px; padding: 10px 12px; border-radius: 16px; background: rgba(0, 0, 0, .18); border: 2px solid var(--ink, #1b1030); }
 .hero-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.hero-card-title { display: flex; flex-direction: column; min-width: 0; }
+.hero-card-title { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.hero-card-head .btn { flex: none; }
 .hero-card-label { font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--text-secondary); }
-.hero-card-title strong { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-card-title strong { font-size: 15px; line-height: 1.15; white-space: normal; overflow-wrap: break-word; }
 
 /* ---------- hero pictures as the profile picture ---------- */
 .profile-avatar.has-portrait, .home-profile-btn .hp-avatar.has-portrait { overflow: hidden; padding: 0; background: rgba(255, 255, 255, .08); }
