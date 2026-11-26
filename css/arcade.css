@@ -1187,7 +1187,7 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 .profile-badge-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
 .profile-badge-list .achievement-item { flex-direction: column; justify-content: flex-start; gap: 2px; padding: 8px 2px 6px; margin: 0; text-align: center; min-width: 0; }
 .profile-badge-list .achievement-icon { width: 34px; height: 34px; font-size: 22px; }
-.profile-badge-list .achievement-name { font-size: 10px; line-height: 1.15; font-weight: 800; overflow-wrap: anywhere; }
+.profile-badge-list .achievement-name { font-size: 10px; line-height: 1.15; font-weight: 800; overflow-wrap: break-word; }
 .profile-badge-list .badge-pin { position: absolute; top: 1px; right: 2px; margin: 0; font-size: 11px; min-width: 0; }
 .badge-detail { margin: 6px 0 4px; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.25); font-size: 12px; line-height: 1.35; min-height: 2.7em; }
 .badge-group { margin: 6px 0; border-radius: 14px; background: rgba(40, 20, 80, 0.6); border: 2px solid rgba(187, 102, 255, 0.25); padding: 0 8px 8px; }
@@ -2610,7 +2610,7 @@ body.dyslexia .btn, body.dyslexia .mode-btn, body.dyslexia h3 { font-family: "Op
 
 /* pinned badge names always show: they wrap to two lines instead of being cut to dots or hidden */
 .showcase-badge { border-radius: 16px; }
-.showcase-name { white-space: normal; line-height: 1.1; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.showcase-name { white-space: normal; line-height: 1.1; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
 /* phones zoom the whole page in when a text field under 16px gets focus, and then it stays zoomed: never let a field be that small */
 @media (pointer: coarse) {
