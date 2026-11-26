@@ -325,7 +325,9 @@ card = pickResult ? pickResult.card : null;
       this.wrong++;
       this.streak = 0;
       this.multiplier = Math.max(1, this.multiplier - 1);
-      this.lives--;
+      // Study mode is sold as "no lives lost": the counter is not touched there. (It used to fall on every
+      // wrong answer anyway, far below zero over a long session, while only the fatal branch was gated.)
+      if (this.mode !== GAME_MODES.STUDY) this.lives--;
 
       this.stumbleTimer = 0.3;
 
