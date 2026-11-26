@@ -10,7 +10,7 @@ import { openExternal } from './platform.js';
 import { track } from './analytics/index.js';
 import { variant } from './analytics/index.js';
 import { getIap } from './iap.js';
-import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, hasAccount, canCancel, cancelSubscription, trialAvailable, subscriptionState, proGiftState, PRO_FEATURES, libraryUnlocked } from './pro.js';
+import { proLive, isPro, checkGate, proStatus, proPlans, buyPlan, restorePro, redeemCode, refreshPro, startProTrial, proWebUrl, webCheckoutEnabled, webPlans, webBuy, webManage, hasAccount, canCancel, cancelSubscription, trialAvailable, subscriptionState, proGiftState, PRO_FEATURES, libraryUnlocked } from './pro.js';
 import { libraryCounts } from './cardhub.js';
 
 var _lb = null;       // the leaderboard service, once it is ready (for codes and the server's answer)
@@ -125,7 +125,7 @@ export function openPaywall(o) {
         act('trial_start', {});
         trialBtn.disabled = true;
         setText(status, 'Starting your trial…');
-        refreshPro({ lb: _lb }).then(function (st) { trialBtn.disabled = false; if (st.active) { act('trial_started', {}); _toast('Your free 7-day Pro trial has started! 🎉'); cleanup(); } else setText(status, 'Could not start the trial just now. Please try again.'); });
+        startProTrial(_lb).then(function (st) { trialBtn.disabled = false; if (st.active) { act('trial_started', {}); _toast('Your free 7-day Pro trial has started! 🎉'); cleanup(); } else setText(status, 'Could not start the trial just now. Please try again.'); });
       });
       list.appendChild(trialBtn);
     }
