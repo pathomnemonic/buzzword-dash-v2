@@ -133,6 +133,8 @@ jobs:
         env:
           # (the browser tests exercise buying a Locker item; the shipped builds in deploy.yml and android.yml leave it off)
           VITE_FEATURE_LOCKER_ITEMS: '1'
+          # (the browser tests drive the game through the ?debug=1 hooks in main.js and pro.js; shipped builds leave them out)
+          VITE_FEATURE_DEBUG: '1'
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
