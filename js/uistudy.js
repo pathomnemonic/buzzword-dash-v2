@@ -96,12 +96,12 @@ export var studyMethods = {
 
       var btnRow = createElement('div');
       btnRow.style.cssText = 'display:flex;gap:8px;margin-top:16px';
-      var gotItBtn = createElement('button', { className: 'btn btn-green', text: '✅ Got it (→)', attributes: { id: 'fcGotBtn' } });
+      var gotItBtn = createElement('button', { className: 'btn btn-green', attributes: { id: 'fcGotBtn' }, children: [document.createTextNode('✅ Got it '), createElement('span', { className: 'fc-key-hint', text: '(→)' })] });
       gotItBtn.style.flex = '1';
       gotItBtn.addEventListener('click', function () { fm.rate('correct'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
       btnRow.appendChild(gotItBtn);
 
-      var missedBtn = createElement('button', { className: 'btn btn-red', text: '❌ Missed it (←)', attributes: { id: 'fcMissBtn' } });
+      var missedBtn = createElement('button', { className: 'btn btn-red', attributes: { id: 'fcMissBtn' }, children: [document.createTextNode('❌ Missed it '), createElement('span', { className: 'fc-key-hint', text: '(←)' })] });
       missedBtn.style.flex = '1';
       missedBtn.addEventListener('click', function () { fm.rate('incorrect'); self._flashcardAnswer = null; self.renderFlashcardScreen(); });
       btnRow.appendChild(missedBtn);

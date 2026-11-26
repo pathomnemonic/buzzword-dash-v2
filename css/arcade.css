@@ -2097,6 +2097,8 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 @media (max-height: 640px) { .showcase-badge { min-height: 30px; padding: 2px 8px 2px 5px; font-size: 10px; gap: 4px; } .showcase-icon { font-size: 15px; } }
 
 /* ---------- report a card ---------- */
+/* the flashcard rating buttons carry a keyboard arrow hint; on touch layouts the arrows only confuse, so they are hidden there */
+@media (pointer: coarse) { .fc-key-hint { display: none; } }
 .cb-flag { margin-left: auto; min-width: 44px; min-height: 44px; font-size: 16px; background: transparent; border: 0; cursor: pointer; opacity: .75; }
 .cb-flag:hover, .cb-flag:focus-visible { opacity: 1; }
 .cb-meta { align-items: center; }
