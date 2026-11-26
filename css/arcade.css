@@ -1929,10 +1929,9 @@ body:not(.in-game) #noticeDock { bottom: calc(var(--safe-bottom, 0px) + 80px); }
 /* Quests must all fit on one screen: the Claim button looks compact but keeps a full 44 px tap area */
 .quest-item .btn, .quest-item .btn-sm { min-height: 32px; position: relative; }
 .quest-item .btn::after, .quest-item .btn-sm::after { content: ''; position: absolute; inset: -6px -4px; }
-/* the Claim button sits at the right of the quest, centred on it, so a finished quest is no taller than an unfinished one */
+/* the Claim button stays in the claim row under the progress bar (in flow, at the row's right end), so it can never sit on top of the bar */
 #questList .quest-item { position: relative; }
-#questList .quest-item.has-claim > .quest-title, #questList .quest-item.has-claim > .quest-bar, #questList .quest-item.has-claim > .quest-claim-row { margin-right: 104px; }
-#questList .quest-item.has-claim .quest-claim-row .btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); min-height: 34px; min-width: 92px; padding: 4px 8px; }
+#questList .quest-item.has-claim .quest-claim-row .btn { min-height: 34px; min-width: 92px; padding: 4px 8px; }
 @media (max-height: 700px) {
   #questList .quest-item { padding: 5px 10px; margin: 3px 0; }
   #questList .quest-title { font-size: 11px; line-height: 1.2; }
