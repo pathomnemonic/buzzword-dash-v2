@@ -52,6 +52,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(req, { cache: 'no-cache' }).then(store).catch(() => caches.match(req).then((r) => r || Response.error())));
     return;
   }
+  // The remote config (remote-config.json: the kill switches and the Pro configuration): network first, like the
+  // decks. remoteconfig.js fetches it with cache: 'no-cache', but that only governs the page's own request; this
+  // worker answers first, so without this branch the cached copy from the first visit would be served for ever
+  // (until a redeploy changed the cache name) and an edited config would never reach existing web players.
+  if (url.pathname.endsWith('/remote-config.json')) {
+    event.respondWith(fetch(req, { cache: 'no-cache' }).then(store).catch(() => caches.match(req).then((r) => r || Response.error())));
+    return;
+  }
   if (HASHED.test(url.pathname)) {
     event.respondWith(caches.match(req).then((hit) => hit || fetch(req).then(into(ASSETS))));
     return;
