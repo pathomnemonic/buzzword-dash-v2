@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { setProConfigForTest } from '../../js/remoteconfig.js';
-import { cancelSubscription, checkCancelFollowThrough, subscriptionState, canCancel, resetProForTest, setSellableForTest, webCheckoutEnabled, webPlans, webBuy, webManage, waitForWebPayment, probeSellable, proLive, libraryUnlocked, isPro, refreshPro } from '../../js/pro.js';
+import { cancelSubscription, checkCancelFollowThrough, subscriptionState, canCancel, resetProForTest, setSellableForTest, webCheckoutEnabled, webPlans, webBuy, webManage, waitForWebPayment, probeSellable, proLive, libraryUnlocked, isPro, refreshPro, startProTrial, trialAvailable } from '../../js/pro.js';
 import { setIapForTest, createIap } from '../../js/iap.js';
 import { openPaywall, setProUiDeps } from '../../js/proui.js';
 
@@ -111,34 +111,38 @@ describe('Pro on the website', () => {
     expect(none.tries).toBe(3);
   });
 
-  it('gives every signed-in account the free trial once, and nothing to a guest or someone who had it', async () => {
+  it('refreshPro never starts the trial by itself: signing in only learns that it is available', async () => {
     await probeSellable();
     let started = 0;
-    let used = false;
     const lb = fakeLb({
-      getMyPro: async () => (started ? { active: true, until: new Date(Date.now() + 7 * 86400000).toISOString(), plan: 'trial', source: 'trial', trial: true, trial_available: false } : { active: false, library: false, trial_available: !used }),
+      getMyPro: async () => ({ active: false, library: false, trial_available: true }),
+      startProTrial: async () => { started++; return { ok: true, days: 7 }; }
+    });
+    const st = await refreshPro({ lb });
+    expect(started).toBe(0);
+    expect(st.active).toBe(false);
+    expect(trialAvailable()).toBe(true);
+    // someone who already used theirs: nothing is available and nothing is started
+    resetProForTest();
+    const lb2 = fakeLb({ getMyPro: async () => ({ active: false, library: false, trial_available: false }), startProTrial: async () => { started++; return { ok: true }; } });
+    expect((await refreshPro({ lb: lb2 })).active).toBe(false);
+    expect(trialAvailable()).toBe(false);
+    expect(started).toBe(0);
+  });
+
+  it('startProTrial starts the one trial when the player taps, and reports it', async () => {
+    await probeSellable();
+    let started = 0;
+    const lb = fakeLb({
+      getMyPro: async () => (started ? { active: true, until: new Date(Date.now() + 7 * 86400000).toISOString(), plan: 'trial', source: 'trial', trial: true, trial_available: false } : { active: false, library: false, trial_available: true }),
       startProTrial: async () => { started++; return { ok: true, days: 7 }; }
     });
     const events = [];
     document.addEventListener('dx:pro-trial-started', () => events.push(1), { once: true });
-    const st = await refreshPro({ lb });
+    const st = await startProTrial(lb);
     expect(started).toBe(1);
     expect(st).toMatchObject({ active: true, trial: true });
     expect(events.length).toBe(1);
-    // already used: it is not started again
-    resetProForTest();
-    started = 0; used = true;
-    const lb2 = fakeLb({ getMyPro: async () => ({ active: false, library: false, trial_available: false }), startProTrial: async () => { started++; return { ok: true }; } });
-    expect((await refreshPro({ lb: lb2 })).active).toBe(false);
-    expect(started).toBe(0);
-  });
-
-  it('does not start the trial before Pro is live (nothing to buy yet), so it is not used up unseen', async () => {
-    vi.stubEnv('VITE_PRO_WEB_CHECKOUT', '');
-    await probeSellable();
-    let started = 0;
-    await refreshPro({ lb: fakeLb({ getMyPro: async () => ({ active: false, trial_available: true }), startProTrial: async () => { started++; return { ok: true }; } }) });
-    expect(started).toBe(0);
   });
 
   it('a library-only buyer opens every card but gets no Pro', async () => {
