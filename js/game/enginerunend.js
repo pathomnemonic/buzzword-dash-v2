@@ -284,9 +284,9 @@ export var runEndMethods = {
 
       multiplayer: {
         matchId: (this._startOptions && this._startOptions.matchId) || null,
-        result: 'none',
+        result: 'none', // (the engine cannot know the outcome: a match is decided when both players finish)
         opponentId: null,
-        raceTimeMs: null,
+        raceTimeMs: durationMs,
         eliminated: reason === RUN_END_REASONS.SUDDEN_DEATH_ELIMINATION,
         forfeit: reason === RUN_END_REASONS.LOCAL_FORFEIT
       }
