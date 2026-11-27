@@ -31,11 +31,11 @@ CREATE POLICY "scores_select_public"
     OR EXISTS (SELECT 1 FROM player_profiles p WHERE p.user_id = scores.user_id AND p.visible = true)
   );
 
--- Authenticated users can insert their own scores.
+-- Scores are written only through submit_score (database/schema.sql), which takes the
+-- user from the session and applies the believable range and flood limits itself.
+-- There is deliberately no INSERT policy: with the public key, a direct insert could
+-- otherwise post any in bounds score without ever playing a run (issue 93).
 DROP POLICY IF EXISTS "scores_insert_own" ON scores;
-CREATE POLICY "scores_insert_own"
-  ON scores FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
 
 -- Users cannot update or delete scores once submitted.
 -- (No UPDATE or DELETE policies = forbidden by default with RLS.)
