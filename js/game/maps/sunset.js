@@ -70,7 +70,10 @@ function lounge(g, S, z) {
   [-1.1, 1.1].forEach(function (dz, i) {
     var x = S.in(0.5);
     cyl(g, 0.03, 0.03, 2.3, 0xffffff, x, 1.15, z + dz, { seg: 4 });
-    for (var s = 0; s < 6; s++) cone(g, 1.0, 0.5, s % 2 ? 0xffffff : POP[i * 2], x, 2.4, z + dz, { seg: 6, ry: (s * Math.PI) / 3 });
+    // A ring of small cones reads as a frilled shade; six identical hex
+    // cones at one spot would coincide with themselves every 60 degrees
+    // and z-fight, so each sits at its own point on the ring.
+    for (var s = 0; s < 6; s++) cone(g, 0.34, 0.5, s % 2 ? 0xffffff : POP[i * 2], x + Math.cos(s * Math.PI / 3) * 0.55, 2.4, z + dz + Math.sin(s * Math.PI / 3) * 0.55, { seg: 6, ry: (s * Math.PI) / 3 });
     box(g, 0.6, 0.12, 1.4, 0xffffff, x, 0.35, z + dz + 0.3);
     box(g, 0.64, 0.05, 1.0, POP[i * 2 + 1], x, 0.45, z + dz + 0.5);
   });
@@ -112,7 +115,7 @@ function iceCart(g, S, z) {
   box(g, 0.84, 0.18, 1.95, TEAL, x, 1.18, z);
   [-0.7, 0.7].forEach(function (dz) { cyl(g, 0.3, 0.3, 0.1, 0x2a2d3a, x, 0.3, z + dz, { rz: Math.PI / 2, seg: 8 }); });
   cyl(g, 0.03, 0.03, 2.2, 0xffffff, x, 2.0, z, { seg: 4 });
-  for (var s = 0; s < 6; s++) cone(g, 1.05, 0.5, s % 2 ? 0xffffff : CORAL, x, 3.05, z, { seg: 6, ry: (s * Math.PI) / 3 });
+  for (var s = 0; s < 6; s++) cone(g, 0.36, 0.5, s % 2 ? 0xffffff : CORAL, x + Math.cos(s * Math.PI / 3) * 0.58, 3.05, z + Math.sin(s * Math.PI / 3) * 0.58, { seg: 6, ry: (s * Math.PI) / 3 });
   // capsule-shaped ice pops standing in the tray
   for (var p = 0; p < 5; p++) {
     var pz = z - 0.7 + p * 0.35;
