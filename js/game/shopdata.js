@@ -670,7 +670,7 @@ export var QUESTS = [
   { id: QUEST_IDS.STREAK_8, title: 'Hot Streak', desc: '8 correct in a row in one run', target: 8, reward: 30, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.PERFECT_5, title: 'Perfect Five', desc: '5 correct in a row without a mistake', target: 5, reward: 30, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.STREAK_12, title: 'On a Roll', desc: '12 correct in a row in one run', target: 12, reward: 50, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
-  { id: QUEST_IDS.STREAK_20, title: 'On a Roll', desc: '20 correct in a row in one run', target: 20, reward: 70, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.STREAK_20, title: 'Full Steam', desc: '20 correct in a row in one run', target: 20, reward: 70, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.CLEAN_10, title: 'Clean Sheet', desc: 'Finish a run with 10+ correct and no mistakes', target: 10, reward: 50, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
   { id: QUEST_IDS.CLEAN_15, title: 'Spotless', desc: 'Finish a run with 15+ correct and no mistakes', target: 15, reward: 70, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
   { id: QUEST_IDS.ACCURACY_80, title: 'Steady Aim', desc: 'Finish a run of 10+ answers at 80% accuracy or better', target: 80, reward: 40, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
