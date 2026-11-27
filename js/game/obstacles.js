@@ -26,7 +26,7 @@ import { roundedBox, upgradeMaterials, markShared, mergeStatic, softenTranslucen
 import { buildScenery, buildHanging } from './scenery.js';
 import { buildModelCharacter, loadCharacterModel, isModelReady } from './charactermodel.js';
 import { modelUrl } from './modelcatalog.js';
-import { useCharacterModels } from './quality.js';
+import { useCharacterModels, isLowQuality } from './quality.js';
 import { VISUAL_SPEED } from './enginedefs.js';
 import { COIN_GAP, coinsForObstacle, jumpArc, jumpArcLength, arcCoinCount } from './coinfx.js';
 
@@ -614,13 +614,19 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
   var staff = variant.staff ? buildStaffMember(variant.staff) : null;
   if (staff) obs.add(staff);
   obs.position.set(LANE_X[lane], 0, spawnZ);
+  // A staffed obstacle is deeper than its furniture: the staffer stands 1.7
+  // units behind the gurney, and the collision bounds must cover the person
+  // too or the obstacle's footprint understates what is actually in the lane.
+  var bounds = staff
+    ? { width: variant.bounds.width, height: variant.bounds.height, depth: variant.bounds.depth + 1.7 }
+    : variant.bounds;
   obs.userData = {
     staff: staff,
     lane: lane,
     type: isSlide ? 'high' : 'low',
     variantId: variant.id,
     obstacleType: isSlide ? 'slide' : 'jump',
-    bounds: variant.bounds
+    bounds: bounds
   };
   softenTranslucentScenery(obs);
   scene.add(obs);
@@ -630,7 +636,7 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
     variantId: variant.id,
     type: isSlide ? 'slide' : 'jump',
     lane: lane,
-    bounds: variant.bounds
+    bounds: bounds
   };
 }
 
@@ -657,13 +663,21 @@ export function isImpossibleLayout(entry1, entry2) {
 // ===== COINS WITH GLOW =====
 
 var _coinTemplate = null;
+var _coinTemplateLow = null;
 
-/** Built once; every coin is a clone that shares its geometry and materials (far fewer GPU buffers). */
+/** Built once per quality tier; every coin is a clone that shares its geometry and materials (far fewer GPU buffers). */
 /** A coin is drawn this much bigger than its first model, so it reads from a distance. */
 var COIN_SCALE = 1.3;
 
 function getCoinTemplate() {
-  if (_coinTemplate) return _coinTemplate;
+  // The template's geometry is built by roundedBox, which follows the current
+  // quality tier. Keying the cache on the tier keeps a quality change from
+  // leaving the old tier's coin geometry in place for the rest of the
+  // session. Coins already on the track keep the shared geometry they were
+  // cloned with; only new coins pick up the rebuilt template.
+  var low = isLowQuality();
+  if (_coinTemplate && _coinTemplateLow === low) return _coinTemplate;
+  _coinTemplateLow = low;
   var group = new THREE.Group();
   var gold = new THREE.MeshStandardMaterial({
     color: 0xffc83a, metalness: 0.95, roughness: 0.22,
@@ -713,7 +727,10 @@ var MAX_COIN_INSTANCES = 600;
 
 /** Switch coins to instanced drawing. Call once the scene exists; safe to call twice. */
 export function enableCoinInstancing(scene) {
-  if (_instancing) return;
+  // Rebuilt when the coin template was: instanced meshes draw with the
+  // template's geometry, so a stale set would keep the old quality tier.
+  if (_instancing && _instancing.low === isLowQuality()) return;
+  if (_instancing) disableCoinInstancing();
   var template = getCoinTemplate();
   var parts = [];
   var meshes = [];
@@ -729,7 +746,7 @@ export function enableCoinInstancing(scene) {
     meshes.push(inst);
     parts.push(child.matrix.clone());
   });
-  _instancing = { scene: scene, meshes: meshes, parts: parts };
+  _instancing = { scene: scene, meshes: meshes, parts: parts, low: isLowQuality() };
 }
 
 export function disableCoinInstancing() {
@@ -1061,7 +1078,10 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
   var spawnZ;
 
   if (planEntry) {
-    // Deterministic
+    // Deterministic. A planned power-up the player or the mode has disabled
+    // does not spawn at all: the plan path used to ignore the disabled list
+    // that the random path honours.
+    if (disabledTypes && disabledTypes.indexOf(planEntry.type) >= 0) return;
     lane = planEntry.lane;
     spawnZ = (planEntry.offset || -55) * VISUAL_SPEED;
     puDef = null;
@@ -1071,7 +1091,11 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
         break;
       }
     }
-    if (!puDef) puDef = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
+    if (!puDef) {
+      var allowedPlan = PU_TYPES.filter(function (t) { return !disabledTypes || disabledTypes.indexOf(t.type) < 0; });
+      if (allowedPlan.length === 0) return;
+      puDef = allowedPlan[Math.floor(Math.random() * allowedPlan.length)];
+    }
   } else {
     // Random, skipping any the player turned off (single-player rules)
     var allowed = PU_TYPES.filter(function (t) { return !disabledTypes || disabledTypes.indexOf(t.type) < 0; });
