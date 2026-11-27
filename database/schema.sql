@@ -105,6 +105,78 @@ USING scores better
 WHERE better.user_id = s.user_id AND better.mode = s.mode AND better.season = s.season
   AND (better.score > s.score OR (better.score = s.score AND better.id < s.id));
 
+-- The one write path for leaderboard scores. Direct inserts into scores are
+-- closed (see policies.sql): a signed in client could otherwise post any in
+-- bounds score with the public key, without ever playing a run. This function
+-- takes the user from the session, applies the same believable range and flood
+-- limits scores_sanity applies to direct inserts (that trigger steps aside
+-- here because this function runs as its owner), and keeps one best row per
+-- player, mode and season through the existing keep best trigger. A repeated
+-- run id is a retry of the same submission and succeeds without a second row.
+CREATE OR REPLACE FUNCTION submit_score(
+  p_player_name text,
+  p_avatar text,
+  p_score integer,
+  p_accuracy integer,
+  p_best_streak integer,
+  p_speed numeric,
+  p_mode text,
+  p_badges text[],
+  p_run_id text,
+  p_season text
+) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  uid uuid := auth.uid();
+  v_name text := left(coalesce(nullif(btrim(p_player_name), ''), 'Anonymous'), 30);
+  v_avatar text := left(coalesce(nullif(btrim(p_avatar), ''), 'avatar_intern'), 64);
+  v_mode text := left(coalesce(nullif(btrim(p_mode), ''), 'endless'), 32);
+  v_season text := left(coalesce(nullif(btrim(p_season), ''), 'default'), 32);
+  v_badges text[] := coalesce(p_badges, '{}');
+  v_id bigint;
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
+  END IF;
+  IF p_run_id IS NULL OR btrim(p_run_id) = '' OR char_length(p_run_id) > 64 THEN
+    RAISE EXCEPTION 'a run id is required' USING ERRCODE = '22023';
+  END IF;
+  IF p_score IS NULL OR p_score < 0 OR p_score > 5000000 THEN
+    RAISE EXCEPTION 'score outside the believable range' USING ERRCODE = '22023';
+  END IF;
+  IF coalesce(p_accuracy, 0) < 0 OR coalesce(p_accuracy, 0) > 100 THEN
+    RAISE EXCEPTION 'accuracy outside the believable range' USING ERRCODE = '22023';
+  END IF;
+  IF coalesce(p_best_streak, 0) < 0 OR coalesce(p_best_streak, 0) > 1000 THEN
+    RAISE EXCEPTION 'best streak outside the believable range' USING ERRCODE = '22023';
+  END IF;
+  IF p_speed IS NOT NULL AND (p_speed <= 0 OR p_speed > 10) THEN
+    RAISE EXCEPTION 'speed outside the believable range' USING ERRCODE = '22023';
+  END IF;
+  IF cardinality(v_badges) > 6 THEN
+    v_badges := v_badges[1:6];
+  END IF;
+  SELECT id INTO v_id FROM scores WHERE run_id = p_run_id;
+  IF v_id IS NOT NULL THEN
+    RETURN v_id;
+  END IF;
+  IF EXISTS (SELECT 1 FROM scores WHERE user_id = uid AND created_at > now() - interval '20 seconds') THEN
+    RAISE EXCEPTION 'scores are coming in too fast' USING ERRCODE = '54000';
+  END IF;
+  INSERT INTO scores (user_id, player_name, avatar, score, accuracy, best_streak, speed, mode, badges, run_id, season)
+  VALUES (uid, v_name, v_avatar, p_score, coalesce(p_accuracy, 0), coalesce(p_best_streak, 0),
+          coalesce(p_speed, 1), v_mode, v_badges, p_run_id, v_season)
+  ON CONFLICT (run_id) DO NOTHING
+  RETURNING id INTO v_id;
+  IF v_id IS NULL THEN
+    SELECT id INTO v_id FROM scores WHERE run_id = p_run_id;
+  END IF;
+  RETURN v_id;
+END $$;
+
+REVOKE ALL ON FUNCTION submit_score(text, text, integer, integer, integer, numeric, text, text[], text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION submit_score(text, text, integer, integer, integer, numeric, text, text[], text, text) TO authenticated;
+
 -- And the rule is enforced, not just tidied (issue 59): one row per player, mode and season. The tidy-up above
 -- leaves the table clean, so this index can always be built when the file runs.
 CREATE UNIQUE INDEX IF NOT EXISTS scores_one_best_idx ON scores (user_id, mode, season);
