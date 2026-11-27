@@ -95,19 +95,22 @@ var SKYBOX_NEAR_Z = 10;
 var SKYBOX_SPEED_RATIO = 0.1;
 
 // ===== HELPER: dispose a group and all its children =====
+// Shared resources survive: geometries and materials flagged userData.shared
+// (the same convention disposeCharacter uses in player.js), and the soft dot
+// texture, which is a cached singleton other live meshes still use. Disposing
+// any of those left the next track drawing with dead resources.
 function disposeGroup(group) {
   if (!group) return;
+  var dot = softDotTexture();
   group.traverse(function (child) {
-    if (child.geometry) child.geometry.dispose();
+    if (child.geometry && !(child.geometry.userData && child.geometry.userData.shared)) child.geometry.dispose();
     if (child.material) {
-      if (Array.isArray(child.material)) {
-        for (var m = 0; m < child.material.length; m++) {
-          if (child.material[m].map) child.material[m].map.dispose();
-          child.material[m].dispose();
-        }
-      } else {
-        if (child.material.map) child.material.map.dispose();
-        child.material.dispose();
+      var mats = Array.isArray(child.material) ? child.material : [child.material];
+      for (var m = 0; m < mats.length; m++) {
+        var mat = mats[m];
+        if (mat.userData && mat.userData.shared) continue;
+        if (mat.map && mat.map !== dot) mat.map.dispose();
+        mat.dispose();
       }
     }
   });
