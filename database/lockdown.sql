@@ -29,7 +29,7 @@ DECLARE
     'ranked_top', 'redeem_pro_code', 'remove_buddy_listing', 'remove_kudos', 'report_content', 'report_diagnostic',
     'report_study', 'resolve_group_request', 'restore_backup_save', 'school_standings', 'season_standing',
     'set_activity_visibility', 'set_buddy_listing', 'set_group_discovery', 'set_group_goal', 'start_my_trial',
-    'submit_feedback', 'upsert_player_profile'
+    'submit_feedback', 'submit_score', 'upsert_player_profile'
   ];
   -- the three that work with no sign-in at all (anonymous, consent-based usage statistics)
   open_to_all text[] := ARRAY['ingest_analytics', 'delete_analytics', 'count_consent'];
@@ -78,7 +78,7 @@ BEGIN
     ('match_invites',     '',       'SELECT, INSERT, UPDATE (status)'),
     ('player_profiles',   'SELECT', 'SELECT'),                       -- (written only through upsert_player_profile, which keeps bests from going down)
     ('player_saves',      '',       'SELECT'),                      -- (never deleted from the app: only by deleting the whole account)
-    ('scores',            'SELECT', 'SELECT, INSERT'),
+    ('scores',            'SELECT', 'SELECT'),                       -- (written only through submit_score, which applies the range and flood limits)
     ('shared_decks',      '',       'SELECT, DELETE'),
     ('study_groups',      '',       'SELECT'),
     ('user_reports',      '',       'SELECT, INSERT')

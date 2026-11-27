@@ -14,7 +14,7 @@ WITH
     'ranked_top', 'redeem_pro_code', 'remove_buddy_listing', 'remove_kudos', 'report_content', 'report_diagnostic',
     'report_study', 'resolve_group_request', 'restore_backup_save', 'school_standings', 'season_standing',
     'set_activity_visibility', 'set_buddy_listing', 'set_group_discovery', 'set_group_goal', 'start_my_trial',
-    'submit_feedback', 'upsert_player_profile']) AS name),
+    'submit_feedback', 'submit_score', 'upsert_player_profile']) AS name),
   open_to_all AS (SELECT unnest(ARRAY['ingest_analytics', 'delete_analytics', 'count_consent']) AS name),
   fns AS (
     SELECT p.oid, p.proname AS name, p.oid::regprocedure::text AS sig, p.prosecdef, p.proconfig

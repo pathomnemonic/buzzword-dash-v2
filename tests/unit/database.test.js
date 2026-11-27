@@ -147,10 +147,14 @@ describe('ranked matches', () => {
 
 describe('score limits', () => {
   it('rejects impossible scores and floods from a player, but not normal play', async () => {
-    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',9999999,'big1')", [C])).toBe(true);
-    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, best_streak, run_id) VALUES ($1,'C',100,5000,'st1')", [C])).toBe(true);
-    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',1200,'ok1')", [C])).toBe(false);
-    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',1300,'ok2')", [C])).toBe(true);
+    // Scores land only through submit_score now, which applies the same limits
+    // the old direct insert checks did and files the score under the caller.
+    expect(await rejects(C, "SELECT submit_score('C','avatar_intern',9999999,0,0,1,'endless','{}','big1','default')", [])).toBe(true);
+    expect(await rejects(C, "SELECT submit_score('C','avatar_intern',100,0,5000,1,'endless','{}','st1','default')", [])).toBe(true);
+    expect(await rejects(C, "SELECT submit_score('C','avatar_intern',1200,0,0,1,'endless','{}','ok1','default')", [])).toBe(false);
+    expect(await rejects(C, "SELECT submit_score('C','avatar_intern',1300,0,0,1,'endless','{}','ok2','default')", [])).toBe(true);
+    // and a direct insert is refused outright, whoever it names
+    expect(await rejects(C, "INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'C',1200,'direct1')", [C])).toBe(true);
   });
 });
 
@@ -188,8 +192,10 @@ describe('one best run per player, mode and season', () => {
 
 describe('scores and profiles', () => {
   it('lets players write only their own scores, and never edit them', async () => {
-    expect(await rejects(A, `INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'A',10,'x1')`, [A])).toBe(false);
+    expect(await rejects(A, "SELECT submit_score('A','avatar_intern',10,0,0,1,'endless','{}','x1','default')", [])).toBe(false);
     expect(await rejects(A, `INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'B',10,'x2')`, [B])).toBe(true);
+    const mine = (await db.query('SELECT user_id FROM scores WHERE run_id = $1', ['x1'])).rows;
+    expect(mine).toEqual([{ user_id: A }]);
     const res = await as(A, () => db.query('UPDATE scores SET score = 99999'));
     expect(res.affectedRows).toBe(0);
   });
@@ -406,7 +412,7 @@ describe('account deletion', () => {
     await db.exec(`INSERT INTO auth.users VALUES ('${D}'), ('${E}')`);
     await as(D, () => db.query(`SELECT upsert_player_profile($1,'Doomed','a','{}',10,1,true)`, [D]));
     await as(D, () => db.query(`SELECT push_save('{"x":1}'::jsonb, 1, NULL)`));
-    await as(D, () => db.query(`INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'Doomed',5,'del1')`, [D]));
+    await as(D, () => db.query(`SELECT submit_score('Doomed','avatar_intern',5,0,0,1,'endless','{}','del1','default')`));
     await as(E, () => db.query(`SELECT upsert_player_profile($1,'Keeper','a','{}',10,1,true)`, [E]));
     // posts and kudos (the social side) go too
     await db.query("INSERT INTO friends (requester_id, addressee_id, status) VALUES ($1,$2,'accepted')", [D, E]);
@@ -436,7 +442,7 @@ describe('account deletion', () => {
       await db.exec(`INSERT INTO auth.users VALUES ('${U}') ON CONFLICT DO NOTHING; INSERT INTO auth.users VALUES ('${V}') ON CONFLICT DO NOTHING;`);
       await as(U, () => db.query(`SELECT upsert_player_profile($1,'Leaver','a','{}',10,1,true)`, [U]));
       await as(U, () => db.query(`SELECT push_save('{"x":1}'::jsonb, 1, NULL)`));
-      await as(U, () => db.query(`INSERT INTO scores (user_id, player_name, score, run_id) VALUES ($1,'Leaver',5,$2)`, [U, 'keep-' + fn]));
+      await as(U, () => db.query(`SELECT submit_score('Leaver','avatar_intern',5,0,0,1,'endless','{}',$1,'default')`, ['keep-' + fn]));
       await db.query("INSERT INTO friends (requester_id, addressee_id, status) VALUES ($1,$2,'accepted')", [U, V]);
       await as(U, () => db.query('SELECT ' + fn + '()'));
       // the login survives, so the same sign-in keeps working in the other apps
