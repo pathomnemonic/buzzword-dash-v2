@@ -54,7 +54,7 @@ export function buildStudyPlan(input) {
   });
   var typeAccuracy = Object.keys(types).map(function (t) {
     return { type: t, seen: types[t].seen, accuracy: Math.round(types[t].correct / types[t].seen * 100) };
-  }).sort(function (a, b) { return a.accuracy - b.accuracy; });
+  }).filter(function (x) { return x.seen >= MIN_ANSWERS_FOR_STATS; }).sort(function (a, b) { return a.accuracy - b.accuracy; });
 
   // ---- weakest subject (needs a minimum of data) ----
   /** @type {{subject: string, accuracy: number, total: number} | null} */
