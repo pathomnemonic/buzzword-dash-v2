@@ -760,7 +760,9 @@ export class PowerUpFX {
           gh.mesh.visible = false;
         } else {
           gh.mesh.material.opacity = (gh.life / 0.35) * 0.3;
-          gh.mesh.scale.multiplyScalar(0.97);
+          // 0.97 per frame at 60 fps, expressed per second so the shrink
+          // takes the same time at any frame rate.
+          gh.mesh.scale.multiplyScalar(Math.pow(0.97, dt * 60));
         }
       }
     }
@@ -933,17 +935,23 @@ export class PowerUpFX {
       this.rushGhosts[gi].mesh.material.dispose();
     }
     this.rushGhosts = [];
+    // Each pool shares one geometry across its meshes: not disposed per
+    // mesh (that would kill it for the others), but disposed once here —
+    // before, it was never disposed at all and leaked on every rebuild.
+    var sharedGeos = [];
     for (var si = 0; si < this.shardPool.length; si++) {
       this.scene.remove(this.shardPool[si].mesh);
-      // shared geometry — do not dispose individually
+      if (sharedGeos.indexOf(this.shardPool[si].mesh.geometry) < 0) sharedGeos.push(this.shardPool[si].mesh.geometry);
       this.shardPool[si].mesh.material.dispose();
     }
     this.shardPool = [];
     for (var gpi = 0; gpi < this.gateParticlePool.length; gpi++) {
       this.scene.remove(this.gateParticlePool[gpi].mesh);
+      if (sharedGeos.indexOf(this.gateParticlePool[gpi].mesh.geometry) < 0) sharedGeos.push(this.gateParticlePool[gpi].mesh.geometry);
       this.gateParticlePool[gpi].mesh.material.dispose();
     }
     this.gateParticlePool = [];
+    sharedGeos.forEach(function (g) { g.dispose(); });
     this.effects = {};
   }
 }
