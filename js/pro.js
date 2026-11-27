@@ -24,7 +24,7 @@ import { getIap } from './iap.js';
 import { storage } from './storage.js';
 import { isNative, getNativePlatform } from './native.js';
 import { track } from './analytics/index.js';
-import { PREMIUM_ITEMS, itemProductId, premiumCents, formatUsd } from '../supabase/functions/_shared/premium.js';
+import { PREMIUM_ITEMS, itemProductId, premiumCents, formatUsd } from './premium.js';
 
 var CACHE_KEY = 'dx_pro';
 var USE_KEY = 'dx_pro_use';
@@ -209,6 +209,14 @@ export function setProDebug(on) { if (!DEBUG_BUILD) return; try { var s = store(
  */
 export function combineStatus(found, cached, o) {
   var now = o.now;
+  // A cached proof stamped far in the future is not proof: the cache is
+  // plain local storage, and a provenAt ahead of the clock would keep every
+  // freshness test below passing indefinitely, so nothing would ever
+  // revalidate. Clamp it the way paymentPending already clamps its own
+  // timestamp (a minute of clock skew is allowed).
+  if (cached && cached.provenAt && cached.provenAt > now + 60000) {
+    cached = Object.assign({}, cached, { provenAt: now });
+  }
   var best = null;
   (found || []).forEach(function (f) {
     if (!f || !f.active) return;
@@ -261,7 +269,10 @@ export function isPro(now) {
   var c = readJson(CACHE_KEY, null);
   if (!c || !c.active) return false;
   var t = typeof now === 'number' ? now : Date.now();
-  return (c.until > t) || (c.provenAt + GRACE_MS > t);
+  // Same future stamp clamp as combineStatus: a provenAt far ahead of the
+  // clock must not extend the grace window indefinitely.
+  var provenAt = Math.min(c.provenAt || 0, t + 60000);
+  return (c.until > t) || (provenAt + GRACE_MS > t);
 }
 
 /** The saved answer, for screens: {active, source, plan, trial, until}. */
@@ -551,7 +562,11 @@ export function checkCancelFollowThrough(lb) {
 
 /** Take a subscriber to where they cancel: the store's subscriptions page in the apps, Stripe's cancel step on the web. */
 export function cancelSubscription(lb, nav) {
-  if (isNative()) { getIap().manage(); return Promise.resolve({ ok: true }); }
+  // Route by where the subscription actually lives, not by the device in
+  // hand: a subscription taken out on the web is held by Stripe, and the
+  // phone store's subscriptions page cannot cancel it (it knows nothing
+  // about it). Only a store subscription goes to the store page.
+  if (proStatus().source !== 'server' && isNative()) { getIap().manage(); return Promise.resolve({ ok: true }); }
   // remember that they went to cancel, so on coming back we can check whether they did (and never assume)
   try { var s = store(); if (s) s.setItem(CANCEL_KEY, String(Date.now())); } catch (e) { /* ignore */ }
   return webManage(lb, nav, { cancel: true });
