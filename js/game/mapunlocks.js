@@ -5,7 +5,7 @@
  * (5, 10, 15, ...), in the order below. A player who does not want to wait can buy any map early in the Locker.
  */
 
-import { isPremiumItem } from '../../supabase/functions/_shared/premium.js';
+import { isPremiumItem } from '../premium.js';
 import { FEATURES } from '../features.js';
 
 export var UNLOCK_EVERY = 5;
