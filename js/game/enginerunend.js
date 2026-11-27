@@ -186,6 +186,9 @@ export var runEndMethods = {
 
   _endRun(reason) {
     if (this._runEnded) return;
+    // Ending before any run has started would emit a summary built from
+    // unset state (no start time, no encounters): there is nothing to end.
+    if (!this._runStartedAt) return;
     this._runEnded = true;
     this._setHazardClass(null);
     this._tut('ended');
