@@ -47,9 +47,9 @@ describe('a backup carries the player\'s own cards too', () => {
 
   it('a restore never grants a real money item the device does not already own', () => {
     const base = JSON.parse(buildBackup(storage, customCards));
-    base.progression.ownedItems = ['avatar_m_king', 'trail_fire'];
-    base.progression.equipped = { ...(base.progression.equipped || {}), trail: 'trail_fire' };
-    base.progression.paidItems = { uid: 'someone', ids: ['avatar_m_king'], missing: [] };
+    base.data.progression.ownedItems = ['avatar_m_king', 'trail_fire'];
+    base.data.progression.equipped = { ...(base.data.progression.equipped || {}), trail: 'trail_fire' };
+    base.data.progression.paidItems = { uid: 'someone', ids: ['avatar_m_king'], missing: [] };
     const res = restoreBackup(JSON.stringify(base), storage, customCards);
     expect(res.ok).toBe(true);
     expect(storage.get('ownedItems')).not.toContain('avatar_m_king');
@@ -62,7 +62,7 @@ describe('a backup carries the player\'s own cards too', () => {
     storage.data.progression.ownedItems.push('avatar_m_king');
     storage.save();
     const base = JSON.parse(buildBackup(storage, customCards));
-    base.progression.ownedItems = ['avatar_m_king'];
+    base.data.progression.ownedItems = ['avatar_m_king'];
     const res = restoreBackup(JSON.stringify(base), storage, customCards);
     expect(res.ok).toBe(true);
     expect(storage.get('ownedItems')).toContain('avatar_m_king');
