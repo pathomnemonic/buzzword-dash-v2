@@ -1078,10 +1078,11 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
   var spawnZ;
 
   if (planEntry) {
-    // Deterministic. A planned power-up the player or the mode has disabled
-    // does not spawn at all: the plan path used to ignore the disabled list
-    // that the random path honours.
-    if (disabledTypes && disabledTypes.indexOf(planEntry.type) >= 0) return;
+    // Deterministic. A seeded plan spawns its planned type even when the
+    // local player disabled it: both sides of a seeded match must spawn the
+    // same power-ups, and the disabled list is a per player preference.
+    // (Pinned by tests/unit/rules.test.js, "seeded plans still spawn their
+    // planned type".) The random path below is the one that honours it.
     lane = planEntry.lane;
     spawnZ = (planEntry.offset || -55) * VISUAL_SPEED;
     puDef = null;
@@ -1091,11 +1092,7 @@ export function spawnPowerup(scene, coinMeshes, planEntry, disabledTypes) {
         break;
       }
     }
-    if (!puDef) {
-      var allowedPlan = PU_TYPES.filter(function (t) { return !disabledTypes || disabledTypes.indexOf(t.type) < 0; });
-      if (allowedPlan.length === 0) return;
-      puDef = allowedPlan[Math.floor(Math.random() * allowedPlan.length)];
-    }
+    if (!puDef) puDef = PU_TYPES[Math.floor(Math.random() * PU_TYPES.length)];
   } else {
     // Random, skipping any the player turned off (single-player rules)
     var allowed = PU_TYPES.filter(function (t) { return !disabledTypes || disabledTypes.indexOf(t.type) < 0; });
