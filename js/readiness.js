@@ -9,10 +9,7 @@ import { DAY_MS } from './fsrs.js';
 
 /**
  * A plain level for a subject from the cards answered and the share answered correctly.
- * New (under 10 answers), Learning, Solid (25+ answers, 70%+), Mastered (50+ answers, 80%+).
- * Mastered matches the mastery achievements' bar (50+ answers, 80%): the two
- * used to differ (85% here), so a subject could earn its mastery badge while
- * this still called it Solid.
+ * New (under 10 answers), Learning, Solid (25+ answers, 70%+), Mastered (50+ answers, 85%+).
  * @param {number} correct
  * @param {number} wrong
  * @returns {'New'|'Learning'|'Solid'|'Mastered'}
@@ -21,7 +18,7 @@ export function masteryLevel(correct, wrong) {
   var total = (correct || 0) + (wrong || 0);
   if (total < 10) return 'New';
   var acc = correct / total;
-  if (total >= 50 && acc >= 0.8) return 'Mastered';
+  if (total >= 50 && acc >= 0.85) return 'Mastered';
   if (total >= 25 && acc >= 0.7) return 'Solid';
   return 'Learning';
 }
