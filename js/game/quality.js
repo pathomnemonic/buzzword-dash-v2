@@ -102,14 +102,15 @@ export function getQuality() {
   return setting === 'auto' && batteryTierDrop() ? lowerTier(tier) : tier;
 }
 
-var _batteryTierDrop = null;
+var _batteryTierDrop = false;
 /**
- * The battery verdict is taken once per session: getQuality() is called by
- * every rebuild, and a battery draining past the threshold mid-session used
- * to flip the tier between two rebuilds of the same session.
+ * The battery step-down latches for the session: getQuality() is called by
+ * every rebuild, and a battery hovering at the threshold used to flip the
+ * tier back and forth between two rebuilds of the same session. Once the
+ * battery reads low, the tier stays stepped down until the next launch.
  */
 function batteryTierDrop() {
-  if (_batteryTierDrop === null) _batteryTierDrop = isLowBattery();
+  if (isLowBattery()) _batteryTierDrop = true;
   return _batteryTierDrop;
 }
 
