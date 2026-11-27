@@ -275,24 +275,35 @@ export function finishRankedMatch(outcome) {
   stopSearch();
   track('multiplayer_event', { action: 'ended', mode: 'versus', result: outcome === 'win' || outcome === 'loss' || outcome === 'draw' ? outcome : 'none' });
   return ranked.report(match.matchId, outcome).then(function (r) {
-    if (r && r.ok && typeof r.delta === 'number' && r.delta !== 0) track('ranked_event', { action: r.delta > 0 ? 'promoted' : 'demoted', trophies: r.trophies });
+    if (r && r.ok && typeof r.delta === 'number' && r.delta !== 0) {
+      // 'promoted' and 'demoted' mean the tier changed (the same test the
+      // result card uses), not any trophy movement at all.
+      var beforeT = Math.max(0, (r.trophies || 0) - r.delta);
+      if (tierStep(r.trophies) > tierStep(beforeT)) track('ranked_event', { action: 'promoted', trophies: r.trophies });
+      else if (tierStep(r.trophies) < tierStep(beforeT)) track('ranked_event', { action: 'demoted', trophies: r.trophies });
+    }
     showResultCard(outcome, match, r);
     if (r.ok && !r.settled) waitForSettlement(outcome, match);
     return r;
   });
 }
 
-// The other player has not confirmed yet: check back until the trophies move
+// The other player has not confirmed yet: check back until the match is
+// settled. Settlement is asked about directly (re-reporting the same
+// outcome is idempotent, and ranked_report returns the stored delta), not
+// inferred from the trophy count moving: a settlement worth zero (a draw,
+// a loss at the league floor) never moves the count and used to poll the
+// full twenty tries and give up.
 function waitForSettlement(outcome, match) {
   var tries = 0;
   var timer = setInterval(function () {
     tries++;
     if (tries > 20 || !document.getElementById('rankedResult')) { clearInterval(timer); return; }
     ranked.settleStale();
-    ranked.myStats().then(function (s) {
-      if (!s.ok || s.trophies === match.own) return;
+    ranked.report(match.matchId, outcome).then(function (r) {
+      if (!r || !r.ok || !r.settled) return;
       clearInterval(timer);
-      showResultCard(outcome, match, { ok: true, settled: true, delta: s.trophies - match.own, trophies: s.trophies });
+      showResultCard(outcome, match, { ok: true, settled: true, delta: r.delta, trophies: r.trophies });
     });
   }, 3000);
 }
