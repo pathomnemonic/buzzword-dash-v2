@@ -111,6 +111,21 @@ CREATE TABLE IF NOT EXISTS pro_attempts (
   PRIMARY KEY (user_id, hour)
 );
 
+-- The attempts rows are an hourly counter: a row says nothing once its
+-- hour is well past, and nothing ever deleted them. Owner only; run on a
+-- schedule (Supabase: Database -> Cron) e.g. SELECT pro_purge_attempts();
+CREATE OR REPLACE FUNCTION pro_purge_attempts() RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  n integer;
+BEGIN
+  DELETE FROM pro_attempts WHERE hour < now() - interval '2 days';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RETURN n;
+END;
+$$;
+REVOKE ALL ON FUNCTION pro_purge_attempts() FROM PUBLIC, anon, authenticated;
+
 -- web payments (Stripe): who paid, which Stripe customer is whose, and which webhook events were already handled
 CREATE TABLE IF NOT EXISTS pro_library (
   user_id uuid PRIMARY KEY,

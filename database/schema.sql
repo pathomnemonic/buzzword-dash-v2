@@ -399,6 +399,9 @@ DECLARE
   attempts int := 0;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  -- Checked here, in words: the table's 2 to 40 character rule would
+  -- otherwise surface as a raw constraint error the app cannot phrase.
+  IF p_name IS NULL OR char_length(trim(p_name)) < 2 THEN RAISE EXCEPTION 'Group names need at least 2 characters'; END IF;
   -- One owner's creations are serialized (issue 72): the ownership count below is only honest if no second
   -- creation by the same owner is being counted at the same moment.
   PERFORM pg_advisory_xact_lock(hashtext(auth.uid()::text));
@@ -631,6 +634,7 @@ BEGIN
   SELECT user_id INTO owner FROM activity_events WHERE id = p_event;
   IF owner IS NULL OR NOT can_see_activity(p_event) THEN RAISE EXCEPTION 'That post is not available'; END IF;
   IF owner = auth.uid() THEN RAISE EXCEPTION 'You cannot give kudos to yourself'; END IF;
+  IF coalesce(p_emoji, 'kudos') NOT IN ('kudos', 'fire', 'brain', 'clap') THEN RAISE EXCEPTION 'Unknown kudos'; END IF;
   IF (SELECT count(*) FROM activity_kudos WHERE user_id = auth.uid() AND created_at > now() - interval '1 hour') >= 120 THEN
     RAISE EXCEPTION 'Slow down a little';
   END IF;
@@ -665,7 +669,7 @@ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
          (SELECT k.emoji FROM activity_kudos k WHERE k.event_id = e.id AND k.user_id = auth.uid()),
          ARRAY(SELECT coalesce(kp.player_name, 'Player') FROM activity_kudos k
                LEFT JOIN player_profiles kp ON kp.user_id = k.user_id
-               WHERE k.event_id = e.id ORDER BY k.created_at DESC LIMIT 3)
+               WHERE k.event_id = e.id AND NOT has_block_between(auth.uid(), k.user_id) ORDER BY k.created_at DESC LIMIT 3)
   FROM activity_events e
   LEFT JOIN player_profiles p ON p.user_id = e.user_id
   WHERE auth.uid() IS NOT NULL
@@ -731,7 +735,7 @@ LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = public AS $$
 BEGIN
   IF NOT is_group_member(p_group_id) THEN RAISE EXCEPTION 'not a member of this group'; END IF;
   RETURN QUERY
-    SELECT g.weekly_goal, gm.user_id, coalesce(p.player_name, 'Member'), coalesce(w.cards, 0)
+    SELECT coalesce(g.weekly_goal, 0), gm.user_id, coalesce(p.player_name, 'Member'), coalesce(w.cards, 0)
     FROM study_groups g
     JOIN group_members gm ON gm.group_id = g.id
     LEFT JOIN player_profiles p ON p.user_id = gm.user_id AND p.visible = true
@@ -1303,6 +1307,8 @@ DECLARE
   guest_out text;
   host_d integer := 0;
   guest_d integer := 0;
+  host_now integer;
+  guest_now integer;
 BEGIN
   SELECT * INTO m FROM ranked_matches WHERE id = p_match FOR UPDATE;
   IF NOT FOUND OR m.settled THEN RETURN COALESCE(m.settled, false); END IF;
@@ -1332,8 +1338,13 @@ BEGIN
     RETURN false;
   END IF;
 
-  host_d := ranked_apply(m.host_id, m.host_trophies, m.guest_trophies, host_out);
-  guest_d := ranked_apply(m.guest_id, m.guest_trophies, m.host_trophies, guest_out);
+  -- Deltas are priced from the players' trophy counts as they stand now,
+  -- not the snapshots taken when the match was made: another match may
+  -- have settled in between, and the snapshot would misprice this one.
+  SELECT trophies INTO host_now FROM player_trophies WHERE user_id = m.host_id;
+  SELECT trophies INTO guest_now FROM player_trophies WHERE user_id = m.guest_id;
+  host_d := ranked_apply(m.host_id, coalesce(host_now, m.host_trophies), coalesce(guest_now, m.guest_trophies), host_out);
+  guest_d := ranked_apply(m.guest_id, coalesce(guest_now, m.guest_trophies), coalesce(host_now, m.host_trophies), guest_out);
   UPDATE ranked_matches SET settled = true, host_delta = host_d, guest_delta = guest_d,
     winner_id = CASE WHEN host_out = 'win' THEN m.host_id WHEN guest_out = 'win' THEN m.guest_id ELSE NULL END
   WHERE id = p_match;
@@ -1375,6 +1386,10 @@ BEGIN
   IF code !~ '^[A-Z0-9]{5}$' THEN RAISE EXCEPTION 'Bad room code'; END IF;
   -- One player's searches are serialized (issue 60): two calls from the same player must never both pair.
   PERFORM pg_advisory_xact_lock(hashtext(me::text));
+  -- And pairings as a whole are serialized: two players searching in the
+  -- same moment could each see an empty queue, each insert their own row
+  -- and both be told they are the host of a match that does not exist.
+  PERFORM pg_advisory_xact_lock(hashtext('ranked_pairing'));
   INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
   SELECT trophies INTO my_t FROM player_trophies WHERE user_id = me;
 

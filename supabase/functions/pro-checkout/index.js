@@ -362,7 +362,9 @@ Deno.serve(async function (req) {
     }
     return json({ error: 'Unknown request.' }, 400);
   } catch (e) {
+    // The raw error stays in the server log only: returning it verbatim
+    // hands the client database and Stripe internals it has no use for.
     console.error('pro-checkout failed', e && e.message);
-    return json({ error: (e && e.message) || 'Something went wrong.' }, 400);
+    return json({ error: 'Something went wrong. Please try again.' }, 400);
   }
 });
