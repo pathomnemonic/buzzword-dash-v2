@@ -15,6 +15,19 @@ describe('summarize / isFresh', () => {
     expect(summarize(played(5)).answered).toBe(5);
     expect(isFresh(null)).toBe(true);
   });
+
+  it('counts flashcard and exam study, purchases and own cards as real content', () => {
+    // totalCardsStudied grows in flashcard and exam sessions as well as in runs
+    const studiedOnly = { schemaVersion: 2, progression: { totalEncounters: 0, totalCoinsEarned: 100, bestScore: 0, totalCardsStudied: 40 } };
+    expect(isFresh(studiedOnly)).toBe(false);
+    // an item bought beyond the starter set
+    const bought = fresh();
+    bought.progression.ownedItems = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost', 'pal_none', 'pal_cat', 'trail_pills'];
+    expect(isFresh(bought)).toBe(false);
+    // a deck of the player's own cards, passed in by the caller
+    expect(isFresh(fresh(), 3)).toBe(false);
+    expect(isFresh(fresh(), 0)).toBe(true);
+  });
 });
 
 describe('decideSync', () => {
@@ -56,6 +69,20 @@ describe('decideSync', () => {
 
   it('quietly links identical saves', () => {
     expect(decideSync({ local: played(5), remote: remote(played(5)), meta: null, userId: 'u1', dirty: false })).toBe('adopt');
+  });
+
+  it('asks before pulling over an empty save this device deliberately changed (a reset)', () => {
+    expect(decideSync({ local: fresh(), remote: remote(played(50)), meta, userId: 'u1', dirty: true })).toBe('conflict');
+    // untouched empty save on a linked device still takes the cloud copy
+    expect(decideSync({ local: fresh(), remote: remote(played(50)), meta, userId: 'u1', dirty: false })).toBe('pull');
+    // a different account's record is not a link, so this is a new device for this account
+    expect(decideSync({ local: fresh(), remote: remote(played(50)), meta: { userId: 'other', remoteUpdatedAt: 't1' }, userId: 'u1', dirty: true })).toBe('pull');
+  });
+
+  it('does not treat a flashcard-only player as a new device', () => {
+    const studiedOnly = { schemaVersion: 2, progression: { totalEncounters: 0, totalCoinsEarned: 100, bestScore: 0, totalCardsStudied: 12 } };
+    expect(decideSync({ local: studiedOnly, remote: remote(played(50)), meta: null, userId: 'u1', dirty: false })).toBe('conflict');
+    expect(decideSync({ local: fresh(), remote: remote(played(50)), meta: null, userId: 'u1', dirty: false, localCards: 5 })).toBe('conflict');
   });
 });
 
@@ -193,5 +220,78 @@ describe('isPoorer', () => {
     expect(isPoorer(summarize(played(3)), summarize(played(50)))).toBe(true);
     expect(isPoorer(summarize(played(50)), summarize(played(3)))).toBe(false);
     expect(isPoorer(summarize(played(5)), summarize(played(5)))).toBe(false);
+  });
+});
+
+describe('CloudSync remembers unsynced changes across a relaunch', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('restores the dirty flag from the sync record and writes it back on change', async () => {
+    localStorage.setItem('bd_cloud_meta', JSON.stringify({ userId: 'u1', remoteUpdatedAt: 't1', localDirty: true }));
+    const a = makeDeps({ local: played(6), cloud: remote(played(6)) });
+    expect(a.sync.dirty).toBe(true);
+
+    localStorage.clear();
+    const b = makeDeps({ local: played(5), cloud: null });
+    expect(b.sync.dirty).toBe(false);
+    b.sync.start();
+    b.store.onChange();
+    expect(JSON.parse(localStorage.getItem('bd_cloud_meta')).localDirty).toBe(true);
+  });
+
+  it('asks instead of pulling when a relaunched device holds offline progress another device has since saved over', async () => {
+    // device played offline, sync on hide failed, app closed; the other device pushed meanwhile
+    localStorage.setItem('bd_cloud_meta', JSON.stringify({ userId: 'u1', remoteUpdatedAt: 't1', localDirty: true }));
+    const a = makeDeps({ local: played(6), cloud: remote(played(9), 't2'), choice: null });
+    expect(await a.sync.sync()).toBe('deferred');
+    expect(a.calls.pulled).toBe(0);
+    expect(a.calls.asked).not.toBeNull();
+  });
+
+  it('asks instead of pulling the old cloud save back over a reset', async () => {
+    localStorage.setItem('bd_cloud_meta', JSON.stringify({ userId: 'u1', remoteUpdatedAt: 't1', localDirty: true }));
+    const a = makeDeps({ local: fresh(), cloud: remote(played(50)), choice: null });
+    expect(await a.sync.sync()).toBe('deferred');
+    expect(a.calls.pulled).toBe(0);
+  });
+});
+
+describe('CloudSync deck protection', () => {
+  const fakeCards = (initial) => {
+    let list = initial.slice();
+    const subs = [];
+    return {
+      getAll: () => list.slice(),
+      replaceAll: (c) => { list = c.slice(); return list.length; },
+      subscribe: (fn) => { subs.push(fn); return () => {}; },
+      fire: () => subs.forEach((f) => f())
+    };
+  };
+  const card = (n) => ({ id: 'custom_' + n, subj: 'Cardiology', bw: ['clue ' + n], ans: 'answer ' + n });
+  beforeEach(() => localStorage.clear());
+
+  it('propagates deleting every card once the deck has synced before', async () => {
+    const mine = fakeCards([card(1)]);
+    const a = makeDeps({ local: played(5), cloud: null, cards: mine });
+    expect(await a.sync.sync()).toBe('pushed');
+    expect(a.calls.push[0].data.customCards).toHaveLength(1);
+
+    mine.replaceAll([]);
+    a.sync.dirty = true;
+    expect(await a.sync.sync()).toBe('pushed');
+    const last = a.calls.push[a.calls.push.length - 1];
+    expect(last.data.customCards).toEqual([]);
+  });
+
+  it('never replaces a too large local deck with the smaller cloud list; it merges instead', async () => {
+    const big = fakeCards(Array.from({ length: 4000 }, (_, i) => ({ ...card(i), tp: 'x'.repeat(200) })));
+    const cloudData = played(9);
+    cloudData.customCards = [card(9999)];
+    const a = makeDeps({ local: played(6), cloud: remote(cloudData), choice: 'cloud', cards: big });
+    expect(await a.sync.sync()).toBe('pulled');
+    const after = big.getAll();
+    expect(after.length).toBe(4001);
+    expect(after.some((c) => c.id === 'custom_0')).toBe(true);
+    expect(after.some((c) => c.id === 'custom_9999')).toBe(true);
   });
 });
