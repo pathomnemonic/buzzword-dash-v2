@@ -44,4 +44,27 @@ describe('a backup carries the player\'s own cards too', () => {
     expect(res.ok).toBe(false);
     expect(customCards.getAll().length).toBe(1);
   });
+
+  it('a restore never grants a real money item the device does not already own', () => {
+    const base = JSON.parse(buildBackup(storage, customCards));
+    base.progression.ownedItems = ['avatar_m_king', 'trail_fire'];
+    base.progression.equipped = { ...(base.progression.equipped || {}), trail: 'trail_fire' };
+    base.progression.paidItems = { uid: 'someone', ids: ['avatar_m_king'], missing: [] };
+    const res = restoreBackup(JSON.stringify(base), storage, customCards);
+    expect(res.ok).toBe(true);
+    expect(storage.get('ownedItems')).not.toContain('avatar_m_king');
+    expect(storage.get('ownedItems')).not.toContain('trail_fire');
+    expect(storage.get('equipped').trail).not.toBe('trail_fire');
+    expect(storage.data.progression.paidItems).toEqual({ uid: '', ids: [], missing: [] });
+  });
+
+  it('a restore keeps a real money item the device already owns', () => {
+    storage.data.progression.ownedItems.push('avatar_m_king');
+    storage.save();
+    const base = JSON.parse(buildBackup(storage, customCards));
+    base.progression.ownedItems = ['avatar_m_king'];
+    const res = restoreBackup(JSON.stringify(base), storage, customCards);
+    expect(res.ok).toBe(true);
+    expect(storage.get('ownedItems')).toContain('avatar_m_king');
+  });
 });
