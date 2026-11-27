@@ -19,7 +19,7 @@ export var KILLABLE = ['hazards', 'monster', 'powerups', 'mapChanges', 'rush', '
 var CACHE_KEY = 'dx_remote_config';
 var _killed = [];
 var _pro = defaultProConfig();
-var _analytics = { enabled: true, sample: 1, killed: [], rates: {}, flushMs: 15000, experiments: {} };
+var _analytics = { enabled: true, sample: 1, killed: [], rates: { obstacle_outcome: 0.2 }, flushMs: 15000, experiments: {} };
 
 /**
  * The analytics part of the file: a master switch, the share of installs that report, events to switch off, how
@@ -27,7 +27,9 @@ var _analytics = { enabled: true, sample: 1, killed: [], rates: {}, flushMs: 150
  *   { "analytics": { "enabled": true, "sample": 1, "killed": ["perf_sample"], "rates": { "obstacle_outcome": 0.2 }, "experiments": {} } }
  */
 export function sanitizeAnalyticsConfig(raw) {
-  var out = { enabled: true, sample: 1, killed: [], rates: {}, flushMs: 15000, experiments: {} };
+  // obstacle_outcome is sampled 1 in 5 by default (its catalog entry says
+  // so); a hosted file can set its own rate, or 1 to turn sampling off.
+  var out = { enabled: true, sample: 1, killed: [], rates: { obstacle_outcome: 0.2 }, flushMs: 15000, experiments: {} };
   if (!raw || typeof raw !== 'object') return out;
   if (raw.enabled === false) out.enabled = false;
   if (typeof raw.sample === 'number' && isFinite(raw.sample)) out.sample = Math.max(0, Math.min(1, raw.sample));
