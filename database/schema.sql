@@ -79,6 +79,10 @@ CREATE TRIGGER scores_sanity_trg BEFORE INSERT ON scores
 CREATE OR REPLACE FUNCTION scores_keep_best() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
+  -- One player's submissions for a mode and season are serialized (issue 59): the check, the delete and the insert
+  -- are separate steps, and without this lock a higher score committing between a lower submission's check and its
+  -- delete would be deleted by it, and two rows could both survive.
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.user_id::text || '|' || NEW.mode || '|' || NEW.season, 0));
   IF EXISTS (
     SELECT 1 FROM scores
     WHERE user_id = NEW.user_id AND mode = NEW.mode AND season = NEW.season AND score >= NEW.score
@@ -100,6 +104,10 @@ DELETE FROM scores s
 USING scores better
 WHERE better.user_id = s.user_id AND better.mode = s.mode AND better.season = s.season
   AND (better.score > s.score OR (better.score = s.score AND better.id < s.id));
+
+-- And the rule is enforced, not just tidied (issue 59): one row per player, mode and season. The tidy-up above
+-- leaves the table clean, so this index can always be built when the file runs.
+CREATE UNIQUE INDEX IF NOT EXISTS scores_one_best_idx ON scores (user_id, mode, season);
 
 
 -- ==================== FRIENDS ====================
@@ -295,6 +303,9 @@ DECLARE
   attempts int := 0;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
+  -- One owner's creations are serialized (issue 72): the ownership count below is only honest if no second
+  -- creation by the same owner is being counted at the same moment.
+  PERFORM pg_advisory_xact_lock(hashtext(auth.uid()::text));
   IF (SELECT count(*) FROM study_groups WHERE owner_id = auth.uid()) >= 5 THEN
     RAISE EXCEPTION 'You can own at most 5 groups';
   END IF;
@@ -319,7 +330,8 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE g study_groups;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
-  SELECT * INTO g FROM study_groups WHERE code = upper(trim(p_code));
+  -- The group row is locked before counting (issue 72): two joins at 99 members must not both pass and land at 101.
+  SELECT * INTO g FROM study_groups WHERE code = upper(trim(p_code)) FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'No group with that code'; END IF;
   IF (SELECT count(*) FROM group_members WHERE group_id = g.id) >= 100 THEN
     RAISE EXCEPTION 'This group is full';
@@ -772,6 +784,10 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  -- Lock the live save and the backup before comparing (issue 57): without the locks, two calls at once could each
+  -- pass the richness test against the same old backup and let the poorer copy land last.
+  PERFORM 1 FROM player_saves WHERE user_id = p_uid FOR UPDATE;
+  PERFORM 1 FROM player_saves_backup WHERE user_id = p_uid FOR UPDATE;
   INSERT INTO player_saves_backup (user_id, data, run_count, saved_at)
   SELECT s.user_id, s.data, s.run_count, clock_timestamp()
   FROM player_saves s
@@ -781,7 +797,8 @@ BEGIN
     -- push out the biggest one
     AND s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0)
   ON CONFLICT (user_id) DO UPDATE
-    SET data = excluded.data, run_count = excluded.run_count, saved_at = excluded.saved_at;
+    SET data = excluded.data, run_count = excluded.run_count, saved_at = excluded.saved_at
+    WHERE excluded.run_count >= player_saves_backup.run_count;
 END;
 $$;
 
@@ -842,12 +859,21 @@ BEGIN
     UPDATE player_saves SET data = p_data, run_count = greatest(p_run_count, 0), updated_at = new_ts
     WHERE user_id = uid;
   ELSE
-    IF p_base IS NOT NULL THEN
-      -- The caller believed a save existed but it is gone; treat as a new save.
-      NULL;
-    END IF;
-    INSERT INTO player_saves (user_id, data, run_count, updated_at)
-    VALUES (uid, p_data, greatest(p_run_count, 0), new_ts);
+    BEGIN
+      INSERT INTO player_saves (user_id, data, run_count, updated_at)
+      VALUES (uid, p_data, greatest(p_run_count, 0), new_ts);
+    EXCEPTION WHEN unique_violation THEN
+      -- Another device created this account's first save at the same moment (issue 65): the FOR UPDATE above locked
+      -- nothing because there was no row yet. Treat the save that won exactly like the existing-row case — the
+      -- caller is told it conflicts (NULL) unless it built on that save — instead of raising a key violation.
+      SELECT updated_at INTO current_ts FROM player_saves WHERE user_id = uid FOR UPDATE;
+      IF p_base IS NULL OR current_ts <> p_base THEN
+        RETURN NULL;
+      END IF;
+      PERFORM keep_richest_save(uid, greatest(p_run_count, 0));
+      UPDATE player_saves SET data = p_data, run_count = greatest(p_run_count, 0), updated_at = new_ts
+      WHERE user_id = uid;
+    END;
   END IF;
 
   RETURN new_ts;
@@ -871,6 +897,9 @@ BEGIN
   IF pg_column_size(p_data) > 3000000 THEN
     RAISE EXCEPTION 'Save is too large';
   END IF;
+  -- Take the same lock push_save takes (issue 58): the backup capture and the overwrite must be one step, or a
+  -- save landing between them is overwritten with the backup holding the earlier row instead of it.
+  PERFORM 1 FROM player_saves WHERE user_id = uid FOR UPDATE;
   PERFORM keep_richest_save(uid, greatest(p_run_count, 0));
   INSERT INTO player_saves (user_id, data, run_count, updated_at)
   VALUES (uid, p_data, greatest(p_run_count, 0), new_ts)
@@ -892,11 +921,15 @@ $$;
 --
 -- The app stores require an in-app way to delete an account. Both are offered, with plain warnings.
 
--- What "Dx Dash data" means: every row in this schema that points at the player's login, found from the foreign keys
--- themselves (so a table added later is covered without editing this function), plus the payment records, which hold a
--- user id but no foreign key. Rows that merely mention the player as an optional creator are kept and unlinked.
+-- What "Dx Dash data" means: the rows in Dx Dash's own tables, named below, that point at the player's login, plus
+-- the payment records, which hold a user id but no foreign key. The table list is explicit (issue 61): this used to
+-- discover every public-schema table with a user foreign key, which silently put any future table added to the
+-- shared project's public schema in scope of an app-only deletion. Rows that merely mention the player as an
+-- optional creator are kept and unlinked. Adding a Dx Dash table with a user foreign key means adding it here.
+-- p_final is true only when the login itself is being deleted (it is passed through to pro_forget_user, issue 66).
 -- Service role / the two functions below only.
-CREATE OR REPLACE FUNCTION dxdash_forget_user(p_user uuid)
+DROP FUNCTION IF EXISTS dxdash_forget_user(uuid);
+CREATE OR REPLACE FUNCTION dxdash_forget_user(p_user uuid, p_final boolean DEFAULT false)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -908,8 +941,13 @@ BEGIN
   IF p_user IS NULL THEN
     RAISE EXCEPTION 'No user';
   END IF;
-  IF to_regprocedure('public.pro_forget_user(uuid)') IS NOT NULL THEN
+  IF to_regprocedure('public.pro_forget_user(uuid,boolean)') IS NOT NULL THEN
+    EXECUTE 'SELECT public.pro_forget_user($1, $2)' USING p_user, coalesce(p_final, false);
+  ELSIF to_regprocedure('public.pro_forget_user(uuid)') IS NOT NULL THEN
     EXECUTE 'SELECT public.pro_forget_user($1)' USING p_user;
+  END IF;
+  IF to_regclass('public.pro_cancelled_marks') IS NOT NULL THEN
+    EXECUTE 'DELETE FROM public.pro_cancelled_marks WHERE user_id = $1' USING p_user;
   END IF;
   FOR r IN
     SELECT c.conrelid::regclass::text AS tbl, a.attname::text AS col, c.confdeltype AS act
@@ -918,6 +956,11 @@ BEGIN
     JOIN pg_namespace n ON n.oid = t.relnamespace
     JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
     WHERE c.contype = 'f' AND c.confrelid = 'auth.users'::regclass AND n.nspname = 'public' AND array_length(c.conkey, 1) = 1
+      AND t.relname IN ('player_profiles', 'scores', 'friends', 'friend_blocks', 'match_invites', 'user_reports',
+                        'card_reports', 'study_groups', 'group_members', 'group_join_requests', 'buddy_listings',
+                        'shared_decks', 'activity_events', 'activity_kudos', 'weekly_study', 'content_reports',
+                        'app_feedback', 'player_saves', 'player_saves_backup', 'player_trophies', 'ranked_queue',
+                        'ranked_matches', 'ranked_reports', 'cohort_members', 'cohort_war_points', 'schools')
     ORDER BY 1, 2
   LOOP
     IF r.act = 'n' THEN
@@ -928,6 +971,26 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- A web subscription the member has already cancelled (at period end, the way the billing portal cancels): it will
+-- not bill again, so it must not block deletion (issue 67). SQL cannot see Stripe's cancellation state, so the
+-- payment function records it here when it reads the subscription's status. Service role only.
+CREATE TABLE IF NOT EXISTS pro_cancelled_marks (
+  user_id uuid PRIMARY KEY,
+  plan text,
+  ends_at timestamptz,
+  marked_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE pro_cancelled_marks ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_cancelled_marks FROM PUBLIC, anon, authenticated;
+
+CREATE OR REPLACE FUNCTION pro_mark_cancelled(p_user uuid, p_plan text DEFAULT NULL, p_ends timestamptz DEFAULT NULL)
+RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  INSERT INTO pro_cancelled_marks (user_id, plan, ends_at, marked_at) VALUES (p_user, p_plan, p_ends, now())
+  ON CONFLICT (user_id) DO UPDATE SET plan = excluded.plan, ends_at = excluded.ends_at, marked_at = now();
+$$;
+REVOKE ALL ON FUNCTION pro_mark_cancelled(uuid, text, timestamptz) FROM PUBLIC, anon, authenticated;
 
 -- A subscription that is still billing must be cancelled first, or it would go on charging someone whose data is gone.
 -- (The website's delete buttons do that through the payment function.)
@@ -942,7 +1005,12 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
   IF to_regclass('public.pro_entitlements') IS NOT NULL THEN
-    IF EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = p_user AND source = 'stripe' AND plan IN ('monthly', 'yearly', 'pass3m') AND until > now()) THEN
+    -- Blocked by a billing subscription, unless its cancellation is on record for THIS entitlement: the mark's
+    -- end must reach the entitlement's end (the entitlement runs two grace days past the period end the mark
+    -- records), so a mark left by an older, since-replaced subscription does not wave a new one through.
+    IF EXISTS (SELECT 1 FROM pro_entitlements e WHERE e.user_id = p_user AND e.source = 'stripe' AND e.plan IN ('monthly', 'yearly', 'pass3m') AND e.until > now()
+               AND NOT EXISTS (SELECT 1 FROM pro_cancelled_marks m WHERE m.user_id = p_user
+                               AND (m.ends_at IS NULL OR m.ends_at >= e.until - interval '3 days'))) THEN
       RAISE EXCEPTION 'You have a subscription that is still billing. Cancel it first (Settings, Dx Dash Pro, Manage subscription), then delete your data.';
     END IF;
   END IF;
@@ -985,12 +1053,12 @@ DECLARE
   uid uuid := auth.uid();
 BEGIN
   PERFORM public.dxdash_check_deletable(uid);
-  PERFORM public.dxdash_forget_user(uid);
+  PERFORM public.dxdash_forget_user(uid, true);
   DELETE FROM auth.users WHERE id = uid;
 END;
 $$;
 
-REVOKE ALL ON FUNCTION dxdash_forget_user(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION dxdash_forget_user(uuid, boolean) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION dxdash_check_deletable(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION delete_my_dxdash_data() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION delete_my_account() FROM PUBLIC, anon, authenticated;
@@ -1155,6 +1223,22 @@ END;
 $$;
 REVOKE ALL ON FUNCTION ranked_try_settle(uuid) FROM PUBLIC, anon, authenticated;
 
+-- The unsettled match a player is already in, while it is still live (issue 60): freshly made, nobody has reported
+-- anything, and the other player has not gone back to searching (a player back in the queue has plainly started
+-- over, and their old match is left for the stale-match sweep). Internal: only the ranked functions call it.
+CREATE OR REPLACE FUNCTION ranked_live_match(p_user uuid) RETURNS SETOF ranked_matches
+LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT m.* FROM ranked_matches m
+  WHERE (m.host_id = p_user OR m.guest_id = p_user)
+    AND NOT m.settled
+    AND m.created_at > now() - interval '2 minutes'
+    AND NOT EXISTS (SELECT 1 FROM ranked_reports r WHERE r.match_id = m.id)
+    AND NOT EXISTS (SELECT 1 FROM ranked_queue q
+                    WHERE q.user_id = CASE WHEN m.host_id = p_user THEN m.guest_id ELSE m.host_id END)
+  ORDER BY m.created_at DESC LIMIT 1;
+$$;
+REVOKE ALL ON FUNCTION ranked_live_match(uuid) FROM PUBLIC, anon, authenticated;
+
 -- Join the queue with a PeerJS room you have just opened. Returns either
 --   {role:'guest', match_id, room_code, ...}  an opponent was waiting: join their room, or
 --   {role:'host', ...}                         nobody yet: keep your room open and call ranked_poll_match.
@@ -1166,12 +1250,42 @@ DECLARE
   my_t integer;
   cand ranked_queue;
   m ranked_matches;
+  live ranked_matches;
 BEGIN
   IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
   IF code !~ '^[A-Z0-9]{5}$' THEN RAISE EXCEPTION 'Bad room code'; END IF;
+  -- One player's searches are serialized (issue 60): two calls from the same player must never both pair.
+  PERFORM pg_advisory_xact_lock(hashtext(me::text));
   INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
   SELECT trophies INTO my_t FROM player_trophies WHERE user_id = me;
+
+  -- Already the host of a live match (a second search tap, a retry): go back to it. ranked_poll_match will hand
+  -- the client the same match, so nothing about the client's flow changes.
+  SELECT * INTO live FROM ranked_live_match(me);
+  IF FOUND AND live.host_id = me THEN
+    RETURN jsonb_build_object('role', 'host', 'match_id', live.id, 'room_code', live.room_code,
+                              'own_trophies', live.host_trophies, 'opponent_trophies', live.guest_trophies);
+  END IF;
+
   DELETE FROM ranked_queue WHERE user_id = me;
+
+  -- Checked again after the delete: a pairing that landed while this call waited on the queue row is visible now.
+  SELECT * INTO live FROM ranked_live_match(me);
+  IF FOUND THEN
+    IF live.host_id = me THEN
+      RETURN jsonb_build_object('role', 'host', 'match_id', live.id, 'room_code', live.room_code,
+                                'own_trophies', live.host_trophies, 'opponent_trophies', live.guest_trophies);
+    END IF;
+    -- Already the guest of a live match — the retry after a lost response is the case that matters: rejoin that
+    -- match, unless a suitable opponent is already waiting, which means the player is plainly starting over.
+    IF NOT EXISTS (SELECT 1 FROM ranked_queue q
+                    WHERE q.user_id <> me
+                      AND q.seen_at > now() - interval '15 seconds'
+                      AND abs(q.trophies - my_t) <= 150 + 10 * extract(epoch FROM (now() - q.joined_at))::integer) THEN
+      RETURN jsonb_build_object('role', 'guest', 'match_id', live.id, 'room_code', live.room_code,
+                                'own_trophies', live.guest_trophies, 'opponent_trophies', live.host_trophies);
+    END IF;
+  END IF;
 
   -- a waiting player of similar strength; the window widens 10 trophies per second waited
   SELECT * INTO cand FROM ranked_queue q
