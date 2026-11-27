@@ -192,7 +192,7 @@ export function clearPaymentPending() { try { var s = store(); if (s) s.removeIt
  */
 export function forgetServerPro() {
   var c = readJson(CACHE_KEY, null);
-  if (c && c.source !== 'store') { try { var s = store(); if (s) { s.removeItem(CACHE_KEY); s.removeItem(TRIAL_KEY); s.removeItem(SYNC_KEY); s.removeItem(SYNC_TRY_KEY); s.removeItem(PENDING_KEY); } } catch (e) { /* ignore */ } }
+  if (c && c.source !== 'store') { try { var s = store(); if (s) { s.removeItem(CACHE_KEY); s.removeItem(TRIAL_KEY); s.removeItem(SYNC_KEY); s.removeItem(SYNC_TRY_KEY); s.removeItem(PENDING_KEY); s.removeItem(LIB_KEY); } } catch (e) { /* ignore */ } }
   if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
 }
 
@@ -217,6 +217,17 @@ export function combineStatus(found, cached, o) {
   });
   if (best) return { active: true, source: best.source, plan: best.plan, trial: best.trial, until: best.until, provenAt: now, since: best.since };
   if (o.fresh) {
+    // Freshness is per source: a membership is only revoked when the source it came
+    // from was actually asked this time. If the store answered but the server did
+    // not, a server membership is not the store's to revoke (and the other way
+    // round); the unasked source's last good answer is kept on the offline terms.
+    var cachedAsked = !cached || !cached.source || !o.freshSources || !!o.freshSources[cached.source] || (cached.source === 'code' && !!o.freshSources.server);
+    if (cached && cached.source && !cachedAsked) {
+      if (cached.until && cached.provenAt && (cached.until > now || cached.provenAt + GRACE_MS > now)) {
+        return { active: true, source: cached.source || '', plan: cached.plan || 'pro', trial: !!cached.trial, until: cached.until, provenAt: cached.provenAt, since: cached.since };
+      }
+      return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: (cached && cached.provenAt) || 0 };
+    }
     // A purchase through the store is not taken back on one "not owned" answer: the store can answer before it has loaded
     // purchases. It has to keep saying so for a while (and the paid period has to be over) before Pro goes.
     if (cached && cached.source === 'store' && cached.until > now && cached.provenAt && now - cached.provenAt < STORE_DOUBT_MS) {
@@ -224,8 +235,11 @@ export function combineStatus(found, cached, o) {
     }
     return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: now };
   }
-  // could not ask: keep the last good answer for a while
-  if (cached && cached.until && cached.provenAt && (cached.until > now || cached.provenAt + GRACE_MS > now) && cached.provenAt + GRACE_MS > now) {
+  // Could not ask: keep the last good answer while its paid period runs, plus the
+  // same short grace isPro allows after it ends. (The old condition also required a
+  // recent proof, so a member paid months ahead was written back as lapsed the
+  // first time a refresh ran more than three days after the last good check.)
+  if (cached && cached.until && cached.provenAt && (cached.until > now || cached.provenAt + GRACE_MS > now)) {
     return { active: true, source: cached.source || '', plan: cached.plan || 'pro', trial: !!cached.trial, until: cached.until, provenAt: cached.provenAt, since: cached.since };
   }
   return { active: false, source: '', plan: '', trial: false, until: 0, provenAt: (cached && cached.provenAt) || 0 };
@@ -268,7 +282,10 @@ export function refreshPro(deps) {
   var now = typeof deps.now === 'number' ? deps.now : Date.now();
   var iap = deps.iap || getIap();
   var asked = 0;
-  var libraryOwned = null;
+  var askedStore = false;
+  var askedServer = false;
+  var libraryStore = null;   // what the phone's store said about the library (null: never answered)
+  var libraryServer = null;  // what the server said about the library (null: never answered)
   var ownedItems = [];
   var storeItems = [];      // owned through the phone's store: never taken back by the server
   var serverItems = null;   // what the server lists as paid for (null until it has answered properly)
@@ -277,10 +294,11 @@ export function refreshPro(deps) {
   jobs.push(iap.start().then(function (ok) {
     if (!ok) return;
     asked++;
+    askedStore = true;
     proConfig().plans.forEach(function (id) {
       if (iap.owned(id)) found.push({ source: 'store', active: true, plan: planName(id), until: /lifetime/.test(id) ? Date.now() + FOREVER : undefined });
     });
-    libraryOwned = iap.owned(proConfig().library);
+    libraryStore = !!iap.owned(proConfig().library);
     Object.keys(PREMIUM_ITEMS).forEach(function (id) { if (iap.owned(itemProductId(id))) { ownedItems.push(id); storeItems.push(id); } });
   }).catch(function () { /* the store did not answer */ }));
   var lb = deps.lb;
@@ -293,9 +311,15 @@ export function refreshPro(deps) {
       // the one trial start_my_trial allows the first time a player merely signed in.
       if (!r || r.error) return; // no answer: keep what we had (never read a failed call as "no Pro")
       asked++;
+      askedServer = true;
       writeJson(TRIAL_KEY, { available: !!r.trial_available });
       if (Array.isArray(r.items)) { ownedItems = ownedItems.concat(r.items); if (r.signed_in === true) serverItems = (serverItems || []).concat(r.items); } // (an answer that does not say it was for a signed-in account is never taken as proof that something is gone)
-      if (r && r.library && !isNative()) libraryOwned = true;
+      // The library answer is only trusted to take the unlock away when it names a
+      // signed in account; a positive answer is believed from any proper reply. (It
+      // used to only ever be set to true on web, so a refunded or previous account's
+      // unlock was never taken back and leaked to the next account on the device.)
+      if (r.signed_in === true) libraryServer = !!r.library;
+      else if (r.library) libraryServer = true;
       if (r && r.active) found.push({ source: r.source === 'code' ? 'code' : 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
     }).catch(function () { /* offline */ }));
   }
@@ -311,6 +335,11 @@ export function refreshPro(deps) {
         if (res && res.ok && res.granted && res.granted.length) { clearPaymentPending(); return lb.getMyPro(); }
         return null;
       }).then(function (r) {
+        if (r && !r.error) {
+          askedServer = true;
+          if (r.signed_in === true) libraryServer = !!r.library;
+          else if (r.library) libraryServer = true;
+        }
         if (r && Array.isArray(r.items)) { ownedItems = ownedItems.concat(r.items); if (r.signed_in === true) serverItems = (serverItems || []).concat(r.items); }
         if (r && r.active && !found.length) found.push({ source: 'server', active: true, until: r.until ? new Date(r.until).getTime() : undefined, plan: r.plan, trial: !!r.trial, since: r.since ? new Date(r.since).getTime() : undefined });
       }).catch(function () { /* the next refresh tries again */ });
@@ -328,7 +357,7 @@ export function refreshPro(deps) {
     var uid = lb && lb.getUserId && lb.isAuthenticated && lb.isAuthenticated() ? lb.getUserId() : '';
     // a different account's answer is not this one's to fall back on
     if (prev && prev.source !== 'store' && prev.uid && uid && prev.uid !== uid) prev = null;
-    var next = combineStatus(found, prev, { now: now, fresh: asked > 0 });
+    var next = combineStatus(found, prev, { now: now, fresh: asked > 0, freshSources: { store: askedStore, server: askedServer } });
     if (uid && next.source !== 'store') next.uid = uid;
     if (next.active && !(next.since > 0)) {
       // no start date from the server (the store, or a code): the first time this install saw Pro, kept while it carries on,
@@ -339,7 +368,10 @@ export function refreshPro(deps) {
     if (!next.active) next.since = 0;
     writeJson(CACHE_KEY, next);
     var libBefore = libraryUnlocked();
-    if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned });
+    // The library unlock belongs to whichever source granted it; it is rewritten
+    // whenever at least one source actually answered, and left alone otherwise.
+    var libraryOwned = (libraryStore === null && libraryServer === null) ? null : (libraryStore === true || libraryServer === true);
+    if (libraryOwned !== null) writeJson(LIB_KEY, { owned: !!libraryOwned, uid: itemUid });
     if (libraryUnlocked() !== libBefore && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:library-changed'));
     if (isPro(now) !== before && typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dx:pro-changed'));
     return proStatus();
