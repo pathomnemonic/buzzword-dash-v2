@@ -67,7 +67,11 @@ if (!this.seededCardOrder && !(this._modeConfig && Array.isArray(this._modeConfi
 }
 
 var pickResult;
-if (this.seededCardOrder && this._seededCardIndex < this.seededCardOrder.length) {
+// A seeded run always deals from the order, even past the end of the list:
+// pickCard cycles back to the start deterministically. The old length check
+// dropped long seeded runs into unseeded random dealing, which desyncs a
+// multiplayer match and makes a daily run differ between players.
+if (this.seededCardOrder) {
     pickResult = pickCard({
         pool: poolResult.cards,
         recentIds: this.recentIds,

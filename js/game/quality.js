@@ -159,10 +159,16 @@ export function stepAdaptiveResolution(state, frameMs, nowMs, targetMs) {
   }
   // Headroom: at 60 fps that is "much faster than needed". When capped (30 fps) frames can
   // never be faster than the cap, so hitting the cap steadily for two samples counts.
+  // The same applies at a 60 fps target on a 60 Hz display: frame times can never beat
+  // the refresh, so the old under 13 ms test was unreachable and the resolution never
+  // stepped back up. Holding the target rate steadily over two samples counts there too.
   var capped = target > 20;
-  var fast = capped ? avg <= target * 1.1 : avg < target * (FAST_MS / (1000 / 60));
+  var quick = avg < target * (FAST_MS / (1000 / 60));
+  var holding = avg <= target * (capped ? 1.1 : 1.02);
+  var fast = capped ? holding : (quick || holding);
   state.good = fast ? state.good + 1 : 0;
-  if (fast && state.level > 0 && (!capped || state.good >= 2)) {
+  var proven = capped ? state.good >= 2 : (quick || state.good >= 2);
+  if (fast && proven && state.level > 0) {
     state.level--;
     state.lastChange = nowMs;
     state.good = 0;

@@ -319,7 +319,38 @@ export function pickCard(options) {
       }
     }
 
-    // Ordered IDs exhausted — fall through to weighted selection
+    // The walk ran off the end of the list: cycle back to the start instead of
+    // falling through to weighted random selection. An ordered run (a seeded
+    // daily or multiplayer run) must stay deterministic and identical for every
+    // player on the seed; a random pick here silently desyncs the run.
+    for (var woi = 0; woi < encounterIndex && woi < orderedCardIds.length; woi++) {
+      var wrapId = orderedCardIds[woi];
+      var wrapFound = null;
+      for (var wpi = 0; wpi < pool.length; wpi++) {
+        if (pool[wpi].id === wrapId) {
+          wrapFound = pool[wpi];
+          break;
+        }
+      }
+      if (wrapFound) {
+        return {
+          card: patchCardDefaults(wrapFound),
+          orderedIndex: woi,
+          error: null
+        };
+      }
+    }
+
+    // No ordered ID is in the pool at all: report it rather than dealing a
+    // random card the other players will not see.
+    return {
+      card: null,
+      orderedIndex: null,
+      error: {
+        code: 'NO_MATCHING_CARDS',
+        message: 'None of the ordered card IDs are in the current pool.'
+      }
+    };
   }
 
   // ── Weakness mode: prefer poorly-performing cards ──

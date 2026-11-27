@@ -113,9 +113,12 @@ export var runEndMethods = {
     if (this.faceplantTimer <= 0) {
       this.faceplanting = false;
 
+      // The coins earned in this run count toward the price: they are only
+      // banked when the run ends, so the banked balance alone understates
+      // what the player can actually pay.
       var canContinue = this._modeConfig.allowContinue &&
                         !this.continued &&
-                        storage.get('coins') >= (this._modeConfig.continueCost || CONTINUE_COST);
+                        (storage.get('coins') || 0) + (this.coins || 0) >= (this._modeConfig.continueCost || CONTINUE_COST);
 
       if (canContinue) {
         this._transition(GAME_STATES.CONTINUE_PROMPT);
@@ -132,7 +135,13 @@ export var runEndMethods = {
     if (this._state !== GAME_STATES.CONTINUE_PROMPT) return false;
 
     var cost = this._modeConfig.continueCost || CONTINUE_COST;
-    if (storage.spendCoins(cost)) {
+    // Charge the run's own coins first and take only the shortfall from the
+    // banked balance. Run coins are banked at run end from this.coins, so
+    // deducting them here cannot spend them twice.
+    var fromRun = Math.min(this.coins || 0, cost);
+    var fromBank = cost - fromRun;
+    if (fromBank === 0 || storage.spendCoins(fromBank)) {
+      this.coins -= fromRun;
       this.lives = 1;
       this.continued = true;
       this.continuesUsed++;
