@@ -419,10 +419,18 @@ function configureMultiplayer(client, content) {
   };
 
   client.onRunFinished = function (result) {
+    // A forfeit already decided this match: the plain finish that follows it
+    // (the forfeiting side's run ends too) must not overwrite the forfeit
+    // result and quietly turn the match back into a normal finish.
+    if (multiplayerOpponentResult && multiplayerOpponentResult.forfeit && !result.forfeit) {
+      maybeShowMultiplayerResult();
+      return;
+    }
     multiplayerOpponentResult = {
       score: result.score || 0,
       correct: result.correctCount || result.correct || 0,
       eliminated: !!result.eliminated,
+      forfeit: !!result.forfeit,
       raceTime: result.raceTime || Number.MAX_SAFE_INTEGER
     };
     if (game.running) {
@@ -2199,6 +2207,7 @@ function sendMultiplayerEndRun() {
       coins: game.coins,
       correctCount: game.correct,
       eliminated: eliminated,
+      forfeit: forfeit,
       raceTime: raceTime
     });
   }
