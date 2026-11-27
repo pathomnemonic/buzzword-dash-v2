@@ -94,6 +94,9 @@ export function installAnalytics(app) {
   });
 
   function maybeSampleObstacle(outcome, runId, kind) {
+    // The 1 in 5 sample is the analytics config's default rate for
+    // obstacle_outcome (remoteconfig.js), applied by the core tracker,
+    // which also stamps the kept events with their rate.
     track('obstacle_outcome', { kind: kind === 'slide' ? 'slide' : 'jump', outcome: outcome, run_id: runId });
   }
 
