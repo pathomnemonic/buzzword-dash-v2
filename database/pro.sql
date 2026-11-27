@@ -187,7 +187,6 @@ END $$;
 -- is extended by the same additive rule it has always had.
 CREATE OR REPLACE FUNCTION pro_grant(p_user uuid, p_days integer, p_plan text DEFAULT 'pro', p_source text DEFAULT 'manual', p_trial boolean DEFAULT false) RETURNS timestamptz
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE new_until timestamptz;
 BEGIN
   IF p_days IS NULL OR p_days < 1 OR p_days > 3650 THEN RAISE EXCEPTION 'days must be 1 to 3650'; END IF;
   INSERT INTO pro_grants AS g (user_id, source, plan, until, trial, updated_at, started_at)
@@ -196,14 +195,10 @@ BEGIN
     until = greatest(g.until, now()) + make_interval(days => p_days),
     plan = excluded.plan, trial = excluded.trial AND g.until > now(), updated_at = now(),
     started_at = CASE WHEN g.until <= now() OR (g.trial AND NOT excluded.trial) THEN now() ELSE g.started_at END;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
-  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), now() + make_interval(days => p_days), coalesce(p_trial, false), now(), now())
-  ON CONFLICT (user_id) DO UPDATE SET
-    until = greatest(e.until, now()) + make_interval(days => p_days),
-    plan = excluded.plan, source = excluded.source, trial = excluded.trial AND e.until > now(), updated_at = now(),
-    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
-  RETURNING until INTO new_until;
-  RETURN new_until;
+  -- The summary row is derived from the per source grants, never written directly:
+  -- adding the days onto the combined row (as this used to) stacked a code grant on
+  -- top of a paid grant and left the member with more time than any grant holds.
+  RETURN pro_recompute_entitlement(p_user);
 END $$;
 
 -- End someone's Pro now, every grant of it. Service role / SQL editor only.
@@ -284,6 +279,10 @@ BEGIN
   DELETE FROM pro_items WHERE user_id = p_user;
   DELETE FROM pro_library WHERE user_id = p_user;
   DELETE FROM pro_trials WHERE user_id = p_user;
+  -- Give the redeemed code slots back before the redemption rows go, or the codes
+  -- stay counted as used forever and can never reach their real remaining uses.
+  UPDATE pro_codes c SET used = greatest(c.used - 1, 0)
+  WHERE EXISTS (SELECT 1 FROM pro_redemptions r WHERE r.code = c.code AND r.user_id = p_user);
   DELETE FROM pro_redemptions WHERE user_id = p_user;
   DELETE FROM pro_attempts WHERE user_id = p_user;
   DELETE FROM pro_stripe_customers WHERE user_id = p_user;
@@ -401,7 +400,7 @@ END $$;
 -- subscription's expiry, or ending it early, must take effect; the summary is then rebuilt from every grant held.
 CREATE OR REPLACE FUNCTION pro_grant_until(p_user uuid, p_until timestamptz, p_plan text DEFAULT 'pro', p_source text DEFAULT 'stripe', p_trial boolean DEFAULT false) RETURNS timestamptz
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE v_source text := coalesce(p_source, 'stripe'); v_plan text := coalesce(p_plan, 'pro'); new_until timestamptz;
+DECLARE v_source text := coalesce(p_source, 'stripe'); v_plan text := coalesce(p_plan, 'pro');
 BEGIN
   IF p_until IS NULL OR p_until > now() + interval '3651 days' THEN RAISE EXCEPTION 'until is out of range'; END IF;
   IF v_source = 'store' THEN
@@ -420,17 +419,8 @@ BEGIN
     trial = excluded.trial AND excluded.until >= g.until,
     updated_at = now(),
     started_at = CASE WHEN g.until <= now() OR (g.trial AND NOT excluded.trial) THEN now() ELSE g.started_at END;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
-  VALUES (p_user, v_plan, v_source, p_until, coalesce(p_trial, false), now(), now())
-  ON CONFLICT (user_id) DO UPDATE SET
-    until = greatest(e.until, excluded.until),
-    plan = CASE WHEN excluded.until >= e.until THEN excluded.plan ELSE e.plan END,
-    source = CASE WHEN excluded.until >= e.until THEN excluded.source ELSE e.source END,
-    trial = excluded.trial AND excluded.until >= e.until,
-    updated_at = now(),
-    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
-  RETURNING until INTO new_until;
-  RETURN new_until;
+  -- Derived from the grants, like every other path (see pro_grant).
+  RETURN pro_recompute_entitlement(p_user);
 END $$;
 
 -- The one-time Full Library unlock (every card, no tools). Service role only.
