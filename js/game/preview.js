@@ -118,6 +118,9 @@ export class CharacterPreview {
     }
 
     init(containerId) {
+        // A second init without a dispose would build a second renderer and
+        // scene over the first and leak both; it is a no-op instead.
+        if (this.initialized) return;
         this.container = document.getElementById(containerId);
         if (!this.container) return;
 
@@ -303,7 +306,10 @@ export class CharacterPreview {
             var deltaX = e.clientX - self.lastPointerX;
             self.targetRotationY += deltaX * 0.01;
             self.lastPointerX = e.clientX;
-            dragDistance += Math.abs(e.clientX - pointerStartX);
+            // The farthest the pointer has been from where it went down:
+            // adding the whole distance on every move counted it again and
+            // again, so even a tap with a little jitter read as a drag.
+            dragDistance = Math.max(dragDistance, Math.abs(e.clientX - pointerStartX));
         });
 
         canvas.addEventListener('pointerup', function (e) {
@@ -312,6 +318,12 @@ export class CharacterPreview {
             if (dragDistance < 10) {
                 self.triggerRandomGesture();
             }
+        });
+
+        canvas.addEventListener('pointercancel', function () {
+            // A cancelled pointer (the OS took the gesture) ends the drag
+            // without counting as a tap.
+            self.isDragging = false;
         });
 
         canvas.addEventListener('pointerleave', function () {
@@ -327,6 +339,10 @@ export class CharacterPreview {
     triggerRandomGesture() {
         if (!this.limbs || this.limbs.isVehicle) return;
         if (this._reducedMotion) return;
+        // Animated models play their own clips and never run
+        // updateIdleAnimation, so a gesture set here would never play and
+        // never clear, and every later tap would be refused.
+        if (this.character && this.character.userData && this.character.userData.animator) return;
         if (this.currentGesture !== GESTURE_NONE) return;
 
         var available = [];
@@ -717,7 +733,11 @@ export class CharacterPreview {
                         var landP = (p - 0.8) / 0.2;
                         var easeOut = 1 - (1 - landP) * (1 - landP);
                         gBodyPosY = 0.50 * (1 - easeOut);
-                        gBodyRotX = Math.PI * 2.0 * (1 - easeOut * easeOut);
+                        // The flip is complete at 2π; easing the angle back
+                        // to 0 would sweep it backwards through the whole
+                        // turn (a reverse spin). 2π and 0 are the same pose,
+                        // so the angle simply holds while the body settles.
+                        gBodyRotX = Math.PI * 2.0;
                         gLegL = 0.3 * (1 - easeOut);
                         gLegR = 0.3 * (1 - easeOut);
                         gArmL = -0.8 * (1 - easeOut);
@@ -745,9 +765,8 @@ export class CharacterPreview {
                         gLegR = 0.8 * legSpread;
                     } else {
                         var cLandP = (p - 0.8) / 0.2;
-                        var cEase = cLandP * cLandP * cLandP;
                         gBodyPosY = 0.05 * (1 - cLandP);
-                        gBodyRotZ = -Math.PI * 2 * (1 - cEase);
+                        gBodyRotZ = -Math.PI * 2;
                         gArmL = -2.0 * (1 - cLandP);
                         gArmR = -2.0 * (1 - cLandP);
                     }
@@ -772,8 +791,7 @@ export class CharacterPreview {
                         gLeanX = 0.12 * Math.sin(spinP * Math.PI);
                     } else {
                         var skLandP = (p - 0.7) / 0.3;
-                        var skEase = 1 - (1 - skLandP) * (1 - skLandP);
-                        gBodyRotYaw = Math.PI * 2 * (1 - skEase);
+                        gBodyRotYaw = Math.PI * 2;
                         gBodyPosY = 0.05 * (1 - skLandP);
                         gArmL = -0.3 * (1 - skLandP);
                         gArmR = -0.3 * (1 - skLandP);
@@ -871,7 +889,10 @@ export class CharacterPreview {
                     gLeanX = Math.sin(dancePhase * 0.5) * 0.06 * danceBell;
                     gBodyPosY = Math.abs(Math.sin(dancePhase)) * 0.06 * danceBell;
                     if (p > 0.85) {
-                        gBodyRotYaw = ((p - 0.85) / 0.15) * Math.PI * 2 * (1 - ((p - 0.85) / 0.15));
+                        // A full turn across the last stretch: the old
+                        // q * (1 - q) curve peaked at a quarter turn and
+                        // came back, so the "spin" never spun.
+                        gBodyRotYaw = ((p - 0.85) / 0.15) * Math.PI * 2;
                     }
                     break;
                 }
@@ -1002,6 +1023,7 @@ export class CharacterPreview {
      */
     dispose() {
         this.stopAnimation();
+        this._removeMap();
         if (this.trailSystem) { this.trailSystem.dispose(); this.trailSystem = null; }
         if (this.character && this.scene) {
             this.scene.remove(this.character);

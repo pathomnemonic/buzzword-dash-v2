@@ -670,10 +670,10 @@ export var QUESTS = [
   { id: QUEST_IDS.STREAK_8, title: 'Hot Streak', desc: '8 correct in a row in one run', target: 8, reward: 30, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.PERFECT_5, title: 'Perfect Five', desc: '5 correct in a row without a mistake', target: 5, reward: 30, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.STREAK_12, title: 'On a Roll', desc: '12 correct in a row in one run', target: 12, reward: 50, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
-  { id: QUEST_IDS.STREAK_20, title: 'Unstoppable', desc: '20 correct in a row in one run', target: 20, reward: 70, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
+  { id: QUEST_IDS.STREAK_20, title: 'Full Steam', desc: '20 correct in a row in one run', target: 20, reward: 70, category: 'accuracy', metric: 'bestStreak', agg: 'max' },
   { id: QUEST_IDS.CLEAN_10, title: 'Clean Sheet', desc: 'Finish a run with 10+ correct and no mistakes', target: 10, reward: 50, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
   { id: QUEST_IDS.CLEAN_15, title: 'Spotless', desc: 'Finish a run with 15+ correct and no mistakes', target: 15, reward: 70, category: 'accuracy', metric: 'cleanCorrect', agg: 'max' },
-  { id: QUEST_IDS.ACCURACY_80, title: 'Sharpshooter', desc: 'Finish a run of 10+ answers at 80% accuracy or better', target: 80, reward: 40, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
+  { id: QUEST_IDS.ACCURACY_80, title: 'Steady Aim', desc: 'Finish a run of 10+ answers at 80% accuracy or better', target: 80, reward: 40, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
   { id: QUEST_IDS.ACCURACY_90, title: 'Marksman', desc: 'Finish a run of 10+ answers at 90% accuracy or better', target: 90, reward: 60, category: 'accuracy', metric: 'accuracyOf10', agg: 'max' },
   { id: QUEST_IDS.ENCOUNTERS_10, title: 'Warm-Up', desc: 'Answer 10 cards today', target: 10, reward: 20, category: 'volume', metric: 'encountersCompleted', agg: 'sum' },
   { id: QUEST_IDS.ENCOUNTERS_25, title: 'Marathon', desc: 'Answer 25 cards today', target: 25, reward: 40, category: 'volume', metric: 'encountersCompleted', agg: 'sum' },
@@ -699,7 +699,7 @@ export var QUESTS = [
   { id: QUEST_IDS.DODGE_20, title: 'Acrobat', desc: 'Jump or slide past 10 obstacles in one run', target: 10, reward: 50, category: 'skill', metric: 'dodges', agg: 'max' },
   { id: QUEST_IDS.SUBJECTS_3, title: 'Triple Threat', desc: 'Answer cards from 3 different subjects today', target: 3, reward: 20, category: 'explore', metric: 'subjects', agg: 'distinct' },
   { id: QUEST_IDS.ALL_SUBJECTS_5, title: 'Well-Rounded', desc: 'Answer cards from 5 different subjects today', target: 5, reward: 50, category: 'explore', metric: 'subjects', agg: 'distinct' },
-  { id: QUEST_IDS.SUBJECTS_8, title: 'Polymath', desc: 'Answer cards from 8 different subjects today', target: 8, reward: 70, category: 'explore', metric: 'subjects', agg: 'distinct' },
+  { id: QUEST_IDS.SUBJECTS_8, title: 'Wide Ranging', desc: 'Answer cards from 8 different subjects today', target: 8, reward: 70, category: 'explore', metric: 'subjects', agg: 'distinct' },
   { id: QUEST_IDS.FLASH_10, title: 'Flashcard Warm-Up', desc: 'Go through 10 flashcards today', target: 10, reward: 30, category: 'explore', metric: 'flashcards', agg: 'sum' },
   { id: QUEST_IDS.FLASH_30, title: 'Flashcard Marathon', desc: 'Go through 30 flashcards today', target: 30, reward: 50, category: 'explore', metric: 'flashcards', agg: 'sum' },
   { id: QUEST_IDS.FLASH_RECALL_15, title: 'Total Recall', desc: 'Know 15 flashcards today', target: 15, reward: 40, category: 'explore', metric: 'flashcardsKnown', agg: 'sum' },
@@ -711,7 +711,7 @@ export var QUESTS = [
   { id: QUEST_IDS.MODE_GAUNTLET, title: 'Brave the Gauntlet', desc: 'Finish a Weekly Gauntlet run', target: 1, reward: 60, category: 'mode', metric: 'mode_tournament', agg: 'sum' },
   { id: QUEST_IDS.MODE_CHALLENGE, title: 'Take a Challenge', desc: 'Finish a friend challenge run', target: 1, reward: 40, category: 'mode', metric: 'mode_challenge', agg: 'sum' },
   { id: QUEST_IDS.SPEED_3, title: 'Speed Round', desc: 'Answer 3 cards correctly in under 2 seconds each', target: 3, reward: 40, category: 'speed', metric: 'quick', agg: 'sum' },
-  { id: QUEST_IDS.SPEED_8, title: 'Quick Draw', desc: 'Answer 8 cards correctly in under 2 seconds each', target: 8, reward: 50, category: 'speed', metric: 'quick', agg: 'sum' },
+  { id: QUEST_IDS.SPEED_8, title: 'Fast Hands', desc: 'Answer 8 cards correctly in under 2 seconds each', target: 8, reward: 50, category: 'speed', metric: 'quick', agg: 'sum' },
   { id: QUEST_IDS.SPEED_15, title: 'Lightning', desc: 'Answer 15 cards correctly in under 2 seconds each', target: 15, reward: 70, category: 'speed', metric: 'quick', agg: 'sum' },
   { id: QUEST_IDS.BLINK_3, title: 'Blink', desc: 'Answer 2 cards correctly in under 1 second each', target: 2, reward: 50, category: 'speed', metric: 'blink', agg: 'sum' },
   { id: QUEST_IDS.NO_CONTINUE_15, title: 'No Second Chances', desc: 'Answer 15 cards in one run without using a continue', target: 15, reward: 40, category: 'speed', metric: 'noContinue', agg: 'max' },
@@ -902,8 +902,11 @@ var QUEST_EPOCH = '2026-01-01';
 var _questDayCache = {};
 
 /**
- * The quest ids on offer on a date. Same for every player and every device. The chain runs day by day from a
- * fixed start date, so a day never repeats the quests of the day before.
+ * The quest ids on offer on a date: a pure function of the date, so the same
+ * date gives every player and every device the same quests. Dates are the
+ * player's local day, like every other daily system in the app (streak,
+ * calendar, quest progress itself). The chain runs day by day from a fixed
+ * start date, so a day never repeats the quests of the day before.
  * @param {string} dateKey
  * @returns {string[]}
  */

@@ -99,7 +99,19 @@ export function getQuality() {
     perfHint: storage.get('perfHint')
   });
   // A nearly flat battery steps "Auto" down one tier (a level picked by hand is left alone)
-  return setting === 'auto' && isLowBattery() ? lowerTier(tier) : tier;
+  return setting === 'auto' && batteryTierDrop() ? lowerTier(tier) : tier;
+}
+
+var _batteryTierDrop = false;
+/**
+ * The battery step-down latches for the session: getQuality() is called by
+ * every rebuild, and a battery hovering at the threshold used to flip the
+ * tier back and forth between two rebuilds of the same session. Once the
+ * battery reads low, the tier stays stepped down until the next launch.
+ */
+function batteryTierDrop() {
+  if (isLowBattery()) _batteryTierDrop = true;
+  return _batteryTierDrop;
 }
 
 export function isLowQuality() { return getQuality() === 'low'; }
