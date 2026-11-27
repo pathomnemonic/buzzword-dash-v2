@@ -562,7 +562,11 @@ PALS.forEach(function (p) {
   AVATARS.push(Object.assign({}, intern, {
     id: "avatar_classic",
     name: "Classic Intern",
-    desc: "The original blocky intern. Works with every hat, gear and outfit"
+    desc: "The original blocky intern. Works with every hat, gear and outfit",
+    // The copy is made before the Intern below is flagged as a model; say outright
+    // that the Classic is not one, so nothing downstream has to guess from a
+    // missing flag (the archive pass below reads it).
+    isModel: false
   }));
   SHOP_ITEMS.push({ id: "avatar_classic", name: "Classic Intern", price: 0, type: "skin", color: 0x2288dd, icon: "🩺", compatibility: COMPAT_ALL });
 
@@ -616,7 +620,9 @@ export var ARCHIVE_CLASSIC = true;
 
 var ARCHIVED_IDS = {};
 (function markArchived() {
-  AVATARS.forEach(function (a) { if (!a.isModel) ARCHIVED_IDS[a.id] = true; });
+  // The Classic Intern is the one blocky character that stays listed: it exists
+  // precisely so hats, gear and outfits have a character that can wear them.
+  AVATARS.forEach(function (a) { if (!a.isModel && a.id !== "avatar_classic") ARCHIVED_IDS[a.id] = true; });
   var modelMonsters = {};
   MONSTER_MODELS.forEach(function (m) { modelMonsters[m.id] = true; });
   SHOP_ITEMS.forEach(function (i) { if (i.type === "monster" && !modelMonsters[i.id]) ARCHIVED_IDS[i.id] = true; });

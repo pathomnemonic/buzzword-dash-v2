@@ -702,6 +702,7 @@ export class Multiplayer {
       coins: Number(finalState.coins) || 0,
       correctCount: Number(finalState.correctCount) || Number(finalState.correct) || 0,
       eliminated: !!finalState.eliminated,
+      forfeit: !!finalState.forfeit,
       raceTime: Number(finalState.raceTime) || 0
     });
   }
@@ -773,6 +774,12 @@ export class Multiplayer {
         self._setupConnection(conn);
       });
       peer.on('disconnected', function () {
+        // A signaling drop is not the opponent leaving: rejoin the signaling
+        // server with the same id and keep the match. Only a peer that cannot
+        // reconnect at all is reported as a disconnect.
+        if (!peer.destroyed) {
+          try { peer.reconnect(); return; } catch (e) { /* fall through to the disconnect below */ }
+        }
         self.connected = false;
         self._stopPing();
         if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
@@ -824,6 +831,9 @@ export class Multiplayer {
     }
 
     this.peer.on('open', function () {
+      // After a signaling reconnect this fires again with the connection still
+      // open: do not stack a second connection on top of the live one.
+      if (self.conn && self.conn.open) { if (onReady) onReady(); return; }
       try {
         var conn = self.peer.connect(PEER_PREFIX + self.roomCode, {
           reliable: true,
@@ -838,6 +848,12 @@ export class Multiplayer {
     });
 
     this.peer.on('disconnected', function () {
+      // A signaling drop is not the opponent leaving: rejoin the signaling
+      // server with the same id and keep the match. Only a peer that cannot
+      // reconnect at all is reported as a disconnect.
+      if (!self.peer.destroyed) {
+        try { self.peer.reconnect(); return; } catch (e) { /* fall through to the disconnect below */ }
+      }
       self.connected = false;
       self._stopPing();
       if (self.onDisconnected) self.onDisconnected('Peer signaling disconnected.');
@@ -865,6 +881,9 @@ export class Multiplayer {
       self.connected = true;
       self.localReady = false;
       self.opponentReady = false;
+      // A new connection starts a new message stream: its sequence numbers begin
+      // again, and must not be dropped as stale against the old connection's.
+      self._remoteSequence = -1;
       self._startPing();
 
       self.send('hello', {});

@@ -386,6 +386,22 @@ card = pickResult ? pickResult.card : null;
           this._emit('encounter_resolved', { card: card, correct: ok, encounterResult: encounterResult });
           this.runCards.push(encounterResult);
 
+          // A fatal answer on the very last card of a fixed run still completes
+          // that run: the completion checks further down never run once death
+          // starts, so a daily finished this way was recorded as out of lives
+          // (and the daily did not count as done).
+          var completion = null;
+          if ((this.mode === GAME_MODES.CHALLENGE || this.mode === GAME_MODES.TOURNAMENT) &&
+              this.encountersDone >= (this._modeConfig.challengeCount || 15)) completion = RUN_END_REASONS.CHALLENGE_COMPLETE;
+          else if (this._modeConfig && Array.isArray(this._modeConfig.planCardIds) && this.encountersDone >= this._modeConfig.planCardIds.length) completion = RUN_END_REASONS.CHALLENGE_COMPLETE;
+          else if (this.mode === GAME_MODES.DAILY && this.encountersDone >= (this._modeConfig.dailyEncounterCount || 15)) completion = RUN_END_REASONS.DAILY_COMPLETE;
+          if (completion) {
+            this.waitingForNext = false;
+            var selfDone = this;
+            setTimeout(function () { selfDone._endRun(completion); }, 600);
+            return;
+          }
+
           this._triggerDeath();
           return;
         }
