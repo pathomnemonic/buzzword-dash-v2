@@ -81,7 +81,12 @@ Deno.serve(async function (req) {
     var check;
     var key;
     try {
-      if (platform === 'android') { key = await tokenKey(token); check = await googleCheck(product, productId, token, nowSec); } else {
+      if (platform === 'android') {
+        key = await tokenKey(token); check = await googleCheck(product, productId, token, nowSec);
+        // The token alone does not say which subscription it bought (issue 64): Google's answer names the products
+        // on the purchase, and a token presented under a different product id is refused, as the Apple branch does.
+        if (check && check.productIds && check.productIds.length && check.productIds.indexOf(productId) < 0) return json({ error: 'That purchase is for a different product.' }, 400);
+      } else {
         check = await appleCheck(token, nowSec);
         key = check && check.key;
         if (check && check.productId && check.productId !== productId) return json({ error: 'That purchase is for a different product.' }, 400);
