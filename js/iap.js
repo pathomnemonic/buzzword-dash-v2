@@ -16,12 +16,37 @@ import { isNative, getNativePlatform } from './native.js';
 export function createIap(deps) {
   var plugin = null;
   var started = null;
+  var setup = null;
   var defs = [];
   var waiting = {}; // product id -> resolve of the open purchase
   var listeners = [];
 
   function platformId(mod) {
     return deps.platform === 'ios' ? mod.Platform.APPLE_APPSTORE : deps.platform === 'android' ? mod.Platform.GOOGLE_PLAY : null;
+  }
+
+  // Load the plugin and register the products and handlers: this part must happen
+  // exactly once, so its promise is kept, but only when it produced a plugin.
+  function ensureSetup() {
+    if (setup) return setup;
+    setup = Promise.resolve().then(function () { return deps.loadPlugin(); }).then(function (mod) {
+      if (!mod || !mod.store) return null;
+      var platform = platformId(mod);
+      if (!platform || !defs.length) return null;
+      plugin = mod;
+      mod.store.register(defs.map(function (d) {
+        return { id: d.id, type: d.kind === 'subscription' ? mod.ProductType.PAID_SUBSCRIPTION : d.kind === 'nonconsumable' ? mod.ProductType.NON_CONSUMABLE : mod.ProductType.CONSUMABLE, platform: platform };
+      }));
+      // Approved: acknowledge (finish) it at once, so a tip can be given again and a subscription is confirmed to the store
+      mod.store.when().approved(function (t) { t.finish(); }).finished(function (t) {
+        var ids = (t && t.products ? t.products : []).map(function (p) { return p.id; });
+        ids.forEach(function (id) { var w = waiting[id]; if (w) { delete waiting[id]; w({ ok: true }); } });
+        listeners.forEach(function (fn) { try { fn(ids); } catch (e) { /* ignore */ } });
+      });
+      return mod;
+    }).catch(function () { return null; });
+    setup.then(function (mod) { if (!mod) setup = null; });
+    return setup;
   }
 
   var self = {
@@ -31,27 +56,20 @@ export function createIap(deps) {
       list.forEach(function (d) { if (!defs.some(function (x) { return x.id === d.id; })) defs.push(d); });
     },
 
-    /** Connect to the store (once). Resolves true when the store answered. */
+    /** Connect to the store. Resolves true when the store answered. A failed start
+     * is not cached (the old code kept the settled promise forever, so one failed
+     * store load meant purchases could never come up until a relaunch); a
+     * successful one is, and registering still happens only once. */
     start: function () {
       if (started) return started;
-      started = Promise.resolve().then(function () { return deps.loadPlugin(); }).then(function (mod) {
-        if (!mod || !mod.store) return false;
+      started = ensureSetup().then(function (mod) {
+        if (!mod) return false;
         var platform = platformId(mod);
-        if (!platform || !defs.length) return false;
-        plugin = mod;
-        mod.store.register(defs.map(function (d) {
-          return { id: d.id, type: d.kind === 'subscription' ? mod.ProductType.PAID_SUBSCRIPTION : d.kind === 'nonconsumable' ? mod.ProductType.NON_CONSUMABLE : mod.ProductType.CONSUMABLE, platform: platform };
-        }));
-        // Approved: acknowledge (finish) it at once, so a tip can be given again and a subscription is confirmed to the store
-        mod.store.when().approved(function (t) { t.finish(); }).finished(function (t) {
-          var ids = (t && t.products ? t.products : []).map(function (p) { return p.id; });
-          ids.forEach(function (id) { var w = waiting[id]; if (w) { delete waiting[id]; w({ ok: true }); } });
-          listeners.forEach(function (fn) { try { fn(ids); } catch (e) { /* ignore */ } });
-        });
         return mod.store.initialize([platform]).then(function (errors) {
           return defs.some(function (d) { return !!self.product(d.id); }) || !(errors && errors.length);
         });
       }).catch(function () { return false; });
+      started.then(function (ok) { if (!ok) started = null; });
       return started;
     },
 
