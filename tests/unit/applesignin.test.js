@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { generateKeyPairSync, createVerify } from 'node:crypto';
-import { appleConfigured, appleClientSecret, appleRevokeForm, revokeSucceeded, hasAppleLogin } from '../../supabase/functions/_shared/applesignin.js';
+import { appleConfigured, appleClientSecret, appleRevokeForm, revokeSucceeded, hasAppleLogin, appleIdentitySub, appleIdTokenSub } from '../../supabase/functions/_shared/applesignin.js';
 
 const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
 const PEM = privateKey.export({ type: 'pkcs8', format: 'pem' });
@@ -75,5 +75,26 @@ describe('the iOS app signs in natively, so its login belongs to the bundle id',
     const form = await appleCodeForm(ENV, 'abc.def.ghi', 1_800_000_000);
     expect(form).toMatchObject({ client_id: 'com.pathomnemonic.dxdash', code: 'abc.def.ghi', grant_type: 'authorization_code' });
     expect(JSON.parse(b64(form.client_secret.split('.')[1]).toString()).sub).toBe('com.pathomnemonic.dxdash');
+  });
+});
+
+describe('a one-time code is only kept for the account it belongs to (issue 62)', () => {
+  const jwtFor = (payload) => 'h.' + Buffer.from(JSON.stringify(payload)).toString('base64url') + '.s';
+  const user = { identities: [{ provider: 'google', identity_data: { sub: 'g1' } }, { provider: 'apple', identity_data: { sub: 'apple-user-1' } }] };
+  it('reads the account Apple id from its Apple identity, and nothing from other providers', () => {
+    expect(appleIdentitySub(user)).toBe('apple-user-1');
+    expect(appleIdentitySub({ identities: [{ provider: 'google', identity_data: { sub: 'g1' } }] })).toBe('');
+    expect(appleIdentitySub({})).toBe('');
+    expect(appleIdentitySub(null)).toBe('');
+  });
+  it('reads the sub out of an id_token, and nothing out of garbage', () => {
+    expect(appleIdTokenSub(jwtFor({ sub: 'apple-user-1', aud: 'x' }))).toBe('apple-user-1');
+    expect(appleIdTokenSub(jwtFor({ aud: 'x' }))).toBe('');
+    expect(appleIdTokenSub('nonsense')).toBe('');
+    expect(appleIdTokenSub('')).toBe('');
+  });
+  it('the two sides agree only for the same Apple user', () => {
+    expect(appleIdTokenSub(jwtFor({ sub: 'apple-user-1' })) === appleIdentitySub(user)).toBe(true);
+    expect(appleIdTokenSub(jwtFor({ sub: 'someone-else' })) === appleIdentitySub(user)).toBe(false);
   });
 });
