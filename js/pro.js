@@ -24,7 +24,7 @@ import { getIap } from './iap.js';
 import { storage } from './storage.js';
 import { isNative, getNativePlatform } from './native.js';
 import { track } from './analytics/index.js';
-import { PREMIUM_ITEMS, itemProductId, premiumCents, formatUsd } from '../supabase/functions/_shared/premium.js';
+import { PREMIUM_ITEMS, itemProductId, premiumCents, formatUsd } from './premium.js';
 
 var CACHE_KEY = 'dx_pro';
 var USE_KEY = 'dx_pro_use';
