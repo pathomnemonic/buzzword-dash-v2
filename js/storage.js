@@ -60,7 +60,9 @@ function hasProgress(data) {
     if ((Number(p.totalCardsStudied) || 0) > 0 || (Number(p.flashcardSessions) || 0) > 0) return true;
     var h = (d && d.history) || {};
     if (Array.isArray(h.examResults) && h.examResults.length > 0) return true;
-    if ((Number(p.coins) || 0) > 300) return true;
+    // Coin activity means lifetime earnings past the starting grant (a balance
+    // alone proves nothing: an untouched save can hold unspent coins).
+    if ((Number(p.totalCoinsEarned) || 0) > 100) return true;
     // Owned items past the starter set. (A plain length check misfires: the
     // load itself grants avatar_classic, so a fresh save already holds ten.)
     var starterOwned = ((DEFAULTS.progression && DEFAULTS.progression.ownedItems) || []).concat(['avatar_classic']);
