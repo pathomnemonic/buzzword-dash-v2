@@ -45,11 +45,13 @@ export function debounce(fn, delay) {
 // FOCUS TRAP for modals (Section 21.3) [2]
 // ═══════════════════════════════════════════════════════════
 
-var _activeFocusTrap = null;
-var _previousFocusElement = null;
+// A stack, not a single slot: dialogs nest (a confirm over a sheet, the
+// continue prompt over the game), and a single slot lost the outer trap
+// the moment an inner one was set, and restored focus to the wrong place.
+var _focusTrapStack = [];
 
 export function trapFocus(container) {
-  _previousFocusElement = document.activeElement;
+  var previousFocusElement = document.activeElement;
 
   function getFocusable() {
     var elements = container.querySelectorAll(
@@ -85,7 +87,7 @@ export function trapFocus(container) {
   }
 
   container.addEventListener('keydown', handleKeyDown);
-  _activeFocusTrap = { container: container, handler: handleKeyDown };
+  _focusTrapStack.push({ container: container, handler: handleKeyDown, previousFocusElement: previousFocusElement });
 
   // Move focus into the container
   var focusable = getFocusable();
@@ -98,14 +100,13 @@ export function trapFocus(container) {
 }
 
 export function releaseFocusTrap() {
-  if (_activeFocusTrap) {
-    _activeFocusTrap.container.removeEventListener('keydown', _activeFocusTrap.handler);
-    _activeFocusTrap = null;
+  var trap = _focusTrapStack.pop();
+  if (trap) {
+    trap.container.removeEventListener('keydown', trap.handler);
+    if (trap.previousFocusElement && trap.previousFocusElement.focus) {
+      try { trap.previousFocusElement.focus(); } catch (e) { /* element may have been removed */ }
+    }
   }
-  if (_previousFocusElement && _previousFocusElement.focus) {
-    try { _previousFocusElement.focus(); } catch (e) { /* element may have been removed */ }
-  }
-  _previousFocusElement = null;
 }
 
 // ═══════════════════════════════════════════════════════════
