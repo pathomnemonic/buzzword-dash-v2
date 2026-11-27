@@ -111,7 +111,7 @@ function splashPad(g, S, z) {
     bloodCell(g, S, S.in(0.0), 1.55 + (i % 2) * 0.12, cz + 0.0, 0.8, false);
   });
   box(g, 0.2, 0.3, 4, AQUA, S.in(0.06), 0.15, z);
-  sign(g, 'O₂ EXPRESS', AQUA, WHITE, 2.4, 0.65, S.in(0.1), 4.1, z, { ry: S.turn, border: WHITE });
+  sign(g, 'O2 EXPRESS', AQUA, WHITE, 2.4, 0.65, S.in(0.1), 4.1, z, { ry: S.turn, border: WHITE });
   drop(g, 0.28, AQUA, x, 4.9, z - 1.2, {});
   drop(g, 0.28, AQUA, x, 4.9, z + 1.2, {});
 }
