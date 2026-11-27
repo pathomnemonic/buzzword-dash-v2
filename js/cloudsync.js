@@ -8,7 +8,9 @@
  *
  * A device remembers the timestamp of the cloud save it last synced. The
  * server refuses a write based on an older timestamp, so two devices can never
- * silently overwrite each other; the player is asked instead.
+ * silently overwrite each other; the player is asked instead. The device also
+ * remembers, in the same record, whether it holds changes the cloud has not
+ * seen, so a relaunch after offline play cannot mistake them for no changes.
  */
 import { track } from './analytics/index.js';
 
@@ -22,14 +24,25 @@ export function summarize(data) {
     answered: Number(p.totalEncounters) || 0,
     coins: Number(p.totalCoinsEarned) || 0,
     best: Number(p.bestScore) || 0,
-    streak: Number(p.studyStreak) || Number(p.dailyStreak) || 0
+    streak: Number(p.studyStreak) || Number(p.dailyStreak) || 0,
+    studied: Number(p.totalCardsStudied) || 0,
+    items: Array.isArray(p.ownedItems) ? p.ownedItems.length : 0
   };
 }
 
-/** A save with no play history (a brand-new device). */
-export function isFresh(data) {
+/** How many items a brand-new save owns (see DEFAULTS.progression.ownedItems in storage.js). */
+var DEFAULT_OWNED_ITEMS = 9;
+
+/**
+ * A save with no real activity on it (a brand-new device). Runs are not the only
+ * way to have something worth keeping: flashcard and exam sessions count through
+ * totalCardsStudied, purchases through ownedItems beyond the starter set, and a
+ * deck of the player's own cards counts when the caller passes its size.
+ */
+export function isFresh(data, localCards) {
   var s = summarize(data);
-  return s.answered === 0 && s.best === 0;
+  return s.answered === 0 && s.best === 0 && s.studied === 0 &&
+    s.items <= DEFAULT_OWNED_ITEMS && !(localCards > 0);
 }
 
 /** True when save `a` is plainly behind save `b`: nothing it counts is ahead, and something is behind. Lifetime counts only grow. */
@@ -49,17 +62,26 @@ function sameSummary(a, b) {
  * @param {{userId: string, remoteUpdatedAt: string}|null} input.meta - last sync record
  * @param {string} input.userId
  * @param {boolean} input.dirty - local changes not yet pushed
+ * @param {number} [input.localCards] - how many of the player's own cards this device holds
  * @returns {'noop'|'push'|'pull'|'adopt'|'conflict'}
  *   adopt = both sides already match; just record the cloud timestamp.
  */
 export function decideSync(input) {
   var local = input.local;
   var remote = input.remote;
-  if (!remote) return isFresh(local) ? 'noop' : 'push';
-  if (isFresh(local)) return 'pull';
+  if (!remote) return isFresh(local, input.localCards) ? 'noop' : 'push';
 
   var meta = input.meta;
-  if (meta && meta.userId === input.userId && meta.remoteUpdatedAt) {
+  var syncedBefore = !!(meta && meta.userId === input.userId && meta.remoteUpdatedAt);
+  if (isFresh(local, input.localCards)) {
+    // An empty save on a device that has synced before and has unsynced changes is
+    // a deliberate wipe (a reset, most likely), not a brand-new device: ask, so the
+    // cloud copy is not silently pulled back over it.
+    if (syncedBefore && input.dirty) return 'conflict';
+    return 'pull';
+  }
+
+  if (syncedBefore) {
     var ls = summarize(local);
     var rs = summarize(remote.data);
     if (meta.remoteUpdatedAt === remote.updatedAt) {
@@ -105,7 +127,10 @@ export class CloudSync {
    */
   constructor(deps) {
     this.deps = deps;
-    this.dirty = false;
+    // The unsynced-changes flag is persisted in the sync record: a device that
+    // played offline and was closed must still know it holds unsynced progress
+    // when it relaunches, or the next sync can silently pull over it.
+    this.dirty = !!((readMeta() || {}).localDirty);
     this.state = 'off'; // off | idle | syncing | error
     this.lastSyncedAt = null;
     this.error = '';
@@ -122,19 +147,39 @@ export class CloudSync {
     return !!(st.authenticated && !st.anonymous);
   }
 
+  /** Record whether this device holds changes the cloud has not seen, in memory and in the sync record. */
+  _setDirty(value) {
+    this.dirty = !!value;
+    var meta = readMeta() || {};
+    if (!!meta.localDirty !== this.dirty) {
+      meta.localDirty = this.dirty;
+      writeMeta(meta);
+    }
+  }
+
+  /** Write the sync record, keeping the deck-synced and unsynced-changes flags unless told otherwise. */
+  _writeMeta(userId, remoteUpdatedAt, cardsSynced) {
+    var meta = readMeta() || {};
+    meta.userId = userId;
+    if (remoteUpdatedAt) meta.remoteUpdatedAt = remoteUpdatedAt;
+    if (cardsSynced !== undefined) meta.cardsSynced = cardsSynced;
+    meta.localDirty = this.dirty;
+    writeMeta(meta);
+  }
+
   /** Begin watching for changes. Safe to call more than once. */
   start() {
     if (this._started) return;
     this._started = true;
     var self = this;
     this.deps.storage.onChange = function () {
-      self.dirty = true;
+      self._setDirty(true);
       self._schedulePush();
     };
     if (this.deps.customCards && typeof this.deps.customCards.subscribe === 'function') {
       this.deps.customCards.subscribe(function () {
         if (self._applyingCards) return;
-        self.dirty = true;
+        self._setDirty(true);
         self._schedulePush();
       });
     }
@@ -194,7 +239,8 @@ export class CloudSync {
         remote: res.save,
         meta: readMeta(),
         userId: userId,
-        dirty: self.dirty
+        dirty: self.dirty,
+        localCards: self.deps.customCards ? self.deps.customCards.getAll().length : 0
       });
       if (action === 'noop') return self._done('noop', res.save && res.save.updatedAt);
       if (action === 'adopt') return self._done('adopt', res.save.updatedAt);
@@ -205,24 +251,45 @@ export class CloudSync {
   }
 
   _done(result, remoteUpdatedAt) {
-    var meta = readMeta() || {};
-    meta.userId = this.deps.leaderboard.getUserId();
-    if (remoteUpdatedAt) meta.remoteUpdatedAt = remoteUpdatedAt;
-    writeMeta(meta);
+    this._writeMeta(this.deps.leaderboard.getUserId(), remoteUpdatedAt);
     this.state = 'idle';
     this.error = '';
     this.lastSyncedAt = Date.now();
     return result;
   }
 
+  /** Size of the player's own deck as sync JSON, cached by the deck's version so a big deck is not re-measured on every push. */
+  _deckBytes(cards) {
+    var cc = this.deps.customCards;
+    if (cc && typeof cc.version === 'function') {
+      var v = cc.version();
+      if (this._deckCache && this._deckCache.version === v) return this._deckCache.bytes;
+      var bytes = JSON.stringify(cards).length;
+      this._deckCache = { version: v, bytes: bytes };
+      return bytes;
+    }
+    return JSON.stringify(cards).length;
+  }
+
   _snapshot() {
     var data = this.deps.storage.data;
     var copy = JSON.parse(JSON.stringify(data));
+    this._snapCardsField = false;
     // The player's own cards (typed in or imported) travel with the save, unless a huge deck would make every
     // sync heavy; that deck stays on this device and goes in a backup file instead.
     if (this.deps.customCards) {
       var cards = this.deps.customCards.getAll();
-      if (cards.length && JSON.stringify(cards).length <= MAX_CARDS_SYNC_BYTES) copy.customCards = cards;
+      if (cards.length) {
+        if (this._deckBytes(cards) <= MAX_CARDS_SYNC_BYTES) {
+          copy.customCards = cards;
+          this._snapCardsField = true;
+        }
+      } else if ((readMeta() || {}).cardsSynced) {
+        // The deck was synced before and is now empty on purpose (every card deleted):
+        // send the empty deck so the deletion reaches the other devices too.
+        copy.customCards = [];
+        this._snapCardsField = true;
+      }
     }
     return { data: copy, runs: summarize(data).answered };
   }
@@ -230,15 +297,15 @@ export class CloudSync {
   _push(remote, userId) {
     var self = this;
     var snap = this._snapshot();
-    this.dirty = false;
+    this._setDirty(false);
     return this.deps.leaderboard.pushSave(snap.data, snap.runs, remote ? remote.updatedAt : null).then(function (res) {
       if (res.conflict) {
         // Another device saved in the meantime: re-read and decide again.
-        self.dirty = true;
+        self._setDirty(true);
         return self._run();
       }
-      if (!res.success) { self.dirty = true; throw new Error(res.error || 'Save failed'); }
-      writeMeta({ userId: userId, remoteUpdatedAt: res.updatedAt });
+      if (!res.success) { self._setDirty(true); throw new Error(res.error || 'Save failed'); }
+      self._writeMeta(userId, res.updatedAt, self._snapCardsField ? true : undefined);
       self.state = 'idle';
       self.error = '';
       self.lastSyncedAt = Date.now();
@@ -254,10 +321,28 @@ export class CloudSync {
     if (!result.ok) throw new Error(result.error || 'Cloud save could not be applied');
     if (Array.isArray(cards) && this.deps.customCards) {
       this._applyingCards = true;
-      try { this.deps.customCards.replaceAll(cards); } finally { this._applyingCards = false; }
+      try {
+        var localCards = this.deps.customCards.getAll();
+        if (localCards.length && this._deckBytes(localCards) > MAX_CARDS_SYNC_BYTES) {
+          // This device holds a deck too large to sync. Never replace it with the
+          // smaller cloud list: keep every local card and merge in any cloud card
+          // this device does not already have (matched by id, else by import key).
+          var seen = {};
+          localCards.forEach(function (c) {
+            if (c.id) seen['id:' + c.id] = true;
+            if (c.ak) seen['ak:' + c.ak] = true;
+          });
+          var extra = cards.filter(function (c) {
+            return !(c.id && seen['id:' + c.id]) && !(c.ak && seen['ak:' + c.ak]);
+          });
+          if (extra.length) this.deps.customCards.replaceAll(localCards.concat(extra));
+        } else {
+          this.deps.customCards.replaceAll(cards);
+        }
+      } finally { this._applyingCards = false; }
     }
-    writeMeta({ userId: userId, remoteUpdatedAt: remote.updatedAt });
-    this.dirty = false;
+    this._writeMeta(userId, remote.updatedAt, Array.isArray(cards) ? true : undefined);
+    this._setDirty(false);
     this.state = 'idle';
     this.error = '';
     this.lastSyncedAt = Date.now();
@@ -275,8 +360,8 @@ export class CloudSync {
         var snap = self._snapshot();
         return self.deps.leaderboard.forceSave(snap.data, snap.runs).then(function (res) {
           if (!res.success) throw new Error(res.error || 'Save failed');
-          writeMeta({ userId: userId, remoteUpdatedAt: res.updatedAt });
-          self.dirty = false;
+          self._writeMeta(userId, res.updatedAt, self._snapCardsField ? true : undefined);
+          self._setDirty(false);
           self.state = 'idle';
           self.lastSyncedAt = Date.now();
           return 'pushed';
