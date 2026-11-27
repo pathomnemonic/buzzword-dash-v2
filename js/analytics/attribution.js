@@ -36,7 +36,7 @@ export function channelOf(t) {
   if (t.utm_medium === 'email' || t.utm_medium === 'newsletter' || t.utm_source === 'email') return 'email';
   if (t.utm_medium === 'social' || t.utm_medium === 'organic_social') return 'social';
   if (t.utm_medium === 'organic' || t.utm_medium === 'search') return 'search';
-  if (t.utm_source || t.utm_medium || t.utm_campaign) return 'campaign';
+  if ((t.utm_source && t.utm_source !== 'store') || t.utm_medium || t.utm_campaign) return 'campaign';
   if (t.referrer_host) {
     if (SOCIAL.test(t.referrer_host)) return 'social';
     if (SEARCH.test(t.referrer_host)) return 'search';
@@ -58,7 +58,9 @@ export function parseTouch(search, referrer, opts) {
   String(search || '').replace(/^\?/, '').split('&').forEach(function (pair) {
     if (!pair) return;
     var i = pair.indexOf('=');
-    var k = decodeURIComponent((i < 0 ? pair : pair.slice(0, i)).replace(/\+/g, ' ')).toLowerCase();
+    var k = (i < 0 ? pair : pair.slice(0, i)).replace(/\+/g, ' ');
+    try { k = decodeURIComponent(k); } catch (e) { /* a malformed % in a key keeps the raw key, like the value below */ }
+    k = k.toLowerCase();
     var v = i < 0 ? '' : pair.slice(i + 1).replace(/\+/g, ' ');
     try { v = decodeURIComponent(v); } catch (e) { /* keep it raw */ }
     if (!(k in params)) params[k] = v;

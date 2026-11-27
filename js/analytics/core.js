@@ -140,6 +140,14 @@ export function createAnalytics(deps) {
   self.setConsent = function (granted, source) {
     try {
       var was = consent.state;
+      if (!granted && was === 'granted') {
+        // The off event is the last thing sent, while consent is still on
+        // (the catalog's rule): queue it and push it out before the wipe.
+        // flush() snapshots and serializes the batch synchronously, so the
+        // wipe below cannot take it back.
+        self.track('consent_changed', { granted: false, source: source || 'settings' });
+        try { var out = self.flush({ keepalive: true, force: true }); if (out && out.catch) out.catch(function () {}); } catch (e) { /* ignore */ }
+      }
       consent = { state: granted ? 'granted' : 'denied', at: now(), source: source || 'settings', v: CONSENT_VERSION };
       writeJson(store, K.consent, consent);
       countConsent(granted ? 'granted' : 'denied', source);
@@ -246,8 +254,11 @@ export function createAnalytics(deps) {
       opts = opts || {};
       var t = typeof opts.t === 'number' ? opts.t : now();
       if (!session && !opts.session) startSession('launch');
-      var sess = opts.session || session;
+      // touch first: it can roll the session, and the event must be stamped
+      // with the session it actually lands in, not the one about to be
+      // replaced (whose summary would never mention it)
       if (!opts.session && !opts.passive && name !== 'session_end' && name !== 'session_start') self.touch();
+      var sess = opts.session || session;
       if (!EVENTS[name]) { stats.dropped_invalid++; return false; }
       if (sampledOut(name)) return false;
       var cleaned = cleanEvent(name, props);
@@ -398,7 +409,11 @@ export function createAnalytics(deps) {
   self.hide = function () {
     try {
       if (!ready || consent.state !== 'granted' || !session) return Promise.resolve();
-      sendSessionEnd(session, now()); // (the session carries on if the player comes back soon: the last summary wins)
+      // Once per stretch of activity: a second hide with nothing since the
+      // last summary does not send session_end again. Activity afterwards
+      // moves lastAt past endSentAt (the same test the gap path in touch()
+      // uses), so a session that carries on still gets its fresher summary.
+      if (!(session.endSentAt >= session.lastAt)) sendSessionEnd(session, now());
       persistQueue();
       return self.flush({ keepalive: true, force: true });
     } catch (e) { return Promise.resolve(); }

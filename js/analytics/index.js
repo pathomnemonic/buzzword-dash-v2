@@ -14,7 +14,7 @@ import { analyticsEndpoint, appVersion } from './backend.js';
 var hooks = {
   platform: function () { return 'web'; },
   tier: function () { return ''; },
-  config: function () { return { enabled: true, sample: 1, killed: [], rates: {}, experiments: {} }; }
+  config: function () { return { enabled: true, sample: 1, killed: [], rates: { obstacle_outcome: 0.2 }, experiments: {} }; }
 };
 /** Give analytics the app's platform name, graphics level and remote config. */
 export function setAppHooks(h) { Object.assign(hooks, h || {}); }
