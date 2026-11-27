@@ -10,6 +10,7 @@ import { audio } from './audio.js';
 import { getLeague, tierName, tierStep, tierProgress, describeLeagueRules } from './leagues.js';
 
 var SEARCH_TIMEOUT_MS = 60000;
+var CONNECT_TIMEOUT_MS = 30000;
 var POLL_MS = 3000;
 var MATCH_SECONDS = 90;
 
@@ -116,6 +117,7 @@ function stopSearch() {
   if (!_search) return;
   clearInterval(_search.poll);
   clearTimeout(_search.timeout);
+  clearTimeout(_search.connectTimeout);
   _search.cancelled = true;
   _search = null;
 }
@@ -128,8 +130,21 @@ export function startRankedSearch(deps, content) {
   var client = deps.client;
   stopSearch();
   _match = null;
-  _search = { cancelled: false, poll: null, timeout: null };
+  _search = { cancelled: false, poll: null, timeout: null, connectTimeout: null, started: false };
   var search = _search;
+
+  // Once an opponent is found, the search timeout no longer applies (it
+  // stands down as soon as _match is set), and nothing else used to watch
+  // the connection: if the peer link never formed, the player sat on
+  // "Connecting…" forever with no cancel button. This timer is the exit
+  // for that state; it stands down as soon as the peer connects.
+  function armConnectTimeout() {
+    clearTimeout(search.connectTimeout);
+    search.connectTimeout = setTimeout(function () {
+      if (search.cancelled || search.started || !_match) return;
+      cancelRanked(client, deps, 'Could not connect to your opponent. Please try again.');
+    }, CONNECT_TIMEOUT_MS);
+  }
 
   function show(text, withCancel, isError) {
     content.textContent = '';
@@ -148,7 +163,10 @@ export function startRankedSearch(deps, content) {
     var started = false;
     client.onConnected = function () {
       stopPolling();
-      show('⚔️ Opponent connected! Get ready…', false);
+      // Connected: the connect timer has done its job. The ready exchange
+      // from here is quick, and the waiting states keep a Cancel button.
+      clearTimeout(search.connectTimeout);
+      show('⚔️ Opponent connected! Get ready…', true);
       if (client.isHost) client.setMode('mp_highscore', { timeLimitSeconds: MATCH_SECONDS });
       client.sendReady(true);
     };
@@ -163,6 +181,8 @@ export function startRankedSearch(deps, content) {
     client.onReadyState = function (state) {
       if (state.localReady && state.opponentReady && client.isHost && !started) {
         started = true;
+        search.started = true;
+        clearTimeout(search.connectTimeout);
         ensureMatch().then(function (match) {
           if (!match) {
             started = false;
@@ -182,7 +202,7 @@ export function startRankedSearch(deps, content) {
           deps.startMatch({ startAt: cfg.startAt, mode: cfg.mode, config: cfg.modeConfig });
         });
       } else if (!started) {
-        show('Waiting for your opponent…', false);
+        show('Waiting for your opponent…', true);
       }
     };
   }
@@ -210,7 +230,8 @@ export function startRankedSearch(deps, content) {
         // Someone was already waiting: join their room instead of ours.
         _match = { matchId: r.matchId, own: r.ownTrophies, opp: r.opponentTrophies, role: 'guest' };
         installMatchHandlers();
-        show('Opponent found! Connecting…', false);
+        show('Opponent found! Connecting…', true);
+        armConnectTimeout();
         client.joinGame(r.roomCode);
         return;
       }
@@ -221,7 +242,8 @@ export function startRankedSearch(deps, content) {
           if (search.cancelled || !p.ok || !p.matched) return;
           clearInterval(search.poll);
           _match = { matchId: p.matchId, own: p.ownTrophies, opp: p.opponentTrophies, role: 'host' };
-          show('Opponent found! Connecting…', false);
+          show('Opponent found! Connecting…', true);
+          armConnectTimeout();
         });
       }, POLL_MS);
       search.timeout = setTimeout(function () {
