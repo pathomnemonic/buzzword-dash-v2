@@ -54,7 +54,7 @@ const SIGNED_IN = [
   'ranked_top', 'redeem_pro_code', 'remove_buddy_listing', 'remove_kudos', 'report_content', 'report_diagnostic',
   'report_study', 'resolve_group_request', 'restore_backup_save', 'school_standings', 'season_standing',
   'set_activity_visibility', 'set_buddy_listing', 'set_group_discovery', 'set_group_goal', 'start_my_trial',
-  'submit_feedback', 'upsert_player_profile'
+  'submit_feedback', 'submit_score', 'upsert_player_profile'
 ];
 const OPEN_TO_ALL = ['count_consent', 'delete_analytics', 'ingest_analytics'];
 
@@ -167,8 +167,11 @@ describe('an attacker with a normal account', () => {
     expect((await as(B, () => db.query('SELECT count(*)::int AS n FROM player_saves'))).rows[0].n).toBe(1);
     expect((await as(A, () => db.query('SELECT data FROM player_saves'))).rows).toHaveLength(0);
     expect(await denied(A, `UPDATE player_profiles SET player_name = 'hax' WHERE user_id = '${B}'`)).toBe(true);
-    expect(await denied(A, `INSERT INTO scores (user_id, player_name, score, mode) VALUES ('${B}', 'x', 1, 'endless')`)).toBe(false); // refused by row security, not a missing privilege
+    expect(await denied(A, `INSERT INTO scores (user_id, player_name, score, mode) VALUES ('${B}', 'x', 1, 'endless')`)).toBe(true); // no direct inserts at all now: scores land only through submit_score, which files them under the caller
     expect((await as(A, () => db.query(`SELECT count(*)::int AS n FROM scores WHERE user_id = '${B}'`))).rows[0].n).toBe(0);
+    // the one write path works, and files the score under the caller, never under a name the caller chose
+    await as(A, () => db.query(`SELECT submit_score('Alice', 'avatar_intern', 100, 50, 1, 1, 'endless', '{}', 'run-priv-harness-1', 'default')`));
+    expect((await as(A, () => db.query(`SELECT count(*)::int AS n FROM scores WHERE user_id = '${A}'`))).rows[0].n).toBe(1);
   });
 });
 
