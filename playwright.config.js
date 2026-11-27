@@ -49,9 +49,14 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npx vite preview --port 4173',
+    // Locally, build first: preview alone serves whatever stale dist
+    // happens to hold, so the tests could pass against an old build. In CI
+    // the dist artifact is always the current commit's build (made with
+    // the debug hooks the tests drive), so preview alone is right there,
+    // and a local rebuild without those flags would break the tests.
+    command: process.env.CI ? 'npx vite preview --port 4173' : 'npm run build && npx vite preview --port 4173',
     port: 4173,
     reuseExistingServer: !process.env.CI,
-    timeout: 30000
+    timeout: 180000
   }
 });
