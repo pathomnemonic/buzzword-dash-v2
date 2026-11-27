@@ -323,19 +323,19 @@ export function pickCard(options) {
     // falling through to weighted random selection. An ordered run (a seeded
     // daily or multiplayer run) must stay deterministic and identical for every
     // player on the seed; a random pick here silently desyncs the run.
-    for (var wi = 0; wi < encounterIndex && wi < orderedCardIds.length; wi++) {
-      var wrapId = orderedCardIds[wi];
+    for (var woi = 0; woi < encounterIndex && woi < orderedCardIds.length; woi++) {
+      var wrapId = orderedCardIds[woi];
       var wrapFound = null;
-      for (var wp = 0; wp < pool.length; wp++) {
-        if (pool[wp].id === wrapId) {
-          wrapFound = pool[wp];
+      for (var wpi = 0; wpi < pool.length; wpi++) {
+        if (pool[wpi].id === wrapId) {
+          wrapFound = pool[wpi];
           break;
         }
       }
       if (wrapFound) {
         return {
           card: patchCardDefaults(wrapFound),
-          orderedIndex: wi,
+          orderedIndex: woi,
           error: null
         };
       }
