@@ -137,3 +137,26 @@ describe('what the database is told', () => {
     expect(grantFor(null, { valid: true }, 'u1', 'k', NOW)).toBeNull();
   });
 });
+
+describe('Google revocation and product identity (issues 53 and 64)', () => {
+  const sub = (state, endOffset, pid) => ({ subscriptionState: state, lineItems: [{ productId: pid || 'dxdash_pro_monthly', expiryTime: new Date((NOW + endOffset) * 1000).toISOString() }] });
+  it('a subscription cut short with paid time left reads as revoked; a natural expiry does not', () => {
+    expect(parseGoogleSubscription(sub('SUBSCRIPTION_STATE_EXPIRED', 86400), NOW)).toMatchObject({ valid: false, revoked: true });
+    expect(parseGoogleSubscription(sub('SUBSCRIPTION_STATE_EXPIRED', -86400), NOW)).toMatchObject({ valid: false, revoked: false });
+    expect(parseGoogleSubscription(sub('SUBSCRIPTION_STATE_ACTIVE', 86400), NOW)).toMatchObject({ valid: true, revoked: false });
+    expect(parseGoogleSubscription(sub('SUBSCRIPTION_STATE_CANCELED', 86400), NOW)).toMatchObject({ valid: true, revoked: false });
+  });
+  it('names the products on the purchase, so a token can be checked against the product it was presented under', () => {
+    expect(parseGoogleSubscription(sub('SUBSCRIPTION_STATE_ACTIVE', 86400), NOW).productIds).toEqual(['dxdash_pro_monthly']);
+    const multi = { subscriptionState: 'SUBSCRIPTION_STATE_ACTIVE', lineItems: [
+      { productId: 'dxdash_pro_monthly', expiryTime: new Date((NOW + 86400) * 1000).toISOString() },
+      { productId: 'dxdash_pro_yearly', expiryTime: new Date((NOW + 90000) * 1000).toISOString() }
+    ] };
+    expect(parseGoogleSubscription(multi, NOW).productIds).toEqual(['dxdash_pro_monthly', 'dxdash_pro_yearly']);
+    expect(parseGoogleSubscription({}, NOW).productIds).toEqual([]);
+  });
+  it('a revoked subscription takes its plan back through grantFor', () => {
+    const a = grantFor({ kind: 'subscription', plan: 'monthly' }, parseGoogleSubscription(sub('SUBSCRIPTION_STATE_EXPIRED', 86400), NOW), 'u1', 'k', NOW);
+    expect(a).toEqual({ rpc: 'pro_revoke_plan', args: { p_user: 'u1', p_plan: 'monthly' } });
+  });
+});
