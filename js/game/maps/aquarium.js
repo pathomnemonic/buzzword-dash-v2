@@ -37,17 +37,19 @@ function sandFloor() {
   });
 }
 
+function drawCaustic(ctx, w, h) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3;
+  for (var i = 0; i < 26; i++) {
+    var cx = (i * 97) % w, cy = (i * 61) % h, r = 22 + (i % 5) * 7;
+    for (var s = -1; s <= 1; s++) for (var u = -1; u <= 1; u++) { ctx.beginPath(); ctx.arc(cx + s * w, cy + u * h, r, 0.3, 2.2); ctx.stroke(); }
+  }
+}
+
 var _caustic = null;
 function causticMat() {
   if (_caustic) return _caustic;
-  var t = canvasTex('aqua_caustic', 256, 256, function (ctx, w, h) {
-    ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3;
-    for (var i = 0; i < 26; i++) {
-      var cx = (i * 97) % w, cy = (i * 61) % h, r = 22 + (i % 5) * 7;
-      for (var s = -1; s <= 1; s++) for (var u = -1; u <= 1; u++) { ctx.beginPath(); ctx.arc(cx + s * w, cy + u * h, r, 0.3, 2.2); ctx.stroke(); }
-    }
-  });
+  var t = canvasTex('aqua_caustic', 256, 256, drawCaustic);
   if (t) t.repeat.set(3, 4);
   _caustic = bulb(0xffffff, { map: t, op: 0.32 });
   return _caustic;
@@ -103,7 +105,10 @@ function bay(g, side, z, k) {
 
 function center(g, z) {
   floorPanel(g, sandFloor(), z, 12);
-  floorPanel(g, canvasTex('aqua_caustic', 256, 256, function () {}), z, 12, { y: 0.03, color: 0xffffff }).material = causticMat();
+  // The real painter, not an empty one: canvasTex caches by name, so an
+  // empty draw here would cache a blank texture and the caustic material
+  // below would reuse the blank.
+  floorPanel(g, canvasTex('aqua_caustic', 256, 256, drawCaustic), z, 12, { y: 0.03, color: 0xffffff }).material = causticMat();
   ceilingPanel(g, canvasTex('aqua_surface', 64, 64, function (ctx, w, h) { var gr = ctx.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#9af0ff'); gr.addColorStop(1, '#5fd0f0'); ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h); ctx.fillStyle = 'rgba(255,255,255,0.5)'; for (var i = 0; i < 10; i++) ctx.fillRect(i * 6, 0, 2, h); }), z, 11.6, H);
 }
 

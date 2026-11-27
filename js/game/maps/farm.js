@@ -79,8 +79,10 @@ function hay(g, S, z) {
   // crates of vegetables
   var names = ['rest/crate_carrots', 'rest/crate_lettuce', 'rest/crate_tomatoes'];
   [0, 1, 2].forEach(function (i) {
-    var cz = z + 0.6 + i * 0.5;
-    if (!kitAt(g, names[i % 3], { width: 0.8, height: 0.5, depth: 0.6 }, S.side, 0.5, 0, z + 0.2 + i * 0.1, 0)) box(g, 0.5, 0.3, 0.6, 0x9a6a3a, S.in(0.5), 0.15, cz);
+    // The fallback box stands where the crate model would (same z), so the
+    // two versions of the scene lay the crates out the same way.
+    var cz = z + 0.2 + i * 0.1;
+    if (!kitAt(g, names[i % 3], { width: 0.8, height: 0.5, depth: 0.6 }, S.side, 0.5, 0, cz, 0)) box(g, 0.5, 0.3, 0.6, 0x9a6a3a, S.in(0.5), 0.15, cz);
   });
   // scarecrow
   box(g, 0.06, 1.6, 0.06, 0x8a5a33, S.in(1.5), 0.8, z + 1.6);

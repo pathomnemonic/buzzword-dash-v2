@@ -101,7 +101,12 @@ export function mergeStatic(root) {
     if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh || !o.geometry || Array.isArray(o.material)) return;
     if (o.castShadow || o.userData.noMerge || !o.visible) return;
     if (o.material.vertexColors || o.material.morphTargets || o.geometry.morphAttributes.position) return;
-    var key = materialKey(o.material);
+    // renderOrder is part of the bucket: the merged mesh takes its first
+    // member's order, so members with different orders must not share one.
+    // (Transparent meshes still merge: the draw call budgets the tests pin
+    // depend on it, and translucent scenery has depthWrite off, so the
+    // usual blending-order harm does not arise.)
+    var key = materialKey(o.material) + '|ro:' + o.renderOrder;
     var b = buckets[key] || (buckets[key] = { material: o.material, geoms: [], meshes: [] });
     b.geoms.push(mergeable(o.geometry, new THREE.Matrix4().multiplyMatrices(inverse, o.matrixWorld)));
     b.meshes.push(o);
@@ -187,7 +192,14 @@ export function upgradeMaterials(root, opts) {
         color: m.color.clone(),
         roughness: metal ? 0.35 : 0.55,
         metalness: metal ? 0.7 : 0.1,
-        envMapIntensity: envIntensity
+        envMapIntensity: envIntensity,
+        // The replacement keeps the original's texture, sidedness, vertex
+        // colours and fog behaviour: dropping them changed how the mesh
+        // rendered, not just how it was lit.
+        map: m.map || null,
+        side: m.side,
+        vertexColors: !!m.vertexColors,
+        fog: m.fog !== false
       });
       cache[m.uuid] = lit;
     }

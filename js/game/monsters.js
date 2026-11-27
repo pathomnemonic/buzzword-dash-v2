@@ -321,5 +321,9 @@ export function buildMonster(id) {
 }
 
 export function getMonsterName(id) {
+  // The model monsters live in the catalog, not STYLES: without this they
+  // all fell back to the classic monster's name ("Exam Monster").
+  var model = getMonsterModel(id);
+  if (model) return model.name;
   return (STYLES[id] || STYLES.monster_classic).name;
 }

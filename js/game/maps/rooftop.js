@@ -121,7 +121,7 @@ function helicopter() {
   rotor.position.y = 0.95;
   h.add(rotor);
   animated(rotor);
-  spin(rotor, 'y', 18, 0);
+  spin(rotor, 'y', 6, 0);
   box(h, 0.9, 0.05, 0.05, 0xdddddd, 0, -0.9, 0.0, {});
   return h;
 }
