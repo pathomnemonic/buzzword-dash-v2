@@ -7,7 +7,7 @@
  */
 
 import { track } from './analytics/index.js';
-import { getNativePlatform } from './native.js';
+import { getNativePlatform, isNative } from './native.js';
 import { openUrl, copyText } from './platform.js';
 
 function env() {
@@ -57,7 +57,29 @@ export function sendFeedback(fb, deps) {
     var to = supportEmail(deps.email);
     if (!to) return Promise.resolve(false);
     var url = 'mailto:' + to + '?subject=' + encodeURIComponent('Dx Dash feedback') + '&body=' + encodeURIComponent(feedbackBody(payload, ctx));
-    return openUrl(url);
+    if (isNative()) return openUrl(url);
+    // On the web a mailto hand-off cannot be confirmed from the return
+    // value (window.open reports nothing for it), so the old code claimed
+    // the email app opened even when no mail client existed. The honest
+    // signal is the page losing focus: a mail app taking over blurs or
+    // hides the page within a moment of the click. No blur, no claim, and
+    // the caller falls back to copying the message instead.
+    return new Promise(function (resolve) {
+      var done = false;
+      var finish = function (ok) {
+        if (done) return;
+        done = true;
+        window.removeEventListener('blur', onBlur);
+        document.removeEventListener('visibilitychange', onVis);
+        resolve(ok);
+      };
+      var onBlur = function () { finish(true); };
+      var onVis = function () { if (document.hidden) finish(true); };
+      window.addEventListener('blur', onBlur);
+      document.addEventListener('visibilitychange', onVis);
+      openUrl(url);
+      setTimeout(function () { finish(false); }, 1200);
+    });
   }
 
   var mood = payload.mood === 'idea' || payload.mood === 'bug' ? payload.mood : 'unhappy';
