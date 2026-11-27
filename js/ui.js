@@ -567,11 +567,16 @@ class UI {
         self.titleTaps = pushTitleTap(self.titleTaps || [], Date.now());
         if (titleTapsUnlock(self.titleTaps)) {
           self.titleTaps = [];
-          storage.addCoins(100000);
-          audio.play('secret');
-          self._showToast('Secret found! +100,000 coins!');
-          self.renderHome();
-          document.dispatchEvent(new CustomEvent('dx:coins-changed'));
+          // One time only, like the Konami grant: the taps stay a fun secret
+          // afterwards, they just stop paying out.
+          if (!storage.get('titleTapsUsed')) {
+            storage.set('titleTapsUsed', true);
+            storage.addCoins(100000);
+            audio.play('secret');
+            self._showToast('Secret found! +100,000 coins!');
+            self.renderHome();
+            document.dispatchEvent(new CustomEvent('dx:coins-changed'));
+          }
         }
       });
     }

@@ -266,7 +266,8 @@ var DEFAULTS = {
 
   // --- Legacy compat ---
   firstRunComplete: false,
-  konamiUsed: false
+  konamiUsed: false,
+  titleTapsUsed: false
 };
 
 // ===== UTILITIES =====
@@ -474,6 +475,7 @@ function migrateFromV1(old) {
   // --- Legacy flags ---
   if (typeof old.firstRunComplete === 'boolean') data.firstRunComplete = old.firstRunComplete;
   if (typeof old.konamiUsed === 'boolean') data.konamiUsed = old.konamiUsed;
+  if (typeof old.titleTapsUsed === 'boolean') data.titleTapsUsed = old.titleTapsUsed;
 
   // --- DELETE legacy API keys ---
   // old.ankiApiKey is intentionally NOT migrated
@@ -1102,6 +1104,7 @@ class Storage {
       case 'questProgress': /* ignore legacy writes */ break;
       case 'firstRunComplete': this.data.firstRunComplete = value; break;
       case 'konamiUsed': this.data.konamiUsed = value; break;
+      case 'titleTapsUsed': this.data.titleTapsUsed = value; break;
       default:
         // Store at top level for any unknown keys (backward compat)
         this.data[key] = value;
@@ -2439,6 +2442,31 @@ class Storage {
     }
     if (typeof data.schemaVersion !== 'number' || data.schemaVersion > SCHEMA_VERSION) {
       return { ok: false, error: 'Backup is from an incompatible version.' };
+    }
+    // Ownership of real money items is granted by the server or the phone's store,
+    // never by a file: the take back path only covers items the server once listed,
+    // so a premium item planted here would be kept for good. Strip premium items the
+    // device does not already own, and the server purchase record; genuine owners
+    // get their items back from the server or store check on the next launch, the
+    // same way a fresh install recovers them.
+    var prog = data.progression;
+    if (FEATURES.backend && prog && typeof prog === 'object') {
+      var alreadyOwned = (this.data && this.data.progression && Array.isArray(this.data.progression.ownedItems))
+        ? this.data.progression.ownedItems : [];
+      if (Array.isArray(prog.ownedItems)) {
+        prog.ownedItems = prog.ownedItems.filter(function (id) {
+          return !isPremiumItem(id) || alreadyOwned.indexOf(id) >= 0;
+        });
+      }
+      if (prog.equipped && typeof prog.equipped === 'object') {
+        Object.keys(prog.equipped).forEach(function (slot) {
+          var id = prog.equipped[slot];
+          if (isPremiumItem(id) && (!Array.isArray(prog.ownedItems) || prog.ownedItems.indexOf(id) < 0) && DEFAULTS.progression.equipped[slot]) {
+            prog.equipped[slot] = DEFAULTS.progression.equipped[slot];
+          }
+        });
+      }
+      prog.paidItems = { uid: '', ids: [], missing: [] };
     }
     this._keepAside();
     try {
