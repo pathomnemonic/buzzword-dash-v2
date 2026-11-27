@@ -59,11 +59,49 @@ var _client = null;
 var _session = null;
 var _userId = null;
 var _loadPromise = null;
+var _initPromise = null;
 var _subscriptions = [];
 var _disposed = false;
 var _authError = null;
 var _authListeners = [];
 var _authSettings = null;
+var _inviteCallback = null;
+var _inviteChannel = null;
+var _inviteChannelUser = null;
+
+// Create the invites channel once the client, the user and the callback are all
+// known, and recreate it when the account changes. subscribeToInvites used to
+// return null when the user id was not set yet, and nothing ever retried, so a
+// fast init could leave the app with no invite notifications for the session.
+function ensureInviteChannel() {
+  if (!_client || !_userId || !_inviteCallback) return;
+  if (_inviteChannel && _inviteChannelUser === _userId) return;
+  if (_inviteChannel) {
+    try { _client.removeChannel(_inviteChannel); } catch (e) { /* already gone */ }
+    _inviteChannel = null;
+    _inviteChannelUser = null;
+  }
+  try {
+    var channel = _client
+      .channel('invites-' + _userId)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'match_invites',
+        filter: 'to_user=eq.' + _userId
+      }, function (payload) {
+        if (_inviteCallback && payload.new) {
+          _inviteCallback(payload.new);
+        }
+      })
+      .subscribe();
+    _inviteChannel = channel;
+    _inviteChannelUser = _userId;
+    _subscriptions.push(channel);
+  } catch (e) {
+    console.warn('[Leaderboard] subscribeToInvites failed:', e.message);
+  }
+}
 
 // ===== MODE LABELS (for display — UI agent may override) =====
 
@@ -214,8 +252,12 @@ var leaderboard = {
       console.info('[Leaderboard] Not configured — leaderboard features disabled.');
       return Promise.resolve();
     }
+    // One init, shared: later calls used to resolve the moment the client existed,
+    // before the session (and so the user id) was known, and the callers that
+    // subscribe to invites then found no user and silently skipped it.
+    if (_initPromise) return _initPromise;
 
-    return loadSupabaseLib().then(function () {
+    _initPromise = loadSupabaseLib().then(function () {
       if (_client) return; // Already initialized
 
       _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -224,6 +266,7 @@ var leaderboard = {
       var authSubscription = _client.auth.onAuthStateChange(function (event, session) {
         _session = session;
         _userId = session && session.user ? session.user.id : null;
+        ensureInviteChannel();
         // Sign in with Apple hands over a token only now, at sign-in. Keep it (server side, never in the page) so that
         // deleting the account can revoke the Apple login, which the App Store requires.
         if (event === 'SIGNED_IN' && session && session.provider_refresh_token && providerOf(session.user) === 'apple') {
@@ -252,10 +295,12 @@ var leaderboard = {
           return null;
         }
         return leaderboard.signInAnonymously();
-      });
+      }).then(function () { ensureInviteChannel(); });
     }).catch(function (e) {
+      _initPromise = null; // a failed init may be tried again by a later caller
       console.warn('[Leaderboard] Init failed:', e.message);
     });
+    return _initPromise;
   },
 
   /**
@@ -793,17 +838,24 @@ var leaderboard = {
       season: getSeasonKey()
     };
 
-    // Insert score (idempotent by run_id unique constraint)
+    // Insert the score through the server function: direct inserts into the
+    // scores table are closed, so a score can only land through submit_score,
+    // which takes the user from the session and applies the range and flood
+    // limits itself. A repeated run id is a retry and succeeds as the same row.
     var scorePromise = _client
-      .from('scores')
-      .insert(scoreRow)
-      .then(function (res) {
-        // Duplicate run_id will cause a constraint violation — treat as success
-        if (res.error && res.error.code === '23505') {
-          return { data: null, error: null }; // Already submitted
-        }
-        return res;
-      });
+      .rpc('submit_score', {
+        p_player_name: scoreRow.player_name,
+        p_avatar: scoreRow.avatar,
+        p_score: scoreRow.score,
+        p_accuracy: scoreRow.accuracy,
+        p_best_streak: scoreRow.best_streak,
+        p_speed: scoreRow.speed,
+        p_mode: scoreRow.mode,
+        p_badges: scoreRow.badges,
+        p_run_id: scoreRow.run_id,
+        p_season: scoreRow.season
+      })
+      .then(function (res) { return res; });
 
     // Upsert profile with GREATEST for bests (via server function)
     var profilePromise = _client.rpc('upsert_player_profile', {
@@ -1755,29 +1807,11 @@ var leaderboard = {
    * @returns {object|null} Subscription channel (for manual unsubscribe)
    */
   subscribeToInvites: function (callback) {
-    if (!_client || !_userId) return null;
-
-    try {
-      var channel = _client
-        .channel('invites-' + _userId)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'match_invites',
-          filter: 'to_user=eq.' + _userId
-        }, function (payload) {
-          if (callback && payload.new) {
-            callback(payload.new);
-          }
-        })
-        .subscribe();
-
-      _subscriptions.push(channel);
-      return channel;
-    } catch (e) {
-      console.warn('[Leaderboard] subscribeToInvites failed:', e.message);
-      return null;
-    }
+    // Remember the callback and build the channel whenever the user is known
+    // (see ensureInviteChannel): the user id may not exist yet at this call.
+    _inviteCallback = callback;
+    ensureInviteChannel();
+    return _inviteChannel;
   },
 
   // ===== UTILITY =====
