@@ -143,6 +143,9 @@ export var visualMethods = {
   tryCollectSecret(clientX, clientY) {
     var st = this._secret;
     if (!st || !st.mesh || !this.camera || !this.renderer) return false;
+    // Only while the run is actually playing: a tap that lands while the
+    // game is paused or the runner is dying must not pay out.
+    if (this._state !== 'playing') return false;
     var rect = this.renderer.domElement.getBoundingClientRect();
     var v = st.mesh.position.clone();
     v.y += 0.7;
