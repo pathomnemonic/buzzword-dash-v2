@@ -7,7 +7,6 @@
 
 import { track } from './analytics/index.js';
 import { setText, createElement, clearElement } from './dom.js';
-import { storage } from './storage.js';
 import { describeRules } from './rules.js';
 import { runVerdict } from './flavor.js';
 import { trapFocus, releaseFocusTrap } from './uihelpers.js';
