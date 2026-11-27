@@ -119,7 +119,7 @@ export function openPaywall(o) {
     if (!isPro() && (needsAccount || trialAvailable())) {
       var trialBtn = createElement('button', { className: 'btn btn-green btn-block pro-trial-btn', attributes: { type: 'button', id: 'proTrialBtn' } });
       trialBtn.appendChild(createElement('span', { className: 'pro-plan-main', text: '🎁 START YOUR 7-DAY FREE TRIAL' }));
-      trialBtn.appendChild(createElement('span', { className: 'pro-plan-sub', text: needsAccount ? 'Free account, no card, nothing to cancel' : 'No card, nothing to cancel' }));
+      trialBtn.appendChild(createElement('span', { className: 'pro-plan-sub', text: needsAccount ? 'Create your free account first, then start it here. No card, nothing to cancel' : 'No card, nothing to cancel' }));
       trialBtn.addEventListener('click', function () {
         if (needsAccount) { act('trial_account', {}); cleanup(); _openAccount(); return; }
         act('trial_start', {});
@@ -145,8 +145,8 @@ export function openPaywall(o) {
       track('paywall_viewed', { trigger: trigger, feature: o.feature || '', plans: [], variant: variant('pro_paywall'), pro: false });
       var gate = createElement('div', { className: 'pro-account-gate' });
       gate.appendChild(createElement('strong', { text: 'Create a free account to start' }));
-      gate.appendChild(createElement('span', { text: 'So your Pro follows you to every device. A new account gets a free 7-day trial first: no card, nothing to cancel. It takes under a minute.' }));
-      var mk = createElement('button', { className: 'btn btn-gold btn-block', text: 'Create free account + start trial', attributes: { type: 'button', id: 'proCreateAccount' } });
+      gate.appendChild(createElement('span', { text: 'So your Pro follows you to every device. A brand new account gets a free 7-day trial (no card, nothing to cancel), started from this screen once the account exists. Signing in to an older account whose trial is used up will not start a new one. It takes under a minute.' }));
+      var mk = createElement('button', { className: 'btn btn-gold btn-block', text: 'Create free account', attributes: { type: 'button', id: 'proCreateAccount' } });
       mk.addEventListener('click', function () { act('account_needed', {}); cleanup(); _openAccount(); });
       gate.appendChild(mk);
       list.appendChild(gate);
@@ -260,12 +260,14 @@ export function openPaywall(o) {
           cancelSubscription(_lb).then(function (r) { cancelBtn.disabled = false; setText(status, r && r.ok ? 'Cancel any time. You keep Pro until the end of what you have paid for.' : (r && r.error) || 'Could not open the cancel page.'); });
         });
         box.appendChild(cancelBtn);
-        box.appendChild(createElement('p', { className: 'setting-sublabel', text: 'Cancelling is one tap here. You keep Pro until the end of the period you paid for, and nothing is charged after that.' }));
+        box.appendChild(createElement('p', { className: 'setting-sublabel', text: 'The button opens the billing page for wherever you subscribed (your store account, or Stripe for a web subscription) and you cancel there. You keep Pro until the end of the period you paid for, and nothing is charged after that.' }));
       }
       var manage = createElement('button', { className: 'btn btn-outline btn-block', text: 'Manage subscription', attributes: { type: 'button' } });
       manage.addEventListener('click', function () {
         act('manage_opened', {});
-        if (isNative()) { getIap().manage(); return; }
+        // Same routing as cancelling: the store page only manages store
+        // subscriptions; a web (Stripe) subscription is managed in Stripe.
+        if (proStatus().source !== 'server' && isNative()) { getIap().manage(); return; }
         manage.disabled = true;
         webManage(_lb).then(function (r) { manage.disabled = false; if (!r.ok) setText(status, r.error); });
       });
