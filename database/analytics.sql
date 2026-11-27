@@ -179,6 +179,7 @@ DECLARE
   ctx        jsonb;
   lt         jsonb;
   v_ref      text;
+  v_first_seen timestamptz;
 BEGIN
   IF p_batch IS NULL OR jsonb_typeof(p_batch) <> 'object' THEN RAISE EXCEPTION 'bad batch'; END IF;
   v_inst := p_batch -> 'install';
@@ -203,17 +204,31 @@ BEGIN
     RETURN jsonb_build_object('accepted', 0, 'duplicates', 0, 'rejected', v_count, 'limited', true, 'now', (extract(epoch FROM now()) * 1000)::bigint);
   END IF;
 
+  -- When this install was actually first seen (issue 76): the earliest skew-corrected event or session start in
+  -- the batch, not the moment the server happened to receive it. Clamped to the same window events are accepted
+  -- in, so a broken device clock cannot plant an install in the distant past or future.
+  SELECT min(x.ts) INTO v_first_seen FROM (
+    SELECT to_timestamp((e ->> 't')::numeric / 1000.0) + v_skew AS ts
+      FROM jsonb_array_elements(p_batch -> 'events') e
+     WHERE jsonb_typeof(e -> 't') = 'number'
+    UNION ALL
+    SELECT to_timestamp(analytics_num(jv, 'started') / 1000.0) + v_skew
+      FROM jsonb_each(CASE WHEN jsonb_typeof(p_batch -> 'sessions') = 'object' THEN p_batch -> 'sessions' ELSE '{}'::jsonb END) AS j(jk, jv)
+     WHERE jsonb_typeof(jv) = 'object' AND analytics_num(jv, 'started') IS NOT NULL
+  ) x;
+  v_first_seen := least(greatest(coalesce(v_first_seen, now()), now() - interval '10 days'), now());
+
   -- the install row
   v_first := CASE WHEN jsonb_typeof(v_inst -> 'first') = 'object' THEN v_inst -> 'first' ELSE '{}'::jsonb END;
   v_ref := CASE WHEN analytics_txt(v_first, 'share_ref', 16) ~ '^[a-z0-9]{4,16}$' THEN analytics_txt(v_first, 'share_ref', 16) END;
   INSERT INTO analytics_installs (install_id, platform, first_version, last_version, first_channel, first_source, first_medium, first_campaign, first_content,
-                                  first_term, first_referrer, first_landing, has_click_id, ref_code, referred_by_code, consent_version)
+                                  first_term, first_referrer, first_landing, has_click_id, ref_code, referred_by_code, consent_version, first_seen)
   VALUES (v_install, left(coalesce(v_inst ->> 'platform', 'web'), 12), left(v_inst ->> 'version', 20), left(v_inst ->> 'version', 20),
           analytics_txt(v_first, 'channel', 20), analytics_txt(v_first, 'utm_source', 40), analytics_txt(v_first, 'utm_medium', 40),
           analytics_txt(v_first, 'utm_campaign', 60), analytics_txt(v_first, 'utm_content', 60), analytics_txt(v_first, 'utm_term', 60),
           analytics_txt(v_first, 'referrer_host', 60), analytics_txt(v_first, 'landing', 40), coalesce(analytics_bool(v_first, 'has_click_id'), false),
           CASE WHEN analytics_txt(v_inst, 'ref_code', 16) ~ '^[0-9a-f]{6,16}$' THEN analytics_txt(v_inst, 'ref_code', 16) END,
-          v_ref, (analytics_num(v_inst, 'consent_v'))::integer)
+          v_ref, (analytics_num(v_inst, 'consent_v'))::integer, v_first_seen)
   ON CONFLICT (install_id) DO UPDATE SET last_seen = now(), last_version = coalesce(left(EXCLUDED.last_version, 20), analytics_installs.last_version);
 
   -- the sessions this batch refers to (their device details)
