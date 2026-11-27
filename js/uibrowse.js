@@ -127,7 +127,7 @@ export var browseMethods = {
     // Count
     var countEl = createElement('div', {
       className: 'card-browser-stats',
-      text: 'Showing ' + (start + 1) + '-' + Math.min(start + pageSize, filtered.length) + ' of ' + filtered.length + ' cards'
+      text: 'Showing ' + (filtered.length ? (start + 1) : 0) + '-' + Math.min(start + pageSize, filtered.length) + ' of ' + filtered.length + ' cards'
     });
     resultsContainer.appendChild(countEl);
 
