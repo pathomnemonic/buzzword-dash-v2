@@ -197,7 +197,13 @@ BEGIN
   VALUES (p_user, coalesce(p_source, 'manual'), coalesce(p_plan, 'pro'), now() + make_interval(days => p_days), coalesce(p_trial, false), now(), now())
   ON CONFLICT (user_id, source) DO UPDATE SET
     until = greatest(g.until, now()) + make_interval(days => p_days),
-    plan = excluded.plan, trial = excluded.trial AND g.until > now(), updated_at = now(),
+    plan = excluded.plan,
+    -- A paid grant that is still running is never re-marked as a trial by a
+    -- later call carrying the trial flag (issue 154): the flag only describes
+    -- the row when the row is free to describe the new grant, that is the old
+    -- grant has expired or is itself a trial (extended, or converted to paid
+    -- by a call with the flag off).
+    trial = excluded.trial AND (g.trial OR g.until <= now()), updated_at = now(),
     started_at = CASE WHEN g.until <= now() OR (g.trial AND NOT excluded.trial) THEN now() ELSE g.started_at END;
   -- The summary row is derived from the per source grants, never written directly:
   -- adding the days onto the combined row (as this used to) stacked a code grant on

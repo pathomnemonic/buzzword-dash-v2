@@ -196,6 +196,9 @@ BEGIN
     RAISE EXCEPTION 'Only the group owner can answer requests';
   END IF;
   IF p_accept THEN
+    -- A block in either direction keeps the player out, exactly as the
+    -- request list already hides them (issue 164).
+    IF has_block_between(auth.uid(), p_user) THEN RAISE EXCEPTION 'There is a block between you and this player'; END IF;
     IF (SELECT count(*) FROM group_members WHERE group_id = p_group_id) >= 100 THEN RAISE EXCEPTION 'This group is full'; END IF;
     IF NOT EXISTS (SELECT 1 FROM group_join_requests WHERE group_id = p_group_id AND user_id = p_user) THEN
       RAISE EXCEPTION 'No such request';

@@ -54,15 +54,21 @@ CREATE INDEX IF NOT EXISTS scores_user_idx ON scores (user_id);
 -- One score per player per 20 seconds, and an absolute ceiling. This stops a
 -- script flooding the leaderboard; it is not a full anti-cheat.
 CREATE OR REPLACE FUNCTION scores_sanity() RETURNS trigger
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF current_user <> 'authenticated' THEN
+  -- The app role test reads the role setting, not current_user: under
+  -- SECURITY DEFINER current_user is the function's owner, while the role
+  -- setting still names the role the request is running as.
+  IF coalesce(current_setting('role', true), '') <> 'authenticated' THEN
     RETURN NEW;
   END IF;
   IF NEW.score > 5000000 OR NEW.best_streak > 1000 THEN
     RAISE EXCEPTION 'score outside the believable range' USING ERRCODE = '22023';
   END IF;
-  IF EXISTS (SELECT 1 FROM scores WHERE user_id = NEW.user_id AND created_at > now() - interval '20 seconds') THEN
+  -- The flood rule is per player AND mode (issue 169): a quick second run in
+  -- a different mode is normal play, not a flood. SECURITY DEFINER so the
+  -- count sees the table itself, not the inserting player's RLS view of it.
+  IF EXISTS (SELECT 1 FROM scores WHERE user_id = NEW.user_id AND mode = NEW.mode AND created_at > now() - interval '20 seconds') THEN
     RAISE EXCEPTION 'scores are coming in too fast' USING ERRCODE = '54000';
   END IF;
   RETURN NEW;
@@ -310,18 +316,36 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  v_avatar text := left(coalesce(nullif(btrim(p_avatar), ''), 'avatar_intern'), 64);
+  v_badges text[];
 BEGIN
   IF auth.uid() IS NULL OR auth.uid() <> p_user_id THEN
     RAISE EXCEPTION 'not allowed';
   END IF;
+
+  -- The avatar and badges are validated, not stored blind (issue 168). Ids
+  -- are the app's lowercase snake ids; anything else falls back or drops.
+  -- Premium heroes (the avatar_m_ ids sold for money, see premium.js) must
+  -- actually be owned in pro_items. Badges have no server side record (they
+  -- are earned in the app), so they are format checked only.
+  IF v_avatar !~ '^[a-z0-9_]{3,64}$' THEN
+    v_avatar := 'avatar_intern';
+  ELSIF v_avatar LIKE 'avatar\_m\_%' AND NOT EXISTS (SELECT 1 FROM pro_items WHERE user_id = p_user_id AND item_id = v_avatar) THEN
+    v_avatar := 'avatar_intern';
+  END IF;
+  SELECT coalesce(array_agg(DISTINCT b), '{}') INTO v_badges
+  FROM unnest(coalesce(p_badges, '{}')) AS b
+  WHERE b ~ '^[a-z0-9_]{3,64}$';
+  v_badges := coalesce(v_badges[1:6], '{}');
 
   INSERT INTO player_profiles AS pp
     (user_id, player_name, avatar, badges, best_score, best_streak, visible)
   VALUES (
     p_user_id,
     left(coalesce(nullif(trim(p_player_name), ''), 'Anonymous'), 30),
-    left(coalesce(p_avatar, 'avatar_intern'), 64),
-    coalesce(p_badges[1:6], '{}'),
+    v_avatar,
+    v_badges,
     greatest(coalesce(p_best_score, 0), 0),
     greatest(coalesce(p_best_streak, 0), 0),
     coalesce(p_visible, true)
@@ -420,6 +444,14 @@ BEGIN
   -- An empty group is removed.
   IF NOT EXISTS (SELECT 1 FROM group_members WHERE group_id = p_group_id) THEN
     DELETE FROM study_groups WHERE id = p_group_id;
+  ELSE
+    -- The owner leaving hands the group to the longest standing member left,
+    -- so the group is never owned by someone who has gone (issue 166).
+    UPDATE study_groups g
+       SET owner_id = (SELECT m.user_id FROM group_members m
+                        WHERE m.group_id = p_group_id
+                        ORDER BY m.joined_at, m.user_id LIMIT 1)
+     WHERE g.id = p_group_id AND g.owner_id = auth.uid();
   END IF;
 END;
 $$;
@@ -866,8 +898,11 @@ BEGIN
   WHERE s.user_id = p_uid
     AND s.run_count > 0
     -- only ever replace the backup with something at least as big: a smaller save written over a smaller save must not
-    -- push out the biggest one
-    AND s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0)
+    -- push out the biggest one. The incoming save's count (p_new_runs) is the
+    -- other half of the rule from the table's header: when the new save has
+    -- less in it than the live one, the live one is a keeper too (issue 170).
+    AND (s.run_count >= coalesce((SELECT b.run_count FROM player_saves_backup b WHERE b.user_id = p_uid), 0)
+         OR s.run_count > coalesce(p_new_runs, 0))
   ON CONFLICT (user_id) DO UPDATE
     SET data = excluded.data, run_count = excluded.run_count, saved_at = excluded.saved_at
     WHERE excluded.run_count >= player_saves_backup.run_count;
@@ -894,6 +929,12 @@ BEGIN
     RETURN NULL;
   END IF;
   PERFORM keep_richest_save(uid, b.run_count);
+  -- A live save richer than the backup is never downgraded by the restore
+  -- (issue 170): keep_richest_save has just mirrored it into the backup, so
+  -- there is nothing older worth putting back.
+  IF coalesce((SELECT run_count FROM player_saves WHERE user_id = uid), 0) > b.run_count THEN
+    RETURN NULL;
+  END IF;
   INSERT INTO player_saves (user_id, data, run_count, updated_at)
   VALUES (uid, b.data, b.run_count, new_ts)
   ON CONFLICT (user_id) DO UPDATE
@@ -1184,6 +1225,10 @@ CREATE TABLE IF NOT EXISTS ranked_matches (
   winner_id      uuid,
   CHECK (host_id <> guest_id)
 );
+-- What each side actually gained or lost at settle time (issue 165), so the
+-- player who reports second is told their real delta, not zero.
+ALTER TABLE ranked_matches ADD COLUMN IF NOT EXISTS host_delta integer;
+ALTER TABLE ranked_matches ADD COLUMN IF NOT EXISTS guest_delta integer;
 CREATE INDEX IF NOT EXISTS ranked_matches_host_idx ON ranked_matches (host_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS ranked_reports (
@@ -1256,6 +1301,8 @@ DECLARE
   gr ranked_reports;
   host_out text;
   guest_out text;
+  host_d integer := 0;
+  guest_d integer := 0;
 BEGIN
   SELECT * INTO m FROM ranked_matches WHERE id = p_match FOR UPDATE;
   IF NOT FOUND OR m.settled THEN RETURN COALESCE(m.settled, false); END IF;
@@ -1268,7 +1315,7 @@ BEGIN
     ELSIF hr.outcome = 'draw' AND gr.outcome = 'draw' THEN host_out := 'draw'; guest_out := 'draw';
     ELSE
       -- the two stories do not match: nobody gains or loses anything
-      UPDATE ranked_matches SET settled = true WHERE id = p_match;
+      UPDATE ranked_matches SET settled = true, host_delta = 0, guest_delta = 0 WHERE id = p_match;
       RETURN true;
     END IF;
   ELSIF hr.user_id IS NOT NULL THEN
@@ -1285,9 +1332,9 @@ BEGIN
     RETURN false;
   END IF;
 
-  PERFORM ranked_apply(m.host_id, m.host_trophies, m.guest_trophies, host_out);
-  PERFORM ranked_apply(m.guest_id, m.guest_trophies, m.host_trophies, guest_out);
-  UPDATE ranked_matches SET settled = true,
+  host_d := ranked_apply(m.host_id, m.host_trophies, m.guest_trophies, host_out);
+  guest_d := ranked_apply(m.guest_id, m.guest_trophies, m.host_trophies, guest_out);
+  UPDATE ranked_matches SET settled = true, host_delta = host_d, guest_delta = guest_d,
     winner_id = CASE WHEN host_out = 'win' THEN m.host_id WHEN guest_out = 'win' THEN m.guest_id ELSE NULL END
   WHERE id = p_match;
   RETURN true;
@@ -1427,7 +1474,12 @@ BEGIN
   INSERT INTO player_trophies (user_id) VALUES (me) ON CONFLICT DO NOTHING;
   SELECT trophies INTO before_t FROM player_trophies WHERE user_id = me;
   IF m.settled THEN
-    RETURN jsonb_build_object('settled', true, 'delta', 0, 'trophies', before_t);
+    -- Settled by the other player's report (or the stale sweep): both deltas
+    -- were stored on the match at settle time, so this player is told the
+    -- real one rather than zero (issue 165).
+    RETURN jsonb_build_object('settled', true,
+      'delta', CASE WHEN me = m.host_id THEN coalesce(m.host_delta, 0) ELSE coalesce(m.guest_delta, 0) END,
+      'trophies', before_t);
   END IF;
   INSERT INTO ranked_reports (match_id, user_id, outcome) VALUES (p_match, me, p_outcome) ON CONFLICT DO NOTHING;
   done := ranked_try_settle(p_match);
