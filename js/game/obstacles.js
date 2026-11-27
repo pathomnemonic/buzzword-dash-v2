@@ -219,18 +219,24 @@ function buildSpilledSupplies() {
   cV.position.set(0.4, 0.35, 0.03);
   g.add(cV);
   var bottleMat = new THREE.MeshBasicMaterial({ color: 0xff8833 });
+  // A fixed-seed scatter, not Math.random: this builder also serves
+  // deterministic (seeded and multiplayer) runs, where every player must
+  // see the same obstacle, and unseeded randomness made the dressing differ
+  // per player.
+  var scatter = 1234567;
+  var nextScatter = function () { scatter = (scatter * 1103515245 + 12345) % 2147483648; return scatter / 2147483648; };
   for (var i = 0; i < 4; i++) {
     var bottle = new THREE.Mesh(
       new THREE.CylinderGeometry(0.06, 0.06, 0.2, 8),
       bottleMat
     );
     bottle.position.set(
-      (Math.random() - 0.5) * 1.5,
+      (nextScatter() - 0.5) * 1.5,
       0.1,
-      (Math.random() - 0.5) * 0.8
+      (nextScatter() - 0.5) * 0.8
     );
-    bottle.rotation.z = Math.random() * Math.PI;
-    bottle.rotation.x = Math.random() * 0.5;
+    bottle.rotation.z = nextScatter() * Math.PI;
+    bottle.rotation.x = nextScatter() * 0.5;
     g.add(bottle);
   }
   addJumpIndicator(g);
@@ -581,17 +587,31 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
   var spawnZ;
 
   if (planEntry) {
-    // Deterministic from encounter plan
+    // Deterministic from encounter plan. The variant decides what the
+    // obstacle IS (its geometry is what the player must clear), so the
+    // slide/jump classification comes from the variant itself, not from the
+    // plan's type field, which an aliased or rebalanced variant can leave
+    // describing something else.
     lane = planEntry.lane;
-    isSlide = planEntry.type === 'slide';
     variant = ALL_VARIANTS_BY_ID[planEntry.variantId];
-    spawnZ = (planEntry.spawnOffset || -50) * VISUAL_SPEED;
-
-    // Fallback if variant not found
-    if (!variant) {
+    if (variant) {
+      isSlide = SLIDE_VARIANTS.indexOf(variant) >= 0;
+      // The random path never builds a staffed variant when character
+      // models are off (low tier); the plan path must not either, or a
+      // planned gurney downloads character models on the low tier.
+      if (variant.staff && !useCharacterModels()) {
+        var pool = (isSlide ? SLIDE_VARIANTS : JUMP_VARIANTS).filter(function (v) { return !v.staff; });
+        variant = pool[0];
+      }
+    } else {
+      // Fallback if variant not found
+      isSlide = planEntry.type === 'slide';
       var variants = isSlide ? SLIDE_VARIANTS : JUMP_VARIANTS;
       variant = variants[0];
     }
+    // A spawn offset of 0 is a real offset (spawn at the runner), not a
+    // missing one: only an absent offset takes the default.
+    spawnZ = (typeof planEntry.spawnOffset === 'number' ? planEntry.spawnOffset : -50) * VISUAL_SPEED;
   } else {
     // Random spawning
     lane = pickObstacleLane(options.avoidLane);
@@ -620,14 +640,19 @@ export function spawnObstacle(scene, obstacleMeshes, planEntry, options) {
   var bounds = staff
     ? { width: variant.bounds.width, height: variant.bounds.height, depth: variant.bounds.depth + 1.7 }
     : variant.bounds;
-  obs.userData = {
+  // Merge into the group's userData rather than replacing it: the model
+  // builders (buildScenery/buildHanging) set fields of their own there
+  // (isSceneryModel and friends) that other code reads. The engine-facing
+  // type is 'high'/'low' (what clears it); the plan-facing 'slide'/'jump'
+  // vocabulary lives on the return value below, derived from the same
+  // isSlide decision, so the two never disagree.
+  obs.userData = Object.assign({}, obs.userData, {
     staff: staff,
     lane: lane,
     type: isSlide ? 'high' : 'low',
     variantId: variant.id,
-    obstacleType: isSlide ? 'slide' : 'jump',
     bounds: bounds
-  };
+  });
   softenTranslucentScenery(obs);
   scene.add(obs);
   obstacleMeshes.push(obs);
