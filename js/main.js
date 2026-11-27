@@ -280,6 +280,9 @@ function makeForfeitResult() {
 
 function configureMultiplayer(client, content) {
   multiplayerClient = client;
+  // A host start waiting for the joiner's config ack (see onMatchConfigAck).
+  var pendingStartConfig = null;
+  var pendingStartTimer = 0;
   multiplayerMatchStarted = false;
   multiplayerModeConfig = {};
   multiplayerLocalResult = null;
@@ -376,15 +379,24 @@ function configureMultiplayer(client, content) {
         startBtn.addEventListener('click', function () {
           startBtn.disabled = true;
           import('./multiplayer.js').then(function (mod) {
-            var cfg = client.sendMatchConfig({
+            // Send the config and wait for the joiner's ack before starting.
+            // Starting on send left the joiner behind whenever delivery was
+            // slow, and a joiner that could not accept the config had no way
+            // to refuse except forfeiting, which scored the match as a loss.
+            pendingStartConfig = client.sendMatchConfig({
               mode: client.getMode(),
               startAt: Date.now() + 2500,
               seed: Math.floor(Math.random() * 2147483646) + 1,
               subjects: storage.get('selectedSubjects'),
               cardPoolHash: mod.hashCardPool(seededPool())
             });
-            client.sendMatchStart();
-            scheduleVersusStart({ startAt: cfg.startAt, mode: cfg.mode, config: cfg.modeConfig });
+            clearTimeout(pendingStartTimer);
+            pendingStartTimer = setTimeout(function () {
+              pendingStartConfig = null;
+              var btn = document.getElementById('mpStartMatchBtn');
+              if (btn) btn.disabled = false;
+              showMultiplayerMessage('Opponent did not confirm the match. Try starting again.', 'var(--accent-red)');
+            }, 8000);
           });
         });
       } else {
@@ -397,14 +409,46 @@ function configureMultiplayer(client, content) {
     }
   };
 
+  // The joiner answers a match config with an ack: the card pool check lives
+  // here, before any start, so a mismatch simply means the match does not
+  // begin. It used to be checked at start time and answered with a forfeit,
+  // which the host scored as a win.
+  client.onMatchConfig = function (config) {
+    import('./multiplayer.js').then(function (mod) {
+      if (config.cardPoolHash && config.cardPoolHash !== mod.hashCardPool(seededPool())) {
+        client.sendMatchConfigAck({ accepted: false, reason: 'Card pool mismatch' });
+        showMultiplayerMessage('Card sets differ between players — refresh both browsers and retry.', 'var(--accent-red)');
+        return;
+      }
+      client.sendMatchConfigAck({ accepted: true });
+    });
+  };
+
+  client.onMatchConfigAck = function (ack) {
+    if (!pendingStartConfig) return;
+    clearTimeout(pendingStartTimer);
+    pendingStartConfig = null;
+    if (!ack.accepted) {
+      var btn = document.getElementById('mpStartMatchBtn');
+      if (btn) btn.disabled = false;
+      showMultiplayerMessage('Opponent cannot start this match' + (ack.reason ? ': ' + ack.reason : '') + '.', 'var(--accent-red)');
+      return;
+    }
+    var started = client.sendMatchStart();
+    if (started) scheduleVersusStart({ startAt: started.startAt, mode: started.mode, config: started.modeConfig });
+  };
+
   client.onMatchStart = function (config) {
     trackEvent('multiplayer_event', { action: 'started', mode: (config && config.mode) || 'versus' });
     // Both peers must hold the same built-in card pool or the seeded order
-    // would desync; the host's hash comes with the match config.
+    // would desync; the host's hash comes with the match config. The ack
+    // exchange above normally settles this before a start is ever sent; if a
+    // start still arrives with a mismatched pool, refuse to play it rather
+    // than forfeiting (a forfeit hands the host a win for a setup problem).
     import('./multiplayer.js').then(function (mod) {
       if (config.cardPoolHash && config.cardPoolHash !== mod.hashCardPool(seededPool())) {
-        client.sendForfeit('Card pool mismatch');
         showMultiplayerMessage('Card sets differ between players — refresh both browsers and retry.', 'var(--accent-red)');
+        if (client.disconnect) client.disconnect();
         return;
       }
       scheduleVersusStart(config);
@@ -624,8 +668,11 @@ function showChallengeBanner(challenge) {
 
 /** Handle a #c= link on load. */
 function handleChallengeLink() {
+  // Read the hash now, synchronously: it is cleared below (and by later
+  // navigation), so reading it after the async imports could find it gone.
+  var rawHash = window.location.hash;
   import('./challenge.js').then(function (mod) {
-    var challenge = mod.parseChallengeHash(window.location.hash);
+    var challenge = mod.parseChallengeHash(rawHash);
     if (!challenge) return;
     trackEvent('deep_link_opened', { kind: 'challenge' });
     trackEvent('challenge_event', { action: 'opened', score: challenge.score || 0, count: challenge.n || 0 });
@@ -633,9 +680,21 @@ function handleChallengeLink() {
     history.replaceState(null, '', window.location.pathname + window.location.search);
     return import('./multiplayer.js').then(function (mp) {
       // A link that carries its card ids plays those cards even after the card set has changed
-      if (!challenge.ids && challenge.hash && challenge.hash !== mp.hashCardPool(seededPool())) {
-        ui._showToast('This challenge uses a different card set. Ask your friend to update the game.');
-        return;
+      if (!challenge.ids && challenge.hash) {
+        // The pool hash means nothing until the cards have loaded: at boot
+        // the pool is still empty, its hash is '0', and every valid link was
+        // rejected as a different card set. Wait for the cards first.
+        return loadCards().then(function () {
+          if (!areCardsReady()) {
+            ui._showToast('Could not load the questions. Check your connection and try again.');
+            return;
+          }
+          if (challenge.hash !== mp.hashCardPool(seededPool())) {
+            ui._showToast('This challenge uses a different card set. Ask your friend to update the game.');
+            return;
+          }
+          showChallengeBanner(challenge);
+        });
       }
       showChallengeBanner(challenge);
     });
@@ -955,7 +1014,11 @@ function startMode(mode) {
     return;
   }
 
-  var mpSeed = (isMultiplayerMode(mode) && multiplayerMatchStarted && multiplayerClient && multiplayerClient.getSeed && multiplayerClient.getSeed()) || 0;
+  // The match seed deals a run only while the match is live and undecided
+  // (the same test the match id below uses). Once the local result is in,
+  // the match is over for this player: a Play Again tap must deal a fresh
+  // run, not replay the finished match's seed.
+  var mpSeed = (isMultiplayerMode(mode) && multiplayerMatchStarted && !multiplayerLocalResult && multiplayerClient && multiplayerClient.getSeed && multiplayerClient.getSeed()) || 0;
   if (mpSeed > 0) {
     import('./multiplayer.js').then(function (mod) {
       // Built-in pool only: both peers hold the same one (hash-verified at match
@@ -1613,10 +1676,14 @@ function init() {
       weakBtn.addEventListener('click', function () { startMode('weakness'); });
     }
 
+    // The match ended with this run: clear the flag now, not in the HUD
+    // timeout below. While it stayed set, a Play Again tap inside the
+    // window still saw a live match and reused its seed and id.
+    multiplayerMatchStarted = false;
+
     // Hide opponent HUD after delay
     setTimeout(function () {
       hideOpponentHud();
-      multiplayerMatchStarted = false;
     }, 5000);
   };
 
@@ -2003,7 +2070,10 @@ function init() {
   // Challenge links and the Challenge button
   handleChallengeLink();
   var tournamentBtn = document.getElementById('tournamentBtn');
-  if (tournamentBtn) tournamentBtn.addEventListener('click', startTournament);
+  // Route through startMode like every other play entry point, so the
+  // cards ready check applies: startTournament alone could begin against
+  // an empty deck when the questions had not loaded yet.
+  if (tournamentBtn) tournamentBtn.addEventListener('click', function () { startMode('tournament'); });
   var challengeBtn = document.getElementById('challengeBtn');
   if (challengeBtn) challengeBtn.addEventListener('click', startNewChallenge);
 
