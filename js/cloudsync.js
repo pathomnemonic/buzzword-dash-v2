@@ -58,7 +58,12 @@ export function isPoorer(a, b) {
 }
 
 function sameSummary(a, b) {
-  return a.answered === b.answered && a.coins === b.coins && a.best === b.best;
+  // Every depth the summary carries, not just the headline numbers: two
+  // saves can tie on answers, coins and best score while one holds far more
+  // study, streak and Locker progress, and calling those "the same" would
+  // silently link the poorer one as this account's save.
+  return a.answered === b.answered && a.coins === b.coins && a.best === b.best &&
+    a.streak === b.streak && a.studied === b.studied && a.items === b.items;
 }
 
 /**

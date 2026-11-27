@@ -101,15 +101,22 @@ export function review(memory, correct, now, opts) {
     s = initialStability(grade, w);
     d = initialDifficulty(grade, w);
   } else {
-    var elapsed = Math.max(0, (now - memory.lastReview) / DAY_MS);
-    d = nextDifficulty(memory.difficulty, grade, w);
+    // A stored memory can be missing its difficulty (an older writer, a
+    // partial import): without a guard the NaN would flow into the next
+    // difficulty, the stability and the due date, and the card would never
+    // come due. A missing difficulty restarts from the grade's own, and a
+    // missing last review counts as reviewed now.
+    var d0 = (typeof memory.difficulty === 'number' && isFinite(memory.difficulty)) ? memory.difficulty : initialDifficulty(grade, w);
+    var last = (typeof memory.lastReview === 'number' && isFinite(memory.lastReview)) ? memory.lastReview : now;
+    var elapsed = Math.max(0, (now - last) / DAY_MS);
+    d = nextDifficulty(d0, grade, w);
     if (elapsed < 1) {
       // a second look the same day: only a small change (the memory has not had time to fade)
       s = stabilityAfterSameDay(memory.stability, grade, w);
     } else {
       var r = retrievability(elapsed, memory.stability);
-      s = correct ? stabilityAfterRecall(memory.difficulty, memory.stability, r, grade, w)
-        : stabilityAfterForgetting(memory.difficulty, memory.stability, r, w);
+      s = correct ? stabilityAfterRecall(d0, memory.stability, r, grade, w)
+        : stabilityAfterForgetting(d0, memory.stability, r, w);
     }
   }
   var days = clamp(Math.round(intervalFor(s, opts.retention)), 1, MAX_INTERVAL_DAYS);

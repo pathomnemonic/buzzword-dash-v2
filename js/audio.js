@@ -537,8 +537,11 @@ class MusicGenerator {
   _playStep(step, time) {
     var cfg = this.config;
     var settings = this._getSettings();
-    var vol = settings.masterVolume * settings.musicVolume;
-    if (vol <= 0) return;
+    // The master volume is applied once, by the master gain node every bus
+    // runs through (_applyBusGains); per-note volumes carry only their bus.
+    // (Master still gates the step, as before, it just no longer scales it.)
+    var vol = settings.musicVolume;
+    if (vol <= 0 || settings.masterVolume <= 0) return;
     // The music steps back while a question is read aloud, and comes back smoothly after
     this._duckNow += (this.duckTarget - this._duckNow) * 0.35;
     vol *= this._duckNow;
@@ -917,8 +920,8 @@ class AudioEngine {
     if (!this.ctx) return;
     if (this._paused) return;
 
-    var sfxVol = this._settings.masterVolume * this._settings.sfxVolume;
-    if (sfxVol <= 0) return;
+    var sfxVol = this._settings.sfxVolume;
+    if (sfxVol <= 0 || this._settings.masterVolume <= 0) return;
     if (!this._canPlay(eventName)) return;
     sfxVol *= SFX_EXTRA[eventName] || 1;
 
@@ -1564,8 +1567,8 @@ class AudioEngine {
 
   playStreakSound(streak) {
     if (!this.ctx || this._paused) return;
-    var sfxVol = this._settings.masterVolume * this._settings.sfxVolume;
-    if (sfxVol <= 0) return;
+    var sfxVol = this._settings.sfxVolume;
+    if (sfxVol <= 0 || this._settings.masterVolume <= 0) return;
     var ctx = this.ctx; var t = ctx.currentTime;
     var g = ctx.createGain(); g.connect(this._sfxBus);
     var o = ctx.createOscillator(); o.type = 'sine';
