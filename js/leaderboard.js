@@ -1027,7 +1027,16 @@ var leaderboard = {
           return { success: false, error: 'Unable to send request' };
         }
 
-        return _client
+        // A declined request leaves its row behind, and the pair index is
+        // unique whatever the status, so a fresh insert would bounce off
+        // it ("already sent") for ever. Clear a declined row for the pair
+        // first (either party may delete a row), then insert as usual.
+        var clearDeclined = function (reqId, addrId) {
+          return _client.from('friends').delete()
+            .eq('requester_id', reqId).eq('addressee_id', addrId).eq('status', 'declined');
+        };
+        return Promise.all([clearDeclined(_userId, targetUserId), clearDeclined(targetUserId, _userId)]).then(function () {
+          return _client
           .from('friends')
           .insert({
             requester_id: _userId,
@@ -1046,6 +1055,7 @@ var leaderboard = {
               return { success: false, error: e.message };
             }
           });
+        });
       }).catch(function (e) {
         return { success: false, error: e.message };
       });
