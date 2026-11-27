@@ -30,8 +30,15 @@ export function summarize(data) {
   };
 }
 
-/** How many items a brand-new save owns (see DEFAULTS.progression.ownedItems in storage.js). */
-var DEFAULT_OWNED_ITEMS = 9;
+/** The items every save holds without buying anything: the DEFAULTS.progression.ownedItems set in storage.js, plus avatar_classic, which the load grants to everyone. */
+var STARTER_ITEMS = ['avatar_intern', 'hat_none', 'trail_none', 'gear_none', 'cloth_none', 'monster_classic', 'monster_m_ghost', 'pal_none', 'pal_cat', 'avatar_classic'];
+
+/** How many owned items are past the starter set. */
+function extraItems(data) {
+  var p = (data && data.progression) || {};
+  if (!Array.isArray(p.ownedItems)) return 0;
+  return p.ownedItems.filter(function (id) { return STARTER_ITEMS.indexOf(id) < 0; }).length;
+}
 
 /**
  * A save with no real activity on it (a brand-new device). Runs are not the only
@@ -42,7 +49,7 @@ var DEFAULT_OWNED_ITEMS = 9;
 export function isFresh(data, localCards) {
   var s = summarize(data);
   return s.answered === 0 && s.best === 0 && s.studied === 0 &&
-    s.items <= DEFAULT_OWNED_ITEMS && !(localCards > 0);
+    extraItems(data) === 0 && !(localCards > 0);
 }
 
 /** True when save `a` is plainly behind save `b`: nothing it counts is ahead, and something is behind. Lifetime counts only grow. */
