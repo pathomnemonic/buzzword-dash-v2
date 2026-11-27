@@ -127,10 +127,20 @@ describe('who has Pro', () => {
   it('says no when asked and nobody has it', () => {
     expect(combineStatus([], { source: 'store', until: NOW + DAY, provenAt: NOW - DAY, plan: 'x' }, { now: NOW, fresh: true }).active).toBe(false);
   });
-  it('keeps the last good answer for three days when it could not ask (offline), then lets go', () => {
+  it('keeps the last good answer while its paid period runs, however old the last check is', () => {
     const cached = { source: 'store', plan: 'monthly', until: NOW + 20 * DAY, provenAt: NOW - 2 * DAY };
     expect(combineStatus([], cached, { now: NOW, fresh: false }).active).toBe(true);
-    expect(combineStatus([], { ...cached, provenAt: NOW - 4 * DAY }, { now: NOW, fresh: false }).active).toBe(false);
+    expect(combineStatus([], { ...cached, provenAt: NOW - 4 * DAY }, { now: NOW, fresh: false }).active).toBe(true);
+    // after the paid period ends, a recent proof buys the three day grace, and no more
+    expect(combineStatus([], { ...cached, until: NOW - DAY, provenAt: NOW - 2 * DAY }, { now: NOW, fresh: false }).active).toBe(true);
+    expect(combineStatus([], { ...cached, until: NOW - DAY, provenAt: NOW - 4 * DAY }, { now: NOW, fresh: false }).active).toBe(false);
+  });
+  it('does not let one source revoke what another source granted', () => {
+    const serverCached = { source: 'server', plan: 'yearly', until: NOW + 20 * DAY, provenAt: NOW - DAY };
+    expect(combineStatus([], serverCached, { now: NOW, fresh: true, freshSources: { store: true, server: false } }).active).toBe(true);
+    expect(combineStatus([], serverCached, { now: NOW, fresh: true, freshSources: { store: false, server: true } }).active).toBe(false);
+    const storeCached = { source: 'store', plan: 'monthly', until: NOW + 20 * DAY, provenAt: NOW - DAY };
+    expect(combineStatus([], storeCached, { now: NOW, fresh: true, freshSources: { store: false, server: true } }).active).toBe(true);
   });
   it('is on from the store (phone) once Pro is enabled, and is saved', async () => {
     setProConfigForTest({ enabled: true });
