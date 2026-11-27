@@ -1833,7 +1833,7 @@ class UI {
     var blob = new Blob([buildBackup(storage, customCards)], { type: 'application/json' });
     var self = this;
     saveFile(blob, 'dx-dash-backup-' + new Date().toISOString().slice(0, 10) + '.json').then(function (how) {
-      self._showToast(how === 'failed' ? 'Could not save the backup.' : (how === 'shared' ? 'Choose where to save your backup.' : 'Backup saved.'));
+      self._showToast(how === 'failed' ? 'Could not save the backup.' : (how === 'cancelled' ? 'Save cancelled.' : (how === 'shared' ? 'Choose where to save your backup.' : 'Backup saved.')));
     });
   }
 
