@@ -17,7 +17,7 @@
  * - Subject mastery: total >= 50 && correct/total >= 0.8
  */
 
-import { isPremiumItem, premiumCents } from '../../supabase/functions/_shared/premium.js';
+import { isPremiumItem, premiumCents } from '../premium.js';
 import { FEATURES } from '../features.js';
 import { CHARACTER_MODELS, MONSTER_MODELS } from './modelcatalog.js';
 import { PALS, NO_PAL } from '../companions.js';
@@ -641,10 +641,13 @@ export function isDelisted(id) { return DELISTED_HEROES.indexOf(id) >= 0; }
 /** The delisted heroes' shop entries, for the Locker to show to the players who own them. */
 export var DELISTED_ITEMS = SHOP_ITEMS.filter(function (i) { return isDelisted(i.id); });
 
+/** The archived shop entries, for the Locker to show to the players who own them. */
+export var ARCHIVED_ITEMS = SHOP_ITEMS.filter(function (i) { return isArchivedItem(i.id); });
+
 /** What the Locker may sell: everything except archived and delisted items. */
 export var LOCKER_ITEMS = SHOP_ITEMS.filter(function (i) { return !isArchivedItem(i.id) && !isDelisted(i.id); });
 
-// Some items are sold for real money only (supabase/functions/_shared/premium.js has the list and the prices). They
+// Some items are sold for real money only (js/premium.js has the list and the prices). They
 // have no coin price, so nothing that works from coin prices (affordable dots, "cheapest thing wanted") picks them up.
 LOCKER_ITEMS.forEach(function (i) {
   if (FEATURES.backend && isPremiumItem(i.id)) { i.coinValue = i.price; i.price = 0; i.premium = true; i.usdCents = premiumCents(i.id); }
@@ -744,7 +747,7 @@ function seededRandom(seed) {
  * @returns {string[]} quest ids
  */
 /** What it costs to swap one quest for a new one (a few seconds of play: more than a quest's reward would be a trap). */
-export var QUEST_SWAP_COST = 75;
+export var QUEST_SWAP_COST = 25;
 
 /**
  * The quest to offer in place of one the player wants rid of: one that is not already on offer today and not finished,

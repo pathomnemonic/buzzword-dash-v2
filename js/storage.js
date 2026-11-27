@@ -20,7 +20,7 @@
 
 // ===== IMPORTS =====
 // We import only constants from shopdata — no circular dependency
-import { isPremiumItem, PREMIUM_ITEMS } from '../supabase/functions/_shared/premium.js';
+import { isPremiumItem, PREMIUM_ITEMS } from './premium.js';
 import { FEATURES } from './features.js';
 import { mapUnlockLevel, legacyMapUnlockLevel } from './game/mapunlocks.js';
 import { levelFromXp } from './progress.js';

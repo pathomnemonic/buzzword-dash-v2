@@ -16,7 +16,7 @@ import { setText, createElement, clearElement } from './dom.js';
 import { storage } from './storage.js';
 import { confirmExitTutorial } from './tutorialexit.js';
 import { audio } from './audio.js';
-import { LOCKER_ITEMS, DELISTED_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
+import { LOCKER_ITEMS, DELISTED_ITEMS, ARCHIVED_ITEMS, ARCHIVE_CLASSIC, AVATARS } from './game/shopdata.js';
 import { getTipUrl, openTipPage } from './tips.js';
 import { POWERUP_OPTIONS, describeRules, getRunRules, normalizeSpeedRamp, SPEED_RAMP_EVERY_OPTIONS, SPEED_RAMP_STEP_OPTIONS } from './rules.js';
 import { SKINS, isMapUnlocked, isIndoorSkin } from './game/skins.js';
@@ -803,6 +803,11 @@ export var settingsMethods = {
       var items = LOCKER_ITEMS.filter(function (i) { return i.type === type; });
       // heroes that are no longer sold still show up for the players who own them
       if (type === 'skin') items = items.concat(DELISTED_ITEMS.filter(function (i) { return storage.ownsItem(i.id); }));
+      // archived items are not sold either, but what a player already owns stays in their Locker:
+      // archiving retires an item from the shop, it does not take it away from its owners. Skins
+      // only, like the delisted line above: the archived sets are the classic characters and the
+      // vehicles, and the other tabs keep hiding their archived entries entirely.
+      if (type === 'skin') items = items.concat(ARCHIVED_ITEMS.filter(function (i) { return i.type === type && storage.ownsItem(i.id); }));
       if (filter) items = items.filter(filter);
       // cheapest first (free ones on top), so what you can afford is always at the top of the list
       items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return ((a.it.premium ? 1e9 : a.it.price) - (b.it.premium ? 1e9 : b.it.price)) || (a.idx - b.idx); }).map(function (x) { return x.it; });
@@ -1069,9 +1074,14 @@ export var settingsMethods = {
       shopItems.appendChild(this._renderHeroCard(avatarOf, kindOf, renderGroup));
       shopItems.appendChild(renderGroup('skin', '🎬 Heroes', isKind('model'),
         'A 🎨 beside a hero means you can change its colors. Tap it to start.'));
-      if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
+      // While the classic sets are archived the groups are not listed for sale, but an owner
+      // still gets the group holding what they own (renderGroup adds owned archived items).
+      var ownsArchivedKind = function (kind) {
+        return ARCHIVED_ITEMS.some(function (i) { return i.type === 'skin' && kindOf(i.id) === kind && storage.ownsItem(i.id); });
+      };
+      if (!ARCHIVE_CLASSIC || ownsArchivedKind('classic')) shopItems.appendChild(renderGroup('skin', '🧱 Classic characters', isKind('classic'),
         'Fully customizable: colors, clothing, headwear and gear all work on these.'));
-      if (!ARCHIVE_CLASSIC) shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
+      if (!ARCHIVE_CLASSIC || ownsArchivedKind('vehicle')) shopItems.appendChild(renderGroup('skin', '🚗 Vehicles', isKind('vehicle'),
         'Ride in style. Vehicles cannot wear hats, clothing or gear.'));
     } else if (tab === 'trails') {
       shopItems.appendChild(renderGroup('trail', '✨ Trails', null, 'Trails work with every hero. Tap one to see it in the display above.'));
