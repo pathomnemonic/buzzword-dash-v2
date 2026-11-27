@@ -123,6 +123,10 @@ export function decodeJwsPayload(jws) {
 
 export function parseAppleTransaction(payload, expectedBundle, nowSec) {
   if (!payload || (expectedBundle && payload.bundleId !== expectedBundle)) return null;
+  // A sandbox transaction is a test purchase: it cost nothing and must never grant
+  // real access. (The lookup may still find the transaction on the sandbox server;
+  // it is refused here, on the environment Apple stamped into the signed payload.)
+  if (payload.environment && payload.environment !== 'Production') return null;
   var expires = payload.expiresDate ? Math.floor(Number(payload.expiresDate) / 1000) : 0;
   var revoked = !!payload.revocationDate;
   var recurring = String(payload.type || '').indexOf('Subscription') >= 0 && String(payload.type || '').indexOf('Non-Renewing') < 0;
