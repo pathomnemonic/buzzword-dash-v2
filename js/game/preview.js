@@ -229,7 +229,10 @@ export class CharacterPreview {
             return;
         }
 
-        // If we have preview overrides, temporarily swap storage values
+        // If we have preview overrides, temporarily swap storage values. The swap
+        // persists and notifies listeners, so it must be undone even when the
+        // build throws: without the finally, a failed preview left the try on
+        // outfit saved as the player's real equipment.
         var originalEquipped = null;
         if (this.previewOverrides) {
             originalEquipped = JSON.parse(JSON.stringify(storage.get('equipped')));
@@ -242,11 +245,13 @@ export class CharacterPreview {
             storage.set('equipped', eq);
         }
 
-        this.character = buildPlayer();
-
-        // Restore original equipped if we swapped
-        if (originalEquipped) {
-            storage.set('equipped', originalEquipped);
+        try {
+            this.character = buildPlayer();
+        } finally {
+            // Restore original equipped if we swapped
+            if (originalEquipped) {
+                storage.set('equipped', originalEquipped);
+            }
         }
 
         this.limbs = getPlayerLimbs(this.character);
