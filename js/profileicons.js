@@ -86,7 +86,13 @@ export function fillProfilePicture(el, picture) {
   while (el.firstChild) el.removeChild(el.firstChild);
   var hero = parseHeroPicture(picture);
   el.classList.toggle('has-portrait', !!hero);
-  if (!hero) { el.textContent = iconFor(picture); return; }
+  if (!hero) {
+    // The symbol path sets no label of its own, so a label left by an
+    // earlier hero picture on this element must not survive it.
+    el.removeAttribute('aria-label');
+    el.textContent = iconFor(picture);
+    return;
+  }
   var img = document.createElement('img');
   img.className = 'pp-img ' + hero.style;
   img.alt = '';
@@ -94,6 +100,7 @@ export function fillProfilePicture(el, picture) {
   img.src = portraitUrl(hero.id, hero.style);
   img.addEventListener('error', function () {
     el.classList.remove('has-portrait');
+    el.removeAttribute('aria-label');
     el.textContent = hero.symbol;
   });
   el.setAttribute('aria-label', hero.name + ' (' + hero.style + ')');
