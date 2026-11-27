@@ -64,7 +64,11 @@ BEGIN
   INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
   VALUES (p_user, best.plan, best.source, best.until, best.trial, now(), best.started_at)
   ON CONFLICT (user_id) DO UPDATE SET
-    plan = excluded.plan, source = excluded.source, until = excluded.until, trial = excluded.trial, updated_at = now();
+    plan = excluded.plan, source = excluded.source, until = excluded.until, trial = excluded.trial, updated_at = now(),
+    -- When Pro began is kept across renewals and only starts again after a lapse
+    -- or when a trial becomes a purchase: the rule the direct writes used to apply
+    -- to this row, kept here so deriving the row does not change its meaning.
+    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN excluded.started_at ELSE e.started_at END;
   RETURN best.until;
 END $$;
 REVOKE ALL ON FUNCTION pro_recompute_entitlement(uuid) FROM PUBLIC, anon, authenticated;
