@@ -161,17 +161,15 @@ function validateCard(c) {
     }
   }
 
-  // ww keys must match actual distractors
+  // ww keys must match actual distractors. Explanations travel with their distractor text:
+  // a key that does not match this distractor belongs to a different one and must never be
+  // borrowed by position, or a player would read one distractor's explanation on another.
   if (c.ww && c.d && c.d.length === 2) {
-    var wwKeys = Object.keys(c.ww);
     var newWw = {};
     var wwFixed = false;
-    c.d.forEach(function (dist, idx) {
+    c.d.forEach(function (dist) {
       if (c.ww[dist]) {
         newWw[dist] = c.ww[dist];
-      } else if (wwKeys[idx]) {
-        newWw[dist] = c.ww[wwKeys[idx]];
-        wwFixed = true;
       } else {
         newWw[dist] = 'See teaching point for comparison.';
         wwFixed = true;
@@ -208,6 +206,17 @@ function validateCard(c) {
       warnings.push(c.id + ': contains HTML in text field');
       break;
     }
+  }
+
+  // A malformed buzzword list (not an array, or entries that are not strings) rejects the card
+  // here. The string processing below assumes an array of strings and would throw, taking the
+  // whole module down at load instead of dropping this one card like other invalid cards.
+  if (!Array.isArray(c.bw) || c.bw.some(function (b) { return typeof b !== 'string'; }) ||
+      (c.ans && typeof c.ans !== 'string')) {
+    if (Array.isArray(c.bw) && c.bw.some(function (b) { return typeof b !== 'string'; })) {
+      errors.push(c.id + ': buzzwords must be strings');
+    }
+    return { valid: false, errors: errors, warnings: warnings };
   }
 
   // Answer-leak filtering: drop clues that contain the answer, or a word distinctive to it (whole words only;
