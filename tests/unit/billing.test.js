@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PRODUCTS, configuredProducts, productFor, periodOf, describePrice, periodEnd, subscriptionUntil, checkoutParams,
-  anyProductFor, chargeReturned, portalConfig, invoiceSubscriptionId, grantsFromSubscriptions, itemCheckoutParams, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
+  anyProductFor, chargeReturned, portalConfig, invoiceSubscriptionId, invoiceCharge, invoiceChargeId, invoicePaymentIntentId, invoiceRefunded, grantsFromSubscriptions, itemCheckoutParams, parseSignatureHeader, signPayload, verifyStripeSignature, handleEvent, GRACE_SECONDS
 } from '../../supabase/functions/_shared/billing.js';
 
 const NOW = 1_800_000_000;
@@ -429,5 +429,45 @@ describe('a Stripe Price must match its plan', () => {
     expect(priceProblem('dxdash_pro_yearly', { ...rec('year', 1), active: false })).toMatch(/archived/);
     expect(priceProblem('dxdash_pro_monthly', { active: true, unit_amount: 0, recurring: { interval: 'month', interval_count: 1 } })).toMatch(/fixed amount/);
     expect(priceProblem('nope', rec('month', 1))).toMatch(/unknown/i);
+  });
+});
+
+describe('refunded periods and dead subscriptions give nothing (issues 51 and 52)', () => {
+  const session = (over) => ({ type: 'checkout.session.completed', data: { object: Object.assign({ client_reference_id: 'u1', payment_status: 'paid', customer: 'cus_1', subscription: 'sub_1', metadata: { user_id: 'u1', plan: 'monthly' } }, over || {}) } });
+
+  it('a subscription that is not live yields no until, even with a period end in the future', () => {
+    ['canceled', 'incomplete_expired', 'unpaid', 'paused'].forEach((status) =>
+      expect(subscriptionUntil({ status, current_period_end: NOW + 30 * 86400, metadata: { plan: 'monthly' } }, NOW)).toBe(''));
+    expect(subscriptionUntil({ status: 'active', current_period_end: NOW + 30 * 86400, metadata: { plan: 'monthly' } }, NOW)).toBeTruthy();
+  });
+
+  it('a late Checkout event for a cancelled subscription grants nothing', async () => {
+    const { calls, deps } = fake({ getSubscription: async () => ({ id: 'sub_1', status: 'canceled', current_period_end: NOW + 30 * 86400, metadata: { user_id: 'u1', plan: 'monthly' } }) });
+    expect((await handleEvent(session(), deps)).handled).toBe(false);
+    expect(calls.filter((c) => c[0] === 'pro_grant_until')).toEqual([]);
+  });
+
+  it('an invoice whose charge was refunded does not renew, though the subscription still reads active', async () => {
+    const inv = { amount_paid: 349, subscription: 'sub_1', customer: 'cus_1', charge: { id: 'ch_1', refunded: true, disputed: false } };
+    const { calls, deps } = fake();
+    expect((await handleEvent({ type: 'invoice.paid', data: { object: inv } }, deps)).handled).toBe(false);
+    expect(calls).toEqual([]);
+  });
+
+  it('the same invoice with the charge intact renews as before', async () => {
+    const inv = { amount_paid: 349, subscription: 'sub_1', customer: 'cus_1', charge: { id: 'ch_1', refunded: false, disputed: false } };
+    const { calls, deps } = fake();
+    expect(await handleEvent({ type: 'invoice.paid', data: { object: inv } }, deps)).toEqual({ handled: true, action: 'renewal' });
+    expect(calls[0][0]).toBe('pro_grant_until');
+  });
+
+  it('finds the paying charge and payment intent in either API shape, and an unreadable charge counts as not returned', async () => {
+    expect(invoiceChargeId({ charge: 'ch_9' })).toBe('ch_9');
+    expect(invoiceChargeId({ payments: { data: [{ payment: { payment_intent: { id: 'pi_9', latest_charge: { id: 'ch_10' } } } }] } })).toBe('ch_10');
+    expect(invoicePaymentIntentId({ payment_intent: 'pi_7' })).toBe('pi_7');
+    expect(invoicePaymentIntentId({ payments: { data: [{ payment: { payment_intent: 'pi_8' } }] } })).toBe('pi_8');
+    expect(invoiceCharge({ charge: { id: 'ch_1', refunded: true } })).toMatchObject({ id: 'ch_1' });
+    expect(await invoiceRefunded({ charge: 'ch_1' }, { getCharge: async () => { throw new Error('down'); } })).toBe(false);
+    expect(await invoiceRefunded({ payment_intent: 'pi_1' }, { isPaymentReturned: async () => true })).toBe(true);
   });
 });

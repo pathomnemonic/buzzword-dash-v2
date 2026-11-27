@@ -121,6 +121,63 @@ export function invoiceSubscriptionId(inv) {
   return (sub && sub.id) || '';
 }
 
+/** The payment intent that paid an invoice, as an id, wherever this API version puts it. */
+export function invoicePaymentIntentId(inv) {
+  if (!inv) return '';
+  var pi = inv.payment_intent;
+  if (typeof pi === 'string' && pi) return pi;
+  if (pi && pi.id) return pi.id;
+  var pays = (inv.payments && inv.payments.data) || [];
+  for (var i = 0; i < pays.length; i++) {
+    var p = pays[i] && pays[i].payment && pays[i].payment.payment_intent;
+    if (typeof p === 'string' && p) return p;
+    if (p && p.id) return p.id;
+  }
+  return '';
+}
+
+/** The charge that paid an invoice when Stripe embedded it in the answer, else null (fetch it by invoiceChargeId). */
+export function invoiceCharge(inv) {
+  if (!inv) return null;
+  if (inv.charge && typeof inv.charge === 'object') return inv.charge;
+  var pi = inv.payment_intent;
+  if (pi && typeof pi === 'object' && pi.latest_charge && typeof pi.latest_charge === 'object') return pi.latest_charge;
+  var pays = (inv.payments && inv.payments.data) || [];
+  for (var i = 0; i < pays.length; i++) {
+    var p = pays[i] && pays[i].payment && pays[i].payment.payment_intent;
+    if (p && typeof p === 'object' && p.latest_charge && typeof p.latest_charge === 'object') return p.latest_charge;
+  }
+  return null;
+}
+
+/** The id of the charge that paid an invoice, wherever this API version puts it ('' when there is none to fetch). */
+export function invoiceChargeId(inv) {
+  if (!inv) return '';
+  if (typeof inv.charge === 'string' && inv.charge) return inv.charge;
+  if (inv.charge && inv.charge.id) return inv.charge.id;
+  var ch = invoiceCharge(inv);
+  return (ch && ch.id) || '';
+}
+
+/**
+ * Was the charge that paid this invoice given back (issue 51)? Reads the charge fresh when it can be reached, and
+ * falls back to the payment intent check. An answer that cannot be read counts as not returned: a paying member
+ * must not lose Pro because a check failed.
+ */
+export async function invoiceRefunded(inv, deps) {
+  var ch = invoiceCharge(inv);
+  if (!ch && deps && deps.getCharge) {
+    var cid = invoiceChargeId(inv);
+    if (cid) { try { ch = await deps.getCharge(cid); } catch { ch = null; } }
+  }
+  if (ch) return chargeReturned(ch);
+  var pi = invoicePaymentIntentId(inv);
+  if (pi && deps && deps.isPaymentReturned) {
+    try { return !!(await deps.isPaymentReturned(pi)); } catch { return false; }
+  }
+  return false;
+}
+
 /** How long a plan's paid period runs, in days, for the rare subscription that arrives without a period end. */
 var PLAN_DAYS = { yearly: 366, pass3m: 93, monthly: 32 };
 var LIVE_STATUSES = ['active', 'trialing', 'past_due'];
@@ -129,9 +186,12 @@ var LIVE_STATUSES = ['active', 'trialing', 'past_due'];
  * Until when Pro should run for a subscription, as an ISO string, or '' when it has nothing to give.
  * Someone who has paid is never left without Pro because Stripe's answer was missing a field: when there is no period
  * end, a live subscription gets one paid period (the next renewal event then sets the exact end).
+ * A subscription that is not live gives nothing, with or without a period end (issue 52): a late Checkout event for a
+ * subscription that has since been cancelled must not grant the period it still shows.
  */
 export function subscriptionUntil(sub, nowSec) {
   if (!sub) return '';
+  if (sub.status && LIVE_STATUSES.indexOf(sub.status) < 0) return '';
   var end = periodEnd(sub);
   if (!end) {
     var plan = sub.metadata && sub.metadata.plan;
@@ -310,6 +370,9 @@ export async function handleEvent(event, deps) {
     var user2 = (sub2 && sub2.metadata && sub2.metadata.user_id) || (obj.customer ? await rpc('pro_customer_user', { p_customer: obj.customer }) : null);
     var until2 = subscriptionUntil(sub2, deps.now);
     if (!user2 || !plan || !until2 || LIVE_STATUSES.indexOf(sub2.status) < 0) return { handled: false };
+    // The period this invoice paid for was given back (issue 51): a subscription can still read 'active' in Stripe
+    // after its current period's invoice was refunded, and granting here would undo the revocation the refund made.
+    if (await invoiceRefunded(obj, deps)) return { handled: false };
     await rpc('pro_grant_until', { p_user: user2, p_until: until2, p_plan: plan.def.plan, p_source: 'stripe', p_trial: false });
     return { handled: true, action: 'renewal' };
   }
