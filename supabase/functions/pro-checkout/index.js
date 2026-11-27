@@ -235,7 +235,7 @@ Deno.serve(async function (req) {
         // A subscription whose current period was refunded is not granted again here (issue 51): it can still read
         // as live in Stripe, and the refund already took the plan back. A refund state that cannot be read counts
         // as not refunded, so a paying member is not left without Pro by a failed check.
-        var subs = [];
+        var liveSubs = [];
         for (var s of ((all && all.data) || [])) {
           var refunded = false;
           var invId = s && s.latest_invoice ? (typeof s.latest_invoice === 'string' ? s.latest_invoice : s.latest_invoice.id) : '';
@@ -245,11 +245,11 @@ Deno.serve(async function (req) {
               var ch = invoiceCharge(inv);
               if (!ch) { var cid = invoiceChargeId(inv); if (cid) ch = await stripe('charges/' + encodeURIComponent(cid) + '?expand[]=dispute'); }
               refunded = !!(ch && chargeReturned(ch));
-            } catch (e) { refunded = false; }
+            } catch { refunded = false; }
           }
-          if (!refunded) subs.push(s);
+          if (!refunded) liveSubs.push(s);
         }
-        var grants = grantsFromSubscriptions(subs, now);
+        var grants = grantsFromSubscriptions(liveSubs, now);
         for (var g of grants) {
           var r = await admin.rpc('pro_grant_until', { p_user: user.id, p_until: g.until, p_plan: g.plan, p_source: 'stripe', p_trial: g.trial });
           if (r.error) throw new Error(r.error.message);
