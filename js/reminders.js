@@ -4,7 +4,9 @@
  * A browser can show a notification while the page is open (the Notification API). The Android app's web view has
  * no such API, so inside the app the reminder is a real scheduled notification from the phone itself, which also
  * arrives when the app is closed. The next one is always scheduled for the chosen hour: today if it is still
- * ahead and today's goal is not met yet, otherwise tomorrow.
+ * ahead and today's goal is not met yet, otherwise tomorrow. From that first fire it repeats daily, so a
+ * player who does not open the app for a few days is still reminded; every sync (launch, settings change,
+ * study activity) recomputes the first fire, which keeps the goal skip and the buddy's wording current.
  */
 
 import { isNative } from './native.js';
@@ -72,8 +74,13 @@ export function syncNativeReminder(s) {
   return loadPlugin().then(function (p) {
     if (!p) return null;
     if (!s.enabled) {
-      if (_lastScheduled === 0) return null;
+      // Always cancel, even when this session scheduled nothing: the flag
+      // that used to gate this lives in memory only, so after an app
+      // restart a reminder scheduled by a previous session was never
+      // cancelled and kept firing after the player turned reminders off.
+      // Cancelling an id the phone does not hold is harmless.
       _lastScheduled = 0;
+      _lastBody = '';
       return p.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
     }
     var at = nextReminderTime(now, s.hour, s.goalMetToday);
@@ -84,7 +91,10 @@ export function syncNativeReminder(s) {
       return p.schedule({
         notifications: [{
           id: NOTIFICATION_ID, title: REMINDER_TITLE, body: body,
-          schedule: { at: at, allowWhileIdle: true }, isExactNotification: false
+          // First fire at the computed next time, then daily at that hour:
+          // a single one shot reminded once and never again for a player
+          // who did not open the app the next day.
+          schedule: { at: at, every: 'day', allowWhileIdle: true }, isExactNotification: false
         }]
       }).then(function () { _lastScheduled = at.getTime(); _lastBody = body; });
     });
