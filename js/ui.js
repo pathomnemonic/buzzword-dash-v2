@@ -849,6 +849,7 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   renderExamFilter() {
+    var self = this;
     var container = document.getElementById('examFilterContainer');
     if (!container) return;
     var filters = (typeof EXAM_FILTERS !== 'undefined') ? EXAM_FILTERS : [];

@@ -52,7 +52,22 @@ function hasProgress(data) {
   try {
     var d = typeof data === 'string' ? JSON.parse(data) : data;
     var p = (d && d.progression) || {};
-    return (Number(p.totalEncounters) || 0) > 0 || (Number(p.bestScore) || 0) > 0 || (Number(p.xp) || 0) > 0;
+    if ((Number(p.totalEncounters) || 0) > 0 || (Number(p.bestScore) || 0) > 0 || (Number(p.xp) || 0) > 0) return true;
+    // Flashcard and exam study, and what the player has earned and bought, are
+    // progress too: a save holding only those is not a brand new one. (This check
+    // used to see classic runs only, so a study only player read as a beginner
+    // to the recovery and account flows.)
+    if ((Number(p.totalCardsStudied) || 0) > 0 || (Number(p.flashcardSessions) || 0) > 0) return true;
+    var h = (d && d.history) || {};
+    if (Array.isArray(h.examResults) && h.examResults.length > 0) return true;
+    // Coin activity means lifetime earnings past the starting grant (a balance
+    // alone proves nothing: an untouched save can hold unspent coins).
+    if ((Number(p.totalCoinsEarned) || 0) > 100) return true;
+    // Owned items past the starter set. (A plain length check misfires: the
+    // load itself grants avatar_classic, so a fresh save already holds ten.)
+    var starterOwned = ((DEFAULTS.progression && DEFAULTS.progression.ownedItems) || []).concat(['avatar_classic']);
+    if (Array.isArray(p.ownedItems) && p.ownedItems.some(function (id) { return starterOwned.indexOf(id) < 0; })) return true;
+    return false;
   } catch (e) { return false; }
 }
 /** How much play a save holds: lifetime counts only ever grow, so a bigger number is always the later, fuller save. */
@@ -60,7 +75,9 @@ function richness(data) {
   try {
     var d = typeof data === 'string' ? JSON.parse(data) : data;
     var p = (d && d.progression) || {};
-    return (Number(p.totalEncounters) || 0) * 1e6 + (Number(p.totalCoinsEarned) || 0) * 10 + (Number(p.bestScore) > 0 ? 1 : 0);
+    var h = (d && d.history) || {};
+    var exams = Array.isArray(h.examResults) ? h.examResults.length : 0;
+    return (Number(p.totalEncounters) || 0) * 1e6 + (Number(p.totalCardsStudied) || 0) * 1e4 + exams * 1e3 + (Number(p.totalCoinsEarned) || 0) * 10 + (Number(p.bestScore) > 0 ? 1 : 0);
   } catch (e) { return 0; }
 }
 
@@ -1335,7 +1352,8 @@ class Storage {
     s.due = next.due;
 
     stats[cardId] = s;
-    this.save();
+    // No save here: the only callers are the finalize paths, which save once at
+    // the end. Saving inside the loop rewrote the whole save once per card.
   }
 
   /**
@@ -1367,7 +1385,7 @@ class Storage {
     if (wasCorrect) s.correct++;
     else s.wrong++;
     stats[subject] = s;
-    this.save();
+    // No save here either: see updateCardStat.
   }
 
   // ===== SHOP =====
@@ -2493,10 +2511,17 @@ class Storage {
     if (!scope) scope = 'all_local';
     this._protectNewer = false; // starting over is a deliberate choice, so saving resumes
 
+    // Two things are not the reset's to give back: the one time Pro gift (a
+    // progress reset must not make it claimable a second time) and the date of
+    // the very first run (tenure decides grandfathered features; rewinding it
+    // would quietly strip them).
+    var giftBefore = this.data && this.data.progression ? this.data.progression.proGiftItem : '';
+    var firstRunBefore = this.data && this.data.settings ? this.data.settings.firstRunAt : 0;
 
     switch (scope) {
       case 'progress':
         this.data.progression = deepClone(DEFAULTS.progression);
+        if (giftBefore) this.data.progression.proGiftItem = giftBefore;
         this.data.cards = deepClone(DEFAULTS.cards);
         this.data.history = deepClone(DEFAULTS.history);
         this.data.idempotency = deepClone(DEFAULTS.idempotency);
@@ -2504,13 +2529,23 @@ class Storage {
 
       case 'settings':
         this.data.settings = deepClone(DEFAULTS.settings);
+        if (firstRunBefore) this.data.settings.firstRunAt = firstRunBefore;
         break;
 
-      case 'custom_cards':
-        // Custom cards are in their own localStorage key, handled by customcards.js
-        // But we clear disabled card IDs that might reference them
-        this.data.cards.disabledCardIds = [];
+      case 'custom_cards': {
+        // Custom cards are in their own localStorage key, handled by customcards.js.
+        // Only the ids of those cards come off the disabled list: the same list
+        // holds built in cards the player disabled, and clearing it wholesale
+        // quietly switched all of those back on.
+        var customIds = {};
+        try {
+          var rawCards = localStorage.getItem('buzzword_dash_custom_cards');
+          var parsedCards = rawCards ? JSON.parse(rawCards) : null;
+          if (Array.isArray(parsedCards)) parsedCards.forEach(function (c) { if (c && c.id) customIds[c.id] = true; });
+        } catch (e) { /* unreadable: leave the disabled list as it is */ }
+        this.data.cards.disabledCardIds = this.data.cards.disabledCardIds.filter(function (id) { return !customIds[id]; });
         break;
+      }
 
       case 'identity':
         this.data.profile = deepClone(DEFAULTS.profile);
@@ -2519,6 +2554,8 @@ class Storage {
 
       case 'all_local':
         this.data = deepClone(DEFAULTS);
+        if (giftBefore) this.data.progression.proGiftItem = giftBefore;
+        if (firstRunBefore) this.data.settings.firstRunAt = firstRunBefore;
         // Also clear custom cards storage
         try { localStorage.removeItem('buzzword_dash_custom_cards'); } catch (e) { /* best-effort */ }
         // ...and the IndexedDB copy where imported decks live (customcards.js); the page reloads straight after a reset
