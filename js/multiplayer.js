@@ -640,6 +640,13 @@ export class Multiplayer {
 
   sendMatchStart() {
     if (!this.isHost || !this.matchConfig) return false;
+    // The start time was stamped when the config was sent; if the joiner's
+    // ack took a while, that time may already have passed by the time the
+    // start goes out, which would begin the joiner's run late. Restamp a
+    // start that is no longer comfortably in the future.
+    if (!this.matchConfig.startAt || this.matchConfig.startAt < Date.now() + 1000) {
+      this.matchConfig.startAt = Date.now() + 2500;
+    }
     this.send('match_start', this.matchConfig);
     return this.matchConfig;
   }
@@ -995,18 +1002,30 @@ export class Multiplayer {
         }
         break;
 
-      case 'match_config':
+      case 'match_config': {
+        // Inbound configs are validated before anything acts on them: an
+        // unvalidated config from a stale or tampered peer used to be trusted
+        // as is. A rejected config is answered with a refused ack, so the host
+        // learns the match cannot start instead of playing alone.
+        var cfgCheck = validateMatchConfig(payload);
+        if (!cfgCheck.valid) {
+          this.sendMatchConfigAck({ accepted: false, reason: cfgCheck.errors[0] || 'Invalid match config' });
+          break;
+        }
         this.matchConfig = payload;
         this.matchId = payload.matchId || null;
         this.sharedSeed = payload.seed || 0;
         if (this.onMatchConfig) this.onMatchConfig(payload);
         break;
+      }
 
       case 'match_config_ack':
         if (this.onMatchConfigAck) this.onMatchConfigAck(payload);
         break;
 
-      case 'match_start':
+      case 'match_start': {
+        var startCheck = validateMatchConfig(payload);
+        if (!startCheck.valid) break; // never start from an invalid config
         this.matchConfig = payload;
         this.matchId = payload.matchId || this.matchId;
         this.sharedSeed = payload.seed || 0;
@@ -1024,6 +1043,7 @@ export class Multiplayer {
           });
         }
         break;
+      }
 
       case 'game_state':
         if (this.onOpponentUpdate) this.onOpponentUpdate(payload);
