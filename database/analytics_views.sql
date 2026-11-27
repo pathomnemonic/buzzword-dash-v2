@@ -11,6 +11,15 @@ CREATE OR REPLACE FUNCTION analytics_pct(n numeric, d numeric) RETURNS numeric
 LANGUAGE sql IMMUTABLE AS $$ SELECT CASE WHEN coalesce(d, 0) = 0 THEN NULL ELSE round(100.0 * coalesce(n, 0) / d, 1) END $$;
 REVOKE ALL ON FUNCTION analytics_pct(numeric, numeric) FROM PUBLIC, anon, authenticated; -- (an internal helper, not for the app roles)
 
+-- Guarded casts for raw event text (issue 162): a value is cast only when it
+-- really is a number, so one malformed event cannot error a whole view.
+CREATE OR REPLACE FUNCTION analytics_text_num(t text) RETURNS numeric
+LANGUAGE sql IMMUTABLE AS $$ SELECT CASE WHEN t ~ '^-?[0-9]+(\.[0-9]+)?$' THEN t::numeric END $$;
+REVOKE ALL ON FUNCTION analytics_text_num(text) FROM PUBLIC, anon, authenticated;
+CREATE OR REPLACE FUNCTION analytics_text_int(t text) RETURNS integer
+LANGUAGE sql IMMUTABLE AS $$ SELECT CASE WHEN t ~ '^-?[0-9]+$' THEN t::integer END $$;
+REVOKE ALL ON FUNCTION analytics_text_int(text) FROM PUBLIC, anon, authenticated;
+
 -- ==================== BUILDING BLOCKS (other views are made from these) ====================
 
 -- one row per run that ended
@@ -420,7 +429,7 @@ GROUP BY s.speed_dial ORDER BY s.speed_dial;
 CREATE OR REPLACE VIEW analytics_v_deaths AS
 SELECT day, count(*) AS runs, sum(lives_lost) AS lives_lost, analytics_pct(sum(lives_lost_gate), sum(lives_lost)) AS from_wrong_answers_pct,
        analytics_pct(sum(lives_lost_obstacle), sum(lives_lost)) AS from_obstacles_pct, analytics_pct(count(*) FILTER (WHERE monster_caught), count(*)) AS runs_ending_in_monster_pct,
-       analytics_pct(sum(obstacles_hit), sum(obstacles_hit + obstacles_jumped + obstacles_slid)) AS obstacles_hit_pct
+       analytics_pct(sum(obstacles_hit), sum(coalesce(obstacles_hit, 0) + coalesce(obstacles_jumped, 0) + coalesce(obstacles_slid, 0))) AS obstacles_hit_pct
 FROM analytics_v_runs GROUP BY day ORDER BY day DESC;
 
 -- the continue offer: shown, taken, and what it did to the run
@@ -433,18 +442,18 @@ FROM analytics_events WHERE name = 'continue_prompt' GROUP BY 1 ORDER BY 1 DESC;
 
 -- power-ups per run
 CREATE OR REPLACE VIEW analytics_v_powerups AS
-SELECT p.key AS powerup, count(*) AS runs_with_it, sum(p.value::numeric) AS collected, round(avg(p.value::numeric), 2) AS avg_per_run_that_had_it,
+SELECT p.key AS powerup, count(*) AS runs_with_it, sum(analytics_text_num(p.value)) AS collected, round(avg(analytics_text_num(p.value)), 2) AS avg_per_run_that_had_it,
        analytics_pct(count(*), (SELECT count(*) FROM analytics_v_runs)) AS pct_of_runs
 FROM analytics_v_runs r, LATERAL jsonb_each_text(CASE WHEN jsonb_typeof(r.powerups) = 'object' THEN r.powerups ELSE '{}'::jsonb END) AS p(key, value)
 GROUP BY p.key ORDER BY collected DESC;
 
 CREATE OR REPLACE VIEW analytics_v_fusions AS
-SELECT p.key AS fusion, count(*) AS runs_with_it, sum(p.value::numeric) AS times
+SELECT p.key AS fusion, count(*) AS runs_with_it, sum(analytics_text_num(p.value)) AS times
 FROM analytics_v_runs r, LATERAL jsonb_each_text(CASE WHEN jsonb_typeof(r.fusions) = 'object' THEN r.fusions ELSE '{}'::jsonb END) AS p(key, value)
 GROUP BY p.key ORDER BY times DESC;
 
 CREATE OR REPLACE VIEW analytics_v_hazards AS
-SELECT p.key AS hazard, count(*) AS runs, sum(p.value::numeric) AS times
+SELECT p.key AS hazard, count(*) AS runs, sum(analytics_text_num(p.value)) AS times
 FROM analytics_v_runs r, LATERAL jsonb_each_text(CASE WHEN jsonb_typeof(r.hazards) = 'object' THEN r.hazards ELSE '{}'::jsonb END) AS p(key, value)
 GROUP BY p.key ORDER BY times DESC;
 
@@ -483,8 +492,8 @@ GROUP BY r.value ORDER BY runs DESC;
 
 -- per subject: questions answered and accuracy, from every run
 CREATE OR REPLACE VIEW analytics_v_subjects AS
-SELECT a.key AS subject, sum(a.value::numeric) AS answered, sum(coalesce(c.value::numeric, 0)) AS correct, analytics_pct(sum(coalesce(c.value::numeric, 0)), sum(a.value::numeric)) AS accuracy_pct,
-       count(DISTINCT r.install_id) AS installs, round(sum(a.value::numeric) / nullif(count(DISTINCT r.install_id), 0), 1) AS answered_per_install
+SELECT a.key AS subject, sum(analytics_text_num(a.value)) AS answered, sum(coalesce(analytics_text_num(c.value), 0)) AS correct, analytics_pct(sum(coalesce(analytics_text_num(c.value), 0)), sum(analytics_text_num(a.value))) AS accuracy_pct,
+       count(DISTINCT r.install_id) AS installs, round(sum(analytics_text_num(a.value)) / nullif(count(DISTINCT r.install_id), 0), 1) AS answered_per_install
 FROM analytics_v_runs r
 JOIN LATERAL jsonb_each_text(CASE WHEN jsonb_typeof(r.subjects) = 'object' THEN r.subjects ELSE '{}'::jsonb END) AS a(key, value) ON true
 LEFT JOIN LATERAL jsonb_each_text(CASE WHEN jsonb_typeof(r.subject_correct) = 'object' THEN r.subject_correct ELSE '{}'::jsonb END) AS c(key, value) ON c.key = a.key
@@ -505,8 +514,8 @@ CREATE OR REPLACE VIEW analytics_v_card_difficulty AS
 WITH rows AS (
   SELECT e.install_id, row_.value AS r FROM analytics_events e, LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(e.props -> 'rows') = 'array' THEN e.props -> 'rows' ELSE '[]'::jsonb END) AS row_(value)
   WHERE e.name = 'run_cards')
-SELECT r ->> 0 AS card_id, count(*) AS asked, count(DISTINCT install_id) AS installs, round(avg((r ->> 1)::numeric) * 100, 1) AS correct_pct,
-       percentile_cont(0.5) WITHIN GROUP (ORDER BY (r ->> 2)::numeric) AS median_ms, round(avg((r ->> 6)::numeric) * 100, 1) AS dashed_pct
+SELECT r ->> 0 AS card_id, count(*) AS asked, count(DISTINCT install_id) AS installs, round(avg(analytics_text_num(r ->> 1)) * 100, 1) AS correct_pct,
+       percentile_cont(0.5) WITHIN GROUP (ORDER BY analytics_text_num(r ->> 2)) AS median_ms, round(avg(analytics_text_num(r ->> 6)) * 100, 1) AS dashed_pct
 FROM rows GROUP BY 1 HAVING count(*) >= 10 ORDER BY correct_pct;
 
 -- cards that are too easy (nearly always right, answered fast): candidates to retire or harden
@@ -522,16 +531,16 @@ CREATE OR REPLACE VIEW analytics_v_card_distractors AS
 WITH rows AS (
   SELECT e.install_id, row_.value AS r FROM analytics_events e, LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(e.props -> 'rows') = 'array' THEN e.props -> 'rows' ELSE '[]'::jsonb END) AS row_(value)
   WHERE e.name = 'run_cards')
-SELECT r ->> 0 AS card_id, (r ->> 5)::int AS wrong_answer_index, count(*) AS times_chosen,
+SELECT r ->> 0 AS card_id, analytics_text_int(r ->> 5) AS wrong_answer_index, count(*) AS times_chosen,
        analytics_pct(count(*), sum(count(*)) OVER (PARTITION BY r ->> 0)) AS share_of_wrong_answers_pct
-FROM rows WHERE (r ->> 1)::int = 0 AND (r ->> 5)::int >= 0 GROUP BY 1, 2 HAVING count(*) >= 5 ORDER BY card_id, times_chosen DESC;
+FROM rows WHERE analytics_text_int(r ->> 1) = 0 AND analytics_text_int(r ->> 5) >= 0 GROUP BY 1, 2 HAVING count(*) >= 5 ORDER BY card_id, times_chosen DESC;
 
 -- do players favour a lane regardless of the answer? (the correct lane is random, so the share should be even)
 CREATE OR REPLACE VIEW analytics_v_lane_bias AS
 WITH rows AS (
   SELECT row_.value AS r FROM analytics_events e, LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(e.props -> 'rows') = 'array' THEN e.props -> 'rows' ELSE '[]'::jsonb END) AS row_(value)
   WHERE e.name = 'run_cards')
-SELECT (r ->> 3)::int AS lane_chosen, count(*) AS answers, analytics_pct(count(*), sum(count(*)) OVER ()) AS share_pct,
+SELECT analytics_text_int(r ->> 3) AS lane_chosen, count(*) AS answers, analytics_pct(count(*), sum(count(*)) OVER ()) AS share_pct,
        count(*) FILTER (WHERE (r ->> 3) = (r ->> 4)) AS right_when_chosen, analytics_pct(count(*) FILTER (WHERE (r ->> 3) = (r ->> 4)), count(*)) AS accuracy_pct
 FROM rows GROUP BY 1 ORDER BY 1;
 
@@ -540,9 +549,9 @@ CREATE OR REPLACE VIEW analytics_v_decision_time AS
 WITH rows AS (
   SELECT row_.value AS r FROM analytics_events e, LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(e.props -> 'rows') = 'array' THEN e.props -> 'rows' ELSE '[]'::jsonb END) AS row_(value)
   WHERE e.name = 'run_cards')
-SELECT CASE WHEN (r ->> 2)::numeric < 1000 THEN '< 1 s' WHEN (r ->> 2)::numeric < 2000 THEN '1-2 s' WHEN (r ->> 2)::numeric < 4000 THEN '2-4 s' WHEN (r ->> 2)::numeric < 8000 THEN '4-8 s' ELSE '8 s +' END AS decision_time,
-       count(*) AS answers, analytics_pct(count(*) FILTER (WHERE (r ->> 1)::int = 1), count(*)) AS correct_pct
-FROM rows GROUP BY 1 ORDER BY min((r ->> 2)::numeric);
+SELECT CASE WHEN analytics_text_num(r ->> 2) < 1000 THEN '< 1 s' WHEN analytics_text_num(r ->> 2) < 2000 THEN '1-2 s' WHEN analytics_text_num(r ->> 2) < 4000 THEN '2-4 s' WHEN analytics_text_num(r ->> 2) < 8000 THEN '4-8 s' ELSE '8 s +' END AS decision_time,
+       count(*) AS answers, analytics_pct(count(*) FILTER (WHERE analytics_text_int(r ->> 1) = 1), count(*)) AS correct_pct
+FROM rows GROUP BY 1 ORDER BY min(analytics_text_num(r ->> 2));
 
 CREATE OR REPLACE VIEW analytics_v_explanations AS
 SELECT props ->> 'source' AS source, count(*) AS opened, count(DISTINCT install_id) AS installs, count(DISTINCT props ->> 'card_id') AS different_cards
