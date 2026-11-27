@@ -316,15 +316,18 @@ card = pickResult ? pickResult.card : null;
       this.celebrateTimer = 0.3;
       this.playerY += 0.5;
       this.jumpVel = 3;
-      if (!this.jumping) this.jumping = true;
+      if (!this.jumping) { this.jumping = true; this._celebrationHop = true; }
 
       // Gate visual feedback
       for (var gi = 0; gi < this.gateMeshes.length; gi++) {
         if (this.gates[gi].correct) {
-          this.gateMeshes[gi].children[0].material.color.setHex(0x00ff44);
+          // The same correct colour the gate flash uses (gates.js), which
+          // honours the colourblind mode setting.
+          var correctHex = storage.get('colorblindMode') ? 0x0072b2 : 0x00cc55;
+          this.gateMeshes[gi].children[0].material.color.setHex(correctHex);
           this.gateMeshes[gi].children[0].material.opacity = 1.0;
           this.gateMeshes[gi].scale.set(1.3, 1.3, 1.3);
-          this._spawnGateParticles(this.gateMeshes[gi].position, 0x00ff44, 10);
+          this._spawnGateParticles(this.gateMeshes[gi].position, correctHex, 10);
         } else {
           this.gateMeshes[gi].children[0].material.opacity = 0;
         }

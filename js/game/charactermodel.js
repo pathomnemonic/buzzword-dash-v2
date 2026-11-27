@@ -100,13 +100,17 @@ class ModelAnimator {
     var next = resolved && this.actions[resolved.clip];
     if (!next) return;
     var prev = this.current;
+    // A fallback can resolve to the clip that is already playing (jump with
+    // no jump clip falls back to the run cycle): restarting it would hitch
+    // the animation back to its first frame, so only the state changes.
+    if (prev === next) { this.state = state; return; }
     next.reset();
     next.setLoop(def.loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity);
     next.clampWhenFinished = !!def.clamp;
     next.timeScale = def.scale || 1;
     next.enabled = true;
     next.fadeIn(FADE).play();
-    if (prev && prev !== next) prev.fadeOut(FADE);
+    if (prev) prev.fadeOut(FADE);
     this.current = next;
     this.state = state;
   }

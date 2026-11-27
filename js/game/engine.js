@@ -26,7 +26,7 @@ import * as THREE from 'three';
 
 // === Imports from other agents (current signatures used as bridge) ===
 import { storage } from '../storage.js';
-import { getKeyBindings } from '../keybindings.js';
+import { getKeyBindings, actionForKey } from '../keybindings.js';
 import { getTheme } from './themes.js';
 import { getStartSkin, SKINS, isMapUnlocked } from './skins.js';
 import { buildTrack, spawnEnvProp, calculateTargetFOV, updateCameraFOV, calculateCameraLean, getStreakVisualIntensity } from './track.js';
@@ -44,7 +44,7 @@ import { setSceneryDensity } from './mapfx.js';
 import { preloadScenery } from './scenery.js';
 import { obstaclesForGate, OBSTACLE_SPACING } from './obstaclepacing.js';
 import { JUMP_SPEED, SLIDE_TIME, jumpStep, OBSTACLE_CLEAR_AHEAD, OBSTACLE_HIT_Z, MIN_JUMP_CLEARANCE } from './jumpphysics.js';
-import { jumpArcLength, chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches, COIN_REACH_Z } from './coinfx.js';
+import { jumpArcLength, chimeRatio, chainContinues, coinReachable, coinWorth, magnetX, coinGap, fillCoins, COIN_FIRST, coinTouches, COIN_REACH_Z, COIN_REACH_X } from './coinfx.js';
 import { getRunRules, normalizeSpeedRamp, speedBonus, POWERUP_OPTIONS, RELAXED_PACE } from '../rules.js';
 import { START_STYLES, CAMERA_STYLES, LOOKBACK_STYLE, getStartPose, getIntroCamera } from './cinematics.js';
 import { updateModelAnimation } from './charactermodel.js';
@@ -118,6 +118,7 @@ class Game {
 
     // Movement
     this.jumping = false;
+    this._celebrationHop = false;
     this.jumpVel = 0;
     this.playerY = 0;
     this.sliding = false;
@@ -485,20 +486,27 @@ class Game {
         doubleTap: function() { return getDashControl() === 'double'; }
     });
 
-    // Moving keys are ignored while paused, but Escape must be able to un-pause
+    // Moving keys are ignored while paused, but the pause key must be able to un-pause
     // (The state is noted before the normal key handler runs, so one press never pauses and resumes.)
+    // The listeners are named so dispose() can take them off again.
     var pausedBeforeKey = false;
-    window.addEventListener('keydown', function () { pausedBeforeKey = self._state === GAME_STATES.PAUSED; }, true);
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && pausedBeforeKey) self.resume('user');
-    });
+    this._onKeyCapture = function () { pausedBeforeKey = self._state === GAME_STATES.PAUSED; };
+    this._onKeyResume = function (e) {
+      if (!pausedBeforeKey) return;
+      // Escape always resumes; so does whatever key the player bound to
+      // pause, which the input handlers cannot deliver while paused.
+      if (e.key === 'Escape' || actionForKey(e.key) === 'pause') self.resume('user');
+    };
+    this._onResize = function () {
+      self.resize(innerWidth, innerHeight, devicePixelRatio);
+    };
+    window.addEventListener('keydown', this._onKeyCapture, true);
+    window.addEventListener('keydown', this._onKeyResume);
 
     // NOTE: No renderer.setAnimationLoop() here.
     // main.js owns the render loop and calls game.update() and game.render().
 
-    window.addEventListener('resize', function () {
-      self.resize(innerWidth, innerHeight, devicePixelRatio);
-    });
+    window.addEventListener('resize', this._onResize);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -595,7 +603,9 @@ class Game {
         this._postfx = { degraded: true, render: function () {}, setSize: function () {}, dispose: function () {} };
       }
     }
-    if (this._postfx.degraded) this._noteSlowSession();
+    // A degraded stub means post-processing failed to build on this device.
+    // That says nothing about the frame rate, so it never counts as a slow
+    // session strike (two strikes would lower the quality tier).
     return this._postfx.degraded ? null : this._postfx;
   }
 
@@ -853,7 +863,7 @@ class Game {
 
   _resetRunState() {
     this.currentLane = 1; this.targetLane = 1; this.prevLane = 1;
-    this.jumping = false; this.sliding = false; this._slideBlend = 0; this._slideOnLand = false;
+    this.jumping = false; this._celebrationHop = false; this.sliding = false; this._slideBlend = 0; this._slideOnLand = false;
     this.playerY = 0; this.jumpVel = 0; this.legPhase = 0;
     this.elapsedTime = 0; this.cameraLeanX = 0; this.playerTilt = 0;
 
@@ -981,10 +991,25 @@ class Game {
   // PLAYER ACTIONS
   // ═══════════════════════════════════════════════════════
 
+  /**
+   * Whether the runner's body is in a lane for an obstacle: the body's
+   * actual x position, within the same reach window coins use (coinTouches),
+   * instead of the target lane the input last asked for. The two tests used
+   * to disagree during a lane change, so a coin could be collected from a
+   * lane an obstacle in the same spot said the runner had already left.
+   */
+  _laneHit(lane) {
+    return Math.abs(LANE_X[lane] - this.playerGroup.position.x) < COIN_REACH_X;
+  }
+
   jump() {
     if (this.sliding) { this.sliding = false; this._slideOnLand = false; } // a jump cancels a slide
-    if (!this.jumping) {
+    // The celebration hop after a correct answer is not a real jump: a jump
+    // pressed during it takes over with full height instead of being
+    // swallowed by the hop's airtime.
+    if (!this.jumping || this._celebrationHop) {
       this.jumping = true;
+      this._celebrationHop = false;
       this.jumpVel = JUMP_SPEED;
       this._emit('obstacle_dodged', { type: 'jump' });
       this._tut('action', 'jump');
@@ -1057,6 +1082,12 @@ class Game {
 
   dispose() {
     this._transition(GAME_STATES.DISPOSED);
+    // The input handlers and the window listeners come off too: leaving
+    // them behind would keep a disposed engine answering keys and resizes.
+    if (this._inputDispose) { try { this._inputDispose(); } catch (e) { /* already gone */ } this._inputDispose = null; }
+    if (this._onKeyCapture) window.removeEventListener('keydown', this._onKeyCapture, true);
+    if (this._onKeyResume) window.removeEventListener('keydown', this._onKeyResume);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
     this._cleanupObjects();
     this._cleanupTrack();
     if (this.trailSystem) { this.trailSystem.dispose(); this.trailSystem = null; }
@@ -1136,6 +1167,11 @@ class Game {
   _cleanupTrack() {
     var toRemove = [];
     var self = this;
+
+    // The secret belongs to the old map: take it down before the sweep, or
+    // the sweep removes its mesh while _secret still points at it and a tap
+    // could pay out on a secret that is no longer anywhere.
+    this._removeSecret(false);
 
     var protectedSet = new Set();
     protectedSet.add(self.camera);
@@ -1338,8 +1374,15 @@ class Game {
         this.playerY = 0;
         this.jumping = false;
         this.jumpVel = 0;
+        this._celebrationHop = false;
         if (this.wasJumping) this.landingTimer = 0.1;
         if (this._slideOnLand) { this._slideOnLand = false; this.slide(); }
+        // A jump or slide pressed just before landing was buffered by the
+        // input layer (input.js); landing is when it gets spent.
+        else if (this._inputDispose && this._inputDispose.consumeBufferedInput) {
+          if (this._inputDispose.consumeBufferedInput('jump')) this.jump();
+          else if (this._inputDispose.consumeBufferedInput('slide')) this.slide();
+        }
       }
     }
     this.wasJumping = this.jumping;
@@ -1517,12 +1560,8 @@ class Game {
         var approachProgress = 1.0 - Math.max(0, -this.gateZ) / Math.abs(this._gateSpawnZ || -60);
         var gateScale = 1.0 + approachProgress * 0.08;
         this.gateMeshes[gi].scale.set(gateScale, gateScale, gateScale);
-        var frame = this.gateMeshes[gi].children[0];
-        if (gi === this.currentLane) {
-          frame.material.opacity = 0.6 + approachProgress * 0.3;
-        } else {
-          frame.material.opacity = 0.4 - approachProgress * 0.15;
-        }
+        // (No opacity writes here: updateGateHighlights below sets every
+        // frame's opacity in the same frame, so writing it here was dead.)
       }
       updateGateHighlights(this.gateMeshes, this.currentLane);
       if (this.gateZ >= 0) this._resolveEncounter();
@@ -1590,12 +1629,12 @@ class Game {
       // until its middle reaches them, any moment spent jumping (clear of the ground) or sliding counts as clearing
       // it, so a jump or slide timed a little early or a little late still works. Only an obstacle that arrives
       // without one of those having happened hurts.
-      if (!od.checked && od.lane === this.currentLane && ob.position.z > -OBSTACLE_CLEAR_AHEAD && !od.cleared) {
+      if (!od.checked && this._laneHit(od.lane) && ob.position.z > -OBSTACLE_CLEAR_AHEAD && !od.cleared) {
         if ((od.type === 'high' && (this.sliding || this._slideBlend > 0.4)) || (od.type === 'low' && this.jumping && this.playerY > MIN_JUMP_CLEARANCE)) od.cleared = true;
       }
       if (!od.checked && ob.position.z > OBSTACLE_HIT_Z) {
         od.checked = true;
-        if (od.lane === this.currentLane) {
+        if (this._laneHit(od.lane)) {
           var dodged = !!od.cleared;
           if (dodged) {
             if (od.type === 'low') this.obstaclesJumped++;
@@ -1635,7 +1674,7 @@ class Game {
       // obstacle that already landed its hit does not hit twice.
       if (od.staff && !od.staffChecked && ob.position.z - 1.7 > OBSTACLE_HIT_Z) {
         od.staffChecked = true;
-        if (od.lane === this.currentLane && !od.hitPlayer && !this.rushInvulnerable) {
+        if (this._laneHit(od.lane) && !od.hitPlayer && !this.rushInvulnerable) {
           if (this.powerups.shield > 0) {
             this.powerups.shield = 0;
             this._emit('shield_broken', {});
