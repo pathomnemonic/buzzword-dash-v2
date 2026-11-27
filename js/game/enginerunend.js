@@ -19,6 +19,10 @@ export var runEndMethods = {
    */
   _triggerDeath(cause) {
     this._transition(GAME_STATES.DYING);
+    // A next encounter that was already scheduled must not fire after the death
+    // (or after a continue): the run picks its next card from the death flow.
+    this.waitingForNext = false;
+    this.nextEncounterTimer = 0;
     this._deathStyle = storage.get('reducedMotion') ? 'faceplant' : pickDeathStyle(cause || 'other', this._lastDeathStyle);
     this._lastDeathStyle = this._deathStyle;
     if (this._deathStyle !== 'faceplant') this._sfx('death_' + this._deathStyle);
