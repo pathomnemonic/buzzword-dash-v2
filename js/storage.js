@@ -272,6 +272,7 @@ var DEFAULTS = {
     calendarData: {},
     dailyCounts: {},
     dailyCorrect: {},
+    dailyGoals: {},
     weeklyClaims: {},
     examResults: [],
     completedExamIds: []
@@ -1002,6 +1003,7 @@ class Storage {
     if (typeof d.progression.questCompleteDays !== 'object' || d.progression.questCompleteDays === null) d.progression.questCompleteDays = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
     if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
+    if (typeof d.history.dailyGoals !== 'object' || d.history.dailyGoals === null) d.history.dailyGoals = {};
     if (typeof d.history.dailyCorrect !== 'object' || d.history.dailyCorrect === null) d.history.dailyCorrect = {};
     if (typeof d.history.weeklyClaims !== 'object' || d.history.weeklyClaims === null) d.history.weeklyClaims = {};
     if (!Array.isArray(d.history.examResults)) d.history.examResults = [];
@@ -1251,6 +1253,10 @@ class Storage {
     var counts = this.data.history.dailyCounts;
     var key = todayKey();
     counts[key] = (counts[key] || 0) + count;
+    // The day's goal, recorded with the day: the streak calendar grades
+    // each day against the goal that was in force then, not today's.
+    if (!this.data.history.dailyGoals || typeof this.data.history.dailyGoals !== 'object') this.data.history.dailyGoals = {};
+    this.data.history.dailyGoals[key] = this.data.settings.dailyGoal || 20;
     if (correct) {
       var rights = this.data.history.dailyCorrect;
       rights[key] = (rights[key] || 0) + Math.min(correct, count);
