@@ -200,7 +200,7 @@ const results = async (opts, name, caption, sub) => {
 await run({ skin: 'avatar_m_nurse', monster: 'monster_m_demon', subjects: ['Infectious Disease'], map: 'Hospital Hallway' },
   'run-1', 'Study that feels like a game', 'Run, dodge and pick the diagnosis', 10000);
 await run({ skin: 'avatar_intern', monster: 'monster_m_ghost', subjects: ['Neurology'], map: 'Neural Highway' },
-  'run-2', 'Real board-style questions', 'Spot the buzzwords. Pick the Dx.', 10000);
+  'run-2', 'Turn clues into a diagnosis', 'Spot the buzzwords. Pick the Dx.', 10000);
 if (!TABLET) await multiplayerShot('multiplayer', 'Challenge a friend. Live.', 'Head-to-head, no account needed');
 await results({ skin: 'avatar_intern', monster: 'monster_m_yeti', subjects: ['Cardiology'], map: 'Cardiac Pulse' },
   'review', 'Learn from every miss', 'Quick explanations, then it comes back');
@@ -212,7 +212,7 @@ await page.waitForTimeout(1200);
 await snap('home', 'One tap to start', 'Pick your subjects, set your pace, run');
 await page.getByRole('button', { name: /Quests/ }).click().catch(() => {});
 await page.waitForTimeout(1500);
-await snap('goals', 'Build a daily streak', 'Short goals that keep you consistent');
+await snap('goals', 'Fresh quests every day', 'Short goals that keep you consistent');
 
 // Stats: the Performance tab (some history is filled in for the picture)
 await page.evaluate(() => {
@@ -229,7 +229,7 @@ await page.evaluate(() => {
 });
 await page.locator('[data-screen="screenStats"]').click();
 await page.waitForTimeout(1500);
-await snap('stats', 'Know where you stand', 'Reviews timed by FSRS, the algorithm Anki uses');
+await snap('stats', 'Know what you remember', 'Reviews timed by FSRS, the scheduler available in Anki');
 
 await page.locator('[data-screen="screenShop"]').click();
 await page.waitForTimeout(3500);
