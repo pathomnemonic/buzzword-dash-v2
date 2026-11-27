@@ -363,6 +363,10 @@ export function installAnalytics(app) {
     });
     if (att.share_ref) trackOnce('referral', 'referral_landed', { share_ref: att.share_ref, kind: att.utm_medium || '' });
     track('app_open', { launch: 'cold', online: navigator.onLine !== false, display: displayMode(), days_since_install: installDays() });
+    // The launch session starts inside startAnalytics(), before the session_start listener
+    // above is registered, so that listener never sees it. Take the launch session's user
+    // snapshot here, or the first session of every install is attributed to nobody.
+    sessionSnapshot();
     setTimeout(sendLoadTimings, 4000);
   }
 

@@ -372,6 +372,9 @@ class UI {
     if (screenId === 'screenCardBrowser') this.renderCardBrowser();
     if (screenId !== 'screenFlashcard' && this._hf && this._hf.active) this.stopHandsFree();
     if (screenId === 'screenFlashcard') this.renderFlashcardScreen();
+    // Leaving the exam screen ends the exam session, however the player navigates away:
+    // its timer must not keep running (and finishing the exam) in the background.
+    if (screenId !== 'screenExam' && this._examMod) this._examMod.unmountExam();
     if (screenId === 'screenExam') this.openExam();
 
     if (screenId !== 'screenShop' && this.characterPreview) {
@@ -484,6 +487,7 @@ class UI {
     var container = document.getElementById('examContent');
     if (!container) return;
     import('./exam.js').then(function (mod) {
+      self._examMod = mod;
       mod.mountExam(container, {
         goHome: function () { mod.unmountExam(); self.show('screenHome'); },
         toast: function (m) { self._showToast(m); },

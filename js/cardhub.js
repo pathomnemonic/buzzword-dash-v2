@@ -27,7 +27,9 @@ export var BUILT_IN_CARD_POOL_HASH = '';
 var _promise = null;
 var _ready = false;
 var _all = [];
-var _unlocked = true;
+// Locked until the entitlement check resolves and main.js calls setLibraryUnlocked:
+// defaulting to unlocked would expose the full library during the boot window.
+var _unlocked = false;
 
 function refilter() {
   CARDS.length = 0;

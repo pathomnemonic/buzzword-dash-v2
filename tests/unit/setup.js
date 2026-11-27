@@ -2,8 +2,14 @@
 // Global test setup for Vitest unit tests
 
 // The app loads its card database lazily; tests want it present from the start
-import { loadCards } from '../../js/cardhub.js';
+import { loadCards, setLibraryUnlocked } from '../../js/cardhub.js';
 await loadCards();
+// The library now defaults to locked until the entitlement check resolves
+// (that is the boot state the app ships). The app applies the entitlement
+// right after loading (main.js calls setLibraryUnlocked(libraryUnlocked())),
+// so the harness does the same and models a completed boot with the library
+// open; suites that test the lock itself set it explicitly.
+setLibraryUnlocked(true);
 
 // Mock Web Audio API for audio.js tests
 globalThis.AudioContext = class MockAudioContext {
