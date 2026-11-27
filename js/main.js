@@ -853,7 +853,7 @@ function attachShareImage() {
       snapshot.subjects = mod.topSubjects(snapshot.runCards);
       return mod.renderShareCard(snapshot).then(mod.shareOrDownload);
     }).then(function (how) {
-      ui._showToast(how === 'downloaded' ? 'Image saved to your downloads.' : 'Shared!');
+      ui._showToast(how === 'downloaded' ? 'Image saved to your downloads.' : (how === 'cancelled' ? 'Share cancelled.' : 'Shared!'));
     }).catch(function (e) {
       reportError(e, { system: 'sharecard', operation: 'render', recoverable: true });
       ui._showToast('Could not create the image.');

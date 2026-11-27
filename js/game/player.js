@@ -75,9 +75,12 @@ function applyColorOverrides(avatar) {
     if (avatar.isVehicle) return avatar;
     var custom = storage.get('avatarColors');
     if (!custom || typeof custom !== 'object') return avatar;
+    // Colors are stored per hero; a flat record from before the split is
+    // the fallback for heroes without a record of their own.
+    var colors = (custom[avatar.id] && typeof custom[avatar.id] === 'object') ? custom[avatar.id] : custom;
     var out = Object.assign({}, avatar);
     Object.keys(COLOR_KEYS).forEach(function (k) {
-        var hex = custom[k];
+        var hex = colors[k];
         if (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)) {
             out[COLOR_KEYS[k]] = parseInt(hex.slice(1), 16);
         }
@@ -671,7 +674,8 @@ function applyClothing(pg, clothingId, avatar) {
 // ===== GEAR APPLIER (extracted for readability) =====
 
 function applyGear(pg, gearItem, avatar) {
-    if (!gearItem || !gearItem.color) return;
+    // A colour of 0 (black) is a real colour: only a missing one bails.
+    if (!gearItem || typeof gearItem.color !== 'number') return;
     var s = avatar.scale || 1.0;
 
     if (gearItem.id === 'gear_steth') {
@@ -846,7 +850,7 @@ function applyGear(pg, gearItem, avatar) {
 // ===== HAT APPLIER (extracted for readability) =====
 
 function applyHat(pg, hatItem, avatar) {
-    if (!hatItem || !hatItem.color || avatar.hasWizardHat || avatar.hasAntenna) return;
+    if (!hatItem || typeof hatItem.color !== 'number' || avatar.hasWizardHat || avatar.hasAntenna) return;
     var s = avatar.scale || 1.0;
     var hat;
     var hatY = 2.0 * s;

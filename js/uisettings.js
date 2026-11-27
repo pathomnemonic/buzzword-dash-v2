@@ -92,6 +92,14 @@ export var settingsMethods = {
             b2.textContent = 'Press a key…';
             b2.classList.add('capturing');
             function onKey(e) {
+              // The page can be left mid-capture (another section, another
+              // screen): the button is gone, so the capture is over. Drop
+              // the listener and let this key through untouched.
+              if (!document.contains(b2)) {
+                document.removeEventListener('keydown', onKey, true);
+                if (capturing && capturing.onKey === onKey) capturing = null;
+                return;
+              }
               e.preventDefault();
               e.stopPropagation();
               if (e.key === 'Escape') { draw(); return; }
@@ -209,12 +217,18 @@ export var settingsMethods = {
         toggle.addEventListener('keydown', function (e) {
           if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle.click(); }
         });
+        var reminderPending = false;
         toggle.addEventListener('click', function () {
           var newVal = !storage.get(s.key);
           if (s.key === 'reminders' && newVal) {
+            // A second tap while the permission prompt is open must not
+            // start a second request.
+            if (reminderPending) return;
             // Notifications need explicit permission (from the browser, or from the phone inside the app).
             if (!canRemind()) { self._showToast('This device cannot show notifications.'); return; }
+            reminderPending = true;
             requestReminderPermission().then(function (res) {
+              reminderPending = false;
               if (!res.ok) {
                 trackEvent('reminder_state', { action: res.reason === 'unsupported' ? 'unsupported' : 'permission_denied', native: isNative() });
                 self._showToast(res.reason === 'unsupported' ? 'This device cannot show notifications.' : 'Notifications were blocked. Turn them on for Dx Dash in your phone or browser settings.');
@@ -225,7 +239,7 @@ export var settingsMethods = {
               toggle.classList.add('on');
               toggle.setAttribute('aria-checked', 'true');
               document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
-            });
+            }).catch(function () { reminderPending = false; });
             return;
           }
           storage.set(s.key, newVal);
@@ -250,20 +264,33 @@ export var settingsMethods = {
       } else if (s.type === 'select') {
         var select = createElement('select', { attributes: { 'aria-label': s.label } });
         select.style.cssText = 'padding:6px 8px;border-radius:8px;background:rgba(30,15,70,.8);color:#fff;border:1px solid rgba(187,102,255,.3)';
+        // The value shown must be one of the options: not every select has
+        // an 'auto' option (handedness, camera), so an unset or legacy
+        // stored value falls back to the first option, which is what the
+        // player sees, instead of a phantom 'auto'.
+        var selVal = storage.get(s.key);
+        if (!s.options.some(function (opt) { return opt[0] === selVal; })) selVal = s.options[0][0];
         s.options.forEach(function (opt) {
           var o = createElement('option', { text: opt[1], attributes: { value: opt[0] } });
-          if ((storage.get(s.key) || 'auto') === opt[0]) o.selected = true;
+          if (selVal === opt[0]) o.selected = true;
           select.appendChild(o);
         });
+        var themeNowEl = null;
         if (s.key === 'uiTheme') {
-          label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Right now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') }));
+          themeNowEl = createElement('span', { className: 'setting-sublabel', text: 'Right now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic') });
+          label.appendChild(themeNowEl);
         }
         if (s.key === 'quality') {
           label.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Now using: ' + getQuality().charAt(0).toUpperCase() + getQuality().slice(1) }));
         }
         select.addEventListener('change', function () {
           storage.set(s.key, select.value);
-          if (s.key === 'uiTheme') document.dispatchEvent(new CustomEvent('dx:theme-changed'));
+          if (s.key === 'uiTheme') {
+            document.dispatchEvent(new CustomEvent('dx:theme-changed'));
+            // The dispatch is synchronous, so the applied theme's name is
+            // already on the document: refresh the "Right now" line.
+            if (themeNowEl) setText(themeNowEl, 'Right now: ' + (document.documentElement.getAttribute('data-theme-name') || 'Classic'));
+          }
           if (s.key === 'handedness') self.applySettings();
           if (s.key === 'dashControl') document.dispatchEvent(new CustomEvent('dx:controls-changed'));
           if (s.key === 'quality') {
@@ -286,15 +313,22 @@ export var settingsMethods = {
           setText(valueEl, s.pct ? Math.round(v * 100) + '%' : v + (s.unit || ''));
         };
         showValue(currentVal);
+        var writeTimer = null;
         range.addEventListener('input', function () {
           var val = parseFloat(range.value);
-          storage.set(s.key, val);
           showValue(val);
           if (s.key === 'dailyGoal') self.renderStudyGoal();
-          if (s.key === 'reminderHour') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
-          if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
-            audio.updateSettings();
-          }
+          // The write (and everything it triggers: the save, the sync, the
+          // reminder reschedule, the audio refresh) is debounced: a drag
+          // fires a tick per pixel, and each one used to write storage.
+          if (writeTimer) clearTimeout(writeTimer);
+          writeTimer = setTimeout(function () {
+            storage.set(s.key, val);
+            if (s.key === 'reminderHour') document.dispatchEvent(new CustomEvent('dx:reminders-changed'));
+            if (s.key === 'masterVolume' || s.key === 'sfxVolume' || s.key === 'musicVolume') {
+              audio.updateSettings();
+            }
+          }, 250);
         });
         var rangeWrap = createElement('div', { className: 'setting-range' });
         rangeWrap.appendChild(range);
@@ -384,7 +418,7 @@ export var settingsMethods = {
         if (!requireGate('analytics_detail', { trigger: 'export_csv' })) return;
         var blob = new Blob([reportToCsv(buildStudyReport(storage.data))], { type: 'text/csv' });
         saveFile(blob, 'dx-dash-study-report-' + new Date().toISOString().slice(0, 10) + '.csv').then(function (how) {
-          self._showToast(how === 'failed' ? 'Could not save the file.' : 'Study report saved.');
+          self._showToast(how === 'failed' ? 'Could not save the file.' : (how === 'cancelled' ? 'Save cancelled.' : 'Study report saved.'));
         });
       });
       applyProLock(copyReport, 'analytics_detail');
@@ -408,7 +442,13 @@ export var settingsMethods = {
         attributes: { type: 'file', accept: 'application/json,.json', hidden: '', 'aria-label': 'Backup file' }
       });
       restoreBtn.addEventListener('click', function () { restoreInput.click(); });
-      restoreInput.addEventListener('change', function () { self.restoreBackup(restoreInput.files[0]); });
+      restoreInput.addEventListener('change', function () {
+        var file = restoreInput.files[0];
+        // Clear the input: picking the same file again must fire change
+        // again, or a second restore of the same backup does nothing.
+        restoreInput.value = '';
+        self.restoreBackup(file);
+      });
       backupBtns.appendChild(backupBtn);
       backupBtns.appendChild(restoreBtn);
       backupBtns.appendChild(restoreInput);
@@ -491,14 +531,19 @@ export var settingsMethods = {
         rateLabel.appendChild(createElement('span', { className: 'setting-sublabel', text: 'Enjoying it? A rating on the store helps other students find the game.' }));
         rateRow.appendChild(rateLabel);
         var rateBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Rate', attributes: { type: 'button', id: 'settingsRateBtn' } });
+        var rateStoreMode = false;
         rateBtn.addEventListener('click', function () {
+          // After the in-app attempt the button becomes the store page
+          // link: a flag, not a second handler (an onclick alongside this
+          // listener made both fire on the next tap).
+          if (rateStoreMode) { openStorePage(); return; }
           rateTheApp().then(function (res) {
             if (res.how === 'copied') self._showToast('Link copied. Paste it into your browser to rate.');
             else if (res.how === 'failed') self._showToast('Could not open the store from here.');
             else if (res.how === 'in-app') {
               // the store decides whether its rating box appears; the page is the back-up
               rateBtn.textContent = 'Open store page';
-              rateBtn.onclick = function () { openStorePage(); };
+              rateStoreMode = true;
             }
           });
         });
@@ -700,7 +745,14 @@ export var settingsMethods = {
       return wrap;
     }
 
-    var current = storage.get('avatarColors') || {};
+    // Colors are kept per hero (modelColors does the same for the 3D
+    // characters): one global record made every classic hero wear the
+    // colors picked for another. A flat record from before the split is
+    // the legacy fallback: it is what the equipped hero shows until that
+    // hero gets a record of its own.
+    var allColors = storage.get('avatarColors') || {};
+    var ownRecord = allColors[equippedSkin] && typeof allColors[equippedSkin] === 'object' ? allColors[equippedSkin] : null;
+    var current = ownRecord || allColors;
     var grid = createElement('div');
     grid.style.cssText = 'display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center';
     var fields = [['hair', 'Hair'], ['skin', 'Skin'], ['body', 'Coat'], ['pants', 'Pants'], ['shoe', 'Shoes']];
@@ -722,9 +774,11 @@ export var settingsMethods = {
       });
       input.style.cssText = 'width:100%;height:32px;border:none;border-radius:8px;background:none;padding:0';
       input.addEventListener('change', function () {
-        var colors = Object.assign({}, storage.get('avatarColors') || {});
+        var all = Object.assign({}, storage.get('avatarColors') || {});
+        var colors = Object.assign({}, (all[equippedSkin] && typeof all[equippedSkin] === 'object') ? all[equippedSkin] : current);
         colors[f[0]] = input.value;
-        storage.set('avatarColors', colors);
+        all[equippedSkin] = colors;
+        storage.set('avatarColors', all);
         if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
         if (self.onEquipChange) self.onEquipChange();
       });
@@ -737,7 +791,9 @@ export var settingsMethods = {
     var reset = createElement('button', { className: 'btn btn-outline btn-sm', text: 'Reset colors' });
     reset.style.marginTop = '6px';
     reset.addEventListener('click', function () {
-      storage.set('avatarColors', {});
+      var all = Object.assign({}, storage.get('avatarColors') || {});
+      delete all[equippedSkin];
+      storage.set('avatarColors', all);
       self.renderShop();
       if (self.characterPreview) { self.characterPreview.clearPreview(); self.characterPreview.rebuildCharacter(); }
       if (self.onEquipChange) self.onEquipChange();
@@ -785,7 +841,18 @@ export var settingsMethods = {
     var shopCoinsEl = document.getElementById('shopCoins');
     if (shopCoinsEl) setText(shopCoinsEl, storage.get('coins'));
     var lbNow = this._lb();
-    if (!this._itemsProbed && lbNow && hasAccount(lbNow)) { this._itemsProbed = true; probeItems(lbNow); document.addEventListener('dx:items-capability', function () { var shop = document.getElementById('screenShop'); if (shop && shop.classList.contains('active')) self.renderShop(); }); }
+    // The probe is per account: keyed by the user id, so signing in as
+    // someone else probes again instead of reusing the last account's
+    // answer for the whole session.
+    var probeUser = lbNow && hasAccount(lbNow) && lbNow.getUserId ? lbNow.getUserId() : null;
+    if (probeUser && this._itemsProbedFor !== probeUser) {
+      this._itemsProbedFor = probeUser;
+      probeItems(lbNow);
+      if (!this._itemsProbeListening) {
+        this._itemsProbeListening = true;
+        document.addEventListener('dx:items-capability', function () { var shop = document.getElementById('screenShop'); if (shop && shop.classList.contains('active')) self.renderShop(); });
+      }
+    }
     var giftBar = document.getElementById('shopGiftBar');
     if (giftBar) {
       var gs = proGiftState();

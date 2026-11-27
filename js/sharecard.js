@@ -175,7 +175,7 @@ export function shareOrDownload(blob) {
   // writes it out and opens the system share sheet or downloads it.
   if (file && typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
     return navigator.share({ files: [file], title: 'Dx Dash result' }).then(function () { return 'shared'; }, function (e) {
-      if (e && e.name === 'AbortError') return 'shared';
+      if (e && e.name === 'AbortError') return 'cancelled';
       throw e;
     });
   }
