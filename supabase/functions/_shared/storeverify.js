@@ -82,9 +82,18 @@ export function parseGoogleSubscription(json, nowSec) {
   var state = String((json && json.subscriptionState) || '');
   var items = (json && json.lineItems) || [];
   var end = 0;
-  items.forEach(function (li) { var t = Date.parse(li && li.expiryTime); if (t > 0) end = Math.max(end, Math.floor(t / 1000)); });
+  var productIds = [];
+  items.forEach(function (li) {
+    var t = Date.parse(li && li.expiryTime); if (t > 0) end = Math.max(end, Math.floor(t / 1000));
+    if (li && li.productId && productIds.indexOf(String(li.productId)) < 0) productIds.push(String(li.productId));
+  });
   var live = ['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD', 'SUBSCRIPTION_STATE_CANCELED'].indexOf(state) >= 0 && end > nowSec;
-  return { valid: live, revoked: false, expiresAt: end, pending: state === 'SUBSCRIPTION_STATE_PENDING' };
+  // Revocation was never reported before (issue 53): revoked stayed hardcoded false, so a refunded Google
+  // subscription kept its grant until the old end date. Google marks a subscription EXPIRED when it ends; one that
+  // is EXPIRED while paid time is still on the clock was cut short, which is what a revocation (or an immediate
+  // refund) looks like. A natural expiry has no paid time left and is not a revocation: the grant simply lapses.
+  var revoked = state === 'SUBSCRIPTION_STATE_EXPIRED' && end > nowSec;
+  return { valid: live, revoked: revoked, expiresAt: end, pending: state === 'SUBSCRIPTION_STATE_PENDING', productIds: productIds };
 }
 
 export function parseGoogleProduct(json) {
