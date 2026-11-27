@@ -793,17 +793,24 @@ var leaderboard = {
       season: getSeasonKey()
     };
 
-    // Insert score (idempotent by run_id unique constraint)
+    // Insert the score through the server function: direct inserts into the
+    // scores table are closed, so a score can only land through submit_score,
+    // which takes the user from the session and applies the range and flood
+    // limits itself. A repeated run id is a retry and succeeds as the same row.
     var scorePromise = _client
-      .from('scores')
-      .insert(scoreRow)
-      .then(function (res) {
-        // Duplicate run_id will cause a constraint violation — treat as success
-        if (res.error && res.error.code === '23505') {
-          return { data: null, error: null }; // Already submitted
-        }
-        return res;
-      });
+      .rpc('submit_score', {
+        p_player_name: scoreRow.player_name,
+        p_avatar: scoreRow.avatar,
+        p_score: scoreRow.score,
+        p_accuracy: scoreRow.accuracy,
+        p_best_streak: scoreRow.best_streak,
+        p_speed: scoreRow.speed,
+        p_mode: scoreRow.mode,
+        p_badges: scoreRow.badges,
+        p_run_id: scoreRow.run_id,
+        p_season: scoreRow.season
+      })
+      .then(function (res) { return res; });
 
     // Upsert profile with GREATEST for bests (via server function)
     var profilePromise = _client.rpc('upsert_player_profile', {
