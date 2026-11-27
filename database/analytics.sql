@@ -122,6 +122,13 @@ CREATE TABLE IF NOT EXISTS analytics_consent_counts (
   PRIMARY KEY (day, outcome, source, platform, version)
 );
 
+-- one row per hour: the global cap counter for the consent tally (issue 160)
+CREATE TABLE IF NOT EXISTS analytics_consent_limits (
+  hour timestamptz NOT NULL,
+  n    integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (hour)
+);
+
 -- ==================== LOCK THE TABLES ====================
 
 ALTER TABLE analytics_installs ENABLE ROW LEVEL SECURITY;
@@ -129,7 +136,8 @@ ALTER TABLE analytics_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_consent_counts ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON analytics_installs, analytics_sessions, analytics_events, analytics_limits, analytics_consent_counts FROM PUBLIC, anon, authenticated;
+ALTER TABLE analytics_consent_limits ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON analytics_installs, analytics_sessions, analytics_events, analytics_limits, analytics_consent_counts, analytics_consent_limits FROM PUBLIC, anon, authenticated;
 
 -- ==================== HELPERS ====================
 
@@ -204,6 +212,17 @@ BEGIN
     RETURN jsonb_build_object('accepted', 0, 'duplicates', 0, 'rejected', v_count, 'limited', true, 'now', (extract(epoch FROM now()) * 1000)::bigint);
   END IF;
 
+  -- a second limit over every install together (issue 161): the per-install
+  -- limit above is keyed on the install id the client sends, so rotating ids
+  -- would reset it. This global ceiling, counted under the nil install id, is
+  -- what actually stops a script filling the table.
+  INSERT INTO analytics_limits (install_id, hour, n) VALUES ('00000000-0000-0000-0000-000000000000', v_hour, v_count)
+  ON CONFLICT (install_id, hour) DO UPDATE SET n = analytics_limits.n + EXCLUDED.n
+  RETURNING n INTO v_used;
+  IF v_used > 400000 THEN
+    RETURN jsonb_build_object('accepted', 0, 'duplicates', 0, 'rejected', v_count, 'limited', true, 'now', (extract(epoch FROM now()) * 1000)::bigint);
+  END IF;
+
   -- When this install was actually first seen (issue 76): the earliest skew-corrected event or session start in
   -- the batch, not the moment the server happened to receive it. Clamped to the same window events are accepted
   -- in, so a broken device clock cannot plant an install in the distant past or future.
@@ -229,7 +248,11 @@ BEGIN
           analytics_txt(v_first, 'referrer_host', 60), analytics_txt(v_first, 'landing', 40), coalesce(analytics_bool(v_first, 'has_click_id'), false),
           CASE WHEN analytics_txt(v_inst, 'ref_code', 16) ~ '^[0-9a-f]{6,16}$' THEN analytics_txt(v_inst, 'ref_code', 16) END,
           v_ref, (analytics_num(v_inst, 'consent_v'))::integer, v_first_seen)
-  ON CONFLICT (install_id) DO UPDATE SET last_seen = now(), last_version = coalesce(left(EXCLUDED.last_version, 20), analytics_installs.last_version);
+  ON CONFLICT (install_id) DO UPDATE SET last_seen = now(), last_version = coalesce(left(EXCLUDED.last_version, 20), analytics_installs.last_version),
+    -- a returning install also refreshes its consent version and ref code, so a
+    -- consent upgrade or a later campaign touch never goes stale (issue 159)
+    consent_version = coalesce(EXCLUDED.consent_version, analytics_installs.consent_version),
+    ref_code = coalesce(EXCLUDED.ref_code, analytics_installs.ref_code);
 
   -- the sessions this batch refers to (their device details)
   IF jsonb_typeof(p_batch -> 'sessions') = 'object' THEN
@@ -306,10 +329,18 @@ $$;
 
 CREATE OR REPLACE FUNCTION count_consent(p_outcome text, p_source text DEFAULT '', p_platform text DEFAULT '', p_version text DEFAULT '') RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_hour timestamptz := date_trunc('hour', now());
+  v_n    integer;
 BEGIN
   IF p_outcome NOT IN ('shown', 'granted', 'denied') THEN RETURN; END IF;
-  -- one global cap per hour so the tally cannot be inflated by a script
-  IF (SELECT coalesce(sum(n), 0) FROM analytics_consent_counts WHERE day = current_date) > 200000 THEN RETURN; END IF;
+  -- one global cap per hour so the tally cannot be inflated by a script. The
+  -- counter is a single row per hour, so the check is one indexed lookup
+  -- instead of a sum over the tally itself (issue 160)
+  INSERT INTO analytics_consent_limits (hour, n) VALUES (v_hour, 1)
+  ON CONFLICT (hour) DO UPDATE SET n = analytics_consent_limits.n + 1
+  RETURNING n INTO v_n;
+  IF v_n > 200000 THEN RETURN; END IF;
   INSERT INTO analytics_consent_counts (day, outcome, source, platform, version, n)
   VALUES (current_date, p_outcome, left(coalesce(p_source, ''), 12), left(coalesce(p_platform, ''), 12), left(coalesce(p_version, ''), 20), 1)
   ON CONFLICT (day, outcome, source, platform, version) DO UPDATE SET n = analytics_consent_counts.n + 1;
@@ -331,6 +362,7 @@ BEGIN
   GET DIAGNOSTICS e = ROW_COUNT;
   DELETE FROM analytics_limits WHERE hour < now() - interval '2 days';
   GET DIAGNOSTICS l = ROW_COUNT;
+  DELETE FROM analytics_consent_limits WHERE hour < now() - interval '2 days';
   DELETE FROM analytics_sessions WHERE started_at < now() - make_interval(days => p_days);
   GET DIAGNOSTICS s = ROW_COUNT;
   DELETE FROM analytics_installs WHERE last_seen < now() - make_interval(days => p_days);
