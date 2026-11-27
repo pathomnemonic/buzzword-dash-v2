@@ -479,7 +479,14 @@ export var customCards = {
     var leakWarnings = _checkAnswerLeaks(card);
     var allWarnings = result.warnings.concat(leakWarnings);
 
-    _commit(cards.concat([card]), { put: [card] });
+    if (!_commit(cards.concat([card]), { put: [card] })) {
+      return {
+        success: false,
+        card: null,
+        errors: [{ code: 'SAVE_FAILED', path: '', message: 'Your browser could not save the card (storage is full), so it was not added.', severity: 'error' }],
+        warnings: allWarnings
+      };
+    }
     _notifyListeners();
 
     return {
@@ -616,7 +623,17 @@ export var customCards = {
     progress(total, total, 'prepare');
     if (opts.isCancelled && opts.isCancelled()) { out.cancelled = true; out.saved = false; out.added = out.updated = out.unchanged = 0; return out; }
     if (out.added > 0 || out.updated > 0) {
-      var wrote = await this._saveBatch(cards, changed, opts, function(d, n) { progress(d, n, 'save'); });
+      // The prepare loop worked on a snapshot taken when the import started. Anything the
+      // player added, edited or removed while a long import ran must survive it, so apply
+      // this import's changed cards onto the list as it stands now instead of replacing it.
+      var finalList = _current().slice();
+      var finalPos = Object.create(null);
+      finalList.forEach(function (c, i) { finalPos[c.id] = i; });
+      changed.forEach(function (c) {
+        if (finalPos[c.id] !== undefined) finalList[finalPos[c.id]] = c;
+        else { finalPos[c.id] = finalList.length; finalList.push(c); }
+      });
+      var wrote = await this._saveBatch(finalList, changed, opts, function(d, n) { progress(d, n, 'save'); });
       if (!wrote.ok) {
         out.saved = false;
         out.cancelled = wrote.code === 'cancelled';
@@ -687,9 +704,22 @@ export var customCards = {
     updatedCard.createdAt = cards[index].createdAt;
     updatedCard.updatedAt = Date.now();
 
+    // The editor only renders some fields. Anything it does not supply keeps the stored
+    // card's value, or editing an imported card silently strips the provenance and
+    // scheduling fields it arrived with.
+    var existing = cards[index];
+    if (updatedCard.ak === undefined && existing.ak !== undefined) updatedCard.ak = existing.ak;
+    if (updatedCard.tags === undefined && existing.tags !== undefined) updatedCard.tags = existing.tags.slice();
+    if (updatedCard.deck === undefined && existing.deck !== undefined) updatedCard.deck = existing.deck;
+    if (updatedCard.attr === undefined && existing.attr !== undefined) updatedCard.attr = existing.attr;
+    if (updatedCard.sref === undefined && existing.sref !== undefined) updatedCard.sref = existing.sref;
+    if (updatedCard.source === undefined && existing.source !== undefined) updatedCard.source = existing.source;
+
     var hasPlaceholderDistractors = _hasPlaceholderDistractors(updatedCard);
     if (hasPlaceholderDistractors) {
       updatedCard.enabledModes = ['flashcard'];
+    } else if (existing.enabledModes !== undefined) {
+      updatedCard.enabledModes = existing.enabledModes.slice();
     }
 
     var result = validateCard(updatedCard, { strict: false, requireDistractors: !hasPlaceholderDistractors });
@@ -701,7 +731,14 @@ export var customCards = {
 
     var next = cards.slice();
     next[index] = updatedCard;
-    _commit(next, { put: [updatedCard] });
+    if (!_commit(next, { put: [updatedCard] })) {
+      return {
+        success: false,
+        card: null,
+        errors: [{ code: 'SAVE_FAILED', path: '', message: 'Your browser could not save the edit (storage is full), so the card is unchanged.', severity: 'error' }],
+        warnings: result.warnings.concat(leakWarnings)
+      };
+    }
     _notifyListeners();
 
     return {
@@ -720,8 +757,9 @@ export var customCards = {
   remove: function(cardId) {
     var cards = _current();
     var filtered = cards.filter(function(c) { return c.id !== cardId; });
-    _commit(filtered, filtered.length === 0 && cards.length > 0 ? { clear: true } : { del: [cardId] });
+    if (!_commit(filtered, filtered.length === 0 && cards.length > 0 ? { clear: true } : { del: [cardId] })) return false;
     _notifyListeners();
+    return true;
   },
 
   /**
@@ -737,8 +775,9 @@ export var customCards = {
    */
   clear: function() {
     _current();
-    _commit([], { clear: true });
+    if (!_commit([], { clear: true })) return false;
     _notifyListeners();
+    return true;
   },
 
   /**
@@ -867,6 +906,15 @@ export var customCards = {
 
       var raw = parsed[i];
 
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        result.rejected.push({
+          index: i,
+          errors: [{ code: 'INVALID_CARD', path: '', message: 'Entry is not a card object', severity: 'error' }]
+        });
+        result.rejectedCount++;
+        continue;
+      }
+
       // Ensure it has a unique ID
       if (!raw.id || typeof raw.id !== 'string' || usedIds.has(raw.id)) {
         raw.id = 'custom_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 1000);
@@ -903,7 +951,18 @@ export var customCards = {
       }
     }
 
-    _commit(existing, { put: result.imported });
+    if (!_commit(existing, { put: result.imported })) {
+      // Nothing was written, so nothing was imported: report the save failure, not a success.
+      result.rejected.push({
+        index: -1,
+        errors: [{ code: 'SAVE_FAILED', path: '', message: 'Your browser could not save the imported cards (storage is full), so nothing was imported.', severity: 'error' }]
+      });
+      result.rejectedCount += result.importedCount;
+      result.imported = [];
+      result.importedCount = 0;
+      result.success = false;
+      return result;
+    }
     result.success = result.importedCount > 0;
 
     if (result.importedCount > 0) {

@@ -106,11 +106,29 @@ function parseDelimitedText(text, options) {
   var directives = {};
   var lines = text.split(/\r\n|\n|\r/);
   var skip = 0;
-  while (skip < lines.length && /^#/.test(lines[skip])) {
-    // "#separator:tab" style settings are read; any other "# comment" line is just skipped
-    var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
-    if (dm) directives[dm[1].trim().toLowerCase()] = dm[2].trim();
-    skip++;
+  // The leading "#" block is an Anki header only when it actually carries directives.
+  // A hand written file has none, and there a first card whose front starts with '#'
+  // is content: the old code skipped every leading "#" line and dropped that card.
+  // Inside a real header, "# comment" lines are skipped, but a "#" line holding a tab
+  // is a data row, not a comment.
+  var headerBlock = 0;
+  var hasDirective = false;
+  while (headerBlock < lines.length && /^#/.test(lines[headerBlock])) {
+    if (/^#([a-z ]+):(.*)$/i.test(lines[headerBlock])) hasDirective = true;
+    headerBlock++;
+  }
+  if (hasDirective) {
+    while (skip < headerBlock) {
+      var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
+      if (dm) {
+        directives[dm[1].trim().toLowerCase()] = dm[2].trim();
+        skip++;
+      } else if (lines[skip].indexOf('\t') < 0) {
+        skip++;
+      } else {
+        break;
+      }
+    }
   }
   if (skip > 0) text = lines.slice(skip).join('\n');
   var sep = directives.separator;
@@ -204,12 +222,13 @@ function parseDelimitedText(text, options) {
     var back = row[backCol] ? row[backCol].trim() : '';
     var extraCols = [];
 
-    // If back column is not specified and there are more columns, join the non-empty ones
+    // If back column is not specified and there are more columns, the non-empty extras are
+    // kept as the card's teaching text below. They are separate fields, not part of the
+    // answer, so they must not be glued into the answer text.
     // (empty columns are left out: Anki pads every note out to the note type's field count)
     if (backCol === 1 && row.length > 2 && options.backColumn === undefined) {
       extraCols = row.slice(2).filter(function (c) { return c.trim() !== ''; });
-      if (!twoFieldRows[ri]) back = [back].concat(extraCols).filter(function (c) { return c !== ''; }).join(', ').trim();
-      else extraCols = [];
+      if (twoFieldRows[ri]) extraCols = [];
     }
 
     if (stripTags) {
@@ -219,7 +238,7 @@ function parseDelimitedText(text, options) {
 
     if (front && back && !isMediaOnly(front) && !isMediaOnly(back)) {
       push({
-        front: front, back: back, teach: '', tags: meta.tags,
+        front: front, back: back, teach: extraCols.join('\n'), tags: meta.tags,
         guid: meta.guid, key: meta.guid || hashKey(front + '\u0001' + back),
         suspended: false, buried: false, hasExtra: extraCols.length > 0
       });
@@ -476,7 +495,7 @@ async function importSelected(cards, options) {
   if (!cards || !Array.isArray(cards) || cards.length === 0) return Object.assign(empty, { warnings: ['No cards to import.'] });
   if (!_dependencies || !_dependencies.customCards) return Object.assign(empty, { warnings: ['Custom cards module not available.'] });
   var customCards = _dependencies.customCards;
-  if (!requireGate('anki_import', { used: cards.length })) return Object.assign(empty, { warnings: ['Importing a deck this size needs Dx Dash Pro.'] });
+  if (!requireGate('anki_import', { used: cards.length })) return Object.assign(empty, { saved: false, warnings: ['Importing a deck this size needs Dx Dash Pro.'] });
 
   var inputs = [];
   var rejected = 0;
@@ -1046,10 +1065,19 @@ function _renderUI() {
       if (!_mounted) return;
       if (!result.cards.length) { setStatus(result.warnings[0] || 'No cards found in that file.', result.cancelled ? 'var(--accent-gold, #ffd54f)' : RED); return; }
       setStatus('');
+      var panelStore = storeInfo();
       panel = renderFilterPanel(filterHost, {
-        records: result.cards, warnings: result.warnings, title: file.name, store: storeInfo(),
+        records: result.cards, warnings: result.warnings, title: file.name, store: panelStore,
         onImport: async function (picked, o) {
           var res = await importSelected(picked, { kind: 'filtered', onProgress: o.onProgress, isCancelled: o.isCancelled });
+          // The panel keeps the store snapshot it was created with. Refresh it in place, so a
+          // second import from this same panel counts what the first one already saved.
+          var freshInfo = storeInfo();
+          panelStore.count = freshInfo.count;
+          panelStore.bytes = freshInfo.bytes;
+          panelStore.keys = freshInfo.keys;
+          panelStore.limit = freshInfo.limit;
+          panelStore.mode = freshInfo.mode;
           if (res.imported + res.updated > 0 && _dependencies && _dependencies.toast) _dependencies.toast('Imported ' + res.imported + ' cards' + (res.updated ? ', refreshed ' + res.updated : '') + '.');
           return res;
         },
@@ -1062,7 +1090,11 @@ function _renderUI() {
     }
   }
 
-  deckFile.addEventListener('change', function () { if (deckFile.files && deckFile.files.length) openFile(deckFile.files[0]); });
+  deckFile.addEventListener('change', function () {
+    var pickedFile = deckFile.files && deckFile.files[0];
+    deckFile.value = ''; // reset, or picking the same file again fires no change event
+    if (pickedFile) openFile(pickedFile);
+  });
   ['dragenter', 'dragover'].forEach(function (ev) {
     dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.style.borderColor = 'var(--accent-green, #44ff88)'; });
   });
@@ -1084,13 +1116,18 @@ function _renderUI() {
       }
       rawImportBtn.disabled = true;
       var result = await importSelected(cardResult.cards, { kind: 'paste' });
-      setStatus(
-        'Imported ' + result.imported + ' flashcard' + (result.imported === 1 ? '' : 's') + '.' +
-        (result.updated ? ' ' + result.updated + ' refreshed.' : '') +
-        (result.rejected > 0 ? ' ' + result.rejected + ' skipped.' : '') + ' Find them in Flashcard mode.' +
-        (result.saved === false && result.warnings[0] ? ' ' + result.warnings[0] : ''),
-        result.imported + result.updated > 0 ? GREEN : RED
-      );
+      if (result.saved === false) {
+        // Nothing was imported (for example the Pro gate refused): say that, not a
+        // completed import of zero cards that sends the player to debug their file.
+        setStatus(result.warnings[0] || 'That import could not be saved.', RED);
+      } else {
+        setStatus(
+          'Imported ' + result.imported + ' flashcard' + (result.imported === 1 ? '' : 's') + '.' +
+          (result.updated ? ' ' + result.updated + ' refreshed.' : '') +
+          (result.rejected > 0 ? ' ' + result.rejected + ' skipped.' : '') + ' Find them in Flashcard mode.',
+          result.imported + result.updated > 0 ? GREEN : RED
+        );
+      }
       rawImportBtn.disabled = false;
       _parsedCards = null;
       showPreview(null);
@@ -1123,6 +1160,9 @@ function _renderUI() {
       var parsed = parseAiReply(aiArea.value);
       if (parsed.error) { setStatus(parsed.error, RED); return; }
       if (!_dependencies || !_dependencies.customCards) { setStatus('Cards are not available right now.', RED); return; }
+      // The AI quiz path is an import like any other: the same Pro gate applies, or the
+      // paid import limit can be bypassed by pasting generated cards instead of a deck.
+      if (!requireGate('anki_import', { used: parsed.cards.length })) { setStatus('Importing AI quiz cards needs Dx Dash Pro.', RED); return; }
       var res = _dependencies.customCards.importJSON(JSON.stringify(parsed.cards));
       var skipped = parsed.skipped + res.rejectedCount;
       var firstErr = res.rejected[0] && res.rejected[0].errors && res.rejected[0].errors[0];

@@ -461,17 +461,14 @@ export function normalizeCard(input, options) {
     card.ww = {};
   }
 
-  // Fix ww keys to match distractors
+  // Keep only ww entries whose key is exactly a distractor. Explanations travel with their
+  // distractor text: never remap by position, or one distractor's explanation ends up shown
+  // for another. Unmatched keys are dropped (validateCard already warned about them).
   if (card.ww && card.d && Array.isArray(card.d)) {
     var newWw = {};
-    var wwKeys = Object.keys(card.ww);
-    card.d.forEach(function(dist, idx) {
+    card.d.forEach(function(dist) {
       if (card.ww[dist]) {
         newWw[dist] = card.ww[dist];
-      } else if (wwKeys[idx]) {
-        newWw[dist] = card.ww[wwKeys[idx]];
-        warnings.push(issue('WW_REMAPPED', 'ww',
-          'Remapped ww key to match distractor "' + dist + '"', 'warning'));
       }
     });
     card.ww = newWw;
