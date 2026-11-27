@@ -100,7 +100,7 @@ function patch(g, S, z) {
   pumpkin(g, S, 0.5, 0, z - 1.2, 1.2);
   pumpkin(g, S, 0.4, 0, z, 1.7);
   pumpkin(g, S, 0.5, 0, z + 1.3, 1.0);
-  [-0.6, 0.7, 1.7].forEach(function (dz, i) { if (!kitAt(g, 'hall/candle_triple', { width: 0.4, height: 0.7, depth: 0.4 }, S.side, 0.25, 1.0 + i * 0.0, z + dz - 0.0, 0)) { cyl(g, 0.07, 0.07, 0.35, 0xfff0d0, S.in(0.1), 3.1, z + dz, { seg: 5 }); ball(g, 0.07, 0xffc040, S.in(0.1), 3.4, z + dz, { seg: 4, bulb: true }); } });
+  [-0.6, 0.7, 1.7].forEach(function (dz, i) { if (!kitAt(g, 'hall/candle_triple', { width: 0.4, height: 0.7, depth: 0.4 }, S.side, 0.25, 1.0 + i * 0.0, z + dz - 0.0, 0)) { cyl(g, 0.07, 0.07, 0.35, 0xfff0d0, S.in(0.1), 1.18, z + dz, { seg: 5 }); ball(g, 0.07, 0xffc040, S.in(0.1), 1.45, z + dz, { seg: 4, bulb: true }); } });
   box(g, 0.14, 0.3, 4, ORANGE, S.in(0.06), 0.15, z);
   // a candy bowl and a lantern sign
   cyl(g, 0.3, 0.22, 0.2, PINK, S.in(0.8), 0.6, z - 1.9, { seg: 8 });
