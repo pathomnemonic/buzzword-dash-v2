@@ -29,8 +29,8 @@ export function obstacleChances(answered) {
   var n = Math.max(0, Number(answered) || 0);
   return [
     clamp(FIRST_OBSTACLE_START + FIRST_OBSTACLE_STEP * n, 0, FIRST_OBSTACLE_MAX),
-    clamp(0.03 * (n - SECOND_AFTER), 0, SECOND_MAX),
-    clamp(0.02 * (n - THIRD_AFTER), 0, THIRD_MAX)
+    clamp(0.03 * (n - SECOND_AFTER + 1), 0, SECOND_MAX),
+    clamp(0.02 * (n - THIRD_AFTER + 1), 0, THIRD_MAX)
   ];
 }
 
