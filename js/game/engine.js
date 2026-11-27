@@ -506,7 +506,10 @@ class Game {
   // ═══════════════════════════════════════════════════════
 
   update(deltaSeconds, nowMs) {
-    if (deltaSeconds > 0.1) deltaSeconds = 0.016;
+    // Clamp a long frame to the cap itself. Snapping back to a single 60 fps
+    // step (0.016) threw away most of a merely slow frame and made the game
+    // visibly stutter after every hitch.
+    if (deltaSeconds > 0.1) deltaSeconds = 0.1;
 
     // Brief slow motion after a lightning-fast correct answer (solo only, so
     // it can never desync a multiplayer match).
@@ -936,6 +939,11 @@ class Game {
   }
 
   pause(reason) {
+    // Competitive runs are live against another player: pausing would freeze
+    // one side of a timed match while the other side keeps playing, so pause
+    // is solo only.
+    if (this.mode === GAME_MODES.VERSUS || this.mode === GAME_MODES.MP_HIGH_SCORE ||
+        this.mode === GAME_MODES.MP_SUDDEN_DEATH || this.mode === GAME_MODES.MP_RACE) return;
     if (this._state === GAME_STATES.PLAYING) {
       this._pausedAt = performance.now();
       this._transition(GAME_STATES.PAUSED);
@@ -1594,6 +1602,7 @@ class Game {
             else this.obstaclesSlid++;
           }
           if (!dodged && !this.rushInvulnerable) {
+            od.hitPlayer = true;
             if (this.powerups.shield > 0) {
               this.powerups.shield = 0;
               this._emit('shield_broken', {});
@@ -1605,7 +1614,7 @@ class Game {
               this._triggerShake();
               this.stumbleTimer = 0.3;
               if (this.lives <= 0 && this.mode !== GAME_MODES.STUDY) {
-                var canCont = this._modeConfig.allowContinue && !this.continued && storage.get('coins') >= (this._modeConfig.continueCost || CONTINUE_COST);
+                var canCont = this._modeConfig.allowContinue && !this.continued && (storage.get('coins') || 0) + (this.coins || 0) >= (this._modeConfig.continueCost || CONTINUE_COST);
                 if (canCont) {
                   this._triggerDeath(od.type === 'high' ? 'overhead' : 'ground');
                 } else {
@@ -1618,6 +1627,36 @@ class Game {
         // Death or the end of the run emptied the obstacle list under this loop;
         // stop here instead of reading entries that no longer exist.
         if (this._state !== GAME_STATES.PLAYING) break;
+      }
+      // A staff member trails 1.7 units behind a staffed gurney, outside the
+      // gurney's own crossing test: without a test of its own the player runs
+      // straight through the person. The staffer is person height, so neither
+      // a jump nor a slide clears them; only being out of the lane does. An
+      // obstacle that already landed its hit does not hit twice.
+      if (od.staff && !od.staffChecked && ob.position.z - 1.7 > OBSTACLE_HIT_Z) {
+        od.staffChecked = true;
+        if (od.lane === this.currentLane && !od.hitPlayer && !this.rushInvulnerable) {
+          if (this.powerups.shield > 0) {
+            this.powerups.shield = 0;
+            this._emit('shield_broken', {});
+            if (this.powerupFX) this.powerupFX.shatterShield(this.playerGroup.position);
+          } else {
+            this.lives--;
+            this._emit('damage_taken', { source: 'obstacle', livesRemaining: this.lives });
+            this._monsterSlip();
+            this._triggerShake();
+            this.stumbleTimer = 0.3;
+            if (this.lives <= 0 && this.mode !== GAME_MODES.STUDY) {
+              var staffCanCont = this._modeConfig.allowContinue && !this.continued && (storage.get('coins') || 0) + (this.coins || 0) >= (this._modeConfig.continueCost || CONTINUE_COST);
+              if (staffCanCont) {
+                this._triggerDeath('ground');
+              } else {
+                this._endRun(RUN_END_REASONS.OUT_OF_LIVES);
+              }
+            }
+          }
+          if (this._state !== GAME_STATES.PLAYING) break;
+        }
       }
       // It leaves once it is well behind the runner
       if (ob.position.z > 2.5 * VISUAL_SPEED) {
