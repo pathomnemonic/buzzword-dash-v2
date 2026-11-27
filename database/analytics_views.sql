@@ -69,7 +69,8 @@ SELECT s.session_id, s.install_id, s.started_at, s.started_at::date AS day, s.pl
        s.tz_offset, s.screen_w, s.screen_h, s.connection, s.standalone, s.last_channel, s.last_source,
        analytics_num(l.props, 'duration_s') AS duration_s, analytics_num(l.props, 'active_s') AS active_s, analytics_num(l.props, 'runs') AS runs,
        analytics_num(l.props, 'answers') AS answers, analytics_num(l.props, 'screens') AS screens, analytics_num(l.props, 'errors') AS errors,
-       analytics_bool(l.props, 'in_run') AS ended_in_run, l.props ->> 'last_screen' AS last_screen
+       analytics_bool(l.props, 'in_run') AS ended_in_run, l.props ->> 'last_screen' AS last_screen,
+       l.session_id IS NOT NULL AS has_summary
 FROM analytics_sessions s LEFT JOIN last_end l ON l.session_id = s.session_id;
 
 -- the days each install was active
@@ -191,7 +192,7 @@ ret7 AS (SELECT DISTINCT i2.install_id FROM i i2 JOIN analytics_v_active_days a 
 SELECT i.channel, i.source, i.medium, i.campaign, i.platform, count(*) AS installs,
        analytics_pct(count(r.install_id) FILTER (WHERE r.first_run < i.first_seen + interval '1 day'), count(*)) AS ran_in_first_day_pct,
        analytics_pct(count(t.install_id), count(*)) AS finished_tutorial_pct,
-       round(avg(r.runs), 1) AS runs_per_install, round(avg(s.sessions), 1) AS sessions_per_install,
+       round(avg(coalesce(r.runs, 0)), 1) AS runs_per_install, round(avg(coalesce(s.sessions, 0)), 1) AS sessions_per_install,
        analytics_pct(count(b.install_id), count(*)) AS purchased_pct, analytics_pct(count(sh.install_id), count(*)) AS shared_pct,
        analytics_pct(count(r1.install_id), count(*) FILTER (WHERE i.first_seen::date <= current_date - 1)) AS d1_pct,
        analytics_pct(count(r7.install_id), count(*) FILTER (WHERE i.first_seen::date <= current_date - 7)) AS d7_pct
@@ -303,7 +304,8 @@ FROM analytics_events WHERE name = 'first_run_milestone' GROUP BY 1 ORDER BY med
 CREATE OR REPLACE VIEW analytics_v_first_session AS
 SELECT s.platform, count(*) AS first_sessions, percentile_cont(0.5) WITHIN GROUP (ORDER BY s.duration_s) AS median_seconds,
        percentile_cont(0.9) WITHIN GROUP (ORDER BY s.duration_s) AS p90_seconds, round(avg(s.runs), 2) AS avg_runs, round(avg(s.answers), 1) AS avg_answers,
-       analytics_pct(count(*) FILTER (WHERE coalesce(s.runs, 0) = 0), count(*)) AS no_run_pct, analytics_pct(count(*) FILTER (WHERE s.duration_s < 60), count(*)) AS under_a_minute_pct
+       analytics_pct(count(*) FILTER (WHERE s.has_summary AND coalesce(s.runs, 0) = 0), count(*) FILTER (WHERE s.has_summary)) AS no_run_pct,
+       analytics_pct(count(*) FILTER (WHERE s.has_summary AND s.duration_s < 60), count(*) FILTER (WHERE s.has_summary)) AS under_a_minute_pct
 FROM analytics_v_session_summary s
 WHERE s.session_id IN (SELECT DISTINCT ON (install_id) session_id FROM analytics_sessions ORDER BY install_id, started_at)
 GROUP BY s.platform ORDER BY first_sessions DESC;
@@ -314,8 +316,8 @@ CREATE OR REPLACE VIEW analytics_v_session_stats AS
 SELECT day, platform, count(*) AS sessions, round(avg(duration_s)) AS avg_seconds, percentile_cont(0.5) WITHIN GROUP (ORDER BY duration_s) AS median_seconds,
        percentile_cont(0.9) WITHIN GROUP (ORDER BY duration_s) AS p90_seconds, round(avg(active_s)) AS avg_active_seconds, round(avg(runs), 2) AS runs_per_session,
        round(avg(answers), 1) AS answers_per_session, round(avg(screens), 1) AS screens_per_session,
-       analytics_pct(count(*) FILTER (WHERE coalesce(runs, 0) = 0), count(*)) AS sessions_without_a_run_pct,
-       analytics_pct(count(*) FILTER (WHERE coalesce(errors, 0) > 0), count(*)) AS sessions_with_error_pct
+       analytics_pct(count(*) FILTER (WHERE has_summary AND coalesce(runs, 0) = 0), count(*) FILTER (WHERE has_summary)) AS sessions_without_a_run_pct,
+       analytics_pct(count(*) FILTER (WHERE has_summary AND coalesce(errors, 0) > 0), count(*) FILTER (WHERE has_summary)) AS sessions_with_error_pct
 FROM analytics_v_session_summary GROUP BY day, platform ORDER BY day DESC, sessions DESC;
 
 -- where sessions end (the last screen seen)
@@ -742,16 +744,21 @@ FROM analytics_events WHERE name IN ('data_action', 'keybinding_changed') GROUP 
 CREATE OR REPLACE VIEW analytics_v_paywall AS
 WITH v AS (SELECT coalesce(props ->> 'trigger', '') AS trigger, coalesce(props ->> 'variant', '') AS variant, count(*) AS views, count(DISTINCT install_id) AS viewers
            FROM analytics_events WHERE name = 'paywall_viewed' GROUP BY 1, 2),
-a AS (SELECT coalesce(props ->> 'trigger', '') AS trigger,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'plan_selected') AS chose_plan,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'purchase_started') AS started,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'purchased') AS bought,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'cancelled') AS cancelled,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' = 'failed') AS failed,
-             count(DISTINCT install_id) FILTER (WHERE props ->> 'action' IN ('code_ok', 'restore_ok')) AS redeemed_or_restored
-      FROM analytics_events WHERE name = 'paywall_action' GROUP BY 1)
+-- paywall_action events carry no variant of their own (issue 73): an action belongs to the variant of the most
+-- recent paywall view for the same install and trigger, which is the wall the player was actually looking at.
+iv AS (SELECT DISTINCT ON (install_id, coalesce(props ->> 'trigger', '')) install_id, coalesce(props ->> 'trigger', '') AS trigger, coalesce(props ->> 'variant', '') AS variant
+       FROM analytics_events WHERE name = 'paywall_viewed' ORDER BY install_id, coalesce(props ->> 'trigger', ''), ts DESC),
+a AS (SELECT coalesce(e.props ->> 'trigger', '') AS trigger, coalesce(iv.variant, '') AS variant,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' = 'plan_selected') AS chose_plan,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' = 'purchase_started') AS started,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' = 'purchased') AS bought,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' = 'cancelled') AS cancelled,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' = 'failed') AS failed,
+             count(DISTINCT e.install_id) FILTER (WHERE e.props ->> 'action' IN ('code_ok', 'restore_ok')) AS redeemed_or_restored
+      FROM analytics_events e LEFT JOIN iv ON iv.install_id = e.install_id AND iv.trigger = coalesce(e.props ->> 'trigger', '')
+      WHERE e.name = 'paywall_action' GROUP BY 1, 2)
 SELECT v.trigger, v.variant, v.views, v.viewers, a.chose_plan, a.started, a.bought, analytics_pct(a.bought, v.viewers) AS buy_pct_of_viewers, a.cancelled, a.failed, a.redeemed_or_restored
-FROM v LEFT JOIN a USING (trigger) ORDER BY v.views DESC;
+FROM v LEFT JOIN a USING (trigger, variant) ORDER BY v.views DESC;
 
 -- Dx Dash Pro: purchases by plan and currency, with the revenue before the store's cut (a trial that did not convert is not counted: the store tells you that)
 CREATE OR REPLACE VIEW analytics_v_pro_revenue AS
@@ -822,10 +829,12 @@ SELECT coalesce(e.props ->> 'fingerprint', left(e.props ->> 'message', 40)) AS f
        count(*) FILTER (WHERE analytics_bool(e.props, 'in_run')) AS during_runs
 FROM analytics_events e LEFT JOIN analytics_sessions s ON s.session_id = e.session_id WHERE e.name = 'error' GROUP BY 1, 2, 3 ORDER BY installs DESC, occurrences DESC;
 
--- how stable each version is: share of sessions with no error
+-- how stable each version is: share of sessions with no error. A session whose summary never arrived is NOT
+-- counted as clean (issue 75): its error count is unknown, not zero, so it stays in the denominator only.
 CREATE OR REPLACE VIEW analytics_v_crash_free AS
-SELECT coalesce(version, '') AS version, count(*) AS sessions, count(*) FILTER (WHERE coalesce(errors, 0) = 0) AS clean_sessions,
-       analytics_pct(count(*) FILTER (WHERE coalesce(errors, 0) = 0), count(*)) AS crash_free_sessions_pct, count(DISTINCT install_id) AS installs
+SELECT coalesce(version, '') AS version, count(*) AS sessions, count(*) FILTER (WHERE has_summary AND coalesce(errors, 0) = 0) AS clean_sessions,
+       analytics_pct(count(*) FILTER (WHERE has_summary AND coalesce(errors, 0) = 0), count(*)) AS crash_free_sessions_pct, count(DISTINCT install_id) AS installs,
+       count(*) FILTER (WHERE has_summary) AS sessions_with_summary
 FROM analytics_v_session_summary GROUP BY 1 ORDER BY min(started_at) DESC;
 
 CREATE OR REPLACE VIEW analytics_v_reliability_other AS
