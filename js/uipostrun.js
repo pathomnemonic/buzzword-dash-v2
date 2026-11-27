@@ -168,6 +168,7 @@ export var postRunMethods = {
 
   /** One card of the review: what was asked, what the player chose, the right answer, and why. */
   _reviewCard(r, ok) {
+    var self = this;
     var c = r.card;
     var card = createElement('div', { className: 'review-card' });
     if (ok) card.style.borderLeftColor = 'var(--accent-green)';
