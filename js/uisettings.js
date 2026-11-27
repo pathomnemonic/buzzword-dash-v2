@@ -804,8 +804,10 @@ export var settingsMethods = {
       // heroes that are no longer sold still show up for the players who own them
       if (type === 'skin') items = items.concat(DELISTED_ITEMS.filter(function (i) { return storage.ownsItem(i.id); }));
       // archived items are not sold either, but what a player already owns stays in their Locker:
-      // archiving retires an item from the shop, it does not take it away from its owners
-      items = items.concat(ARCHIVED_ITEMS.filter(function (i) { return i.type === type && storage.ownsItem(i.id); }));
+      // archiving retires an item from the shop, it does not take it away from its owners. Skins
+      // only, like the delisted line above: the archived sets are the classic characters and the
+      // vehicles, and the other tabs keep hiding their archived entries entirely.
+      if (type === 'skin') items = items.concat(ARCHIVED_ITEMS.filter(function (i) { return i.type === type && storage.ownsItem(i.id); }));
       if (filter) items = items.filter(filter);
       // cheapest first (free ones on top), so what you can afford is always at the top of the list
       items = items.map(function (it, idx) { return { it: it, idx: idx }; }).sort(function (a, b) { return ((a.it.premium ? 1e9 : a.it.price) - (b.it.premium ? 1e9 : b.it.price)) || (a.idx - b.idx); }).map(function (x) { return x.it; });
