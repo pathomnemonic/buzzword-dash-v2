@@ -10,9 +10,9 @@
 //   STRIPE_PRICE_YEARLY, STRIPE_PRICE_PASS3M, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_LIFETIME (any you do not sell can be left out)
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
-import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, priceProblem, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd } from '../_shared/billing.js';
+import { PRODUCTS, LIFETIME_DAYS, chargeReturned, configuredProducts, describePrice, priceProblem, checkoutParams, itemCheckoutParams, portalConfig, productFor, grantsFromSubscriptions, periodEnd, invoiceCharge, invoiceChargeId } from '../_shared/billing.js';
 import { isPremiumItem } from '../_shared/premium.js';
-import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin, appleCodeForm, markIosToken, revokeTarget } from '../_shared/applesignin.js';
+import { appleConfigured, appleRevokeForm, revokeSucceeded, hasAppleLogin, appleCodeForm, markIosToken, revokeTarget, appleIdentitySub, appleIdTokenSub } from '../_shared/applesignin.js';
 
 var STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') || '';
 var env = {};
@@ -61,11 +61,16 @@ async function prices() {
 Deno.serve(async function (req) {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405);
-  if (!STRIPE_KEY) return json({ error: 'Web payments are not set up yet.' }, 503);
   var body = {};
   try { body = await req.json(); } catch { body = {}; }
   try {
-    if (body.action === 'prices') return json({ plans: await prices() });
+    // Only the actions that sell or read web payments need Stripe (issue 56). Keeping an Apple token, deleting an
+    // account with no web subscription, and the capabilities probe must all work in a store-only deployment, so the
+    // missing-key refusal happens per action, below, not here.
+    if (body.action === 'prices') {
+      if (!STRIPE_KEY) return json({ error: 'Web payments are not set up yet.' }, 503);
+      return json({ plans: await prices() });
+    }
 
     // everything else needs a signed-in player
     var jwt = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
@@ -77,6 +82,12 @@ Deno.serve(async function (req) {
 
     var customer = await admin.rpc('pro_user_customer', { p_user: user.id });
     var customerId = customer && customer.data ? customer.data : '';
+
+    // The remaining Stripe actions refuse without a key (issue 56), and a deletion that might have a web
+    // subscription to cancel refuses too: with no key there is no way to check, and nothing must be deleted
+    // while a subscription could still be billing.
+    if (!STRIPE_KEY && ['portal', 'subscription', 'sync', 'item', 'checkout'].indexOf(body.action) >= 0) return json({ error: 'Web payments are not set up yet.' }, 503);
+    if (!STRIPE_KEY && customerId && (body.action === 'delete_account' || body.action === 'delete_everywhere')) return json({ error: 'Could not check your subscription just now, so nothing was deleted. Please try again.' }, 502);
 
     if (body.action === 'portal') {
       if (!customerId) return json({ error: 'No web subscription found for this account.' }, 404);
@@ -125,6 +136,12 @@ Deno.serve(async function (req) {
         });
         var tjson = await tres.json().catch(function () { return {}; });
         if (!tres.ok || !tjson.refresh_token) throw new Error('Apple said ' + tres.status);
+        // The code must belong to THIS account's Apple login (issue 62): the exchange proves the code is Apple's,
+        // not whose it is. Compare the id_token's Apple user id with the account's own Apple identity, and keep
+        // nothing when they differ (or when either side cannot be read).
+        var accountSub = appleIdentitySub(user);
+        var tokenSub = appleIdTokenSub(tjson.id_token);
+        if (!accountSub || !tokenSub || tokenSub !== accountSub) return json({ error: 'That Apple sign-in does not match this account.' }, 400);
         var savedIos = await admin.rpc('apple_token_save', { p_user: user.id, p_token: markIosToken(tjson.refresh_token) });
         if (savedIos && savedIos.error) throw new Error(savedIos.error.message);
       } catch (e) {
@@ -177,7 +194,9 @@ Deno.serve(async function (req) {
           console.warn('pro-checkout delete: Apple login has no stored token or the APPLE_* secrets are not set; deleting without revoking');
         }
       }
-      var forgot = await admin.rpc('dxdash_forget_user', { p_user: user.id });
+      // p_final (issue 66): the Apple token goes only when the login itself is being deleted; an app-only deletion
+      // keeps it, so a later delete-everywhere can still revoke the Apple login.
+      var forgot = await admin.rpc('dxdash_forget_user', { p_user: user.id, p_final: everywhere });
       if (forgot && forgot.error) { console.error('pro-checkout delete: could not clear the data', forgot.error.message); return json({ error: 'Could not delete your data. Please try again.' }, 500); }
       if (everywhere) {
         var gone = await admin.auth.admin.deleteUser(user.id);
@@ -195,7 +214,14 @@ Deno.serve(async function (req) {
       var liveSub = ((found && found.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due'].indexOf(x.status) >= 0; })[0];
       if (!liveSub) return json({ ok: true, status: 'none' });
       var endSec = periodEnd(liveSub);
-      return json({ ok: true, status: liveSub.status, cancel_at_period_end: !!liveSub.cancel_at_period_end || !!liveSub.cancel_at, ends: endSec ? new Date(endSec * 1000).toISOString() : '', plan: (liveSub.metadata && liveSub.metadata.plan) || '' });
+      var cancelling = !!liveSub.cancel_at_period_end || !!liveSub.cancel_at;
+      if (cancelling) {
+        // Remember the cancellation where the database can see it (issue 67): a subscription cancelled at period
+        // end will not bill again, and the SQL deletion check accepts the deletion once this is on record.
+        var mark = await admin.rpc('pro_mark_cancelled', { p_user: user.id, p_plan: (liveSub.metadata && liveSub.metadata.plan) || '', p_ends: endSec ? new Date(endSec * 1000).toISOString() : null });
+        if (mark && mark.error) console.error('pro-checkout subscription: could not record the cancellation', mark.error.message);
+      }
+      return json({ ok: true, status: liveSub.status, cancel_at_period_end: cancelling, ends: endSec ? new Date(endSec * 1000).toISOString() : '', plan: (liveSub.metadata && liveSub.metadata.plan) || '' });
     }
 
     // Put right a member whose payment event never reached us: ask Stripe what this customer holds and grant it.
@@ -206,7 +232,24 @@ Deno.serve(async function (req) {
       try {
         var all = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=10');
         var now = Math.floor(Date.now() / 1000);
-        var grants = grantsFromSubscriptions(all && all.data, now);
+        // A subscription whose current period was refunded is not granted again here (issue 51): it can still read
+        // as live in Stripe, and the refund already took the plan back. A refund state that cannot be read counts
+        // as not refunded, so a paying member is not left without Pro by a failed check.
+        var subs = [];
+        for (var s of ((all && all.data) || [])) {
+          var refunded = false;
+          var invId = s && s.latest_invoice ? (typeof s.latest_invoice === 'string' ? s.latest_invoice : s.latest_invoice.id) : '';
+          if (invId) {
+            try {
+              var inv = await stripe('invoices/' + encodeURIComponent(invId));
+              var ch = invoiceCharge(inv);
+              if (!ch) { var cid = invoiceChargeId(inv); if (cid) ch = await stripe('charges/' + encodeURIComponent(cid) + '?expand[]=dispute'); }
+              refunded = !!(ch && chargeReturned(ch));
+            } catch (e) { refunded = false; }
+          }
+          if (!refunded) subs.push(s);
+        }
+        var grants = grantsFromSubscriptions(subs, now);
         for (var g of grants) {
           var r = await admin.rpc('pro_grant_until', { p_user: user.id, p_until: g.until, p_plan: g.plan, p_source: 'stripe', p_trial: g.trial });
           if (r.error) throw new Error(r.error.message);
