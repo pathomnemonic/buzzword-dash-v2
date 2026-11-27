@@ -49,9 +49,11 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'npx vite preview --port 4173',
+    // Build first: preview alone serves whatever stale dist happens to
+    // hold, so the smoke tests could pass against an old build.
+    command: 'npm run build && npx vite preview --port 4173',
     port: 4173,
     reuseExistingServer: !process.env.CI,
-    timeout: 30000
+    timeout: 180000
   }
 });
