@@ -319,7 +319,7 @@ export function renderPerformance(container, ui) {
         body.appendChild(r);
       });
     }
-    body.appendChild(el('div', 'perf-note', 'A card is mastered after 3+ answers at 80% or better. Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 85%+).'));
+    body.appendChild(el('div', 'perf-note', 'A card is mastered after 3+ answers at 80% or better. Levels: New under 10 answers, Learning, Solid (25+ answers at 70%+), Mastered (50+ answers at 80%+).'));
   }, 'analytics_detail', 'See your accuracy and mastery for every subject and system, so you know where to spend your time.'));
 
   var weak = cards.map(function (c) {
