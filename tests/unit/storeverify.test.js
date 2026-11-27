@@ -112,6 +112,9 @@ describe('the App Store', () => {
     expect(parseAppleTransaction(null, 'com.x', NOW)).toBeNull();
     const item = { bundleId: 'com.x', productId: 'dxdash_item_trail_fire', type: 'Non-Consumable', originalTransactionId: '888' };
     expect(parseAppleTransaction(item, 'com.x', NOW)).toMatchObject({ valid: true, expiresAt: 0, key: '888' });
+    // a sandbox (test) transaction never grants anything; a production one does
+    expect(parseAppleTransaction({ ...sub, environment: 'Sandbox' }, 'com.x', NOW)).toBeNull();
+    expect(parseAppleTransaction({ ...sub, environment: 'Production' }, 'com.x', NOW)).toMatchObject({ valid: true });
   });
 });
 
