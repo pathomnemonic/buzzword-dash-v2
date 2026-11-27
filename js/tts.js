@@ -61,15 +61,20 @@ function webSpeak(text, opts) {
   return new Promise(function (resolve) {
     if (!webSpeech()) { resolve(); return; }
     var done = false;
-    var finish = function () { if (!done) { done = true; if (opts.onend) opts.onend(); resolve(); } };
+    var timer = null;
+    var finish = function () { if (!done) { done = true; if (timer) clearTimeout(timer); if (opts.onend) opts.onend(); resolve(); } };
     var u = new SpeechSynthesisUtterance(text);
     u.rate = opts.rate || 1;
     if (opts.lang) u.lang = opts.lang;
     if (typeof opts.volume === 'number') u.volume = opts.volume;
     if (opts.onstart) u.onstart = opts.onstart;
     u.onend = finish;
-    u.onerror = function () { done = true; resolve(); };
-    setTimeout(finish, 25000); // some browsers never say they have finished
+    u.onerror = function () { if (timer) clearTimeout(timer); done = true; resolve(); };
+    // Some browsers never say they have finished, so a cap stands in for
+    // the end event. When it fires it must actually end the utterance:
+    // resolving while the speech ran on left the caller pacing against a
+    // voice still talking, and the next speak() cut it off mid-sentence.
+    timer = setTimeout(function () { try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } finish(); }, 25000);
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
   });
