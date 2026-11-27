@@ -67,6 +67,30 @@ export function hasAppleLogin(user) {
   return !!(user.app_metadata && (user.app_metadata.provider === 'apple' || (user.app_metadata.providers || []).indexOf('apple') >= 0));
 }
 
+/** The Apple user id (the 'sub' claim) of this account's own Sign in with Apple identity, or '' when it cannot be read. */
+export function appleIdentitySub(user) {
+  var ids = (user && user.identities) || [];
+  for (var i = 0; i < ids.length; i++) {
+    if (ids[i] && ids[i].provider === 'apple' && ids[i].identity_data && ids[i].identity_data.sub) return String(ids[i].identity_data.sub);
+  }
+  return '';
+}
+
+/**
+ * The 'sub' claim of an Apple id_token, or '' when it cannot be read. The token came from Apple's own token endpoint
+ * over TLS in answer to our signed request, so it is read, not re-verified (the same treatment as storeverify.js).
+ */
+export function appleIdTokenSub(idToken) {
+  var parts = String(idToken || '').split('.');
+  if (parts.length !== 3) return '';
+  var b = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  while (b.length % 4) b += '=';
+  try {
+    var payload = JSON.parse(atob(b));
+    return payload && payload.sub ? String(payload.sub) : '';
+  } catch { return ''; }
+}
+
 /**
  * The iOS app signs in with Apple natively, which makes Apple issue the login to the app's bundle id, not to the web Services
  * ID. A refresh token is revoked with the same client id it was issued to, so those tokens are stored with this prefix.
