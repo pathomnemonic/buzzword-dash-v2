@@ -1139,6 +1139,9 @@ function finalizeRun(gameRef) {
   // (idempotent by runId); nothing else writes run totals.
   var summary = gameRef.getRunSummary() || buildRunSummary(gameRef);
   var result = storage.finalizeRun(summary);
+  // The post-run screen reads this to celebrate only what this run earned
+  // (a banner for an achievement unlocked long ago must not repeat).
+  gameRef.lastNewlyUnlocked = result.newlyUnlockedAchievementIds || [];
   lastRunReward = result.applied
     ? { info: awardRunXp(summary), score: summary.score, best: storage.get('bestScore'), newBest: !!result.newBestScore }
     : null;

@@ -2197,8 +2197,10 @@ class UI {
         hf.phase = 'answer';
         self.renderFlashcardScreen();
         await self._hfSpeak('Answer. ' + card.ans + '. ' + (card.tp && card.tp.trim() !== String(card.ans || '').trim() ? card.tp : ''));
-        hf.heard++;
+        // A card whose answer was cut off by stopping was not heard: the
+        // cancel check comes before the count, not after it.
         if (hf.cancel) break;
+        hf.heard++;
         await self._hfSleep(1500);
       }
       hf.active = false;

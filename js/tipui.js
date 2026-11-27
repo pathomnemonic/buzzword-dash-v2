@@ -52,10 +52,17 @@ export function openTipJar(toast) {
             if (toast) toast('Thank you for the tip!');
           } else if (res.cancelled) setText(status, '');
           else setText(status, 'That did not go through. You have not been charged.');
+        }).catch(function () {
+          // A rejected purchase must not leave the buttons dead and the
+          // status stuck on "Opening the store…".
+          [].forEach.call(list.children, function (x) { x.disabled = false; });
+          setText(status, 'That did not go through. You have not been charged.');
         });
       });
       list.appendChild(b);
     });
+  }).catch(function () {
+    setText(status, 'Tips are not available right now. Please try again later.');
   });
 
   document.body.appendChild(overlay);

@@ -25,7 +25,10 @@ export function dismissExitConfirm() {
 export function confirmExitTutorial(opts) {
   if (_open) return false;
   var overlay = document.createElement('div');
-  overlay.id = 'tutExitConfirm';
+  // A caller that is not the tutorial (the backup restore box) passes its
+  // own id, so the two boxes never share one and isExitConfirmOpen cannot
+  // mistake a restore for a tutorial exit.
+  overlay.id = opts.id || 'tutExitConfirm';
   overlay.className = 'tut-exit';
   overlay.setAttribute('role', 'alertdialog');
   overlay.setAttribute('aria-modal', 'true');
