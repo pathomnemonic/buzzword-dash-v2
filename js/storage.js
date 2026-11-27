@@ -29,6 +29,7 @@ import { advanceStudyStreak, liveStudyStreak, deriveStreakFromCounts, daysBetwee
 import { ACHIEVEMENT_IDS, QUEST_IDS, QUESTS, LOCKER_ITEMS, isArchivedItem, questIdsForDate, pickReplacementQuest, QUEST_SWAP_COST } from './game/shopdata.js';
 import * as fsrs from './fsrs.js';
 import { CHARACTER_MODELS, RETIRED_CHARACTERS } from './game/modelcatalog.js';
+import { SUBJECTS } from './cardmeta.js';
 
 // ===== CONSTANTS =====
 // Every site on one host (github.io/<name>/) shares the same browser storage, so a save is filed under its own site's
@@ -272,6 +273,7 @@ var DEFAULTS = {
     calendarData: {},
     dailyCounts: {},
     dailyCorrect: {},
+    dailyGoals: {},
     weeklyClaims: {},
     examResults: [],
     completedExamIds: []
@@ -1002,6 +1004,7 @@ class Storage {
     if (typeof d.progression.questCompleteDays !== 'object' || d.progression.questCompleteDays === null) d.progression.questCompleteDays = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
     if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
+    if (typeof d.history.dailyGoals !== 'object' || d.history.dailyGoals === null) d.history.dailyGoals = {};
     if (typeof d.history.dailyCorrect !== 'object' || d.history.dailyCorrect === null) d.history.dailyCorrect = {};
     if (typeof d.history.weeklyClaims !== 'object' || d.history.weeklyClaims === null) d.history.weeklyClaims = {};
     if (!Array.isArray(d.history.examResults)) d.history.examResults = [];
@@ -1125,9 +1128,11 @@ class Storage {
       case 'konamiUsed': this.data.konamiUsed = value; break;
       case 'titleTapsUsed': this.data.titleTapsUsed = value; break;
       default:
-        // Store at top level for any unknown keys (backward compat)
-        this.data[key] = value;
-        break;
+        // Unknown keys are not written: get() has no case for them, so a
+        // top-level write was a value nothing could ever read back (and a
+        // decoy next to the real home of keys like dailyCounts, which
+        // lives under history). Writes to keys nobody owns are ignored.
+        return;
     }
     this.save();
   }
@@ -1164,6 +1169,11 @@ class Storage {
     if (h.completedExamIds.length > 100) h.completedExamIds = h.completedExamIds.slice(-100);
 
     var answeredInExam = (summary.correct || 0) + (summary.wrong || 0);
+    // Exam answers feed the lifetime totals too, like run and flashcard
+    // answers do: without this, lifetime accuracy quietly excluded every
+    // exam ever taken.
+    this.data.progression.totalCorrect += summary.correct || 0;
+    this.data.progression.totalWrong += summary.wrong || 0;
     this.addStudiedToday(answeredInExam, summary.correct || 0);
     // exam answers are cards studied too: they count toward the "cards studied" badges
     this.data.progression.totalCardsStudied += answeredInExam;
@@ -1251,7 +1261,16 @@ class Storage {
     var counts = this.data.history.dailyCounts;
     var key = todayKey();
     counts[key] = (counts[key] || 0) + count;
-    if (correct) {
+    // The day's goal, recorded with the day: the streak calendar grades
+    // each day against the goal that was in force then, not today's.
+    if (!this.data.history.dailyGoals || typeof this.data.history.dailyGoals !== 'object') this.data.history.dailyGoals = {};
+    this.data.history.dailyGoals[key] = this.data.settings.dailyGoal || 20;
+    // A day with a known correct count always gets its dailyCorrect entry,
+    // even when the count is zero: an all-wrong first day used to record
+    // nothing, so the calendar showed no accuracy for it at all. Callers
+    // that do not know a correct count (hands-free listening) pass no
+    // number and still record none.
+    if (typeof correct === 'number') {
       var rights = this.data.history.dailyCorrect;
       rights[key] = (rights[key] || 0) + Math.min(correct, count);
     }
@@ -1435,6 +1454,7 @@ class Storage {
 
   buyItem(itemId, price) {
     if (FEATURES.backend && isPremiumItem(itemId)) return false; // premium items are sold for real money only (js/pro.js buyPremiumItem)
+    if (this.data.progression.ownedItems.indexOf(itemId) >= 0) return false; // already yours: never charge twice
     var coins = this.data.progression.coins;
     if (coins < price) return false;
     this.data.progression.coins = coins - price;
@@ -1515,6 +1535,10 @@ class Storage {
   }
 
   equipItem(itemId, slot) {
+    // Only what the player owns can be equipped (the slot's default is
+    // always allowed: unequipping back to it must never be blocked).
+    var isDefault = DEFAULTS.progression.equipped && DEFAULTS.progression.equipped[slot] === itemId;
+    if (!isDefault && this.data.progression.ownedItems.indexOf(itemId) < 0) return;
     var eq = this.data.progression.equipped;
     eq[slot] = itemId;
     this.save();
@@ -1530,6 +1554,7 @@ class Storage {
   }
 
   spendCoins(amount) {
+    if (!(amount > 0)) return false; // a negative "spend" used to mint coins
     if (this.data.progression.coins < amount) return false;
     this.data.progression.coins -= amount;
     this.save();
@@ -2092,12 +2117,14 @@ class Storage {
     p.totalCardsStudied += summary.total || 0;
     p.totalPlayTimeMs += summary.durationMs || 0;
 
-    // Per-card stats
+    // Per-card stats (and per-subject stats, which the exam path already
+    // kept: without them flashcard study never moved a subject's numbers)
     if (summary.cardResults && Array.isArray(summary.cardResults)) {
       for (var i = 0; i < summary.cardResults.length; i++) {
         var cr = summary.cardResults[i];
         if (cr.cardId) {
           this.updateCardStat(cr.cardId, cr.rating === 'correct');
+          if (cr.subject) this.updateSubjectStat(cr.subject, cr.rating === 'correct');
         }
       }
     }
@@ -2182,11 +2209,15 @@ class Storage {
     award('FAST_500MS', p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 500);
     award('FAST_300MS', p.fastestCorrectAnswerMs != null && p.fastestCorrectAnswerMs <= 300);
 
-    // Subject mastery: 50+ answers and 80%+ correct in a subject
+    // Subject mastery: 50+ answers and 80%+ correct in a subject. Only the
+    // built-in subjects count: custom and imported (Anki) subjects land in
+    // subjectStats too, and counting them let a player reach "all subjects"
+    // or "mastered 15" without touching the real fifteen.
     var ss = this.data.cards.subjectStats || {};
     var touched = 0;
     var mastered = 0;
     Object.keys(ss).forEach(function (subj) {
+      if (SUBJECTS.indexOf(subj) < 0) return;
       var total = (ss[subj].correct || 0) + (ss[subj].wrong || 0);
       if (total > 0) touched++;
       if (total >= 50 && ss[subj].correct / total >= 0.8) {
@@ -2633,6 +2664,22 @@ var progression = {
 
 var storageInstance = new Storage();
 
+// Copy `source` into `target` in place, recursing where both sides hold a
+// plain object, so the identities of target's sub-objects survive.
+function mergeInto(target, source) {
+  for (var key in source) {
+    if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
+    var sv = source[key];
+    var tv = target[key];
+    if (sv && tv && typeof sv === 'object' && typeof tv === 'object' && !Array.isArray(sv) && !Array.isArray(tv)) {
+      mergeInto(tv, sv);
+    } else {
+      target[key] = sv;
+    }
+  }
+  return target;
+}
+
 // Two tabs (or a tab and an installed copy) share one save. When another one saves, take its data instead of
 // keeping the old copy in memory, or the next save from this one would wipe what the other just did.
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
@@ -2641,7 +2688,11 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
     try {
       var incoming = JSON.parse(e.newValue);
       if (!incoming || incoming.schemaVersion !== SCHEMA_VERSION) return;
-      storageInstance.data = deepMerge(incoming, DEFAULTS);
+      // Merged in place, not swapped: modules holding a reference to a
+      // sub-object of the old data (a section, a nested record) would
+      // otherwise keep writing to a detached copy whose changes the next
+      // save silently discards.
+      mergeInto(storageInstance.data, deepMerge(incoming, DEFAULTS));
       storageInstance._ensureInvariants();
       document.dispatchEvent(new CustomEvent('dx:data-refreshed'));
     } catch (err) { /* a half-written or foreign value: keep what we have */ }
