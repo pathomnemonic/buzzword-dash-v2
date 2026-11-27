@@ -17,6 +17,10 @@ function injectCsp(supabaseUrl) {
       order: 'post',
       handler(html) {
         const policy = buildCsp({ supabaseUrl, html });
+        // The replace is literal: if index.html ever loses its plain
+        // <head>, fail the build loudly instead of shipping a page with
+        // no policy at all.
+        if (!html.includes('<head>')) throw new Error('inject-csp: index.html has no <head> to attach the Content-Security-Policy to');
         return html.replace('<head>', '<head>\n  <meta http-equiv="Content-Security-Policy" content="' + policy + '">');
       }
     }
@@ -80,7 +84,10 @@ export default defineConfig(({ mode }) => {
     build: {
       chunkSizeWarningLimit: 3000, // card data chunk is intentionally large
       outDir: 'dist',
-      sourcemap: mode !== 'production',
+      // Production maps are 'hidden': generated (so a crash reporter can
+      // be given them) but not referenced by the shipped files, instead of
+      // not existing at all.
+      sourcemap: mode === 'production' ? 'hidden' : true,
       rollupOptions: {
         output: {
           // Stable chunk naming for cache busting
@@ -91,7 +98,7 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/three')) return 'three';
             // One chunk per subject (about 175 KB each) instead of one 2.6 MB file: the browser fetches them in
             // parallel, and after an update only the subjects that changed are downloaded again.
-            var subject = /\/js\/cards\/([a-z]+)\.js$/.exec(id);
+            var subject = /\/js\/cards\/([a-z0-9_-]+)\.js$/.exec(id);
             if (subject) return 'cards-' + subject[1];
             if (id.includes('cardsarchive')) return 'cards-archive';
           }
@@ -100,7 +107,9 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
-      env: { VITE_FEATURE_LOCKER_ITEMS: '1' },
+      // On by default (the shipping configuration), but an outer value
+      // wins so the flag-off paths can be tested too: npm run test:flags-off
+      env: { VITE_FEATURE_LOCKER_ITEMS: process.env.VITE_FEATURE_LOCKER_ITEMS || '1' },
       environment: 'jsdom',
       include: ['tests/unit/**/*.test.{js,mjs}'],
       exclude: ['tests/e2e/**'],
