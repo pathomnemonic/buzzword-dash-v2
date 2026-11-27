@@ -14,6 +14,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.checked.json",
     "test": "vitest run",
+    "test:flags-off": "VITE_FEATURE_LOCKER_ITEMS=0 vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "validate:cards": "node tools/validate-cards.mjs",
