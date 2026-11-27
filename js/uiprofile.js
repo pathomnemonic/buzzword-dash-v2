@@ -485,8 +485,10 @@ export var profileMethods = {
       container.appendChild(questEl);
     });
 
-    // Mark all quests complete for calendar
-    if (allComplete && storage.markQuestsComplete) {
+    // Mark all quests complete for calendar (a day with no quests on offer
+    // does not count: allComplete starts true and only a real quest list can
+    // earn the gold day)
+    if (allComplete && todays.length > 0 && storage.markQuestsComplete) {
       storage.markQuestsComplete(today);
     }
   },
