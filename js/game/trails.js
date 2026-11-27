@@ -89,6 +89,8 @@ var CONFETTI_COLORS = [0xff4466, 0xffd23f, 0x3ddc84, 0x4aa8ff, 0xc77dff];
 
 // ===== SHARED GEOMETRY (created once, reused by all particles) =====
 var _sharedSphereGeo = null;
+var _scratchColor1 = new THREE.Color();
+var _scratchColor2 = new THREE.Color();
 
 function getSharedSphereGeo() {
   if (!_sharedSphereGeo) {
@@ -180,10 +182,18 @@ export class TrailSystem {
     var spawnRate = this.baseSpawnRate / intensity;
 
     this.spawnTimer -= dt;
-    if (this.spawnTimer <= 0) {
-      this.spawnTimer = spawnRate;
+    // Spawn everything the elapsed time owes (carrying the remainder), not
+    // at most one per frame: resetting the timer to the full rate threw the
+    // overflow away, so at low frame rates the medium and high presets
+    // produced the same thin trail. The cap keeps a long stall from
+    // bursting the whole pool at once.
+    var spawns = 0;
+    while (this.spawnTimer <= 0 && spawns < 8) {
+      this.spawnTimer += spawnRate;
       this._spawnParticle(config, playerX, playerY, playerZ, intensity);
+      spawns++;
     }
+    if (this.spawnTimer <= 0) this.spawnTimer = spawnRate;
 
     // Update active particles
     for (var i = 0; i < this.pool.length; i++) {
@@ -326,10 +336,11 @@ export class TrailSystem {
     p.spin = 0;
     p.mesh.material.blending = config.glow ? THREE.AdditiveBlending : THREE.NormalBlending;
 
-    // Color
+    // Color (scratch colours, reused: this runs per spawn and the header
+    // promises no runtime allocations)
     var t = Math.random();
-    var c1 = new THREE.Color(config.color1);
-    var c2 = new THREE.Color(config.color2);
+    var c1 = _scratchColor1.set(config.color1);
+    var c2 = _scratchColor2.set(config.color2);
     if (config.rainbow) {
       c1.setHSL((this.time * 0.9) % 1, 1, 0.55); // the ribbon cycles through every colour
     } else if (config.confetti) {

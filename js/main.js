@@ -902,7 +902,10 @@ function attachChallengeResult(finalScore) {
   box.style.cssText = 'margin:12px 0;padding:12px;border-radius:12px;border:2px solid var(--accent-gold);text-align:center';
   var headline = document.createElement('div');
   headline.style.cssText = 'font-size:14px;font-weight:800';
-  if (activeChallenge.score !== null) {
+  // Only a real number is a score to beat: an undefined one (a challenge
+  // link that carried none) made the difference NaN, and NaN fell through
+  // to the tie headline.
+  if (typeof activeChallenge.score === 'number' && isFinite(activeChallenge.score)) {
     var diff = finalScore - activeChallenge.score;
     if (diff > 0) headline.textContent = 'You beat ' + (activeChallenge.from || 'your friend') + ' by ' + diff.toLocaleString() + '!';
     else if (diff < 0) headline.textContent = (activeChallenge.from || 'Your friend') + ' wins by ' + (-diff).toLocaleString() + '. Try again?';
@@ -1232,6 +1235,7 @@ function hideBootSplash() {
 }
 
 var flyersOn = null;
+var flyersHandle = null;
 
 /** The medical odds and ends flying out of the middle of the home backdrop (off for reduced motion). */
 function refreshFlyers() {
@@ -1240,7 +1244,11 @@ function refreshFlyers() {
   var reduced = !!storage.get('reducedMotion') || (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   if (flyersOn === !reduced) return; // already in the right state
   flyersOn = !reduced;
-  mountFlyers(layer, { reducedMotion: reduced });
+  // Keep the handle and stop the old mount: mountFlyers adds a
+  // visibilitychange listener per mount, so remounting without stopping
+  // leaked one every time.
+  if (flyersHandle) { flyersHandle.stop(); flyersHandle = null; }
+  flyersHandle = mountFlyers(layer, { reducedMotion: reduced });
 }
 
 /** Apply the current color theme (a whole palette tinted by the season and time of day). */

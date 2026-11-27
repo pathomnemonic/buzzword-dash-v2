@@ -1069,9 +1069,13 @@ var leaderboard = {
       .eq('id', requestId)
       .eq('addressee_id', _userId)
       .eq('status', 'pending')
+      .select('id')
       .then(function (res) {
         try {
-          requireSuccess(res, 'acceptFriendRequest');
+          var rows = requireSuccess(res, 'acceptFriendRequest');
+          // Zero matched rows is not a success: the request was already
+          // answered, withdrawn, or never the caller's to answer.
+          if (!rows || rows.length === 0) return { success: false, error: 'That request is no longer waiting.' };
           return { success: true, error: null };
         } catch (e) {
           return { success: false, error: e.message };
@@ -1099,9 +1103,11 @@ var leaderboard = {
       .eq('id', requestId)
       .eq('addressee_id', _userId)
       .eq('status', 'pending')
+      .select('id')
       .then(function (res) {
         try {
-          requireSuccess(res, 'declineFriendRequest');
+          var rows = requireSuccess(res, 'declineFriendRequest');
+          if (!rows || rows.length === 0) return { success: false, error: 'That request is no longer waiting.' };
           return { success: true, error: null };
         } catch (e) {
           return { success: false, error: e.message };
@@ -1137,7 +1143,11 @@ var leaderboard = {
       .eq('addressee_id', _userId)
       .eq('status', 'accepted');
 
-    return Promise.all([q1, q2]).then(function () {
+    return Promise.all([q1, q2]).then(function (results) {
+      // A delete query resolves with its error inside the result; ignoring
+      // it reported unfriends that never happened.
+      requireSuccess(results[0], 'removeFriend');
+      requireSuccess(results[1], 'removeFriend');
       return { success: true, error: null };
     }).catch(function (e) {
       return { success: false, error: e.message };
@@ -1162,6 +1172,17 @@ var leaderboard = {
     var removeFriend = leaderboard.removeFriend(targetUserId);
 
     return removeFriend.then(function () {
+      // Pending friend requests and match invites between the two go too:
+      // a block that leaves a live request or invite behind lets the
+      // blocked player straight back in through the other side's list.
+      var cleanups = [
+        _client.from('friends').delete().eq('requester_id', _userId).eq('addressee_id', targetUserId).eq('status', 'pending'),
+        _client.from('friends').delete().eq('requester_id', targetUserId).eq('addressee_id', _userId).eq('status', 'pending'),
+        _client.from('match_invites').delete().eq('from_user', _userId).eq('to_user', targetUserId).eq('status', 'pending'),
+        _client.from('match_invites').delete().eq('from_user', targetUserId).eq('to_user', _userId).eq('status', 'pending')
+      ];
+      return Promise.all(cleanups);
+    }).then(function () {
       return _client
         .from('friend_blocks')
         .insert({
