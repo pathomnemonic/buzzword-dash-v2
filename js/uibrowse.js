@@ -12,7 +12,7 @@ import { openCardReport } from './cardreport.js';
 import { SUBJECTS, CARDS } from './cardhub.js';
 import { storage } from './storage.js';
 import { customCards } from './customcards.js';
-import { debounce } from './uihelpers.js';
+import { debounce, confirmDialog } from './uihelpers.js';
 
 export var browseMethods = {
 
@@ -274,20 +274,24 @@ export var browseMethods = {
         var delFlash = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑 Delete imported flashcards (' + flashOnly.length + ')', attributes: { type: 'button' } });
         delFlash.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
         delFlash.addEventListener('click', function () {
-          if (!confirm('Delete all ' + flashOnly.length + ' flashcard-only cards (the ones imported from Anki or a spreadsheet)? This cannot be undone.')) return;
-          var n = customCards.removeWhere(function (c) { return Array.isArray(c.enabledModes) && c.enabledModes.length === 1 && c.enabledModes[0] === 'flashcard'; });
-          self._showToast('Deleted ' + n + ' cards.');
-          self.renderCustomCardList();
+          confirmDialog({ title: 'Delete imported flashcards?', text: 'Delete all ' + flashOnly.length + ' flashcard-only cards (the ones imported from Anki or a spreadsheet)? This cannot be undone.', confirmLabel: 'Delete' }).then(function (ok) {
+            if (!ok) return;
+            var n = customCards.removeWhere(function (c) { return Array.isArray(c.enabledModes) && c.enabledModes.length === 1 && c.enabledModes[0] === 'flashcard'; });
+            self._showToast('Deleted ' + n + ' cards.');
+            self.renderCustomCardList();
+          });
         });
         bulk.appendChild(delFlash);
       }
       var delAll = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑 Delete all my cards', attributes: { type: 'button' } });
       delAll.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
       delAll.addEventListener('click', function () {
-        if (!confirm('Delete ALL ' + all.length + ' of your custom cards? This cannot be undone. (Save a backup first if unsure.)')) return;
-        var n = customCards.removeWhere(function () { return true; });
-        self._showToast('Deleted ' + n + ' cards.');
-        self.renderCustomCardList();
+        confirmDialog({ title: 'Delete all my cards?', text: 'Delete ALL ' + all.length + ' of your custom cards? This cannot be undone. (Save a backup first if unsure.)', confirmLabel: 'Delete all' }).then(function (ok) {
+          if (!ok) return;
+          var n = customCards.removeWhere(function () { return true; });
+          self._showToast('Deleted ' + n + ' cards.');
+          self.renderCustomCardList();
+        });
       });
       bulk.appendChild(delAll);
       container.appendChild(bulk);
@@ -334,10 +338,11 @@ export var browseMethods = {
       var deleteBtn = createElement('button', { className: 'btn btn-outline btn-sm', text: '🗑️ Delete' });
       deleteBtn.style.cssText = 'border-color:rgba(255,82,82,0.5);color:var(--accent-red)';
       deleteBtn.addEventListener('click', function () {
-        if (confirm('Delete this card? This cannot be undone.')) {
+        confirmDialog({ title: 'Delete this card?', text: 'This cannot be undone.', confirmLabel: 'Delete' }).then(function (ok) {
+          if (!ok) return;
           customCards.remove(card.id);
           self.renderCustomCardList();
-        }
+        });
       });
       btnRow.appendChild(deleteBtn);
 
