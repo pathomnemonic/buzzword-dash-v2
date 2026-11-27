@@ -7,7 +7,7 @@
  */
 
 import * as THREE from 'three';
-import { box, cyl, ball, cone, ring, extrude, heartShape, combine, xform, canvasTex, floorPanel, sideCtx, slab } from '../mapkit.js';
+import { box, cyl, ball, cone, ring, extrude, heartShape, combine, xform, canvasTex, floorPanel, sideCtx, slab, animate } from '../mapkit.js';
 import { animated, features, mover, spin, swarm, cloudBank } from '../mapfx.js';
 import { picket } from '../mapprops.js';
 
@@ -49,7 +49,7 @@ function ticketBooth(g, S, z) {
   box(g, 1.0, 1.4, 1.8, 0xffe9c2, S.in(0.6), 1.7, z);
   box(g, 0.05, 0.7, 1.1, 0x6ac4ff, S.in(0.12), 1.8, z);
   cone(g, 0.95, 0.9, YELLOW, S.in(0.6), 2.9, z, { seg: 4, ry: Math.PI / 4 });
-  marquee(g, S, z + 1.6, S.in(0.15), 3.5, 0.1, RED, YELLOW);
+  marquee(g, S, z + 1.6, S.in(0.15), 3.5, 1.8, RED, YELLOW);
   box(g, 0.1, 0.5, 1.6, BLUE, S.in(0.1), 3.6, z - 0.0);
   // a heart-shaped sign on top
   extrude(g, heartShape(1.1), 0.12, RED, S.in(0.6), 3.9, z, { ry: S.turn, curve: 4 });
@@ -93,8 +93,8 @@ function bay(g, side, z, k) {
   picket(g, S.in(0.05), z, 4, 0.7, FAIR[(k * 2 + (side > 0 ? 1 : 0)) % 8]);
   // coaster track on stilts behind: a rail, supports, a few cross ties
   var tx = S.out(5.5);
-  box(g, 0.25, 0.25, 4, 0xffffff, tx, 5.2 + Math.sin(z * 0.1) * 0.8, z);
-  box(g, 0.2, 0.2, 4, RED, tx + 0.7, 5.2 + Math.sin(z * 0.1) * 0.8, z);
+  box(g, 0.25, 0.25, 4, 0xffffff, tx - 0.35, 5.2 + Math.sin(z * 0.1) * 0.8, z);
+  box(g, 0.2, 0.2, 4, RED, tx + 0.35, 5.2 + Math.sin(z * 0.1) * 0.8, z);
   box(g, 0.25, 5.0, 0.25, 0xd9dde4, tx, 2.5, z - 1.5);
   if (k === 0) ticketBooth(g, S, z);
   else if (k === 1) midway(g, S, z);
@@ -186,6 +186,10 @@ function extras() {
       car.position.set(side * (5.5 + 5.5) + 0.35 * side, 5.7, -50 - c * 80);
       animated(car);
       mover(car, { k: 0.2 });
+      // The track undulates (its height is 5.2 + sin(z * 0.1) * 0.8, drawn
+      // per bay above), so the car follows the same curve instead of
+      // floating at one fixed height while the rails rise and fall.
+      animate(function () { car.position.y = 5.2 + Math.sin(car.position.z * 0.1) * 0.8 + 0.35; });
     }
   });
   var balloon = combine([
