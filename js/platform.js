@@ -115,6 +115,9 @@ export function saveFile(blob, filename) {
           return /cancel|abort/i.test(String(e && (e.message || e.name))) ? 'shared' : 'failed';
         });
       }
+      // In the phone app a blob download does nothing at all, so falling
+      // through to it would report a save that never happened.
+      if (isNative()) return 'failed';
       try {
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -148,7 +151,7 @@ export function openUrl(url) {
     if (launcher) {
       return launcher.openUrl({ url: url }).then(function (res) { return !res || res.completed !== false; }, function () { return false; });
     }
-    try { return !!window.open(url, '_blank', 'noopener,noreferrer') || true; } catch (e) { return false; }
+    try { return !!window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) { return false; }
   });
 }
 
