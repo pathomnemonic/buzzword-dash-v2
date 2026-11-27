@@ -24,6 +24,56 @@ CREATE TABLE IF NOT EXISTS pro_entitlements (
 -- The monthly Locker gift counts its months from here.
 ALTER TABLE pro_entitlements ADD COLUMN IF NOT EXISTS started_at timestamptz NOT NULL DEFAULT now();
 
+-- Every independent grant of Pro, one row each (issue 55): a Stripe subscription, a Stripe lifetime purchase, a store
+-- subscription, a store lifetime purchase, and everything else pooled as 'base' (codes, manual grants, the free trial).
+-- pro_entitlements above is the summary the app reads: the longest-running grant wins. Keeping the grants apart is
+-- what lets a refund take back only what that purchase gave: before this table existed, the summary was the only
+-- record, so revoking the grant it happened to show erased any other grant underneath it for good.
+CREATE TABLE IF NOT EXISTS pro_grants (
+  user_id uuid NOT NULL,
+  grant_key text NOT NULL CHECK (grant_key IN ('base', 'stripe-sub', 'stripe-lifetime', 'store-sub', 'store-lifetime')),
+  plan text NOT NULL DEFAULT 'pro',
+  source text NOT NULL DEFAULT 'manual',
+  until timestamptz NOT NULL,
+  trial boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, grant_key)
+);
+ALTER TABLE pro_grants ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON pro_grants FROM PUBLIC, anon, authenticated;
+
+-- Grants made before this table existed, taken from the summary rows (the only record there was).
+INSERT INTO pro_grants (user_id, grant_key, plan, source, until, trial)
+SELECT user_id,
+       CASE WHEN source = 'stripe' AND plan = 'lifetime' THEN 'stripe-lifetime'
+            WHEN source = 'stripe' THEN 'stripe-sub'
+            WHEN source = 'store' AND plan = 'lifetime' THEN 'store-lifetime'
+            WHEN source = 'store' THEN 'store-sub'
+            ELSE 'base' END,
+       plan, source, until, trial
+FROM pro_entitlements
+ON CONFLICT (user_id, grant_key) DO NOTHING;
+
+-- Rebuild the summary row from the grants: the longest-running grant is the one the member holds. Service role only.
+CREATE OR REPLACE FUNCTION pro_recompute_entitlement(p_user uuid) RETURNS timestamptz
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE best pro_grants%ROWTYPE; have_summary boolean;
+BEGIN
+  SELECT * INTO best FROM pro_grants WHERE user_id = p_user ORDER BY until DESC, updated_at DESC LIMIT 1;
+  IF NOT FOUND THEN
+    UPDATE pro_entitlements SET until = least(until, now()), updated_at = now() WHERE user_id = p_user;
+    RETURN NULL;
+  END IF;
+  SELECT EXISTS (SELECT 1 FROM pro_entitlements WHERE user_id = p_user) INTO have_summary;
+  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
+  VALUES (p_user, best.plan, best.source, best.until, best.trial, now(), now())
+  ON CONFLICT (user_id) DO UPDATE SET
+    plan = excluded.plan, source = excluded.source, until = excluded.until, trial = excluded.trial, updated_at = now(),
+    started_at = CASE WHEN NOT have_summary OR e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END;
+  RETURN best.until;
+END $$;
+REVOKE ALL ON FUNCTION pro_recompute_entitlement(uuid) FROM PUBLIC, anon, authenticated;
+
 -- Locker items bought with real money (the premium items). One row per member and item; kept for good unless refunded.
 CREATE TABLE IF NOT EXISTS pro_items (
   user_id uuid NOT NULL,
@@ -138,26 +188,31 @@ BEGIN
 END $$;
 
 -- Give Pro for some days (adds to what is left). Service role / SQL editor only.
+-- The days land on the member's 'base' grant (codes, manual grants, trials pool there), measured from the longest
+-- grant they hold, exactly as the summary behaved before the grants were kept apart (issue 55).
 CREATE OR REPLACE FUNCTION pro_grant(p_user uuid, p_days integer, p_plan text DEFAULT 'pro', p_source text DEFAULT 'manual', p_trial boolean DEFAULT false) RETURNS timestamptz
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE new_until timestamptz;
+DECLARE base_until timestamptz; summary_until timestamptz; new_until timestamptz;
 BEGIN
   IF p_days IS NULL OR p_days < 1 OR p_days > 3650 THEN RAISE EXCEPTION 'days must be 1 to 3650'; END IF;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
-  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), now() + make_interval(days => p_days), coalesce(p_trial, false), now(), now())
-  ON CONFLICT (user_id) DO UPDATE SET
-    until = greatest(e.until, now()) + make_interval(days => p_days),
-    plan = excluded.plan, source = excluded.source, trial = excluded.trial AND e.until > now(), updated_at = now(),
-    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
-  RETURNING until INTO new_until;
-  RETURN new_until;
+  SELECT until INTO base_until FROM pro_grants WHERE user_id = p_user AND grant_key = 'base';
+  SELECT until INTO summary_until FROM pro_entitlements WHERE user_id = p_user;
+  new_until := greatest(coalesce(summary_until, now()), coalesce(base_until, now()), now()) + make_interval(days => p_days);
+  INSERT INTO pro_grants AS g (user_id, grant_key, plan, source, until, trial, updated_at)
+  VALUES (p_user, 'base', coalesce(p_plan, 'pro'), coalesce(p_source, 'manual'), new_until, coalesce(p_trial, false), now())
+  ON CONFLICT (user_id, grant_key) DO UPDATE SET
+    until = excluded.until, plan = excluded.plan, source = excluded.source,
+    trial = excluded.trial AND g.until > now(), updated_at = now();
+  RETURN pro_recompute_entitlement(p_user);
 END $$;
 
--- End someone's Pro now. Service role / SQL editor only.
+-- End someone's Pro now, every grant of it. Service role / SQL editor only.
 CREATE OR REPLACE FUNCTION pro_revoke(p_user uuid) RETURNS void
-LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM pro_grants WHERE user_id = p_user;
   UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user;
-$$;
+END $$;
 
 -- Give a member a premium Locker item they paid for (safe to repeat). Service role only.
 -- Returns 'granted' (new), 'already' (the same payment again, or an older item with no payment on record) or 'duplicate'
@@ -172,8 +227,12 @@ BEGIN
   IF FOUND THEN RETURN 'granted'; END IF;
   SELECT payment_ref INTO had FROM pro_items WHERE user_id = p_user AND item_id = p_item;
   IF had IS NULL THEN
-    UPDATE pro_items SET payment_ref = p_ref WHERE user_id = p_user AND item_id = p_item;
-    RETURN 'already';
+    IF p_ref IS NULL THEN RETURN 'already'; END IF;
+    -- The item is owned with no payment on record (a grant from before refs were kept, or one made by hand), and a
+    -- NEW payment has arrived for it (issue 54). That payment bought nothing the member did not already have, so it
+    -- is a duplicate: the caller returns the money. The new ref is NOT attached — the item belongs to the earlier
+    -- payment, and attaching this one would let this payment's refund take the item away.
+    RETURN 'duplicate';
   END IF;
   IF p_ref IS NULL OR p_ref = had THEN RETURN 'already'; END IF;
   RETURN 'duplicate';
@@ -194,24 +253,40 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
 $$;
 
 -- Take back only a particular plan (a refunded lifetime must not end a subscription the same person also holds). Service role only.
+-- Only the grant that purchase made goes (issue 55): the Stripe or store grant for that plan is removed and the summary
+-- is rebuilt from what is left, so an underlying code, manual or other-source grant survives the refund.
 CREATE OR REPLACE FUNCTION pro_revoke_plan(p_user uuid, p_plan text) RETURNS void
-LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
-  UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user AND plan = p_plan;
-$$;
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  DELETE FROM pro_grants WHERE user_id = p_user AND plan = p_plan AND source IN ('stripe', 'store');
+  IF FOUND THEN
+    PERFORM pro_recompute_entitlement(p_user);
+  ELSIF NOT EXISTS (SELECT 1 FROM pro_grants WHERE user_id = p_user) THEN
+    -- no grants on record at all (state from before the grants were kept apart): the summary is the only record
+    UPDATE pro_entitlements SET until = now(), updated_at = now() WHERE user_id = p_user AND plan = p_plan;
+  END IF;
+END $$;
 
 -- Forget a member's payment records when their account is deleted (these tables hold a user id but, unlike the rest of the
 -- app's data, do not cascade from the login). Service role / the delete function only.
-CREATE OR REPLACE FUNCTION pro_forget_user(p_user uuid) RETURNS void
+-- p_final is true only when the login itself is being deleted. An app-only deletion keeps the Sign in with Apple token
+-- (issue 66): the token exists so a later delete-everywhere can revoke the Apple login, and deleting it here would
+-- quietly make that revocation impossible.
+DROP FUNCTION IF EXISTS pro_forget_user(uuid);
+CREATE OR REPLACE FUNCTION pro_forget_user(p_user uuid, p_final boolean DEFAULT false) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   DELETE FROM pro_entitlements WHERE user_id = p_user;
+  DELETE FROM pro_grants WHERE user_id = p_user;
   DELETE FROM pro_items WHERE user_id = p_user;
   DELETE FROM pro_library WHERE user_id = p_user;
   DELETE FROM pro_trials WHERE user_id = p_user;
   DELETE FROM pro_redemptions WHERE user_id = p_user;
   DELETE FROM pro_attempts WHERE user_id = p_user;
   DELETE FROM pro_stripe_customers WHERE user_id = p_user;
-  DELETE FROM apple_tokens WHERE user_id = p_user;
+  IF coalesce(p_final, false) THEN
+    DELETE FROM apple_tokens WHERE user_id = p_user;
+  END IF;
   DELETE FROM pro_store_purchases WHERE user_id = p_user;
 END $$;
 
@@ -267,7 +342,13 @@ BEGIN
   BEGIN
     INSERT INTO pro_store_purchases (platform, store_key, user_id, product_id, expires_at, revoked) VALUES (p_platform, p_key, p_user, p_product, p_expires, coalesce(p_revoked, false));
   EXCEPTION WHEN unique_violation THEN
-    RETURN 'other_account';  -- (someone claimed it between the check and the insert)
+    -- Someone claimed it between the check and the insert. That is only 'other_account' if it really is someone
+    -- else (issue 63): two simultaneous first-time claims by the SAME account raced, and one of them landed here.
+    SELECT user_id INTO owner FROM pro_store_purchases WHERE platform = p_platform AND store_key = p_key;
+    IF NOT FOUND OR owner <> p_user THEN RETURN 'other_account'; END IF;
+    UPDATE pro_store_purchases SET expires_at = p_expires, revoked = coalesce(p_revoked, false), verified_at = now(), product_id = p_product
+    WHERE platform = p_platform AND store_key = p_key;
+    RETURN 'ok';
   END;
   RETURN 'ok';
 END $$;
@@ -303,24 +384,38 @@ BEGIN
   RETURN jsonb_build_object('ok', true, 'until', new_until, 'days', c.days);
 END $$;
 
--- Set Pro to last until an exact moment (a web subscription: the end of the period just paid). Never shortens a longer
--- lifetime or code grant. Service role only.
+-- Set Pro to last until an exact moment (a web subscription: the end of the period just paid). Service role only.
+-- The grant lands on its own row (issue 55), so it never shortens a longer lifetime or code grant held alongside it:
+-- the summary is rebuilt from every grant the member holds. Within its own row, a web (Stripe) grant only ever
+-- grows, while a store grant is set exactly as the store reports it (issue 53): Google or Apple shortening a
+-- subscription's expiry, or ending it early, must take effect, and only the store's own row may move.
 CREATE OR REPLACE FUNCTION pro_grant_until(p_user uuid, p_until timestamptz, p_plan text DEFAULT 'pro', p_source text DEFAULT 'stripe', p_trial boolean DEFAULT false) RETURNS timestamptz
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE new_until timestamptz;
+DECLARE v_key text; v_source text := coalesce(p_source, 'stripe'); v_plan text := coalesce(p_plan, 'pro');
 BEGIN
   IF p_until IS NULL OR p_until > now() + interval '3651 days' THEN RAISE EXCEPTION 'until is out of range'; END IF;
-  INSERT INTO pro_entitlements AS e (user_id, plan, source, until, trial, updated_at, started_at)
-  VALUES (p_user, coalesce(p_plan, 'pro'), coalesce(p_source, 'stripe'), p_until, coalesce(p_trial, false), now(), now())
-  ON CONFLICT (user_id) DO UPDATE SET
-    until = greatest(e.until, excluded.until),
-    plan = CASE WHEN excluded.until >= e.until THEN excluded.plan ELSE e.plan END,
-    source = CASE WHEN excluded.until >= e.until THEN excluded.source ELSE e.source END,
-    trial = excluded.trial AND excluded.until >= e.until,
-    updated_at = now(),
-    started_at = CASE WHEN e.until <= now() OR (e.trial AND NOT excluded.trial) THEN now() ELSE e.started_at END
-  RETURNING until INTO new_until;
-  RETURN new_until;
+  v_key := CASE
+    WHEN v_source = 'stripe' AND v_plan = 'lifetime' THEN 'stripe-lifetime'
+    WHEN v_source = 'stripe' THEN 'stripe-sub'
+    WHEN v_source = 'store' AND v_plan = 'lifetime' THEN 'store-lifetime'
+    WHEN v_source = 'store' THEN 'store-sub'
+    ELSE 'base' END;
+  IF v_source = 'store' THEN
+    INSERT INTO pro_grants AS g (user_id, grant_key, plan, source, until, trial, updated_at)
+    VALUES (p_user, v_key, v_plan, v_source, p_until, coalesce(p_trial, false), now())
+    ON CONFLICT (user_id, grant_key) DO UPDATE SET
+      until = excluded.until, plan = excluded.plan, source = excluded.source, trial = excluded.trial, updated_at = now();
+  ELSE
+    INSERT INTO pro_grants AS g (user_id, grant_key, plan, source, until, trial, updated_at)
+    VALUES (p_user, v_key, v_plan, v_source, p_until, coalesce(p_trial, false), now())
+    ON CONFLICT (user_id, grant_key) DO UPDATE SET
+      until = greatest(g.until, excluded.until),
+      plan = CASE WHEN excluded.until >= g.until THEN excluded.plan ELSE g.plan END,
+      source = CASE WHEN excluded.until >= g.until THEN excluded.source ELSE g.source END,
+      trial = excluded.trial AND excluded.until >= g.until,
+      updated_at = now();
+  END IF;
+  RETURN pro_recompute_entitlement(p_user);
 END $$;
 
 -- The one-time Full Library unlock (every card, no tools). Service role only.
@@ -373,7 +468,7 @@ REVOKE ALL ON FUNCTION pro_revoke_plan(uuid, text) FROM PUBLIC, anon, authentica
 REVOKE ALL ON FUNCTION pro_grant_item(uuid, text, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_revoke_item(uuid, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION pro_has_item(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION pro_forget_user(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION pro_forget_user(uuid, boolean) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION redeem_pro_code(text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_my_pro() TO authenticated;
 REVOKE ALL ON FUNCTION start_my_trial() FROM PUBLIC, anon, authenticated;
