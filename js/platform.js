@@ -100,7 +100,7 @@ function toBase64(blob) {
  * opens the share sheet so the user can put it in Files, Drive, email... (a blob download does nothing there).
  * @param {Blob} blob
  * @param {string} filename
- * @returns {Promise<'downloaded'|'shared'|'failed'>}
+ * @returns {Promise<'downloaded'|'shared'|'cancelled'|'failed'>}
  */
 export function saveFile(blob, filename) {
   return loadFilesystem().then(function (fs) {
@@ -112,7 +112,9 @@ export function saveFile(blob, filename) {
         }).then(function (res) {
           return Share.share({ title: filename, files: [res.uri], dialogTitle: 'Save ' + filename });
         }).then(function () { return 'shared'; }, function (e) {
-          return /cancel|abort/i.test(String(e && (e.message || e.name))) ? 'shared' : 'failed';
+          // A cancelled share sheet is its own outcome: reporting it as
+          // 'shared' made callers announce a save that never happened.
+          return /cancel|abort/i.test(String(e && (e.message || e.name))) ? 'cancelled' : 'failed';
         });
       }
       // In the phone app a blob download does nothing at all, so falling
