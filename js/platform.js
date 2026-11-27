@@ -155,6 +155,11 @@ export function openUrl(url) {
   });
 }
 
+/** True when the phone app's link launcher is present, so openUrl's answer about a hand-off can be trusted as final. */
+export function hasNativeLauncher() {
+  return loadLauncher().then(function (l) { return !!l; });
+}
+
 /** Open a web page. (Fire and forget; use openUrl when you need to know whether it worked.) */
 export function openExternal(url) {
   openUrl(url);
