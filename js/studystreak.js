@@ -72,8 +72,10 @@ export function advanceStudyStreak(state, today) {
     if (gap <= 0) return out;
     if (gap === 1) {
       out.streak += 1;
-    } else if (gap === 2 && out.shields > 0 && out.streak > 0) {
-      out.shields -= 1;
+    } else if (gap > 1 && out.streak > 0 && out.shields >= gap - 1) {
+      // One shield per missed day, not just the single-miss case: a player
+      // who stockpiled two shields survives a two-day gap.
+      out.shields -= (gap - 1);
       out.streak += 1;
       out.shieldUsed = true;
     } else {
