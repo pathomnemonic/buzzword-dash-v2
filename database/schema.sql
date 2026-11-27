@@ -56,7 +56,10 @@ CREATE INDEX IF NOT EXISTS scores_user_idx ON scores (user_id);
 CREATE OR REPLACE FUNCTION scores_sanity() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF current_user <> 'authenticated' THEN
+  -- The app role test reads the role setting, not current_user: under
+  -- SECURITY DEFINER current_user is the function's owner, while the role
+  -- setting still names the role the request is running as.
+  IF coalesce(current_setting('role', true), '') <> 'authenticated' THEN
     RETURN NEW;
   END IF;
   IF NEW.score > 5000000 OR NEW.best_streak > 1000 THEN
