@@ -269,8 +269,7 @@ SELECT DISTINCT ON (s.user_id, s.mode, s.season)
   s.user_id, s.player_name, s.avatar, s.score, s.accuracy, s.best_streak,
   s.speed, s.mode, s.badges, s.season, s.created_at
 FROM scores s
-LEFT JOIN player_profiles p ON p.user_id = s.user_id
-WHERE p.user_id IS NULL OR p.visible = true
+JOIN player_profiles p ON p.user_id = s.user_id AND p.visible = true
 ORDER BY s.user_id, s.mode, s.season, s.score DESC, s.created_at ASC;
 
 
@@ -281,8 +280,7 @@ SELECT DISTINCT ON (s.user_id, s.mode)
   s.user_id, s.player_name, s.avatar, s.score, s.accuracy, s.best_streak,
   s.speed, s.mode, s.badges, s.season, s.created_at
 FROM scores s
-LEFT JOIN player_profiles p ON p.user_id = s.user_id
-WHERE p.user_id IS NULL OR p.visible = true
+JOIN player_profiles p ON p.user_id = s.user_id AND p.visible = true
 ORDER BY s.user_id, s.mode, s.score DESC, s.created_at ASC;
 
 
