@@ -7,8 +7,8 @@
  */
 
 import { track } from './analytics/index.js';
-import { getNativePlatform, isNative } from './native.js';
-import { openUrl, copyText } from './platform.js';
+import { getNativePlatform } from './native.js';
+import { openUrl, copyText, hasNativeLauncher } from './platform.js';
 
 function env() {
   /** @type {Record<string, any>} */
@@ -57,7 +57,14 @@ export function sendFeedback(fb, deps) {
     var to = supportEmail(deps.email);
     if (!to) return Promise.resolve(false);
     var url = 'mailto:' + to + '?subject=' + encodeURIComponent('Dx Dash feedback') + '&body=' + encodeURIComponent(feedbackBody(payload, ctx));
-    if (isNative()) return openUrl(url);
+    return hasNativeLauncher().then(function (native) {
+      // In the app, the launcher's answer is the truth about the hand-off.
+      if (native) return openUrl(url);
+      return emailHandoffSeen(url);
+    });
+  }
+
+  function emailHandoffSeen(url) {
     // On the web a mailto hand-off cannot be confirmed from the return
     // value (window.open reports nothing for it), so the old code claimed
     // the email app opened even when no mail client existed. The honest
