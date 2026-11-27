@@ -23,7 +23,13 @@ ALTER TABLE card_reports ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "scores_select_public" ON scores;
 CREATE POLICY "scores_select_public"
   ON scores FOR SELECT
-  USING (true);
+  -- Only the scores of players who chose a public profile, plus your own (issue 77): the table was readable by
+  -- anyone for everyone, which quietly undid the profile visibility setting. The leaderboards read through the
+  -- leaderboard views, which apply the same rule.
+  USING (
+    auth.uid() = user_id
+    OR EXISTS (SELECT 1 FROM player_profiles p WHERE p.user_id = scores.user_id AND p.visible = true)
+  );
 
 -- Authenticated users can insert their own scores.
 DROP POLICY IF EXISTS "scores_insert_own" ON scores;
@@ -125,6 +131,7 @@ CREATE POLICY "invites_insert_own"
   ON match_invites FOR INSERT
   WITH CHECK (
     auth.uid() = from_user
+    AND status = 'pending'
     AND EXISTS (
       SELECT 1 FROM friends f
       WHERE f.status = 'accepted'
