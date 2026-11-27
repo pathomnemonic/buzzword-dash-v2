@@ -720,6 +720,12 @@ class Game {
     // Transition to preparing
     if (!this._transition(GAME_STATES.PREPARING)) return;
 
+    // Build this run's rules now, before any state is reset from them: the reset
+    // reads the pace from the rules and the countdown reads whether the monster
+    // is on, and both used to see the PREVIOUS run's rules because the rules were
+    // only built later, in go().
+    this._buildRules();
+
     // Reset all run state
     this._resetRunState();
 
@@ -782,17 +788,11 @@ class Game {
     this._emit('countdown_started', {});
   }
 
-  // Called by main.js when countdown finishes
-  go() {
-    if (!this._transition(GAME_STATES.PLAYING)) return;
-
-    // Camera distance is cosmetic (Settings -> Camera)
-    var view = storage.get('cameraView');
-    if (view === 'close') this.cameraBasePos.set(0, 3.7, 8);
-    else if (view === 'far') this.cameraBasePos.set(0, 5.4, 12);
-    else this.cameraBasePos.set(0, 4.5, 10);
-
-    // Personal rule changes (single-player only) make this a custom run
+  // Personal rule changes (single-player only) make this a custom run. Built in
+  // start() (before the run state reset reads the pace and the countdown reads
+  // the monster switch) and again in go(), which is harmless: same inputs, same
+  // rules. The map pin is only applied in go(), once start() has settled the map.
+  _buildRules() {
     this._rules = getRunRules(this.mode, {
       disabledPowerups: storage.get('disabledPowerups'),
       hazardsOff: storage.get('hazardsOff'),
@@ -805,8 +805,22 @@ class Game {
     }
     // The remote kill switch (remoteconfig.js) can turn a mechanic off for everyone without an update
     var kill = applyKillSwitch(this._rules, POWERUP_OPTIONS.map(function (p) { return p.id; }));
-    if (kill.mapsPinned) this._mapPinned = true;
+    this._killMapsPinned = !!kill.mapsPinned;
     this._rushOff = kill.rushOff;
+  }
+
+  // Called by main.js when countdown finishes
+  go() {
+    if (!this._transition(GAME_STATES.PLAYING)) return;
+
+    // Camera distance is cosmetic (Settings -> Camera)
+    var view = storage.get('cameraView');
+    if (view === 'close') this.cameraBasePos.set(0, 3.7, 8);
+    else if (view === 'far') this.cameraBasePos.set(0, 5.4, 12);
+    else this.cameraBasePos.set(0, 4.5, 10);
+
+    this._buildRules();
+    if (this._killMapsPinned) this._mapPinned = true;
     this._resetPose();
     this._hideIntroMonster();
     this._introAnim = 'run';
@@ -1271,6 +1285,9 @@ class Game {
 
     // Exam monster
     this._updateExamMonster(dt);
+    // A monster catch ends the run inside that call: nothing else this frame may
+    // resolve (the gates used to still settle the encounter after the catch).
+    if (this._state !== GAME_STATES.PLAYING) return;
 
     // Auto-pilot
     if (this.autoPilotGatesLeft > 0 && this.gatesActive) {
@@ -1557,6 +1574,7 @@ class Game {
     // Obstacles
     for (var oi = this.obstacleMeshes.length - 1; oi >= 0; oi--) {
       var ob = this.obstacleMeshes[oi];
+      if (!ob) break; // the run ended mid loop and the cleanup emptied the list
       ob.position.z += move * VISUAL_SPEED;
       if (ob.userData.staff) updateModelAnimation(ob.userData.staff, dt, 'run');
       var od = ob.userData;
@@ -1597,6 +1615,9 @@ class Game {
             }
           }
         }
+        // Death or the end of the run emptied the obstacle list under this loop;
+        // stop here instead of reading entries that no longer exist.
+        if (this._state !== GAME_STATES.PLAYING) break;
       }
       // It leaves once it is well behind the runner
       if (ob.position.z > 2.5 * VISUAL_SPEED) {
