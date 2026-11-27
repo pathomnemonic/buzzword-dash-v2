@@ -94,7 +94,7 @@ export var CHARACTER_MODELS = [
       { key: 'tunic', label: 'Tunic & boots', materials: ['LightBrown'], palette: EARTH },
       { key: 'skin', label: 'Skin', materials: ['Skin'], palette: SKIN_TONES }
     ] },
-  { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 3850, icon: '🏹', color: 0x3fa98a,
+  { id: 'avatar_m_scout', name: 'Stat Sadie', desc: 'Light on her feet, quick with a smile', file: 'characters/scout.glb', price: 3850, icon: '⚡', color: 0x3fa98a,
     parts: [
       { key: 'tint', label: 'Scout wash', materials: ['rogue_texture'], palette: WASH }
     ] },
@@ -132,7 +132,7 @@ export var CHARACTER_MODELS = [
       { key: 'body', label: 'Body', materials: ['Main'], palette: METALS },
       { key: 'trim', label: 'Trim', materials: ['Grey'], palette: BRIGHTS }
     ] },
-  { id: 'avatar_m_hooded', name: 'Cath-Lab Cass', desc: 'In, through the artery, out again', file: 'characters/rogue-hooded.glb', price: 5600, icon: '🥷', color: 0x3fa98a,
+  { id: 'avatar_m_hooded', name: 'Cath-Lab Cass', desc: 'In, through the artery, out again', file: 'characters/rogue-hooded.glb', price: 5600, icon: '🫀', color: 0x3fa98a,
     parts: [
       { key: 'hood', label: 'Hood', materials: ['Head'], palette: NINJA, flat: true },
       { key: 'skin', label: 'Skin', materials: ['Face'], palette: SKIN_TONES },
