@@ -323,11 +323,29 @@ Deno.serve(async function (req) {
       if (held && held.data && held.data.plan === 'lifetime' && new Date(held.data.until).getTime() > Date.now()) return json({ error: 'You already have Pro for life.' }, 409);
       // a customer saved while Stripe was in test mode does not exist in live mode: start fresh rather than fail to sell
       var staleCustomer = function (e) { return /no such customer/i.test((e && e.message) || ''); };
-      if (customerId && wanted && wanted.def.kind === 'subscription') {
+      if (wanted && wanted.def.kind === 'subscription') {
         try {
-          var live = await stripe('subscriptions?customer=' + encodeURIComponent(customerId) + '&status=all&limit=10');
-          var running = ((live && live.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due'].indexOf(x.status) >= 0; });
-          if (running.length) return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+          // The existing subscription check runs on every subscription
+          // checkout (issue 167): with no saved customer id, the customer is
+          // found by email first, or a subscriber whose customer row was
+          // lost (or left in the other Stripe mode) would be sold a second
+          // subscription under a fresh customer.
+          var candidates = customerId ? [customerId] : [];
+          if (!customerId && user.email) {
+            var byEmail = await stripe('customers?email=' + encodeURIComponent(user.email) + '&limit=10');
+            candidates = ((byEmail && byEmail.data) || []).map(function (c) { return c.id; });
+          }
+          for (var cand of candidates) {
+            var live = await stripe('subscriptions?customer=' + encodeURIComponent(cand) + '&status=all&limit=10');
+            var running = ((live && live.data) || []).filter(function (x) { return ['active', 'trialing', 'past_due'].indexOf(x.status) >= 0; });
+            if (running.length) {
+              if (!customerId) {
+                var link = await admin.rpc('pro_link_customer', { p_customer: cand, p_user: user.id });
+                if (link && !link.error) customerId = cand;
+              }
+              return json({ error: 'You already have an active subscription. Use Manage subscription in Settings → Dx Dash Pro.' }, 409);
+            }
+          }
         } catch (e) { if (staleCustomer(e)) customerId = ''; else throw e; }
       }
       var build = function (cust) {
