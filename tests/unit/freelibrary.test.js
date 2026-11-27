@@ -25,8 +25,11 @@ describe('the free library: 300 cards, evenly across the subjects', () => {
   });
   it('is the list the picker produces (so it can be regenerated, but must not be after launch)', () => {
     // (the free list is a frozen file; the picker is only checked over the cards that existed when it was made. Cards added
-    // since by the later Dx batches, ids like dxd01 or dxe01, are never in it and must not change it.)
-    const again = pickFreeCards(Array.from(CARD_BY_ID.values()).filter((c) => !/^dx[a-z]\d+$/.test(c.id)), SUBJECTS, 20);
+    // since by the later Dx batches, ids like dxd01 or dxe01, are never in it and must not change it. The nephrology cards
+    // ne131 to ne180 are in the same position: the deck held ne001 to ne130 when the list was frozen, and completing it
+    // to its documented 180 must not move cards in or out of the free set either.)
+    const launchPool = (c) => !/^dx[a-z]\d+$/.test(c.id) && !/^ne1([3-7]\d|80)$/.test(c.id);
+    const again = pickFreeCards(Array.from(CARD_BY_ID.values()).filter(launchPool), SUBJECTS, 20);
     expect(again).toEqual(FREE_CARD_IDS_BY_SUBJECT);
   });
 });
