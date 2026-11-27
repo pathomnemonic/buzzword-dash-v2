@@ -106,13 +106,29 @@ function parseDelimitedText(text, options) {
   var directives = {};
   var lines = text.split(/\r\n|\n|\r/);
   var skip = 0;
-  // Only "#key:value" lines are Anki header directives. A card whose front merely starts
-  // with '#' is content, not a header, and must not be dropped.
-  while (skip < lines.length) {
-    var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
-    if (!dm) break;
-    directives[dm[1].trim().toLowerCase()] = dm[2].trim();
-    skip++;
+  // The leading "#" block is an Anki header only when it actually carries directives.
+  // A hand written file has none, and there a first card whose front starts with '#'
+  // is content: the old code skipped every leading "#" line and dropped that card.
+  // Inside a real header, "# comment" lines are skipped, but a "#" line holding a tab
+  // is a data row, not a comment.
+  var headerBlock = 0;
+  var hasDirective = false;
+  while (headerBlock < lines.length && /^#/.test(lines[headerBlock])) {
+    if (/^#([a-z ]+):(.*)$/i.test(lines[headerBlock])) hasDirective = true;
+    headerBlock++;
+  }
+  if (hasDirective) {
+    while (skip < headerBlock) {
+      var dm = /^#([a-z ]+):(.*)$/i.exec(lines[skip]);
+      if (dm) {
+        directives[dm[1].trim().toLowerCase()] = dm[2].trim();
+        skip++;
+      } else if (lines[skip].indexOf('\t') < 0) {
+        skip++;
+      } else {
+        break;
+      }
+    }
   }
   if (skip > 0) text = lines.slice(skip).join('\n');
   var sep = directives.separator;
