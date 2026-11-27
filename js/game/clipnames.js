@@ -83,6 +83,10 @@ export function resolveClipName(clipNames, state, heroKey) {
     if (name) return { clip: name, state: s };
     s = STATE_CLIPS[s] && STATE_CLIPS[s].fallback;
   }
-  return clipNames.length ? { clip: clipNames[0], state: state } : null;
+  // Nothing in the chain matched. The first clip stands in as the run cycle
+  // and is labelled 'run', never the state that was asked for: labelling it
+  // with the request would make hasClip() claim the model has clips it does
+  // not (a slide reported present because some unrelated clip exists).
+  return clipNames.length ? { clip: clipNames[0], state: 'run' } : null;
 }
 
