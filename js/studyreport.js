@@ -33,7 +33,7 @@ export function buildStudyReport(data, now) {
   }).filter(function (s) { return s.correct + s.wrong > 0; }).sort(function (a, b) {
     return (b.correct + b.wrong) - (a.correct + a.wrong) || a.subject.localeCompare(b.subject);
   });
-  var level = levelFromXp(Math.max(0, Number(p.xp) || 0));
+  var level = levelFromXp(Math.max(0, Number(p.xp) || 0)).level;
   var rank = rankForLevel(level);
   return {
     generated: (now || new Date()).toISOString().slice(0, 10),
