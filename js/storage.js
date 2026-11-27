@@ -227,6 +227,7 @@ var DEFAULTS = {
 
     questState: {},
     questPicks: {},
+    questCompleteDays: {},
 
     // Multiplayer stats
     multiplayerGamesPlayed: 0,
@@ -998,6 +999,7 @@ class Storage {
     if (typeof d.cards.subjectStats !== 'object' || d.cards.subjectStats === null) d.cards.subjectStats = {};
     if (typeof d.progression.questState !== 'object' || d.progression.questState === null) d.progression.questState = {};
     if (typeof d.progression.questPicks !== 'object' || d.progression.questPicks === null) d.progression.questPicks = {};
+    if (typeof d.progression.questCompleteDays !== 'object' || d.progression.questCompleteDays === null) d.progression.questCompleteDays = {};
     if (typeof d.history.calendarData !== 'object' || d.history.calendarData === null) d.history.calendarData = {};
     if (typeof d.history.dailyCounts !== 'object' || d.history.dailyCounts === null) d.history.dailyCounts = {};
     if (typeof d.history.dailyCorrect !== 'object' || d.history.dailyCorrect === null) d.history.dailyCorrect = {};
@@ -1292,8 +1294,15 @@ class Storage {
   }
 
   _getQuestCompletionDates() {
-    // Dates on which every quest on offer that day was completed
+    // Dates on which every quest on offer that day was completed. Two
+    // sources, merged: the days markQuestsComplete recorded when the quest
+    // list was seen complete, and the same fact derived from quest state
+    // (which covers days played before the recording existed).
     var result = {};
+    var marked = this.data.progression.questCompleteDays || {};
+    for (var markedKey in marked) {
+      if (Object.prototype.hasOwnProperty.call(marked, markedKey) && marked[markedKey]) result[markedKey] = true;
+    }
     var qs = this.data.progression.questState;
     var picks = this.data.progression.questPicks || {};
     for (var dateKey in qs) {
@@ -2297,8 +2306,16 @@ class Storage {
   // ===== QUEST COMPLETION DATE TRACKING =====
 
   markQuestsComplete(dateKey) {
-    // No-op: quest completion is derived from quest state
-    // Kept for backward compat
+    // Record the day: the profile calls this when it renders a complete
+    // quest list, and the streak calendar reads the recorded days (merged
+    // with the derived ones in _getQuestCompletionDates) for its gold days.
+    if (!dateKey) return;
+    if (!this.data.progression.questCompleteDays || typeof this.data.progression.questCompleteDays !== 'object') {
+      this.data.progression.questCompleteDays = {};
+    }
+    if (this.data.progression.questCompleteDays[dateKey]) return;
+    this.data.progression.questCompleteDays[dateKey] = true;
+    this.save();
   }
 
   areQuestsComplete(dateKey) {

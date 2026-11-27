@@ -40,12 +40,16 @@ describe('My Cards with a big imported deck', () => {
     expect(document.getElementById('customCardList').textContent).toMatch(/Needle answer/);
   });
 
-  it('can delete the whole imported deck at once and keeps cards made by hand', () => {
-    window.confirm = () => true;
+  it('can delete the whole imported deck at once and keeps cards made by hand', async () => {
     ui.renderCustomCardList();
     const btn = [...document.querySelectorAll('#customCardList button')].find((b) => /Delete imported flashcards \(120\)/.test(b.textContent));
     expect(btn).toBeTruthy();
     btn.click();
+    // the delete asks first, in the app's own dialog rather than a native confirm
+    const confirmBtn = [...document.querySelectorAll('.tut-exit button')].find((b) => b.textContent === 'Delete');
+    expect(confirmBtn).toBeTruthy();
+    confirmBtn.click();
+    await Promise.resolve();
     expect(customCards.getAll().map((c) => c.ans)).toEqual(['Own answer']);
   });
 });

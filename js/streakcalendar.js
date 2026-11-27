@@ -33,6 +33,7 @@ export function intensityFor(count, goal) {
 export function buildCalendarModel(input) {
   var counts = input.counts || {};
   var correct = input.correct || {};
+  var questDays = input.questDays || {};
   var goal = input.goal || 20;
   var weeks = input.weeks || CALENDAR_WEEKS;
   var today = new Date(input.today);
@@ -69,7 +70,7 @@ export function buildCalendarModel(input) {
       if (n > 0) { activeDays++; run++; if (run > best) best = run; } else run = 0;
       if (n >= goal) goalDays++;
     }
-    cells.push({ key: key, date: d, count: n, correct: right, level: intensityFor(n, goal), future: false, before: before, today: key === todayKey, goalMet: n >= goal });
+    cells.push({ key: key, date: d, count: n, correct: right, level: intensityFor(n, goal), future: false, before: before, today: key === todayKey, goalMet: n >= goal, questsDone: !!questDays[key] });
   }
   // the current run counts back from today (or from yesterday while today is still empty)
   var current = 0;
@@ -93,7 +94,7 @@ export function describeDay(cell, goal) {
   if (cell.future) return dayName(cell.date) + ': not yet';
   if (!cell.count) return dayName(cell.date) + ': no cards answered';
   var acc = cell.correct > 0 ? ', ' + Math.round(cell.correct / cell.count * 100) + '% right' : '';
-  return dayName(cell.date) + ': ' + cell.count + (cell.count === 1 ? ' card' : ' cards') + acc + (cell.goalMet ? ' · goal met ✅' : ' · goal ' + goal);
+  return dayName(cell.date) + ': ' + cell.count + (cell.count === 1 ? ' card' : ' cards') + acc + (cell.goalMet ? ' · goal met ✅' : ' · goal ' + goal) + (cell.questsDone ? ' · all quests done 🏆' : '');
 }
 
 /** Draw the calendar into `container` (cleared first). `page` 0 is the latest twelve weeks (or fewer, for a newer player). */
@@ -103,7 +104,7 @@ export function renderStreakCalendar(container, page) {
   page = page || 0;
   var history = storage.data && storage.data.history || {};
   var goal = storage.get('dailyGoal') || 20;
-  var args = { counts: history.dailyCounts, correct: history.dailyCorrect, goal: goal, today: new Date() };
+  var args = { counts: history.dailyCounts, correct: history.dailyCorrect, goal: goal, today: new Date(), questDays: storage.get('questCompletionDates') };
   var model = buildCalendarModel(Object.assign({ page: page }, args));
   // The numbers on top cover everything the player has done, not just the page on show
   var all = buildCalendarModel(Object.assign({ weeks: 100000 }, args));
@@ -146,7 +147,7 @@ export function renderStreakCalendar(container, page) {
   model.cells.forEach(function (c) {
     if (c.before) { grid.appendChild(createElement('span', { className: 'cal-blank', attributes: { 'aria-hidden': 'true' } })); return; }
     var btn = createElement('button', {
-      className: 'calendar-day cal-day lvl-' + c.level + (c.today ? ' today' : '') + (c.goalMet ? ' goal-met' : ''),
+      className: 'calendar-day cal-day lvl-' + c.level + (c.today ? ' today' : '') + (c.goalMet ? ' goal-met' : '') + (c.questsDone ? ' quests-done' : ''),
       attributes: { type: 'button', 'aria-label': describeDay(c, goal) }
     });
     if (c.count > 0) btn.appendChild(createElement('span', { className: 'cal-n', text: c.count > 99 ? '99+' : String(c.count) }));

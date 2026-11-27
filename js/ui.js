@@ -70,7 +70,7 @@ import { studyMethods } from './uistudy.js';
 import { browseMethods } from './uibrowse.js';
 import { profileMethods } from './uiprofile.js';
 import { homeMethods, SHEETS } from './uihome.js';
-import { prefersReducedMotion, trapFocus, releaseFocusTrap } from './uihelpers.js';
+import { prefersReducedMotion, trapFocus, releaseFocusTrap, promptDialog, messageDialog } from './uihelpers.js';
 
 // ═══════════════════════════════════════════════════════════
 // SETTINGS EXTENSIONS REGISTRY (Section 21.1) [2]
@@ -530,15 +530,38 @@ class UI {
   // ═══════════════════════════════════════════════════════
 
   _bindGlobalEscapeKey() {
+    var self = this;
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
 
       var rankedCard = document.getElementById('rankedResult');
       if (rankedCard) { rankedCard.remove(); return; }
 
+      // The continue prompt is a question, not a plain overlay: Escape is
+      // the No answer, so the stored decline runs (the run ends) instead of
+      // the box simply vanishing with the game left waiting on it.
+      var continueOv = document.getElementById('continueOverlay');
+      if (continueOv && continueOv.classList.contains('active')) {
+        var decline = self._continueDecline;
+        self.hideContinuePrompt();
+        if (decline) decline();
+        return;
+      }
+
+      // Closing multiplayer runs the same hook as its close button (set by
+      // main.js), so a ranked search is cancelled rather than left running
+      // behind a hidden overlay.
+      var mpOv = document.getElementById('multiplayerOverlay');
+      if (mpOv && mpOv.classList.contains('active')) {
+        mpOv.classList.remove('active');
+        releaseFocusTrap();
+        if (typeof self.onMultiplayerClose === 'function') self.onMultiplayerClose();
+        return;
+      }
+
       // Close modals in priority order
       // (the Home pop-ups come from the one list in uihome.js, so a new one cannot be forgotten here)
-      var overlays = ['reviewOverlay', 'quickReviewOverlay', 'continueOverlay', 'multiplayerOverlay'].concat(SHEETS);
+      var overlays = ['reviewOverlay', 'quickReviewOverlay'].concat(SHEETS);
       for (var i = 0; i < overlays.length; i++) {
         var ov = document.getElementById(overlays[i]);
         if (ov && ov.classList.contains('active')) {
@@ -1532,7 +1555,10 @@ class UI {
     setText(currentCoins, storage.get('coins'));
     overlay.classList.add('active');
     trapFocus(overlay);
+    // Kept for the global Escape handler: Escape is the No answer.
+    this._continueDecline = onDecline || null;
 
+    var self = this;
     var newContinueBtn = continueBtn.cloneNode(true);
     continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
     var newDeclineBtn = declineBtn.cloneNode(true);
@@ -1541,11 +1567,13 @@ class UI {
     newContinueBtn.addEventListener('click', function () {
       overlay.classList.remove('active');
       releaseFocusTrap();
+      self._continueDecline = null;
       if (onContinue) onContinue();
     });
     newDeclineBtn.addEventListener('click', function () {
       overlay.classList.remove('active');
       releaseFocusTrap();
+      self._continueDecline = null;
       if (onDecline) onDecline();
     });
   }
@@ -1553,6 +1581,7 @@ class UI {
   hideContinuePrompt() {
     document.getElementById('continueOverlay').classList.remove('active');
     releaseFocusTrap();
+    this._continueDecline = null;
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1972,16 +2001,22 @@ class UI {
     var self = this;
     var cards = customCards.getAll();
     if (cards.length === 0) { this._showToast('Create some custom cards first.'); return; }
-    var name = window.prompt('Deck name:', 'My deck');
-    if (!name || !name.trim()) return;
-    var payload;
-    try { payload = JSON.parse(customCards.exportJSON()); } catch (e) { this._showToast('Could not read your cards.'); return; }
-    this._withOnlineService(function (lb) {
-      return lb.publishDeck(name.trim(), payload.slice(0, 200)).then(function (res) {
-        if (!res.success) { self._showToast(res.error || 'Could not share the deck.'); return; }
-        var code = res.data;
-        copyText(code).then(function (ok) {
-          window.alert('Deck shared! Give this code to friends:\n\n' + code + (ok ? '\n\n(It was copied to your clipboard.)' : ''));
+    promptDialog({ title: 'Share deck', text: 'Name this deck:', initial: 'My deck', confirmLabel: 'Share' }).then(function (name) {
+      if (!name || !name.trim()) return;
+      var payload;
+      try { payload = JSON.parse(customCards.exportJSON()); } catch (e) { self._showToast('Could not read your cards.'); return; }
+      var total = payload.length;
+      self._withOnlineService(function (lb) {
+        return lb.publishDeck(name.trim(), payload.slice(0, 200)).then(function (res) {
+          if (!res.success) { self._showToast(res.error || 'Could not share the deck.'); return; }
+          var code = res.data;
+          copyText(code).then(function (ok) {
+            messageDialog({
+              title: 'Deck shared!',
+              text: 'Give this code to friends:' + (total > 200 ? '\n\nOnly the first 200 of your ' + total + ' cards were shared (the share limit).' : '') + (ok ? '\n\n(It was copied to your clipboard.)' : ''),
+              copyText: code
+            });
+          });
         });
       });
     });
@@ -1990,8 +2025,14 @@ class UI {
   /** Import a deck by its share code. */
   importDeckByCode() {
     var self = this;
-    var code = window.prompt('Enter the deck code:');
-    if (!code || !code.trim()) return;
+    promptDialog({ title: 'Import a deck', text: 'Enter the deck code:', confirmLabel: 'Import' }).then(function (code) {
+      if (!code || !code.trim()) return;
+      self._importDeckByCode(code);
+    });
+  }
+
+  _importDeckByCode(code) {
+    var self = this;
     var key = code.trim().toUpperCase();
     var cached = getDeck(key);
 
@@ -2370,7 +2411,7 @@ class UI {
     var self = this;
     shareText({ title: 'Dx Dash Score', text: text, kind: 'results', surface: 'postrun', score: game.score }).then(function (how) {
       if (how === 'copied') self._showToast('Score copied \u2014 paste it anywhere to share.');
-      else if (how === 'failed') window.alert('Could not share. Your score:\n\n' + text);
+      else if (how === 'failed') messageDialog({ title: 'Could not share', text: 'Sharing did not work from here. Your score is in the box below, ready to copy:', copyText: text });
     });
   }
 
