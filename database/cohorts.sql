@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS cohort_members (
   PRIMARY KEY (cohort_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS cohort_members_cohort_idx ON cohort_members (cohort_id);
+-- At most one leader per cohort, structurally (issue 71).
+CREATE UNIQUE INDEX IF NOT EXISTS cohort_one_leader_idx ON cohort_members (cohort_id) WHERE role = 'leader';
 
 CREATE TABLE IF NOT EXISTS cohort_war_points (
   week       text NOT NULL,
@@ -135,7 +137,8 @@ DECLARE
   c cohorts;
 BEGIN
   IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
-  SELECT * INTO c FROM cohorts WHERE tag = upper(btrim(p_tag));
+  -- The cohort row is locked so the member count below cannot be raced by two people joining at once (issue 72).
+  SELECT * INTO c FROM cohorts WHERE tag = upper(btrim(p_tag)) FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'No cohort with that code'; END IF;
   IF EXISTS (SELECT 1 FROM cohort_members WHERE user_id = me) THEN
     RAISE EXCEPTION 'Leave your current cohort first';
@@ -189,14 +192,16 @@ DECLARE
 BEGIN
   IF me IS NULL THEN RAISE EXCEPTION 'Not signed in'; END IF;
   IF p_role NOT IN ('leader', 'officer', 'member') THEN RAISE EXCEPTION 'Bad role'; END IF;
-  SELECT * INTO mine FROM cohort_members WHERE user_id = me;
+  -- Both rows are locked (issue 71): a handover racing another role change must not leave two leaders, or none.
+  SELECT * INTO mine FROM cohort_members WHERE user_id = me FOR UPDATE;
   IF NOT FOUND OR mine.role <> 'leader' THEN RAISE EXCEPTION 'Only the leader can do that'; END IF;
-  SELECT * INTO theirs FROM cohort_members WHERE user_id = p_user AND cohort_id = mine.cohort_id;
+  SELECT * INTO theirs FROM cohort_members WHERE user_id = p_user AND cohort_id = mine.cohort_id FOR UPDATE;
   IF NOT FOUND OR p_user = me THEN RAISE EXCEPTION 'Not a member of your cohort'; END IF;
-  UPDATE cohort_members SET role = p_role WHERE cohort_id = mine.cohort_id AND user_id = p_user;
+  -- Demote before promoting, so the cohort never holds two leaders at once, not even inside this transaction.
   IF p_role = 'leader' THEN
     UPDATE cohort_members SET role = 'officer' WHERE cohort_id = mine.cohort_id AND user_id = me;
   END IF;
+  UPDATE cohort_members SET role = p_role WHERE cohort_id = mine.cohort_id AND user_id = p_user;
 END;
 $$;
 
@@ -316,12 +321,17 @@ DECLARE
 BEGIN
   SELECT cohort_id INTO cid FROM cohort_members WHERE user_id = p_user;
   IF cid IS NULL THEN RETURN; END IF;
-  SELECT coalesce(points, 0) INTO have FROM cohort_war_points WHERE week = wk AND cohort_id = cid AND user_id = p_user;
-  have := coalesce(have, 0);
+  -- The weekly cap is per player across every cohort they score for (issue 70: changing cohorts must not hand
+  -- back a fresh allowance). Make sure this cohort's row exists, then lock every row the player has this week
+  -- before adding (issue 69: two matches settling at once must not both read the same total and overshoot).
+  INSERT INTO cohort_war_points (week, cohort_id, user_id, points) VALUES (wk, cid, p_user, 0)
+  ON CONFLICT (week, cohort_id, user_id) DO NOTHING;
+  PERFORM 1 FROM cohort_war_points WHERE week = wk AND user_id = p_user FOR UPDATE;
+  SELECT coalesce(sum(points), 0) INTO have FROM cohort_war_points WHERE week = wk AND user_id = p_user;
   give := least(p_points, 100 - have);   -- at most 100 points per player per week
   IF give <= 0 THEN RETURN; END IF;
-  INSERT INTO cohort_war_points (week, cohort_id, user_id, points) VALUES (wk, cid, p_user, give)
-  ON CONFLICT (week, cohort_id, user_id) DO UPDATE SET points = cohort_war_points.points + give, updated_at = now();
+  UPDATE cohort_war_points SET points = points + give, updated_at = now()
+   WHERE week = wk AND cohort_id = cid AND user_id = p_user;
 END;
 $$;
 REVOKE ALL ON FUNCTION cohort_add_war_points(uuid, integer) FROM PUBLIC, anon, authenticated;
@@ -332,7 +342,11 @@ BEGIN
   IF NEW.settled AND NOT OLD.settled THEN
     IF NEW.winner_id IS NOT NULL THEN
       PERFORM cohort_add_war_points(NEW.winner_id, 10);
-    ELSIF EXISTS (SELECT 1 FROM ranked_reports r WHERE r.match_id = NEW.id AND r.outcome = 'draw') THEN
+    ELSIF EXISTS (SELECT 1 FROM ranked_reports r WHERE r.match_id = NEW.id AND r.outcome = 'draw')
+      AND NOT EXISTS (SELECT 1 FROM ranked_reports r WHERE r.match_id = NEW.id AND r.outcome IN ('win', 'loss')) THEN
+      -- Draw points only for a draw both reports agree on (or a single draw report): when the reports conflict
+      -- (one says win, one says draw) the match is disputed, and awarding both players draw points pays out
+      -- over a result nobody agreed on (issue 68).
       PERFORM cohort_add_war_points(NEW.host_id, 3);
       PERFORM cohort_add_war_points(NEW.guest_id, 3);
     END IF;

@@ -147,7 +147,8 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE g study_groups;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not signed in'; END IF;
-  SELECT * INTO g FROM study_groups WHERE id = p_group_id AND visibility = 'public';
+  -- The group row is locked so the member count below cannot be raced by two people joining at once (issue 72).
+  SELECT * INTO g FROM study_groups WHERE id = p_group_id AND visibility = 'public' FOR UPDATE;
   IF NOT FOUND OR has_block_between(auth.uid(), g.owner_id) THEN RAISE EXCEPTION 'That group is not available'; END IF;
   IF is_group_member(g.id) THEN RETURN 'joined'; END IF;
   IF (SELECT count(*) FROM group_members WHERE group_id = g.id) >= 100 THEN RAISE EXCEPTION 'This group is full'; END IF;
@@ -186,8 +187,12 @@ $$;
 
 CREATE OR REPLACE FUNCTION resolve_group_request(p_group_id uuid, p_user uuid, p_accept boolean) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE g study_groups;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM study_groups WHERE id = p_group_id AND owner_id = auth.uid()) THEN
+  -- The group row is locked while a request is answered, so two accepts at once cannot both pass the member
+  -- count check below (issue 72).
+  SELECT * INTO g FROM study_groups WHERE id = p_group_id FOR UPDATE;
+  IF NOT FOUND OR g.owner_id <> auth.uid() THEN
     RAISE EXCEPTION 'Only the group owner can answer requests';
   END IF;
   IF p_accept THEN
