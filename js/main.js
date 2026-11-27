@@ -1987,6 +1987,12 @@ function init() {
       if (overlay) overlay.classList.remove('active');
     });
   }
+  // The global Escape handler closes the same overlay; it runs this hook so
+  // Escape cancels a ranked search too, instead of leaving it running
+  // behind a hidden overlay.
+  ui.onMultiplayerClose = function () {
+    if (isSearching() && multiplayerClient) cancelRanked(multiplayerClient, {});
+  };
 
   // Pause / Resume / End Run
   document.getElementById('pauseBtn').addEventListener('click', function () {
