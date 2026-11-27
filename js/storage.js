@@ -2447,6 +2447,11 @@ class Storage {
       return { ok: false, error: 'Could not write to local storage.' };
     }
     this.load();
+    // A restore is a local change like any other: tell listeners (cloud sync marks
+    // the save dirty from this, so the restored progress is pushed, not pulled over).
+    if (typeof this.onChange === 'function') {
+      try { this.onChange(); } catch (e) { /* a listener must never break restoring */ }
+    }
     return { ok: true };
   }
 
